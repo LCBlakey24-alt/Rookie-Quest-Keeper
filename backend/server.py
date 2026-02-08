@@ -64,24 +64,81 @@ class CampaignCreate(BaseModel):
     name: str
     description: str = ""
 
-class CampaignTab(BaseModel):
+class CampaignSetting(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
-    title: str
     content: str = ""
-    order: int = 0
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-class CampaignTabCreate(BaseModel):
-    title: str
-    content: str = ""
-    order: int = 0
+class CampaignSettingUpdate(BaseModel):
+    content: str
 
-class CampaignTabUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-    order: Optional[int] = None
+class God(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str
+    domain: str = ""
+    description: str = ""
+    symbol: str = ""
+    alignment: str = ""
+    notes: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class GodCreate(BaseModel):
+    name: str
+    domain: str = ""
+    description: str = ""
+    symbol: str = ""
+    alignment: str = ""
+    notes: str = ""
+
+class GodUpdate(BaseModel):
+    name: Optional[str] = None
+    domain: Optional[str] = None
+    description: Optional[str] = None
+    symbol: Optional[str] = None
+    alignment: Optional[str] = None
+    notes: Optional[str] = None
+
+class Location(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str
+    location_type: str = ""  # city, dungeon, wilderness, etc
+    description: str = ""
+    notable_npcs: str = ""
+    notes: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class LocationCreate(BaseModel):
+    name: str
+    location_type: str = ""
+    description: str = ""
+    notable_npcs: str = ""
+    notes: str = ""
+
+class LocationUpdate(BaseModel):
+    name: Optional[str] = None
+    location_type: Optional[str] = None
+    description: Optional[str] = None
+    notable_npcs: Optional[str] = None
+    notes: Optional[str] = None
+
+class InGameNote(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    content: str
+    session_date: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    ai_processed: bool = False
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class InGameNoteCreate(BaseModel):
+    content: str
+    session_date: Optional[str] = None
 
 class PlayerStats(BaseModel):
     strength: int = 10
