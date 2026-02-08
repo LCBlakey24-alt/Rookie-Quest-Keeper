@@ -468,7 +468,7 @@ async def delete_god(campaign_id: str, god_id: str, username: str = Depends(get_
 
 # ==================== LOCATIONS ROUTES ====================
 
-@api_router.post("/campaigns/{campaign_id}/locations", response_model=Location)
+@api_router.post("/campaigns/{campaign_id}/locations", response_model=Location, status_code=status.HTTP_201_CREATED)
 async def create_location(campaign_id: str, location_data: LocationCreate, username: str = Depends(get_current_user)):
     campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
     if not campaign:
