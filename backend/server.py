@@ -416,7 +416,7 @@ async def update_campaign_setting(campaign_id: str, setting_data: CampaignSettin
 
 # ==================== GODS ROUTES ====================
 
-@api_router.post("/campaigns/{campaign_id}/gods", response_model=God)
+@api_router.post("/campaigns/{campaign_id}/gods", response_model=God, status_code=status.HTTP_201_CREATED)
 async def create_god(campaign_id: str, god_data: GodCreate, username: str = Depends(get_current_user)):
     campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
     if not campaign:
