@@ -20,7 +20,7 @@ function CampaignDashboard({ username, onLogout }) {
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('players');
+  const [activeTab, setActiveTab] = useState('setting');
 
   useEffect(() => {
     fetchCampaign();
