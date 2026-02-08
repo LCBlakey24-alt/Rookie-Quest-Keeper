@@ -110,22 +110,40 @@ function CampaignDashboard({ username, onLogout }) {
             flexWrap: 'wrap'
           }}>
             <TabsTrigger 
-              data-testid="players-tab"
-              value="players"
+              data-testid="setting-tab"
+              value="setting"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                background: activeTab === 'players' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                color: activeTab === 'players' ? '#d4af37' : '#8b7355',
-                border: activeTab === 'players' ? '1px solid #d4af37' : '1px solid transparent',
+                background: activeTab === 'setting' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'setting' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'setting' ? '1px solid #d4af37' : '1px solid transparent',
                 fontWeight: '600'
               }}
             >
-              <Users size={18} />
-              Players
+              <Book size={18} />
+              Campaign Setting
+            </TabsTrigger>
+            <TabsTrigger 
+              data-testid="gods-tab"
+              value="gods"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                background: activeTab === 'gods' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'gods' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'gods' ? '1px solid #d4af37' : '1px solid transparent',
+                fontWeight: '600'
+              }}
+            >
+              <Church size={18} />
+              Gods
             </TabsTrigger>
             <TabsTrigger 
               data-testid="npcs-tab"
@@ -146,79 +164,83 @@ function CampaignDashboard({ username, onLogout }) {
               NPCs
             </TabsTrigger>
             <TabsTrigger 
-              data-testid="maps-tab"
-              value="maps"
+              data-testid="locations-tab"
+              value="locations"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                background: activeTab === 'maps' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                color: activeTab === 'maps' ? '#d4af37' : '#8b7355',
-                border: activeTab === 'maps' ? '1px solid #d4af37' : '1px solid transparent',
+                background: activeTab === 'locations' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'locations' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'locations' ? '1px solid #d4af37' : '1px solid transparent',
                 fontWeight: '600'
               }}
             >
-              <Map size={18} />
-              Maps
+              <MapPin size={18} />
+              Locations
             </TabsTrigger>
             <TabsTrigger 
-              data-testid="notes-tab"
-              value="notes"
+              data-testid="players-tab"
+              value="players"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                background: activeTab === 'notes' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                color: activeTab === 'notes' ? '#d4af37' : '#8b7355',
-                border: activeTab === 'notes' ? '1px solid #d4af37' : '1px solid transparent',
+                background: activeTab === 'players' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'players' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'players' ? '1px solid #d4af37' : '1px solid transparent',
                 fontWeight: '600'
               }}
             >
-              <Scroll size={18} />
-              Notes & Lore
+              <Users size={18} />
+              Players
             </TabsTrigger>
             <TabsTrigger 
-              data-testid="ai-tab"
-              value="ai"
+              data-testid="ingame-notes-tab"
+              value="ingame-notes"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                background: activeTab === 'ai' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                color: activeTab === 'ai' ? '#d4af37' : '#8b7355',
-                border: activeTab === 'ai' ? '1px solid #d4af37' : '1px solid transparent',
+                background: activeTab === 'ingame-notes' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'ingame-notes' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'ingame-notes' ? '1px solid #d4af37' : '1px solid transparent',
                 fontWeight: '600'
               }}
             >
-              <Sparkles size={18} />
-              AI Assistant
+              <FileText size={18} />
+              In-Game Notes
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="players">
-            <PlayersTab campaignId={campaignId} />
+          <TabsContent value="setting">
+            <CampaignSettingTab campaignId={campaignId} />
+          </TabsContent>
+
+          <TabsContent value="gods">
+            <GodsTab campaignId={campaignId} />
           </TabsContent>
 
           <TabsContent value="npcs">
             <NPCsTab campaignId={campaignId} />
           </TabsContent>
 
-          <TabsContent value="maps">
-            <MapsTab campaignId={campaignId} />
+          <TabsContent value="locations">
+            <LocationsTab campaignId={campaignId} />
           </TabsContent>
 
-          <TabsContent value="notes">
-            <NotesTab campaignId={campaignId} />
+          <TabsContent value="players">
+            <PlayersTab campaignId={campaignId} />
           </TabsContent>
 
-          <TabsContent value="ai">
-            <AIAssistantTab campaignId={campaignId} />
+          <TabsContent value="ingame-notes">
+            <InGameNotesTab campaignId={campaignId} />
           </TabsContent>
         </Tabs>
       </div>
