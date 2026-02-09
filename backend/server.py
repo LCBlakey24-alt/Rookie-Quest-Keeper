@@ -173,6 +173,8 @@ class CalendarEventUpdate(BaseModel):
     day: Optional[int] = None
     month: Optional[int] = None
     year: Optional[int] = None
+
+class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
