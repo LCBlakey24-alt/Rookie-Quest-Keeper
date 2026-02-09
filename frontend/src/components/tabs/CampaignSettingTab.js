@@ -103,7 +103,7 @@ function CampaignSettingTab({ campaignId }) {
     </div>
 
       {/* AI Assistant Panel */}
-      <div style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
+      <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
         <Card className="parchment-dark" style={{ border: '2px solid #d4af37' }}>
           <div style={{ padding: '20px' }}>
             <h3 className="medieval-heading" style={{ fontSize: '20px', color: '#d4af37', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
