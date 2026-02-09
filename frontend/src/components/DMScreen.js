@@ -147,21 +147,70 @@ Each turn: 3 actions + 1 reaction
 
   const fetchAllData = async () => {
     try {
-      const [campaignRes, playersRes, npcsRes, initRes] = await Promise.all([
+      const [campaignRes, playersRes, npcsRes, initRes, settingRes] = await Promise.all([
         axios.get(`${API}/campaigns/${campaignId}`),
         axios.get(`${API}/campaigns/${campaignId}/players`),
         axios.get(`${API}/campaigns/${campaignId}/npcs`),
-        axios.get(`${API}/campaigns/${campaignId}/initiative`)
+        axios.get(`${API}/campaigns/${campaignId}/initiative`),
+        axios.get(`${API}/campaigns/${campaignId}/setting`)
       ]);
       
       setCampaign(campaignRes.data);
       setPlayers(playersRes.data);
       setNPCs(npcsRes.data);
       setInitiative(initRes.data);
+      
+      // Load custom rules or default rules
+      const customRules = settingRes.data?.dm_rules;
+      if (customRules) {
+        setDmRules(customRules);
+      } else {
+        setDmRules(getDefaultRules(campaignRes.data.system));
+      }
     } catch (error) {
       toast.error('Failed to load DM Screen data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveRules = async () => {
+    try {
+      await axios.put(`${API}/campaigns/${campaignId}/setting`, { dm_rules: dmRules });
+      toast.success('Rules saved!');
+      setIsEditingRules(false);
+    } catch (error) {
+      toast.error('Failed to save rules');
+    }
+  };
+
+  const handleSearch = () => {
+    if (!searchTerm.trim()) {
+      setHighlightedSections([]);
+      return;
+    }
+
+    const lines = dmRules.split('\n');
+    const matches = [];
+    const search = searchTerm.toLowerCase();
+
+    lines.forEach((line, index) => {
+      if (line.toLowerCase().includes(search)) {
+        matches.push(index);
+      }
+    });
+
+    setHighlightedSections(matches);
+
+    // Scroll to first match
+    if (matches.length > 0) {
+      const element = document.getElementById(`rule-line-${matches[0]}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      toast.success(`Found ${matches.length} match${matches.length > 1 ? 'es' : ''}`);
+    } else {
+      toast.error('No matches found');
     }
   };
 
