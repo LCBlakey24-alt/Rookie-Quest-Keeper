@@ -9,15 +9,17 @@ import { Search, Plus, X, ChevronRight, ChevronLeft, RotateCcw, Trash2, Swords }
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-function CombatTrackerTab({ campaignId }) {
+function CombatCreatorTab({ campaignId }) {
   const [players, setPlayers] = useState([]);
   const [npcs, setNpcs] = useState([]);
+  const [scenarios, setScenarios] = useState([]);
+  const [selectedScenario, setSelectedScenario] = useState(null);
   const [combatants, setCombatants] = useState([]);
-  const [currentTurn, setCurrentTurn] = useState(0);
-  const [roundNumber, setRoundNumber] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddPanel, setShowAddPanel] = useState(false);
+  const [scenarioName, setScenarioName] = useState('');
+  const [scenarioDescription, setScenarioDescription] = useState('');
 
   useEffect(() => {
     fetchData();
