@@ -271,6 +271,10 @@ function CampaignDashboard({ username, onLogout }) {
             <PlayersTab campaignId={campaignId} />
           </TabsContent>
 
+          <TabsContent value="combat">
+            <CombatTrackerTab campaignId={campaignId} />
+          </TabsContent>
+
           <TabsContent value="ingame-notes">
             <InGameNotesTab campaignId={campaignId} />
           </TabsContent>
