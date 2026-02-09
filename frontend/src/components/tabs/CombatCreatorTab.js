@@ -55,7 +55,7 @@ function CombatCreatorTab({ campaignId }) {
       conditions: []
     };
     setCombatants([...combatants, newCombatant]);
-    toast.success(`Added ${entity.name} to combat`);
+    toast.success(`Added ${entity.name}`);
   };
 
   const removeCombatant = (id) => {
@@ -68,45 +68,66 @@ function CombatCreatorTab({ campaignId }) {
     ));
   };
 
-  const updateHP = (id, value) => {
-    setCombatants(combatants.map(c => 
-      c.id === id ? { ...c, hp: Math.max(0, Math.min(parseInt(value) || 0, c.maxHp)) } : c
-    ));
-  };
+  const saveScenario = async () => {
+    if (!scenarioName.trim()) {
+      toast.error('Please enter a scenario name');
+      return;
+    }
+    if (combatants.length === 0) {
+      toast.error('Add at least one combatant');
+      return;
+    }
 
-  const sortByInitiative = () => {
-    const sorted = [...combatants].sort((a, b) => b.initiative - a.initiative);
-    setCombatants(sorted);
-    setCurrentTurn(0);
-    toast.success('Initiative sorted!');
-  };
-
-  const nextTurn = () => {
-    if (combatants.length === 0) return;
-    const next = (currentTurn + 1) % combatants.length;
-    setCurrentTurn(next);
-    if (next === 0) {
-      setRoundNumber(roundNumber + 1);
-      toast.success(`Round ${roundNumber + 1} begins!`);
+    try {
+      if (selectedScenario) {
+        await axios.put(`${API}/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, {
+          name: scenarioName,
+          description: scenarioDescription,
+          combatants: combatants
+        });
+        toast.success('Scenario updated!');
+      } else {
+        await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, {
+          name: scenarioName,
+          description: scenarioDescription,
+          combatants: combatants
+        });
+        toast.success('Scenario saved!');
+      }
+      fetchData();
+      clearScenario();
+    } catch (error) {
+      toast.error('Failed to save scenario');
     }
   };
 
-  const previousTurn = () => {
-    if (combatants.length === 0) return;
-    const prev = currentTurn === 0 ? combatants.length - 1 : currentTurn - 1;
-    setCurrentTurn(prev);
-    if (currentTurn === 0 && roundNumber > 1) {
-      setRoundNumber(roundNumber - 1);
+  const loadScenario = (scenario) => {
+    setSelectedScenario(scenario);
+    setScenarioName(scenario.name);
+    setScenarioDescription(scenario.description);
+    setCombatants(scenario.combatants);
+    toast.success(`Loaded: ${scenario.name}`);
+  };
+
+  const deleteScenario = async (scenarioId) => {
+    if (!window.confirm('Delete this combat scenario?')) return;
+    try {
+      await axios.delete(`${API}/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
+      toast.success('Scenario deleted');
+      fetchData();
+      if (selectedScenario?.id === scenarioId) {
+        clearScenario();
+      }
+    } catch (error) {
+      toast.error('Failed to delete scenario');
     }
   };
 
-  const resetCombat = () => {
-    if (window.confirm('Clear all combatants and reset combat?')) {
-      setCombatants([]);
-      setCurrentTurn(0);
-      setRoundNumber(1);
-      toast.success('Combat reset');
-    }
+  const clearScenario = () => {
+    setSelectedScenario(null);
+    setScenarioName('');
+    setScenarioDescription('');
+    setCombatants([]);
   };
 
   const filteredEntities = () => {
