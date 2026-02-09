@@ -27,12 +27,14 @@ function CombatCreatorTab({ campaignId }) {
 
   const fetchData = async () => {
     try {
-      const [playersRes, npcsRes] = await Promise.all([
+      const [playersRes, npcsRes, scenariosRes] = await Promise.all([
         axios.get(`${API}/campaigns/${campaignId}/players`),
-        axios.get(`${API}/campaigns/${campaignId}/npcs`)
+        axios.get(`${API}/campaigns/${campaignId}/npcs`),
+        axios.get(`${API}/campaigns/${campaignId}/combat-scenarios`)
       ]);
       setPlayers(playersRes.data);
       setNpcs(npcsRes.data);
+      setScenarios(scenariosRes.data);
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
