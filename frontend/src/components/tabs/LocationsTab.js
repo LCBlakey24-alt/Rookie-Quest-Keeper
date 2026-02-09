@@ -204,7 +204,11 @@ function LocationsTab({ campaignId }) {
           <p style={{ color: '#8b7355' }}>No locations added yet. Build your world!</p>
         </Card>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
+          gap: '20px'
+        }}>
           {locations.map(location => (
             <Card key={location.id} data-testid={`location-card-${location.id}`} className="card">
               <CardHeader>
