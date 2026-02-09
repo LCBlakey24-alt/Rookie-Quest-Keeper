@@ -107,10 +107,49 @@ function CalendarTab({ campaignId }) {
         custom_months: PRESET_CALENDARS[type].months
       });
       toast.success('Calendar type changed');
+      if (type === 'custom') {
+        setShowCalendarBuilder(true);
+      }
       fetchData();
     } catch (error) {
       toast.error('Failed to change calendar');
     }
+  };
+
+  const handleSaveCustomCalendar = async () => {
+    if (customMonths.length === 0) {
+      toast.error('Add at least one month');
+      return;
+    }
+    try {
+      await axios.put(`${API}/campaigns/${campaignId}/calendar`, {
+        calendar_type: 'custom',
+        custom_months: customMonths
+      });
+      toast.success('Custom calendar saved!');
+      setShowCalendarBuilder(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to save calendar');
+    }
+  };
+
+  const addMonth = () => {
+    setCustomMonths([...customMonths, { name: `Month ${customMonths.length + 1}`, days: 30 }]);
+  };
+
+  const removeMonth = (index) => {
+    if (customMonths.length <= 1) {
+      toast.error('Calendar must have at least one month');
+      return;
+    }
+    setCustomMonths(customMonths.filter((_, i) => i !== index));
+  };
+
+  const updateMonth = (index, field, value) => {
+    const updated = [...customMonths];
+    updated[index][field] = field === 'days' ? parseInt(value) || 1 : value;
+    setCustomMonths(updated);
   };
 
   const handleSaveEvent = async (e) => {
