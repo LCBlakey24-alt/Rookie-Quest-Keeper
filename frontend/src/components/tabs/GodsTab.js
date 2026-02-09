@@ -124,7 +124,9 @@ function GodsTab({ campaignId }) {
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
-    <div>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+      {/* Main Content */}
+      <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#d4af37' }}>Gods & Deities</h2>
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
