@@ -264,7 +264,6 @@ function GodsTab({ campaignId }) {
           ))}
         </div>
       )}
-    </div>
       </div>
 
       {/* AI Assistant Panel */}
