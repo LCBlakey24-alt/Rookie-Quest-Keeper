@@ -163,69 +163,6 @@ class InGameNoteCreate(BaseModel):
     content: str
     session_date: Optional[str] = None
 
-# ==================== COMBAT SCENARIO ROUTES ====================
-
-@api_router.post("/campaigns/{campaign_id}/combat-scenarios", response_model=CombatScenario)
-async def create_combat_scenario(campaign_id: str, scenario_data: CombatScenarioCreate, username: str = Depends(get_current_user)):
-    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
-    if not campaign:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    scenario_dict = scenario_data.model_dump()
-    scenario_obj = CombatScenario(campaign_id=campaign_id, **scenario_dict)
-    doc = scenario_obj.model_dump()
-    await db.combat_scenarios.insert_one(doc)
-    return scenario_obj
-
-@api_router.get("/campaigns/{campaign_id}/combat-scenarios", response_model=List[CombatScenario])
-async def get_combat_scenarios(campaign_id: str, username: str = Depends(get_current_user)):
-    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
-    if not campaign:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    scenarios = await db.combat_scenarios.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
-    return scenarios
-
-@api_router.get("/campaigns/{campaign_id}/combat-scenarios/{scenario_id}", response_model=CombatScenario)
-async def get_combat_scenario(campaign_id: str, scenario_id: str, username: str = Depends(get_current_user)):
-    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
-    if not campaign:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    scenario = await db.combat_scenarios.find_one({'id': scenario_id, 'campaign_id': campaign_id}, {'_id': 0})
-    if not scenario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
-    return scenario
-
-@api_router.put("/campaigns/{campaign_id}/combat-scenarios/{scenario_id}", response_model=CombatScenario)
-async def update_combat_scenario(campaign_id: str, scenario_id: str, scenario_data: CombatScenarioUpdate, username: str = Depends(get_current_user)):
-    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
-    if not campaign:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    update_dict = {k: v for k, v in scenario_data.model_dump().items() if v is not None}
-    result = await db.combat_scenarios.update_one(
-        {'id': scenario_id, 'campaign_id': campaign_id},
-        {'$set': update_dict}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
-    
-    scenario = await db.combat_scenarios.find_one({'id': scenario_id}, {'_id': 0})
-    return scenario
-
-@api_router.delete("/campaigns/{campaign_id}/combat-scenarios/{scenario_id}")
-async def delete_combat_scenario(campaign_id: str, scenario_id: str, username: str = Depends(get_current_user)):
-    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username})
-    if not campaign:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    result = await db.combat_scenarios.delete_one({'id': scenario_id, 'campaign_id': campaign_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
-    return {'message': 'Combat scenario deleted successfully'}
-
 class PlayerStats(BaseModel):
     strength: int = 10
     dexterity: int = 10
