@@ -247,6 +247,86 @@ function LocationsTab({ campaignId }) {
         </div>
       )}
     </div>
+      </div>
+
+      {/* AI Assistant Panel */}
+      <div style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
+        <Card className="parchment-dark" style={{ border: '2px solid #d4af37' }}>
+          <CardHeader>
+            <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={20} />
+              AI Assistant
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p style={{ fontSize: '13px', color: '#8b7355', marginBottom: '16px', lineHeight: '1.5' }}>
+              Generate location descriptions, points of interest, shops, and more with AI.
+            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                What do you need?
+              </label>
+              <textarea
+                data-testid="ai-location-prompt"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                className="textarea"
+                style={{ minHeight: '100px', fontSize: '13px' }}
+                placeholder="Example: Create a bustling port city with secret underground markets and pirate connections"
+              />
+            </div>
+            <Button
+              data-testid="generate-location-btn"
+              onClick={handleAIGenerate}
+              disabled={aiGenerating}
+              className="btn-primary"
+              style={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              {aiGenerating ? (
+                <>
+                  <Loader size={16} className="loading-spinner" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  Generate
+                </>
+              )}
+            </Button>
+            {aiResult && (
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label className="gold-text" style={{ fontSize: '14px' }}>Result</label>
+                  <Button
+                    data-testid="copy-location-result-btn"
+                    onClick={() => copyToClipboard(aiResult)}
+                    className="btn-icon"
+                    style={{ padding: '4px' }}
+                  >
+                    <Copy size={14} />
+                  </Button>
+                </div>
+                <div style={{
+                  background: 'rgba(20, 16, 12, 0.6)',
+                  border: '1px solid #5a4a2f',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  maxHeight: '400px',
+                  overflow: 'auto',
+                  fontSize: '13px',
+                  color: '#e8dcc4',
+                  lineHeight: '1.6',
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {aiResult}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
