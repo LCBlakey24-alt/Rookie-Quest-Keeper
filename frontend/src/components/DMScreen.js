@@ -3,7 +3,9 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Sword, Users, Scroll } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Sword, Users, Scroll, Search, Edit, Save, X, BookOpen } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
