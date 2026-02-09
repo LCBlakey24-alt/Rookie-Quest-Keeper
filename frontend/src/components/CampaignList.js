@@ -223,6 +223,19 @@ function CampaignList({ username, onLogout }) {
                   <CardTitle className="medieval-heading" style={{ fontSize: '22px', color: '#d4af37', marginBottom: '8px' }}>
                     {campaign.name}
                   </CardTitle>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: '#d4af37', 
+                      background: 'rgba(212, 175, 55, 0.2)', 
+                      padding: '4px 12px', 
+                      borderRadius: '12px',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      fontWeight: '600'
+                    }}>
+                      {campaign.system || 'D&D 5e 2024'}
+                    </span>
+                  </div>
                   <CardDescription style={{ color: '#8b7355', fontSize: '14px', lineHeight: '1.6' }}>
                     {campaign.description || 'No description provided'}
                   </CardDescription>
