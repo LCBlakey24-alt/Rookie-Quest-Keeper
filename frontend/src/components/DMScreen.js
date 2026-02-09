@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sword, Users, Scroll, Search, Edit, Save, X, BookOpen, Send, Sparkles, Loader } from 'lucide-react';
+import { Sword, Users, Scroll, Search, Edit, Save, X, BookOpen, Send, Sparkles, Loader, LogOut, Clock, Trash2 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 function DMScreen({ username }) {
   const { campaignId } = useParams();
+  const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [players, setPlayers] = useState([]);
   const [npcs, setNPCs] = useState([]);
@@ -26,6 +27,7 @@ function DMScreen({ username }) {
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [calendar, setCalendar] = useState(null);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [sessionNotes, setSessionNotes] = useState([]);
 
   const getDefaultRules = (system) => {
     const defaultRules = {
@@ -81,21 +83,6 @@ Each turn: 3 actions + 1 reaction
 - **Raise Shield**: +2 AC until next turn
 - **Aid**: Help ally (+1 circumstance bonus)
 
-## Combat
-- Initiative: Perception check
-- Attack: 1d20 + proficiency + ability modifier
-- AC: 10 + proficiency + DEX + armor
-- Damage: Weapon die + STR/DEX modifier
-
-## Conditions
-- **Clumsy**: Penalty to DEX-based checks
-- **Drained**: Penalty to CON-based checks
-- **Enfeebled**: Penalty to STR-based checks
-- **Flat-footed**: -2 AC
-- **Frightened**: Penalties to all checks
-- **Grabbed**: Can't move
-- **Prone**: -2 AC, harder to attack
-
 ## Degrees of Success
 - Critical Success: Beat DC by 10+
 - Success: Meet or beat DC
@@ -109,38 +96,22 @@ Each turn: 3 actions + 1 reaction
 - **Regular Success**: Roll ≤ skill
 - **Hard Success**: Roll ≤ half skill
 - **Extreme Success**: Roll ≤ one-fifth skill
-- **Critical**: Roll 01
-
-## Combat
-- Initiative: DEX order
-- Fighting: Use Fighting skill (Brawl, Firearms, etc)
-- Dodge: Use DEX to avoid attacks
-- Damage: Varies by weapon
 
 ## Sanity
 - Sanity Points: Start at POW stat
-- Losing Sanity: See disturbing things, cast spells
-- **0 Sanity**: Permanent insanity
-- **Temporary Insanity**: Lose 5+ SAN in one go
-- **Indefinite Insanity**: Lose 20% of SAN
-
-## Luck
-- Spend Luck to improve rolls
-- Refreshes each session`,
+- Losing Sanity: See disturbing things
+- **0 Sanity**: Permanent insanity`,
 
       'Other': `# TTRPG Quick Reference
 
 ## Basic Rules
-[Customize this section for your game system]
+[Customize for your game system]
 
 ## Combat
-[Add combat rules here]
+[Add combat rules]
 
 ## Skill Checks
-[Add skill check rules here]
-
-## Special Mechanics
-[Add system-specific mechanics here]`
+[Add skill rules]`
     };
 
     return defaultRules[system] || defaultRules['Other'];
@@ -152,14 +123,15 @@ Each turn: 3 actions + 1 reaction
 
   const fetchAllData = async () => {
     try {
-      const [campaignRes, playersRes, npcsRes, initRes, settingRes, calendarRes, eventsRes] = await Promise.all([
+      const [campaignRes, playersRes, npcsRes, initRes, settingRes, calendarRes, eventsRes, notesRes] = await Promise.all([
         axios.get(`${API}/campaigns/${campaignId}`),
         axios.get(`${API}/campaigns/${campaignId}/players`),
         axios.get(`${API}/campaigns/${campaignId}/npcs`),
         axios.get(`${API}/campaigns/${campaignId}/initiative`),
         axios.get(`${API}/campaigns/${campaignId}/setting`),
         axios.get(`${API}/campaigns/${campaignId}/calendar`),
-        axios.get(`${API}/campaigns/${campaignId}/calendar-events`)
+        axios.get(`${API}/campaigns/${campaignId}/calendar-events`),
+        axios.get(`${API}/campaigns/${campaignId}/ingame-notes`)
       ]);
       
       setCampaign(campaignRes.data);
@@ -167,8 +139,8 @@ Each turn: 3 actions + 1 reaction
       setNPCs(npcsRes.data);
       setInitiative(initRes.data);
       setCalendar(calendarRes.data);
+      setSessionNotes(notesRes.data.slice(0, 20)); // Last 20 notes
       
-      // Calculate upcoming events
       const cal = calendarRes.data;
       const events = eventsRes.data;
       const upcoming = events
@@ -177,7 +149,6 @@ Each turn: 3 actions + 1 reaction
         .sort((a, b) => a.daysUntil - b.daysUntil);
       setUpcomingEvents(upcoming);
       
-      // Load custom rules or default rules
       const customRules = settingRes.data?.dm_rules;
       if (customRules) {
         setDmRules(customRules);
@@ -193,7 +164,6 @@ Each turn: 3 actions + 1 reaction
 
   const calculateDaysUntil = (event, cal) => {
     if (!cal) return 0;
-    
     const currentDate = { year: cal.current_year, month: cal.current_month, day: cal.current_day };
     const eventDate = { year: event.year, month: event.month, day: event.day };
     
@@ -203,7 +173,6 @@ Each turn: 3 actions + 1 reaction
       return (eventDate.month - currentDate.month) * 30 + (eventDate.day - currentDate.day);
     }
     if (eventDate.month < currentDate.month) return -1;
-    
     return eventDate.day - currentDate.day;
   };
 
@@ -222,25 +191,16 @@ Each turn: 3 actions + 1 reaction
       setHighlightedSections([]);
       return;
     }
-
     const lines = dmRules.split('\n');
     const matches = [];
     const search = searchTerm.toLowerCase();
-
     lines.forEach((line, index) => {
-      if (line.toLowerCase().includes(search)) {
-        matches.push(index);
-      }
+      if (line.toLowerCase().includes(search)) matches.push(index);
     });
-
     setHighlightedSections(matches);
-
-    // Scroll to first match
     if (matches.length > 0) {
       const element = document.getElementById(`rule-line-${matches[0]}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       toast.success(`Found ${matches.length} match${matches.length > 1 ? 'es' : ''}`);
     } else {
       toast.error('No matches found');
@@ -255,68 +215,74 @@ Each turn: 3 actions + 1 reaction
 
     setProcessingNote(true);
     try {
-      // Check for time passing keywords
       const note = quickNote.toLowerCase();
       let daysToAdvance = 0;
       
-      if (note.includes('long rest') || note.includes('long-rest') || note.includes('took a long rest')) {
+      if (note.includes('long rest') || note.includes('long-rest')) {
         daysToAdvance = 1;
-      } else if (note.includes('short rest') || note.includes('short-rest')) {
-        // Short rest doesn't advance days
       } else {
-        // Check for explicit day mentions
         const dayMatch = note.match(/(\d+)\s*day[s]?\s*(pass|later|advance)/i);
-        if (dayMatch) {
-          daysToAdvance = parseInt(dayMatch[1]);
-        }
+        if (dayMatch) daysToAdvance = parseInt(dayMatch[1]);
       }
 
-      // Advance calendar if time passed
       if (daysToAdvance > 0) {
         await axios.post(`${API}/campaigns/${campaignId}/calendar/advance?days=${daysToAdvance}`);
         toast.success(`Time advanced ${daysToAdvance} day(s)`);
       }
 
-      // Save the note first
-      await axios.post(`${API}/campaigns/${campaignId}/ingame-notes`, { 
-        content: quickNote 
-      });
-
-      // Get the note ID to process it
-      const notesRes = await axios.get(`${API}/campaigns/${campaignId}/ingame-notes`);
-      const latestNote = notesRes.data[0];
+      const noteRes = await axios.post(`${API}/campaigns/${campaignId}/ingame-notes`, { content: quickNote });
+      
+      // Add to session notes immediately
+      const newNote = {
+        id: noteRes.data.id,
+        content: quickNote,
+        created_at: new Date().toISOString()
+      };
+      setSessionNotes(prev => [newNote, ...prev]);
 
       // Process with AI
-      const response = await axios.post(`${API}/campaigns/${campaignId}/ingame-notes/${latestNote.id}/process-ai`);
-      
-      setAiSuggestions(response.data.suggestions);
-      
-      // Auto-apply all suggestions
-      await autoApplySuggestions(response.data.suggestions);
-      
-      if (daysToAdvance > 0) {
-        toast.success(`Note saved, processed, and ${daysToAdvance} day(s) added!`);
-      } else {
-        toast.success('Note saved and processed!');
+      try {
+        const response = await axios.post(`${API}/campaigns/${campaignId}/ingame-notes/${noteRes.data.id}/process-ai`);
+        await autoApplySuggestions(response.data.suggestions);
+      } catch (aiError) {
+        console.log('AI processing skipped');
       }
-      setQuickNote('');
-      setAiSuggestions(null);
       
-      // Refresh to show new date and events
+      toast.success('Note saved!');
+      setQuickNote('');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to process note');
+      toast.error('Failed to save note');
     } finally {
       setProcessingNote(false);
     }
   };
 
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await axios.delete(`${API}/campaigns/${campaignId}/ingame-notes/${noteId}`);
+      setSessionNotes(prev => prev.filter(n => n.id !== noteId));
+      toast.success('Note deleted');
+    } catch (error) {
+      toast.error('Failed to delete note');
+    }
+  };
+
+  const handleEndSession = async () => {
+    if (!window.confirm('End this session? All notes have been saved. This will close the DM Screen.')) return;
+    
+    toast.success('Session ended! All notes saved.');
+    window.close();
+    // Fallback if window.close doesn't work
+    setTimeout(() => navigate('/campaigns'), 500);
+  };
+
   const autoApplySuggestions = async (suggestions) => {
+    if (!suggestions) return;
     let appliedCount = 0;
 
     try {
-      // Apply new NPCs
-      if (suggestions.new_npcs && suggestions.new_npcs.length > 0) {
+      if (suggestions.new_npcs?.length > 0) {
         for (const npc of suggestions.new_npcs) {
           await axios.post(`${API}/campaigns/${campaignId}/npcs`, {
             name: npc.name,
@@ -329,8 +295,7 @@ Each turn: 3 actions + 1 reaction
         }
       }
 
-      // Apply new locations
-      if (suggestions.new_locations && suggestions.new_locations.length > 0) {
+      if (suggestions.new_locations?.length > 0) {
         for (const location of suggestions.new_locations) {
           await axios.post(`${API}/campaigns/${campaignId}/locations`, {
             name: location.name,
@@ -342,38 +307,18 @@ Each turn: 3 actions + 1 reaction
         }
       }
 
-      // Apply new gods
-      if (suggestions.new_gods && suggestions.new_gods.length > 0) {
-        for (const god of suggestions.new_gods) {
-          await axios.post(`${API}/campaigns/${campaignId}/gods`, {
-            name: god.name,
-            domain: god.domain || '',
-            description: god.description
-          });
-          appliedCount++;
-        }
-      }
-
       if (appliedCount > 0) {
-        toast.success(`Auto-added ${appliedCount} item(s) to your campaign!`);
-        // Refresh data
+        toast.success(`Auto-added ${appliedCount} item(s)!`);
         fetchAllData();
-      }
-
-      // Show manual update suggestions
-      if (suggestions.npc_updates?.length > 0 || suggestions.location_updates?.length > 0) {
-        let updateMessage = 'Updates detected: ';
-        if (suggestions.npc_updates?.length > 0) {
-          updateMessage += `${suggestions.npc_updates.length} NPC(s) `;
-        }
-        if (suggestions.location_updates?.length > 0) {
-          updateMessage += `${suggestions.location_updates.length} Location(s)`;
-        }
-        toast.info(updateMessage + ' - Review manually', { duration: 5000 });
       }
     } catch (error) {
       console.error('Error applying suggestions:', error);
     }
+  };
+
+  const formatNoteTime = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   if (loading) {
@@ -392,39 +337,32 @@ Each turn: 3 actions + 1 reaction
     }}>
       {/* Header */}
       <div style={{
-        background: 'rgba(10, 22, 40, 0.9)',
-        borderBottom: '2px solid #ff1f8f',
+        background: '#1e3a5f',
+        border: '2px solid #ff1f8f',
         padding: '16px 24px',
         marginBottom: '20px',
         borderRadius: '12px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h1 className="medieval-heading" style={{ fontSize: '32px', color: '#38bdf8', textAlign: 'left', marginBottom: '8px' }}>
-              <Sword size={32} style={{ display: 'inline', marginRight: '12px', verticalAlign: 'middle' }} />
+            <h1 className="medieval-heading" style={{ fontSize: '32px', color: '#ffffff', textAlign: 'left', marginBottom: '8px' }}>
+              <Sword size={32} style={{ display: 'inline', marginRight: '12px', verticalAlign: 'middle', color: '#ff1f8f' }} />
               {campaign?.name} - DM Screen
             </h1>
             {calendar && (
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ 
-                  background: 'rgba(255, 31, 143, 0.2)', 
-                  padding: '8px 16px', 
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 31, 143, 0.4)'
-                }}>
-                  <p style={{ fontSize: '14px', color: '#ff1f8f', fontWeight: '600' }}>
+                <div className="clickable-box" style={{ cursor: 'default' }}>
+                  <p style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600' }}>
                     {calendar.custom_months[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}
                   </p>
                 </div>
                 {upcomingEvents.length > 0 && (
-                  <div style={{ 
-                    background: upcomingEvents[0].daysUntil === 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(56, 189, 248, 0.2)', 
-                    padding: '8px 16px', 
-                    borderRadius: '8px',
-                    border: '1px solid',
-                    borderColor: upcomingEvents[0].daysUntil === 0 ? '#22c55e' : 'rgba(56, 189, 248, 0.4)'
+                  <div className="clickable-box" style={{ 
+                    cursor: 'default',
+                    background: upcomingEvents[0].daysUntil === 0 ? 'rgba(34, 197, 94, 0.3)' : '#1e3a5f',
+                    borderColor: upcomingEvents[0].daysUntil === 0 ? '#22c55e' : '#ff1f8f'
                   }}>
-                    <p style={{ fontSize: '13px', color: upcomingEvents[0].daysUntil === 0 ? '#22c55e' : '#38bdf8', fontWeight: '600' }}>
+                    <p style={{ fontSize: '13px', color: upcomingEvents[0].daysUntil === 0 ? '#22c55e' : '#ffffff', fontWeight: '600' }}>
                       {upcomingEvents[0].name}: {upcomingEvents[0].daysUntil === 0 ? 'TODAY!' : `${upcomingEvents[0].daysUntil} day(s)`}
                     </p>
                   </div>
@@ -432,6 +370,15 @@ Each turn: 3 actions + 1 reaction
               </div>
             )}
           </div>
+          <Button
+            data-testid="end-session-btn"
+            onClick={handleEndSession}
+            className="btn-danger clickable-box"
+            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+          >
+            <LogOut size={18} />
+            End Session
+          </Button>
         </div>
       </div>
 
@@ -446,26 +393,21 @@ Each turn: 3 actions + 1 reaction
         {/* Players */}
         <Card data-testid="dm-screen-players" className="parchment-dark" style={{ height: 'fit-content' }}>
           <CardHeader>
-            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Users size={24} />
+            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Users size={24} style={{ color: '#ff1f8f' }} />
               Players
             </CardTitle>
           </CardHeader>
           <CardContent>
             {players.length === 0 ? (
-              <p style={{ color: '#7dd3fc', textAlign: 'center', padding: '20px' }}>No players added</p>
+              <p style={{ color: '#bae6fd', textAlign: 'center', padding: '20px' }}>No players added</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {players.map(player => (
-                  <div 
-                    key={player.id}
-                    data-testid={`dm-player-${player.id}`}
-                    className="initiative-entry"
-                    style={{ cursor: 'default' }}
-                  >
+                  <div key={player.id} data-testid={`dm-player-${player.id}`} className="initiative-entry">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <h3 className="gold-text" style={{ fontSize: '16px' }}>{player.name}</h3>
-                      <span style={{ fontSize: '12px', color: '#7dd3fc' }}>{player.character_class} {player.level}</span>
+                      <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '600' }}>{player.name}</h3>
+                      <span style={{ fontSize: '12px', color: '#bae6fd' }}>{player.character_class} {player.level}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
                       <div className="stat-block" style={{ flex: 1 }}>
@@ -498,28 +440,23 @@ Each turn: 3 actions + 1 reaction
         {/* NPCs Quick Reference */}
         <Card data-testid="dm-screen-npcs" className="parchment-dark" style={{ height: 'fit-content' }}>
           <CardHeader>
-            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Scroll size={24} />
+            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Scroll size={24} style={{ color: '#ff1f8f' }} />
               NPCs Quick Reference
             </CardTitle>
           </CardHeader>
           <CardContent>
             {npcs.length === 0 ? (
-              <p style={{ color: '#7dd3fc', textAlign: 'center', padding: '20px' }}>No NPCs added</p>
+              <p style={{ color: '#bae6fd', textAlign: 'center', padding: '20px' }}>No NPCs added</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {npcs.slice(0, 10).map(npc => (
-                  <div 
-                    key={npc.id}
-                    data-testid={`dm-npc-${npc.id}`}
-                    className="initiative-entry"
-                    style={{ cursor: 'default' }}
-                  >
+                  <div key={npc.id} data-testid={`dm-npc-${npc.id}`} className="initiative-entry">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <h3 className="gold-text" style={{ fontSize: '16px' }}>{npc.name}</h3>
-                      {npc.location && <span style={{ fontSize: '12px', color: '#7dd3fc' }}>{npc.location}</span>}
+                      <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '600' }}>{npc.name}</h3>
+                      {npc.location && <span style={{ fontSize: '12px', color: '#bae6fd' }}>{npc.location}</span>}
                     </div>
-                    <p style={{ fontSize: '13px', color: '#e0f2fe', marginBottom: '8px' }}>{npc.description}</p>
+                    <p style={{ fontSize: '13px', color: '#ffffff', marginBottom: '8px' }}>{npc.description}</p>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <div className="stat-block" style={{ flex: 1 }}>
                         <div className="stat-label">HP</div>
@@ -537,17 +474,17 @@ Each turn: 3 actions + 1 reaction
           </CardContent>
         </Card>
 
-        {/* Quick Notes */}
+        {/* Session Notes */}
         <Card data-testid="dm-screen-notes" className="parchment-dark" style={{ height: 'fit-content' }}>
           <CardHeader>
-            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Sparkles size={24} />
-              AI Quick Notes
+            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Sparkles size={24} style={{ color: '#ff1f8f' }} />
+              Session Notes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p style={{ color: '#7dd3fc', fontSize: '13px', marginBottom: '12px', fontStyle: 'italic' }}>
-              Jot down what happens during play. AI will automatically organize it for you.
+            <p style={{ color: '#bae6fd', fontSize: '13px', marginBottom: '12px' }}>
+              Jot down notes during play. AI will auto-organize them!
             </p>
             <div style={{ marginBottom: '12px' }}>
               <textarea
@@ -555,8 +492,8 @@ Each turn: 3 actions + 1 reaction
                 value={quickNote}
                 onChange={(e) => setQuickNote(e.target.value)}
                 className="textarea"
-                style={{ minHeight: '120px', fontSize: '14px' }}
-                placeholder="e.g., The party met Eldrin the blacksmith who mentioned the haunted forge. They're headed to Thornwood Forest next."
+                style={{ minHeight: '80px', fontSize: '14px' }}
+                placeholder="e.g., Met Eldrin the blacksmith, heading to Thornwood..."
                 disabled={processingNote}
               />
             </div>
@@ -565,33 +502,46 @@ Each turn: 3 actions + 1 reaction
               onClick={handleSubmitNote}
               disabled={processingNote || !quickNote.trim()}
               className="btn-primary"
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}
             >
               {processingNote ? (
-                <>
-                  <Loader size={16} className="loading-spinner" />
-                  Processing...
-                </>
+                <><Loader size={16} className="loading-spinner" /> Processing...</>
               ) : (
-                <>
-                  <Send size={16} />
-                  Submit & Process
-                </>
+                <><Send size={16} /> Add Note</>
               )}
             </Button>
-            <div style={{
-              marginTop: '12px',
-              background: 'rgba(255, 31, 143, 0.1)',
-              padding: '12px',
-              borderRadius: '6px',
-              border: '1px solid rgba(255, 31, 143, 0.3)'
-            }}>
-              <p style={{ fontSize: '12px', color: '#ff1f8f', fontWeight: '600', marginBottom: '4px' }}>
-                Auto-Updates:
-              </p>
-              <p style={{ color: '#e0f2fe', fontSize: '11px', lineHeight: '1.5' }}>
-                AI extracts NPCs, locations, and gods mentioned in your notes and adds them automatically to their respective tabs!
-              </p>
+
+            {/* Notes List */}
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ color: '#ff1f8f', fontWeight: '600', fontSize: '14px' }}>Session Notes ({sessionNotes.length})</span>
+              </div>
+              {sessionNotes.length === 0 ? (
+                <p style={{ color: '#bae6fd', fontSize: '13px', textAlign: 'center', padding: '16px' }}>No notes yet this session</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {sessionNotes.map(note => (
+                    <div key={note.id} className="note-item">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="note-time">
+                            <Clock size={10} style={{ display: 'inline', marginRight: '4px' }} />
+                            {formatNoteTime(note.created_at)}
+                          </div>
+                          <div className="note-content">{note.content}</div>
+                        </div>
+                        <Button
+                          onClick={() => handleDeleteNote(note.id)}
+                          className="btn-icon"
+                          style={{ padding: '4px', color: '#ff4444' }}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -600,42 +550,23 @@ Each turn: 3 actions + 1 reaction
         <Card data-testid="dm-screen-rules" className="parchment-dark" style={{ gridColumn: '1 / -1' }}>
           <CardHeader>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <BookOpen size={24} />
+              <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <BookOpen size={24} style={{ color: '#ff1f8f' }} />
                 Rules Reference - {campaign?.system}
               </CardTitle>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {isEditingRules ? (
                   <>
-                    <Button
-                      data-testid="save-rules-btn"
-                      onClick={handleSaveRules}
-                      className="btn-primary"
-                      style={{ display: 'flex', gap: '8px' }}
-                    >
-                      <Save size={16} />
-                      Save
+                    <Button data-testid="save-rules-btn" onClick={handleSaveRules} className="btn-primary clickable-box" style={{ display: 'flex', gap: '8px' }}>
+                      <Save size={16} /> Save
                     </Button>
-                    <Button
-                      data-testid="cancel-edit-rules-btn"
-                      onClick={() => {
-                        setIsEditingRules(false);
-                        fetchAllData(); // Reset to saved version
-                      }}
-                      className="btn-secondary"
-                    >
+                    <Button data-testid="cancel-edit-rules-btn" onClick={() => { setIsEditingRules(false); fetchAllData(); }} className="btn-secondary clickable-box">
                       <X size={16} />
                     </Button>
                   </>
                 ) : (
-                  <Button
-                    data-testid="edit-rules-btn"
-                    onClick={() => setIsEditingRules(true)}
-                    className="btn-secondary"
-                    style={{ display: 'flex', gap: '8px' }}
-                  >
-                    <Edit size={16} />
-                    Edit
+                  <Button data-testid="edit-rules-btn" onClick={() => setIsEditingRules(true)} className="btn-secondary clickable-box" style={{ display: 'flex', gap: '8px' }}>
+                    <Edit size={16} /> Edit
                   </Button>
                 )}
               </div>
@@ -645,7 +576,7 @@ Each turn: 3 actions + 1 reaction
             {/* Search Bar */}
             <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
               <div style={{ position: 'relative', flex: 1 }}>
-                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#7dd3fc' }} />
+                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#bae6fd' }} />
                 <Input
                   data-testid="rules-search-input"
                   type="text"
@@ -657,11 +588,7 @@ Each turn: 3 actions + 1 reaction
                   style={{ paddingLeft: '40px' }}
                 />
               </div>
-              <Button
-                data-testid="search-rules-btn"
-                onClick={handleSearch}
-                className="btn-primary"
-              >
+              <Button data-testid="search-rules-btn" onClick={handleSearch} className="btn-primary clickable-box">
                 Search
               </Button>
             </div>
@@ -673,17 +600,12 @@ Each turn: 3 actions + 1 reaction
                 value={dmRules}
                 onChange={(e) => setDmRules(e.target.value)}
                 className="textarea"
-                style={{ 
-                  minHeight: '500px', 
-                  fontFamily: 'monospace', 
-                  fontSize: '13px', 
-                  lineHeight: '1.6' 
-                }}
+                style={{ minHeight: '500px', fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }}
               />
             ) : (
               <div style={{
-                background: 'rgba(10, 22, 40, 0.8)',
-                border: '1px solid #1e3a5f',
+                background: '#0a1628',
+                border: '2px solid #ff1f8f',
                 borderRadius: '8px',
                 padding: '20px',
                 maxHeight: '600px',
@@ -696,7 +618,7 @@ Each turn: 3 actions + 1 reaction
                   const isHighlighted = highlightedSections.includes(index);
                   
                   let style = {
-                    color: '#e0f2fe',
+                    color: '#ffffff',
                     fontSize: '14px',
                     lineHeight: '1.8',
                     marginBottom: '8px',
@@ -707,29 +629,11 @@ Each turn: 3 actions + 1 reaction
                   };
 
                   if (isHeading && !isSubHeading) {
-                    style = {
-                      ...style,
-                      fontSize: '24px',
-                      fontWeight: '700',
-                      color: '#38bdf8',
-                      marginTop: '24px',
-                      marginBottom: '16px',
-                      fontFamily: 'Crimson Text, serif'
-                    };
+                    style = { ...style, fontSize: '24px', fontWeight: '700', color: '#ff1f8f', marginTop: '24px', marginBottom: '16px', fontFamily: 'Crimson Text, serif' };
                   } else if (isSubHeading) {
-                    style = {
-                      ...style,
-                      fontSize: '18px',
-                      fontWeight: '600',
-                      color: '#38bdf8',
-                      marginTop: '16px',
-                      marginBottom: '12px'
-                    };
+                    style = { ...style, fontSize: '18px', fontWeight: '600', color: '#38bdf8', marginTop: '16px', marginBottom: '12px' };
                   } else if (isListItem) {
-                    style = {
-                      ...style,
-                      paddingLeft: '24px'
-                    };
+                    style = { ...style, paddingLeft: '24px' };
                   }
 
                   return (
