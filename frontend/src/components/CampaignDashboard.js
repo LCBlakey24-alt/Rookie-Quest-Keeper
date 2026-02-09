@@ -214,22 +214,22 @@ function CampaignDashboard({ username, onLogout }) {
               Players
             </TabsTrigger>
             <TabsTrigger 
-              data-testid="combat-tab"
-              value="combat"
+              data-testid="combat-creator-tab"
+              value="combat-creator"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                background: activeTab === 'combat' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                color: activeTab === 'combat' ? '#d4af37' : '#8b7355',
-                border: activeTab === 'combat' ? '1px solid #d4af37' : '1px solid transparent',
+                background: activeTab === 'combat-creator' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'combat-creator' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'combat-creator' ? '1px solid #d4af37' : '1px solid transparent',
                 fontWeight: '600'
               }}
             >
-              <Swords size={18} />
-              Combat Tracker
+              <FlaskConical size={18} />
+              Combat Creator
             </TabsTrigger>
             <TabsTrigger 
               data-testid="ingame-notes-tab"
