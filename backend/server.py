@@ -131,7 +131,48 @@ class LocationUpdate(BaseModel):
     notable_npcs: Optional[str] = None
     notes: Optional[str] = None
 
-class CombatScenario(BaseModel):
+class Calendar(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    calendar_type: str = "custom"  # custom, gregorian, forgotten_realms
+    current_day: int = 1
+    current_month: int = 1
+    current_year: int = 1
+    custom_months: List[Dict[str, Any]] = []  # [{"name": "January", "days": 31}]
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class CalendarUpdate(BaseModel):
+    calendar_type: Optional[str] = None
+    current_day: Optional[int] = None
+    current_month: Optional[int] = None
+    current_year: Optional[int] = None
+    custom_months: Optional[List[Dict[str, Any]]] = None
+
+class CalendarEvent(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str
+    description: str = ""
+    day: int
+    month: int
+    year: int
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class CalendarEventCreate(BaseModel):
+    name: str
+    description: str = ""
+    day: int
+    month: int
+    year: int
+
+class CalendarEventUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    day: Optional[int] = None
+    month: Optional[int] = None
+    year: Optional[int] = None
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
