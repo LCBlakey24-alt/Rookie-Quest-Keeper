@@ -203,7 +203,15 @@ function CalendarTab({ campaignId }) {
   };
 
   const resetEventForm = () => {
-    setEventForm({ name: '', description: '', day: 1, month: 1, year: 1 });
+    setEventForm({ 
+      name: '', 
+      description: '', 
+      day: 1, 
+      month: 1, 
+      year: 1,
+      is_recurring: false,
+      recurrence_type: 'none'
+    });
     setEditingEvent(null);
     setShowEventDialog(false);
   };
