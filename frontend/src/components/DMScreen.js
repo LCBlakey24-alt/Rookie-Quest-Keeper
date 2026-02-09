@@ -24,6 +24,8 @@ function DMScreen({ username }) {
   const [quickNote, setQuickNote] = useState('');
   const [processingNote, setProcessingNote] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState(null);
+  const [calendar, setCalendar] = useState(null);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   const getDefaultRules = (system) => {
     const defaultRules = {
