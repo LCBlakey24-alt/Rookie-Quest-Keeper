@@ -217,6 +217,106 @@ Each turn: 3 actions + 1 reaction
     }
   };
 
+  const handleSubmitNote = async () => {
+    if (!quickNote.trim()) {
+      toast.error('Please enter a note');
+      return;
+    }
+
+    setProcessingNote(true);
+    try {
+      // Save the note first
+      await axios.post(`${API}/campaigns/${campaignId}/ingame-notes`, { 
+        content: quickNote 
+      });
+
+      // Get the note ID to process it
+      const notesRes = await axios.get(`${API}/campaigns/${campaignId}/ingame-notes`);
+      const latestNote = notesRes.data[0];
+
+      // Process with AI
+      const response = await axios.post(`${API}/campaigns/${campaignId}/ingame-notes/${latestNote.id}/process-ai`);
+      
+      setAiSuggestions(response.data.suggestions);
+      
+      // Auto-apply all suggestions
+      await autoApplySuggestions(response.data.suggestions);
+      
+      toast.success('Note saved and processed!');
+      setQuickNote('');
+      setAiSuggestions(null);
+    } catch (error) {
+      toast.error('Failed to process note');
+    } finally {
+      setProcessingNote(false);
+    }
+  };
+
+  const autoApplySuggestions = async (suggestions) => {
+    let appliedCount = 0;
+
+    try {
+      // Apply new NPCs
+      if (suggestions.new_npcs && suggestions.new_npcs.length > 0) {
+        for (const npc of suggestions.new_npcs) {
+          await axios.post(`${API}/campaigns/${campaignId}/npcs`, {
+            name: npc.name,
+            description: npc.description,
+            notes: npc.notes || '',
+            hp: 10,
+            ac: 10
+          });
+          appliedCount++;
+        }
+      }
+
+      // Apply new locations
+      if (suggestions.new_locations && suggestions.new_locations.length > 0) {
+        for (const location of suggestions.new_locations) {
+          await axios.post(`${API}/campaigns/${campaignId}/locations`, {
+            name: location.name,
+            location_type: location.type || '',
+            description: location.description,
+            notes: location.notes || ''
+          });
+          appliedCount++;
+        }
+      }
+
+      // Apply new gods
+      if (suggestions.new_gods && suggestions.new_gods.length > 0) {
+        for (const god of suggestions.new_gods) {
+          await axios.post(`${API}/campaigns/${campaignId}/gods`, {
+            name: god.name,
+            domain: god.domain || '',
+            description: god.description
+          });
+          appliedCount++;
+        }
+      }
+
+      if (appliedCount > 0) {
+        toast.success(`Auto-added ${appliedCount} item(s) to your campaign!`);
+        // Refresh data
+        fetchAllData();
+      }
+
+      // Show manual update suggestions
+      if (suggestions.npc_updates?.length > 0 || suggestions.location_updates?.length > 0) {
+        let updateMessage = 'Updates detected: ';
+        if (suggestions.npc_updates?.length > 0) {
+          updateMessage += `${suggestions.npc_updates.length} NPC(s) `;
+        }
+        if (suggestions.location_updates?.length > 0) {
+          updateMessage += `${suggestions.location_updates.length} Location(s)`;
+        }
+        toast.info(updateMessage + ' - Review manually', { duration: 5000 });
+      }
+    } catch (error) {
+      console.error('Error applying suggestions:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
