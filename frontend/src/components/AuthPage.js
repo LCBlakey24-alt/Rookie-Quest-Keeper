@@ -71,12 +71,12 @@ function AuthPage({ onLogin }) {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
             <Sword size={40} style={{ color: '#ff1f8f' }} />
-            <h1 className="medieval-heading" style={{ fontSize: '42px', color: '#38bdf8', margin: 0 }}>
+            <h1 className="medieval-heading" style={{ fontSize: '42px', color: '#ffffff', margin: 0 }}>
               DM Screen
             </h1>
             <Shield size={40} style={{ color: '#ff1f8f' }} />
           </div>
-          <p style={{ color: '#7dd3fc', fontSize: '16px' }}>Your Ultimate Dungeon Master Tool</p>
+          <p style={{ color: '#bae6fd', fontSize: '16px' }}>Your Ultimate Dungeon Master Tool</p>
         </div>
 
         <Card className="parchment-dark" style={{ border: '2px solid #ff1f8f' }}>
@@ -90,7 +90,7 @@ function AuthPage({ onLogin }) {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} data-testid="login-form">
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Username
                     </label>
                     <Input
@@ -104,7 +104,7 @@ function AuthPage({ onLogin }) {
                     />
                   </div>
                   <div style={{ marginBottom: '24px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Password
                     </label>
                     <Input
@@ -132,7 +132,7 @@ function AuthPage({ onLogin }) {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} data-testid="register-form">
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Username
                     </label>
                     <Input
@@ -146,7 +146,7 @@ function AuthPage({ onLogin }) {
                     />
                   </div>
                   <div style={{ marginBottom: '24px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Password
                     </label>
                     <Input
@@ -174,7 +174,7 @@ function AuthPage({ onLogin }) {
           </CardContent>
         </Card>
 
-        <div style={{ marginTop: '24px', textAlign: 'center', color: '#7dd3fc', fontSize: '14px' }}>
+        <div style={{ marginTop: '24px', textAlign: 'center', color: '#bae6fd', fontSize: '14px' }}>
           <p>Track initiatives, manage players, build worlds, and more!</p>
         </div>
       </div>

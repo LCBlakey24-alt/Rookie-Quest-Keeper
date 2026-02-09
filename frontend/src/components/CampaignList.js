@@ -101,10 +101,10 @@ function CampaignList({ username, onLogout }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h1 className="medieval-heading" style={{ fontSize: '36px', color: '#38bdf8', marginBottom: '8px' }}>
+            <h1 className="medieval-heading" style={{ fontSize: '36px', color: '#ffffff', marginBottom: '8px' }}>
               Your Campaigns
             </h1>
-            <p style={{ color: '#7dd3fc' }}>Welcome back, {username}!</p>
+            <p style={{ color: '#bae6fd' }}>Welcome back, {username}!</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -116,13 +116,13 @@ function CampaignList({ username, onLogout }) {
               </DialogTrigger>
               <DialogContent className="modal">
                 <DialogHeader>
-                  <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8' }}>
+                  <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff' }}>
                     Create New Campaign
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateCampaign} style={{ marginTop: '20px' }}>
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Campaign Name
                     </label>
                     <Input
@@ -135,7 +135,7 @@ function CampaignList({ username, onLogout }) {
                     />
                   </div>
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       TTRPG System
                     </label>
                     <select
@@ -149,12 +149,12 @@ function CampaignList({ username, onLogout }) {
                         <option key={system} value={system}>{system}</option>
                       ))}
                     </select>
-                    <p style={{ fontSize: '12px', color: '#7dd3fc', marginTop: '6px', fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '12px', color: '#bae6fd', marginTop: '6px', fontStyle: 'italic' }}>
                       AI will tailor content to your chosen system
                     </p>
                   </div>
                   <div style={{ marginBottom: '24px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
                       Description
                     </label>
                     <textarea
@@ -192,10 +192,10 @@ function CampaignList({ username, onLogout }) {
         {campaigns.length === 0 ? (
           <Card className="parchment-dark" style={{ padding: '60px 20px', textAlign: 'center' }}>
             <Scroll size={64} style={{ color: '#1e3a5f', margin: '0 auto 24px' }} />
-            <h2 className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', marginBottom: '12px' }}>
+            <h2 className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', marginBottom: '12px' }}>
               No Campaigns Yet
             </h2>
-            <p style={{ color: '#7dd3fc', marginBottom: '24px' }}>
+            <p style={{ color: '#bae6fd', marginBottom: '24px' }}>
               Create your first campaign to begin your adventure!
             </p>
             <Button onClick={() => setShowCreateDialog(true)} className="btn-primary">
@@ -220,7 +220,7 @@ function CampaignList({ username, onLogout }) {
                 }}
               >
                 <CardHeader>
-                  <CardTitle className="medieval-heading" style={{ fontSize: '22px', color: '#38bdf8', marginBottom: '8px' }}>
+                  <CardTitle className="medieval-heading" style={{ fontSize: '22px', color: '#ffffff', marginBottom: '8px' }}>
                     {campaign.name}
                   </CardTitle>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -236,7 +236,7 @@ function CampaignList({ username, onLogout }) {
                       {campaign.system || 'D&D 5e 2024'}
                     </span>
                   </div>
-                  <CardDescription style={{ color: '#7dd3fc', fontSize: '14px', lineHeight: '1.6' }}>
+                  <CardDescription style={{ color: '#bae6fd', fontSize: '14px', lineHeight: '1.6' }}>
                     {campaign.description || 'No description provided'}
                   </CardDescription>
                 </CardHeader>
@@ -263,7 +263,7 @@ function CampaignList({ username, onLogout }) {
                     </Button>
                   </div>
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1e3a5f' }}>
-                    <p style={{ fontSize: '12px', color: '#7dd3fc' }}>
+                    <p style={{ fontSize: '12px', color: '#bae6fd' }}>
                       Created: {new Date(campaign.created_at).toLocaleDateString()}
                     </p>
                   </div>

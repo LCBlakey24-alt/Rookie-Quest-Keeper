@@ -61,7 +61,7 @@ function CampaignDashboard({ username, onLogout }) {
     }}>
       {/* Header */}
       <div style={{
-        background: 'rgba(10, 22, 40, 0.9)',
+        background: '#1e3a5f, 0.9)',
         borderBottom: '2px solid #ff1f8f',
         padding: '16px 24px',
         position: 'sticky',
@@ -80,7 +80,7 @@ function CampaignDashboard({ username, onLogout }) {
               <ArrowLeft size={24} />
             </Button>
             <div>
-              <h1 className="medieval-heading" style={{ fontSize: '24px', color: '#38bdf8', marginBottom: '4px' }}>
+              <h1 className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', marginBottom: '4px' }}>
                 {campaign.name}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -95,7 +95,7 @@ function CampaignDashboard({ username, onLogout }) {
                 }}>
                   {campaign.system || 'D&D 5e 2024'}
                 </span>
-                <p style={{ fontSize: '12px', color: '#7dd3fc' }}>Campaign Management</p>
+                <p style={{ fontSize: '12px', color: '#bae6fd' }}>Campaign Management</p>
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@ function CampaignDashboard({ username, onLogout }) {
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '32px 24px' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList style={{
-            background: 'rgba(10, 22, 40, 0.9)',
+            background: '#1e3a5f, 0.9)',
             padding: '8px',
             borderRadius: '12px',
             border: '1px solid #1e3a5f',
@@ -134,7 +134,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'setting' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'setting' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'setting' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'setting' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -152,7 +152,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'gods' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'gods' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'gods' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'gods' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -170,7 +170,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'npcs' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'npcs' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'npcs' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'npcs' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -188,7 +188,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'locations' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'locations' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'locations' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'locations' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -206,7 +206,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'players' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'players' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'players' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'players' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -224,7 +224,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'combat-creator' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'combat-creator' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'combat-creator' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'combat-creator' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -242,7 +242,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'calendar' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'calendar' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'calendar' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'calendar' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
@@ -260,7 +260,7 @@ function CampaignDashboard({ username, onLogout }) {
                 padding: '10px 20px',
                 borderRadius: '8px',
                 background: activeTab === 'ingame-notes' ? 'rgba(255, 31, 143, 0.2)' : 'transparent',
-                color: activeTab === 'ingame-notes' ? '#ff1f8f' : '#7dd3fc',
+                color: activeTab === 'ingame-notes' ? '#ff1f8f' : '#bae6fd',
                 border: activeTab === 'ingame-notes' ? '1px solid #ff1f8f' : '1px solid transparent',
                 fontWeight: '600'
               }}
