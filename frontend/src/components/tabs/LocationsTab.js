@@ -22,6 +22,9 @@ function LocationsTab({ campaignId }) {
     notable_npcs: '',
     notes: ''
   });
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState('');
 
   useEffect(() => {
     fetchLocations();
