@@ -374,38 +374,6 @@ function CombatCreatorTab({ campaignId }) {
         </Card>
       )}
 
-      {/* Combat Controls */}
-      {combatants.length > 0 && (
-        <Card className="parchment-dark" style={{ marginBottom: '24px', padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-            <Button
-              data-testid="prev-turn-btn"
-              onClick={previousTurn}
-              className="btn-secondary"
-              style={{ display: 'flex', gap: '8px' }}
-            >
-              <ChevronLeft size={18} />
-              Previous
-            </Button>
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#d4af37', fontSize: '18px', fontWeight: '700' }}>
-                Turn {currentTurn + 1} of {combatants.length}
-              </p>
-              <p style={{ color: '#8b7355', fontSize: '14px' }}>Round {roundNumber}</p>
-            </div>
-            <Button
-              data-testid="next-turn-btn"
-              onClick={nextTurn}
-              className="btn-primary"
-              style={{ display: 'flex', gap: '8px' }}
-            >
-              Next
-              <ChevronRight size={18} />
-            </Button>
-          </div>
-        </Card>
-      )}
-
       {/* Initiative Order Display */}
       {combatants.length === 0 ? (
         <Card className="parchment-dark" style={{ padding: '60px 20px', textAlign: 'center' }}>
