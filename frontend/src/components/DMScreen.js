@@ -368,6 +368,161 @@ Each turn: 3 actions + 1 reaction
             </div>
           </CardContent>
         </Card>
+
+        {/* Rules Reference */}
+        <Card data-testid="dm-screen-rules" className="parchment-dark" style={{ gridColumn: '1 / -1' }}>
+          <CardHeader>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <BookOpen size={24} />
+                Rules Reference - {campaign?.system}
+              </CardTitle>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {isEditingRules ? (
+                  <>
+                    <Button
+                      data-testid="save-rules-btn"
+                      onClick={handleSaveRules}
+                      className="btn-primary"
+                      style={{ display: 'flex', gap: '8px' }}
+                    >
+                      <Save size={16} />
+                      Save
+                    </Button>
+                    <Button
+                      data-testid="cancel-edit-rules-btn"
+                      onClick={() => {
+                        setIsEditingRules(false);
+                        fetchAllData(); // Reset to saved version
+                      }}
+                      className="btn-secondary"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    data-testid="edit-rules-btn"
+                    onClick={() => setIsEditingRules(true)}
+                    className="btn-secondary"
+                    style={{ display: 'flex', gap: '8px' }}
+                  >
+                    <Edit size={16} />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Search Bar */}
+            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8b7355' }} />
+                <Input
+                  data-testid="rules-search-input"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Search rules... (press Enter)"
+                  className="input"
+                  style={{ paddingLeft: '40px' }}
+                />
+              </div>
+              <Button
+                data-testid="search-rules-btn"
+                onClick={handleSearch}
+                className="btn-primary"
+              >
+                Search
+              </Button>
+            </div>
+
+            {/* Rules Display/Edit */}
+            {isEditingRules ? (
+              <textarea
+                data-testid="rules-edit-textarea"
+                value={dmRules}
+                onChange={(e) => setDmRules(e.target.value)}
+                className="textarea"
+                style={{ 
+                  minHeight: '500px', 
+                  fontFamily: 'monospace', 
+                  fontSize: '13px', 
+                  lineHeight: '1.6' 
+                }}
+              />
+            ) : (
+              <div style={{
+                background: 'rgba(20, 16, 12, 0.6)',
+                border: '1px solid #5a4a2f',
+                borderRadius: '8px',
+                padding: '20px',
+                maxHeight: '600px',
+                overflow: 'auto'
+              }}>
+                {dmRules.split('\n').map((line, index) => {
+                  const isHeading = line.startsWith('#');
+                  const isSubHeading = line.startsWith('##');
+                  const isListItem = line.trim().startsWith('-') || line.trim().startsWith('*');
+                  const isHighlighted = highlightedSections.includes(index);
+                  
+                  let style = {
+                    color: '#e8dcc4',
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    marginBottom: '8px',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    background: isHighlighted ? 'rgba(212, 175, 55, 0.3)' : 'transparent',
+                    transition: 'background 0.3s'
+                  };
+
+                  if (isHeading && !isSubHeading) {
+                    style = {
+                      ...style,
+                      fontSize: '24px',
+                      fontWeight: '700',
+                      color: '#d4af37',
+                      marginTop: '24px',
+                      marginBottom: '16px',
+                      fontFamily: 'Crimson Text, serif'
+                    };
+                  } else if (isSubHeading) {
+                    style = {
+                      ...style,
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#d4af37',
+                      marginTop: '16px',
+                      marginBottom: '12px'
+                    };
+                  } else if (isListItem) {
+                    style = {
+                      ...style,
+                      paddingLeft: '24px'
+                    };
+                  }
+
+                  return (
+                    <div 
+                      key={index} 
+                      id={`rule-line-${index}`}
+                      style={style}
+                      dangerouslySetInnerHTML={{
+                        __html: line
+                          .replace(/^###?\s/, '')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #d4af37;">$1</strong>')
+                          .replace(/`(.*?)`/g, '<code style="background: rgba(212, 175, 55, 0.2); padding: 2px 6px; border-radius: 3px; font-family: monospace;">$1</code>')
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
