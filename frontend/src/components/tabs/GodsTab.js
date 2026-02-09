@@ -220,7 +220,11 @@ function GodsTab({ campaignId }) {
           <p style={{ color: '#8b7355' }}>No gods added yet. Create your pantheon!</p>
         </Card>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
+          gap: '20px'
+        }}>
           {gods.map(god => (
             <Card key={god.id} data-testid={`god-card-${god.id}`} className="card">
               <CardHeader>
