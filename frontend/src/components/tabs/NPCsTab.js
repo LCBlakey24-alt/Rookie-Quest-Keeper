@@ -23,6 +23,9 @@ function NPCsTab({ campaignId }) {
     location: '',
     notes: ''
   });
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState('');
 
   useEffect(() => {
     fetchNPCs();
