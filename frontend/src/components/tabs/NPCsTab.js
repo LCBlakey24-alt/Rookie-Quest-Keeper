@@ -124,7 +124,7 @@ function NPCsTab({ campaignId }) {
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
+    <div className="campaign-management-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
       <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#d4af37' }}>NPCs & Monsters</h2>
