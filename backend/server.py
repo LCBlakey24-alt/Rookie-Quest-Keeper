@@ -786,15 +786,22 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         if not api_key:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
         
+        # Get campaign context if campaign_id provided
+        system_context = ""
+        if hasattr(request, 'campaign_id') and request.campaign_id:
+            campaign = await db.campaigns.find_one({'id': request.campaign_id})
+            if campaign:
+                system_context = f" for {campaign.get('system', 'D&D 5e')} system"
+        
         # Create system message based on generation type
         system_messages = {
-            'encounter': 'You are a D&D encounter designer. Create detailed, balanced encounters with monsters, tactics, and environmental details.',
-            'trap': 'You are a D&D trap designer. Create creative and dangerous traps with trigger mechanisms, effects, and disarm methods.',
-            'npc': 'You are a D&D NPC creator. Create memorable NPCs with personality, backstory, stats, and plot hooks.',
-            'world': 'You are a D&D world-builder. Create rich locations, lore, factions, and story hooks for campaigns.'
+            'encounter': f'You are a TTRPG encounter designer{system_context}. Create detailed, balanced encounters with monsters, tactics, and environmental details following the rules and conventions of the system.',
+            'trap': f'You are a TTRPG trap designer{system_context}. Create creative and dangerous traps with trigger mechanisms, effects, and disarm methods appropriate for the system.',
+            'npc': f'You are a TTRPG NPC creator{system_context}. Create memorable NPCs with personality, backstory, stats, and plot hooks using the system\'s stat format.',
+            'world': f'You are a TTRPG world-builder{system_context}. Create rich locations, lore, factions, and story hooks for campaigns.'
         }
         
-        system_message = system_messages.get(request.generation_type, 'You are a helpful D&D assistant.')
+        system_message = system_messages.get(request.generation_type, f'You are a helpful TTRPG assistant{system_context}.')
         
         # Initialize LLM chat
         chat = LlmChat(
