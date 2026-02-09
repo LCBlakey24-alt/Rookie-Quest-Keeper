@@ -90,7 +90,7 @@ function AuthPage({ onLogin }) {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} data-testid="login-form">
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#e8dcc4', fontSize: '14px', fontWeight: '600' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#e0f2fe', fontSize: '14px', fontWeight: '600' }}>
                       Username
                     </label>
                     <Input
