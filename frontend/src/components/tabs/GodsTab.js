@@ -96,6 +96,31 @@ function GodsTab({ campaignId }) {
     setShowDialog(false);
   };
 
+  const handleAIGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error('Please enter a prompt');
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const response = await axios.post(`${API}/ai/generate`, {
+        prompt: aiPrompt,
+        generation_type: 'world'
+      });
+      setAiResult(response.data.content);
+      toast.success('AI content generated!');
+    } catch (error) {
+      toast.error('Failed to generate content');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
