@@ -407,22 +407,6 @@ function CombatCreatorTab({ campaignId }) {
                 position: 'relative'
               }}
             >
-              {index === currentTurn && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#d4af37',
-                  color: '#1a1410',
-                  padding: '4px 16px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: '700'
-                }}>
-                  ACTIVE TURN
-                </div>
-              )}
               <CardHeader style={{ paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                   <div style={{ flex: 1 }}>
