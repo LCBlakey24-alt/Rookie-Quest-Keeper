@@ -233,6 +233,24 @@ function CampaignDashboard({ username, onLogout }) {
               Combat Creator
             </TabsTrigger>
             <TabsTrigger 
+              data-testid="calendar-tab"
+              value="calendar"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                background: activeTab === 'calendar' ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                color: activeTab === 'calendar' ? '#d4af37' : '#8b7355',
+                border: activeTab === 'calendar' ? '1px solid #d4af37' : '1px solid transparent',
+                fontWeight: '600'
+              }}
+            >
+              <Calendar size={18} />
+              Calendar
+            </TabsTrigger>
+            <TabsTrigger 
               data-testid="ingame-notes-tab"
               value="ingame-notes"
               style={{
