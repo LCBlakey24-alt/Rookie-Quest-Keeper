@@ -255,6 +255,28 @@ Each turn: 3 actions + 1 reaction
 
     setProcessingNote(true);
     try {
+      // Check for time passing keywords
+      const note = quickNote.toLowerCase();
+      let daysToAdvance = 0;
+      
+      if (note.includes('long rest') || note.includes('long-rest') || note.includes('took a long rest')) {
+        daysToAdvance = 1;
+      } else if (note.includes('short rest') || note.includes('short-rest')) {
+        // Short rest doesn't advance days
+      } else {
+        // Check for explicit day mentions
+        const dayMatch = note.match(/(\d+)\s*day[s]?\s*(pass|later|advance)/i);
+        if (dayMatch) {
+          daysToAdvance = parseInt(dayMatch[1]);
+        }
+      }
+
+      // Advance calendar if time passed
+      if (daysToAdvance > 0) {
+        await axios.post(`${API}/campaigns/${campaignId}/calendar/advance?days=${daysToAdvance}`);
+        toast.success(`Time advanced ${daysToAdvance} day(s)`);
+      }
+
       // Save the note first
       await axios.post(`${API}/campaigns/${campaignId}/ingame-notes`, { 
         content: quickNote 
@@ -272,9 +294,16 @@ Each turn: 3 actions + 1 reaction
       // Auto-apply all suggestions
       await autoApplySuggestions(response.data.suggestions);
       
-      toast.success('Note saved and processed!');
+      if (daysToAdvance > 0) {
+        toast.success(`Note saved, processed, and ${daysToAdvance} day(s) added!`);
+      } else {
+        toast.success('Note saved and processed!');
+      }
       setQuickNote('');
       setAiSuggestions(null);
+      
+      // Refresh to show new date and events
+      fetchAllData();
     } catch (error) {
       toast.error('Failed to process note');
     } finally {
