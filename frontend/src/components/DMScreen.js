@@ -450,23 +450,57 @@ Each turn: 3 actions + 1 reaction
         {/* Quick Notes */}
         <Card data-testid="dm-screen-notes" className="parchment-dark" style={{ height: 'fit-content' }}>
           <CardHeader>
-            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#d4af37' }}>
-              Session Quick Notes
+            <CardTitle className="medieval-heading" style={{ fontSize: '24px', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Sparkles size={24} />
+              AI Quick Notes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p style={{ color: '#8b7355', fontSize: '14px', marginBottom: '12px', fontStyle: 'italic' }}>
-              Return to the Campaign Management screen to add session notes and organize your data.
+            <p style={{ color: '#8b7355', fontSize: '13px', marginBottom: '12px', fontStyle: 'italic' }}>
+              Jot down what happens during play. AI will automatically organize it for you.
             </p>
+            <div style={{ marginBottom: '12px' }}>
+              <textarea
+                data-testid="quick-note-input"
+                value={quickNote}
+                onChange={(e) => setQuickNote(e.target.value)}
+                className="textarea"
+                style={{ minHeight: '120px', fontSize: '14px' }}
+                placeholder="e.g., The party met Eldrin the blacksmith who mentioned the haunted forge. They're headed to Thornwood Forest next."
+                disabled={processingNote}
+              />
+            </div>
+            <Button
+              data-testid="submit-quick-note-btn"
+              onClick={handleSubmitNote}
+              disabled={processingNote || !quickNote.trim()}
+              className="btn-primary"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              {processingNote ? (
+                <>
+                  <Loader size={16} className="loading-spinner" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  Submit & Process
+                </>
+              )}
+            </Button>
             <div style={{
+              marginTop: '12px',
               background: 'rgba(212, 175, 55, 0.1)',
-              padding: '16px',
-              borderRadius: '8px',
+              padding: '12px',
+              borderRadius: '6px',
               border: '1px solid rgba(212, 175, 55, 0.3)'
             }}>
-              <p style={{ color: '#e8dcc4', fontSize: '13px', lineHeight: '1.6' }}>
-                This DM Screen gives you quick access to player stats, NPCs, and combat information during gameplay.
-                Use the main campaign page to add detailed notes, manage world content, and organize your campaign.
+              <p style={{ fontSize: '12px', color: '#d4af37', fontWeight: '600', marginBottom: '4px' }}>
+                ✨ Auto-Updates:
+              </p>
+              <p style={{ color: '#e8dcc4', fontSize: '11px', lineHeight: '1.5' }}>
+                AI extracts NPCs, locations, and gods mentioned in your notes and adds them automatically to their respective tabs!
               </p>
             </div>
           </CardContent>
