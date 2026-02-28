@@ -1372,6 +1372,62 @@ async def update_party_currency(
     updated = await db.party_currency.find_one({'campaign_id': campaign_id}, {'_id': 0})
     return updated
 
+# ==================== CUSTOM ITEMS ROUTES ====================
+
+@api_router.get("/campaigns/{campaign_id}/custom-items")
+async def get_custom_items(campaign_id: str, current_user: str = Depends(get_current_user)):
+    """Get all custom items for campaign"""
+    items = await db.custom_items.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0}
+    ).sort('created_at', -1).to_list(None)
+    return items
+
+@api_router.post("/campaigns/{campaign_id}/custom-items")
+async def create_custom_item(
+    campaign_id: str,
+    item: CustomItemCreate,
+    current_user: str = Depends(get_current_user)
+):
+    """Create custom item"""
+    new_item = CustomItem(campaign_id=campaign_id, **item.model_dump())
+    await db.custom_items.insert_one(new_item.model_dump())
+    return new_item.model_dump()
+
+@api_router.put("/campaigns/{campaign_id}/custom-items/{item_id}")
+async def update_custom_item(
+    campaign_id: str,
+    item_id: str,
+    item_update: CustomItemUpdate,
+    current_user: str = Depends(get_current_user)
+):
+    """Update custom item"""
+    update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+    
+    result = await db.custom_items.update_one(
+        {'id': item_id, 'campaign_id': campaign_id},
+        {'$set': update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    
+    updated = await db.custom_items.find_one({'id': item_id}, {'_id': 0})
+    return updated
+
+@api_router.delete("/campaigns/{campaign_id}/custom-items/{item_id}")
+async def delete_custom_item(
+    campaign_id: str,
+    item_id: str,
+    current_user: str = Depends(get_current_user)
+):
+    """Delete custom item"""
+    result = await db.custom_items.delete_one({'id': item_id, 'campaign_id': campaign_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    return {"message": "Item deleted"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
