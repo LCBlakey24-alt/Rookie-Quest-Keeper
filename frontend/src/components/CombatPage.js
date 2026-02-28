@@ -43,6 +43,8 @@ function CombatPage() {
   const [currentTurn, setCurrentTurn] = useState(0);
   const [round, setRound] = useState(1);
   const [showQuickRef, setShowQuickRef] = useState(false);
+  const [collectedLoot, setCollectedLoot] = useState([]);
+  const [showLootPanel, setShowLootPanel] = useState(false);
   
   // Map state
   const [mapImage, setMapImage] = useState(null);
