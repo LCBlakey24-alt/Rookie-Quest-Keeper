@@ -107,6 +107,14 @@ function App() {
                 <Navigate to="/auth" replace />
             } 
           />
+          <Route 
+            path="/campaign/:campaignId/combat" 
+            element={
+              isAuthenticated ? 
+                <CombatPage /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
           <Route path="/" element={<Navigate to="/campaigns" replace />} />
         </Routes>
       </BrowserRouter>
