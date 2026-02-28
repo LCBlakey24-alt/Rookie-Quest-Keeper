@@ -385,16 +385,31 @@ Each turn: 3 actions + 1 reaction
               </div>
             )}
           </div>
-          <Button
-            data-testid="end-session-btn"
-            onClick={handleEndSession}
-            className="btn-secondary"
-            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
-          >
-            <LogOut size={18} />
-            End Session
-          </Button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button
+              onClick={() => setShowQuickRef(true)}
+              className="btn-outline"
+              style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+            >
+              <BookOpen size={18} />
+              Quick Ref
+            </Button>
+            <Button
+              data-testid="end-session-btn"
+              onClick={handleEndSession}
+              className="btn-secondary"
+              style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+            >
+              <LogOut size={18} />
+              End Session
+            </Button>
+          </div>
         </div>
+      </div>
+
+      {/* Map Token System - Full Width */}
+      <div style={{ maxWidth: '1600px', margin: '0 auto 24px' }}>
+        <MapTokenSystem players={players} npcs={npcs} />
       </div>
 
       {/* Main Content Grid */}
