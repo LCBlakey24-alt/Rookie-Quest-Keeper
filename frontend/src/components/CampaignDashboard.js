@@ -180,6 +180,7 @@ function CampaignDashboard({ username, onLogout }) {
           {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
           {activeTab === 'combat-creator' && <CombatCreatorTab campaignId={campaignId} />}
           {activeTab === 'encounter-gen' && <EncounterGeneratorTab campaignId={campaignId} />}
+          {activeTab === 'items' && <ItemCreatorTab campaignId={campaignId} />}
           {activeTab === 'calendar' && <CalendarTab campaignId={campaignId} />}
           {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
         </div>
