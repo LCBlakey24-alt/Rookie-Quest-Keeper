@@ -665,6 +665,91 @@ function CombatPage() {
         </div>
       </div>
 
+      {/* Loot Panel */}
+      {showLootPanel && collectedLoot.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '350px',
+          background: 'rgba(10, 10, 46, 0.98)',
+          border: '2px solid #eab308',
+          borderRadius: '16px',
+          padding: '16px',
+          boxShadow: '0 0 40px rgba(234, 179, 8, 0.3)',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '16px', color: '#eab308', fontFamily: 'Montserrat', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Coins size={18} /> Collected Loot ({collectedLoot.length})
+            </h3>
+            <button onClick={() => setShowLootPanel(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+              <X size={18} />
+            </button>
+          </div>
+          
+          <div style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '12px' }}>
+            {collectedLoot.map((loot, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '8px', marginBottom: '6px' }}>
+                <div>
+                  <div style={{ color: '#fff', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {loot.name}
+                    {loot.is_magical && <span style={{ color: '#eab308' }}>✨</span>}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748b' }}>
+                    x{loot.quantity || 1} • From: {loot.source}
+                    {loot.value && <span style={{ color: '#eab308', marginLeft: '6px' }}>{loot.value}</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <Button 
+            onClick={addLootToInventory} 
+            className="btn-primary" 
+            style={{ 
+              width: '100%', 
+              display: 'flex', 
+              gap: '8px', 
+              justifyContent: 'center',
+              background: 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)',
+              color: '#000'
+            }}
+          >
+            <Package size={16} /> Add All to Party Inventory
+          </Button>
+        </div>
+      )}
+
+      {/* Loot Available Indicator */}
+      {!showLootPanel && (collectedLoot.length > 0 || defeatedWithLoot.length > 0) && (
+        <button
+          onClick={() => setShowLootPanel(true)}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            background: 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)',
+            border: 'none',
+            borderRadius: '50px',
+            padding: '12px 20px',
+            color: '#000',
+            fontWeight: '700',
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 0 30px rgba(234, 179, 8, 0.5)',
+            zIndex: 100
+          }}
+        >
+          <Coins size={18} />
+          {collectedLoot.length > 0 ? `${collectedLoot.length} Loot` : `${defeatedWithLoot.length} Loot Available`}
+        </button>
+      )}
+
       <QuickReferenceModal isOpen={showQuickRef} onClose={() => setShowQuickRef(false)} />
     </div>
   );
