@@ -1,11 +1,18 @@
-# DM Screen - Product Requirements Document
+# Rookie Quest - TTRPG Companion
+## Product Requirements Document
 
 ## Overview
-A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DMs), serving as an all-in-one "DM Screen" for campaign management and live gameplay.
+A comprehensive web application for tabletop role-playing game (TTRPG) Dungeon Masters (DMs), serving as an all-in-one "DM Screen" for campaign management and live gameplay. Originally called "DM Screen," rebranded to "Rookie Quest / TTRPG Companion" with a complete UI redesign in February 2026.
 
 ## Target Users
 - D&D Dungeon Masters
 - TTRPG Game Masters (multiple systems supported)
+- New and experienced DMs
+
+## Branding
+- **Primary Logo**: Rookie Quest (stylized white text)
+- **Secondary Logo**: TTRPG Companion (blue/white badge)
+- **Tagline**: Your ultimate TTRPG companion
 
 ## Core Requirements
 
@@ -24,9 +31,9 @@ A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DM
 - [x] **Gods** - Deity management with AI generation
 - [x] **NPCs** - Non-player character tracking with AI generation
 - [x] **Locations** - Place management with AI generation
-- [x] **Players** - Player character tracking with stats
+- [x] **Players** - Player character tracking with D&D Beyond-style character creator
 - [x] **Combat Creator** - Pre-plan combat encounters
-- [x] **Calendar** - In-game date tracking with events
+- [x] **Calendar** - In-game date tracking with events + custom calendar builder
 - [x] **In-Game Notes** - Session notes with AI auto-categorization
 
 ### DM Screen (Live Gameplay)
@@ -36,6 +43,8 @@ A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DM
 - [x] NPCs quick reference
 - [x] AI Quick Notes with auto-filing
 - [x] Rules Reference (searchable, editable)
+- [x] Session Notes list
+- [x] End Session button
 
 ### AI Features
 - [x] Content generation for encounters, traps, NPCs, world-building
@@ -44,32 +53,68 @@ A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DM
 
 ### Calendar System
 - [x] Multiple preset calendars (Gregorian, Forgotten Realms)
+- [x] Custom calendar builder UI
 - [x] Advance time functionality
 - [x] Event creation and management
 - [x] Upcoming events sidebar
 
 ## Technical Stack
-- **Frontend**: React.js, TailwindCSS
+- **Frontend**: React.js, TailwindCSS, Shadcn/UI
 - **Backend**: FastAPI (Python)
 - **Database**: MongoDB
 - **Authentication**: JWT
 - **AI**: Emergent LLM Key integration
 
-## Design System (Updated Dec 2024)
-- **Background**: Dark blue (#0a1628 to #0d1d33 gradient)
-- **Primary Color**: Light blue (#38bdf8)
-- **Accent Color**: Hot pink (#ff1f8f)
-- **Text**: Light (#e0f2fe), Muted (#7dd3fc)
-- **Borders**: Navy blue (#1e3a5f)
+## Design System (February 2026 Redesign)
 
-## What's Been Implemented
+### Color Palette
+- **Background Primary**: #030014 (deep navy black)
+- **Background Secondary**: #0a0a2e (dark navy)
+- **Panel Background**: rgba(10, 10, 60, 0.7)
+- **Glow Blue**: #4a7dff (borders, highlights)
+- **Button Green**: #22c55e (primary actions)
+- **Button Red**: #ef4444 (secondary/destructive actions)
+- **Text Primary**: #ffffff
+- **Text Muted**: #94a3b8
+- **Text Cyan**: #67e8f9 (accents)
+- **Border Blue**: #1e40af
+
+### Typography
+- **Primary Font**: Montserrat (headings, buttons)
+- **Secondary Font**: Inter (body text)
+- **Font Weights**: 400-800
+
+### Components
+- Pill-shaped buttons (border-radius: 50px)
+- Glowing panel borders with box-shadow effects
+- Stat blocks with blue borders
+- HP bars with green gradient fill
+- System badges with cyan styling
+
+## What's Been Implemented (February 2026)
+
+### Complete UI Redesign
+- [x] New color scheme (dark navy/blue glow/green-red buttons)
+- [x] Rookie Quest and TTRPG Companion branding
+- [x] Pill-shaped buttons throughout
+- [x] Glowing panel effects
+- [x] Montserrat font integration
+- [x] Responsive design maintained
+
+### Features
 - [x] User authentication (register/login)
 - [x] Campaign CRUD operations
 - [x] All 8 dashboard tabs with AI integration
 - [x] DM Screen with rules reference
 - [x] Calendar with events
-- [x] Responsive design
-- [x] New color scheme (dark blue/light blue/hot pink)
+- [x] Custom calendar builder UI
+- [x] D&D Beyond-style character creator
+- [x] Session notes in DM Screen
+
+## Testing Status
+- Backend: 100% (35/35 tests passed)
+- Frontend: 100% (16/16 tests passed)
+- Test specs: /app/tests/e2e/
 
 ## Upcoming Tasks (P1-P2)
 - [ ] **Combat Tracker in DM Screen** - Live initiative tracker for gameplay
@@ -80,7 +125,9 @@ A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DM
 - [ ] Monetization (Stripe integration)
 - [ ] Enhanced Players tab (stats on hover)
 - [ ] Backend refactoring (split server.py into routers)
-- [ ] Custom calendar builder UI improvements
+- [ ] Database normalization (separate collections)
+- [ ] Mobile-optimized views
+- [ ] Export/Import campaign data
 
 ## API Endpoints
 - `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
@@ -107,6 +154,9 @@ A comprehensive web application for Dungeons & Dragons (D&D) Dungeon Masters (DM
 - **combat_scenarios**: {campaign_id, name, combatants}
 - **ingame_notes**: {campaign_id, content, ai_processed}
 
-## Test Coverage
-- Backend: 100% (35/35 tests)
-- Frontend: All flows verified
+## Test Credentials
+- Users can be created via the registration form
+- Example: username: `demouser`, password: `demopass123`
+
+---
+Last Updated: February 28, 2026
