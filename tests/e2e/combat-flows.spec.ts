@@ -174,17 +174,20 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     // Use exact match to avoid matching "Next Turn" button
     await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
-    // Click Next Turn (force to bypass any overlays)
+    // Verify we're on Round 1
+    await expect(page.getByText('Round 1')).toBeVisible();
+    
+    // Click Next Turn to advance to second combatant (force to bypass any overlays)
     await page.getByRole('button', { name: /Next Turn/i }).click({ force: true });
     
-    // The turn should have advanced - we should still see TURN indicator
+    // The turn should have advanced - we should still see TURN indicator (on different combatant)
     await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
-    // Click Next Turn again to complete a round
+    // Click Next Turn once more - with 2 combatants this should start Round 2
     await page.getByRole('button', { name: /Next Turn/i }).click({ force: true });
     
-    // Should now be Round 2
-    await expect(page.getByText('Round 2')).toBeVisible();
+    // Should now be Round 2 (after going through both combatants)
+    await expect(page.getByText('Round 2')).toBeVisible({ timeout: 10000 });
     
     // Clean up
     page.once('dialog', dialog => dialog.accept());
