@@ -489,6 +489,12 @@ async def update_campaign_setting(campaign_id: str, setting_data: CampaignSettin
     )
     
     setting = await db.campaign_settings.find_one({'campaign_id': campaign_id}, {'_id': 0})
+    # Ensure dm_rules and content have default values if null in DB
+    if setting:
+        if setting.get('dm_rules') is None:
+            setting['dm_rules'] = ""
+        if setting.get('content') is None:
+            setting['content'] = ""
     return setting
 
 # ==================== GODS ROUTES ====================
