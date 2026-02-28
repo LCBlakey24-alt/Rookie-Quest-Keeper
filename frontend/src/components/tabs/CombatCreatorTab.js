@@ -565,33 +565,16 @@ function CombatCreatorTab({ campaignId }) {
         ) : (
           <div>
             <h4 style={{ color: '#67e8f9', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>COMBATANTS ({combatants.length})</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
               {combatants.map(c => (
-                <div key={c.id} className="card-glow" style={{ padding: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                    <div>
-                      <h5 style={{ color: '#ffffff', fontWeight: '700', marginBottom: '4px' }}>{c.name}</h5>
-                      <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: c.type === 'player' ? 'rgba(74, 125, 255, 0.3)' : 'rgba(239, 68, 68, 0.3)', color: c.type === 'player' ? '#4a7dff' : '#ef4444', fontWeight: '600' }}>
-                        {c.type.toUpperCase()}
-                      </span>
-                    </div>
-                    <Button onClick={() => removeCombatant(c.id)} className="btn-icon" style={{ padding: '4px', color: '#ef4444' }}><X size={14} /></Button>
-                  </div>
-                  <div style={{ marginBottom: '10px' }}>
-                    <label style={{ fontSize: '11px', color: '#67e8f9', display: 'block', marginBottom: '4px' }}>Initiative</label>
-                    <Input
-                      type="number"
-                      value={c.initiative}
-                      onChange={(e) => updateInitiative(c.id, e.target.value)}
-                      className="input-glow"
-                      style={{ fontSize: '16px', fontWeight: '700', textAlign: 'center', padding: '8px' }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <div className="stat-block" style={{ flex: 1 }}><div className="stat-label">AC</div><div className="stat-value" style={{ fontSize: '14px' }}>{c.ac}</div></div>
-                    <div className="stat-block" style={{ flex: 1 }}><div className="stat-label">HP</div><div className="stat-value" style={{ fontSize: '14px' }}>{c.maxHp}</div></div>
-                  </div>
-                </div>
+                <CombatantCard 
+                  key={c.id} 
+                  combatant={c}
+                  onRemove={() => removeCombatant(c.id)}
+                  onUpdateInitiative={(val) => updateInitiative(c.id, val)}
+                  onAddLoot={(loot) => addLootToCombatant(c.id, loot)}
+                  onRemoveLoot={(lootId) => removeLootFromCombatant(c.id, lootId)}
+                />
               ))}
             </div>
           </div>
