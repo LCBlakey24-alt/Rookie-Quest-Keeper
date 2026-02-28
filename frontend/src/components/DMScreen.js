@@ -320,7 +320,7 @@ function DMScreen({ username }) {
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
             {showTools === 'dice' && <DiceRoller />}
             {showTools === 'loot' && <LootGenerator />}
-            {showTools === 'inventory' && <PartyInventory campaignId={campaignId} />}
+            {showTools === 'inventory' && <PartyInventory campaignId={campaignId} players={players} />}
           </div>
         </div>
 
