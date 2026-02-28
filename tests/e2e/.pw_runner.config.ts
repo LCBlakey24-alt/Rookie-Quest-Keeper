@@ -2,13 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: '/app/tests/e2e',
-  outputDir: '/root/.emergent/automation_output/20260228_171722/test-results',
+  outputDir: '/root/.emergent/automation_output/20260228_224259/test-results',
   timeout: 60000,
   retries: 0,
   workers: 1,
   reporter: [
     ['line'],
-    ['json', { outputFile: '/root/.emergent/automation_output/20260228_171722/results.json' }],
+    ['json', { outputFile: '/root/.emergent/automation_output/20260228_224259/results.json' }],
   ],
   use: {
     baseURL: 'https://combat-runner-6.preview.emergentagent.com',
