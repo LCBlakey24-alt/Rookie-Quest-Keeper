@@ -31,6 +31,12 @@ function CombatCreatorTab({ campaignId }) {
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioDescription, setScenarioDescription] = useState('');
   
+  // Monster database state
+  const [showMonsterSelector, setShowMonsterSelector] = useState(false);
+  const [monsterSearch, setMonsterSearch] = useState('');
+  const [monsterTypeFilter, setMonsterTypeFilter] = useState('all');
+  const [monsterCRFilter, setMonsterCRFilter] = useState('all');
+  
   // Map state
   const [mapImage, setMapImage] = useState(null);
   const [mapUrl, setMapUrl] = useState('');
