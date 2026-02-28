@@ -408,6 +408,9 @@ Each turn: 3 actions + 1 reaction
         {/* Combat Tracker */}
         <CombatTracker players={players} npcs={npcs} />
 
+        {/* Loot Generator */}
+        <LootGenerator />
+
         {/* Players */}
         <div data-testid="dm-screen-players" className="glow-panel" style={{ height: 'fit-content' }}>
           <div style={{ marginBottom: '20px' }}>
