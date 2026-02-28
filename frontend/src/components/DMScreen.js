@@ -298,10 +298,11 @@ function DMScreen({ username }) {
         {/* CENTER COLUMN - Tools */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Tool Tabs */}
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             {[
-              { id: 'dice', icon: Dices, label: 'Dice Roller' },
-              { id: 'loot', icon: Coins, label: 'Loot Generator' },
+              { id: 'dice', icon: Dices, label: 'Dice' },
+              { id: 'loot', icon: Coins, label: 'Loot' },
+              { id: 'inventory', icon: Package, label: 'Inventory' },
             ].map(tab => (
               <Button
                 key={tab.id}
@@ -316,8 +317,12 @@ function DMScreen({ username }) {
           </div>
 
           {/* Tool Content */}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
             {showTools === 'dice' && <DiceRoller />}
+            {showTools === 'loot' && <LootGenerator />}
+            {showTools === 'inventory' && <PartyInventory campaignId={campaignId} />}
+          </div>
+        </div>
             {showTools === 'loot' && <LootGenerator />}
           </div>
         </div>
