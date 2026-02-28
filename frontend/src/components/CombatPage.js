@@ -183,6 +183,69 @@ function CombatPage() {
     if (idx <= currentTurn && currentTurn > 0) setCurrentTurn(t => t - 1);
   };
 
+  // Collect loot from defeated enemy
+  const collectLoot = (combatant) => {
+    if (!combatant.loot || combatant.loot.length === 0) {
+      toast.info(`${combatant.name} has no loot`);
+      return;
+    }
+    
+    // Add to collected loot
+    const lootItems = combatant.loot.map(l => ({
+      ...l,
+      source: combatant.name,
+      collectedAt: new Date().toISOString()
+    }));
+    
+    setCollectedLoot(prev => [...prev, ...lootItems]);
+    
+    // Mark combatant's loot as collected
+    setCombatants(prev => prev.map(c => 
+      c.id === combatant.id ? { ...c, lootCollected: true } : c
+    ));
+    
+    toast.success(`Collected ${lootItems.length} item(s) from ${combatant.name}!`);
+    setShowLootPanel(true);
+  };
+
+  // Add collected loot to party inventory
+  const addLootToInventory = async () => {
+    if (collectedLoot.length === 0) {
+      toast.info('No loot to add');
+      return;
+    }
+
+    try {
+      let added = 0;
+      for (const loot of collectedLoot) {
+        await axios.post(`${API}/campaigns/${campaignId}/inventory`, {
+          name: loot.name,
+          quantity: loot.quantity || 1,
+          item_type: loot.item_type || 'misc',
+          value: loot.value || '',
+          is_magical: loot.is_magical || false,
+          description: `Looted from ${loot.source}`,
+          notes: `Combat loot - Round ${round}`
+        });
+        added++;
+      }
+      
+      toast.success(`Added ${added} item(s) to party inventory!`);
+      setCollectedLoot([]);
+      setShowLootPanel(false);
+    } catch (error) {
+      toast.error('Failed to add loot to inventory');
+    }
+  };
+
+  // Get total loot available from defeated enemies
+  const defeatedWithLoot = combatants.filter(c => 
+    c.type !== 'player' && 
+    c.hp <= 0 && 
+    c.loot?.length > 0 && 
+    !c.lootCollected
+  );
+
   const moveInOrder = (id, dir) => {
     const idx = combatants.findIndex(c => c.id === id);
     const newIdx = dir === 'up' ? idx - 1 : idx + 1;
