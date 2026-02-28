@@ -114,6 +114,58 @@ function InGameNotesTab({ campaignId }) {
     }
   };
 
+  // Generate Session Recap
+  const generateSessionRecap = async () => {
+    if (notes.length === 0) {
+      toast.error('No notes to summarize');
+      return;
+    }
+    
+    setGeneratingRecap(true);
+    
+    const notesText = notes.map(n => `[${new Date(n.created_at).toLocaleString()}] ${n.content}`).join('\n\n');
+    
+    const prompt = `You are a fantasy storyteller. Based on these D&D session notes, create an engaging narrative recap that could be read aloud at the start of the next session. Write it in second person ("You") addressing the party.
+
+Session Notes:
+${notesText}
+
+Create a vivid, dramatic recap (2-4 paragraphs) that:
+- Summarizes key events in narrative form
+- Mentions important NPCs, locations, and discoveries
+- Ends with a hook or question to build anticipation
+- Uses evocative fantasy language
+
+Write the recap now:`;
+
+    try {
+      const res = await axios.post(`${API}/ai/generate`, { prompt, generation_type: 'recap' });
+      setSessionRecap(res.data.content);
+      setShowRecapDialog(true);
+      toast.success('Session recap generated!');
+    } catch (error) {
+      toast.error('Failed to generate recap');
+    } finally {
+      setGeneratingRecap(false);
+    }
+  };
+
+  const copyRecapToClipboard = () => {
+    navigator.clipboard.writeText(sessionRecap);
+    toast.success('Copied to clipboard!');
+  };
+
+  const downloadRecap = () => {
+    const blob = new Blob([sessionRecap], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `session-recap-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Downloaded!');
+  };
+
   if (loading) return <div className="loading-spinner"></div>;
 
   return (
