@@ -427,6 +427,39 @@ Write the recap now:`;
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Session Recap Dialog */}
+      <Dialog open={showRecapDialog} onOpenChange={setShowRecapDialog}>
+        <DialogContent className="modal" style={{ maxWidth: '700px' }}>
+          <DialogHeader>
+            <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <FileText size={24} style={{ color: '#eab308' }} />
+              Session Recap
+            </DialogTitle>
+            <DialogDescription style={{ color: '#bae6fd', marginTop: '8px' }}>
+              A narrative summary of your session, ready to share with your players
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div style={{ marginTop: '20px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #eab308', borderRadius: '12px', padding: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+            <div style={{ color: '#ffffff', fontSize: '15px', lineHeight: '1.8', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
+              {sessionRecap}
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+            <Button onClick={copyRecapToClipboard} className="btn-outline" style={{ flex: 1, display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <Copy size={16} /> Copy to Clipboard
+            </Button>
+            <Button onClick={downloadRecap} className="btn-outline" style={{ flex: 1, display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <Download size={16} /> Download
+            </Button>
+            <Button onClick={() => setShowRecapDialog(false)} className="btn-primary" style={{ flex: 1 }}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
