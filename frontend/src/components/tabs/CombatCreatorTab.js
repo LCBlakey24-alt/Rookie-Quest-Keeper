@@ -554,58 +554,166 @@ function CombatCreatorTab({ campaignId }) {
         {/* Add Combatants Panel */}
         {showAddPanel && (
           <div className="glow-panel" style={{ marginBottom: '20px' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search players, NPCs..."
-                  className="input-glow"
-                  style={{ paddingLeft: '44px' }}
-                />
-              </div>
+            {/* Toggle between Campaign NPCs and Monster Database */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <Button 
+                onClick={() => setShowMonsterSelector(false)} 
+                className={showMonsterSelector ? 'btn-outline' : 'btn-primary'}
+                style={{ flex: 1, display: 'flex', gap: '6px', justifyContent: 'center' }}
+              >
+                <Users size={16} /> Campaign Characters
+              </Button>
+              <Button 
+                onClick={() => setShowMonsterSelector(true)} 
+                className={showMonsterSelector ? 'btn-primary' : 'btn-outline'}
+                style={{ flex: 1, display: 'flex', gap: '6px', justifyContent: 'center', borderColor: showMonsterSelector ? '#ef4444' : undefined, background: showMonsterSelector ? 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)' : undefined }}
+              >
+                <Skull size={16} /> Monster Database ({MONSTER_DATABASE.length})
+              </Button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              {filteredPlayers.length > 0 && (
-                <div>
-                  <h4 style={{ color: '#4a7dff', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>PLAYERS</h4>
-                  {filteredPlayers.map(player => (
+
+            {!showMonsterSelector ? (
+              <>
+                {/* Campaign NPCs/Players */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search players, NPCs..."
+                      className="input-glow"
+                      style={{ paddingLeft: '44px' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                  {filteredPlayers.length > 0 && (
+                    <div>
+                      <h4 style={{ color: '#4a7dff', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>PLAYERS</h4>
+                      {filteredPlayers.map(player => (
+                        <div
+                          key={player.id}
+                          onClick={() => addToCombat(player, 'player')}
+                          style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#4a7dff'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#ffffff', fontWeight: '600' }}>{player.name}</span>
+                            <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{player.hp} AC:{player.ac}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {filteredNPCs.length > 0 && (
+                    <div>
+                      <h4 style={{ color: '#ef4444', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>ENEMIES/NPCS</h4>
+                      {filteredNPCs.map(npc => (
+                        <div
+                          key={npc.id}
+                          onClick={() => addToCombat(npc, 'npc')}
+                          style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#ffffff', fontWeight: '600' }}>{npc.name}</span>
+                            <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{npc.hp} AC:{npc.ac}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Monster Database */}
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                    <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                    <Input
+                      value={monsterSearch}
+                      onChange={(e) => setMonsterSearch(e.target.value)}
+                      placeholder="Search monsters..."
+                      className="input-glow"
+                      style={{ paddingLeft: '38px' }}
+                    />
+                  </div>
+                  <select
+                    value={monsterTypeFilter}
+                    onChange={(e) => setMonsterTypeFilter(e.target.value)}
+                    className="input-glow"
+                    style={{ padding: '8px 12px', minWidth: '130px' }}
+                  >
+                    <option value="all">All Types</option>
+                    {MONSTER_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  </select>
+                  <select
+                    value={monsterCRFilter}
+                    onChange={(e) => setMonsterCRFilter(e.target.value)}
+                    className="input-glow"
+                    style={{ padding: '8px 12px', minWidth: '100px' }}
+                  >
+                    <option value="all">All CR</option>
+                    {CR_OPTIONS.map(cr => <option key={cr} value={cr}>CR {cr}</option>)}
+                  </select>
+                </div>
+                
+                <div style={{ maxHeight: '350px', overflowY: 'auto', border: '2px solid #1e40af', borderRadius: '10px' }}>
+                  <p style={{ padding: '8px 12px', fontSize: '11px', color: '#64748b', background: 'rgba(10, 10, 40, 0.8)', borderBottom: '1px solid #1e40af', position: 'sticky', top: 0, zIndex: 1 }}>
+                    Showing {filteredMonsters.length} of {MONSTER_DATABASE.length} monsters
+                  </p>
+                  {filteredMonsters.slice(0, 100).map(monster => (
                     <div
-                      key={player.id}
-                      onClick={() => addToCombat(player, 'player')}
-                      style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#4a7dff'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
+                      key={`${monster.name}-${monster.cr}`}
+                      onClick={() => addMonsterFromDB(monster)}
+                      style={{
+                        padding: '12px 14px',
+                        borderBottom: '1px solid #1e40af',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        background: 'rgba(10, 10, 40, 0.6)'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.borderLeftWidth = '4px'; e.currentTarget.style.borderLeftColor = '#ef4444'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(10, 10, 40, 0.6)'; e.currentTarget.style.borderLeftWidth = '0'; }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#ffffff', fontWeight: '600' }}>{player.name}</span>
-                        <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{player.hp} AC:{player.ac}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <span style={{ color: '#ffffff', fontWeight: '700', fontSize: '14px' }}>{monster.name}</span>
+                          <div style={{ fontSize: '11px', color: '#67e8f9', marginTop: '2px' }}>
+                            {monster.size} {monster.type} • {monster.abilities !== 'None' ? monster.abilities : 'No special abilities'}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ 
+                            background: getCRValue(monster.cr) >= 10 ? 'rgba(239, 68, 68, 0.3)' : getCRValue(monster.cr) >= 5 ? 'rgba(234, 179, 8, 0.3)' : 'rgba(34, 197, 94, 0.3)',
+                            color: getCRValue(monster.cr) >= 10 ? '#ef4444' : getCRValue(monster.cr) >= 5 ? '#eab308' : '#22c55e',
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            marginBottom: '2px'
+                          }}>
+                            CR {monster.cr}
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                            HP {monster.hp} • AC {monster.ac}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
+                  {filteredMonsters.length > 100 && (
+                    <p style={{ padding: '12px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
+                      Showing first 100 results. Refine your search to see more.
+                    </p>
+                  )}
                 </div>
-              )}
-              {filteredNPCs.length > 0 && (
-                <div>
-                  <h4 style={{ color: '#ef4444', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>ENEMIES/NPCS</h4>
-                  {filteredNPCs.map(npc => (
-                    <div
-                      key={npc.id}
-                      onClick={() => addToCombat(npc, 'npc')}
-                      style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#ffffff', fontWeight: '600' }}>{npc.name}</span>
-                        <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{npc.hp} AC:{npc.ac}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         )}
 
