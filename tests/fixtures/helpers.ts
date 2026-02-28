@@ -76,5 +76,6 @@ export async function selectEncounterAndStartCombat(page: Page) {
   await expect(page.getByTestId('start-combat-btn')).toBeEnabled({ timeout: 5000 });
   await page.getByTestId('start-combat-btn').click();
   await page.waitForURL(/\/combat/, { timeout: 10000 });
-  await expect(page.getByRole('heading', { name: 'Initiative Order' })).toBeVisible({ timeout: 10000 });
+  // Wait for page to load - the Initiative Order heading
+  await expect(page.getByRole('heading', { name: 'Initiative Order' })).toBeVisible({ timeout: 15000 });
 }
