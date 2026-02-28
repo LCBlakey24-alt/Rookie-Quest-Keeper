@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sword, Users, Scroll, Search, Edit, Save, X, BookOpen, Send, Sparkles, Loader, LogOut, Clock, Trash2 } from 'lucide-react';
+import DiceRoller from '@/components/DiceRoller';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
