@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Search, Plus, X, RotateCcw, Trash2, Swords, Save } from 'lucide-react';
+import { Search, Plus, X, RotateCcw, Trash2, Swords, Save, Map, Upload, Grid, Image, Play } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const TOKEN_COLORS = [
+  { id: 'blue', color: '#4a7dff', label: 'Blue (Players)' },
+  { id: 'green', color: '#22c55e', label: 'Green (Allies)' },
+  { id: 'red', color: '#ef4444', label: 'Red (Enemies)' },
+  { id: 'yellow', color: '#eab308', label: 'Yellow' },
+  { id: 'purple', color: '#a855f7', label: 'Purple' },
+  { id: 'orange', color: '#f97316', label: 'Orange' },
+];
 
 function CombatCreatorTab({ campaignId }) {
   const [players, setPlayers] = useState([]);
@@ -20,6 +29,21 @@ function CombatCreatorTab({ campaignId }) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioDescription, setScenarioDescription] = useState('');
+  
+  // Map state
+  const [mapImage, setMapImage] = useState(null);
+  const [mapUrl, setMapUrl] = useState('');
+  const [mapDataUrl, setMapDataUrl] = useState('');
+  const [showGrid, setShowGrid] = useState(true);
+  const [gridSize, setGridSize] = useState(40);
+  const [tokens, setTokens] = useState([]);
+  const [selectedToken, setSelectedToken] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchData();
@@ -42,7 +66,45 @@ function CombatCreatorTab({ campaignId }) {
     }
   };
 
+  // Map functions
+  const loadMapFromUrl = () => {
+    if (!mapUrl.trim()) {
+      toast.error('Please enter a map URL');
+      return;
+    }
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      setMapImage(img);
+      setMapDataUrl(mapUrl);
+      toast.success('Map loaded!');
+    };
+    img.onerror = () => toast.error('Failed to load map');
+    img.src = mapUrl;
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        setMapImage(img);
+        setMapDataUrl(event.target.result);
+        toast.success('Map uploaded!');
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const addToCombat = (entity, type) => {
+    const colorIdx = type === 'player' ? 0 : 2;
     const newCombatant = {
       id: `${type}-${entity.id}-${Date.now()}`,
       entityId: entity.id,
@@ -52,14 +114,32 @@ function CombatCreatorTab({ campaignId }) {
       hp: entity.hp || entity.max_hp || 10,
       maxHp: entity.max_hp || entity.hp || 10,
       ac: entity.ac || 10,
-      conditions: []
+      conditions: [],
+      tokenColor: TOKEN_COLORS[colorIdx].color,
+      tokenSize: 40
     };
     setCombatants([...combatants, newCombatant]);
+    
+    // Add token to map if map is loaded
+    if (mapImage) {
+      const newToken = {
+        id: newCombatant.id,
+        name: entity.name,
+        color: TOKEN_COLORS[colorIdx].color,
+        size: 40,
+        x: 100 + Math.random() * 200,
+        y: 100 + Math.random() * 200,
+        isEnemy: type !== 'player'
+      };
+      setTokens([...tokens, newToken]);
+    }
+    
     toast.success(`Added ${entity.name}`);
   };
 
   const removeCombatant = (id) => {
     setCombatants(combatants.filter(c => c.id !== id));
+    setTokens(tokens.filter(t => t.id !== id));
   };
 
   const updateInitiative = (id, value) => {
@@ -78,20 +158,22 @@ function CombatCreatorTab({ campaignId }) {
       return;
     }
 
+    const scenarioData = {
+      name: scenarioName,
+      description: scenarioDescription,
+      combatants: combatants,
+      map_url: mapDataUrl || null,
+      tokens: tokens,
+      grid_size: gridSize,
+      show_grid: showGrid
+    };
+
     try {
       if (selectedScenario) {
-        await axios.put(`${API}/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, {
-          name: scenarioName,
-          description: scenarioDescription,
-          combatants: combatants
-        });
+        await axios.put(`${API}/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, scenarioData);
         toast.success('Scenario updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, {
-          name: scenarioName,
-          description: scenarioDescription,
-          combatants: combatants
-        });
+        await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, scenarioData);
         toast.success('Scenario saved!');
       }
       fetchData();
@@ -104,8 +186,23 @@ function CombatCreatorTab({ campaignId }) {
   const loadScenario = (scenario) => {
     setSelectedScenario(scenario);
     setScenarioName(scenario.name);
-    setScenarioDescription(scenario.description);
-    setCombatants(scenario.combatants);
+    setScenarioDescription(scenario.description || '');
+    setCombatants(scenario.combatants || []);
+    setTokens(scenario.tokens || []);
+    setGridSize(scenario.grid_size || 40);
+    setShowGrid(scenario.show_grid !== false);
+    
+    if (scenario.map_url) {
+      setMapDataUrl(scenario.map_url);
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => setMapImage(img);
+      img.src = scenario.map_url;
+    } else {
+      setMapImage(null);
+      setMapDataUrl('');
+    }
+    
     toast.success(`Loaded: ${scenario.name}`);
   };
 
@@ -115,9 +212,7 @@ function CombatCreatorTab({ campaignId }) {
       await axios.delete(`${API}/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
       toast.success('Scenario deleted');
       fetchData();
-      if (selectedScenario?.id === scenarioId) {
-        clearScenario();
-      }
+      if (selectedScenario?.id === scenarioId) clearScenario();
     } catch (error) {
       toast.error('Failed to delete scenario');
     }
@@ -128,7 +223,102 @@ function CombatCreatorTab({ campaignId }) {
     setScenarioName('');
     setScenarioDescription('');
     setCombatants([]);
+    setTokens([]);
+    setMapImage(null);
+    setMapDataUrl('');
+    setMapUrl('');
   };
+
+  // Token dragging
+  const handleMouseDown = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const clickedToken = [...tokens].reverse().find(token => {
+      const dist = Math.sqrt(Math.pow(x - token.x, 2) + Math.pow(y - token.y, 2));
+      return dist <= token.size / 2;
+    });
+    
+    if (clickedToken) {
+      setSelectedToken(clickedToken.id);
+      setIsDragging(true);
+      setDragOffset({ x: x - clickedToken.x, y: y - clickedToken.y });
+    } else {
+      setSelectedToken(null);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !selectedToken || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    let x = e.clientX - rect.left - dragOffset.x;
+    let y = e.clientY - rect.top - dragOffset.y;
+    
+    if (showGrid) {
+      x = Math.round(x / gridSize) * gridSize;
+      y = Math.round(y / gridSize) * gridSize;
+    }
+    
+    setTokens(tokens.map(t => t.id === selectedToken ? { ...t, x, y } : t));
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Render canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx || !canvas || !containerRef.current) return;
+    
+    canvas.width = containerRef.current.clientWidth;
+    canvas.height = 400;
+    
+    ctx.fillStyle = '#0a0a2e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    if (mapImage) {
+      const scale = Math.min(canvas.width / mapImage.width, canvas.height / mapImage.height);
+      const w = mapImage.width * scale;
+      const h = mapImage.height * scale;
+      ctx.drawImage(mapImage, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    }
+    
+    if (showGrid) {
+      ctx.strokeStyle = 'rgba(74, 125, 255, 0.3)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+    
+    tokens.forEach(token => {
+      ctx.beginPath();
+      ctx.arc(token.x, token.y, token.size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = token.color;
+      ctx.fill();
+      ctx.strokeStyle = token.id === selectedToken ? '#ffffff' : 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = token.id === selectedToken ? 3 : 2;
+      ctx.stroke();
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(token.name.substring(0, 8), token.x, token.y + token.size / 2 + 12);
+    });
+  }, [mapImage, tokens, selectedToken, showGrid, gridSize]);
 
   const filteredEntities = () => {
     const search = searchTerm.toLowerCase();
@@ -139,329 +329,256 @@ function CombatCreatorTab({ campaignId }) {
   };
 
   if (loading) return <div className="loading-spinner"></div>;
-
   const { players: filteredPlayers, npcs: filteredNPCs } = filteredEntities();
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
-      {/* Saved Scenarios List */}
+    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px' }}>
+      {/* Saved Scenarios */}
       <div>
-        <h3 className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '16px' }}>
-          Saved Scenarios
+        <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700' }}>
+          Saved Encounters
         </h3>
         {scenarios.length === 0 ? (
-          <Card className="parchment-dark" style={{ padding: '20px', textAlign: 'center' }}>
-            <p style={{ fontSize: '13px', color: '#bae6fd' }}>No scenarios yet</p>
-          </Card>
+          <div className="glow-panel" style={{ padding: '20px', textAlign: 'center' }}>
+            <p style={{ fontSize: '13px', color: '#94a3b8' }}>No encounters yet</p>
+          </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {scenarios.map(scenario => (
-              <Card
+              <div
                 key={scenario.id}
                 data-testid={`scenario-${scenario.id}`}
-                className="card"
+                onClick={() => loadScenario(scenario)}
+                className="card-glow"
                 style={{
                   cursor: 'pointer',
-                  background: selectedScenario?.id === scenario.id ? 'rgba(255, 31, 143, 0.2)' : 'rgba(13, 29, 51, 0.9)',
-                  border: selectedScenario?.id === scenario.id ? '2px solid #ffffff' : '1px solid #1e3a5f'
+                  padding: '14px',
+                  border: selectedScenario?.id === scenario.id ? '2px solid #22c55e' : '2px solid #1e40af',
+                  background: selectedScenario?.id === scenario.id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(10, 10, 60, 0.7)'
                 }}
-                onClick={() => loadScenario(scenario)}
               >
-                <CardContent style={{ padding: '12px' }}>
-                  <div style={{ marginBottom: '8px' }}>
-                    <h4 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
-                      {scenario.name}
-                    </h4>
-                    {scenario.description && (
-                      <p style={{ fontSize: '12px', color: '#bae6fd', marginBottom: '8px' }}>
-                        {scenario.description}
-                      </p>
-                    )}
-                    <p style={{ fontSize: '11px', color: '#bae6fd' }}>
-                      {scenario.combatants.length} combatants
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{scenario.name}</h4>
+                    <p style={{ fontSize: '11px', color: '#67e8f9' }}>
+                      {scenario.combatants?.length || 0} combatants
+                      {scenario.map_url && ' • Has Map'}
                     </p>
                   </div>
                   <Button
-                    data-testid={`delete-scenario-${scenario.id}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteScenario(scenario.id);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); deleteScenario(scenario.id); }}
                     className="btn-danger"
-                    style={{ width: '100%', padding: '6px', fontSize: '12px' }}
+                    style={{ padding: '6px' }}
                   >
                     <Trash2 size={14} />
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Main Creator Area */}
+      {/* Main Creator */}
       <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 className="medieval-heading" style={{ fontSize: '28px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Swords size={28} />
-            Combat Creator
-          </h2>
-          <p style={{ fontSize: '14px', color: '#bae6fd', marginTop: '4px' }}>Pre-build combat encounters for quick deployment</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <Button
-            data-testid="toggle-add-panel-btn"
-            onClick={() => setShowAddPanel(!showAddPanel)}
-            className="btn-primary"
-            style={{ display: 'flex', gap: '8px' }}
-          >
-            <Plus size={18} />
-            {showAddPanel ? 'Hide' : 'Add Combatants'}
-          </Button>
-          {combatants.length > 0 && (
-            <>
-              <Button
-                data-testid="clear-combatants-btn"
-                onClick={clearScenario}
-                className="btn-secondary"
-              >
-                <RotateCcw size={16} />
-              </Button>
-              <Button
-                data-testid="save-scenario-btn"
-                onClick={saveScenario}
-                className="btn-primary"
-                style={{ display: 'flex', gap: '8px' }}
-              >
-                <Save size={16} />
-                Save Scenario
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Scenario Name & Description */}
-      <Card className="parchment-dark" style={{ marginBottom: '24px', padding: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
-              Scenario Name *
-            </label>
-            <Input
-              data-testid="scenario-name-input"
-              type="text"
-              value={scenarioName}
-              onChange={(e) => setScenarioName(e.target.value)}
-              placeholder="e.g., Goblin Ambush"
-              className="input"
-            />
+            <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Montserrat, sans-serif', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Swords size={28} style={{ color: '#ef4444' }} />
+              Encounter Builder
+            </h2>
+            <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>Create combat scenarios with maps and tokens</p>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
-              Description
-            </label>
-            <Input
-              data-testid="scenario-description-input"
-              type="text"
-              value={scenarioDescription}
-              onChange={(e) => setScenarioDescription(e.target.value)}
-              placeholder="Brief description of the encounter"
-              className="input"
-            />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button onClick={() => setShowAddPanel(!showAddPanel)} className="btn-primary" style={{ display: 'flex', gap: '6px' }}>
+              <Plus size={16} />
+              {showAddPanel ? 'Hide' : 'Add Combatants'}
+            </Button>
+            {combatants.length > 0 && (
+              <>
+                <Button onClick={clearScenario} className="btn-outline"><RotateCcw size={16} /></Button>
+                <Button onClick={saveScenario} className="btn-primary" style={{ display: 'flex', gap: '6px' }}>
+                  <Save size={16} /> Save
+                </Button>
+              </>
+            )}
           </div>
         </div>
-      </Card>
 
-      {/* Add Combatants Panel */}
-      {showAddPanel && (
-        <Card className="parchment-dark" style={{ marginBottom: '24px', padding: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#bae6fd' }} />
+        {/* Scenario Info */}
+        <div className="glow-panel" style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#67e8f9', fontSize: '13px', fontWeight: '600' }}>Encounter Name *</label>
               <Input
-                data-testid="combat-search-input"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search players, NPCs, monsters..."
-                className="input"
-                style={{ paddingLeft: '40px' }}
+                value={scenarioName}
+                onChange={(e) => setScenarioName(e.target.value)}
+                placeholder="e.g., Goblin Ambush"
+                className="input-glow"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#67e8f9', fontSize: '13px', fontWeight: '600' }}>Description</label>
+              <Input
+                value={scenarioDescription}
+                onChange={(e) => setScenarioDescription(e.target.value)}
+                placeholder="Brief description..."
+                className="input-glow"
               />
             </div>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
-            {/* Players */}
-            {filteredPlayers.length > 0 && (
-              <div>
-                <h3 className="gold-text" style={{ fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase' }}>Players</h3>
-                {filteredPlayers.map(player => (
-                  <div
-                    key={player.id}
-                    data-testid={`add-player-${player.id}`}
-                    onClick={() => addToCombat(player, 'player')}
-                    style={{
-                      padding: '10px',
-                      background: 'rgba(10, 22, 40, 0.6)',
-                      border: '1px solid #1e3a5f',
-                      borderRadius: '6px',
-                      marginBottom: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 31, 143, 0.1)';
-                      e.currentTarget.style.borderColor = '#ffffff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(10, 22, 40, 0.6)';
-                      e.currentTarget.style.borderColor = '#1e3a5f';
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{player.name}</span>
-                      <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#bae6fd' }}>
-                        <span>HP: {player.hp}/{player.max_hp}</span>
-                        <span>AC: {player.ac}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* NPCs */}
-            {filteredNPCs.length > 0 && (
-              <div>
-                <h3 className="gold-text" style={{ fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase' }}>NPCs & Monsters</h3>
-                {filteredNPCs.map(npc => (
-                  <div
-                    key={npc.id}
-                    data-testid={`add-npc-${npc.id}`}
-                    onClick={() => addToCombat(npc, 'npc')}
-                    style={{
-                      padding: '10px',
-                      background: 'rgba(10, 22, 40, 0.6)',
-                      border: '1px solid #1e3a5f',
-                      borderRadius: '6px',
-                      marginBottom: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 31, 143, 0.1)';
-                      e.currentTarget.style.borderColor = '#ffffff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(10, 22, 40, 0.6)';
-                      e.currentTarget.style.borderColor = '#1e3a5f';
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{npc.name}</span>
-                      <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#bae6fd' }}>
-                        <span>HP: {npc.hp}</span>
-                        <span>AC: {npc.ac}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Initiative Order Display */}
-      {combatants.length === 0 ? (
-        <Card className="parchment-dark" style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <Swords size={64} style={{ color: '#1e3a5f', margin: '0 auto 24px' }} />
-          <h3 className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', marginBottom: '12px' }}>
-            No Combatants Added
-          </h3>
-          <p style={{ color: '#bae6fd', marginBottom: '24px' }}>
-            Add players, NPCs, and monsters to create a combat scenario
-          </p>
-        </Card>
-      ) : (
-        <div style={{ 
-          display: 'flex', 
-          gap: '16px', 
-          overflowX: 'auto', 
-          paddingBottom: '20px',
-          scrollbarWidth: 'thin'
-        }}>
-          {combatants.map((combatant, index) => (
-            <Card
-              key={combatant.id}
-              data-testid={`combatant-card-${combatant.id}`}
-              className="card"
-              style={{
-                minWidth: '280px',
-                maxWidth: '280px',
-                background: 'rgba(13, 29, 51, 0.9)',
-                border: '1px solid #1e3a5f',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                position: 'relative'
-              }}
-            >
-              <CardHeader style={{ paddingBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                  <div style={{ flex: 1 }}>
-                    <CardTitle className="medieval-heading" style={{ fontSize: '18px', color: '#ffffff', marginBottom: '4px' }}>
-                      {combatant.name}
-                    </CardTitle>
-                    <span style={{
-                      fontSize: '11px',
-                      color: combatant.type === 'player' ? '#4ade80' : '#ef4444',
-                      background: combatant.type === 'player' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      padding: '2px 8px',
-                      borderRadius: '8px',
-                      textTransform: 'uppercase',
-                      fontWeight: '600'
-                    }}>
-                      {combatant.type}
-                    </span>
-                  </div>
-                  <Button
-                    data-testid={`remove-combatant-${combatant.id}`}
-                    onClick={() => removeCombatant(combatant.id)}
-                    className="btn-icon"
-                    style={{ padding: '4px' }}
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#bae6fd', marginBottom: '6px' }}>Initiative</label>
-                  <Input
-                    data-testid={`initiative-input-${combatant.id}`}
-                    type="number"
-                    value={combatant.initiative}
-                    onChange={(e) => updateInitiative(combatant.id, e.target.value)}
-                    className="input"
-                    style={{ fontSize: '16px', fontWeight: '700', textAlign: 'center' }}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <div className="stat-block" style={{ flex: 1 }}>
-                    <div className="stat-label">AC</div>
-                    <div className="stat-value" style={{ fontSize: '16px' }}>{combatant.ac}</div>
-                  </div>
-                  <div className="stat-block" style={{ flex: 1 }}>
-                    <div className="stat-label">HP</div>
-                    <div className="stat-value" style={{ fontSize: '16px' }}>{combatant.maxHp}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
-      )}
+
+        {/* Battle Map Section */}
+        <div className="glow-panel" style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Montserrat, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Map size={20} style={{ color: '#22c55e' }} />
+              Battle Map
+            </h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ color: showGrid ? '#22c55e' : '#64748b' }}>
+                <Grid size={16} />
+              </Button>
+              {mapImage && (
+                <Button onClick={() => { setMapImage(null); setMapDataUrl(''); }} className="btn-outline" style={{ fontSize: '12px', padding: '6px 12px' }}>
+                  Change Map
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {!mapImage ? (
+            <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px dashed #1e40af', borderRadius: '12px', padding: '30px', textAlign: 'center' }}>
+              <Image size={40} style={{ color: '#4a7dff', margin: '0 auto 12px' }} />
+              <p style={{ color: '#ffffff', marginBottom: '16px', fontWeight: '600' }}>Add a Battle Map</p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+                <Button onClick={() => fileInputRef.current?.click()} className="btn-primary" style={{ display: 'flex', gap: '6px' }}>
+                  <Upload size={16} /> Upload Image
+                </Button>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '8px', maxWidth: '350px', margin: '0 auto' }}>
+                <Input value={mapUrl} onChange={(e) => setMapUrl(e.target.value)} placeholder="Or paste image URL..." className="input-glow" style={{ fontSize: '13px' }} />
+                <Button onClick={loadMapFromUrl} className="btn-outline">Load</Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              ref={containerRef}
+              style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '2px solid #1e40af', cursor: isDragging ? 'grabbing' : 'default' }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              <canvas ref={canvasRef} style={{ width: '100%', height: '400px', display: 'block' }} />
+            </div>
+          )}
+          <p style={{ color: '#64748b', fontSize: '11px', marginTop: '10px', fontStyle: 'italic' }}>
+            {mapImage ? 'Click and drag tokens to position them. They will snap to grid.' : 'Map is optional - you can create encounters without one.'}
+          </p>
+        </div>
+
+        {/* Add Combatants Panel */}
+        {showAddPanel && (
+          <div className="glow-panel" style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search players, NPCs..."
+                  className="input-glow"
+                  style={{ paddingLeft: '44px' }}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              {filteredPlayers.length > 0 && (
+                <div>
+                  <h4 style={{ color: '#4a7dff', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>PLAYERS</h4>
+                  {filteredPlayers.map(player => (
+                    <div
+                      key={player.id}
+                      onClick={() => addToCombat(player, 'player')}
+                      style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#4a7dff'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#ffffff', fontWeight: '600' }}>{player.name}</span>
+                        <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{player.hp} AC:{player.ac}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {filteredNPCs.length > 0 && (
+                <div>
+                  <h4 style={{ color: '#ef4444', fontSize: '13px', marginBottom: '10px', fontWeight: '600' }}>ENEMIES/NPCS</h4>
+                  {filteredNPCs.map(npc => (
+                    <div
+                      key={npc.id}
+                      onClick={() => addToCombat(npc, 'npc')}
+                      style={{ padding: '10px', background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1e40af'; }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#ffffff', fontWeight: '600' }}>{npc.name}</span>
+                        <span style={{ color: '#67e8f9', fontSize: '12px' }}>HP:{npc.hp} AC:{npc.ac}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Combatants List */}
+        {combatants.length === 0 ? (
+          <div className="glow-panel" style={{ padding: '50px', textAlign: 'center' }}>
+            <Swords size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
+            <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700' }}>No Combatants</h3>
+            <p style={{ color: '#94a3b8' }}>Add players and enemies to build your encounter</p>
+          </div>
+        ) : (
+          <div>
+            <h4 style={{ color: '#67e8f9', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>COMBATANTS ({combatants.length})</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+              {combatants.map(c => (
+                <div key={c.id} className="card-glow" style={{ padding: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                    <div>
+                      <h5 style={{ color: '#ffffff', fontWeight: '700', marginBottom: '4px' }}>{c.name}</h5>
+                      <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: c.type === 'player' ? 'rgba(74, 125, 255, 0.3)' : 'rgba(239, 68, 68, 0.3)', color: c.type === 'player' ? '#4a7dff' : '#ef4444', fontWeight: '600' }}>
+                        {c.type.toUpperCase()}
+                      </span>
+                    </div>
+                    <Button onClick={() => removeCombatant(c.id)} className="btn-icon" style={{ padding: '4px', color: '#ef4444' }}><X size={14} /></Button>
+                  </div>
+                  <div style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '11px', color: '#67e8f9', display: 'block', marginBottom: '4px' }}>Initiative</label>
+                    <Input
+                      type="number"
+                      value={c.initiative}
+                      onChange={(e) => updateInitiative(c.id, e.target.value)}
+                      className="input-glow"
+                      style={{ fontSize: '16px', fontWeight: '700', textAlign: 'center', padding: '8px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="stat-block" style={{ flex: 1 }}><div className="stat-label">AC</div><div className="stat-value" style={{ fontSize: '14px' }}>{c.ac}</div></div>
+                    <div className="stat-block" style={{ flex: 1 }}><div className="stat-label">HP</div><div className="stat-value" style={{ fontSize: '14px' }}>{c.maxHp}</div></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
