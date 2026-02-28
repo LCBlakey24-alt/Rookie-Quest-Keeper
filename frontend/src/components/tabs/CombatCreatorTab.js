@@ -149,6 +149,22 @@ function CombatCreatorTab({ campaignId }) {
     ));
   };
 
+  const addLootToCombatant = (combatantId, lootItem) => {
+    setCombatants(combatants.map(c => 
+      c.id === combatantId 
+        ? { ...c, loot: [...(c.loot || []), { ...lootItem, id: Date.now().toString() }] }
+        : c
+    ));
+  };
+
+  const removeLootFromCombatant = (combatantId, lootId) => {
+    setCombatants(combatants.map(c => 
+      c.id === combatantId 
+        ? { ...c, loot: (c.loot || []).filter(l => l.id !== lootId) }
+        : c
+    ));
+  };
+
   const saveScenario = async () => {
     if (!scenarioName.trim()) {
       toast.error('Please enter a scenario name');
