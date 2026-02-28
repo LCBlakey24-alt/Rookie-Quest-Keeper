@@ -594,6 +594,40 @@ function CombatPage() {
                       );
                     })}
                   </div>
+
+                  {/* Loot Button - Show when enemy is defeated and has loot */}
+                  {c.type !== 'player' && c.hp <= 0 && c.loot?.length > 0 && !c.lootCollected && (
+                    <button
+                      onClick={() => collectLoot(c)}
+                      style={{
+                        width: '100%',
+                        marginTop: '10px',
+                        padding: '10px',
+                        background: 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)',
+                        border: 'none',
+                        borderRadius: '10px',
+                        color: '#000',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 0 20px rgba(234, 179, 8, 0.5)',
+                        animation: 'pulse 2s infinite'
+                      }}
+                    >
+                      <Coins size={16} /> Collect Loot ({c.loot.length} items)
+                    </button>
+                  )}
+                  
+                  {/* Loot collected indicator */}
+                  {c.lootCollected && (
+                    <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', borderRadius: '8px', textAlign: 'center', fontSize: '11px', color: '#22c55e', fontWeight: '600' }}>
+                      <Package size={12} style={{ marginRight: '4px', display: 'inline' }} /> Loot Collected
+                    </div>
+                  )}
                 </div>
               );
             })}
