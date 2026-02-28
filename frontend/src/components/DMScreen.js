@@ -404,6 +404,9 @@ Each turn: 3 actions + 1 reaction
         {/* Dice Roller */}
         <DiceRoller />
 
+        {/* Combat Tracker */}
+        <CombatTracker players={players} npcs={npcs} />
+
         {/* Players */}
         <div data-testid="dm-screen-players" className="glow-panel" style={{ height: 'fit-content' }}>
           <div style={{ marginBottom: '20px' }}>
