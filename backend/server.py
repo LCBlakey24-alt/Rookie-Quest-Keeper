@@ -106,6 +106,31 @@ class GodUpdate(BaseModel):
     alignment: Optional[str] = None
     notes: Optional[str] = None
 
+class PlaceOfInterest(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    place_type: str = ""  # shop, tavern, temple, blacksmith, inn, guild, etc
+    description: str = ""
+    owner: str = ""  # NPC who runs the place
+    services: str = ""  # What services/items they offer
+    notes: str = ""
+
+class PlaceOfInterestCreate(BaseModel):
+    name: str
+    place_type: str = ""
+    description: str = ""
+    owner: str = ""
+    services: str = ""
+    notes: str = ""
+
+class PlaceOfInterestUpdate(BaseModel):
+    name: Optional[str] = None
+    place_type: Optional[str] = None
+    description: Optional[str] = None
+    owner: Optional[str] = None
+    services: Optional[str] = None
+    notes: Optional[str] = None
+
 class Location(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -115,6 +140,7 @@ class Location(BaseModel):
     description: str = ""
     notable_npcs: str = ""
     notes: str = ""
+    places_of_interest: List[Dict[str, Any]] = []  # List of places within this location
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class LocationCreate(BaseModel):
@@ -123,6 +149,7 @@ class LocationCreate(BaseModel):
     description: str = ""
     notable_npcs: str = ""
     notes: str = ""
+    places_of_interest: List[Dict[str, Any]] = []
 
 class LocationUpdate(BaseModel):
     name: Optional[str] = None
@@ -130,6 +157,7 @@ class LocationUpdate(BaseModel):
     description: Optional[str] = None
     notable_npcs: Optional[str] = None
     notes: Optional[str] = None
+    places_of_interest: Optional[List[Dict[str, Any]]] = None
 
 class Calendar(BaseModel):
     model_config = ConfigDict(extra="ignore")
