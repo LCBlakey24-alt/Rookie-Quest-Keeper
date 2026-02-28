@@ -346,6 +346,65 @@ class AIGenerationResponse(BaseModel):
     content: str
     generation_type: str
 
+# Party Inventory Models
+class InventoryItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str
+    quantity: int = 1
+    item_type: str = "misc"  # weapon, armor, potion, scroll, misc, currency, magic_item
+    description: str = ""
+    value: str = ""  # e.g., "50 gp"
+    weight: float = 0.0
+    is_magical: bool = False
+    attunement_required: bool = False
+    attuned_to: str = ""  # Player name if attuned
+    notes: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class InventoryItemCreate(BaseModel):
+    name: str
+    quantity: int = 1
+    item_type: str = "misc"
+    description: str = ""
+    value: str = ""
+    weight: float = 0.0
+    is_magical: bool = False
+    attunement_required: bool = False
+    attuned_to: str = ""
+    notes: str = ""
+
+class InventoryItemUpdate(BaseModel):
+    name: Optional[str] = None
+    quantity: Optional[int] = None
+    item_type: Optional[str] = None
+    description: Optional[str] = None
+    value: Optional[str] = None
+    weight: Optional[float] = None
+    is_magical: Optional[bool] = None
+    attunement_required: Optional[bool] = None
+    attuned_to: Optional[str] = None
+    notes: Optional[str] = None
+
+class PartyCurrency(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    copper: int = 0
+    silver: int = 0
+    electrum: int = 0
+    gold: int = 0
+    platinum: int = 0
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class PartyCurrencyUpdate(BaseModel):
+    copper: Optional[int] = None
+    silver: Optional[int] = None
+    electrum: Optional[int] = None
+    gold: Optional[int] = None
+    platinum: Optional[int] = None
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
