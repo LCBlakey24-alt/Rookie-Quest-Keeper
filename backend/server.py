@@ -469,6 +469,11 @@ async def get_campaign_setting(campaign_id: str, username: str = Depends(get_cur
         doc = setting_obj.model_dump()
         await db.campaign_settings.insert_one(doc)
         return setting_obj
+    # Ensure dm_rules has a default value if null in DB (for backward compatibility)
+    if setting.get('dm_rules') is None:
+        setting['dm_rules'] = ""
+    if setting.get('content') is None:
+        setting['content'] = ""
     return setting
 
 @api_router.put("/campaigns/{campaign_id}/setting", response_model=CampaignSetting)
