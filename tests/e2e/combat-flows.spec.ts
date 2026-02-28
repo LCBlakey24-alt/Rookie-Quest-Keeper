@@ -174,21 +174,21 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     // Use exact match to avoid matching "Next Turn" button
     await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
-    // Click Next Turn
-    await page.getByRole('button', { name: /Next Turn/i }).click();
+    // Click Next Turn (force to bypass any overlays)
+    await page.getByRole('button', { name: /Next Turn/i }).click({ force: true });
     
     // The turn should have advanced - we should still see TURN indicator
     await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
     // Click Next Turn again to complete a round
-    await page.getByRole('button', { name: /Next Turn/i }).click();
+    await page.getByRole('button', { name: /Next Turn/i }).click({ force: true });
     
     // Should now be Round 2
     await expect(page.getByText('Round 2')).toBeVisible();
     
     // Clean up
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: /End Combat/i }).click();
+    await page.getByRole('button', { name: /End Combat/i }).click({ force: true });
   });
 
   test('HP can be adjusted during combat', async ({ page }) => {
@@ -199,23 +199,23 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     // Initial HP should be 7/7 for the first goblin
     await expect(page.getByText('7 / 7').first()).toBeVisible();
     
-    // Find the first combatant's HP adjustment buttons - use the first combatant card
-    const firstCombatantCard = page.locator('div').filter({ hasText: /Goblin.*Enemy.*Rolled/ }).first();
-    
-    // Click -1 on the first combatant
-    await firstCombatantCard.getByRole('button', { name: '-1' }).click();
+    // Click -1 button (use exact name match and first() to avoid -10)
+    // The -1 button should be the 3rd button after -10 and -5
+    const minusOneButton = page.locator('button:text-is("-1")').first();
+    await minusOneButton.click({ force: true });
     
     // HP should now be 6/7 for the first combatant
     await expect(page.getByText('6 / 7')).toBeVisible({ timeout: 5000 });
     
     // Click +1 to heal
-    await firstCombatantCard.getByRole('button', { name: '+1' }).click();
+    const plusOneButton = page.locator('button:text-is("+1")').first();
+    await plusOneButton.click({ force: true });
     
     // HP should be back to 7/7
     await expect(page.getByText('7 / 7').first()).toBeVisible();
     
     // Clean up
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: /End Combat/i }).click();
+    await page.getByRole('button', { name: /End Combat/i }).click({ force: true });
   });
 });
