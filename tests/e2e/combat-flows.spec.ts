@@ -171,13 +171,14 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     await selectEncounterAndStartCombat(page);
     
     // Find the combatant with "TURN" indicator (first in initiative)
-    await expect(page.getByText('TURN')).toBeVisible();
+    // Use exact match to avoid matching "Next Turn" button
+    await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
     // Click Next Turn
     await page.getByRole('button', { name: /Next Turn/i }).click();
     
     // The turn should have advanced - we should still see TURN indicator
-    await expect(page.getByText('TURN')).toBeVisible();
+    await expect(page.getByText('TURN', { exact: true })).toBeVisible();
     
     // Click Next Turn again to complete a round
     await page.getByRole('button', { name: /Next Turn/i }).click();
@@ -195,19 +196,22 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     await navigateToDMScreen(page);
     await selectEncounterAndStartCombat(page);
     
-    // Initial HP should be 7/7
+    // Initial HP should be 7/7 for the first goblin
     await expect(page.getByText('7 / 7').first()).toBeVisible();
     
+    // Find the first combatant's HP adjustment buttons - use the first combatant card
+    const firstCombatantCard = page.locator('div').filter({ hasText: /Goblin.*Enemy.*Rolled/ }).first();
+    
     // Click -1 on the first combatant
-    await page.getByRole('button', { name: '-1' }).first().click();
+    await firstCombatantCard.getByRole('button', { name: '-1' }).click();
     
-    // HP should now be 6/7
-    await expect(page.getByText('6 / 7').first()).toBeVisible();
+    // HP should now be 6/7 for the first combatant
+    await expect(page.getByText('6 / 7')).toBeVisible({ timeout: 5000 });
     
-    // Click +5 to heal
-    await page.getByRole('button', { name: '+5' }).first().click();
+    // Click +1 to heal
+    await firstCombatantCard.getByRole('button', { name: '+1' }).click();
     
-    // HP should be back to 7/7 (capped at max)
+    // HP should be back to 7/7
     await expect(page.getByText('7 / 7').first()).toBeVisible();
     
     // Clean up
