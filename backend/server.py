@@ -46,6 +46,7 @@ api_router = APIRouter(prefix="/api")
 class UserRegister(BaseModel):
     username: str
     password: str
+    referral_code: Optional[str] = None  # Optional referral code from friend
 
 class UserLogin(BaseModel):
     username: str
