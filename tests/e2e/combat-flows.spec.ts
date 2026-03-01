@@ -19,7 +19,7 @@ test.describe('Combat Flow - DM Screen to Combat Page', () => {
     await navigateToDMScreen(page);
     
     // Verify Combat section exists
-    await expect(page.getByRole('heading', { name: 'Combat', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Combat Control' })).toBeVisible();
     
     // Verify encounter selector label
     await expect(page.getByText('Select Encounter')).toBeVisible();
