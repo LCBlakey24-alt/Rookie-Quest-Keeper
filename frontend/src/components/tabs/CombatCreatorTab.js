@@ -727,6 +727,21 @@ function CombatCreatorTab({ campaignId }) {
           </div>
         ) : (
           <div>
+            {/* Encounter Difficulty Calculator */}
+            <div style={{ marginBottom: '20px' }}>
+              <EncounterDifficultyCalculator 
+                monsters={combatants
+                  .filter(c => c.type === 'enemy' || c.type === 'monster')
+                  .map(c => ({ 
+                    name: c.name, 
+                    xp: c.xp || getXPFromCR(c.cr) || 0,
+                    count: 1 
+                  }))}
+                partySize={combatants.filter(c => c.type === 'player').length || 4}
+                partyLevel={5}
+              />
+            </div>
+            
             <h4 style={{ color: '#67e8f9', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>COMBATANTS ({combatants.length})</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
               {combatants.map(c => (
