@@ -668,6 +668,22 @@ async def get_user_subscription(username: str) -> dict:
     
     subscription = user.get('subscription', SubscriptionTier().model_dump())
     
+    # Check if referral premium has expired
+    premium_expires = subscription.get('premium_expires_at')
+    if premium_expires and subscription.get('tier') == 'adventurer':
+        expires_dt = datetime.fromisoformat(premium_expires.replace('Z', '+00:00'))
+        if datetime.now(timezone.utc) >= expires_dt:
+            # Premium expired, revert to free
+            subscription['tier'] = 'free'
+            subscription['subscription_status'] = 'expired'
+            await db.users.update_one(
+                {'username': username},
+                {'$set': {
+                    'subscription.tier': 'free',
+                    'subscription.subscription_status': 'expired'
+                }}
+            )
+    
     # Reset AI calls monthly
     reset_date = subscription.get('ai_calls_reset_date')
     if reset_date:
