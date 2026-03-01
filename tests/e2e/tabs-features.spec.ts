@@ -30,7 +30,8 @@ test.describe('Dashboard Additional Tabs', () => {
     // Verify key elements are present
     await expect(page.getByText('Saved Encounters')).toBeVisible();
     await expect(page.getByText('ADD COMBATANTS')).toBeVisible();
-    await expect(page.getByText('Battle Map')).toBeVisible();
+    // Use heading role to avoid matching 'Add a Battle Map'
+    await expect(page.getByRole('heading', { name: 'Battle Map' })).toBeVisible();
   });
 
   test('Combat tab has saved encounters section', async ({ page }) => {
@@ -105,11 +106,11 @@ test.describe('Dashboard Additional Tabs', () => {
     // Verify Encounter Type section
     await expect(page.getByText('Encounter Type')).toBeVisible();
     
-    // Verify encounter type options exist
-    await expect(page.getByText('Combat')).toBeVisible();
-    await expect(page.getByText('Ambush')).toBeVisible();
-    await expect(page.getByText('Boss Fight')).toBeVisible();
-    await expect(page.getByText('Horde')).toBeVisible();
+    // Verify encounter type options exist - use exact role buttons
+    await expect(page.getByRole('button', { name: 'Combat' }).nth(1)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ambush' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Boss Fight' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Horde' })).toBeVisible();
   });
 
   test('Encounter Generator shows empty state', async ({ page }) => {
