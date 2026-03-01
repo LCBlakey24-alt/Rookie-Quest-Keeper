@@ -43,7 +43,7 @@ function LandingPage() {
     },
     {
       icon: Dices,
-      title: "DM Screen",
+      title: "GM Screen",
       description: "Everything you need during live sessions: dice roller, quick reference, session notes, and party tracker.",
       color: "#4a7dff",
       details: ["Floating dice roller", "Random tables", "Name generator with NPC save"]
