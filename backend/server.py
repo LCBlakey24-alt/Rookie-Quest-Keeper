@@ -1826,6 +1826,9 @@ async def unseen_servant_generate(request: UnseenServantRequest, username: str =
                 {'$set': {'places_of_interest': places}}
             )
         
+        # Increment AI usage for free tier users
+        await increment_ai_usage(username)
+        
         return UnseenServantResponse(
             success=True,
             entity_type=request.entity_type,
