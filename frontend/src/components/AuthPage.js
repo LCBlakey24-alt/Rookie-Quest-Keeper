@@ -323,10 +323,10 @@ function AuthPage({ onLogin }) {
           }} 
         />
         
-        {/* TTRPG Companion Logo - Made bigger */}
+        {/* Quest Keeper Logo */}
         <img 
-          src="/ttrpg-companion-logo.png" 
-          alt="TTRPG Companion" 
+          src="/quest-keeper-logo.png" 
+          alt="Quest Keeper" 
           style={{ 
             maxWidth: '450px', 
             width: '100%',
