@@ -10,6 +10,7 @@ import CampaignDashboard from '@/components/CampaignDashboard';
 import DMScreen from '@/components/DMScreen';
 import CombatPage from '@/components/CombatPage';
 import PricingPage from '@/components/PricingPage';
+import AdminPage from '@/components/AdminPage';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
