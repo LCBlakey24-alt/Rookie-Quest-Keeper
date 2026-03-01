@@ -144,6 +144,8 @@ function App() {
           />
           <Route path="/" element={<Navigate to="/campaigns" replace />} />
         </Routes>
+        {/* Floating Dice Roller - Available on all pages when logged in */}
+        {isAuthenticated && <FloatingDiceRoller />}
       </BrowserRouter>
       <Toaster position="top-right" richColors />
     </div>
