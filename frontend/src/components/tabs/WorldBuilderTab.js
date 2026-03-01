@@ -10,6 +10,7 @@ import {
   Building, Beer, Church, Hammer, Home, BookOpen, Globe, Map, Castle, 
   Trees, Mountain, Waves, Wand2, Check, X
 } from 'lucide-react';
+import QuickTips, { TIPS } from '@/components/QuickTips';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
