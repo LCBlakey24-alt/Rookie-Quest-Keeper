@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Gift } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 function AuthPage({ onLogin }) {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
-  const [registerData, setRegisterData] = useState({ username: '', password: '' });
+  const [registerData, setRegisterData] = useState({ username: '', password: '', referral_code: '' });
   const [loading, setLoading] = useState(false);
+  const [referralFromUrl, setReferralFromUrl] = useState(null);
+
+  useEffect(() => {
+    // Check for referral code in URL
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralFromUrl(refCode);
+      setRegisterData(prev => ({ ...prev, referral_code: refCode }));
+      setIsLogin(false); // Switch to register mode
+      toast.info('Referral code applied! Create an account to get started.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
