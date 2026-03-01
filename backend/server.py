@@ -1378,7 +1378,6 @@ async def unseen_servant_generate(request: UnseenServantRequest, username: str =
         response = await chat.send_message(UserMessage(text=full_prompt))
         
         # Parse JSON from response
-        import re
         json_match = re.search(r'\{[\s\S]*\}', response)
         if not json_match:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to parse AI response as JSON")
