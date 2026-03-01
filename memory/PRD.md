@@ -1,99 +1,110 @@
-# Rookie Quest - TTRPG Companion
-## Product Requirements Document
+# D&D DM Screen Companion - Product Requirements Document
 
 ## Overview
-A comprehensive web application for tabletop role-playing game (TTRPG) Dungeon Masters (DMs), serving as an all-in-one "DM Screen" for campaign management and live gameplay.
+A comprehensive web application for Dungeons & Dragons Dungeon Masters, serving as a digital "DM Screen" for managing campaigns, combat, and world-building.
 
-## Core Features
+## User Persona
+**Primary User**: Dungeon Masters (DMs) running D&D 5e campaigns who need quick access to game information, combat management, and world-building tools during sessions.
 
-### Campaign Dashboard (Unified Tab Design)
-All tabs use consistent horizontal tab bar matching DM Screen:
-- **Setting** - Campaign world and lore
-- **Gods** - Deity management with AI
-- **NPCs** - Character tracking with AI
-- **Locations** - Place management with AI
-- **Players** - D&D Beyond-style character creator
-- **Combat** - Combat Creator with enemy loot
-- **Encounter Gen** - AI Random Encounter Generator (NEW)
-- **Calendar** - Custom calendar system
-- **Notes** - Session notes with AI
+## Core Requirements
 
-### DM Screen (Tabbed Interface)
-- **Combat Tab** - Launch encounters
-- **Dice Tab** - Animated dice roller
-- **Loot Gen Tab** - AI treasure generation
-- **Inventory Tab** - Party inventory with drag-drop
-- **Party Tab** - Full character stat cards
-- **Notes Tab** - Quick session notes
+### Authentication
+- [x] Username/password registration and login
+- [x] JWT-based session management
+- [x] Protected routes for authenticated content
 
-### Random Encounter Generator (NEW)
-AI-powered balanced combat encounters:
-- **Party Configuration**: Auto-detects players, adjustable size/level
-- **Difficulty**: Easy, Medium, Hard, Deadly
-- **Encounter Types**: Combat, Ambush, Boss Fight, Horde
-- **Environments**: 12 options (Forest, Cave, Dungeon, etc.)
-- **Custom Prompts**: Add specific requirements
-- **Generated Output**:
-  - Encounter name and narrative description
-  - Enemies with CR, AC, HP, special abilities
-  - Enemy loot (auto-included)
-  - Combat tactics
-  - Terrain features
-  - XP estimation
-- **Save to Combat**: One-click add to Combat Creator
+### Campaign Management
+- [x] Create and manage multiple campaigns
+- [x] Campaign Dashboard with tabbed interface
+- [x] Campaign Setting tab with AI assistant
+- [x] Gods pantheon management
+- [x] NPC creation and management
+- [x] **Locations with Places of Interest** (shops, taverns, temples, etc.)
+- [x] Player character management with stat generation
+- [x] In-game notes with AI categorization
 
 ### Combat System
-- **Combat Creator**: Add enemies with loot items
-- **Combat Page**: Two-column (initiative | map)
-- **Loot Collection**: "Collect Loot" button on defeated enemies
-- **Inventory Transfer**: Add collected loot to party inventory
+- [x] Combat Creator for preparing encounters
+- [x] Monster Database with 2687+ creatures from D&D lore
+- [x] Initiative tracker
+- [x] Combat Page with two-column layout (tracker left, map right)
+- [x] Enemy loot assignment and collection
+- [x] AI Encounter Generator
 
-### Party Inventory
-- Currency tracking (PP, GP, EP, SP, CP)
-- Drag-and-drop item assignment to players
-- Item types, values, magical properties
+### DM Screen (Live Session)
+- [x] Tabbed interface (Combat, Dice, Loot Gen, Inventory, Party, Notes)
+- [x] Dice roller with all standard D&D dice
+- [x] AI Loot Generator
+- [x] Party Inventory with drag-and-drop item assignment
+- [x] Party overview with player stats and **correct initiative modifiers**
+- [x] Session notes with AI recap generator
+
+### Reference System
+- [x] **Items Database with 3,076 items** (weapons, armor, magic items, etc.)
+- [x] Search and filter by type, rarity, magic items
+- [x] **Rules Reference** with:
+  - [x] Difficulty Classes (DC 5-30)
+  - [x] XP Thresholds per level (Easy/Medium/Hard/Deadly)
+  - [x] Conditions Reference (15 conditions)
+  - [x] Cover Rules
+
+### Custom Content Creation
+- [x] Item Creator for custom magic items
+- [x] World Calendar system
+
+### UI/UX
+- [x] "Rookie Quest" branded aesthetic
+- [x] **Enlarged logos on login page** (both sides + above form)
+- [x] Dark fantasy theme with glow effects
+- [x] Responsive design
+- [x] Consistent tabbed navigation
 
 ## Technical Stack
-- **Frontend**: React.js, TailwindCSS, Shadcn/UI
-- **Backend**: FastAPI (Python), MongoDB
-- **AI**: Emergent LLM Key integration
+- **Frontend**: React.js, TailwindCSS, react-beautiful-dnd
+- **Backend**: FastAPI (Python), Motor (async MongoDB)
+- **Database**: MongoDB
+- **AI**: Emergent LLM for content generation
+- **Authentication**: JWT
+
+## Data Models
+
+### Campaign
+```javascript
+{
+  id, dm_user_id, name, system,
+  inventory: { currency: {}, items: [] },
+  combat_scenarios: [{ combatants: [{ loot: [] }] }],
+  custom_items: []
+}
+```
+
+### Location (with Places of Interest)
+```javascript
+{
+  id, campaign_id, name, location_type,
+  description, notable_npcs, notes,
+  places_of_interest: [{
+    id, name, place_type,  // shop, tavern, temple, etc.
+    description, owner, services, notes
+  }]
+}
+```
 
 ## API Endpoints
-- `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
-- `/api/campaigns` (CRUD)
-- `/api/campaigns/{id}/players` (CRUD)
-- `/api/campaigns/{id}/npcs` (CRUD)
-- `/api/campaigns/{id}/locations` (CRUD)
-- `/api/campaigns/{id}/gods` (CRUD)
-- `/api/campaigns/{id}/combat-scenarios` (CRUD)
-- `/api/campaigns/{id}/inventory` (CRUD)
-- `/api/campaigns/{id}/currency` (GET/PUT)
-- `/api/campaigns/{id}/calendar` (GET/PUT)
-- `/api/campaigns/{id}/calendar-events` (CRUD)
-- `/api/campaigns/{id}/ingame-notes` (CRUD)
-- `/api/ai/generate`
 
-## Completed Features
-- [x] User authentication (JWT)
-- [x] Campaign CRUD
-- [x] All campaign dashboard tabs
-- [x] DM Screen with 6 tabs
-- [x] Dedicated Combat Page (initiative left, map right)
-- [x] Party Inventory with drag-drop
-- [x] Combat loot system (enemy loot → collection → inventory)
-- [x] Random Encounter Generator with AI
-- [x] Unified tab design across all pages
+### Places of Interest
+- `POST /api/campaigns/{id}/locations/{loc_id}/places` - Add place
+- `GET /api/campaigns/{id}/locations/{loc_id}/places` - List places
+- `PUT /api/campaigns/{id}/locations/{loc_id}/places/{place_id}` - Update place
+- `DELETE /api/campaigns/{id}/locations/{loc_id}/places/{place_id}` - Delete place
 
-## Future/Backlog
-- [ ] Enhanced Map (fog of war, AoE templates)
-- [ ] Monetization (Stripe)
-- [ ] Mobile optimization
-- [ ] Export/Import campaigns
-- [ ] Backend refactoring
+### Items Database
+- Loaded from 3,076 items extracted from D&D backup file
+- Frontend data file: `/app/frontend/src/data/itemsDatabase.js`
 
-## Test Credentials
-- Create via registration form
-- Example: `testdm1` / `testpass123`
+## Test Status
+- **Backend**: 63/63 tests passing (100%)
+- **Frontend**: 51/51 E2E tests passing (100%)
 
 ---
-Last Updated: February 28, 2026
+Last Updated: March 1, 2026
