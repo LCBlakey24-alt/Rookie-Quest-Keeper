@@ -231,6 +231,130 @@ function PricingPage({ username, onLogout }) {
           </form>
         </div>
 
+        {/* Referral Program Section */}
+        {referralInfo && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(74, 125, 255, 0.1) 100%)',
+            border: '2px solid #22c55e',
+            borderRadius: '12px',
+            padding: '24px',
+            marginBottom: '40px'
+          }}>
+            <h3 style={{ 
+              color: '#22c55e', 
+              marginBottom: '16px',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: '700',
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <Gift size={24} />
+              Refer Friends, Earn Free Premium!
+            </h3>
+            <p style={{ color: '#94a3b8', marginBottom: '20px', lineHeight: '1.6' }}>
+              Share your referral code with friends. When they sign up, <strong style={{ color: '#22c55e' }}>you get 1 FREE month</strong> of Adventurer access!
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              alignItems: 'center', 
+              flexWrap: 'wrap',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                flex: '1',
+                minWidth: '200px',
+                padding: '14px 18px',
+                borderRadius: '8px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                border: '2px solid #374151',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <span style={{ 
+                  color: '#fff', 
+                  fontWeight: '700',
+                  fontFamily: 'monospace',
+                  fontSize: '18px',
+                  letterSpacing: '2px'
+                }}>
+                  {referralInfo.referral_code}
+                </span>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(referralInfo.referral_code);
+                    toast.success('Referral code copied!');
+                  }}
+                  className="btn-icon"
+                  style={{ padding: '8px' }}
+                  data-testid="copy-referral-btn"
+                >
+                  <Copy size={18} />
+                </Button>
+              </div>
+              <Button
+                onClick={() => {
+                  const shareUrl = `${window.location.origin}/auth?ref=${referralInfo.referral_code}`;
+                  navigator.clipboard.writeText(shareUrl);
+                  toast.success('Share link copied!');
+                }}
+                className="btn-primary"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  background: 'linear-gradient(90deg, #22c55e, #16a34a)'
+                }}
+                data-testid="copy-share-link-btn"
+              >
+                <Users size={18} />
+                Copy Share Link
+              </Button>
+            </div>
+
+            {/* Stats */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '24px', 
+              flexWrap: 'wrap',
+              paddingTop: '16px',
+              borderTop: '1px solid rgba(34, 197, 94, 0.3)'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: '#22c55e', fontSize: '28px', fontWeight: '800' }}>
+                  {referralInfo.referral_count || 0}
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
+                  Friends Referred
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: '#4a7dff', fontSize: '28px', fontWeight: '800' }}>
+                  {referralInfo.free_months_earned || 0}
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
+                  Free Months Earned
+                </div>
+              </div>
+              {subscription?.premium_expires_at && (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ color: '#a855f7', fontSize: '16px', fontWeight: '700' }}>
+                    {new Date(subscription.premium_expires_at).toLocaleDateString()}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
+                    Premium Until
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Pricing Cards */}
         <div style={{
           display: 'grid',
