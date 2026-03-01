@@ -581,6 +581,10 @@ Please provide a JSON response with this exact structure:
   };
 
   if (loading) return <div className="loading-spinner"></div>;
+  
+  // DEBUG: Log loading state
+  console.log('CombatCreatorTab - loading:', loading, 'activeSubTab:', activeSubTab);
+  
   const { players: filteredPlayers, npcs: filteredNPCs } = filteredEntities();
 
   // Render Encounter Generator sub-tab
