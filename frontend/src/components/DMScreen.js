@@ -5,12 +5,14 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
   Sword, Users, BookOpen, Send, Sparkles, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, Shield, UserPlus, Shuffle
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, Shield, UserPlus, Shuffle, Skull, Wand2
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import LootGenerator from '@/components/LootGenerator';
 import PartyInventory from '@/components/PartyInventory';
 import { QuickReferenceModal } from '@/components/QuickReference';
+import MonsterLookup from '@/components/MonsterLookup';
+import RandomTables from '@/components/RandomTables';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
