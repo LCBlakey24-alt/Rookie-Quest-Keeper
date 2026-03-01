@@ -395,7 +395,7 @@ function LocationsTab({ campaignId }) {
                   value={placeFormData.notes}
                   onChange={(e) => setPlaceFormData({ ...placeFormData, notes: e.target.value })}
                   className="textarea"
-                  placeholder="DM notes, secrets, hooks..."
+                  placeholder="GM notes, secrets, hooks..."
                 />
               </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
