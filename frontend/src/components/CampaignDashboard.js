@@ -45,7 +45,7 @@ function CampaignDashboard({ username, onLogout }) {
   };
 
   const handleOpenGMScreen = () => {
-    window.open(`/dm-screen/${campaignId}`, '_blank');
+    window.open(`/gm-screen/${campaignId}`, '_blank');
   };
 
   if (loading) {
