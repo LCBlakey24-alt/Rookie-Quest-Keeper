@@ -997,6 +997,46 @@ async def get_subscription_plans():
         ]
     }
 
+@api_router.get("/referral/code")
+async def get_referral_code(username: str = Depends(get_current_user)):
+    """Get or generate user's referral code"""
+    user = await db.users.find_one({'username': username})
+    subscription = user.get('subscription', {})
+    referral_code = subscription.get('referral_code')
+    
+    # Generate one if doesn't exist (for existing users)
+    if not referral_code:
+        referral_code = generate_referral_code(username)
+        await db.users.update_one(
+            {'username': username},
+            {'$set': {'subscription.referral_code': referral_code}}
+        )
+    
+    return {
+        'referral_code': referral_code,
+        'referral_count': subscription.get('referral_count', 0),
+        'free_months_earned': subscription.get('free_months_earned', 0),
+        'share_url': f'?ref={referral_code}'
+    }
+
+@api_router.get("/referral/leaderboard")
+async def get_referral_leaderboard():
+    """Get top referrers"""
+    top_referrers = await db.users.find(
+        {'subscription.referral_count': {'$gt': 0}},
+        {'_id': 0, 'username': 1, 'subscription.referral_count': 1}
+    ).sort('subscription.referral_count', -1).limit(10).to_list(10)
+    
+    return {
+        'leaderboard': [
+            {
+                'username': u['username'][:3] + '***',  # Privacy
+                'referrals': u.get('subscription', {}).get('referral_count', 0)
+            }
+            for u in top_referrers
+        ]
+    }
+
 # ==================== CAMPAIGN ROUTES ====================
 
 @api_router.post("/campaigns", response_model=Campaign, status_code=status.HTTP_201_CREATED)
