@@ -1,1 +1,171 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="63" time="73.326" timestamp="2026-03-01T10:01:18.613927+00:00" hostname="agent-env-a607afbd-0f21-4b2c-87e1-6b08a65dd2bc"><testcase classname="test_dmscreen_api.TestAuth" name="test_register_user" time="0.451" /><testcase classname="test_dmscreen_api.TestAuth" name="test_register_duplicate_user" time="0.360" /><testcase classname="test_dmscreen_api.TestAuth" name="test_login_success" time="0.683" /><testcase classname="test_dmscreen_api.TestAuth" name="test_login_invalid_credentials" time="0.103" /><testcase classname="test_dmscreen_api.TestAuth" name="test_auth_me_endpoint" time="0.432" /><testcase classname="test_dmscreen_api.TestCampaigns" name="test_create_campaign" time="0.464" /><testcase classname="test_dmscreen_api.TestCampaigns" name="test_get_campaigns" time="0.554" /><testcase classname="test_dmscreen_api.TestCampaigns" name="test_get_single_campaign" time="0.564" /><testcase classname="test_dmscreen_api.TestCampaigns" name="test_update_campaign" time="0.534" /><testcase classname="test_dmscreen_api.TestCampaigns" name="test_delete_campaign" time="0.646" /><testcase classname="test_dmscreen_api.TestCalendar" name="test_get_calendar" time="0.567" /><testcase classname="test_dmscreen_api.TestCalendar" name="test_advance_calendar" time="0.743" /><testcase classname="test_dmscreen_api.TestCalendar" name="test_update_calendar" time="0.538" /><testcase classname="test_dmscreen_api.TestCalendarEvents" name="test_create_event" time="0.542" /><testcase classname="test_dmscreen_api.TestCalendarEvents" name="test_get_events" time="0.638" /><testcase classname="test_dmscreen_api.TestCalendarEvents" name="test_update_event" time="0.654" /><testcase classname="test_dmscreen_api.TestCalendarEvents" name="test_delete_event" time="0.735" /><testcase classname="test_dmscreen_api.TestPlayers" name="test_create_player" time="0.607" /><testcase classname="test_dmscreen_api.TestPlayers" name="test_get_players" time="0.679" /><testcase classname="test_dmscreen_api.TestPlayers" name="test_update_player" time="0.651" /><testcase classname="test_dmscreen_api.TestPlayers" name="test_delete_player" time="0.663" /><testcase classname="test_dmscreen_api.TestNPCs" name="test_create_npc" time="0.610" /><testcase classname="test_dmscreen_api.TestNPCs" name="test_get_npcs" time="0.654" /><testcase classname="test_dmscreen_api.TestNPCs" name="test_update_npc" time="0.664" /><testcase classname="test_dmscreen_api.TestNPCs" name="test_delete_npc" time="0.725" /><testcase classname="test_dmscreen_api.TestLocations" name="test_create_location" time="0.538" /><testcase classname="test_dmscreen_api.TestLocations" name="test_get_locations" time="0.681" /><testcase classname="test_dmscreen_api.TestGods" name="test_create_god" time="0.542" /><testcase classname="test_dmscreen_api.TestGods" name="test_get_gods" time="0.652" /><testcase classname="test_dmscreen_api.TestCombatScenarios" name="test_create_combat_scenario" time="0.550" /><testcase classname="test_dmscreen_api.TestCombatScenarios" name="test_get_combat_scenarios" time="0.670" /><testcase classname="test_dmscreen_api.TestInGameNotes" name="test_create_note" time="0.547" /><testcase classname="test_dmscreen_api.TestInGameNotes" name="test_get_notes" time="0.672" /><testcase classname="test_dmscreen_api.TestCampaignSetting" name="test_get_setting" time="0.547" /><testcase classname="test_dmscreen_api.TestCampaignSetting" name="test_update_setting" time="0.555" /><testcase classname="test_new_features.TestAuth" name="test_register_success" time="0.445" /><testcase classname="test_new_features.TestAuth" name="test_login_success" time="0.667" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_get_default_calendar" time="36.492" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_update_to_custom_calendar" time="0.132" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_add_month" time="0.260" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_remove_month" time="0.223" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_set_days" time="0.116" /><testcase classname="test_new_features.TestCustomCalendarBuilder" name="test_advance_calendar" time="0.249" /><testcase classname="test_new_features.TestCharacterCreator" name="test_create_character_with_full_stats" time="0.586" /><testcase classname="test_new_features.TestCharacterCreator" name="test_create_wizard_character" time="0.113" /><testcase classname="test_new_features.TestCharacterCreator" name="test_list_players" time="0.112" /><testcase classname="test_new_features.TestCharacterCreator" name="test_update_character" time="0.221" /><testcase classname="test_new_features.TestCharacterCreator" name="test_delete_character" time="0.390" /><testcase classname="test_new_features.TestSessionNotes" name="test_create_session_note" time="0.601" /><testcase classname="test_new_features.TestSessionNotes" name="test_list_session_notes" time="0.476" /><testcase classname="test_new_features.TestSessionNotes" name="test_delete_session_note" time="0.343" /><testcase classname="test_new_features.TestCalendarEvents" name="test_create_event" time="0.569" /><testcase classname="test_new_features.TestCalendarEvents" name="test_delete_event" time="0.236" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_add_place_of_interest" time="0.911" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_get_places_of_interest" time="0.939" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_update_place_of_interest" time="0.942" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_delete_place_of_interest" time="1.058" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_delete_nonexistent_place" time="0.900" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_places_included_in_location_response" time="1.047" /><testcase classname="test_places_of_interest.TestPlacesOfInterest" name="test_multiple_places_in_location" time="1.261" /><testcase classname="test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_add_place_to_nonexistent_location" time="0.470" /><testcase classname="test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_update_nonexistent_place" time="0.594" /><testcase classname="test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_place_with_all_types" time="2.295" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="10" failures="0" skipped="0" tests="63" time="83.867" timestamp="2026-03-01T10:35:02.246566+00:00" hostname="agent-env-a607afbd-0f21-4b2c-87e1-6b08a65dd2bc"><testcase classname="tests.test_dmscreen_api.TestAuth" name="test_register_user" time="0.386" /><testcase classname="tests.test_dmscreen_api.TestAuth" name="test_register_duplicate_user" time="0.329" /><testcase classname="tests.test_dmscreen_api.TestAuth" name="test_login_success" time="0.662" /><testcase classname="tests.test_dmscreen_api.TestAuth" name="test_login_invalid_credentials" time="0.099" /><testcase classname="tests.test_dmscreen_api.TestAuth" name="test_auth_me_endpoint" time="0.425" /><testcase classname="tests.test_dmscreen_api.TestCampaigns" name="test_create_campaign" time="0.450" /><testcase classname="tests.test_dmscreen_api.TestCampaigns" name="test_get_campaigns" time="0.530" /><testcase classname="tests.test_dmscreen_api.TestCampaigns" name="test_get_single_campaign" time="0.544" /><testcase classname="tests.test_dmscreen_api.TestCampaigns" name="test_update_campaign" time="0.532" /><testcase classname="tests.test_dmscreen_api.TestCampaigns" name="test_delete_campaign" time="0.648" /><testcase classname="tests.test_dmscreen_api.TestCalendar" name="test_get_calendar" time="0.584" /><testcase classname="tests.test_dmscreen_api.TestCalendar" name="test_advance_calendar" time="0.786" /><testcase classname="tests.test_dmscreen_api.TestCalendar" name="test_update_calendar" time="0.535" /><testcase classname="tests.test_dmscreen_api.TestCalendarEvents" name="test_create_event" time="0.547" /><testcase classname="tests.test_dmscreen_api.TestCalendarEvents" name="test_get_events" time="0.648" /><testcase classname="tests.test_dmscreen_api.TestCalendarEvents" name="test_update_event" time="0.627" /><testcase classname="tests.test_dmscreen_api.TestCalendarEvents" name="test_delete_event" time="0.665" /><testcase classname="tests.test_dmscreen_api.TestPlayers" name="test_create_player" time="0.548" /><testcase classname="tests.test_dmscreen_api.TestPlayers" name="test_get_players" time="0.688" /><testcase classname="tests.test_dmscreen_api.TestPlayers" name="test_update_player" time="0.638" /><testcase classname="tests.test_dmscreen_api.TestPlayers" name="test_delete_player" time="0.665" /><testcase classname="tests.test_dmscreen_api.TestNPCs" name="test_create_npc" time="0.553" /><testcase classname="tests.test_dmscreen_api.TestNPCs" name="test_get_npcs" time="0.629" /><testcase classname="tests.test_dmscreen_api.TestNPCs" name="test_update_npc" time="0.633" /><testcase classname="tests.test_dmscreen_api.TestNPCs" name="test_delete_npc" time="0.635" /><testcase classname="tests.test_dmscreen_api.TestLocations" name="test_create_location" time="0.526" /><testcase classname="tests.test_dmscreen_api.TestLocations" name="test_get_locations" time="0.658" /><testcase classname="tests.test_dmscreen_api.TestGods" name="test_create_god" time="36.541" /><testcase classname="tests.test_dmscreen_api.TestGods" name="test_get_gods" time="0.634" /><testcase classname="tests.test_dmscreen_api.TestCombatScenarios" name="test_create_combat_scenario" time="0.531" /><testcase classname="tests.test_dmscreen_api.TestCombatScenarios" name="test_get_combat_scenarios" time="0.660" /><testcase classname="tests.test_dmscreen_api.TestInGameNotes" name="test_create_note" time="0.543" /><testcase classname="tests.test_dmscreen_api.TestInGameNotes" name="test_get_notes" time="2.792" /><testcase classname="tests.test_dmscreen_api.TestCampaignSetting" name="test_get_setting" time="20.171" /><testcase classname="tests.test_dmscreen_api.TestCampaignSetting" name="test_update_setting" time="0.536" /><testcase classname="tests.test_new_features.TestAuth" name="test_register_success" time="0.319" /><testcase classname="tests.test_new_features.TestAuth" name="test_login_success" time="0.700" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_get_default_calendar" time="0.546" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_update_to_custom_calendar" time="0.108" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_add_month" time="0.212" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_remove_month" time="0.205" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_update_calendar_set_days" time="0.108" /><testcase classname="tests.test_new_features.TestCustomCalendarBuilder" name="test_advance_calendar" time="0.238" /><testcase classname="tests.test_new_features.TestCharacterCreator" name="test_create_character_with_full_stats" time="0.571" /><testcase classname="tests.test_new_features.TestCharacterCreator" name="test_create_wizard_character" time="0.108" /><testcase classname="tests.test_new_features.TestCharacterCreator" name="test_list_players" time="0.118" /><testcase classname="tests.test_new_features.TestCharacterCreator" name="test_update_character" time="0.212" /><testcase classname="tests.test_new_features.TestCharacterCreator" name="test_delete_character" time="0.303" /><testcase classname="tests.test_new_features.TestSessionNotes" name="test_create_session_note" time="0.559" /><testcase classname="tests.test_new_features.TestSessionNotes" name="test_list_session_notes" time="0.447" /><testcase classname="tests.test_new_features.TestSessionNotes" name="test_delete_session_note" time="0.319" /><testcase classname="tests.test_new_features.TestCalendarEvents" name="test_create_event" time="0.548" /><testcase classname="tests.test_new_features.TestCalendarEvents" name="test_delete_event" time="0.199" /><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_add_place_of_interest" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_get_places_of_interest" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_update_place_of_interest" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_delete_place_of_interest" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_delete_nonexistent_place" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_places_included_in_location_response" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterest" name="test_multiple_places_in_location" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?&quot;">tests/test_places_of_interest.py:24: in setup
+    register_response = requests.post(f"{BASE_URL}/api/auth/register", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/register': No scheme supplied. Perhaps you meant https:///api/auth/register?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_add_place_to_nonexistent_location" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">tests/test_places_of_interest.py:273: in setup
+    login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_update_nonexistent_place" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">tests/test_places_of_interest.py:273: in setup
+    login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="tests.test_places_of_interest.TestPlacesOfInterestEdgeCases" name="test_place_with_all_types" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">tests/test_places_of_interest.py:273: in setup
+    login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase></testsuite></testsuites>
