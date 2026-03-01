@@ -18,7 +18,7 @@ import QuickTips, { TIPS } from '@/components/QuickTips';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-function DMScreen({ username }) {
+function GMScreen({ username }) {
   const { campaignId } = useParams();
   const navigate = useNavigate();
   
@@ -67,7 +67,7 @@ function DMScreen({ username }) {
       setCalendar(calendarRes.data);
       setSessionNotes(notesRes.data.slice(0, 30));
     } catch (error) {
-      toast.error('Failed to load DM Screen data');
+      toast.error('Failed to load GM Screen data');
     } finally {
       setLoading(false);
     }
