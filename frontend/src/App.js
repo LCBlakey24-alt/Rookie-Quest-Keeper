@@ -116,6 +116,22 @@ function App() {
                 <Navigate to="/auth" replace />
             } 
           />
+          <Route 
+            path="/pricing" 
+            element={
+              isAuthenticated ? 
+                <PricingPage username={username} onLogout={handleLogout} /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
+          <Route 
+            path="/subscription/success" 
+            element={<Navigate to="/pricing" replace />} 
+          />
+          <Route 
+            path="/subscription/cancel" 
+            element={<Navigate to="/pricing" replace />} 
+          />
           <Route path="/" element={<Navigate to="/campaigns" replace />} />
         </Routes>
       </BrowserRouter>
