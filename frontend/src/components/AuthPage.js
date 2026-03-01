@@ -189,6 +189,24 @@ function AuthPage({ onLogin }) {
             ) : (
               /* Register Form */
               <form onSubmit={handleRegister} data-testid="register-form">
+                {/* Referral Badge */}
+                {referralFromUrl && (
+                  <div style={{
+                    background: 'rgba(34, 197, 94, 0.15)',
+                    border: '2px solid #22c55e',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    marginBottom: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <Gift size={20} color="#22c55e" />
+                    <span style={{ color: '#22c55e', fontSize: '14px', fontWeight: '600' }}>
+                      You were referred by a friend! They'll get 1 free month when you sign up.
+                    </span>
+                  </div>
+                )}
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ 
                     display: 'block', 
