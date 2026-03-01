@@ -179,7 +179,7 @@ function LandingPage() {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              DM Companion
+              GM Companion
             </span>
           </h1>
 
