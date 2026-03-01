@@ -738,6 +738,11 @@ async def get_subscription_status(username: str = Depends(get_current_user)):
     tier = subscription.get('tier', 'free')
     plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
     
+    # Calculate free months remaining
+    free_months_earned = subscription.get('free_months_earned', 0)
+    free_months_used = subscription.get('free_months_used', 0)
+    free_months_remaining = max(0, free_months_earned - free_months_used)
+    
     return SubscriptionResponse(
         tier=tier,
         tier_name=plan['name'],
@@ -745,7 +750,12 @@ async def get_subscription_status(username: str = Depends(get_current_user)):
         ai_calls_limit=plan['ai_calls_per_month'],
         ai_calls_used=subscription.get('ai_calls_this_month', 0),
         is_premium=tier != 'free',
-        subscription_status=subscription.get('subscription_status', 'active')
+        subscription_status=subscription.get('subscription_status', 'active'),
+        referral_code=subscription.get('referral_code'),
+        referral_count=subscription.get('referral_count', 0),
+        free_months_earned=free_months_earned,
+        free_months_remaining=free_months_remaining,
+        premium_expires_at=subscription.get('premium_expires_at')
     )
 
 @api_router.post("/subscription/checkout")
