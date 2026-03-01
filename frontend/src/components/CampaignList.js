@@ -67,6 +67,13 @@ function CampaignList({ username, onLogout }) {
       return;
     }
 
+    // Check campaign limit for free tier
+    if (subscription && !subscription.is_premium && campaigns.length >= 2) {
+      toast.error('Free tier is limited to 2 campaigns. Upgrade to Adventurer for unlimited campaigns!');
+      navigate('/pricing');
+      return;
+    }
+
     try {
       const response = await axios.post(`${API}/campaigns`, newCampaign);
       toast.success('Campaign created!');
