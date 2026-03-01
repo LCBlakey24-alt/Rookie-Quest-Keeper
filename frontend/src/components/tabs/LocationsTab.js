@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, MapPin, Sparkles, Copy, Loader, Store, ChevronDown, ChevronUp, Building, Beer, Church, Hammer, Home, BookOpen, X } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Loader, Store, ChevronDown, ChevronUp, Building, Beer, Church, Hammer, Home, BookOpen, X, Wand2, Check } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -35,8 +35,10 @@ function LocationsTab({ campaignId }) {
   });
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [aiResult, setAiResult] = useState('');
+  const [lastGenerated, setLastGenerated] = useState(null);
   const [expandedLocations, setExpandedLocations] = useState({});
+  const [generationType, setGenerationType] = useState('location'); // 'location' or 'place'
+  const [selectedLocationForPlace, setSelectedLocationForPlace] = useState('');
   
   // Places of Interest state
   const [showPlaceDialog, setShowPlaceDialog] = useState(false);
@@ -187,29 +189,52 @@ function LocationsTab({ campaignId }) {
     return type ? type.icon : MapPin;
   };
 
-  const handleAIGenerate = async () => {
+  // Unseen Servant - Auto-generate and save
+  const handleUnseenServant = async () => {
     if (!aiPrompt.trim()) {
-      toast.error('Please enter a prompt');
+      toast.error('Please describe what you want to create');
       return;
     }
+    
+    if (generationType === 'place' && !selectedLocationForPlace) {
+      toast.error('Please select a location for the place of interest');
+      return;
+    }
+    
     setAiGenerating(true);
+    setLastGenerated(null);
     try {
-      const response = await axios.post(`${API}/ai/generate`, {
+      const requestData = {
         prompt: aiPrompt,
-        generation_type: 'world'
-      });
-      setAiResult(response.data.content);
-      toast.success('AI content generated!');
+        entity_type: generationType === 'place' ? 'place_of_interest' : 'location',
+        campaign_id: campaignId
+      };
+      
+      if (generationType === 'place') {
+        requestData.location_id = selectedLocationForPlace;
+      }
+      
+      const response = await axios.post(`${API}/unseen-servant/generate`, requestData);
+      
+      if (response.data.success) {
+        const message = generationType === 'place' 
+          ? `✨ ${response.data.entity_name} has been added!`
+          : `✨ ${response.data.entity_name} has been added to your world!`;
+        toast.success(message);
+        setLastGenerated(response.data);
+        setAiPrompt('');
+        fetchLocations();
+        
+        // Auto-expand the location if we added a place
+        if (generationType === 'place') {
+          setExpandedLocations(prev => ({ ...prev, [selectedLocationForPlace]: true }));
+        }
+      }
     } catch (error) {
-      toast.error('Failed to generate content');
+      toast.error('The Unseen Servant failed to create');
     } finally {
       setAiGenerating(false);
     }
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
   };
 
   if (loading) return <div className="loading-spinner"></div>;
@@ -387,18 +412,32 @@ function LocationsTab({ campaignId }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {locations.map(location => {
-              const PlaceIcon = getPlaceIcon(location.place_type);
               const isExpanded = expandedLocations[location.id];
               const places = location.places_of_interest || [];
+              const isNewlyCreated = lastGenerated?.entity_id === location.id;
               
               return (
-                <Card key={location.id} data-testid={`location-card-${location.id}`} className="card" style={{ overflow: 'visible' }}>
+                <Card 
+                  key={location.id} 
+                  data-testid={`location-card-${location.id}`} 
+                  className="card" 
+                  style={{ 
+                    overflow: 'visible',
+                    animation: isNewlyCreated ? 'glow-pulse 2s ease-out' : 'none',
+                    border: isNewlyCreated ? '2px solid #22c55e' : undefined
+                  }}
+                >
                   <CardHeader>
                     <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
                       <MapPin size={24} style={{ color: '#22c55e', marginTop: '4px' }} />
                       <div style={{ flex: 1 }}>
-                        <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px' }}>
+                        <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {location.name}
+                          {isNewlyCreated && (
+                            <span style={{ fontSize: '12px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Check size={14} /> Just created
+                            </span>
+                          )}
                         </CardTitle>
                         {location.location_type && (
                           <p style={{ fontSize: '14px', color: '#67e8f9' }}>{location.location_type}</p>
@@ -474,6 +513,7 @@ function LocationsTab({ campaignId }) {
                           {places.map(place => {
                             const TypeIcon = getPlaceIcon(place.place_type);
                             const typeLabel = PLACE_TYPES.find(t => t.id === place.place_type)?.label || 'Place';
+                            const isNewPlace = lastGenerated?.entity_id === place.id;
                             
                             return (
                               <div
@@ -481,16 +521,20 @@ function LocationsTab({ campaignId }) {
                                 data-testid={`place-card-${place.id}`}
                                 style={{
                                   background: 'rgba(34, 197, 94, 0.08)',
-                                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                                  border: isNewPlace ? '2px solid #22c55e' : '1px solid rgba(34, 197, 94, 0.3)',
                                   borderRadius: '10px',
-                                  padding: '12px 14px'
+                                  padding: '12px 14px',
+                                  animation: isNewPlace ? 'glow-pulse 2s ease-out' : 'none'
                                 }}
                               >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                     <TypeIcon size={18} style={{ color: '#22c55e' }} />
                                     <div>
-                                      <h5 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', marginBottom: '2px' }}>{place.name}</h5>
+                                      <h5 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        {place.name}
+                                        {isNewPlace && <Check size={12} style={{ color: '#22c55e' }} />}
+                                      </h5>
                                       <span style={{ 
                                         fontSize: '10px', 
                                         color: '#22c55e', 
@@ -585,83 +629,163 @@ function LocationsTab({ campaignId }) {
         )}
       </div>
 
-      {/* AI Assistant Panel */}
+      {/* Unseen Servant Panel */}
       <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
         <Card className="parchment-dark" style={{ border: '2px solid #22c55e' }}>
           <CardHeader>
             <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} style={{ color: '#22c55e' }} />
-              AI Assistant
+              <Wand2 size={20} style={{ color: '#22c55e' }} />
+              Unseen Servant
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px', lineHeight: '1.5' }}>
-              Generate location descriptions, places of interest, shops, taverns, and more with AI.
+            <p style={{ fontSize: '13px', color: '#86efac', marginBottom: '16px', lineHeight: '1.5' }}>
+              Generate locations or places of interest and auto-save them to your world.
             </p>
+            
+            {/* Generation Type Toggle */}
             <div style={{ marginBottom: '16px' }}>
-              <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                What do you need?
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#22c55e', fontWeight: '600' }}>
+                What to create?
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setGenerationType('location')}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: generationType === 'location' ? '2px solid #22c55e' : '1px solid #374151',
+                    background: generationType === 'location' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+                    color: generationType === 'location' ? '#22c55e' : '#94a3b8',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <MapPin size={14} />
+                  Location
+                </button>
+                <button
+                  onClick={() => setGenerationType('place')}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: generationType === 'place' ? '2px solid #22c55e' : '1px solid #374151',
+                    background: generationType === 'place' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+                    color: generationType === 'place' ? '#22c55e' : '#94a3b8',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Store size={14} />
+                  Place
+                </button>
+              </div>
+            </div>
+            
+            {/* Location selector for places */}
+            {generationType === 'place' && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#22c55e', fontWeight: '600' }}>
+                  Add to which location?
+                </label>
+                <select
+                  value={selectedLocationForPlace}
+                  onChange={(e) => setSelectedLocationForPlace(e.target.value)}
+                  className="input"
+                  style={{ width: '100%', borderColor: '#22c55e' }}
+                >
+                  <option value="">Select a location...</option>
+                  {locations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#22c55e', fontWeight: '600' }}>
+                {generationType === 'place' ? 'Describe the place' : 'Describe the location'}
               </label>
               <textarea
-                data-testid="ai-location-prompt"
+                data-testid="unseen-servant-location-prompt"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 className="textarea"
-                style={{ minHeight: '100px', fontSize: '13px' }}
-                placeholder="Example: Create a bustling port city with secret underground markets, a pirate tavern, and a temple to the sea god"
+                style={{ minHeight: '100px', fontSize: '13px', borderColor: '#22c55e' }}
+                placeholder={generationType === 'place' 
+                  ? "Example: A seedy tavern where criminals meet to plan heists"
+                  : "Example: A bustling port city with secret underground markets"
+                }
               />
             </div>
             <Button
-              data-testid="generate-location-btn"
-              onClick={handleAIGenerate}
+              data-testid="summon-location-btn"
+              onClick={handleUnseenServant}
               disabled={aiGenerating}
               className="btn-primary"
-              style={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{ 
+                width: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                border: 'none'
+              }}
             >
               {aiGenerating ? (
                 <>
-                  <Loader size={16} className="loading-spinner" />
-                  Generating...
+                  <Loader size={16} className="animate-spin" />
+                  Summoning...
                 </>
               ) : (
                 <>
-                  <Sparkles size={16} />
-                  Generate
+                  <Wand2 size={16} />
+                  {generationType === 'place' ? 'Summon Place' : 'Summon Location'}
                 </>
               )}
             </Button>
-            {aiResult && (
-              <div style={{ marginTop: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label className="gold-text" style={{ fontSize: '14px' }}>Result</label>
-                  <Button
-                    data-testid="copy-location-result-btn"
-                    onClick={() => copyToClipboard(aiResult)}
-                    className="btn-icon"
-                    style={{ padding: '4px' }}
-                  >
-                    <Copy size={14} />
-                  </Button>
+            
+            {lastGenerated && (
+              <div style={{ 
+                marginTop: '16px', 
+                padding: '12px', 
+                background: 'rgba(34, 197, 94, 0.15)', 
+                border: '1px solid #22c55e',
+                borderRadius: '8px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <Check size={16} style={{ color: '#22c55e' }} />
+                  <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '13px' }}>Created!</span>
                 </div>
-                <div style={{
-                  background: 'rgba(10, 22, 40, 0.6)',
-                  border: '1px solid #1e3a5f',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  maxHeight: '400px',
-                  overflow: 'auto',
-                  fontSize: '13px',
-                  color: '#ffffff',
-                  lineHeight: '1.6',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {aiResult}
-                </div>
+                <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{lastGenerated.entity_name}</p>
+                <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>
+                  Click the edit button on the card to make changes
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+      
+      <style>{`
+        @keyframes glow-pulse {
+          0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.6); }
+          100% { box-shadow: 0 0 0px rgba(34, 197, 94, 0); }
+        }
+      `}</style>
     </div>
   );
 }
