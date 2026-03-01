@@ -12,7 +12,7 @@ test.describe('Campaign Dashboard Features', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    await page.goto('https://loot-tracker-8.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
+    await page.goto('https://dungeon-master-31.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
     await page.getByTestId('switch-to-register-btn').click();
     await page.getByTestId('register-username-input').fill(testUsername);
     await page.getByTestId('register-password-input').fill(testPassword);

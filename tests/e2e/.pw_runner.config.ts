@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260301_104327/results.json' }],
   ],
   use: {
-    baseURL: 'https://loot-tracker-8.preview.emergentagent.com',
+    baseURL: 'https://dungeon-master-31.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,
