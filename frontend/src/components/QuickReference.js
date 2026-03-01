@@ -133,7 +133,7 @@ export const CONDITIONS_REFERENCE = {
       'Casting another concentration spell ends the current one',
       'Taking damage requires a Constitution saving throw (DC 10 or half damage, whichever is higher)',
       'Being incapacitated or killed ends concentration',
-      'DM may call for a save due to environmental phenomena'
+      'GM may call for a save due to environmental phenomena'
     ]
   }
 };
