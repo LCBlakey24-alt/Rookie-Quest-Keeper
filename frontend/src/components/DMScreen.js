@@ -280,6 +280,13 @@ function DMScreen({ username }) {
 
       {/* Main Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+        {/* Quick Tips */}
+        <QuickTips 
+          tips={TIPS.dmScreen} 
+          pageId="dmScreen" 
+          title="DM Screen Tips"
+        />
+
         {/* Tab Navigation */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap', background: 'rgba(10, 10, 40, 0.5)', padding: '8px', borderRadius: '16px', border: '2px solid #1e40af' }}>
           {tabs.map(tab => (
