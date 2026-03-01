@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, Crown, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Crown, Sparkles, Loader2, Copy, Users, Gift } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -17,6 +17,7 @@ function PricingPage({ username, onLogout }) {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [applyingPromo, setApplyingPromo] = useState(false);
+  const [referralInfo, setReferralInfo] = useState(null);
 
   useEffect(() => {
     fetchData();
