@@ -37,7 +37,17 @@ function CampaignList({ username, onLogout }) {
 
   useEffect(() => {
     fetchCampaigns();
+    fetchSubscription();
   }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      const response = await axios.get(`${API}/subscription/status`);
+      setSubscription(response.data);
+    } catch (error) {
+      console.error('Failed to fetch subscription:', error);
+    }
+  };
 
   const fetchCampaigns = async () => {
     try {
