@@ -21,10 +21,28 @@ function AdminPage({ username }) {
   });
   const [stats, setStats] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    checkAdminAndFetch();
   }, []);
+
+  const checkAdminAndFetch = async () => {
+    try {
+      // First check if user is admin
+      const adminCheck = await axios.get(`${API}/admin/check`);
+      if (!adminCheck.data.is_admin) {
+        toast.error('Admin access required');
+        navigate('/campaigns');
+        return;
+      }
+      setIsAdmin(true);
+      fetchData();
+    } catch (error) {
+      toast.error('Access denied');
+      navigate('/campaigns');
+    }
+  };
 
   const fetchData = async () => {
     try {
