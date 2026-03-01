@@ -13,6 +13,7 @@ import PartyInventory from '@/components/PartyInventory';
 import { QuickReferenceModal } from '@/components/QuickReference';
 import MonsterLookup from '@/components/MonsterLookup';
 import RandomTables from '@/components/RandomTables';
+import QuickTips, { TIPS } from '@/components/QuickTips';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
