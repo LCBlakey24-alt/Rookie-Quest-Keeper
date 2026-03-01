@@ -239,6 +239,7 @@ function DMScreen({ username }) {
   const tabs = [
     { id: 'combat', icon: Swords, label: 'Combat', color: '#ef4444' },
     { id: 'dice', icon: Dices, label: 'Dice', color: '#a855f7' },
+    { id: 'names', icon: UserPlus, label: 'Names', color: '#f97316' },
     { id: 'loot', icon: Coins, label: 'Loot Gen', color: '#eab308' },
     { id: 'inventory', icon: Package, label: 'Inventory', color: '#22c55e' },
     { id: 'party', icon: Users, label: 'Party', color: '#4a7dff' },
