@@ -66,41 +66,10 @@ function AuthPage({ onLogin }) {
       <div style={{
         flex: 1,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '40px 20px'
       }}>
-        {/* Logo Header for advertising */}
-        <div style={{ 
-          marginBottom: '32px', 
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <img 
-            src="/rookie-quest-logo.png" 
-            alt="Rookie Quest" 
-            style={{ 
-              maxWidth: '280px', 
-              width: '100%',
-              filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))'
-            }} 
-          />
-          <p style={{ 
-            color: '#67e8f9', 
-            fontSize: '14px', 
-            fontFamily: 'Montserrat, sans-serif',
-            fontWeight: '600',
-            letterSpacing: '2px',
-            textTransform: 'uppercase'
-          }}>
-            Your Ultimate DM Companion
-          </p>
-        </div>
-        
         <div style={{ width: '100%', maxWidth: '420px' }}>
           {/* Form Panel */}
           <div className="glow-panel" style={{ padding: '40px 32px' }}>
