@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
 import CampaignList from '@/components/CampaignList';
 import CampaignDashboard from '@/components/CampaignDashboard';
-import DMScreen from '@/components/DMScreen';
+import DMScreen from '@/components/GMScreen';
 import CombatPage from '@/components/CombatPage';
 import PricingPage from '@/components/PricingPage';
 import AdminPage from '@/components/AdminPage';
