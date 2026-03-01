@@ -492,6 +492,13 @@ function WorldBuilderTab({ campaignId }) {
         </Button>
       </div>
 
+      {/* Quick Tips */}
+      <QuickTips 
+        tips={TIPS.worldBuilder} 
+        pageId="worldBuilder" 
+        title="World Builder Tips"
+      />
+
       {/* Hierarchy Legend */}
       <div style={{
         display: 'flex',
