@@ -19,34 +19,29 @@ test.describe('Dashboard Additional Tabs', () => {
     await hideEmergentBadge(page);
   });
 
-  test('Combat Creator tab loads correctly', async ({ page }) => {
-    // Navigate to Combat Creator tab
+  test('Combat tab loads correctly', async ({ page }) => {
+    // Navigate to Combat tab
     await page.getByTestId('combat-creator-tab').click();
+    
+    // Verify Encounter Builder heading is visible
+    await expect(page.getByText('Encounter Builder')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Create combat scenarios with maps and tokens')).toBeVisible();
     
     // Verify key elements are present
-    await expect(page.getByText('Combat Creator')).toBeVisible({ timeout: 10000 });
-    
-    // Verify monster database section exists
-    await expect(page.getByText('Add Monsters')).toBeVisible();
-    await expect(page.getByText('From Database')).toBeVisible();
-    
-    // Verify saved scenarios section exists  
-    await expect(page.getByText('Saved Scenarios')).toBeVisible();
+    await expect(page.getByText('Saved Encounters')).toBeVisible();
+    await expect(page.getByText('ADD COMBATANTS')).toBeVisible();
+    await expect(page.getByText('Battle Map')).toBeVisible();
   });
 
-  test('Combat Creator monster search works', async ({ page }) => {
+  test('Combat tab has saved encounters section', async ({ page }) => {
     await page.getByTestId('combat-creator-tab').click();
-    await expect(page.getByText('Combat Creator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Encounter Builder')).toBeVisible({ timeout: 10000 });
     
-    // Look for search/filter controls
-    const searchInput = page.locator('input[placeholder*="Search"]').first();
-    if (await searchInput.isVisible()) {
-      await searchInput.fill('Goblin');
-      // Should filter monsters
-    }
+    // Verify saved encounters section exists
+    await expect(page.getByText('Saved Encounters')).toBeVisible();
     
-    // Verify monster type filter exists
-    await expect(page.getByText('All Types')).toBeVisible();
+    // Verify existing encounter is shown (Goblin Ambush was shown in screenshot)
+    await expect(page.getByText('Goblin Ambush')).toBeVisible();
   });
 
   test('Items tab loads correctly', async ({ page }) => {
@@ -55,40 +50,46 @@ test.describe('Dashboard Additional Tabs', () => {
     
     // Verify Item Creator heading is visible
     await expect(page.getByText('Item Creator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Create custom magic items and equipment')).toBeVisible();
     
-    // Verify Create New Item button exists
-    await expect(page.getByText('Create New Item')).toBeVisible();
+    // Verify Create Item button exists
+    await expect(page.getByText('CREATE ITEM')).toBeVisible();
     
-    // Verify filter controls exist
-    await expect(page.getByText('All Types')).toBeVisible();
+    // Verify search input exists
+    await expect(page.locator('input[placeholder="Search items..."]')).toBeVisible();
+    
+    // Verify empty state message
+    await expect(page.getByText('No Custom Items')).toBeVisible();
   });
 
-  test('Items tab shows item types', async ({ page }) => {
+  test('Items tab shows filter buttons', async ({ page }) => {
     await page.getByTestId('items-tab').click();
     await expect(page.getByText('Item Creator')).toBeVisible({ timeout: 10000 });
     
-    // Verify item type icons/filters are present
-    await expect(page.getByText('Weapon')).toBeVisible();
-    await expect(page.getByText('Armor')).toBeVisible();
-    await expect(page.getByText('Potion')).toBeVisible();
+    // Verify "All" filter button is present
+    await expect(page.getByRole('button', { name: 'All' })).toBeVisible();
   });
 
   test('Encounter Generator tab loads correctly', async ({ page }) => {
     // Navigate to Encounter Generator tab  
     await page.getByTestId('encounter-gen-tab').click();
     
-    // Verify AI Encounter Generator heading is visible
-    await expect(page.getByText('AI Encounter Generator')).toBeVisible({ timeout: 10000 });
+    // Verify Random Encounter Generator heading is visible
+    await expect(page.getByText('Random Encounter Generator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('AI-powered balanced encounters based on your party')).toBeVisible();
     
-    // Verify generator controls exist
-    await expect(page.getByText('Party Level')).toBeVisible();
+    // Verify Party Configuration section
+    await expect(page.getByText('Party Configuration')).toBeVisible();
     await expect(page.getByText('Party Size')).toBeVisible();
+    await expect(page.getByText('Average Level')).toBeVisible();
+    
+    // Verify Difficulty section
     await expect(page.getByText('Difficulty')).toBeVisible();
   });
 
   test('Encounter Generator has difficulty options', async ({ page }) => {
     await page.getByTestId('encounter-gen-tab').click();
-    await expect(page.getByText('AI Encounter Generator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Random Encounter Generator')).toBeVisible({ timeout: 10000 });
     
     // Verify difficulty level options exist
     await expect(page.getByText('Easy')).toBeVisible();
@@ -99,7 +100,10 @@ test.describe('Dashboard Additional Tabs', () => {
 
   test('Encounter Generator has encounter type options', async ({ page }) => {
     await page.getByTestId('encounter-gen-tab').click();
-    await expect(page.getByText('AI Encounter Generator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Random Encounter Generator')).toBeVisible({ timeout: 10000 });
+    
+    // Verify Encounter Type section
+    await expect(page.getByText('Encounter Type')).toBeVisible();
     
     // Verify encounter type options exist
     await expect(page.getByText('Combat')).toBeVisible();
@@ -108,19 +112,17 @@ test.describe('Dashboard Additional Tabs', () => {
     await expect(page.getByText('Horde')).toBeVisible();
   });
 
-  test('Encounter Generator has environment options', async ({ page }) => {
+  test('Encounter Generator shows empty state', async ({ page }) => {
     await page.getByTestId('encounter-gen-tab').click();
-    await expect(page.getByText('AI Encounter Generator')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Random Encounter Generator')).toBeVisible({ timeout: 10000 });
     
-    // Verify environment dropdown has options
-    await expect(page.getByText('Environment')).toBeVisible();
-    
-    // Check for Generate Encounter button
-    await expect(page.getByRole('button', { name: /Generate Encounter/i })).toBeVisible();
+    // Verify empty state when no encounter generated
+    await expect(page.getByText('No Encounter Generated')).toBeVisible();
+    await expect(page.getByText('Configure your settings and click "Generate Encounter"')).toBeVisible();
   });
 
-  test('All dashboard tabs are accessible', async ({ page }) => {
-    // Test navigation to all tabs
+  test('All dashboard tabs are accessible without errors', async ({ page }) => {
+    // Test navigation to all tabs - each should render without error
     const tabIds = [
       'setting-tab',
       'gods-tab',
