@@ -144,7 +144,7 @@ export const TIPS = {
   campaigns: [
     { highlight: 'Create Campaign:', text: 'Click "+ NEW CAMPAIGN" to start your adventure!' },
     { highlight: 'Manage:', text: 'Click "MANAGE" to access all your campaign tools - NPCs, locations, combat, and more.' },
-    { highlight: 'DM Screen:', text: 'Inside a campaign, click "Open DM Screen" for live session tools.' },
+    { highlight: 'GM Screen:', text: 'Inside a campaign, click "Open GM Screen" for live session tools.' },
     { highlight: 'Dice Roller:', text: 'The purple dice button (bottom right) is available on every page!' },
   ],
   campaignDashboard: [
@@ -153,7 +153,7 @@ export const TIPS = {
     { highlight: 'Unseen Servant:', text: 'Use the AI wand icon to auto-generate and save NPCs, Gods, and Locations!' },
     { highlight: 'Combat Tab:', text: 'Prepare encounters and see difficulty ratings before your session.' },
   ],
-  dmScreen: [
+  gmScreen: [
     { highlight: 'Monsters:', text: 'Search and view any monster\'s full stat block instantly.' },
     { highlight: 'Names:', text: 'Generate random NPC names and save them directly to your campaign.' },
     { highlight: 'Tables:', text: 'Quick random generators for taverns, plot hooks, weather, and more.' },
@@ -180,12 +180,12 @@ export const TIPS = {
   players: [
     { highlight: 'Add Players:', text: 'Create character sheets for your party members.' },
     { highlight: 'Stats:', text: 'Track AC, HP, abilities, and initiative modifiers.' },
-    { highlight: 'Party Overview:', text: 'See your whole party at a glance in the DM Screen.' },
+    { highlight: 'Party Overview:', text: 'See your whole party at a glance in the GM Screen.' },
   ],
   npcs: [
     { highlight: 'Create NPCs:', text: 'Add shopkeepers, villains, allies, and more.' },
     { highlight: 'Unseen Servant:', text: 'Click the wand to AI-generate a complete NPC instantly!' },
-    { highlight: 'Name Generator:', text: 'Use the DM Screen\'s Names tab to generate names on the fly.' },
+    { highlight: 'Name Generator:', text: 'Use the GM Screen\'s Names tab to generate names on the fly.' },
   ],
   locations: [
     { highlight: 'Add Locations:', text: 'Create cities, dungeons, taverns, and points of interest.' },
