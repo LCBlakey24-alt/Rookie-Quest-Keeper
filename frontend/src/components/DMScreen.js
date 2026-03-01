@@ -441,6 +441,16 @@ function DMScreen({ username }) {
             </div>
           )}
 
+          {/* MONSTER LOOKUP TAB */}
+          {activeTab === 'monsters' && (
+            <div>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Skull size={24} style={{ color: '#dc2626' }} /> Monster Lookup
+              </h2>
+              <MonsterLookup />
+            </div>
+          )}
+
           {/* NAMES GENERATOR TAB */}
           {activeTab === 'names' && (
             <div>
