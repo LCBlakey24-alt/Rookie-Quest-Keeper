@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Plus, Trash2, Copy, Users, Gift, Shield, Key } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Users, Gift, Shield, Key, Star, Check, X } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -12,6 +12,7 @@ const API = `${BACKEND_URL}/api`;
 function AdminPage({ username }) {
   const navigate = useNavigate();
   const [promoCodes, setPromoCodes] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCode, setNewCode] = useState({
@@ -23,6 +24,7 @@ function AdminPage({ username }) {
   const [stats, setStats] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isAdmin, setIsAdmin] = useState(true);
+  const [activeTab, setActiveTab] = useState('promos'); // 'promos' or 'reviews'
 
   // Duration options for promo codes
   const durationOptions = [
