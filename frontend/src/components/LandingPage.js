@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { 
   Sword, Users, Map, Sparkles, Dices, BookOpen, Crown, 
   ChevronRight, Star, Shield, Wand2, Globe, Scroll,
@@ -7,9 +8,25 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const API = process.env.REACT_APP_BACKEND_URL;
+
 function LandingPage() {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [reviews, setReviews] = useState([]);
+
+  // Fetch featured reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(`${API}/api/reviews/featured`);
+        setReviews(response.data);
+      } catch (error) {
+        console.log('No reviews yet');
+      }
+    };
+    fetchReviews();
+  }, []);
 
   // Auto-rotate features
   useEffect(() => {
