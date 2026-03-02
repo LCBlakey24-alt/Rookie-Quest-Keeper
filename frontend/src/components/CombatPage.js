@@ -597,6 +597,46 @@ function CombatPage() {
                     })}
                   </div>
 
+                  {/* Attack Button - Show for enemies that are alive */}
+                  {c.type !== 'player' && c.hp > 0 && (
+                    <button
+                      onClick={() => setAttackingCreature(attackingCreature?.id === c.id ? null : c)}
+                      data-testid={`attack-btn-${c.id}`}
+                      style={{
+                        width: '100%',
+                        marginTop: '10px',
+                        padding: '10px',
+                        background: attackingCreature?.id === c.id 
+                          ? 'linear-gradient(180deg, #dc2626 0%, #991b1b 100%)' 
+                          : 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)',
+                        border: 'none',
+                        borderRadius: '10px',
+                        color: '#fff',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 0 15px rgba(249, 115, 22, 0.4)'
+                      }}
+                    >
+                      <Target size={16} /> {attackingCreature?.id === c.id ? 'Close Attack Panel' : 'Attack'}
+                    </button>
+                  )}
+                  
+                  {/* Attack Roller Panel */}
+                  {attackingCreature?.id === c.id && (
+                    <AttackRoller 
+                      creature={c}
+                      onClose={() => setAttackingCreature(null)}
+                      onDamageApplied={(damage) => {
+                        toast.info(`Apply ${damage} damage to a target using the HP buttons above`);
+                      }}
+                    />
+                  )}
+
                   {/* Loot Button - Show when enemy is defeated and has loot */}
                   {c.type !== 'player' && c.hp <= 0 && c.loot?.length > 0 && !c.lootCollected && (
                     <button
