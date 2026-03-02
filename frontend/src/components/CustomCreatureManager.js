@@ -551,13 +551,30 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
               key={creature.id}
               data-testid={`creature-card-${creature.id}`}
               style={{
-                background: 'rgba(0, 0, 0, 0.3)',
-                border: '2px solid #374151',
+                background: justCreated === creature.id 
+                  ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)'
+                  : 'rgba(0, 0, 0, 0.3)',
+                border: justCreated === creature.id ? '2px solid #a855f7' : '2px solid #374151',
                 borderRadius: '12px',
                 padding: '16px',
-                transition: 'all 0.2s'
+                transition: 'all 0.3s',
+                boxShadow: justCreated === creature.id ? '0 0 20px rgba(168, 85, 247, 0.4)' : 'none',
+                animation: justCreated === creature.id ? 'pulse 2s ease-in-out infinite' : 'none'
               }}
             >
+              {justCreated === creature.id && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '8px',
+                  color: '#a855f7',
+                  fontSize: '11px',
+                  fontWeight: '600'
+                }}>
+                  <Sparkles size={12} /> Just Created by Unseen Servant
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '700' }}>{creature.name}</h4>
                 <span style={{
