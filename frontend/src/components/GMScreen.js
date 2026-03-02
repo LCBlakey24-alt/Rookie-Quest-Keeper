@@ -443,7 +443,6 @@ function GMScreen({ username }) {
                     <p style={{ fontSize: '11px', color: '#64748b', textAlign: 'center', fontStyle: 'italic', marginTop: '8px' }}>
                       Combat opens in a dedicated full-screen view with initiative tracker and battle map
                     </p>
-                    </p>
                   </div>
                   
                   {/* Selected Encounter Preview */}
