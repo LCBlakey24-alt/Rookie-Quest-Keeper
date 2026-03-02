@@ -85,10 +85,11 @@ function AdminPage({ username }) {
       await axios.post(`${API}/promo-codes`, {
         code: newCode.code.toUpperCase(),
         tier_granted: newCode.tier_granted,
+        duration_days: parseInt(newCode.duration_days),
         uses_remaining: parseInt(newCode.uses_remaining)
       });
       toast.success(`Promo code ${newCode.code.toUpperCase()} created!`);
-      setNewCode({ code: '', tier_granted: 'adventurer', uses_remaining: -1 });
+      setNewCode({ code: '', tier_granted: 'adventurer', duration_days: 30, uses_remaining: -1 });
       setShowCreateForm(false);
       fetchData();
     } catch (error) {
