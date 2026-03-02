@@ -172,20 +172,21 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - `DELETE /api/campaigns/{id}/locations/{loc_id}/places/{place_id}` - Delete place
 
 ## Test Status
-- **Backend**: 91/91 tests passing (100%)
-- **Frontend**: 77/77 E2E tests passing (100%)
-- **New Test Files**: subscription-pricing.spec.ts, test_subscription.py
+- **Backend**: 106/106 tests passing (100%) - Added 15 custom creatures tests
+- **Frontend**: 90/90 E2E tests passing (100%) - Added 13 custom creatures tests
+- **New Test Files**: subscription-pricing.spec.ts, test_subscription.py, test_custom_creatures.py, custom-creatures.spec.ts
 
 ## Upcoming Tasks (Priority Order)
-1. **P1: Session Recap & Player Handouts** - AI-powered "Last time on..." summaries and shareable player links
-2. **P2: Dark Mode / Theme Options** - Theme switcher for better usability
-3. **P3: Player View Mode** - Simplified player-safe campaign view for sharing
-4. **P4: Import/Export Campaign Data** - Backup campaigns to JSON/PDF
-5. **P5: Merge Combat/Encounter Gen Tabs** - Needs careful refactoring (previously failed)
-6. **P6: World Calendar System** - Full customization
-7. **P7: Editable Rules Reference** - User-editable content
-8. **P8: Sound/Ambiance Integration** - Background music triggers
-9. **P9: Mobile App / PWA** - Progressive Web App for mobile/tablet
+1. **P0: User Content Import System** - Allow users to import creatures/items from Excel/JSON files (user requested)
+2. **P1: Session Recap & Player Handouts** - AI-powered "Last time on..." summaries and shareable player links
+3. **P2: Dark Mode / Theme Options** - Theme switcher for better usability
+4. **P3: Player View Mode** - Simplified player-safe campaign view for sharing
+5. **P4: Import/Export Campaign Data** - Backup campaigns to JSON/PDF
+6. **P5: Merge Combat/Encounter Gen Tabs** - Needs careful refactoring (previously failed)
+7. **P6: World Calendar System** - Full customization
+8. **P7: Editable Rules Reference** - User-editable content
+9. **P8: Sound/Ambiance Integration** - Background music triggers
+10. **P9: Mobile App / PWA** - Progressive Web App for mobile/tablet
 
 ---
-Last Updated: March 1, 2026
+Last Updated: March 2, 2026
