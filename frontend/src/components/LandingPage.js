@@ -169,12 +169,12 @@ function LandingPage() {
           }}>
             <img 
               src="/quest-keeper-logo.png" 
-              alt="Rookie Rookie Quest Keeper" 
+              alt="Rookie Quest Keeper" 
               style={{ 
                 height: '220px',
                 maxWidth: '90%',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 40px rgba(74, 125, 255, 0.6))',
+                filter: 'drop-shadow(0 0 40px rgba(20, 184, 166, 0.5))',
                 animation: 'float 3s ease-in-out infinite'
               }}
             />
