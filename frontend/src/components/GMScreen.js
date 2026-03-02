@@ -421,8 +421,28 @@ function GMScreen({ username }) {
                       <Users size={16} /> Quick Start with Players ({players.length})
                     </Button>
                     
+                    {/* Spontaneous Combat Button */}
+                    <Button 
+                      onClick={() => setShowQuickCombat(true)} 
+                      data-testid="spontaneous-combat-btn"
+                      style={{ 
+                        width: '100%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '8px', 
+                        padding: '14px',
+                        background: 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)',
+                        border: 'none',
+                        boxShadow: '0 0 20px rgba(249, 115, 22, 0.3)'
+                      }}
+                    >
+                      <Zap size={16} /> Spontaneous Combat
+                    </Button>
+                    
                     <p style={{ fontSize: '11px', color: '#64748b', textAlign: 'center', fontStyle: 'italic', marginTop: '8px' }}>
                       Combat opens in a dedicated full-screen view with initiative tracker and battle map
+                    </p>
                     </p>
                   </div>
                   
