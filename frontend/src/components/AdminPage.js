@@ -175,8 +175,34 @@ function AdminPage({ username }) {
               <Shield size={32} color="#ef4444" />
               Admin Panel
             </h1>
-            <p style={{ color: '#94a3b8', marginTop: '4px' }}>Manage promo codes and view stats</p>
+            <p style={{ color: '#94a3b8', marginTop: '4px' }}>Manage promo codes, reviews, and view stats</p>
           </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          marginBottom: '24px',
+          borderBottom: '2px solid #1e40af',
+          paddingBottom: '12px'
+        }}>
+          <Button
+            onClick={() => setActiveTab('promos')}
+            className={activeTab === 'promos' ? 'btn-primary' : 'btn-outline'}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Key size={18} />
+            Promo Codes ({promoCodes.length})
+          </Button>
+          <Button
+            onClick={() => setActiveTab('reviews')}
+            className={activeTab === 'reviews' ? 'btn-primary' : 'btn-outline'}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Star size={18} />
+            Reviews ({reviews.length})
+          </Button>
         </div>
 
         {/* Stats Cards */}
