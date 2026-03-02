@@ -1034,6 +1034,108 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
         "expires_at": premium_expires_at
     }
 
+# ============== REVIEWS ==============
+
+@api_router.post("/reviews")
+async def create_review(review_data: ReviewCreate, username: str = Depends(get_current_user)):
+    """Submit a review (authenticated users only)"""
+    # Validate rating
+    if review_data.rating < 1 or review_data.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    
+    # Check if user already submitted a review
+    existing = await db.reviews.find_one({'username': username})
+    if existing:
+        raise HTTPException(status_code=400, detail="You have already submitted a review. You can edit your existing review.")
+    
+    # Auto-approve 4-5 star reviews
+    is_approved = review_data.rating >= 4
+    is_featured = review_data.rating >= 4  # Auto-feature high ratings
+    
+    review = Review(
+        username=username,
+        rating=review_data.rating,
+        comment=review_data.comment,
+        is_approved=is_approved,
+        is_featured=is_featured
+    )
+    
+    await db.reviews.insert_one(review.model_dump())
+    return {"message": "Thank you for your review!", "is_featured": is_featured}
+
+@api_router.put("/reviews")
+async def update_review(review_data: ReviewCreate, username: str = Depends(get_current_user)):
+    """Update user's own review"""
+    if review_data.rating < 1 or review_data.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    
+    existing = await db.reviews.find_one({'username': username})
+    if not existing:
+        raise HTTPException(status_code=404, detail="You haven't submitted a review yet")
+    
+    # Re-evaluate approval based on new rating
+    is_approved = review_data.rating >= 4
+    is_featured = review_data.rating >= 4
+    
+    await db.reviews.update_one(
+        {'username': username},
+        {'$set': {
+            'rating': review_data.rating,
+            'comment': review_data.comment,
+            'is_approved': is_approved,
+            'is_featured': is_featured
+        }}
+    )
+    return {"message": "Review updated!", "is_featured": is_featured}
+
+@api_router.get("/reviews/mine")
+async def get_my_review(username: str = Depends(get_current_user)):
+    """Get the current user's review if they have one"""
+    review = await db.reviews.find_one({'username': username}, {'_id': 0})
+    return review
+
+@api_router.get("/reviews/featured")
+async def get_featured_reviews():
+    """Get featured reviews for landing page (public endpoint)"""
+    reviews = await db.reviews.find(
+        {'is_featured': True, 'is_approved': True},
+        {'_id': 0, 'username': 1, 'rating': 1, 'comment': 1, 'created_at': 1}
+    ).sort('created_at', -1).limit(6).to_list(6)
+    return reviews
+
+@api_router.get("/reviews/all")
+async def get_all_reviews(username: str = Depends(get_current_user)):
+    """Get all reviews (admin only)"""
+    await verify_admin(username)
+    reviews = await db.reviews.find({}, {'_id': 0}).sort('created_at', -1).to_list(100)
+    return reviews
+
+@api_router.put("/reviews/{review_id}/approve")
+async def toggle_review_approval(review_id: str, username: str = Depends(get_current_user)):
+    """Toggle review approval status (admin only)"""
+    await verify_admin(username)
+    
+    review = await db.reviews.find_one({'id': review_id})
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    new_status = not review.get('is_approved', False)
+    await db.reviews.update_one(
+        {'id': review_id},
+        {'$set': {'is_approved': new_status, 'is_featured': new_status}}
+    )
+    return {"message": f"Review {'approved' if new_status else 'hidden'}", "is_approved": new_status}
+
+@api_router.delete("/reviews/{review_id}")
+async def delete_review(review_id: str, username: str = Depends(get_current_user)):
+    """Delete a review (admin only)"""
+    await verify_admin(username)
+    
+    result = await db.reviews.delete_one({'id': review_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {"message": "Review deleted"}
+
 @api_router.get("/subscription/plans")
 async def get_subscription_plans():
     """Get available subscription plans"""
