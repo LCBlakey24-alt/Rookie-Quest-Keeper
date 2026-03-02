@@ -993,14 +993,20 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
     plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
     
     # Format duration for message
-    if duration_days == 7:
+    if duration_days == -1:
+        duration_text = "lifetime"
+    elif duration_days == 7:
         duration_text = "1 week"
     elif duration_days == 14:
         duration_text = "2 weeks"
     elif duration_days == 30:
         duration_text = "1 month"
+    elif duration_days == 60:
+        duration_text = "2 months"
     elif duration_days == 90:
         duration_text = "3 months"
+    elif duration_days == 180:
+        duration_text = "6 months"
     elif duration_days == 365:
         duration_text = "1 year"
     else:
