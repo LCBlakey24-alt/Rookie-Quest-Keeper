@@ -124,19 +124,20 @@ function CampaignDashboard({ username, onLogout }) {
             gap: '16px'
           }}>
             <img 
-              src="/rookie-quest-logo.png" 
+              src="/ttrpg-companion-logo.png" 
               alt="Rookie Quest" 
               style={{ 
-                height: '45px',
+                height: '40px',
                 filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))'
               }} 
             />
+            <div style={{ width: '1px', height: '30px', background: 'rgba(20, 184, 166, 0.3)' }} />
             <img 
               src="/quest-keeper-logo.png" 
               alt="Rookie Quest Keeper" 
               style={{ 
                 height: '38px',
-                filter: 'drop-shadow(0 0 10px rgba(74, 125, 255, 0.4))'
+                filter: 'drop-shadow(0 0 15px rgba(20, 184, 166, 0.4))'
               }} 
             />
           </div>
