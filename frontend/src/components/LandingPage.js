@@ -267,7 +267,7 @@ function LandingPage() {
             </Button>
           </div>
 
-          {/* Social proof */}
+          {/* Social proof - Only show stars if we have reviews */}
           <div style={{ 
             marginTop: '48px', 
             display: 'flex', 
@@ -276,14 +276,16 @@ function LandingPage() {
             gap: '32px',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ display: 'flex' }}>
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} size={18} fill="#eab308" color="#eab308" />
-                ))}
+            {reviews.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex' }}>
+                  {[1,2,3,4,5].map(i => (
+                    <Star key={i} size={18} fill="#eab308" color="#eab308" />
+                  ))}
+                </div>
+                <span style={{ color: '#94a3b8', fontSize: '14px' }}>Loved by GMs</span>
               </div>
-              <span style={{ color: '#94a3b8', fontSize: '14px' }}>Loved by GMs</span>
-            </div>
+            )}
             <div style={{ color: '#4a7dff', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Shield size={16} /> Free Forever Tier
             </div>
