@@ -171,6 +171,13 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - `PUT /api/campaigns/{id}/locations/{loc_id}/places/{place_id}` - Update place
 - `DELETE /api/campaigns/{id}/locations/{loc_id}/places/{place_id}` - Delete place
 
+### Custom Creatures (NEW)
+- `GET /api/campaigns/{id}/custom-creatures` - List all custom creatures
+- `POST /api/campaigns/{id}/custom-creatures` - Create new creature
+- `PUT /api/campaigns/{id}/custom-creatures/{creature_id}` - Update creature
+- `DELETE /api/campaigns/{id}/custom-creatures/{creature_id}` - Delete creature
+- `POST /api/campaigns/{id}/custom-creatures/import` - Bulk import creatures from CSV
+
 ## Test Status
 - **Backend**: 106/106 tests passing (100%) - Added 15 custom creatures tests
 - **Frontend**: 90/90 E2E tests passing (100%) - Added 13 custom creatures tests
