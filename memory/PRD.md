@@ -57,9 +57,11 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - [x] **Free Tier**: 2 campaigns, 5 AI generations/month
 - [x] **Adventurer Tier** ($3.99/month): Unlimited everything
 - [x] Stripe checkout integration
-- [x] Promo code input and validation
+- [x] Promo code system with **customizable duration** (1 week, 2 weeks, 1 month, 3 months, 6 months, 1 year, lifetime)
 - [x] Premium badge in UI header
 - [x] Feature gating for AI limits
+- [x] Admin panel for promo code management with duration selection
+- [x] Referral program (1 free month per referred user)
 
 ### Combat System
 - [x] Combat Creator for preparing encounters
