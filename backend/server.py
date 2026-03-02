@@ -958,16 +958,29 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
     # Apply promo code with duration
     tier = promo.get('tier_granted', 'adventurer')
     duration_days = promo.get('duration_days', 30)  # Default to 30 days if not specified
-    premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
+    
+    # Handle lifetime codes (-1 means no expiration)
+    if duration_days == -1:
+        premium_expires_at = None  # No expiration for lifetime codes
+    else:
+        premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
+    
+    update_data = {
+        'subscription.tier': tier,
+        'subscription.subscription_status': 'active',
+        'subscription.promo_code_used': code
+    }
+    
+    if premium_expires_at:
+        update_data['subscription.premium_expires_at'] = premium_expires_at
+    else:
+        # For lifetime, remove any existing expiration
+        update_data['subscription.premium_expires_at'] = None
+        update_data['subscription.lifetime_access'] = True
     
     await db.users.update_one(
         {'username': username},
-        {'$set': {
-            'subscription.tier': tier,
-            'subscription.subscription_status': 'active',
-            'subscription.promo_code_used': code,
-            'subscription.premium_expires_at': premium_expires_at
-        }}
+        {'$set': update_data}
     )
     
     # Decrement uses if not unlimited
