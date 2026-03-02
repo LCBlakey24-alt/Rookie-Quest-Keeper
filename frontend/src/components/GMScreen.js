@@ -55,13 +55,14 @@ function GMScreen({ username }) {
 
   const fetchAllData = async () => {
     try {
-      const [campaignRes, playersRes, npcsRes, scenariosRes, calendarRes, notesRes] = await Promise.all([
+      const [campaignRes, playersRes, npcsRes, scenariosRes, calendarRes, notesRes, creaturesRes] = await Promise.all([
         axios.get(`${API}/campaigns/${campaignId}`),
         axios.get(`${API}/campaigns/${campaignId}/players`),
         axios.get(`${API}/campaigns/${campaignId}/npcs`),
         axios.get(`${API}/campaigns/${campaignId}/combat-scenarios`),
         axios.get(`${API}/campaigns/${campaignId}/calendar`),
-        axios.get(`${API}/campaigns/${campaignId}/ingame-notes`)
+        axios.get(`${API}/campaigns/${campaignId}/ingame-notes`),
+        axios.get(`${API}/campaigns/${campaignId}/custom-creatures`)
       ]);
       
       setCampaign(campaignRes.data);
@@ -70,6 +71,7 @@ function GMScreen({ username }) {
       setScenarios(scenariosRes.data);
       setCalendar(calendarRes.data);
       setSessionNotes(notesRes.data.slice(0, 30));
+      setCustomCreatures(creaturesRes.data || []);
     } catch (error) {
       toast.error('Failed to load GM Screen data');
     } finally {
