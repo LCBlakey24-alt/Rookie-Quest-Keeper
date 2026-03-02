@@ -148,6 +148,7 @@ export const MONSTER_DATABASE = [
   { name: "Bearded Devil", cr: "3", hp: 52, ac: 13, type: "fiend", size: "Medium", speed: "30 ft.", abilities: "Devil's Sight, Magic Resistance, Steadfast, Beard Poison" },
   { name: "Blue Dragon Wyrmling", cr: "3", hp: 52, ac: 17, type: "dragon", size: "Medium", speed: "30 ft., burrow 15 ft., fly 60 ft.", abilities: "Lightning Breath (DC 12)" },
   { name: "Bugbear Chief", cr: "3", hp: 65, ac: 17, type: "humanoid", size: "Medium", speed: "30 ft.", abilities: "Brute, Surprise Attack, Heart of Hruggek" },
+  { name: "Displacer Beast", cr: "3", hp: 85, ac: 13, type: "monstrosity", size: "Large", speed: "40 ft.", abilities: "Avoidance, Displacement" },
   { name: "Doppelganger", cr: "3", hp: 52, ac: 14, type: "monstrosity", size: "Medium", speed: "30 ft.", abilities: "Shapechanger, Ambusher, Surprise Attack, Read Thoughts" },
   { name: "Giant Scorpion", cr: "3", hp: 52, ac: 15, type: "beast", size: "Large", speed: "40 ft.", abilities: "Multiattack, Poison Sting (DC 12)" },
   { name: "Gold Dragon Wyrmling", cr: "3", hp: 60, ac: 17, type: "dragon", size: "Medium", speed: "30 ft., fly 60 ft., swim 30 ft.", abilities: "Amphibious, Breath Weapons (DC 13)" },
@@ -169,6 +170,7 @@ export const MONSTER_DATABASE = [
   { name: "Werewolf", cr: "3", hp: 58, ac: 11, type: "humanoid", size: "Medium", speed: "30 ft. (40 ft. in wolf form)", abilities: "Shapechanger, Keen Hearing and Smell" },
   { name: "Wight", cr: "3", hp: 45, ac: 14, type: "undead", size: "Medium", speed: "30 ft.", abilities: "Sunlight Sensitivity, Life Drain" },
   { name: "Winter Wolf", cr: "3", hp: 75, ac: 13, type: "monstrosity", size: "Large", speed: "50 ft.", abilities: "Keen Hearing and Smell, Pack Tactics, Snow Camouflage, Cold Breath (DC 12)" },
+  { name: "Yuan-ti Malison", cr: "3", hp: 66, ac: 12, type: "monstrosity", size: "Medium", speed: "30 ft.", abilities: "Shapechanger, Innate Spellcasting, Magic Resistance, Poison" },
   
   // CR 4
   { name: "Banshee", cr: "4", hp: 58, ac: 12, type: "undead", size: "Medium", speed: "0 ft., fly 40 ft.", abilities: "Detect Life, Incorporeal Movement, Horrifying Visage, Wail (DC 13)" },
@@ -195,6 +197,7 @@ export const MONSTER_DATABASE = [
   // CR 5
   { name: "Air Elemental", cr: "5", hp: 90, ac: 15, type: "elemental", size: "Large", speed: "0 ft., fly 90 ft.", abilities: "Air Form, Whirlwind (DC 13)" },
   { name: "Barbed Devil", cr: "5", hp: 110, ac: 15, type: "fiend", size: "Medium", speed: "30 ft.", abilities: "Barbed Hide, Devil's Sight, Magic Resistance, Hurl Flame" },
+  { name: "Beholder Zombie", cr: "5", hp: 93, ac: 15, type: "undead", size: "Large", speed: "0 ft., fly 20 ft.", abilities: "Undead Fortitude, Eye Rays" },
   { name: "Bulette", cr: "5", hp: 94, ac: 17, type: "monstrosity", size: "Large", speed: "40 ft., burrow 40 ft.", abilities: "Standing Leap, Deadly Leap" },
   { name: "Cambion", cr: "5", hp: 82, ac: 19, type: "fiend", size: "Medium", speed: "30 ft., fly 60 ft.", abilities: "Fiendish Blessing, Innate Spellcasting, Fire Ray" },
   { name: "Earth Elemental", cr: "5", hp: 126, ac: 17, type: "elemental", size: "Large", speed: "30 ft., burrow 30 ft.", abilities: "Earth Glide, Siege Monster" },
@@ -209,12 +212,14 @@ export const MONSTER_DATABASE = [
   { name: "Mezzoloth", cr: "5", hp: 75, ac: 18, type: "fiend", size: "Medium", speed: "40 ft.", abilities: "Innate Spellcasting, Magic Resistance, Magic Weapons, Teleport" },
   { name: "Night Hag", cr: "5", hp: 112, ac: 17, type: "fiend", size: "Medium", speed: "30 ft.", abilities: "Innate Spellcasting, Magic Resistance, Nightmare Haunting, Change Shape, Etherealness" },
   { name: "Otyugh", cr: "5", hp: 114, ac: 14, type: "aberration", size: "Large", speed: "30 ft.", abilities: "Limited Telepathy, Disease" },
+  { name: "Red Slaad", cr: "5", hp: 93, ac: 14, type: "aberration", size: "Large", speed: "30 ft.", abilities: "Magic Resistance, Regeneration, Claw Infection" },
   { name: "Roper", cr: "5", hp: 93, ac: 20, type: "monstrosity", size: "Large", speed: "10 ft., climb 10 ft.", abilities: "False Appearance, Grasping Tendrils, Spider Climb" },
   { name: "Sahuagin Baron", cr: "5", hp: 76, ac: 16, type: "humanoid", size: "Large", speed: "30 ft., swim 50 ft.", abilities: "Blood Frenzy, Limited Amphibiousness, Shark Telepathy" },
   { name: "Salamander", cr: "5", hp: 90, ac: 15, type: "elemental", size: "Large", speed: "30 ft.", abilities: "Heated Body, Heated Weapons" },
   { name: "Shambling Mound", cr: "5", hp: 136, ac: 15, type: "plant", size: "Large", speed: "20 ft., swim 20 ft.", abilities: "Lightning Absorption, Engulf" },
   { name: "Triceratops", cr: "5", hp: 95, ac: 13, type: "beast", size: "Huge", speed: "50 ft.", abilities: "Trampling Charge" },
   { name: "Troll", cr: "5", hp: 84, ac: 15, type: "giant", size: "Large", speed: "30 ft.", abilities: "Keen Smell, Regeneration, Loathsome Limbs" },
+  { name: "Umber Hulk", cr: "5", hp: 93, ac: 18, type: "monstrosity", size: "Large", speed: "30 ft., burrow 20 ft.", abilities: "Confusing Gaze (DC 15), Tunneler" },
   { name: "Unicorn", cr: "5", hp: 67, ac: 12, type: "celestial", size: "Large", speed: "50 ft.", abilities: "Charge, Innate Spellcasting, Magic Resistance, Magic Weapons, Healing Touch, Teleport" },
   { name: "Vampire Spawn", cr: "5", hp: 82, ac: 15, type: "undead", size: "Medium", speed: "30 ft.", abilities: "Regeneration, Spider Climb, Vampire Weaknesses, Bite" },
   { name: "Water Elemental", cr: "5", hp: 114, ac: 14, type: "elemental", size: "Large", speed: "30 ft., swim 90 ft.", abilities: "Water Form, Freeze, Whelm (DC 15)" },
@@ -238,13 +243,16 @@ export const MONSTER_DATABASE = [
   { name: "Young White Dragon", cr: "6", hp: 133, ac: 17, type: "dragon", size: "Large", speed: "40 ft., burrow 20 ft., fly 80 ft., swim 40 ft.", abilities: "Ice Walk, Cold Breath (DC 15)" },
   
   // CR 7+
+  { name: "Blue Slaad", cr: "7", hp: 123, ac: 15, type: "aberration", size: "Large", speed: "30 ft.", abilities: "Magic Resistance, Regeneration, Disease Claw" },
   { name: "Giant Ape", cr: "7", hp: 157, ac: 12, type: "beast", size: "Huge", speed: "40 ft., climb 40 ft.", abilities: "None" },
   { name: "Grick Alpha", cr: "7", hp: 75, ac: 18, type: "monstrosity", size: "Large", speed: "30 ft., climb 30 ft.", abilities: "Stone Camouflage" },
+  { name: "Mind Flayer", cr: "7", hp: 71, ac: 15, type: "aberration", size: "Medium", speed: "30 ft.", abilities: "Magic Resistance, Innate Spellcasting, Mind Blast (DC 15), Extract Brain" },
   { name: "Oni", cr: "7", hp: 110, ac: 16, type: "giant", size: "Large", speed: "30 ft., fly 30 ft.", abilities: "Innate Spellcasting, Magic Weapons, Regeneration, Change Shape" },
   { name: "Shield Guardian", cr: "7", hp: 142, ac: 17, type: "construct", size: "Large", speed: "30 ft.", abilities: "Bound, Regeneration, Shield, Spell Storing" },
   { name: "Stone Giant", cr: "7", hp: 126, ac: 17, type: "giant", size: "Huge", speed: "40 ft.", abilities: "Stone Camouflage, Rock Catching" },
   { name: "Young Black Dragon", cr: "7", hp: 127, ac: 18, type: "dragon", size: "Large", speed: "40 ft., fly 80 ft., swim 40 ft.", abilities: "Amphibious, Acid Breath (DC 14)" },
   { name: "Young Copper Dragon", cr: "7", hp: 119, ac: 17, type: "dragon", size: "Large", speed: "40 ft., climb 40 ft., fly 80 ft.", abilities: "Breath Weapons (DC 14)" },
+  { name: "Yuan-ti Abomination", cr: "7", hp: 127, ac: 15, type: "monstrosity", size: "Large", speed: "40 ft.", abilities: "Shapechanger, Innate Spellcasting, Magic Resistance, Poison" },
   
   // CR 8+
   { name: "Assassin", cr: "8", hp: 78, ac: 15, type: "humanoid", size: "Medium", speed: "30 ft.", abilities: "Assassinate, Evasion, Sneak Attack (14d6)" },
@@ -266,6 +274,7 @@ export const MONSTER_DATABASE = [
   { name: "Cloud Giant", cr: "9", hp: 200, ac: 14, type: "giant", size: "Huge", speed: "40 ft.", abilities: "Keen Smell, Innate Spellcasting" },
   { name: "Fire Giant", cr: "9", hp: 162, ac: 18, type: "giant", size: "Huge", speed: "30 ft.", abilities: "None" },
   { name: "Glabrezu", cr: "9", hp: 157, ac: 17, type: "fiend", size: "Large", speed: "40 ft.", abilities: "Innate Spellcasting, Magic Resistance" },
+  { name: "Gray Slaad", cr: "9", hp: 127, ac: 18, type: "aberration", size: "Medium", speed: "30 ft.", abilities: "Magic Resistance, Magic Weapons, Regeneration, Shapechanger, Innate Spellcasting" },
   { name: "Nycaloth", cr: "9", hp: 123, ac: 18, type: "fiend", size: "Large", speed: "40 ft., fly 60 ft.", abilities: "Innate Spellcasting, Magic Resistance, Magic Weapons, Teleport" },
   { name: "Treant", cr: "9", hp: 138, ac: 16, type: "plant", size: "Huge", speed: "30 ft.", abilities: "False Appearance, Siege Monster, Animate Trees" },
   { name: "Young Blue Dragon", cr: "9", hp: 152, ac: 18, type: "dragon", size: "Large", speed: "40 ft., burrow 20 ft., fly 80 ft.", abilities: "Lightning Breath (DC 16)" },
@@ -273,6 +282,7 @@ export const MONSTER_DATABASE = [
   
   // CR 10+
   { name: "Aboleth", cr: "10", hp: 135, ac: 17, type: "aberration", size: "Large", speed: "10 ft., swim 40 ft.", abilities: "Amphibious, Mucous Cloud, Probing Telepathy, Enslave (DC 14)" },
+  { name: "Death Slaad", cr: "10", hp: 170, ac: 18, type: "aberration", size: "Medium", speed: "30 ft.", abilities: "Shapechanger, Innate Spellcasting, Magic Resistance, Magic Weapons, Regeneration" },
   { name: "Deva", cr: "10", hp: 136, ac: 17, type: "celestial", size: "Medium", speed: "30 ft., fly 90 ft.", abilities: "Angelic Weapons, Innate Spellcasting, Magic Resistance, Change Shape, Healing Touch" },
   { name: "Guardian Naga", cr: "10", hp: 127, ac: 18, type: "monstrosity", size: "Large", speed: "40 ft.", abilities: "Rejuvenation, Spellcasting, Poison Spit (DC 15)" },
   { name: "Stone Golem", cr: "10", hp: 178, ac: 17, type: "construct", size: "Large", speed: "30 ft.", abilities: "Immutable Form, Magic Resistance, Magic Weapons, Slow (DC 17)" },
@@ -298,6 +308,7 @@ export const MONSTER_DATABASE = [
   // CR 13+
   { name: "Adult Brass Dragon", cr: "13", hp: 172, ac: 18, type: "dragon", size: "Huge", speed: "40 ft., burrow 30 ft., fly 80 ft.", abilities: "Legendary Resistance, Breath Weapons (DC 18), Frightful Presence" },
   { name: "Adult White Dragon", cr: "13", hp: 200, ac: 18, type: "dragon", size: "Huge", speed: "40 ft., burrow 30 ft., fly 80 ft., swim 40 ft.", abilities: "Ice Walk, Legendary Resistance, Cold Breath (DC 19), Frightful Presence" },
+  { name: "Beholder", cr: "13", hp: 180, ac: 18, type: "aberration", size: "Large", speed: "0 ft., fly 20 ft.", abilities: "Antimagic Cone, Eye Rays (10 types), Legendary Actions" },
   { name: "Nalfeshnee", cr: "13", hp: 184, ac: 18, type: "fiend", size: "Large", speed: "20 ft., fly 30 ft.", abilities: "Magic Resistance, Horror Nimbus (DC 15), Teleport" },
   { name: "Rakshasa", cr: "13", hp: 110, ac: 16, type: "fiend", size: "Medium", speed: "40 ft.", abilities: "Limited Magic Immunity, Innate Spellcasting" },
   { name: "Storm Giant", cr: "13", hp: 230, ac: 16, type: "giant", size: "Huge", speed: "50 ft., swim 50 ft.", abilities: "Amphibious, Innate Spellcasting, Lightning Strike" },
