@@ -61,18 +61,41 @@ function AdminPage({ username }) {
 
   const fetchData = async () => {
     try {
-      const [codesRes, leaderboardRes] = await Promise.all([
+      const [codesRes, leaderboardRes, reviewsRes] = await Promise.all([
         axios.get(`${API}/admin/promo-codes`),
-        axios.get(`${API}/referral/leaderboard`)
+        axios.get(`${API}/referral/leaderboard`),
+        axios.get(`${API}/reviews/all`).catch(() => ({ data: [] }))
       ]);
       setPromoCodes(codesRes.data.codes || []);
       setStats(codesRes.data.stats);
       setLeaderboard(leaderboardRes.data.leaderboard || []);
+      setReviews(reviewsRes.data || []);
     } catch (error) {
       // If admin endpoint doesn't exist yet, just show empty
       console.error('Failed to fetch admin data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleReview = async (reviewId) => {
+    try {
+      const response = await axios.put(`${API}/reviews/${reviewId}/approve`);
+      toast.success(response.data.message);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update review');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Delete this review?')) return;
+    try {
+      await axios.delete(`${API}/reviews/${reviewId}`);
+      toast.success('Review deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete review');
     }
   };
 
