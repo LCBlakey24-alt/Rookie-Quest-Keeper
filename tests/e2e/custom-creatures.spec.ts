@@ -53,7 +53,7 @@ test.describe('Custom Creatures - GM Screen Navigation', () => {
   });
 
   test('should verify all GM Screen tabs are present', async ({ page }) => {
-    await page.goto(`/dm-screen/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/gm-screen/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     
     // Verify key tabs exist
     await expect(page.getByTestId('tab-combat')).toBeVisible({ timeout: 15000 });
