@@ -46,6 +46,7 @@ function CombatPage() {
   const [showQuickRef, setShowQuickRef] = useState(false);
   const [collectedLoot, setCollectedLoot] = useState([]);
   const [showLootPanel, setShowLootPanel] = useState(false);
+  const [attackingCreature, setAttackingCreature] = useState(null);
   
   // Map state
   const [mapImage, setMapImage] = useState(null);
