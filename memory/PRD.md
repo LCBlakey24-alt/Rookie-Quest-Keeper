@@ -105,6 +105,9 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
   - [x] Export creatures to CSV files
   - [x] Accessible from GM Screen "Creatures" tab
   - [x] Campaign-specific creature management
+  - [x] **AI-Powered Generation via Unseen Servant** - Describe a creature concept and get auto-generated stat blocks
+  - [x] Quick suggestion buttons for inspiration
+  - [x] "Just Created" highlight effect for AI-generated creatures
 
 ### UI/UX
 - [x] "Rookie Quest" branded aesthetic
