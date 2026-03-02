@@ -378,6 +378,23 @@ function AdminPage({ username }) {
                     <span style={{ color: '#94a3b8', fontSize: '14px' }}>
                       Uses: {code.uses_remaining === -1 ? '∞' : code.uses_remaining}
                     </span>
+                    <span style={{ 
+                      color: '#f59e0b', 
+                      fontSize: '14px',
+                      background: '#f59e0b20',
+                      padding: '4px 10px',
+                      borderRadius: '6px'
+                    }}>
+                      {code.duration_days === -1 ? 'Lifetime' : 
+                       code.duration_days === 7 ? '1 Week' :
+                       code.duration_days === 14 ? '2 Weeks' :
+                       code.duration_days === 30 ? '1 Month' :
+                       code.duration_days === 60 ? '2 Months' :
+                       code.duration_days === 90 ? '3 Months' :
+                       code.duration_days === 180 ? '6 Months' :
+                       code.duration_days === 365 ? '1 Year' :
+                       `${code.duration_days || 30} Days`}
+                    </span>
                     <Button
                       onClick={() => copyCode(code.code)}
                       className="btn-icon"
