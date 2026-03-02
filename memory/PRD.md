@@ -63,6 +63,13 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - [x] Admin panel for promo code management with duration selection
 - [x] Referral program (1 free month per referred user)
 
+### Review System (NEW)
+- [x] User review submission with 1-5 star rating
+- [x] Auto-approve 4-5 star reviews for landing page
+- [x] Admin panel: view, approve/hide, delete reviews
+- [x] Dynamic landing page reviews section (only shows if reviews exist)
+- [x] "What GMs Are Saying" section with real user testimonials
+
 ### Combat System
 - [x] Combat Creator for preparing encounters
 - [x] Monster Database with 2687+ creatures from D&D lore
