@@ -33,19 +33,34 @@ export async function hideEmergentBadge(page: Page) {
   });
 }
 
-export async function loginUser(page: Page, username: string, password: string) {
+// Updated for email-based auth
+export async function loginUser(page: Page, email: string, password: string) {
   await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-  await page.getByTestId('login-username-input').fill(username);
-  await page.getByTestId('login-password-input').fill(password);
-  await page.getByTestId('login-submit-btn').click();
+  await waitForAppReady(page);
+  await page.getByTestId('login-email').fill(email);
+  await page.getByTestId('login-password').fill(password);
+  await page.getByTestId('login-btn').click();
 }
 
-export async function registerUser(page: Page, username: string, password: string) {
+// Updated for email-based registration
+export async function registerUser(page: Page, email: string, username: string, password: string) {
   await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-  await page.getByTestId('switch-to-register-btn').click();
-  await page.getByTestId('register-username-input').fill(username);
-  await page.getByTestId('register-password-input').fill(password);
-  await page.getByTestId('register-submit-btn').click();
+  await waitForAppReady(page);
+  
+  // Click CREATE ACCOUNT button to switch to register form
+  await page.getByRole('button', { name: /create account/i }).click();
+  
+  // Wait for register form elements
+  await expect(page.getByTestId('register-email')).toBeVisible();
+  
+  await page.getByTestId('register-email').fill(email);
+  await page.getByTestId('register-username').fill(username);
+  await page.getByTestId('register-password').fill(password);
+  await page.getByTestId('register-btn').click();
+}
+
+export function generateTestEmail(): string {
+  return `test_${Date.now()}_${Math.random().toString(36).substring(2, 7)}@test.com`;
 }
 
 export function generateTestUsername(): string {
@@ -55,13 +70,16 @@ export function generateTestUsername(): string {
 // Test campaign and scenario constants
 export const TEST_CAMPAIGN_ID = '32fe976f-1dd0-4b17-a23b-42dbd1023d50';
 export const TEST_SCENARIO_ID = '6fa133b0-16e3-4861-ad3c-ac534d4e2e74';
-export const TEST_USER = { username: 'testdm1', password: 'testpass123' };
+
+// Updated test user with email
+export const TEST_USER = { 
+  email: 'admin@rookiequestkeeper.com',
+  username: 'admin',
+  password: 'Admin123!'
+};
 
 export async function loginTestUser(page: Page) {
-  await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-  await page.getByTestId('login-username-input').fill(TEST_USER.username);
-  await page.getByTestId('login-password-input').fill(TEST_USER.password);
-  await page.getByTestId('login-submit-btn').click();
+  await loginUser(page, TEST_USER.email, TEST_USER.password);
   await page.waitForURL(/\/campaigns/, { timeout: 10000 });
 }
 

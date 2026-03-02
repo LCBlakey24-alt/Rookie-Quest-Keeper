@@ -7,7 +7,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rookie-quest-test.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://gm-screen-preview.preview.emergentagent.com').rstrip('/')
 
 class TestPlacesOfInterest:
     """Test CRUD operations for Places of Interest within Locations"""

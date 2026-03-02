@@ -326,6 +326,10 @@ function CampaignList({ username, onLogout }) {
                 </form>
               </DialogContent>
             </Dialog>
+            <Button data-testid="account-settings-btn" onClick={() => navigate('/account')} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Settings size={20} />
+              Account
+            </Button>
             <Button data-testid="logout-btn" onClick={onLogout} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <LogOut size={20} />
               Logout

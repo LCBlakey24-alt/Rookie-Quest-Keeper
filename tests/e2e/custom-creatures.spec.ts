@@ -1,14 +1,14 @@
 import { test, expect, Page } from '@playwright/test';
 
 const TEST_CAMPAIGN_ID = '445891b3-96f8-4e18-9ae4-68987c2e884c';
-const TEST_USER = { username: 'testgm123', password: 'testpass123' };
+const TEST_USER = { email: 'admin@rookiequestkeeper.com', password: 'Admin123!' };
 
 // Helper to login
 async function loginUser(page: Page) {
   await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-  await page.getByTestId('login-username-input').fill(TEST_USER.username);
-  await page.getByTestId('login-password-input').fill(TEST_USER.password);
-  await page.getByTestId('login-submit-btn').click();
+  await page.getByTestId('login-email').fill(TEST_USER.email);
+  await page.getByTestId('login-password').fill(TEST_USER.password);
+  await page.getByTestId('login-btn').click();
   await page.waitForURL(/\/campaigns/, { timeout: 15000 });
 }
 

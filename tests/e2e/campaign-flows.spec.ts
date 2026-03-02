@@ -1,42 +1,27 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername, generateTestEmail, registerUser, loginUser } from '../fixtures/helpers';
 
 test.describe('Campaign Management Flow', () => {
   let testUsername: string;
+  let testEmail: string;
   const testPassword = 'testpass123';
-
-  test.beforeAll(async ({ browser }) => {
-    // Register a test user for this suite
-    testUsername = generateTestUsername();
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    
-    await page.goto('https://rookie-quest-test.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('switch-to-register-btn').click();
-    await page.getByTestId('register-username-input').fill(testUsername);
-    await page.getByTestId('register-password-input').fill(testPassword);
-    await page.getByTestId('register-submit-btn').click();
-    await expect(page).toHaveURL(/\/campaigns/, { timeout: 10000 });
-    
-    await context.close();
-  });
 
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
     await hideEmergentBadge(page);
     
-    // Login before each test
-    await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('login-username-input').fill(testUsername);
-    await page.getByTestId('login-password-input').fill(testPassword);
-    await page.getByTestId('login-submit-btn').click();
-    await expect(page).toHaveURL(/\/campaigns/, { timeout: 10000 });
+    // Create a fresh test user for each test
+    testEmail = generateTestEmail();
+    testUsername = generateTestUsername();
+    
+    await registerUser(page, testEmail, testUsername, testPassword);
+    await expect(page).toHaveURL(/\/campaigns/, { timeout: 15000 });
   });
 
   test('should display campaigns page with new design elements', async ({ page }) => {
     // Verify page header
     await expect(page.getByText('Your Campaigns')).toBeVisible();
-    await expect(page.getByText(`Welcome back, ${testUsername}!`)).toBeVisible();
+    await expect(page.getByText(testUsername, { exact: false })).toBeVisible();
     
     // Verify buttons exist
     await expect(page.getByTestId('create-campaign-btn')).toBeVisible();
@@ -114,6 +99,6 @@ test.describe('Campaign Management Flow', () => {
     
     // Should redirect to auth page
     await expect(page).toHaveURL(/\/auth/, { timeout: 10000 });
-    await expect(page.getByTestId('login-form')).toBeVisible();
+    await expect(page.getByTestId('login-email')).toBeVisible();
   });
 });

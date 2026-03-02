@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissToasts, hideEmergentBadge, generateTestUsername, TEST_USER, loginTestUser } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rookie-quest-test.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://gm-screen-preview.preview.emergentagent.com';
 
 test.describe('Subscription & Pricing Features', () => {
   

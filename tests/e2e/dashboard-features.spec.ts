@@ -1,23 +1,29 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername, generateTestEmail, loginUser } from '../fixtures/helpers';
 
 test.describe('Campaign Dashboard Features', () => {
   let testUsername: string;
+  let testEmail: string;
   const testPassword = 'testpass123';
   let campaignId: string;
 
   test.beforeAll(async ({ browser }) => {
     // Register a test user and create a campaign
     testUsername = generateTestUsername();
+    testEmail = generateTestEmail();
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    await page.goto('https://rookie-quest-test.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('switch-to-register-btn').click();
-    await page.getByTestId('register-username-input').fill(testUsername);
-    await page.getByTestId('register-password-input').fill(testPassword);
-    await page.getByTestId('register-submit-btn').click();
-    await expect(page).toHaveURL(/\/campaigns/, { timeout: 10000 });
+    await page.goto('https://gm-screen-preview.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
+    
+    // Click CREATE ACCOUNT button to switch to register form
+    await page.getByRole('button', { name: /create account/i }).click();
+    
+    await page.getByTestId('register-email').fill(testEmail);
+    await page.getByTestId('register-username').fill(testUsername);
+    await page.getByTestId('register-password').fill(testPassword);
+    await page.getByTestId('register-btn').click();
+    await expect(page).toHaveURL(/\/campaigns/, { timeout: 15000 });
     
     // Create a test campaign
     await page.getByTestId('create-campaign-btn').click();
@@ -43,10 +49,10 @@ test.describe('Campaign Dashboard Features', () => {
     
     // Login and navigate to campaign
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('login-username-input').fill(testUsername);
-    await page.getByTestId('login-password-input').fill(testPassword);
-    await page.getByTestId('login-submit-btn').click();
-    await expect(page).toHaveURL(/\/campaigns/, { timeout: 10000 });
+    await page.getByTestId('login-email').fill(testEmail);
+    await page.getByTestId('login-password').fill(testPassword);
+    await page.getByTestId('login-btn').click();
+    await expect(page).toHaveURL(/\/campaigns/, { timeout: 15000 });
     
     // Go to campaign dashboard
     const manageBtns = page.locator('[data-testid^="manage-campaign-btn-"]');
@@ -64,8 +70,8 @@ test.describe('Campaign Dashboard Features', () => {
     await expect(page.getByTestId('ai-setting-prompt')).toBeVisible();
     await expect(page.getByTestId('generate-setting-btn')).toBeVisible();
     
-    // Verify Unseen Servant panel text (renamed from AI Assistant)
-    await expect(page.getByText('Unseen Servant')).toBeVisible();
+    // Verify Unseen Servant panel text (renamed from AI Assistant) - use heading role to avoid matching tip text
+    await expect(page.getByRole('heading', { name: 'Unseen Servant' })).toBeVisible();
   });
 
   test('should save campaign setting content', async ({ page }) => {

@@ -13,6 +13,7 @@ import PricingPage from '@/components/PricingPage';
 import AdminPage from '@/components/AdminPage';
 import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import LandingPage from '@/components/LandingPage';
+import AccountSettings from '@/components/AccountSettings';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -142,6 +143,18 @@ function App() {
                 <AdminPage username={username} /> : 
                 <Navigate to="/auth" replace />
             } 
+          />
+          <Route 
+            path="/account" 
+            element={
+              isAuthenticated ? 
+                <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
+          <Route 
+            path="/reset-password" 
+            element={<AuthPage onLogin={handleLogin} />} 
           />
           <Route 
             path="/" 

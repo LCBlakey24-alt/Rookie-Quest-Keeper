@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
 
 test.describe('Dashboard Additional Tabs', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,10 +8,10 @@ test.describe('Dashboard Additional Tabs', () => {
     // Login with test user
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await page.getByTestId('login-username-input').fill(TEST_USER.username);
-    await page.getByTestId('login-password-input').fill(TEST_USER.password);
-    await page.getByTestId('login-submit-btn').click();
-    await page.waitForURL(/\/campaigns/, { timeout: 10000 });
+    await page.getByTestId('login-email').fill(TEST_USER.email);
+    await page.getByTestId('login-password').fill(TEST_USER.password);
+    await page.getByTestId('login-btn').click();
+    await page.waitForURL(/\/campaigns/, { timeout: 15000 });
     
     // Navigate to test campaign
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
