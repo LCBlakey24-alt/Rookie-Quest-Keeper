@@ -67,22 +67,17 @@ function LandingPage() {
     }
   ];
 
-  const testimonials = [
-    {
-      text: "Quest Keeper has completely transformed how I run my campaigns. The AI assistant alone saves me hours of prep time!",
-      author: "Sarah M.",
-      role: "GM for 5 years"
-    },
-    {
-      text: "The world builder is incredible. I can finally organize my massive homebrew world in a way that makes sense.",
-      author: "Marcus T.",
-      role: "Forever GM"
-    },
-    {
-      text: "Best GM tool I've ever used. The combat tracker with maps makes running encounters so much smoother.",
-      author: "Alex K.",
-      role: "Campaign Streamer"
-    }
+  // Helper to render stars
+  const renderStars = (rating) => {
+    return [...Array(5)].map((_, i) => (
+      <Star 
+        key={i} 
+        size={16} 
+        fill={i < rating ? "#eab308" : "transparent"} 
+        color={i < rating ? "#eab308" : "#475569"} 
+      />
+    ));
+  };
   ];
 
   return (
