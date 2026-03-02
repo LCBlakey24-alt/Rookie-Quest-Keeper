@@ -149,8 +149,8 @@ function LandingPage() {
 
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
           {/* Rookie Quest Presents */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <img 
                 src="/rookie-quest-logo.png" 
                 alt="Rookie Quest" 
@@ -170,13 +170,20 @@ function LandingPage() {
           </div>
 
           {/* Main Quest Keeper Logo - Large & Prominent */}
-          <div style={{ marginBottom: '40px' }}>
+          <div style={{ 
+            marginBottom: '40px', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            width: '100%'
+          }}>
             <img 
               src="/quest-keeper-logo.png" 
               alt="Quest Keeper" 
               style={{ 
                 height: '180px',
                 maxWidth: '90%',
+                objectFit: 'contain',
                 filter: 'drop-shadow(0 0 40px rgba(74, 125, 255, 0.6))',
                 animation: 'float 3s ease-in-out infinite'
               }}
