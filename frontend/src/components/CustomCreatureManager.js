@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Plus, Edit, Trash2, Upload, Download, Skull, Save } from 'lucide-react';
+import { X, Plus, Edit, Trash2, Upload, Download, Skull, Save, Wand2, Loader, Sparkles } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
