@@ -517,63 +517,66 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section style={{ padding: '80px 24px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '800',
-              color: '#ffffff',
-              marginBottom: '16px'
-            }}>
-              Loved by Game Masters
-            </h2>
-          </div>
+      {/* Reviews Section - Only show if there are reviews */}
+      {reviews.length > 0 && (
+        <section style={{ padding: '80px 24px' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+              <h2 style={{
+                fontSize: 'clamp(2rem, 4vw, 3rem)',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: '800',
+                color: '#ffffff',
+                marginBottom: '16px'
+              }}>
+                What GMs Are Saying
+              </h2>
+              <p style={{ color: '#94a3b8', fontSize: '18px' }}>
+                Real reviews from real Game Masters
+              </p>
+            </div>
 
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '24px' 
-          }}>
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: '32px',
-                  background: 'rgba(10, 10, 46, 0.5)',
-                  border: '2px solid #1e40af',
-                  borderRadius: '20px'
-                }}
-              >
-                <div style={{ display: 'flex', marginBottom: '16px' }}>
-                  {[1,2,3,4,5].map(i => (
-                    <Star key={i} size={16} fill="#eab308" color="#eab308" />
-                  ))}
-                </div>
-                <p style={{
-                  color: '#e2e8f0',
-                  fontSize: '16px',
-                  lineHeight: '1.7',
-                  marginBottom: '20px',
-                  fontStyle: 'italic'
-                }}>
-                  "{testimonial.text}"
-                </p>
-                <div>
-                  <p style={{ color: '#ffffff', fontWeight: '700', marginBottom: '4px' }}>
-                    {testimonial.author}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+              gap: '24px' 
+            }}>
+              {reviews.map((review, index) => (
+                <div
+                  key={index}
+                  style={{
+                    padding: '32px',
+                    background: 'rgba(10, 10, 46, 0.5)',
+                    border: '2px solid #1e40af',
+                    borderRadius: '20px'
+                  }}
+                >
+                  <div style={{ display: 'flex', marginBottom: '16px' }}>
+                    {renderStars(review.rating)}
+                  </div>
+                  <p style={{
+                    color: '#e2e8f0',
+                    fontSize: '16px',
+                    lineHeight: '1.7',
+                    marginBottom: '20px',
+                    fontStyle: 'italic'
+                  }}>
+                    "{review.comment}"
                   </p>
-                  <p style={{ color: '#67e8f9', fontSize: '13px' }}>
-                    {testimonial.role}
-                  </p>
+                  <div>
+                    <p style={{ color: '#ffffff', fontWeight: '700', marginBottom: '4px' }}>
+                      {review.username}
+                    </p>
+                    <p style={{ color: '#67e8f9', fontSize: '13px' }}>
+                      Quest Keeper User
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Final CTA */}
       <section style={{ padding: '80px 24px', textAlign: 'center' }}>
