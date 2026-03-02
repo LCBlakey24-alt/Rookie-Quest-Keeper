@@ -533,6 +533,109 @@ function AdminPage({ username }) {
             </div>
           )}
         </div>
+        </>
+        )}
+
+        {/* Reviews Tab Content */}
+        {activeTab === 'reviews' && (
+          <div style={{
+            background: 'rgba(30, 30, 60, 0.5)',
+            border: '2px solid #1e40af',
+            borderRadius: '16px',
+            padding: '24px'
+          }}>
+            <h2 style={{ 
+              color: '#fff', 
+              fontSize: '20px',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: '700',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <Star size={22} />
+              User Reviews
+            </h2>
+            <p style={{ color: '#94a3b8', marginBottom: '20px', fontSize: '14px' }}>
+              4-5 star reviews are auto-approved. Toggle to hide/show reviews on the landing page.
+            </p>
+            
+            {reviews.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                <Star size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
+                <p>No reviews yet</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    style={{
+                      background: review.is_approved ? 'rgba(34, 197, 94, 0.1)' : 'rgba(0, 0, 0, 0.2)',
+                      border: `2px solid ${review.is_approved ? '#22c55e' : '#374151'}`,
+                      borderRadius: '12px',
+                      padding: '16px 20px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                          <span style={{ color: '#fff', fontWeight: '700' }}>{review.username}</span>
+                          <div style={{ display: 'flex' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star 
+                                key={star} 
+                                size={16} 
+                                fill={review.rating >= star ? "#eab308" : "transparent"}
+                                color={review.rating >= star ? "#eab308" : "#475569"}
+                              />
+                            ))}
+                          </div>
+                          {review.is_featured && (
+                            <span style={{
+                              background: '#22c55e20',
+                              color: '#22c55e',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: '600'
+                            }}>
+                              FEATURED
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ color: '#e2e8f0', fontSize: '14px', fontStyle: 'italic' }}>
+                          "{review.comment}"
+                        </p>
+                        <p style={{ color: '#64748b', fontSize: '12px', marginTop: '8px' }}>
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button
+                          onClick={() => handleToggleReview(review.id)}
+                          className={review.is_approved ? 'btn-outline' : 'btn-primary'}
+                          style={{ padding: '8px 12px', fontSize: '12px' }}
+                        >
+                          {review.is_approved ? <X size={14} /> : <Check size={14} />}
+                          {review.is_approved ? 'Hide' : 'Approve'}
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="btn-danger"
+                          style={{ padding: '8px' }}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
