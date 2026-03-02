@@ -1,7 +1,7 @@
 /* Rookie Quest Keeper - Design System v2.0 */
 /* Matching the teal/cyan shield logo aesthetic */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
   /* Rookie Quest Keeper Brand Colors (matching logo) */
@@ -41,7 +41,7 @@
 }
 
 body {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--bg-void);
   color: var(--text-white);
   min-height: 100vh;
@@ -101,10 +101,37 @@ body {
   50% { transform: translateY(-8px); }
 }
 
-/* ===== TYPOGRAPHY ===== */
+/* Rainbow gradient animation for text */
+@keyframes rainbow-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Animated border gradient */
+@keyframes border-glow {
+  0%, 100% { 
+    border-color: rgba(20, 184, 166, 0.3);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.1);
+  }
+  25% { 
+    border-color: rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+  }
+  50% { 
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+  }
+  75% { 
+    border-color: rgba(74, 125, 255, 0.3);
+    box-shadow: 0 0 20px rgba(74, 125, 255, 0.1);
+  }
+}
+
+/* ===== TYPOGRAPHY - Back to Montserrat ===== */
 .logo-title, .medieval-heading, h1, h2, h3 {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
   letter-spacing: 1px;
 }
 
@@ -117,8 +144,8 @@ body {
 }
 
 .logo-subtitle {
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
   font-size: 28px;
   background: linear-gradient(135deg, var(--rqk-teal) 0%, var(--rqk-cyan) 100%);
   -webkit-background-clip: text;
@@ -126,6 +153,26 @@ body {
   background-clip: text;
   text-transform: uppercase;
   letter-spacing: 4px;
+}
+
+/* Rainbow text effect */
+.rainbow-text {
+  background: linear-gradient(
+    90deg,
+    #22c55e 0%,
+    #14b8a6 15%,
+    #06b6d4 30%,
+    #4a7dff 45%,
+    #7c3aed 60%,
+    #a855f7 75%,
+    #ef4444 90%,
+    #22c55e 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbow-shift 4s linear infinite;
 }
 
 /* ===== PANELS & CARDS ===== */
@@ -148,6 +195,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Card with animated border */
 .card-glow, .card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -155,12 +203,14 @@ body {
   padding: 20px;
   backdrop-filter: blur(8px);
   transition: all 0.3s ease;
+  animation: border-glow 8s ease-in-out infinite;
 }
 
 .card-glow:hover, .card:hover {
   border-color: var(--border-glow);
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(20, 184, 166, 0.15);
+  animation: none;
 }
 
 /* ===== INPUTS ===== */
@@ -172,7 +222,7 @@ body {
   padding: 12px 16px;
   width: 100%;
   font-size: 14px;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
   transition: all 0.3s ease;
 }
 
@@ -195,7 +245,7 @@ body {
   width: 100%;
   min-height: 100px;
   resize: vertical;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   transition: all 0.3s ease;
 }
@@ -206,22 +256,22 @@ body {
   box-shadow: 0 0 20px var(--rqk-teal-glow);
 }
 
-/* ===== BUTTONS ===== */
+/* ===== BUTTONS - Back to Montserrat ===== */
 /* Primary - Teal Gradient (matching logo) */
 .btn-primary {
   background: linear-gradient(135deg, var(--rqk-teal) 0%, #0d9488 100%);
   color: white;
   border: none;
   padding: 12px 28px;
-  border-radius: 10px;
+  border-radius: 50px;
   font-weight: 700;
   font-size: 14px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px var(--rqk-teal-glow);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
 }
 
 .btn-primary:hover {
@@ -239,15 +289,15 @@ body {
   color: white;
   border: none;
   padding: 12px 28px;
-  border-radius: 10px;
+  border-radius: 50px;
   font-weight: 700;
   font-size: 14px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
 }
 
 .btn-secondary:hover {
@@ -265,10 +315,10 @@ body {
   color: var(--text-white);
   border: 2px solid var(--border-subtle);
   padding: 10px 24px;
-  border-radius: 10px;
+  border-radius: 50px;
   font-weight: 600;
   font-size: 13px;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -292,6 +342,7 @@ body {
   border-radius: 8px;
   font-weight: 600;
   font-size: 13px;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -350,7 +401,7 @@ body {
   color: var(--text-muted);
   font-weight: 600;
   font-size: 13px;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -421,7 +472,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 600;
 }
 
@@ -429,7 +480,7 @@ body {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-white);
-  font-family: 'Cinzel', serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* ===== HP BAR ===== */
@@ -533,7 +584,7 @@ select.input-glow option {
   font-size: 11px;
   color: var(--text-dim);
   margin-bottom: 6px;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 500;
 }
 
@@ -552,7 +603,7 @@ select.input-glow option {
   border-radius: 20px;
   border: 1px solid rgba(20, 184, 166, 0.3);
   font-weight: 600;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* ===== SCROLLBAR ===== */
@@ -629,3 +680,4 @@ select.input-glow option {
     font-size: 12px;
   }
 }
+
