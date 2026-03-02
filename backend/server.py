@@ -955,14 +955,18 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
     if user and user.get('subscription', {}).get('promo_code_used'):
         raise HTTPException(status_code=400, detail="You have already used a promo code")
     
-    # Apply promo code
+    # Apply promo code with duration
     tier = promo.get('tier_granted', 'adventurer')
+    duration_days = promo.get('duration_days', 30)  # Default to 30 days if not specified
+    premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
+    
     await db.users.update_one(
         {'username': username},
         {'$set': {
             'subscription.tier': tier,
             'subscription.subscription_status': 'active',
-            'subscription.promo_code_used': code
+            'subscription.promo_code_used': code,
+            'subscription.premium_expires_at': premium_expires_at
         }}
     )
     
@@ -974,10 +978,27 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
         )
     
     plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
+    
+    # Format duration for message
+    if duration_days == 7:
+        duration_text = "1 week"
+    elif duration_days == 14:
+        duration_text = "2 weeks"
+    elif duration_days == 30:
+        duration_text = "1 month"
+    elif duration_days == 90:
+        duration_text = "3 months"
+    elif duration_days == 365:
+        duration_text = "1 year"
+    else:
+        duration_text = f"{duration_days} days"
+    
     return {
-        "message": f"Promo code applied! You now have {plan['name']} access.",
+        "message": f"Promo code applied! You now have {plan['name']} access for {duration_text}.",
         "tier": tier,
-        "tier_name": plan['name']
+        "tier_name": plan['name'],
+        "duration_days": duration_days,
+        "expires_at": premium_expires_at
     }
 
 @api_router.get("/subscription/plans")
