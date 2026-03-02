@@ -17,15 +17,15 @@ function CampaignList({ username, onLogout }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newCampaign, setNewCampaign] = useState({ name: '', description: '', system: 'D&D 5e 2024' });
+  const [newCampaign, setNewCampaign] = useState({ name: '', description: '', system: '5e 2024 Compatible' });
   const [subscription, setSubscription] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const navigate = useNavigate();
 
   const ttrpgSystems = [
-    'D&D 5e 2024',
-    'D&D 5e 2014',
+    '5e 2024 Compatible',
+    '5e 2014 Compatible',
     'Pathfinder 2e',
     'Pathfinder 1e',
     'Call of Cthulhu 7e',
@@ -36,7 +36,7 @@ function CampaignList({ username, onLogout }) {
     'Savage Worlds',
     'Dungeon World',
     'Blades in the Dark',
-    'Other'
+    'Other/Custom'
   ];
 
   useEffect(() => {
