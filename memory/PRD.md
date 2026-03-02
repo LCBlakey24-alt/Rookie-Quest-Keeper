@@ -186,17 +186,36 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - **Frontend**: 90/90 E2E tests passing (100%) - Added 13 custom creatures tests
 - **New Test Files**: subscription-pricing.spec.ts, test_subscription.py, test_custom_creatures.py, custom-creatures.spec.ts
 
+## Recently Implemented Features (March 2, 2026)
+### Custom Creature Creator ✅
+- Full CRUD for homebrew creatures
+- AI-powered generation via Unseen Servant
+- CSV import/export
+
+### Quick/Spontaneous Combat ✅
+- "Spontaneous Combat" button on GM Screen
+- Search and add monsters or custom creatures
+- Instant combat launch with selected creatures
+
+### Attack Roller System ✅
+- "Attack" button on enemy combatants in combat
+- Auto-parses creature abilities for dice notation
+- Roll to Hit with target AC input
+- Roll Damage only for hits
+- Critical hit support (double dice)
+
 ## Upcoming Tasks (Priority Order)
-1. **P0: User Content Import System** - Allow users to import creatures/items from Excel/JSON files (user requested)
-2. **P1: Session Recap & Player Handouts** - AI-powered "Last time on..." summaries and shareable player links
-3. **P2: Dark Mode / Theme Options** - Theme switcher for better usability
-4. **P3: Player View Mode** - Simplified player-safe campaign view for sharing
-5. **P4: Import/Export Campaign Data** - Backup campaigns to JSON/PDF
-6. **P5: Merge Combat/Encounter Gen Tabs** - Needs careful refactoring (previously failed)
-7. **P6: World Calendar System** - Full customization
-8. **P7: Editable Rules Reference** - User-editable content
-9. **P8: Sound/Ambiance Integration** - Background music triggers
-10. **P9: Mobile App / PWA** - Progressive Web App for mobile/tablet
+1. **P0: Player Mode** - Major feature allowing players to:
+   - Choose "GM" or "Player" at landing page
+   - Join campaigns via invite code
+   - Create/manage character sheets
+   - Real-time combat sync with GM
+2. **P1: User Content Import System** - Excel/JSON file upload for bulk creature/item import
+3. **P2: Session Recap & Player Handouts** - AI "Last time on..." summaries
+4. **P3: Dark Mode / Theme Options**
+
+## Future Tasks
+- P4: Player View Mode | P5: Import/Export Campaign | P6-P10: Various enhancements
 
 ---
 Last Updated: March 2, 2026
