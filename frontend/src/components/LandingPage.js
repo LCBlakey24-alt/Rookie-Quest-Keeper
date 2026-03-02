@@ -93,9 +93,9 @@ function LandingPage() {
         right: 0,
         zIndex: 50,
         padding: '16px 24px',
-        background: 'rgba(3, 0, 20, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(74, 125, 255, 0.2)'
+        background: 'rgba(3, 0, 20, 0.9)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(20, 184, 166, 0.2)'
       }}>
         <div style={{ 
           maxWidth: '1200px', 
