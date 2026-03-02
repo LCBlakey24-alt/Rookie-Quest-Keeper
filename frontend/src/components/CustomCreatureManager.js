@@ -190,31 +190,13 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 100,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'linear-gradient(135deg, #0a0a2e 0%, #1e1e4a 100%)',
-        border: '2px solid #4a7dff',
-        borderRadius: '20px',
-        padding: '24px',
-        maxWidth: '900px',
-        width: '100%',
-        maxHeight: '80vh',
-        overflow: 'auto',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-      }}>
-        {/* Header */}
+  // Content component (shared between modal and embedded modes)
+  const content = (
+    <>
+      {/* Header - only show close button in modal mode */}
+      {!embedded && (
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -251,238 +233,290 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
             <X size={24} color="#fff" />
           </button>
         </div>
+      )}
 
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <Button
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="btn-primary"
+          data-testid="create-creature-btn"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <Plus size={18} /> Create Creature
+        </Button>
+        <label>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleImportCSV}
+            style={{ display: 'none' }}
+            data-testid="import-csv-input"
+          />
           <Button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="btn-primary"
+            as="span"
+            className="btn-outline"
+            data-testid="import-csv-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+            onClick={(e) => e.currentTarget.parentElement.querySelector('input').click()}
+          >
+            <Upload size={18} /> Import CSV
+          </Button>
+        </label>
+        {creatures.length > 0 && (
+          <Button
+            onClick={handleExportCSV}
+            className="btn-outline"
+            data-testid="export-csv-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Plus size={18} /> Create Creature
+            <Download size={18} /> Export CSV
           </Button>
-          <label>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleImportCSV}
-              style={{ display: 'none' }}
-            />
-            <Button
-              as="span"
-              className="btn-outline"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-              onClick={(e) => e.currentTarget.parentElement.querySelector('input').click()}
-            >
-              <Upload size={18} /> Import CSV
-            </Button>
-          </label>
-          {creatures.length > 0 && (
-            <Button
-              onClick={handleExportCSV}
-              className="btn-outline"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Download size={18} /> Export CSV
-            </Button>
-          )}
-        </div>
-
-        {/* CSV Format Help */}
-        <div style={{
-          background: 'rgba(74, 125, 255, 0.1)',
-          border: '1px solid rgba(74, 125, 255, 0.3)',
-          borderRadius: '12px',
-          padding: '12px 16px',
-          marginBottom: '20px',
-          fontSize: '13px',
-          color: '#94a3b8'
-        }}>
-          <strong style={{ color: '#4a7dff' }}>CSV Format:</strong> name, cr, hp, ac, type, size, speed, abilities, description
-          <br />
-          <span style={{ color: '#64748b' }}>Example: "Goblin Chief","2",45,15,"humanoid","Small","30 ft.","Multiattack","A goblin leader"</span>
-        </div>
-
-        {/* Create/Edit Form */}
-        {showForm && (
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.3)',
-            border: '2px solid #374151',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '20px'
-          }}>
-            <h3 style={{ color: '#fff', marginBottom: '16px', fontSize: '18px' }}>
-              {editingCreature ? 'Edit Creature' : 'New Creature'}
-            </h3>
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Name *</label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Creature name"
-                    required
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>CR</label>
-                  <select
-                    value={formData.cr}
-                    onChange={(e) => setFormData({ ...formData, cr: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
-                  >
-                    {CR_OPTIONS.map(cr => <option key={cr} value={cr}>{cr}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>HP</label>
-                  <Input
-                    type="number"
-                    value={formData.hp}
-                    onChange={(e) => setFormData({ ...formData, hp: parseInt(e.target.value) || 0 })}
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>AC</label>
-                  <Input
-                    type="number"
-                    value={formData.ac}
-                    onChange={(e) => setFormData({ ...formData, ac: parseInt(e.target.value) || 0 })}
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Type</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
-                  >
-                    {CREATURE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Size</label>
-                  <select
-                    value={formData.size}
-                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
-                  >
-                    {CREATURE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Speed</label>
-                  <Input
-                    value={formData.speed}
-                    onChange={(e) => setFormData({ ...formData, speed: e.target.value })}
-                    placeholder="30 ft."
-                  />
-                </div>
-              </div>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Abilities/Actions</label>
-                <textarea
-                  value={formData.abilities}
-                  onChange={(e) => setFormData({ ...formData, abilities: e.target.value })}
-                  placeholder="Multiattack, Bite (2d6+4), etc."
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff', minHeight: '60px' }}
-                />
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="A brief description of this creature..."
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff', minHeight: '60px' }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <Button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Save size={18} /> {editingCreature ? 'Update' : 'Create'}
-                </Button>
-                <Button type="button" onClick={resetForm} className="btn-outline">Cancel</Button>
-              </div>
-            </form>
-          </div>
         )}
+      </div>
 
-        {/* Creatures List */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading...</div>
-        ) : creatures.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-            <Skull size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
-            <p>No custom creatures yet</p>
-            <p style={{ fontSize: '13px', marginTop: '8px' }}>Create your own or import from CSV!</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-            {creatures.map(creature => (
-              <div
-                key={creature.id}
-                style={{
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '2px solid #374151',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '700' }}>{creature.name}</h4>
-                  <span style={{
-                    background: '#ef444420',
-                    color: '#ef4444',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '600'
-                  }}>
-                    CR {creature.cr}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', fontSize: '13px', color: '#94a3b8' }}>
-                  <span>HP: <span style={{ color: '#22c55e' }}>{creature.hp}</span></span>
-                  <span>AC: <span style={{ color: '#4a7dff' }}>{creature.ac}</span></span>
-                  <span>{creature.size} {creature.type}</span>
-                </div>
-                {creature.abilities && (
-                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
-                    {creature.abilities.substring(0, 100)}{creature.abilities.length > 100 ? '...' : ''}
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '8px' }}>
+      {/* CSV Format Help */}
+      <div style={{
+        background: 'rgba(74, 125, 255, 0.1)',
+        border: '1px solid rgba(74, 125, 255, 0.3)',
+        borderRadius: '12px',
+        padding: '12px 16px',
+        marginBottom: '20px',
+        fontSize: '13px',
+        color: '#94a3b8'
+      }}>
+        <strong style={{ color: '#4a7dff' }}>CSV Format:</strong> name, cr, hp, ac, type, size, speed, abilities, description
+        <br />
+        <span style={{ color: '#64748b' }}>Example: "Goblin Chief","2",45,15,"humanoid","Small","30 ft.","Multiattack","A goblin leader"</span>
+      </div>
+
+      {/* Create/Edit Form */}
+      {showForm && (
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          border: '2px solid #374151',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ color: '#fff', marginBottom: '16px', fontSize: '18px' }}>
+            {editingCreature ? 'Edit Creature' : 'New Creature'}
+          </h3>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Name *</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Creature name"
+                  data-testid="creature-name-input"
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>CR</label>
+                <select
+                  value={formData.cr}
+                  onChange={(e) => setFormData({ ...formData, cr: e.target.value })}
+                  data-testid="creature-cr-select"
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
+                >
+                  {CR_OPTIONS.map(cr => <option key={cr} value={cr}>{cr}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>HP</label>
+                <Input
+                  type="number"
+                  value={formData.hp}
+                  onChange={(e) => setFormData({ ...formData, hp: parseInt(e.target.value) || 0 })}
+                  data-testid="creature-hp-input"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>AC</label>
+                <Input
+                  type="number"
+                  value={formData.ac}
+                  onChange={(e) => setFormData({ ...formData, ac: parseInt(e.target.value) || 0 })}
+                  data-testid="creature-ac-input"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  data-testid="creature-type-select"
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
+                >
+                  {CREATURE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Size</label>
+                <select
+                  value={formData.size}
+                  onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                  data-testid="creature-size-select"
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff' }}
+                >
+                  {CREATURE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Speed</label>
+                <Input
+                  value={formData.speed}
+                  onChange={(e) => setFormData({ ...formData, speed: e.target.value })}
+                  placeholder="30 ft."
+                  data-testid="creature-speed-input"
+                />
+              </div>
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Abilities/Actions</label>
+              <textarea
+                value={formData.abilities}
+                onChange={(e) => setFormData({ ...formData, abilities: e.target.value })}
+                placeholder="Multiattack, Bite (2d6+4), etc."
+                data-testid="creature-abilities-input"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff', minHeight: '60px' }}
+              />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="A brief description of this creature..."
+                data-testid="creature-description-input"
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #374151', color: '#fff', minHeight: '60px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <Button type="submit" className="btn-primary" data-testid="save-creature-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Save size={18} /> {editingCreature ? 'Update' : 'Create'}
+              </Button>
+              <Button type="button" onClick={resetForm} className="btn-outline" data-testid="cancel-creature-btn">Cancel</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Creatures List */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading...</div>
+      ) : creatures.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }} data-testid="no-creatures-message">
+          <Skull size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
+          <p>No custom creatures yet</p>
+          <p style={{ fontSize: '13px', marginTop: '8px' }}>Create your own or import from CSV!</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }} data-testid="creatures-list">
+          {creatures.map(creature => (
+            <div
+              key={creature.id}
+              data-testid={`creature-card-${creature.id}`}
+              style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '2px solid #374151',
+                borderRadius: '12px',
+                padding: '16px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '700' }}>{creature.name}</h4>
+                <span style={{
+                  background: '#ef444420',
+                  color: '#ef4444',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  CR {creature.cr}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', fontSize: '13px', color: '#94a3b8' }}>
+                <span>HP: <span style={{ color: '#22c55e' }}>{creature.hp}</span></span>
+                <span>AC: <span style={{ color: '#4a7dff' }}>{creature.ac}</span></span>
+                <span>{creature.size} {creature.type}</span>
+              </div>
+              {creature.abilities && (
+                <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+                  {creature.abilities.substring(0, 100)}{creature.abilities.length > 100 ? '...' : ''}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {onSelectCreature && (
                   <Button
                     onClick={() => handleAddToEncounter(creature)}
                     className="btn-primary"
+                    data-testid={`add-creature-${creature.id}`}
                     style={{ flex: 1, padding: '6px 12px', fontSize: '12px' }}
                   >
                     <Plus size={14} /> Add to Encounter
                   </Button>
-                  <Button
-                    onClick={() => handleEdit(creature)}
-                    className="btn-outline"
-                    style={{ padding: '6px 10px' }}
-                  >
-                    <Edit size={14} />
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(creature.id)}
-                    className="btn-danger"
-                    style={{ padding: '6px 10px' }}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
+                )}
+                <Button
+                  onClick={() => handleEdit(creature)}
+                  className="btn-outline"
+                  data-testid={`edit-creature-${creature.id}`}
+                  style={{ padding: '6px 10px' }}
+                >
+                  <Edit size={14} />
+                </Button>
+                <Button
+                  onClick={() => handleDelete(creature.id)}
+                  className="btn-danger"
+                  data-testid={`delete-creature-${creature.id}`}
+                  style={{ padding: '6px 10px' }}
+                >
+                  <Trash2 size={14} />
+                </Button>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  // If embedded mode, render directly without modal wrapper
+  if (embedded) {
+    return <div data-testid="custom-creature-manager">{content}</div>;
+  }
+
+  // Modal mode
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 100,
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #0a0a2e 0%, #1e1e4a 100%)',
+        border: '2px solid #4a7dff',
+        borderRadius: '20px',
+        padding: '24px',
+        maxWidth: '900px',
+        width: '100%',
+        maxHeight: '80vh',
+        overflow: 'auto',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+      }} data-testid="custom-creature-manager">
+        {content}
       </div>
     </div>
   );
