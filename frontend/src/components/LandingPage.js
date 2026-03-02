@@ -14,6 +14,14 @@ function LandingPage() {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
   const [reviews, setReviews] = useState([]);
+  const [scrollY, setScrollY] = useState(0);
+
+  // Parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Fetch featured reviews
   useEffect(() => {
