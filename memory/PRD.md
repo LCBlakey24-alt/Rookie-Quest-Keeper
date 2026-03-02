@@ -98,6 +98,13 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 ### Custom Content Creation
 - [x] Item Creator for custom magic items
 - [x] World Calendar system
+- [x] **Custom Creature Creator** (NEW - March 2026)
+  - [x] Create homebrew monsters with full stat blocks (name, CR, HP, AC, type, size, speed, abilities, description)
+  - [x] Edit and delete custom creatures
+  - [x] Import creatures from CSV files
+  - [x] Export creatures to CSV files
+  - [x] Accessible from GM Screen "Creatures" tab
+  - [x] Campaign-specific creature management
 
 ### UI/UX
 - [x] "Rookie Quest" branded aesthetic
