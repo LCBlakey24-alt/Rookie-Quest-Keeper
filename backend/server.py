@@ -533,6 +533,34 @@ class ReviewCreate(BaseModel):
     rating: int  # 1-5
     comment: str
 
+class CustomCreature(BaseModel):
+    """Custom creature/monster created by users"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str
+    cr: str = "1"
+    hp: int = 10
+    ac: int = 10
+    type: str = "humanoid"
+    size: str = "Medium"
+    speed: str = "30 ft."
+    abilities: str = ""
+    description: str = ""
+    created_by: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class CustomCreatureCreate(BaseModel):
+    name: str
+    cr: str = "1"
+    hp: int = 10
+    ac: int = 10
+    type: str = "humanoid"
+    size: str = "Medium"
+    speed: str = "30 ft."
+    abilities: str = ""
+    description: str = ""
+
 class CreateCheckoutRequest(BaseModel):
     origin_url: str
     plan: str = 'adventurer'
