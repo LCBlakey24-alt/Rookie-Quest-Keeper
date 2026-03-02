@@ -159,7 +159,35 @@ function LandingPage() {
         }} />
 
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
-          {/* Main Rookie Rookie Quest Keeper Logo - Large & Prominent */}
+          {/* Rookie Quest Company Logo - Top */}
+          <div style={{ 
+            marginBottom: '20px', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center'
+          }}>
+            <img 
+              src="/ttrpg-companion-logo.png" 
+              alt="Rookie Quest" 
+              style={{ 
+                height: '80px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))',
+              }}
+            />
+          </div>
+          
+          <p style={{
+            color: '#94a3b8',
+            fontSize: '14px',
+            letterSpacing: '3px',
+            textTransform: 'uppercase',
+            marginBottom: '16px'
+          }}>
+            Presents
+          </p>
+
+          {/* Main Rookie Quest Keeper Logo - Large & Prominent */}
           <div style={{ 
             marginBottom: '40px', 
             display: 'flex', 
@@ -180,7 +208,7 @@ function LandingPage() {
             />
           </div>
 
-          {/* Tagline */}
+          {/* Tagline with Rainbow Text */}
           <h1 style={{
             fontSize: 'clamp(2.5rem, 5vw, 4rem)',
             fontFamily: 'Montserrat, sans-serif',
@@ -190,11 +218,8 @@ function LandingPage() {
             lineHeight: '1.2'
           }}>
             Your Ultimate{' '}
-            <span style={{ 
-              background: 'linear-gradient(90deg, #4a7dff, #a855f7, #22c55e)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+            <span className="rainbow-text" style={{ 
+              fontWeight: '800'
             }}>
               GM Companion
             </span>
