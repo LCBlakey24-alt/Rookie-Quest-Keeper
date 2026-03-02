@@ -2495,6 +2495,23 @@ async def unseen_servant_generate(request: UnseenServantRequest, username: str =
                 {'$set': {'places_of_interest': places}}
             )
         
+        elif request.entity_type == 'creature':
+            new_creature = CustomCreature(
+                id=entity_id,
+                campaign_id=request.campaign_id,
+                name=entity_data.get('name', 'Unknown Creature'),
+                cr=str(entity_data.get('cr', '1')),
+                hp=int(entity_data.get('hp', 10)),
+                ac=int(entity_data.get('ac', 10)),
+                type=entity_data.get('type', 'humanoid'),
+                size=entity_data.get('size', 'Medium'),
+                speed=entity_data.get('speed', '30 ft.'),
+                abilities=entity_data.get('abilities', ''),
+                description=entity_data.get('description', ''),
+                created_by=username
+            )
+            await db.custom_creatures.insert_one(new_creature.model_dump())
+        
         # Increment AI usage for free tier users
         await increment_ai_usage(username)
         
