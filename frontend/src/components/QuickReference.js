@@ -208,7 +208,7 @@ export const DAMAGE_TYPES = {
   necrotic: { name: 'Necrotic', description: 'Life-draining energy', examples: 'Inflict wounds, chill touch' },
   piercing: { name: 'Piercing', description: 'Puncturing attacks', examples: 'Arrows, rapiers, fangs' },
   poison: { name: 'Poison', description: 'Venomous or toxic substances', examples: 'Green dragon breath, poison spray' },
-  psychic: { name: 'Psychic', description: 'Mental assault', examples: 'Mind flayer attacks, psychic scream' },
+  psychic: { name: 'Psychic', description: 'Mental assault', examples: 'Psionic attacks, psychic scream' },
   radiant: { name: 'Radiant', description: 'Holy or divine energy', examples: 'Guiding bolt, divine smite' },
   slashing: { name: 'Slashing', description: 'Cutting attacks', examples: 'Swords, axes, claws' },
   thunder: { name: 'Thunder', description: 'Concussive sound', examples: 'Thunderwave, shatter' }
