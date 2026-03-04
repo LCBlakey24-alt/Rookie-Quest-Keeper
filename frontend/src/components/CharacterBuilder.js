@@ -5,10 +5,19 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, User, Sparkles, Loader } from 'lucide-react';
+import { ArrowLeft, User, Sparkles, Loader, Wand2, ChevronDown, ChevronUp } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Quick suggestion prompts for inspiration
+const AI_SUGGESTIONS = [
+  "A sneaky rogue who uses a bow and has a dark past",
+  "A holy warrior seeking redemption for past sins",
+  "A scholarly wizard obsessed with ancient secrets",
+  "A nature-loving druid protecting their homeland",
+  "A charming bard collecting tales of adventure"
+];
 
 // 5e Data
 const RACES = [
@@ -34,6 +43,12 @@ function CharacterBuilder() {
   const [step, setStep] = useState(1);
   const [creating, setCreating] = useState(false);
   
+  // AI Generation state
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(true);
+  const [aiGenerated, setAiGenerated] = useState(false);
+  
   const [characterData, setCharacterData] = useState({
     name: '',
     race: 'Human',
@@ -57,6 +72,62 @@ function CharacterBuilder() {
 
   const handleChange = (field, value) => {
     setCharacterData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // AI Character Generation
+  const handleAiGenerate = async () => {
+    if (!aiPrompt.trim() || aiPrompt.trim().length < 10) {
+      toast.error('Description too short', {
+        description: 'Please describe your character in at least 10 characters'
+      });
+      return;
+    }
+
+    setAiGenerating(true);
+    try {
+      const response = await axios.post(`${API}/ai/generate-character`, {
+        description: aiPrompt
+      });
+
+      if (response.data.success && response.data.character) {
+        const generated = response.data.character;
+        
+        // Map the generated data to our form
+        setCharacterData(prev => ({
+          ...prev,
+          name: generated.name || prev.name,
+          race: generated.race || prev.race,
+          character_class: generated.character_class || prev.character_class,
+          subclass: generated.subclass || '',
+          background: generated.background || prev.background,
+          level: generated.level || 1,
+          alignment: generated.alignment || prev.alignment,
+          strength: generated.strength || 10,
+          dexterity: generated.dexterity || 10,
+          constitution: generated.constitution || 10,
+          intelligence: generated.intelligence || 10,
+          wisdom: generated.wisdom || 10,
+          charisma: generated.charisma || 10,
+          personality_traits: generated.personality_traits || '',
+          ideals: generated.ideals || '',
+          bonds: generated.bonds || '',
+          flaws: generated.flaws || '',
+          backstory: generated.backstory || ''
+        }));
+
+        setAiGenerated(true);
+        toast.success(response.data.message || 'Character generated!', {
+          description: 'Review and customize before creating',
+          duration: 4000
+        });
+      }
+    } catch (error) {
+      toast.error('AI generation failed', {
+        description: error.response?.data?.detail || 'Please try again with a different description'
+      });
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const calculateModifier = (score) => {
@@ -138,6 +209,185 @@ function CharacterBuilder() {
             width: `${(step / 4) * 100}%`,
             transition: 'width 0.3s ease'
           }} />
+        </div>
+
+        {/* Unseen Servant AI Panel */}
+        <div style={{
+          marginBottom: '24px',
+          background: aiGenerated 
+            ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(20, 184, 166, 0.15))'
+            : 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.15))',
+          border: aiGenerated ? '2px solid #22c55e' : '2px solid #8b5cf6',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease'
+        }}>
+          {/* Header - Always Visible */}
+          <button
+            onClick={() => setShowAiPanel(!showAiPanel)}
+            data-testid="ai-panel-toggle"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Wand2 size={22} color="#ffffff" />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ 
+                  color: '#ffffff', 
+                  fontSize: '18px', 
+                  fontWeight: '700',
+                  fontFamily: 'Montserrat, sans-serif',
+                  margin: 0
+                }}>
+                  Unseen Servant
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                  {aiGenerated ? 'Character generated! Review below.' : 'Let AI create your character concept'}
+                </p>
+              </div>
+            </div>
+            {showAiPanel ? <ChevronUp size={24} color="#94a3b8" /> : <ChevronDown size={24} color="#94a3b8" />}
+          </button>
+
+          {/* Expandable Content */}
+          {showAiPanel && (
+            <div style={{ padding: '0 20px 20px 20px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  color: '#a78bfa', 
+                  fontSize: '14px', 
+                  fontWeight: '600' 
+                }}>
+                  Describe your character
+                </label>
+                <textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="e.g., A mysterious elven wizard who was exiled from their homeland for practicing forbidden magic..."
+                  data-testid="ai-character-prompt"
+                  style={{
+                    width: '100%',
+                    minHeight: '100px',
+                    padding: '14px',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '2px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    color: '#e2e8f0',
+                    fontSize: '14px',
+                    resize: 'vertical',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'}
+                />
+              </div>
+
+              {/* Quick Suggestions */}
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                  Quick ideas:
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {AI_SUGGESTIONS.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setAiPrompt(suggestion)}
+                      data-testid={`ai-suggestion-${idx}`}
+                      style={{
+                        padding: '6px 12px',
+                        background: 'rgba(139, 92, 246, 0.2)',
+                        border: '1px solid rgba(139, 92, 246, 0.4)',
+                        borderRadius: '20px',
+                        color: '#c4b5fd',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(139, 92, 246, 0.4)';
+                        e.target.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(139, 92, 246, 0.2)';
+                        e.target.style.color = '#c4b5fd';
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Generate Button */}
+              <Button
+                onClick={handleAiGenerate}
+                disabled={aiGenerating || !aiPrompt.trim()}
+                data-testid="ai-generate-btn"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  background: aiGenerating 
+                    ? 'rgba(139, 92, 246, 0.5)' 
+                    : 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: aiGenerating || !aiPrompt.trim() ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader className="spin" size={20} />
+                    Summoning Character...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={20} />
+                    Generate with AI
+                  </>
+                )}
+              </Button>
+
+              {aiGenerated && (
+                <p style={{ 
+                  marginTop: '12px', 
+                  color: '#22c55e', 
+                  fontSize: '13px', 
+                  textAlign: 'center' 
+                }}>
+                  ✨ Character generated! Review and edit the details below, then click "Create Character" when ready.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Step 1: Basic Info */}

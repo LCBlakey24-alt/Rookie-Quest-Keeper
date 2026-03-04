@@ -408,6 +408,9 @@ class CampaignJoinRequest(BaseModel):
     join_code: str
     character_id: str
 
+class AICharacterGenerateRequest(BaseModel):
+    description: str  # Player's description of desired character
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -3594,6 +3597,112 @@ async def get_campaign_players(
         "count": len(characters),
         "players": characters
     }
+
+@api_router.post("/ai/generate-character")
+async def ai_generate_character(
+    request: AICharacterGenerateRequest,
+    username: str = Depends(get_current_user)
+):
+    """
+    AI Character Generator: Create a complete character from a description.
+    The Unseen Servant manifests your character concept into reality.
+    """
+    description = request.description.strip()
+    
+    if not description or len(description) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Description too short. Please provide at least 10 characters."
+        )
+    
+    system_message = """You are the Unseen Servant, a magical assistant for tabletop RPG players.
+Your task is to create a complete character based on the player's description.
+
+Generate a character with:
+- Appropriate race, class, and background
+- Balanced ability scores (use point buy: 8-15 range, total ~72 points)
+- Fitting alignment
+- Personality traits, ideals, bonds, and flaws
+- A compelling backstory that matches their concept
+
+Respond in valid JSON format only. No markdown, no explanations."""
+
+    user_prompt = f"""Player's Character Concept:
+"{description}"
+
+Create a character based on this description. Return JSON in this EXACT format:
+{{
+  "name": "Character name that fits the concept",
+  "race": "One of: Human, Elf, Dwarf, Halfling, Dragonborn, Gnome, Half-Elf, Half-Orc, Tiefling",
+  "character_class": "One of: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard",
+  "subclass": "Appropriate subclass or empty string",
+  "background": "One of: Acolyte, Charlatan, Criminal, Entertainer, Folk Hero, Guild Artisan, Hermit, Noble, Outlander, Sage, Sailor, Soldier, Urchin",
+  "level": 1,
+  "alignment": "One of the 9 alignments",
+  "strength": 10,
+  "dexterity": 10,
+  "constitution": 10,
+  "intelligence": 10,
+  "wisdom": 10,
+  "charisma": 10,
+  "personality_traits": "2-3 sentences describing personality quirks",
+  "ideals": "What this character believes in",
+  "bonds": "Who or what this character cares about",
+  "flaws": "A character flaw or weakness",
+  "backstory": "3-4 paragraphs telling their story and how they became an adventurer"
+}}
+
+Make ability scores appropriate for the class (e.g., high STR for Fighter, high INT for Wizard).
+Use point buy values (8-15 before racial modifiers, total around 72 points)."""
+
+    try:
+        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not llm_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="AI service not configured"
+            )
+        
+        # Initialize chat with correct API
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"char-gen-{username}-{uuid.uuid4().hex[:8]}",
+            system_message=system_message
+        ).with_model("openai", "gpt-5.2")
+        
+        # Create message and send
+        user_msg = UserMessage(text=user_prompt)
+        response = await chat.send_message(user_msg)
+        
+        response_text = response.strip() if isinstance(response, str) else str(response)
+        
+        # Remove markdown code blocks if present
+        if response_text.startswith('```'):
+            response_text = response_text.split('```')[1]
+            if response_text.startswith('json'):
+                response_text = response_text[4:]
+            response_text = response_text.strip()
+        
+        character_data = json.loads(response_text)
+        
+        return {
+            "success": True,
+            "character": character_data,
+            "message": f"✨ {character_data.get('name', 'Your character')} has been manifested by the Unseen Servant!"
+        }
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse AI character response: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="AI returned invalid format. Please try again with a more specific description."
+        )
+    except Exception as e:
+        logger.error(f"AI character generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate character: {str(e)}"
+        )
 
 # Include the router in the main app
 app.include_router(api_router)

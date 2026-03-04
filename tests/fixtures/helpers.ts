@@ -68,14 +68,14 @@ export function generateTestUsername(): string {
 }
 
 // Test campaign and scenario constants
-export const TEST_CAMPAIGN_ID = '32fe976f-1dd0-4b17-a23b-42dbd1023d50';
+export const TEST_CAMPAIGN_ID = '014c9955-1787-4092-8cd9-e811e66609a3';
 export const TEST_SCENARIO_ID = '6fa133b0-16e3-4861-ad3c-ac534d4e2e74';
 
 // Updated test user with email
 export const TEST_USER = { 
-  email: 'admin@rookiequestkeeper.com',
-  username: 'admin',
-  password: 'Admin123!'
+  email: 'aitest@test.com',
+  username: 'AITestUser',
+  password: 'test123456'
 };
 
 export async function loginTestUser(page: Page) {
