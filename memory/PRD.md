@@ -229,20 +229,29 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - Roll Damage only for hits
 - Critical hit support (double dice)
 
+### AI Character Generation ("Unseen Servant") ✅ (NEW - March 4, 2026)
+- Expandable "Unseen Servant" panel in Character Builder
+- Players describe their character concept in natural language
+- AI generates complete character (name, race, class, stats, backstory, etc.)
+- Quick suggestion buttons for character inspiration
+- Auto-populates all form fields in the character builder
+- Success indicator when character is generated
+- Backend: POST /api/ai/generate-character using GPT-5.2
+- 21 tests passing (12 backend + 9 frontend E2E)
+
 ## Upcoming Tasks (Priority Order)
-1. **P0: Player Mode** - Major feature allowing players to:
+1. **P0: Player Mode (Full Implementation)** - Major feature allowing players to:
    - Choose "GM" or "Player" at landing page
    - Join campaigns via invite code
-   - Create/manage character sheets
    - Real-time combat sync with GM
-2. **P1: Finalize Attack/Damage Dice Roller** - Complete the two-step "roll to hit -> roll damage" flow
-3. **P2: User Content Import System** - Excel/JSON file upload for bulk creature/item import
+2. **P1: Minor UX Improvements** - Apply loading skeletons, empty states, search bars to NPCsTab, LocationsTab, Combat tabs
+3. **P2: Performance** - Fix unbounded `.to_list(None)` queries in server.py
 4. **P3: Session Recap & Player Handouts** - AI "Last time on..." summaries
 5. **P4: Dark Mode / Theme Options**
 6. **P5: Refactor server.py** - Break monolithic backend into separate routers
 
 ## Future Tasks
-- P4: Player View Mode | P5: Import/Export Campaign | P6-P10: Various enhancements
+- Smart Note Parsing (paused) | Import/Export Campaign | Combat Map Builder | AI Combat Turn Suggestions
 
 ---
-Last Updated: March 2, 2026
+Last Updated: March 4, 2026
