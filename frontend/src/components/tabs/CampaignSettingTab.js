@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Save, Wand2, Copy, Loader, ArrowDown } from 'lucide-react';
+import { Save, Wand2, Copy, Loader, ArrowDown, Key, Users } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,6 +14,8 @@ function CampaignSettingTab({ campaignId }) {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiResult, setAiResult] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [loadingJoinCode, setLoadingJoinCode] = useState(false);
 
   useEffect(() => {
     fetchSetting();
@@ -65,6 +67,20 @@ function CampaignSettingTab({ campaignId }) {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard!');
+  };
+
+  const fetchJoinCode = async () => {
+    setLoadingJoinCode(true);
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}/join-code`);
+      setJoinCode(response.data.join_code);
+    } catch (error) {
+      toast.error('Failed to get join code', {
+        description: error.response?.data?.detail || 'Please try again'
+      });
+    } finally {
+      setLoadingJoinCode(false);
+    }
   };
 
   if (loading) return <div className="loading-spinner"></div>;
@@ -217,6 +233,110 @@ function CampaignSettingTab({ campaignId }) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Player Join Code Panel */}
+        <div className="glow-panel" style={{ borderColor: '#22c55e', marginTop: '20px' }}>
+          <h3 style={{ 
+            fontSize: '18px', 
+            color: '#ffffff', 
+            marginBottom: '10px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontFamily: 'Montserrat, sans-serif',
+            fontWeight: '700'
+          }}>
+            <Users size={20} style={{ color: '#22c55e' }} />
+            Player Join Code
+          </h3>
+          <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px', lineHeight: '1.5' }}>
+            Share this code with players so they can link their characters to your campaign.
+          </p>
+
+          {joinCode ? (
+            <div>
+              <div style={{
+                padding: '20px',
+                background: 'rgba(34, 197, 94, 0.1)',
+                border: '3px solid #22c55e',
+                borderRadius: '16px',
+                textAlign: 'center',
+                marginBottom: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+                  <Key size={24} color="#22c55e" />
+                </div>
+                <div style={{
+                  fontSize: '36px',
+                  fontWeight: '800',
+                  color: '#22c55e',
+                  letterSpacing: '8px',
+                  fontFamily: 'monospace'
+                }}>
+                  {joinCode}
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  copyToClipboard(joinCode);
+                  toast.success('Join code copied!', {
+                    description: 'Share this with your players'
+                  });
+                }}
+                className="btn-primary"
+                style={{ 
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                }}
+              >
+                <Copy size={16} />
+                Copy Join Code
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={fetchJoinCode}
+              disabled={loadingJoinCode}
+              className="btn-primary"
+              style={{ 
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+              }}
+            >
+              {loadingJoinCode ? (
+                <>
+                  <Loader size={16} className="loading-spinner" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Key size={16} />
+                  Get Join Code
+                </>
+              )}
+            </Button>
+          )}
+
+          <div style={{
+            marginTop: '16px',
+            padding: '12px',
+            background: 'rgba(74, 125, 255, 0.1)',
+            border: '1px solid #4a7dff',
+            borderRadius: '8px'
+          }}>
+            <p style={{ color: '#4a7dff', fontSize: '12px', lineHeight: '1.5' }}>
+              💡 Players use this code in their character sheet to join your campaign.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ import LandingPage from '@/components/LandingPage';
 import AccountSettings from '@/components/AccountSettings';
 import MyCharacters from '@/components/MyCharacters';
 import CharacterBuilder from '@/components/CharacterBuilder';
+import CharacterSheet from '@/components/CharacterSheet';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -111,6 +112,14 @@ function App() {
             element={
               isAuthenticated ? 
                 <CharacterBuilder /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
+          <Route 
+            path="/characters/:characterId" 
+            element={
+              isAuthenticated ? 
+                <CharacterSheet /> : 
                 <Navigate to="/auth" replace />
             } 
           />

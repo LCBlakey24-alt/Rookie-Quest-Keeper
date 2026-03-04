@@ -404,6 +404,10 @@ class PlayerCharacterUpdate(BaseModel):
     notes: Optional[str] = None
     campaign_id: Optional[str] = None  # For linking to campaign
 
+class CampaignJoinRequest(BaseModel):
+    join_code: str
+    character_id: str
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -3486,6 +3490,109 @@ async def link_character_to_campaign(
         "success": True,
         "message": f"Character linked to campaign: {campaign.get('name')}",
         "campaign_id": campaign_id
+    }
+
+@api_router.get("/campaigns/{campaign_id}/join-code")
+async def get_campaign_join_code(
+    campaign_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Generate or retrieve a campaign join code for players"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
+    if not campaign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Campaign not found"
+        )
+    
+    # Generate 6-character join code if not exists
+    join_code = campaign.get('join_code')
+    if not join_code:
+        import random
+        import string
+        join_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        await db.campaigns.update_one(
+            {'id': campaign_id},
+            {'$set': {'join_code': join_code}}
+        )
+    
+    return {
+        "join_code": join_code,
+        "campaign_name": campaign.get('name'),
+        "campaign_id": campaign_id
+    }
+
+@api_router.post("/campaigns/join")
+async def join_campaign_with_code(
+    request: CampaignJoinRequest,
+    username: str = Depends(get_current_user)
+):
+    """Join a campaign using a join code"""
+    # Find campaign by join code
+    campaign = await db.campaigns.find_one({'join_code': request.join_code}, {'_id': 0})
+    if not campaign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid join code. Please check and try again."
+        )
+    
+    # Verify character ownership
+    character = await db.player_characters.find_one({
+        'id': request.character_id,
+        'user_id': username
+    })
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    
+    # Check if character is already linked to another campaign
+    if character.get('campaign_id') and character.get('campaign_id') != campaign['id']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Character is already linked to another campaign. Unlink first."
+        )
+    
+    # Link character to campaign
+    await db.player_characters.update_one(
+        {'id': request.character_id},
+        {'$set': {
+            'campaign_id': campaign['id'],
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "message": f"Successfully joined campaign: {campaign['name']}",
+        "campaign": {
+            "id": campaign['id'],
+            "name": campaign['name'],
+            "system": campaign.get('system', '5e 2024'),
+            "dm": campaign.get('dm_user_id')
+        }
+    }
+
+@api_router.get("/campaigns/{campaign_id}/players")
+async def get_campaign_players(
+    campaign_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Get all player characters linked to this campaign"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    # Get all characters linked to this campaign
+    characters = await db.player_characters.find(
+        {'campaign_id': campaign_id},
+        {'_id': 0}
+    ).to_list(None)
+    
+    return {
+        "count": len(characters),
+        "players": characters
     }
 
 # Include the router in the main app
