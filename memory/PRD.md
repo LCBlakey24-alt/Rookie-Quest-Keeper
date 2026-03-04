@@ -3,16 +3,35 @@
 ## Overview
 A comprehensive web application for Tabletop RPG Game Masters, serving as a digital "GM Screen" for managing campaigns, combat, and world-building. Supports multiple TTRPG systems including D&D 5e, Pathfinder, and more.
 
-## Player Mode Experience ✅ (NEW - March 4, 2026)
+## Player Mode Experience ✅ (Updated - March 4, 2026)
 
 ### Role Selection Page
 After login, users choose between "Game Master" or "Player" modes with distinct visual cards showing features for each role.
 
 ### Player Dashboard (/player)
+- **Tab Navigation**: "Characters" and "Notes" tabs
 - "My Characters" grid with character cards showing portraits, class color, stats
 - "My Campaigns" section showing joined campaigns
 - Quick actions: "Create New Character" and "Join Campaign"
 - Empty states with call-to-action buttons
+
+### Player Notes Tab ✅ (NEW - March 4, 2026)
+- **Session Recaps Section**: Read-only recaps synced from GM
+  - Shows campaign name, date, GM who created it
+  - Expandable/collapsible content with golden top border
+  - Automatic sync when GM generates a recap
+- **My Notes Section**: Personal editable notes
+  - Create, edit, delete personal notes
+  - Optional campaign linking
+  - Cyan top border for visual distinction
+  - Timestamps for last update
+
+### GM to Player Session Recap Sync ✅ (NEW - March 4, 2026)
+- When GM clicks "Generate Recap" in In-Game Notes tab:
+  1. AI generates a narrative recap from session notes
+  2. Recap is automatically saved to all players in that campaign
+  3. Players see recaps in their Notes tab under "Session Recaps"
+- Backend endpoint: `POST /api/campaigns/{campaign_id}/session-recaps`
 
 ### Character Builder (Redesigned)
 - 4-step wizard: Concept → Race & Class → Abilities → Details
@@ -30,6 +49,19 @@ After login, users choose between "Game Master" or "Player" modes with distinct 
 ### Backend Endpoints Added
 - `GET /api/player/campaigns` - Get campaigns user has joined
 - `GET /api/player/campaign/{id}/inventory` - Get items assigned to player
+- `GET /api/player/session-recaps` - Get all session recaps for player ✅ NEW
+- `GET /api/player/notes` - Get personal player notes ✅ NEW
+- `POST /api/player/notes` - Create a player note ✅ NEW
+- `PUT /api/player/notes/{note_id}` - Update a player note ✅ NEW
+- `DELETE /api/player/notes/{note_id}` - Delete a player note ✅ NEW
+- `POST /api/campaigns/{campaign_id}/session-recaps` - GM generates and syncs recap ✅ NEW
+
+## Landing Page Showcase ✅ (NEW - March 4, 2026)
+Interactive "See It In Action" section showcasing app features:
+- **Tab Navigation**: GM Dashboard, World Builder, Player Hub, Session Notes
+- **Browser Mockup**: Realistic window chrome with feature previews
+- **Feature Tags**: Quick highlights for each feature area
+- **CTA Button**: "Try It Free" after showcase
 
 ## Design System - Arcane SaaS / Nebula Flow (Updated March 4, 2026)
 Modern dark fantasy dashboard design combining the clarity of a professional SaaS app (like Notion/Linear) with subtle magical fantasy elements. Inspired by Nebula Flow dashboard style.

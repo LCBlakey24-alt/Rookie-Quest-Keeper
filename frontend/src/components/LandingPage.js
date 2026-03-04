@@ -14,6 +14,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 function LandingPage() {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [activeScreenshot, setActiveScreenshot] = useState('gm');
   const [reviews, setReviews] = useState([]);
   const [scrollY, setScrollY] = useState(0);
 
@@ -412,6 +413,200 @@ function LandingPage() {
                 )}
               </React.Fragment>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: Screenshot Showcase Section */}
+      <section style={{ padding: '80px 24px', position: 'relative', background: 'rgba(10, 10, 46, 0.3)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h2 style={{
+              fontSize: 'clamp(2rem, 4vw, 3rem)',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: '800',
+              color: '#ffffff',
+              marginBottom: '16px'
+            }}>
+              See <span className="rainbow-text">Rookie Quest Keeper</span> in Action
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '600px', margin: '0 auto' }}>
+              A quick look at how our tools help you run amazing games
+            </p>
+          </div>
+
+          {/* Screenshot Tabs */}
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}>
+              {[
+                { id: 'gm', label: 'GM Dashboard', color: '#7C3AED' },
+                { id: 'world', label: 'World Builder', color: '#22D3EE' },
+                { id: 'player', label: 'Player Hub', color: '#10B981' },
+                { id: 'notes', label: 'Session Notes', color: '#EAB308' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveScreenshot(tab.id)}
+                  style={{
+                    padding: '12px 24px',
+                    background: activeScreenshot === tab.id 
+                      ? `linear-gradient(135deg, ${tab.color} 0%, ${tab.color}99 100%)`
+                      : 'rgba(30, 41, 59, 0.8)',
+                    border: activeScreenshot === tab.id 
+                      ? 'none' 
+                      : '1px solid #334155',
+                    borderRadius: '12px',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    fontFamily: 'Montserrat, sans-serif',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Screenshot Display */}
+          <div style={{
+            position: 'relative',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
+            border: '2px solid #1e3a5f'
+          }}>
+            {/* Browser Chrome */}
+            <div style={{
+              background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+              padding: '12px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#eab308' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#22c55e' }} />
+              </div>
+              <div style={{
+                flex: 1,
+                background: '#0f172a',
+                borderRadius: '6px',
+                padding: '6px 16px',
+                marginLeft: '12px',
+                fontSize: '12px',
+                color: '#64748b'
+              }}>
+                rookiequestkeeper.com
+              </div>
+            </div>
+
+            {/* Screenshot Content */}
+            <div style={{
+              background: '#0B0F19',
+              minHeight: '500px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              {activeScreenshot === 'gm' && (
+                <div style={{ width: '100%', height: '500px', background: 'linear-gradient(135deg, #1a1a2e 0%, #0f0f23 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: '40px' }}>
+                  <Crown size={80} color="#7C3AED" style={{ marginBottom: '24px', opacity: 0.8 }} />
+                  <h3 style={{ color: '#ffffff', fontSize: '28px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700', marginBottom: '16px' }}>Campaign Management</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '16px', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
+                    Create and manage unlimited campaigns. Access all your world-building tools, NPCs, locations, combat systems, and AI assistants from one central dashboard.
+                  </p>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {['World Builder', 'Combat System', 'NPC Manager', 'AI Assistant'].map((feature) => (
+                      <span key={feature} style={{ padding: '8px 16px', background: 'rgba(124, 58, 237, 0.2)', borderRadius: '20px', color: '#C4B5FD', fontSize: '13px' }}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeScreenshot === 'world' && (
+                <div style={{ width: '100%', height: '500px', background: 'linear-gradient(135deg, #0a1628 0%, #0f0f23 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: '40px' }}>
+                  <Globe size={80} color="#22D3EE" style={{ marginBottom: '24px', opacity: 0.8 }} />
+                  <h3 style={{ color: '#ffffff', fontSize: '28px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700', marginBottom: '16px' }}>Hierarchical World Builder</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '16px', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
+                    Build immersive worlds with a nested structure: Continents → Countries → Cities → Places of Interest. Let AI generate descriptions and lore for any location.
+                  </p>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {['Continents', 'Countries', 'Cities', 'Places', 'AI Lore'].map((feature) => (
+                      <span key={feature} style={{ padding: '8px 16px', background: 'rgba(34, 211, 238, 0.2)', borderRadius: '20px', color: '#A7F3D0', fontSize: '13px' }}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeScreenshot === 'player' && (
+                <div style={{ width: '100%', height: '500px', background: 'linear-gradient(135deg, #0a2818 0%, #0f0f23 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: '40px' }}>
+                  <Users size={80} color="#10B981" style={{ marginBottom: '24px', opacity: 0.8 }} />
+                  <h3 style={{ color: '#ffffff', fontSize: '28px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700', marginBottom: '16px' }}>Player Hub</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '16px', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
+                    Players create characters with AI assistance, join campaigns with invite codes, and receive automatic session recaps from their GM. Everything synced in real-time.
+                  </p>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {['Character Builder', 'AI Portraits', 'Stat Roller', 'Session Sync'].map((feature) => (
+                      <span key={feature} style={{ padding: '8px 16px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '20px', color: '#6EE7B7', fontSize: '13px' }}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeScreenshot === 'notes' && (
+                <div style={{ width: '100%', height: '500px', background: 'linear-gradient(135deg, #1a1a0a 0%, #0f0f23 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: '40px' }}>
+                  <Scroll size={80} color="#EAB308" style={{ marginBottom: '24px', opacity: 0.8 }} />
+                  <h3 style={{ color: '#ffffff', fontSize: '28px', fontFamily: 'Montserrat, sans-serif', fontWeight: '700', marginBottom: '16px' }}>Session Notes & Recaps</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '16px', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
+                    Take notes during sessions and let AI generate dramatic narrative recaps. Recaps automatically sync to all players so everyone stays on the same page.
+                  </p>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {['In-Game Notes', 'AI Recaps', 'Auto-Sync', 'Player Notes'].map((feature) => (
+                      <span key={feature} style={{ padding: '8px 16px', background: 'rgba(234, 179, 8, 0.2)', borderRadius: '20px', color: '#FDE68A', fontSize: '13px' }}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* CTA below showcase */}
+          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <Button
+              onClick={() => navigate('/auth')}
+              style={{
+                padding: '16px 40px',
+                fontSize: '18px',
+                fontWeight: '700',
+                fontFamily: 'Montserrat, sans-serif',
+                background: 'linear-gradient(135deg, #7C3AED 0%, #22D3EE 100%)',
+                border: 'none',
+                borderRadius: '12px',
+                color: '#ffffff',
+                cursor: 'pointer',
+                boxShadow: '0 8px 30px rgba(124, 58, 237, 0.4)'
+              }}
+            >
+              Try It Free <ArrowRight size={20} style={{ marginLeft: '8px', display: 'inline' }} />
+            </Button>
           </div>
         </div>
       </section>
