@@ -1,148 +1,163 @@
 <analysis>**original_problem_statement:**
-The user wants to build a one-stop TTRPG-agnostic website called Rookie Quest Keeper for Game Masters (GMs), serving as a comprehensive GM Screen. The product is a part of the user's company, Rookie Quest.
+The user's initial goal was to build a Player Site for their TTRPG application, starting with an AI-assisted character builder. This evolved into a major overhaul of the user experience.
 
-**PRODUCT REQUIREMENTS:**
--   **Core Features**: User authentication, campaign management, an initiative tracker, a map system, an AI assistant (Unseen Servant), and in-game note-taking with AI recaps.
--   **GM Tools**: A GM Screen with a dice roller, party tracker, quick monster lookup, and random generators. Also includes a Combat Creator, Item Creator, and Creature Creator.
--   **Player Features**: An enhanced character creator/viewer and a Player Mode that links to a GM's campaign for real-time combat and character sheet viewing. Players should only see their own sheet and limited info on others.
--   **Account Management**: The ability for users to log in with email, reset a forgotten password via email, and change their username/password within their account settings.
--   **Monetization & Admin**: A Stripe-based freemium model, a referral system, and an Admin Panel to manage promo codes and user reviews.
--   **UI/UX**: A floating dice roller, a marketing landing page, and a user review system. The design should be cohesive with the Rookie Quest Keeper branding.
+During this session, the user requested the following:
+1.  **GM to Player Session Recap Sync:** When a GM generates a session recap, it should automatically save to the notes of all players in that session.
+2.  **Player-Specific Notes:** Players should have their own private, editable notes section, separate from the GM's session recaps.
+3.  **Landing Page Showcase:** Add a section to the landing page with screenshots to give new users an idea of what the app looks like. This section should be populated with rich, mock data.
+4.  **Complete Branding Overhaul:**
+    *   Rename the platform's AI from Unseen Servant to ROOK (Roleplaying Organization Operations Keeper).
+    *   Introduce a new logo system: a wizard mascot for ROOK and a text-based logo for Rookie Quest Keeper (RQK).
+    *   Add a Meet ROOK section to the landing page.
+    *   Integrate the ROOK branding across all AI features in the UI.
+5.  **Landing Page Enhancements:**
+    *   Create a grander, more impactful logo for the hero section.
+    *   Implement a parallax scrolling effect where the background moves slower than the foreground.
+    *   Add entrance animations to elements as the user scrolls.
+    *   Make the new grand logo consistent across all application pages (Login, Dashboards, etc.).
+    *   Add a live, animated demo of the AI in action to the landing page showcase.
+6.  **Bug Fixes:**
+    *   The dice roller is limited to a maximum of 5 dice; it needs to support an infinite amount for higher-level characters.
+    *   After combat ends, the screen turns black.
 
-**User's preferred language**: en-US
+**User's preferred language**: English
 
 **what currently exists?**
-A full-stack application (React, FastAPI, MongoDB) named Rookie Quest Keeper.
--   **Features**: User authentication (username/password), a campaign dashboard, a comprehensive GM Screen with a Spontaneous Combat creator, a custom creature creator with AI generation, an admin panel, and a Stripe-integrated pricing page.
--   **Branding & Design**: The app has been rebranded to Rookie Quest Keeper with company (Rookie Quest) and product logos consistently applied. It features a cohesive teal/cyan design theme with a textured background and interactive UI elements.
--   **Admin**: An admin account () is configured to auto-upgrade to a lifetime premium subscription upon registration. The database has been cleaned of all test data.
+The application has been significantly enhanced with new features and a major branding overhaul.
+- **Player Notes Feature:** A Notes tab has been added to the Player Dashboard. It contains two sections: a read-only view for Session Recaps synced from the GM, and a fully functional CRUD interface for the player's own My Notes.
+- **ROOK AI Rebrand:** The AI assistant, formerly Unseen Servant, has been rebranded to ROOK across the entire application (UI text, API endpoints, feature descriptions).
+- **New Landing Page:** The landing page has been completely revamped with:
+    - A large, animated, CSS-driven ROOKIE QUEST KEEPER hero logo.
+    - Parallax background effects and scroll-triggered entrance animations.
+    - A Meet ROOK section explaining the AI assistant.
+    - An updated See It In Action showcase with up-to-date screenshots and a new Live Demo tab showing an animated simulation of the ROOK AI generating content.
+- **Consistent Branding:** The new, stylized Rookie Quest Keeper logo is now used in the header of all major pages (Login, Role Selection, Player/GM Dashboards) for a consistent brand identity.
 
 **Last working item**:
--   **Last item agent was working**: The user requested a full-featured account management system, including email-based login, a Forgot Password flow, and the ability for users to manage their account details. The agent began by choosing 'Resend' for email delivery and started refactoring the backend authentication logic in  to switch from username-based to email-based login.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both. The backend requires API testing (e.g., using ) for the new register, login, forgot password, and reset password flows. The frontend requires testing to verify the updated login/register forms, the new Forgot Password modal, and the new Account Settings page.
--   **User Testing Done**: N
+- **Last item agent was working:** The agent was addressing two user-reported bugs related to the combat system. It had just implemented a fix for the dice roller limitation by replacing the preset dice count buttons with a number input field in .
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** both
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   There are no known bugs.
+- **Issue 1: Combat System Bugs (P0)**
+  - **Issue:** The user reported two critical bugs: 1) Combat ends to a black screen. 2) The dice roller is limited and needs to support a large number of dice.
+  - **Status:** IN PROGRESS
+  - **Details:**
+    - **Black Screen Bug:** The agent has identified that  navigates to the DM screen after combat ends, but has not yet debugged why this results in a black screen.
+      - **Next debug checklist:**
+        1.  Reproduce the issue by running a full combat flow.
+        2.  Check the browser's developer console for errors during the navigation from  to .
+        3.  Inspect the state of  when it's rendered after combat. It might be missing props or state required for rendering.
+        4.  Review  and  to understand the  logic.
+    - **Dice Roller Bug:** The agent implemented a fix in  by replacing dice count buttons with a number input and updating the results display. This fix is untested.
+      - **Next debug checklist:**
+        1.  Navigate to a page with the  component.
+        2.  Test rolling a large number of dice (e.g., > 10).
+        3.  Verify the input field works correctly and the results summary is displayed as intended.
 
 **In progress Task List**:
--   **Task 1**: Complete the Account Management System (P0)
-    -   **Where to resume**: Continue refactoring . The agent has added new Pydantic models but needs to finish updating the  and  endpoints for email authentication. Then, it must implement the forgot password and reset password API endpoints using the Resend integration. After the backend is done, the frontend needs to be updated:  for the new login flow and a new Account Settings page for users to manage their profiles.
-    -   **What will be achieved with this?**: Users will have a standard, secure way to manage their accounts and recover access if they forget their password, which is a fundamental feature for user retention.
-    -   **Status**: BLOCKED
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: The agent requires the **** from the user to proceed with the email integration. The next agent MUST ask the user for this key.
+- No other tasks are in progress. The focus is on the P0 bugs.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-  - **P0: Implement Real-Time Player Mode**: Build the Player view that syncs with the GM's screen in real-time, likely using WebSockets. This includes showing combat initiation, syncing damage, and displaying a player-specific view of the initiative tracker.
-  - **P1: Finalize Attack/Damage Dice Roller**: Complete the logic for the  component. The current implementation needs to be extended to fully support the user's request: 1) Roll to hit against a target's AC and show hits/misses, then 2) Roll damage only for the attacks that successfully hit.
-  - **P2: User Content Import System**: Build a feature for users to import their own content (creatures, items) from a file (e.g., CSV, JSON).
+  - **P0: GM→Player Item Linking:** Implement the feature where items assigned by a GM automatically sync to the player's character sheet with functional stats.
+  - **P1: Player Mode (Full Combat View):** Build the player-side combat experience, showing a simplified combat tracker and allowing players to take actions that sync with the GM's view.
+  - **P2: Smart Note Parsing:** Resume and complete the paused feature that allows AI to parse GM notes and automatically update game entities.
+  - **P3: Add Database Indexes:** Add indexes to MongoDB for frequently queried fields (, ) to improve performance.
 - **Future Tasks:**
-  - **P3: Refactor **: Critically important. Break the monolithic  into smaller, maintainable FastAPI routers (e.g., , ).
-  - **P4: Session Recap & Player Handouts**: Implement AI-powered Last time on... summaries.
-  - **P5: Dark Mode / Theme Options**.
-  - **P6: Import/Export Campaign Data**.
-  - **P7: Merge Combat and Encounter Gen Tabs** (re-attempt).
+  - Combat Map Builder.
+  - AI Combat Turn Suggestions.
+  - Backend Refactoring (splitting  into routers).
 
 **Completed work in this session**
--   **Full Design Overhaul & Rebranding**: The application was rebranded to Rookie Quest Keeper and the UI was redesigned to match the new logo's aesthetic (teal/cyan theme, new fonts which were later reverted, background textures, and glow effects). Both company and product logos are now present on all major pages.
--   **Spontaneous Combat & Attack Roller**: Implemented a Spontaneous Combat modal for quickly starting encounters and created the initial UI for an  within the combat tracker.
--   **Admin Account & Site Cleanup**: Changed the admin username to , created the account for the user, and implemented an auto-upgrade feature for it. Wiped all test data from the database at the user's request.
--   **AI Creature Generation**: Integrated the Unseen Servant to allow GMs to generate complete creature stat blocks from a text prompt.
--   **Custom Creature Creator Integration**: The previously created  component was successfully integrated as a new Creatures tab on the GM Screen.
+- **Player Notes Feature:** Implemented a full-featured notes system for players, including syncing session recaps from the GM and a private notes section (, ).
+- **Complete Branding Overhaul:** Rebranded the AI assistant from Unseen Servant to ROOK across the entire stack (, , , etc.).
+- **Dynamic Landing Page:**
+  - Created a large, animated, CSS-based ROOKIE QUEST KEEPER hero logo ().
+  - Added parallax scrolling effects, entrance animations, and a live animated demo (, ).
+  - Added a Meet ROOK informational section.
+  - Updated the screenshot showcase with fresh, data-rich images reflecting the new ROOK branding.
+- **Consistent UI/UX:** Deployed a new inline version of the RQK logo () across all application headers (, , , etc.) for consistent branding.
+- **Bug Fix (Pre-emptive):** Fixed a character creation bug ( conflict) discovered during testing ().
 
 **Earlier issues found/mentioned but not fixed**
--   An attempt from a previous session to merge the  and  components failed and was reverted. This remains a future task.
+- None.
 
 **Known issue recurrence from previous fork**
--   N/A
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend**: React.js, TailwindCSS, .
--   **Backend**: FastAPI (Python), Motor (async MongoDB driver).
--   **Database**: MongoDB.
--   **Authentication**: JWT (migrating from username to email-based).
--   **Emails**: Resend (integration in progress).
--   **Payments**: Stripe.
--   **Real-time**: WebSockets will likely be needed for the upcoming Player Mode.
+- **Backend:** FastAPI, MongoDB (via ), Pydantic, JWT authentication.
+- **Frontend:** React, Tailwind CSS, , , Intersection Observer API for animations.
+- **AI:**  library for text and image generation, now branded as ROOK.
+- **Architecture:** Full-stack, role-based (GM/Player), with a monolithic backend.
 
 **key DB schema**
--   **users**: Being modified to use  as the primary identifier instead of . It will also require new fields like  and  for the password recovery feature.
--   **custom_creatures**: 
--   **reviews**: 
--   **campaigns**: 
+- **characters:** 
+- **campaigns:** 
+- **users:** 
+- **session_recaps:**  (New)
+- **player_notes:**  (New)
 
 **changes in tech stack**
--   **Resend** is being added for transactional emails (e.g., password resets).
+- No fundamental changes.
 
 **All files of reference**
--   : Modified for admin user changes, auto-upgrade logic, and the ongoing email-based authentication refactor.
--   : Overhauled with the new Rookie Quest Keeper design system.
--   : Updated with global styles, font imports, and a textured background.
--   : Major redesign to incorporate new branding, logos, and layout.
--   : Updated design and logo placement.
--   : Integrated new features and updated design/logos.
--   : New component for spontaneous encounters.
--   : New component for the dice rolling UI in combat.
--   , : Updated to reflect new branding and logo strategy.
-
-**Areas that need refactoring**:
--   ****: This is a critical priority. The monolithic file is becoming unmanageable and should be broken down into separate FastAPI routers.
--   ****: This component is very large and complex. It could be broken down into smaller, more focused components for each tab's content.
-
-**key api endpoints**
--   **Being Refactored**: ,  (to use email).
--   **To Be Created**: , .
--   **Existing**: , , , etc.
+- ****: Heavily modified with new logo, parallax, animations, and showcase sections.
+- ****: Modified to fix the dice roller limit. Awaiting testing.
+- ** & **: Files to investigate for the black screen on combat end bug.
+- ****: Updated with new endpoints for Player Notes/Session Recaps and renamed AI endpoints to .
+- ****: Updated to include the new .
+- ****: New file for the player notes feature.
+- ** & **: New files for the main and header logos.
+- ** & **: New files for landing page animations.
 
 **Critical Info for New Agent**
--   **Get **: The immediate next step is to ask the user for their Resend API key. The account management feature is blocked without it.
--   **User Design Feedback**: The user is highly engaged with the design process. Pay close attention to their feedback on fonts, colors, and branding. The current branding is Rookie Quest (company) and Rookie Quest Keeper (product).
--   **Next Major Feature**: The upcoming Real-Time Player Mode is a significant undertaking that will likely require WebSockets. Plan this feature carefully.
--   **Backend Refactor**: Keep the critical need to refactor  in mind. It would be best to tackle this after the current account management task is complete to improve stability and developer velocity.
+- The immediate priority is to fix the two critical bugs in the combat system (black screen on combat end, dice roller testing).
+- The application has undergone a significant branding change from Unseen Servant to ROOK. Ensure all future AI-related work adheres to the new ROOK branding and visual identity.
+- The  is now a highly complex, animated component. Be cautious when making changes to it.
+- The agent was about to run the testing agent for the Player Notes feature but was interrupted by new user requests. This feature has been manually tested via  but lacks a formal test suite.
 
 **documents and test reports created in this job**
--    (updated)
--    (contains results from testing the Custom Creature Creator)
+-  (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. ok delete all users... create an account for me that is an admin account... also can you delete any traces of tetsing on the site - **(Completed)**
-9.  you can wipe the lcblakey24@outlook.com account as that is mine aswell - **(Completed)**
-8.  it wont let me log on it says invalid credentials - **(Resolved; agent recreated the account with a new password)**
-7.  Yep works - **(User confirmed login success)**
-6.  Okay so the login worked on the preview page do I need to redeploy the site now in order for it to work on the actual website - **(Answered; agent explained preview vs. production)**
-5.  How do I register the account on the deployed site? - **(Answered; agent explained the process and suggested auto-upgrading the admin account)**
-4.  Can you add the auto upgrade please - **(Completed)**
-3.  so its saying that the account already exists - **(Resolved; agent clarified preview vs. production databases)**
-2.  can we create a system where you can find you password? aswell as changing password and username inside you own account? - **(User request for the current in-progress task)**
-1.  all of that lets go with your best suggestion - **(User approved the agent's plan for the account management system)**
+1.  **User:** Requests a grander logo for the main page. (Completed)
+2.  **User:** Asks for parallax scrolling and to make the ROOKIE QUEST text on the logo bigger. (Completed)
+3.  **User:** Asks to update screenshots on the main page to reflect the new ROOK branding. (Completed)
+4.  **User:** Approves of the changes and suggests adding more entrance animations. (Completed)
+5.  **User:** Requests to use the grand logo on all pages (GM and player) and approves the idea of a GIF/video demo. (Completed)
+6.  **User:** Switches topic to bugs: combat ends in a black screen. (In Progress)
+7.  **User:** Adds another bug: dice roller is limited to 5 dice. (In Progress)
+8.  **Agent:** Acknowledges bugs and begins investigation. (In Progress)
+9.  **User:**  (approving agent's plan to take screenshots)
+10. **Agent:** Implements a fix for the dice roller. (Last action taken)
 
 **Project Health Check:**
--   **Broken**: None.
--   **Mocked**: None.
+- **Broken:** The combat completion flow is currently broken (leads to a black screen).
+- **Mocked:** None
 
 **3rd Party Integrations**
--   **Emergent LLM Key**: Used for AI content generation.
--   **Stripe**: Integrated for subscription payments (test mode).
--   **Resend**: Integration in progress for transactional emails. **Requires User API Key**.
+- **resend:** Used for sending emails.
+- **Stripe:** Integrated for a freemium subscription model.
+- **Emergent LLM Key (via  library):**
+    - Used for OpenAI text generation (branded as ROOK).
+    - Used for OpenAI image generation (AI character portraits).
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, for the Custom Creature Creator feature.
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None persistent.
--   **Known regressions**: None.
+- **Testing agent used after significant changes:** NO. The agent did not run the testing agent after the large Player Notes feature implementation, despite planning to.
+- **Troubleshoot agent used after agent stuck in loop:** No.
+- **Test files created:** None.
+- **Known regressions:** Combat completion flow is broken.
 
 **Credentials to test flow:**
--   **Admin User (for preview environment)**:
-    -   **Username**: 
-    -   **Password**: 
+- Create a new account via the standard user registration flow on the landing page.
 
 **What agent forgot to execute**
--   The agent did not explicitly ask the user for the  after deciding to use it, which is now a blocker for the current task.
--   The dice rolling logic for the  component is incomplete. It displays the UI but doesn't yet implement the two-step roll to hit - damage flow requested by the user.</analysis>
+- The agent did not run the  after completing the Player Notes Sync feature. The user then moved on to other requests (landing page, branding), and this testing step was skipped.
+- The agent has not yet tested its fix for the dice roller in .</analysis>

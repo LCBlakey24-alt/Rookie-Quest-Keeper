@@ -14,7 +14,7 @@ test.describe('Campaign Dashboard Features', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    await page.goto('https://nebula-player-1.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
+    await page.goto('https://ttrpg-combat-fix.preview.emergentagent.com/auth', { waitUntil: 'domcontentloaded' });
     
     // Click CREATE ACCOUNT button to switch to register form
     await page.getByRole('button', { name: /create account/i }).click();

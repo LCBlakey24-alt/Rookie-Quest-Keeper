@@ -138,32 +138,56 @@ function DiceRoller() {
             fontWeight: '600',
             fontFamily: 'Montserrat, sans-serif'
           }}>
-            Count
+            Number of Dice
           </label>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {[1, 2, 3, 4, 5].map(num => (
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            {/* Quick select buttons */}
+            {[1, 2, 4, 6, 8].map(num => (
               <button
                 key={num}
                 onClick={() => setDiceCount(num)}
                 style={{
-                  flex: 1,
-                  padding: '8px',
+                  padding: '8px 10px',
                   borderRadius: '6px',
                   border: diceCount === num ? '2px solid #22c55e' : '2px solid #1e40af',
                   background: diceCount === num ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
                   color: diceCount === num ? '#22c55e' : '#94a3b8',
                   fontWeight: '600',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  minWidth: '36px'
                 }}
               >
                 {num}
               </button>
             ))}
+            {/* Custom number input */}
+            <input
+              type="number"
+              min="1"
+              max="999"
+              value={diceCount}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 1;
+                setDiceCount(Math.max(1, Math.min(999, val)));
+              }}
+              style={{
+                width: '60px',
+                padding: '8px',
+                borderRadius: '6px',
+                border: '2px solid #1e40af',
+                background: 'rgba(10, 10, 40, 0.6)',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '600',
+                textAlign: 'center'
+              }}
+              title="Enter any number (1-999)"
+            />
           </div>
         </div>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '90px' }}>
           <label style={{ 
             display: 'block', 
             marginBottom: '6px', 
@@ -270,13 +294,58 @@ function DiceRoller() {
             fontSize: '13px', 
             color: '#94a3b8', 
             marginTop: '8px',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Inter, sans-serif',
+            maxHeight: '80px',
+            overflowY: 'auto',
+            padding: '4px'
           }}>
-            {currentResult.rolls.join(' + ')}
-            {currentResult.modifier !== 0 && (
-              <span style={{ color: currentResult.modifier > 0 ? '#22c55e' : '#ef4444' }}>
-                {currentResult.modifier > 0 ? ` + ${currentResult.modifier}` : ` - ${Math.abs(currentResult.modifier)}`}
-              </span>
+            {/* For large dice counts, show summary */}
+            {currentResult.rolls.length > 12 ? (
+              <div>
+                <div style={{ marginBottom: '4px' }}>
+                  <span style={{ color: '#67e8f9' }}>{currentResult.count}d{currentResult.dice.sides}</span>
+                  {' = '}
+                  <span style={{ color: '#ffffff' }}>{currentResult.rolls.reduce((a, b) => a + b, 0)}</span>
+                  {currentResult.modifier !== 0 && (
+                    <span style={{ color: currentResult.modifier > 0 ? '#22c55e' : '#ef4444' }}>
+                      {currentResult.modifier > 0 ? ` + ${currentResult.modifier}` : ` - ${Math.abs(currentResult.modifier)}`}
+                    </span>
+                  )}
+                </div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#64748b',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '4px',
+                  justifyContent: 'center'
+                }}>
+                  {currentResult.rolls.map((roll, idx) => (
+                    <span 
+                      key={idx} 
+                      style={{ 
+                        padding: '2px 6px',
+                        background: roll === currentResult.dice.sides ? 'rgba(34, 197, 94, 0.3)' :
+                                   roll === 1 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)',
+                        borderRadius: '4px',
+                        color: roll === currentResult.dice.sides ? '#22c55e' :
+                               roll === 1 ? '#ef4444' : '#94a3b8'
+                      }}
+                    >
+                      {roll}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {currentResult.rolls.join(' + ')}
+                {currentResult.modifier !== 0 && (
+                  <span style={{ color: currentResult.modifier > 0 ? '#22c55e' : '#ef4444' }}>
+                    {currentResult.modifier > 0 ? ` + ${currentResult.modifier}` : ` - ${Math.abs(currentResult.modifier)}`}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

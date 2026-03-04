@@ -1,0 +1,95 @@
+{
+  "summary": "Stress testing complete for TTRPG Combat Fix. All critical fixes verified: 1) Combat end navigation now correctly goes to /gm-screen (not /dm-screen), 2) Dice roller can handle 1-999 dice. Comprehensive test suite created covering combat flows, dice roller stress tests, GM screen tabs, player dashboard, and player notes CRUD.",
+  "mode": "generate",
+  "baseline_commit": "de87a8504a2c143874ca120b0db1bb0e4a7ec7de",
+  "head_commit": "4948885ba74e12e600fee1a95a4dd830e14d3dd6",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 49,
+    "passed": 49,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "backend_tests": "16 passed (test_player_notes_combat.py)",
+      "frontend_tests": {
+        "combat-flows.spec.ts": "9 passed (UPDATED - verified /gm-screen fix)",
+        "dice-roller-stress.spec.ts": "9 passed (NEW - stress tests for 50/100/999 dice)",
+        "gm-screen-tabs.spec.ts": "12 passed (NEW - all GM screen tabs)",
+        "player-dashboard.spec.ts": "8 passed (NEW - player dashboard and notes CRUD)",
+        "golden-path.spec.ts": "4 passed (NEW - end-to-end golden path tests)"
+      }
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/dice-roller-stress.spec.ts",
+    "/app/tests/e2e/gm-screen-tabs.spec.ts",
+    "/app/tests/e2e/player-dashboard.spec.ts",
+    "/app/tests/e2e/golden-path.spec.ts",
+    "/app/backend/tests/test_player_notes_combat.py"
+  ],
+  "specs_updated": [
+    "/app/tests/e2e/combat-flows.spec.ts",
+    "/app/tests/fixtures/helpers.ts"
+  ],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_player_notes_combat.py",
+    "/app/test_reports/pytest/test_player_notes_combat.xml",
+    "/app/tests/e2e/combat-flows.spec.ts",
+    "/app/tests/e2e/dice-roller-stress.spec.ts",
+    "/app/tests/e2e/gm-screen-tabs.spec.ts",
+    "/app/tests/e2e/player-dashboard.spec.ts",
+    "/app/tests/e2e/golden-path.spec.ts"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/fixtures/helpers.ts",
+    "/app/tests/e2e/combat-flows.spec.ts",
+    "/app/tests/e2e/dice-roller-stress.spec.ts",
+    "/app/tests/e2e/gm-screen-tabs.spec.ts",
+    "/app/tests/e2e/player-dashboard.spec.ts",
+    "/app/tests/e2e/golden-path.spec.ts",
+    "/app/backend/tests/test_player_notes_combat.py"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 tests passed)",
+    "frontend": "100% (33/33 E2E tests passed - new specs only)"
+  },
+  "seed_data_creation": "Used existing test user stress_test_1772651200@test.com and campaign 1e6a6d0d-ad88-4b8a-9cc5-a1672119343c",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "TTRPG Combat Fix testing complete. Two critical bugs have been verified as fixed: 1) CombatPage.js now navigates to /gm-screen/{campaignId} instead of /dm-screen (which caused black screen on combat end), 2) DiceRoller.js now allows 1-999 dice instead of limited preset buttons. Test credentials: email=stress_test_1772651200@test.com, password=TestPass123!, campaign=1e6a6d0d-ad88-4b8a-9cc5-a1672119343c, scenario=7bd4be2a-2821-4daf-97d7-af5ddbe34968. helpers.ts has been updated with correct campaign IDs and test user credentials.",
+  "features_tested": {
+    "combat_end_navigation_fix": "VERIFIED - Combat end correctly navigates to /gm-screen/{campaignId}",
+    "dice_roller_large_counts": "VERIFIED - Can roll 50, 100, 500+ dice successfully",
+    "gm_screen_all_tabs": "PASS - All 10 tabs (Combat, Dice, Monsters, Creatures, Names, Tables, Loot Gen, Inventory, Party, Notes) work correctly",
+    "player_notes_crud": "PASS - Create, read, update, delete player notes all work",
+    "session_recaps": "PASS - Session recaps endpoint returns correct data",
+    "combat_scenarios_api": "PASS - Combat scenarios with combatant data (Goblin Chief, Goblin Shaman)",
+    "authentication_flow": "PASS - Login, logout, session persistence working",
+    "role_selection": "PASS - Game Master and Player role selection functional",
+    "player_dashboard": "PASS - Characters and Notes tabs working"
+  },
+  "verified_fixes": {
+    "combat_black_screen_fix": {
+      "status": "VERIFIED",
+      "description": "Combat end was navigating to /dm-screen which doesn't exist, causing black screen. Now correctly navigates to /gm-screen.",
+      "test_file": "combat-flows.spec.ts",
+      "test_name": "End Combat button returns to GM Screen (verifies combat end fix)"
+    },
+    "dice_roller_limit_fix": {
+      "status": "VERIFIED", 
+      "description": "Dice roller now allows entering any number 1-999 in the input field, not just preset buttons.",
+      "test_file": "dice-roller-stress.spec.ts",
+      "test_names": ["dice roller stress test - roll 50 dice", "dice roller stress test - roll 100+ dice", "input field respects maximum of 999"]
+    }
+  }
+}

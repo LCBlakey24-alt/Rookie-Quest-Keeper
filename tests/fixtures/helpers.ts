@@ -67,25 +67,33 @@ export function generateTestUsername(): string {
   return `TEST_user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 }
 
-// Test campaign and scenario constants
-export const TEST_CAMPAIGN_ID = '014c9955-1787-4092-8cd9-e811e66609a3';
-export const TEST_SCENARIO_ID = '6fa133b0-16e3-4861-ad3c-ac534d4e2e74';
+// Test campaign and scenario constants - Stress Test Campaign
+export const TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c';
+export const TEST_SCENARIO_ID = '7bd4be2a-2821-4daf-97d7-af5ddbe34968';
 
-// Updated test user with email
+// Updated test user with email - Stress Test User
 export const TEST_USER = { 
-  email: 'aitest@test.com',
-  username: 'AITestUser',
-  password: 'test123456'
+  email: 'stress_test_1772651200@test.com',
+  username: 'stress_test_1772651200',
+  password: 'TestPass123!'
 };
 
 export async function loginTestUser(page: Page) {
   await loginUser(page, TEST_USER.email, TEST_USER.password);
-  await page.waitForURL(/\/campaigns/, { timeout: 10000 });
+  // After login, user goes to /home (role selection) then navigates to campaigns
+  await page.waitForURL(/\/(home|campaigns)/, { timeout: 15000 });
 }
 
+export async function navigateToGMScreen(page: Page) {
+  // Correct route is /gm-screen/ not /dm-screen/
+  await page.goto(`/gm-screen/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
+  // Wait for GM screen content to load
+  await expect(page.getByRole('heading', { name: 'Combat Control' })).toBeVisible({ timeout: 15000 });
+}
+
+// Alias for backwards compatibility
 export async function navigateToDMScreen(page: Page) {
-  await page.goto(`/dm-screen/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle');
+  await navigateToGMScreen(page);
 }
 
 export async function selectEncounterAndStartCombat(page: Page) {
