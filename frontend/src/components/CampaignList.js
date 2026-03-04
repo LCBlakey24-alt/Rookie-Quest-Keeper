@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Scroll, Plus, LogOut, Trash2, Settings, Crown, Sparkles, Shield, Star } from 'lucide-react';
+import { Scroll, Plus, LogOut, Trash2, Settings, Crown, Sparkles, Shield, Star, User } from 'lucide-react';
 import QuickTips, { TIPS } from '@/components/QuickTips';
 import ReviewModal from '@/components/ReviewModal';
 
@@ -341,6 +341,10 @@ function CampaignList({ username, onLogout }) {
                 </form>
               </DialogContent>
             </Dialog>
+            <Button onClick={() => navigate('/characters')} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <User size={20} />
+              My Characters
+            </Button>
             <Button data-testid="account-settings-btn" onClick={() => navigate('/account')} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Settings size={20} />
               Account

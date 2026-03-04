@@ -14,6 +14,8 @@ import AdminPage from '@/components/AdminPage';
 import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import LandingPage from '@/components/LandingPage';
 import AccountSettings from '@/components/AccountSettings';
+import MyCharacters from '@/components/MyCharacters';
+import CharacterBuilder from '@/components/CharacterBuilder';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -93,6 +95,22 @@ function App() {
             element={
               isAuthenticated ? 
                 <CampaignList username={username} onLogout={handleLogout} /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
+          <Route 
+            path="/characters" 
+            element={
+              isAuthenticated ? 
+                <MyCharacters username={username} onLogout={handleLogout} /> : 
+                <Navigate to="/auth" replace />
+            } 
+          />
+          <Route 
+            path="/characters/new" 
+            element={
+              isAuthenticated ? 
+                <CharacterBuilder /> : 
                 <Navigate to="/auth" replace />
             } 
           />

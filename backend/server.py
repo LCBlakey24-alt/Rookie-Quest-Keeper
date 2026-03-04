@@ -239,6 +239,171 @@ class CalendarEventUpdate(BaseModel):
     is_recurring: Optional[bool] = None
     recurrence_type: Optional[str] = None
 
+# ==================== PLAYER CHARACTER MODELS ====================
+
+class PlayerCharacter(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Owner of the character
+    campaign_id: Optional[str] = None  # None if not linked to campaign yet
+    
+    # Basic Info
+    name: str
+    race: str  # Human, Elf, Dwarf, etc.
+    character_class: str  # Fighter, Wizard, etc.
+    subclass: str = ""
+    background: str = ""
+    level: int = 1
+    experience_points: int = 0
+    
+    # Ability Scores
+    strength: int = 10
+    dexterity: int = 10
+    constitution: int = 10
+    intelligence: int = 10
+    wisdom: int = 10
+    charisma: int = 10
+    
+    # Combat Stats
+    armor_class: int = 10
+    initiative_bonus: int = 0
+    speed: int = 30
+    max_hit_points: int = 10
+    current_hit_points: int = 10
+    temporary_hit_points: int = 0
+    hit_dice: str = "1d8"  # e.g., "3d10"
+    hit_dice_remaining: int = 1
+    death_saves_successes: int = 0
+    death_saves_failures: int = 0
+    
+    # Proficiencies & Skills
+    proficiency_bonus: int = 2
+    saving_throw_proficiencies: List[str] = []  # ["strength", "constitution"]
+    skill_proficiencies: List[str] = []  # ["athletics", "perception"]
+    weapon_proficiencies: List[str] = []
+    armor_proficiencies: List[str] = []
+    tool_proficiencies: List[str] = []
+    languages: List[str] = []
+    
+    # Features & Traits
+    racial_traits: List[Dict[str, str]] = []  # [{"name": "Darkvision", "description": "..."}]
+    class_features: List[Dict[str, str]] = []
+    feats: List[Dict[str, str]] = []
+    
+    # Spellcasting (if applicable)
+    spellcasting_ability: str = ""  # "intelligence", "wisdom", "charisma"
+    spell_save_dc: int = 0
+    spell_attack_bonus: int = 0
+    spell_slots: Dict[str, int] = {}  # {"1": 2, "2": 1} - slots per level
+    spell_slots_remaining: Dict[str, int] = {}
+    spells_known: List[Dict[str, Any]] = []  # [{"name": "Fireball", "level": 3, "school": "evocation"}]
+    
+    # Equipment & Inventory
+    equipment: List[Dict[str, Any]] = []  # [{"name": "Longsword", "equipped": true}]
+    inventory: List[Dict[str, Any]] = []
+    currency: Dict[str, int] = {"copper": 0, "silver": 0, "electrum": 0, "gold": 0, "platinum": 0}
+    
+    # Character Details
+    alignment: str = "Neutral"
+    personality_traits: str = ""
+    ideals: str = ""
+    bonds: str = ""
+    flaws: str = ""
+    backstory: str = ""
+    appearance: str = ""
+    notes: str = ""
+    
+    # Meta
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class PlayerCharacterCreate(BaseModel):
+    name: str
+    race: str
+    character_class: str
+    subclass: str = ""
+    background: str = ""
+    level: int = 1
+    
+    # Ability Scores
+    strength: int = 10
+    dexterity: int = 10
+    constitution: int = 10
+    intelligence: int = 10
+    wisdom: int = 10
+    charisma: int = 10
+    
+    # Optional fields
+    armor_class: Optional[int] = 10
+    speed: Optional[int] = 30
+    max_hit_points: Optional[int] = None  # Auto-calculate if not provided
+    alignment: str = "Neutral"
+    backstory: str = ""
+
+class PlayerCharacterUpdate(BaseModel):
+    name: Optional[str] = None
+    race: Optional[str] = None
+    character_class: Optional[str] = None
+    subclass: Optional[str] = None
+    background: Optional[str] = None
+    level: Optional[int] = None
+    experience_points: Optional[int] = None
+    
+    # Ability Scores
+    strength: Optional[int] = None
+    dexterity: Optional[int] = None
+    constitution: Optional[int] = None
+    intelligence: Optional[int] = None
+    wisdom: Optional[int] = None
+    charisma: Optional[int] = None
+    
+    # Combat Stats
+    armor_class: Optional[int] = None
+    initiative_bonus: Optional[int] = None
+    speed: Optional[int] = None
+    max_hit_points: Optional[int] = None
+    current_hit_points: Optional[int] = None
+    temporary_hit_points: Optional[int] = None
+    hit_dice: Optional[str] = None
+    hit_dice_remaining: Optional[int] = None
+    
+    # Skills & Proficiencies
+    proficiency_bonus: Optional[int] = None
+    saving_throw_proficiencies: Optional[List[str]] = None
+    skill_proficiencies: Optional[List[str]] = None
+    weapon_proficiencies: Optional[List[str]] = None
+    armor_proficiencies: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
+    
+    # Features & Traits
+    racial_traits: Optional[List[Dict[str, str]]] = None
+    class_features: Optional[List[Dict[str, str]]] = None
+    feats: Optional[List[Dict[str, str]]] = None
+    
+    # Spellcasting
+    spellcasting_ability: Optional[str] = None
+    spell_save_dc: Optional[int] = None
+    spell_attack_bonus: Optional[int] = None
+    spell_slots: Optional[Dict[str, int]] = None
+    spell_slots_remaining: Optional[Dict[str, int]] = None
+    spells_known: Optional[List[Dict[str, Any]]] = None
+    
+    # Equipment
+    equipment: Optional[List[Dict[str, Any]]] = None
+    inventory: Optional[List[Dict[str, Any]]] = None
+    currency: Optional[Dict[str, int]] = None
+    
+    # Character Details
+    alignment: Optional[str] = None
+    personality_traits: Optional[str] = None
+    ideals: Optional[str] = None
+    bonds: Optional[str] = None
+    flaws: Optional[str] = None
+    backstory: Optional[str] = None
+    appearance: Optional[str] = None
+    notes: Optional[str] = None
+    campaign_id: Optional[str] = None  # For linking to campaign
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -3153,6 +3318,175 @@ Extract and return JSON in this EXACT format:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to parse notes: {str(e)}"
         )
+
+# ==================== PLAYER CHARACTER ROUTES ====================
+
+@api_router.get("/characters")
+async def get_user_characters(username: str = Depends(get_current_user)):
+    """Get all characters owned by the current user"""
+    characters = await db.player_characters.find(
+        {'user_id': username},
+        {'_id': 0}
+    ).sort('created_at', -1).to_list(None)
+    return characters
+
+@api_router.post("/characters", response_model=dict)
+async def create_character(
+    character: PlayerCharacterCreate,
+    username: str = Depends(get_current_user)
+):
+    """Create a new player character"""
+    # Calculate max HP if not provided
+    max_hp = character.max_hit_points
+    if max_hp is None:
+        # Simple calculation: Base HP based on class
+        constitution_modifier = (character.constitution - 10) // 2
+        # Default to d8 hit die
+        max_hp = 8 + constitution_modifier
+    
+    # Calculate proficiency bonus based on level
+    proficiency_bonus = 2 + ((character.level - 1) // 4)
+    
+    # Calculate AC from dexterity if not provided
+    armor_class = character.armor_class
+    if armor_class == 10:
+        dexterity_modifier = (character.dexterity - 10) // 2
+        armor_class = 10 + dexterity_modifier
+    
+    new_character = PlayerCharacter(
+        user_id=username,
+        **character.model_dump(),
+        max_hit_points=max_hp,
+        current_hit_points=max_hp,
+        proficiency_bonus=proficiency_bonus,
+        armor_class=armor_class
+    )
+    
+    await db.player_characters.insert_one(new_character.model_dump())
+    
+    return {
+        "success": True,
+        "message": f"{new_character.name} created successfully!",
+        "character_id": new_character.id,
+        "character": new_character.model_dump()
+    }
+
+@api_router.get("/characters/{character_id}")
+async def get_character(
+    character_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Get a specific character"""
+    character = await db.player_characters.find_one(
+        {'id': character_id, 'user_id': username},
+        {'_id': 0}
+    )
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    return character
+
+@api_router.put("/characters/{character_id}")
+async def update_character(
+    character_id: str,
+    character_update: PlayerCharacterUpdate,
+    username: str = Depends(get_current_user)
+):
+    """Update a character"""
+    # Verify ownership
+    existing = await db.player_characters.find_one({'id': character_id, 'user_id': username})
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    
+    # Build update data
+    update_data = {k: v for k, v in character_update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields to update"
+        )
+    
+    # Add updated timestamp
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # Recalculate derived stats if ability scores changed
+    if any(key in update_data for key in ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma', 'level']):
+        # Recalculate proficiency bonus
+        level = update_data.get('level', existing.get('level', 1))
+        update_data['proficiency_bonus'] = 2 + ((level - 1) // 4)
+    
+    result = await db.player_characters.update_one(
+        {'id': character_id, 'user_id': username},
+        {'$set': update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    
+    updated_character = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    return updated_character
+
+@api_router.delete("/characters/{character_id}")
+async def delete_character(
+    character_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Delete a character"""
+    result = await db.player_characters.delete_one({
+        'id': character_id,
+        'user_id': username
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    
+    return {"message": "Character deleted successfully"}
+
+@api_router.post("/characters/{character_id}/link-campaign")
+async def link_character_to_campaign(
+    character_id: str,
+    campaign_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Link a character to a campaign (for future use)"""
+    # Verify character ownership
+    character = await db.player_characters.find_one({'id': character_id, 'user_id': username})
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+    
+    # Verify campaign exists (this will be more complex with player permissions later)
+    campaign = await db.campaigns.find_one({'id': campaign_id})
+    if not campaign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Campaign not found"
+        )
+    
+    # Link character to campaign
+    await db.player_characters.update_one(
+        {'id': character_id},
+        {'$set': {'campaign_id': campaign_id, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {
+        "success": True,
+        "message": f"Character linked to campaign: {campaign.get('name')}",
+        "campaign_id": campaign_id
+    }
 
 # Include the router in the main app
 app.include_router(api_router)
