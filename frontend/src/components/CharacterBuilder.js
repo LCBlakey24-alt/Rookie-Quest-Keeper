@@ -210,7 +210,7 @@ function CharacterBuilder() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #030014 0%, #0a0a2e 50%, #030014 100%)',
+      background: 'linear-gradient(180deg, #0B0F19 0%, #111827 50%, #0B0F19 100%)',
       padding: '24px'
     }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -222,14 +222,14 @@ function CharacterBuilder() {
           <div>
             <h1 style={{
               fontSize: 'clamp(28px, 5vw, 36px)',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '800',
+              fontFamily: 'Cinzel, serif',
+              fontWeight: '600',
               color: '#ffffff',
               marginBottom: '4px'
             }}>
               Create Character
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '14px' }}>
+            <p style={{ color: '#9CA3AF', fontSize: '14px' }}>
               Step {step} of 4
             </p>
           </div>
@@ -238,14 +238,14 @@ function CharacterBuilder() {
         {/* Progress Bar */}
         <div style={{
           height: '8px',
-          background: 'rgba(30, 64, 175, 0.3)',
+          background: 'rgba(31, 41, 55, 0.8)',
           borderRadius: '4px',
           marginBottom: '32px',
           overflow: 'hidden'
         }}>
           <div style={{
             height: '100%',
-            background: 'linear-gradient(90deg, #14b8a6, #22c55e)',
+            background: 'linear-gradient(90deg, #7C3AED, #22D3EE)',
             width: `${(step / 4) * 100}%`,
             transition: 'width 0.3s ease'
           }} />
@@ -255,10 +255,10 @@ function CharacterBuilder() {
         <div style={{
           marginBottom: '24px',
           background: aiGenerated 
-            ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(20, 184, 166, 0.15))'
-            : 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.15))',
-          border: aiGenerated ? '2px solid #22c55e' : '2px solid #8b5cf6',
-          borderRadius: '16px',
+            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 211, 238, 0.15))'
+            : 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(139, 92, 246, 0.15))',
+          border: aiGenerated ? '1px solid #10B981' : '1px solid #7C3AED',
+          borderRadius: '14px',
           overflow: 'hidden',
           transition: 'all 0.3s ease'
         }}>
@@ -281,8 +281,8 @@ function CharacterBuilder() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'

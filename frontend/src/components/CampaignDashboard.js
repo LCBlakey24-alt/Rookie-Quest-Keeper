@@ -65,37 +65,37 @@ function CampaignDashboard({ username, onLogout }) {
   if (!campaign) return null;
 
   const tabs = [
-    { id: 'setting', icon: Book, label: 'Setting', color: '#4a7dff' },
-    { id: 'world', icon: Globe, label: 'World', color: '#22c55e' },
-    { id: 'gods', icon: Church, label: 'Gods', color: '#a855f7' },
-    { id: 'npcs', icon: UserCircle, label: 'NPCs', color: '#f97316' },
-    { id: 'locations', icon: MapPin, label: 'Locations', color: '#67e8f9' },
-    { id: 'players', icon: Users, label: 'Players', color: '#4a7dff' },
-    { id: 'combat-creator', icon: Swords, label: 'Combat', color: '#ef4444' },
-    { id: 'encounter-gen', icon: Sparkles, label: 'Encounter Gen', color: '#eab308' },
-    { id: 'items', icon: Wand2, label: 'Items', color: '#67e8f9' },
-    { id: 'reference', icon: ScrollText, label: 'Reference', color: '#f97316' },
-    { id: 'calendar', icon: Calendar, label: 'Calendar', color: '#a855f7' },
-    { id: 'ingame-notes', icon: FileText, label: 'Notes', color: '#94a3b8' },
+    { id: 'setting', icon: Book, label: 'Setting', color: '#7C3AED' },
+    { id: 'world', icon: Globe, label: 'World', color: '#22D3EE' },
+    { id: 'gods', icon: Church, label: 'Gods', color: '#F59E0B' },
+    { id: 'npcs', icon: UserCircle, label: 'NPCs', color: '#8B5CF6' },
+    { id: 'locations', icon: MapPin, label: 'Locations', color: '#22D3EE' },
+    { id: 'players', icon: Users, label: 'Players', color: '#10B981' },
+    { id: 'combat-creator', icon: Swords, label: 'Combat', color: '#EF4444' },
+    { id: 'encounter-gen', icon: Sparkles, label: 'Encounter Gen', color: '#F59E0B' },
+    { id: 'items', icon: Wand2, label: 'Items', color: '#22D3EE' },
+    { id: 'reference', icon: ScrollText, label: 'Reference', color: '#8B5CF6' },
+    { id: 'calendar', icon: Calendar, label: 'Calendar', color: '#F59E0B' },
+    { id: 'ingame-notes', icon: FileText, label: 'Notes', color: '#9CA3AF' },
   ];
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #030014 0%, #0a0a2e 50%, #030014 100%)',
+      background: 'linear-gradient(180deg, #0B0F19 0%, #111827 50%, #0B0F19 100%)',
       display: 'flex',
       flexDirection: 'column'
     }}>
       {/* Header */}
       <div style={{
-        background: 'rgba(10, 10, 46, 0.95)',
-        borderBottom: '2px solid #1e40af',
+        background: 'rgba(17, 24, 39, 0.95)',
+        borderBottom: '1px solid #1F2937',
         padding: '12px 16px',
         position: 'sticky',
         top: 0,
         zIndex: 50,
         backdropFilter: 'blur(10px)',
-        boxShadow: '0 0 30px rgba(74, 125, 255, 0.2)'
+        boxShadow: '0 0 30px rgba(124, 58, 237, 0.1)'
       }}>
         <div style={{ 
           maxWidth: '100%', 
@@ -115,7 +115,7 @@ function CampaignDashboard({ username, onLogout }) {
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#14b8a6',
+                color: '#7C3AED',
                 display: 'none',
                 padding: '8px'
               }}
@@ -138,8 +138,8 @@ function CampaignDashboard({ username, onLogout }) {
                 fontSize: 'clamp(18px, 4vw, 24px)', 
                 color: '#ffffff', 
                 marginBottom: '4px',
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: '800',
+                fontFamily: 'Cinzel, serif',
+                fontWeight: '600',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -151,7 +151,7 @@ function CampaignDashboard({ username, onLogout }) {
                 <span className="system-badge" style={{ fontSize: '11px', padding: '2px 8px' }}>
                   {campaign.system || '5e 2024'}
                 </span>
-                <span style={{ fontSize: '11px', color: '#94a3b8', display: 'none' }} className="desktop-only">
+                <span style={{ fontSize: '11px', color: '#9CA3AF', display: 'none' }} className="desktop-only">
                   Campaign Command Center
                 </span>
               </div>
@@ -192,7 +192,7 @@ function CampaignDashboard({ username, onLogout }) {
               display: 'flex', 
               alignItems: 'center', 
               gap: '8px',
-              boxShadow: '0 0 25px rgba(20, 184, 166, 0.5)',
+              boxShadow: '0 0 25px rgba(124, 58, 237, 0.4)',
               fontSize: 'clamp(12px, 2vw, 14px)',
               padding: '10px 16px',
               minHeight: '44px'
@@ -217,8 +217,8 @@ function CampaignDashboard({ username, onLogout }) {
           style={{
             width: '240px',
             minWidth: '240px',
-            background: 'rgba(10, 10, 40, 0.95)',
-            borderRight: '2px solid #1e40af',
+            background: 'rgba(17, 24, 39, 0.98)',
+            borderRight: '1px solid #1F2937',
             padding: '20px 12px',
             overflowY: 'auto',
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)',
@@ -226,9 +226,9 @@ function CampaignDashboard({ username, onLogout }) {
           }}
         >
           <h3 style={{
-            color: '#94a3b8',
+            color: '#9CA3AF',
             fontSize: '11px',
-            fontWeight: '700',
+            fontWeight: '600',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             marginBottom: '16px',
@@ -246,12 +246,12 @@ function CampaignDashboard({ username, onLogout }) {
                 data-testid={`${tab.id}-tab`}
                 style={{
                   padding: '14px 16px',
-                  borderRadius: '12px',
-                  border: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
-                  background: activeTab === tab.id ? `${tab.color}20` : 'transparent',
-                  color: activeTab === tab.id ? tab.color : '#94a3b8',
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontWeight: '700',
+                  borderRadius: '10px',
+                  border: activeTab === tab.id ? `1px solid ${tab.color}` : '1px solid transparent',
+                  background: activeTab === tab.id ? `${tab.color}15` : 'transparent',
+                  color: activeTab === tab.id ? tab.color : '#9CA3AF',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: '500',
                   fontSize: '14px',
                   cursor: 'pointer',
                   display: 'flex',
@@ -264,7 +264,7 @@ function CampaignDashboard({ username, onLogout }) {
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab.id) {
-                    e.currentTarget.style.background = 'rgba(30, 64, 175, 0.3)';
+                    e.currentTarget.style.background = 'rgba(124, 58, 237, 0.1)';
                   }
                 }}
                 onMouseLeave={(e) => {

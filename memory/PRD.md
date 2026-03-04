@@ -3,6 +3,29 @@
 ## Overview
 A comprehensive web application for Tabletop RPG Game Masters, serving as a digital "GM Screen" for managing campaigns, combat, and world-building. Supports multiple TTRPG systems including D&D 5e, Pathfinder, and more.
 
+## Design System - Arcane SaaS (Updated March 4, 2026)
+Modern dark fantasy dashboard design combining the clarity of a professional SaaS app with subtle magical fantasy elements.
+
+### Color Palette
+- **Background**: #0B0F19 (Deep Obsidian)
+- **Primary Panel**: #111827
+- **Secondary Panel**: #1F2937
+- **Primary Accent**: #7C3AED (Arcane Purple)
+- **Secondary Accent**: #22D3EE (Magic Cyan)
+- **Highlight**: #F59E0B (Gold)
+- **Text Primary**: #E5E7EB
+- **Text Secondary**: #9CA3AF
+
+### Typography
+- **Headings**: Cinzel (fantasy serif)
+- **Body**: Inter (clean sans-serif)
+
+### Visual Elements
+- Subtle rune patterns in backgrounds
+- Soft magical glow effects on active elements
+- Smooth hover animations
+- Rounded corners with clean shadows
+
 ## Terminology
 - **GM** (Game Master) - Universal term used throughout the app
 - **TTRPG** - Tabletop Roleplaying Game

@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         'cinzel': ['Cinzel', 'serif'],
-        'manrope': ['Manrope', 'sans-serif'],
+        'inter': ['Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -17,12 +17,16 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)'
       },
       colors: {
-        // Rookie Quest Keeper brand colors (matching logo)
-        'rqk': {
-          'teal': '#14b8a6',
-          'cyan': '#06b6d4',
-          'deep': '#0a0a1a',
-          'navy': '#0f172a',
+        // Arcane SaaS Design System
+        'arcane': {
+          'void': '#0B0F19',
+          'panel': '#111827',
+          'secondary': '#1F2937',
+          'elevated': '#374151',
+          'purple': '#7C3AED',
+          'purple-light': '#8B5CF6',
+          'cyan': '#22D3EE',
+          'gold': '#F59E0B',
         },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -75,23 +79,33 @@ module.exports = {
           to: { height: '0' }
         },
         'glow-pulse': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(20, 184, 166, 0.3)' },
-          '50%': { boxShadow: '0 0 40px rgba(20, 184, 166, 0.6)' }
+          '0%, 100%': { boxShadow: '0 0 15px rgba(124, 58, 237, 0.4)' },
+          '50%': { boxShadow: '0 0 30px rgba(124, 58, 237, 0.6)' }
         },
         'float': {
           '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' }
+          '50%': { transform: 'translateY(-6px)' }
+        },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
-        'float': 'float 6s ease-in-out infinite'
+        'float': 'float 6s ease-in-out infinite',
+        'shimmer': 'shimmer 2s linear infinite'
       },
       backgroundImage: {
-        'noise': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
+        'rune-pattern': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%237C3AED' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
+      boxShadow: {
+        'glow': '0 0 20px rgba(124, 58, 237, 0.4)',
+        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.3)',
+        'glow-gold': '0 0 20px rgba(245, 158, 11, 0.3)',
       }
     }
   },

@@ -50,28 +50,28 @@ function LandingPage() {
       icon: Globe,
       title: "World Builder",
       description: "Build immersive worlds with a hierarchical system: Continents, Countries, Cities, and Places of Interest.",
-      color: "#22c55e",
+      color: "#22D3EE",
       details: ["Nested location hierarchy", "AI-generated descriptions", "Custom place types"]
     },
     {
       icon: Sword,
       title: "Combat Manager",
       description: "Run epic battles with our initiative tracker, monster database, and interactive battle maps.",
-      color: "#ef4444",
+      color: "#EF4444",
       details: ["2687+ monster statblocks", "Attack & damage roller", "Encounter difficulty calculator"]
     },
     {
       icon: Sparkles,
       title: "AI GM Assistant",
       description: "Purpose-built AI that performs real GM tasks — not generic chat.",
-      color: "#a855f7",
+      color: "#7C3AED",
       details: ["Structured encounter generation", "Item creation with rarity context", "Note-to-entity extraction", "Session recap writing"]
     },
     {
       icon: Dices,
       title: "GM Screen",
       description: "Everything you need during live sessions: dice roller, quick reference, session notes, and party tracker.",
-      color: "#4a7dff",
+      color: "#F59E0B",
       details: ["Floating dice roller", "Random tables", "Name generator with NPC save"]
     }
   ];
@@ -91,7 +91,7 @@ function LandingPage() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(180deg, #030014 0%, #0a0a2e 50%, #030014 100%)',
+      background: 'linear-gradient(180deg, #0B0F19 0%, #111827 50%, #0B0F19 100%)',
       overflow: 'hidden'
     }}>
       {/* Navigation */}
@@ -102,9 +102,9 @@ function LandingPage() {
         right: 0,
         zIndex: 50,
         padding: '16px 24px',
-        background: 'rgba(3, 0, 20, 0.9)',
+        background: 'rgba(11, 15, 25, 0.95)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(20, 184, 166, 0.2)'
+        borderBottom: '1px solid rgba(124, 58, 237, 0.2)'
       }}>
         <div style={{ 
           maxWidth: '1200px', 
@@ -158,7 +158,7 @@ function LandingPage() {
           left: '10%',
           width: '400px',
           height: '400px',
-          background: 'radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%)',
           borderRadius: '50%',
           filter: 'blur(60px)',
           transform: `translateY(${scrollY * 0.3}px)`
@@ -169,7 +169,7 @@ function LandingPage() {
           right: '10%',
           width: '350px',
           height: '350px',
-          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%)',
           borderRadius: '50%',
           filter: 'blur(60px)',
           transform: `translateY(${scrollY * 0.2}px)`
@@ -180,7 +180,7 @@ function LandingPage() {
           left: '30%',
           width: '300px',
           height: '300px',
-          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%)',
           borderRadius: '50%',
           filter: 'blur(60px)',
           transform: `translateY(${scrollY * -0.15}px)`
