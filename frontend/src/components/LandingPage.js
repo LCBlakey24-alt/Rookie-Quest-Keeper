@@ -93,8 +93,104 @@ function LandingPage() {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(180deg, #0B0F19 0%, #111827 50%, #0B0F19 100%)',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      position: 'relative'
     }}>
+      {/* ===== GLOBAL PARALLAX BACKGROUND ===== */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '200vh',
+        pointerEvents: 'none',
+        zIndex: 0,
+        transform: `translateY(${scrollY * 0.15}px)`
+      }}>
+        {/* Large decorative circles */}
+        <div style={{
+          position: 'absolute',
+          top: '5%',
+          left: '-5%',
+          width: '600px',
+          height: '600px',
+          border: '1px solid rgba(59, 130, 246, 0.08)',
+          borderRadius: '50%'
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '25%',
+          right: '-10%',
+          width: '800px',
+          height: '800px',
+          border: '1px solid rgba(168, 85, 247, 0.06)',
+          borderRadius: '50%'
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          left: '10%',
+          width: '500px',
+          height: '500px',
+          border: '1px solid rgba(34, 211, 238, 0.07)',
+          borderRadius: '50%'
+        }} />
+        
+        {/* Grid pattern overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `
+            linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px'
+        }} />
+        
+        {/* Floating geometric shapes with slow parallax */}
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '8%',
+          width: '100px',
+          height: '100px',
+          border: '2px solid rgba(34, 211, 238, 0.1)',
+          borderRadius: '20px',
+          transform: 'rotate(45deg)'
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '40%',
+          right: '15%',
+          width: '80px',
+          height: '80px',
+          border: '2px solid rgba(168, 85, 247, 0.1)',
+          borderRadius: '50%'
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '70%',
+          left: '20%',
+          width: '60px',
+          height: '60px',
+          border: '2px solid rgba(59, 130, 246, 0.1)',
+          transform: 'rotate(30deg)'
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '85%',
+          right: '25%',
+          width: '120px',
+          height: '120px',
+          border: '2px solid rgba(34, 211, 238, 0.08)',
+          borderRadius: '24px',
+          transform: 'rotate(-15deg)'
+        }} />
+      </div>
+
       {/* Navigation */}
       <nav style={{
         position: 'fixed',
@@ -144,44 +240,124 @@ function LandingPage() {
       <section style={{ 
         paddingTop: '140px', 
         paddingBottom: '80px',
-        position: 'relative'
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        {/* Background glow effects - with parallax */}
+        {/* ===== PARALLAX BACKGROUND LAYER (moves slower) ===== */}
         <div style={{
           position: 'absolute',
-          top: '20%',
-          left: '10%',
-          width: '400px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
           transform: `translateY(${scrollY * 0.3}px)`
-        }} />
-        <div style={{
-          position: 'absolute',
-          top: '30%',
-          right: '10%',
-          width: '350px',
-          height: '350px',
-          background: 'radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          transform: `translateY(${scrollY * 0.2}px)`
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '10%',
-          left: '30%',
-          width: '300px',
-          height: '300px',
-          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          transform: `translateY(${scrollY * -0.15}px)`
-        }} />
+        }}>
+          {/* Floating orbs - background layer */}
+          <div style={{
+            position: 'absolute',
+            top: '10%',
+            left: '5%',
+            width: '500px',
+            height: '500px',
+            background: 'radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(80px)'
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '20%',
+            right: '5%',
+            width: '450px',
+            height: '450px',
+            background: 'radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(80px)'
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '25%',
+            width: '400px',
+            height: '400px',
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(80px)'
+          }} />
+          
+          {/* Decorative geometric shapes - background */}
+          <div style={{
+            position: 'absolute',
+            top: '15%',
+            left: '15%',
+            width: '60px',
+            height: '60px',
+            border: '2px solid rgba(34, 211, 238, 0.2)',
+            borderRadius: '12px',
+            transform: 'rotate(45deg)'
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '25%',
+            right: '20%',
+            width: '40px',
+            height: '40px',
+            border: '2px solid rgba(168, 85, 247, 0.2)',
+            borderRadius: '50%'
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '30%',
+            left: '10%',
+            width: '80px',
+            height: '80px',
+            border: '2px solid rgba(59, 130, 246, 0.15)',
+            borderRadius: '16px',
+            transform: 'rotate(15deg)'
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '60%',
+            right: '12%',
+            width: '50px',
+            height: '50px',
+            border: '2px solid rgba(34, 211, 238, 0.15)',
+            borderRadius: '8px',
+            transform: 'rotate(-20deg)'
+          }} />
+          
+          {/* Star/sparkle dots */}
+          {[
+            { top: '12%', left: '25%', size: 4, color: 'rgba(34, 211, 238, 0.5)' },
+            { top: '35%', right: '30%', size: 6, color: 'rgba(168, 85, 247, 0.4)' },
+            { top: '55%', left: '8%', size: 5, color: 'rgba(59, 130, 246, 0.4)' },
+            { top: '20%', right: '8%', size: 4, color: 'rgba(34, 211, 238, 0.3)' },
+            { top: '70%', right: '25%', size: 5, color: 'rgba(168, 85, 247, 0.3)' },
+            { top: '45%', left: '20%', size: 3, color: 'rgba(255, 255, 255, 0.3)' }
+          ].map((star, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              top: star.top,
+              left: star.left,
+              right: star.right,
+              width: star.size,
+              height: star.size,
+              background: star.color,
+              borderRadius: '50%',
+              boxShadow: `0 0 ${star.size * 3}px ${star.color}`
+            }} />
+          ))}
+        </div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
+        {/* ===== FOREGROUND CONTENT (moves faster / normal) ===== */}
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '0 24px', 
+          textAlign: 'center', 
+          position: 'relative',
+          transform: `translateY(${scrollY * -0.05}px)` 
+        }}>
           
           {/* ROOK Mascot - Floating above the logo */}
           <div style={{ 
@@ -207,48 +383,56 @@ function LandingPage() {
             display: 'flex', 
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px'
+            gap: '0'
           }}>
-            {/* "ROOKIE QUEST" - Top line */}
-            <div style={{
-              fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+            {/* "ROOKIE QUEST" - Now much bigger! */}
+            <h1 style={{
+              fontSize: 'clamp(3rem, 9vw, 7rem)',
               fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '600',
+              fontWeight: '800',
               color: '#ffffff',
-              letterSpacing: '8px',
+              letterSpacing: 'clamp(4px, 1vw, 12px)',
               textTransform: 'uppercase',
-              opacity: 0.9
+              margin: 0,
+              lineHeight: '1',
+              textShadow: '0 0 40px rgba(59, 130, 246, 0.3)',
+              background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
             }}>
               ROOKIE QUEST
-            </div>
+            </h1>
             
-            {/* "KEEPER" - Main hero text with accent lines */}
+            {/* "KEEPER" - with accent lines */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 'clamp(16px, 3vw, 32px)'
+              gap: 'clamp(12px, 2vw, 24px)',
+              marginTop: '-8px'
             }}>
               {/* Left accent line - Blue */}
               <div style={{
-                width: 'clamp(40px, 8vw, 100px)',
-                height: '3px',
+                width: 'clamp(30px, 6vw, 80px)',
+                height: '4px',
                 background: 'linear-gradient(90deg, transparent 0%, #3B82F6 100%)',
                 borderRadius: '2px',
-                boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)'
+                boxShadow: '0 0 25px rgba(59, 130, 246, 0.7)'
               }} />
               
               {/* KEEPER text */}
               <h1 style={{
-                fontSize: 'clamp(4rem, 12vw, 9rem)',
+                fontSize: 'clamp(3.5rem, 10vw, 8rem)',
                 fontFamily: 'Montserrat, sans-serif',
                 fontWeight: '900',
                 color: '#ffffff',
-                letterSpacing: 'clamp(4px, 1.5vw, 16px)',
+                letterSpacing: 'clamp(6px, 2vw, 20px)',
                 textTransform: 'uppercase',
                 margin: 0,
-                textShadow: '0 0 60px rgba(34, 211, 238, 0.4), 0 0 120px rgba(124, 58, 237, 0.2)',
-                background: 'linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%)',
+                lineHeight: '1',
+                textShadow: '0 0 60px rgba(34, 211, 238, 0.5), 0 0 120px rgba(168, 85, 247, 0.3)',
+                background: 'linear-gradient(180deg, #ffffff 0%, #e2e8f0 40%, #94a3b8 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
@@ -258,22 +442,22 @@ function LandingPage() {
               
               {/* Right accent line - Purple */}
               <div style={{
-                width: 'clamp(40px, 8vw, 100px)',
-                height: '3px',
+                width: 'clamp(30px, 6vw, 80px)',
+                height: '4px',
                 background: 'linear-gradient(90deg, #A855F7 0%, transparent 100%)',
                 borderRadius: '2px',
-                boxShadow: '0 0 20px rgba(168, 85, 247, 0.6)'
+                boxShadow: '0 0 25px rgba(168, 85, 247, 0.7)'
               }} />
             </div>
 
             {/* Tagline under the logo */}
             <p style={{
-              fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
+              fontSize: 'clamp(0.85rem, 1.8vw, 1.1rem)',
               color: '#22D3EE',
-              letterSpacing: '4px',
+              letterSpacing: '6px',
               textTransform: 'uppercase',
-              marginTop: '12px',
-              fontWeight: '500'
+              marginTop: '16px',
+              fontWeight: '600'
             }}>
               Campaign Operating System
             </p>
