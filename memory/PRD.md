@@ -321,6 +321,28 @@ Modern dark fantasy dashboard design combining the clarity of a professional Saa
 - **Frontend**: 116/116 E2E tests passing (100%) - Added 26 account settings tests
 - **New Test Files**: test_account_management.py, account-settings.spec.ts
 
+## Combat Enhancement Features (March 4, 2026)
+
+### Creature Ability Cards ✅ IMPLEMENTED
+- Enemy/NPC cards in combat now show expandable "X Abilities" section
+- Abilities are parsed from creature data with clickable buttons
+- Each ability shows dice notation (e.g., "Bite 2d6+4")
+- Clicking abilities rolls dice and shows damage results
+- **Files**: `/app/frontend/src/components/CreatureAbilityCard.js`
+
+### NPC Combat Recruiter ✅ IMPLEMENTED
+- "Add NPCs/Creatures to Combat" button in combat page
+- Tabbed interface: NPCs (allies) and Creatures (enemies)
+- Search/filter functionality
+- Adding creature rolls initiative and inserts into turn order
+- **Files**: `/app/frontend/src/components/NPCCombatRecruiter.js`
+
+### AI Token Generation ✅ IMPLEMENTED
+- API endpoint `/api/ai/generate-token` creates AI art for creature tokens
+- Tokens stored in DB (combat_tokens collection)
+- Returns base64 PNG images
+- **Files**: `/app/frontend/src/components/CombatTokenGenerator.js`, `/app/backend/server.py`
+
 ## Bug Fixes (March 4, 2026)
 
 ### Combat Black Screen Bug ✅ FIXED
