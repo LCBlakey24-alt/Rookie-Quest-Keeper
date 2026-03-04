@@ -321,6 +321,21 @@ Modern dark fantasy dashboard design combining the clarity of a professional Saa
 - **Frontend**: 116/116 E2E tests passing (100%) - Added 26 account settings tests
 - **New Test Files**: test_account_management.py, account-settings.spec.ts
 
+## Bug Fixes (March 4, 2026)
+
+### Combat Black Screen Bug ✅ FIXED
+- **Issue**: When clicking "End Combat" button, the screen went black
+- **Root Cause**: `CombatPage.js` was navigating to `/dm-screen/${campaignId}` but the route is defined as `/gm-screen/:campaignId`
+- **Fix**: Updated navigation in `CombatPage.js` lines 68 and 117 to use `/gm-screen/${campaignId}`
+- **Files Changed**: `/app/frontend/src/components/CombatPage.js`
+
+### Dice Roller Limit Bug ✅ FIXED  
+- **Issue**: Dice roller was limited to preset button options (1, 2, 4, 6, 8 dice)
+- **Root Cause**: The max limit was set to 100 dice, but users needed more for high-level play
+- **Fix**: Increased max from 100 to 999 dice in `DiceRoller.js`
+- **Files Changed**: `/app/frontend/src/components/DiceRoller.js`
+- **Verification**: Tested rolling 50, 100, and 500+ dice successfully
+
 ## Recently Implemented Features (March 2, 2026)
 
 ### Account Management System ✅ (NEW)
@@ -376,17 +391,24 @@ Modern dark fantasy dashboard design combining the clarity of a professional Saa
 - Added limits: 500 for inventory/items, 200 for AI context, 100 for characters, 50 for campaign players
 
 ## Upcoming Tasks (Priority Order)
-1. **P0: Player Mode (Full Implementation)** - Major feature allowing players to:
-   - Choose "GM" or "Player" at landing page
-   - Join campaigns via invite code
-   - Real-time combat sync with GM
-2. **P1: Combat Tab UX** - Apply loading skeletons, search to Combat components
-3. **P2: Session Recap & Player Handouts** - AI "Last time on..." summaries
-4. **P3: Dark Mode / Theme Options**
+1. **P0: GM→Player Item Linking** - Items assigned by GM automatically sync to player's character sheet with functional stats
+2. **P1: Player Mode Combat View** - Simplified combat tracker for players, actions sync with GM's view
+3. **P2: Smart Note Parsing** - Resume AI parsing of GM notes to auto-update game entities
+4. **P3: Add Database Indexes** - Add indexes to MongoDB for `campaign_id`, `user_id` fields for performance
 5. **P4: Refactor server.py** - Break monolithic backend into separate routers
 
 ## Future Tasks
-- Smart Note Parsing (paused) | Import/Export Campaign | Combat Map Builder | AI Combat Turn Suggestions
+- Combat Map Builder | AI Combat Turn Suggestions | Dark Mode / Theme Options | Import/Export Campaign
+
+## Test Status (Updated March 4, 2026)
+- **Backend**: 10 test files, comprehensive API coverage
+- **Frontend**: 18 E2E test specs covering all major flows
+- **New Test Files Created**:
+  - `/app/tests/e2e/dice-roller-stress.spec.ts` - Stress tests for large dice counts
+  - `/app/tests/e2e/gm-screen-tabs.spec.ts` - All GM screen tab functionality
+  - `/app/tests/e2e/player-dashboard.spec.ts` - Player dashboard and notes
+  - `/app/tests/e2e/golden-path.spec.ts` - End-to-end golden path tests
+  - `/app/backend/tests/test_player_notes_combat.py` - Player notes and combat APIs
 
 ---
 Last Updated: March 4, 2026
