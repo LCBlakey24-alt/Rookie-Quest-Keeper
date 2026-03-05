@@ -138,12 +138,21 @@ An all-in-one campaign operating system for 5e Game Masters combining worldbuild
 - [x] Tab active animation (full red background)
 - [x] Square corners on ALL UI elements
 - [x] Quick Tips with red accent
-- [x] 41/41 frontend tests passing
+- [x] **QuickReferenceTab Enhancement (March 2026)**
+  - [x] Real D&D 5e SRD data fetched from backend API
+  - [x] **319 spells** with level/school/class filters
+  - [x] **12 character classes** with hit dice, saving throws, proficiencies
+  - [x] **9 character races** with ASI, speed, traits, languages
+  - [x] **3000+ items** from local database with type/rarity filters
+  - [x] Click-to-expand shows full descriptions for all entries
+  - [x] Search functionality across all sections
+  - [x] Rules section with DC tables, Conditions, Cover Rules
 
 ### In Progress
-- [ ] Character Builder enhancements (subclass, spells, feats)
+- [ ] Context-Aware AI Idea Generation (use campaign data for tailored suggestions)
 
 ### Backlog
+- [ ] Character Builder enhancements (subclass, spells, feats)
 - [ ] Custom content import system
 - [ ] AI-powered smart note parsing
 - [ ] Backend refactoring (split server.py)
@@ -151,7 +160,8 @@ An all-in-one campaign operating system for 5e Game Masters combining worldbuild
 ---
 
 ## Testing Status
-- 41/41 frontend tests passing
+- 48/48 tests passing (28 frontend + 20 backend)
+- QuickReferenceTab SRD data verified
 - All design requirements verified
 - Sidebar tabs working correctly on both dashboards
 
@@ -192,7 +202,21 @@ An all-in-one campaign operating system for 5e Game Masters combining worldbuild
 ---
 
 ## Next Steps
-1. Character Builder enhancements
-2. Continue auditing other tabs for old color references
-3. Full regression testing
-4. User acceptance testing
+1. Context-Aware AI Idea Generation (enhance ROOK to use campaign data)
+2. Character Builder enhancements (subclasses, spells, feats)
+3. Continue auditing other tabs for old color references
+4. Full regression testing
+5. User acceptance testing
+
+---
+
+## API Endpoints - SRD Reference Data
+
+| Endpoint | Description | Count |
+|----------|-------------|-------|
+| `/api/srd/spells` | D&D 5e SRD spells with filters (level, school, class) | 319 |
+| `/api/srd/spells/{name}` | Get specific spell by name | - |
+| `/api/srd/classes` | All character classes with features | 12 |
+| `/api/srd/classes/{name}` | Get specific class by name | - |
+| `/api/srd/races` | All character races with traits | 9 |
+| `/api/srd/feats` | All feats | 8 |
