@@ -470,23 +470,64 @@ Full-featured battle map builder for DMs integrated into the GM Screen. Allows c
 - Fixed all unbounded `.to_list(None)` queries in server.py
 - Added limits: 500 for inventory/items, 200 for AI context, 100 for characters, 50 for campaign players
 
+## All-in-One Character Sheet ✅ (March 5, 2026)
+
+### Overview
+New comprehensive player character sheet with tabbed interface replacing the old single-page view. Integrates with SRD database for class-specific content.
+
+### Components
+- `/app/frontend/src/components/CharacterSheetFull.js` - Main component with 6 tabs
+
+### Features
+- **Overview Tab**: Quick stats (HP, AC, Initiative, Speed, Proficiency), Ability scores, Character info, Skills
+- **Abilities & Skills Tab**: Full ability score blocks with modifiers and saving throws, Complete skill list with proficiency toggles
+- **Spells Tab**: Spellcasting stats (ability, save DC, attack bonus), Class-specific spell list from SRD, Search and level filter, Expandable spell cards with full details
+- **Features & Feats Tab**: Class features from SRD (filtered by character level), Racial traits section, Feats with SRD integration (add available feats in edit mode)
+- **Equipment Tab**: Currency tracker (CP, SP, EP, GP, PP), Equipment list with equipped status, Inventory management
+- **Notes & Bio Tab**: Personality traits (traits, ideals, bonds, flaws), Backstory, Personal notes
+
+### Edit Mode
+- Toggle edit mode to modify ability scores, skill proficiencies, character details
+- Save/Cancel buttons with async API updates
+- Inline editing for HP, AC, Currency, Text fields
+
+### Data Test IDs
+- `character-sheet-full` - Main container
+- `tab-{overview|abilities|spells|features|equipment|notes}` - Tab buttons
+- `ability-{strength|dexterity|constitution|intelligence|wisdom|charisma}` - Ability blocks
+- `skill-{name}` - Skill rows
+- `spell-{name}` - Spell cards
+- `spell-search`, `spell-level-filter` - Spell filters
+- `edit-btn`, `save-btn`, `cancel-edit-btn`, `back-btn` - Action buttons
+
+### SRD Integration
+- Spells filtered by character class
+- Class features filtered by character level
+- Feats available for selection in edit mode
+
+## Completed Features (Updated March 5, 2026)
+1. ✅ **P0: Player Character Sheet Overhaul** - COMPLETED - All-in-one character sheet with tabs for stats, spells, features, equipment
+2. ✅ **P1: SRD Content Database** - COMPLETED - 39 spells, 6 classes with features, 4 races with traits, 8 feats
+3. ✅ **P3: ROOK AI Suggestions** - COMPLETED - "Did you know?" popups based on character class
+4. ✅ **P4: Map-Combat Integration** - COMPLETED - Load saved maps into combat encounters
+
 ## Upcoming Tasks (Priority Order)
-1. **P0: Player Character Sheet Overhaul** - All-in-one character sheet with spells, abilities, feats, clickable stats (user requested for next week)
-2. **P1: SRD Content Database** - Copyright-safe spells, abilities, feats from D&D 5e SRD
-3. **P2: User Content Upload System** - Allow users to upload JSON files to extend content database
-4. **P3: ROOK AI Suggestions** - "Did you know?" popups based on character build
-5. **P4: Map-Combat Integration** - Use saved maps in combat encounters with token sync
+1. **P1: GM→Player Item Linking** - Items assigned by GM auto-sync to player's character sheet with functional stats
+2. **P2: Player Mode (Full Combat View)** - Player-side combat experience with actions syncing to GM view
+3. **P3: User Content Upload System** - Allow users to upload JSON files to extend content database
+4. **P4: Database Indexes** - Add MongoDB indexes for campaign_id, user_id for performance
 
 ## Future Tasks
-- GM→Player Item Linking | Player Combat View | Smart Note Parsing | Backend Refactoring | AI Combat Narrator
+- Smart Note Parsing | Backend Refactoring (split server.py) | AI Combat Narrator
 
 ## Test Status (Updated March 5, 2026)
-- **Backend**: 12 test files, comprehensive API coverage (including test_maps_api.py)
-- **Frontend**: 26 E2E test specs covering all major flows
+- **Backend**: 31 tests passing (18 SRD API + 13 Character API)
+- **Frontend**: 79 E2E tests passing (24 Character Sheet + 55 existing)
 - **New Test Files Created**:
-  - `/app/tests/e2e/map-builder.spec.ts` - Map Builder UI, tools, terrain, fog, tokens, save
-  - `/app/backend/tests/test_maps_api.py` - Maps API CRUD operations
-  - Previous: dice-roller-stress, gm-screen-tabs, player-dashboard, golden-path specs
+  - `/app/tests/e2e/character-sheet-full.spec.ts` - Character Sheet Full UI tests (24 tests)
+  - `/app/backend/tests/test_character_api.py` - Character API CRUD tests (13 tests)
+  - Previous: map-builder, map-combat-integration, rook-suggestions, ui-redesign specs
 
 ---
 Last Updated: March 5, 2026
+
