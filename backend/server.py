@@ -592,18 +592,43 @@ class GameMap(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
-    image_data: str = ""  # Base64 encoded image
+    width: int = 30
+    height: int = 20
+    terrain: List[List[str]] = []  # 2D array of terrain types
+    walls: List[dict] = []  # Wall segments
+    doors: List[dict] = []  # Door placements
+    objects: List[dict] = []  # Map objects
+    fog_of_war: List[List[bool]] = []  # 2D array of fog visibility
     tokens: List[Token] = []
+    background_image: Optional[str] = None  # Base64 encoded background
+    image_data: str = ""  # Legacy support
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class GameMapCreate(BaseModel):
     name: str
+    width: int = 30
+    height: int = 20
+    terrain: List[List[str]] = []
+    walls: List[dict] = []
+    doors: List[dict] = []
+    objects: List[dict] = []
+    fog_of_war: List[List[bool]] = []
+    tokens: List[dict] = []
+    background_image: Optional[str] = None
     image_data: str = ""
 
 class GameMapUpdate(BaseModel):
     name: Optional[str] = None
-    image_data: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    terrain: Optional[List[List[str]]] = None
+    walls: Optional[List[dict]] = None
+    doors: Optional[List[dict]] = None
+    objects: Optional[List[dict]] = None
+    fog_of_war: Optional[List[List[bool]]] = None
     tokens: Optional[List[Token]] = None
+    background_image: Optional[str] = None
+    image_data: Optional[str] = None
 
 class AIGenerationRequest(BaseModel):
     prompt: str

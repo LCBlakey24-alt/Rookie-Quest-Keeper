@@ -1,0 +1,89 @@
+{
+  "summary": "Map Builder feature testing complete. All new features verified: 1) MapBuilder UI opens from GM Screen Maps tab, 2) Terrain tools (select, terrain, wall, door, eraser, fog, token) all selectable, 3) Quick Fill terrain buttons work with toast notifications, 4) Fog of War Reveal All/Hide All buttons work, 5) Token addition works, 6) Map save to campaign API working. Backend Maps API fully tested with CRUD operations.",
+  "mode": "generate",
+  "baseline_commit": "a99e50af71c31590824515fb64dcc94777855f03",
+  "head_commit": "5e720d81552e7b51cf14446d7f55dc07d14d279b",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "backend_tests": "12 passed (test_maps_api.py)",
+      "frontend_tests": {
+        "map-builder.spec.ts": "14 passed (NEW - Map Builder UI, tools, terrain, fog, tokens, save)",
+        "gm-screen-tabs.spec.ts": "12 passed (regression - all GM screen tabs)"
+      }
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/map-builder.spec.ts",
+    "/app/backend/tests/test_maps_api.py"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_maps_api.py",
+    "/app/test_reports/pytest/test_maps_api.xml",
+    "/app/tests/e2e/map-builder.spec.ts"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/e2e/map-builder.spec.ts",
+    "/app/backend/tests/test_maps_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (26/26 E2E tests passed)"
+  },
+  "seed_data_creation": "Created and cleaned up TEST_ prefixed maps during testing. No persistent test data left.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Map Builder feature fully tested. MapBuilder component opens from GM Screen Maps tab via 'Create Map' button. Key test data: TEST_CAMPAIGN_ID = '1e6a6d0d-ad88-4b8a-9cc5-a1672119343c'. MapToolbar has data-testid for all tools: tool-select, tool-terrain, tool-wall, tool-door, tool-eraser, tool-fog, tool-token. Save button has data-testid='save-map-btn'. Create Map button in GM Screen has data-testid='create-map-btn'.",
+  "features_tested": {
+    "maps_api_crud": {
+      "status": "PASS",
+      "description": "Full CRUD operations tested: POST creates map with terrain/walls/doors/fog, GET retrieves maps list, PUT updates map properties, DELETE removes map. All return proper status codes and data.",
+      "test_file": "test_maps_api.py"
+    },
+    "map_builder_ui": {
+      "status": "PASS",
+      "description": "Map Builder opens from GM Screen Maps tab. All toolbar tools visible and selectable. Canvas renders with grid.",
+      "test_file": "map-builder.spec.ts"
+    },
+    "terrain_painting": {
+      "status": "PASS",
+      "description": "Terrain tool selectable, terrain picker shows current terrain type. Quick Fill buttons fill entire map with selected terrain type.",
+      "test_file": "map-builder.spec.ts"
+    },
+    "fog_of_war": {
+      "status": "PASS",
+      "description": "Fog of War controls work: Reveal All clears fog, Hide All hides map. Toast notifications confirm actions.",
+      "test_file": "map-builder.spec.ts"
+    },
+    "token_placement": {
+      "status": "PASS",
+      "description": "Add Test Token button in Tokens tab creates token. Token appears in list with name and position.",
+      "test_file": "map-builder.spec.ts"
+    },
+    "map_save": {
+      "status": "PASS",
+      "description": "Save Map button saves map to campaign via API. Success toast shown. Map appears in Maps tab list after save.",
+      "test_file": "map-builder.spec.ts"
+    },
+    "gm_screen_tabs_regression": {
+      "status": "PASS",
+      "description": "All GM Screen tabs (Combat, Maps, Dice, Monsters, Creatures, Names, Tables, Loot, Inventory, Party, Notes) work correctly.",
+      "test_file": "gm-screen-tabs.spec.ts"
+    }
+  }
+}
