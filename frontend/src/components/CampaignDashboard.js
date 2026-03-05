@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map } from 'lucide-react';
+import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight } from 'lucide-react';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import GodsTab from '@/components/tabs/GodsTab';
 import NPCsTab from '@/components/tabs/NPCsTab';
@@ -79,6 +79,13 @@ function CampaignDashboard({ username, onLogout }) {
     setMobileMenuOpen(false);
   };
 
+  // Collapsed groups state
+  const [collapsedGroups, setCollapsedGroups] = useState({});
+  
+  const toggleGroup = (groupId) => {
+    setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -89,21 +96,142 @@ function CampaignDashboard({ username, onLogout }) {
 
   if (!campaign) return null;
 
-  const tabs = [
-    { id: 'setting', icon: Book, label: 'Setting' },
-    { id: 'world', icon: Globe, label: 'World' },
-    { id: 'gods', icon: Church, label: 'Gods' },
-    { id: 'npcs', icon: UserCircle, label: 'NPCs' },
-    { id: 'locations', icon: MapPin, label: 'Locations' },
-    { id: 'players', icon: Users, label: 'Players' },
+  // Tab Groups with organized structure
+  const tabGroups = [
+    {
+      id: 'world',
+      label: 'World',
+      icon: Globe,
+      tabs: [
+        { id: 'setting', icon: Book, label: 'Setting' },
+        { id: 'world', icon: Globe, label: 'World Builder' },
+        { id: 'gods', icon: Church, label: 'Gods' },
+        { id: 'locations', icon: MapPin, label: 'Locations' },
+        { id: 'npcs', icon: UserCircle, label: 'NPCs' },
+      ]
+    },
+    {
+      id: 'tools',
+      label: 'Tools',
+      icon: Wand2,
+      tabs: [
+        { id: 'reference', icon: ScrollText, label: 'Reference' },
+        { id: 'encounter-gen', icon: Sparkles, label: 'Encounter Gen' },
+        { id: 'items', icon: Wand2, label: 'Items' },
+      ]
+    },
+    {
+      id: 'players-group',
+      label: 'Players',
+      icon: Users,
+      tabs: [
+        { id: 'players', icon: Users, label: 'Party' },
+      ]
+    },
+  ];
+
+  // Ungrouped tabs (shown individually)
+  const ungroupedTabs = [
     { id: 'combat-creator', icon: Swords, label: 'Combat' },
-    { id: 'maps', icon: Map, label: 'Maps' },
-    { id: 'encounter-gen', icon: Sparkles, label: 'Encounter Gen' },
-    { id: 'items', icon: Wand2, label: 'Items' },
-    { id: 'reference', icon: ScrollText, label: 'Reference' },
+    { id: 'maps', icon: Map, label: 'Battle Maps' },
     { id: 'calendar', icon: Calendar, label: 'Calendar' },
     { id: 'ingame-notes', icon: FileText, label: 'Notes' },
   ];
+
+  // Check if active tab is in a group (auto-expand that group)
+  const getActiveGroup = () => {
+    for (const group of tabGroups) {
+      if (group.tabs.some(t => t.id === activeTab)) {
+        return group.id;
+      }
+    }
+    return null;
+  };
+
+  const activeGroupId = getActiveGroup();
+
+  // Render a single tab button
+  const renderTabButton = (tab, isNested = false) => {
+    const isActive = activeTab === tab.id;
+    const isHovered = hoveredTab === tab.id && !isActive;
+    
+    return (
+      <button
+        key={tab.id}
+        onClick={() => handleTabClick(tab.id)}
+        onMouseEnter={() => setHoveredTab(tab.id)}
+        onMouseLeave={() => setHoveredTab(null)}
+        data-testid={`${tab.id}-tab`}
+        style={{
+          position: 'relative',
+          padding: isNested ? '10px 16px 10px 32px' : '12px 16px',
+          border: 'none',
+          background: isActive ? theme.accent.red : (isHovered ? theme.bg.hover : 'transparent'),
+          color: isActive ? theme.text.white : (isHovered ? theme.text.white : theme.text.secondary),
+          fontWeight: '500',
+          fontSize: isNested ? '13px' : '14px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          transition: 'all 0.15s ease',
+          textAlign: 'left',
+          width: '100%',
+          minHeight: isNested ? '40px' : '44px'
+        }}
+      >
+        <tab.icon size={isNested ? 16 : 18} />
+        <span style={{ flex: 1 }}>{tab.label}</span>
+        
+        {/* Red bar on right side when hovered (not active) */}
+        {isHovered && !isActive && (
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: '4px',
+            bottom: '4px',
+            width: '3px',
+            background: theme.accent.red,
+            animation: 'slideIn 0.15s ease'
+          }} />
+        )}
+      </button>
+    );
+  };
+
+  // Render group header
+  const renderGroupHeader = (group) => {
+    const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id;
+    const hasActiveTab = group.tabs.some(t => t.id === activeTab);
+    
+    return (
+      <button
+        key={`group-${group.id}`}
+        onClick={() => toggleGroup(group.id)}
+        data-testid={`group-${group.id}`}
+        style={{
+          padding: '10px 16px',
+          border: 'none',
+          background: hasActiveTab ? theme.accent.redSubtle : 'transparent',
+          color: hasActiveTab ? theme.accent.red : theme.text.muted,
+          fontWeight: '600',
+          fontSize: '11px',
+          letterSpacing: '1px',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          width: '100%',
+          marginTop: '8px'
+        }}
+      >
+        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        <group.icon size={14} />
+        <span>{group.label}</span>
+      </button>
+    );
+  };
 
   return (
     <div style={{
@@ -241,54 +369,28 @@ function CampaignDashboard({ username, onLogout }) {
             Campaign Tools
           </h3>
           
-          {/* Sidebar Tabs with Red Bar Hover Effect */}
+          {/* Grouped Tabs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {tabs.map(tab => {
-              const isActive = activeTab === tab.id;
-              const isHovered = hoveredTab === tab.id && !isActive;
-              
+            {/* Render tab groups */}
+            {tabGroups.map(group => {
+              const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id;
               return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                  onMouseEnter={() => setHoveredTab(tab.id)}
-                  onMouseLeave={() => setHoveredTab(null)}
-                  data-testid={`${tab.id}-tab`}
-                  style={{
-                    position: 'relative',
-                    padding: '12px 16px',
-                    border: 'none',
-                    background: isActive ? theme.accent.red : (isHovered ? theme.bg.hover : 'transparent'),
-                    color: isActive ? theme.text.white : (isHovered ? theme.text.white : theme.text.secondary),
-                    fontWeight: '500',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    transition: 'all 0.15s ease',
-                    textAlign: 'left',
-                    width: '100%',
-                    minHeight: '44px'
-                  }}
-                >
-                  <tab.icon size={18} />
-                  <span style={{ flex: 1 }}>{tab.label}</span>
-                  
-                  {/* Red bar on right side when hovered (not active) */}
-                  {isHovered && !isActive && (
-                    <div style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: '3px',
-                      background: theme.accent.red
-                    }} />
-                  )}
-                </button>
+                <div key={group.id}>
+                  {renderGroupHeader(group)}
+                  {isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}
+                </div>
               );
             })}
+            
+            {/* Divider */}
+            <div style={{ 
+              height: '1px', 
+              background: theme.border, 
+              margin: '12px 16px' 
+            }} />
+            
+            {/* Ungrouped tabs */}
+            {ungroupedTabs.map(tab => renderTabButton(tab, false))}
           </div>
         </div>
 

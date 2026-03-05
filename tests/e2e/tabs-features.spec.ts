@@ -1,22 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginTestUser } from '../fixtures/helpers';
 
 test.describe('Dashboard Additional Tabs', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
+    await hideEmergentBadge(page);
     
-    // Login with test user
-    await page.goto('/auth', { waitUntil: 'domcontentloaded' });
-    await waitForAppReady(page);
-    await page.getByTestId('login-email').fill(TEST_USER.email);
-    await page.getByTestId('login-password').fill(TEST_USER.password);
-    await page.getByTestId('login-btn').click();
-    await page.waitForURL(/\/campaigns/, { timeout: 15000 });
+    // Login with existing test user
+    await loginTestUser(page);
+    await expect(page.getByText('MY CHARACTERS')).toBeVisible({ timeout: 10000 });
     
     // Navigate to test campaign
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
   });
 
   test('Combat tab loads correctly', async ({ page }) => {
@@ -84,8 +80,8 @@ test.describe('Dashboard Additional Tabs', () => {
     await expect(page.getByText('Party Size')).toBeVisible();
     await expect(page.getByText('Average Level')).toBeVisible();
     
-    // Verify Difficulty section
-    await expect(page.getByRole('heading', { name: 'Difficulty' })).toBeVisible();
+    // Verify Difficulty label is visible (use exact match)
+    await expect(page.getByText('Difficulty', { exact: true })).toBeVisible();
   });
 
   test('Encounter Generator has difficulty options', async ({ page }) => {

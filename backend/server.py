@@ -2870,6 +2870,43 @@ async def delete_map(campaign_id: str, map_id: str, username: str = Depends(get_
 
 # ==================== AI ROUTES ====================
 
+async def get_campaign_context(campaign_id: str, limit: int = 5) -> str:
+    """Gather campaign context for AI-aware generation"""
+    context_parts = []
+    
+    # Get campaign setting
+    setting = await db.campaign_settings.find_one({'campaign_id': campaign_id}, {'_id': 0})
+    if setting and setting.get('content'):
+        context_parts.append(f"WORLD SETTING:\n{setting['content'][:500]}")
+    
+    # Get existing NPCs (names and brief descriptions)
+    npcs = await db.npcs.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'description': 1, 'location': 1}).limit(limit).to_list(limit)
+    if npcs:
+        npc_list = [f"- {n['name']}" + (f" ({n.get('location', '')})" if n.get('location') else "") for n in npcs]
+        context_parts.append(f"EXISTING NPCS:\n" + "\n".join(npc_list))
+    
+    # Get existing locations
+    locations = await db.locations.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'location_type': 1}).limit(limit).to_list(limit)
+    if locations:
+        loc_list = [f"- {loc['name']} ({loc.get('location_type', 'location')})" for loc in locations]
+        context_parts.append(f"EXISTING LOCATIONS:\n" + "\n".join(loc_list))
+    
+    # Get existing gods
+    gods = await db.gods.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'domain': 1}).limit(limit).to_list(limit)
+    if gods:
+        god_list = [f"- {g['name']} (Domain: {g.get('domain', 'unknown')})" for g in gods]
+        context_parts.append(f"EXISTING DEITIES:\n" + "\n".join(god_list))
+    
+    # Get recent session notes
+    notes = await db.in_game_notes.find({'campaign_id': campaign_id}, {'_id': 0, 'content': 1}).sort('created_at', -1).limit(3).to_list(3)
+    if notes:
+        recent_notes = " ".join([n['content'][:200] for n in notes])
+        context_parts.append(f"RECENT SESSION NOTES:\n{recent_notes[:400]}")
+    
+    if context_parts:
+        return "\n\n".join(context_parts)
+    return ""
+
 class UnseenServantRequest(BaseModel):
     prompt: str
     entity_type: str  # god, npc, location, place_of_interest, creature
@@ -2963,9 +3000,24 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
         if request.entity_type not in entity_prompts:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid entity type: {request.entity_type}")
         
-        # Build the full prompt
-        system_message = "You are the Unseen Servant, a magical helper for tabletop RPG Game Masters. You generate content in strict JSON format only. No markdown, no explanations, just valid JSON."
-        full_prompt = f"{entity_prompts[request.entity_type]}\n\nUser request: {request.prompt}"
+        # Gather campaign context for smarter AI generation
+        campaign_context = await get_campaign_context(request.campaign_id)
+        
+        # Build the full prompt with campaign context
+        system_message = """You are ROOK, a magical AI assistant for tabletop RPG Game Masters. You generate content that fits seamlessly into the GM's existing world and campaign.
+
+IMPORTANT RULES:
+1. Generate content in strict JSON format only - no markdown, no explanations
+2. Make your creations fit naturally with the existing world context provided
+3. Reference existing NPCs, locations, or deities when appropriate
+4. Maintain consistency with the established setting and tone"""
+
+        # Build prompt with context
+        context_section = ""
+        if campaign_context:
+            context_section = f"\n\n=== CAMPAIGN CONTEXT ===\n{campaign_context}\n=== END CONTEXT ===\n\nUse this context to make your generation fit naturally into this world.\n\n"
+        
+        full_prompt = f"{entity_prompts[request.entity_type]}{context_section}\nUser request: {request.prompt}"
         
         # Initialize LLM
         chat = LlmChat(

@@ -1,0 +1,116 @@
+{
+  "summary": "Testing iteration 22 - Update mode for Context-Aware ROOK AI and Sidebar Tab Grouping. All sidebar grouping features verified (World/Tools/Players groups, ungrouped tabs, Battle Maps rename, collapsible groups). Backend context APIs tested. Found 2 bugs: 1) RQKLogoInline undefined error in PlayerDashboard, 2) Campaign setting save not persisting after reload.",
+  "mode": "update",
+  "baseline_commit": "e643c6cb6a21dcfc16993112999759d4db075cff",
+  "head_commit": "b81a12ecc1154131011d89e15d93466074e205ca",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PlayerDashboard",
+        "issue": "RQKLogoInline is not defined - ReferenceError when loading PlayerDashboard. The component references RQKLogoInline which doesn't exist.",
+        "selector": "PlayerDashboard at bundle.js:47901:97",
+        "priority": "HIGH",
+        "fix_suggestion": "Import or define RQKLogoInline component in PlayerDashboard.js or replace with RQKLogo"
+      },
+      {
+        "component": "CampaignSettingTab",
+        "issue": "Campaign setting content not persisting after page reload. Save appears successful but old content restored on reload.",
+        "selector": "data-testid='setting-content-input'",
+        "priority": "MEDIUM",
+        "fix_suggestion": "Check that save API actually persists to database and frontend refetches on load"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 27,
+    "passed": 24,
+    "failed": 3,
+    "skipped": 0,
+    "breakdown": {
+      "sidebar-grouping.spec.ts": "9 passed - All sidebar grouping tests pass",
+      "tabs-features.spec.ts": "9 passed - All tabs features tests pass",
+      "test_rook_context.py": "9 passed - All ROOK AI context backend tests pass",
+      "dashboard-features.spec.ts": "6 passed, 1 failed - Setting save not persisting",
+      "golden-path.spec.ts": "3 passed, 1 failed - PlayerDashboard RQKLogoInline error"
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/sidebar-grouping.spec.ts",
+    "/app/backend/tests/test_rook_context.py"
+  ],
+  "specs_updated": [
+    "/app/tests/e2e/tabs-features.spec.ts - Fixed login flow to use /home instead of /campaigns"
+  ],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/tests/e2e/sidebar-grouping.spec.ts",
+    "/app/tests/e2e/tabs-features.spec.ts",
+    "/app/backend/tests/test_rook_context.py",
+    "/app/test_reports/pytest/pytest_rook_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Fix RQKLogoInline undefined error in PlayerDashboard.js - missing import or component reference",
+    "MEDIUM: Investigate campaign setting save not persisting - check backend save endpoint and frontend fetch logic"
+  ],
+  "updated_files": [
+    "/app/tests/e2e/sidebar-grouping.spec.ts",
+    "/app/tests/e2e/tabs-features.spec.ts",
+    "/app/backend/tests/test_rook_context.py",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9)",
+    "frontend": "89% (24/27)"
+  },
+  "seed_data_creation": "Using existing test data from Stress Test Campaign",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Sidebar grouping fully tested and working. ROOK AI context-aware generation backend verified. Two bugs found: RQKLogoInline undefined in PlayerDashboard (HIGH priority), campaign setting save not persisting (MEDIUM priority). Golden path test for player flow blocked by PlayerDashboard error.",
+  "features_tested": {
+    "sidebar_tab_grouping": {
+      "status": "PASS",
+      "description": "World group (Setting, World Builder, Gods, Locations, NPCs), Tools group (Reference, Encounter Gen, Items), Players group (Party), ungrouped tabs (Combat, Battle Maps, Calendar, Notes)"
+    },
+    "battle_maps_rename": {
+      "status": "PASS",
+      "description": "Maps tab renamed to Battle Maps - verified in sidebar and content loads correctly"
+    },
+    "collapsible_groups": {
+      "status": "PASS",
+      "description": "Groups expand/collapse on click, active tab's group auto-expands"
+    },
+    "rook_context_backend": {
+      "status": "PASS",
+      "description": "get_campaign_context() pulls setting, NPCs, locations, gods, notes from campaign"
+    },
+    "rook_api_endpoints": {
+      "status": "PASS",
+      "description": "/api/rook/generate and /api/unseen-servant/generate both work, invalid entity types return 400"
+    },
+    "player_dashboard": {
+      "status": "FAIL",
+      "description": "RQKLogoInline is not defined - blocks PlayerDashboard from loading"
+    }
+  },
+  "bugs_found": [
+    {
+      "severity": "HIGH",
+      "component": "PlayerDashboard",
+      "description": "RQKLogoInline is not defined - ReferenceError crashes the PlayerDashboard component",
+      "reproduction": "Login as player with character linked to campaign, navigate to player dashboard",
+      "stacktrace": "ReferenceError: RQKLogoInline is not defined at PlayerDashboard (bundle.js:47901:97)"
+    },
+    {
+      "severity": "MEDIUM",
+      "component": "CampaignSettingTab",
+      "description": "Campaign setting content doesn't persist after page reload",
+      "reproduction": "Go to Campaign Dashboard > Setting tab, enter content, click Save, reload page - old content shown"
+    }
+  ]
+}
