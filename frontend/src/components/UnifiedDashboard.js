@@ -378,7 +378,7 @@ function UnifiedDashboard({ username, onLogout }) {
               MY CAMPAIGNS
             </h2>
             <Button
-              onClick={() => navigate('/campaigns/new')}
+              onClick={() => navigate('/campaigns?create=true')}
               data-testid="new-campaign-btn"
               style={{
                 background: colors.gm.primary,

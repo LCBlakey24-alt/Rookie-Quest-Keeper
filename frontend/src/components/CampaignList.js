@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ function CampaignList({ username, onLogout }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const ttrpgSystems = [
     '5e 2024 Compatible',
@@ -44,6 +45,13 @@ function CampaignList({ username, onLogout }) {
     fetchCampaigns();
     fetchSubscription();
     checkAdminStatus();
+    
+    // Check for create=true in URL params
+    if (searchParams.get('create') === 'true') {
+      setShowCreateDialog(true);
+      // Clear the param from URL
+      setSearchParams({});
+    }
   }, []);
 
   const checkAdminStatus = async () => {

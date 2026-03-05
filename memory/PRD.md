@@ -3,7 +3,29 @@
 ## Overview
 A comprehensive web application for Tabletop RPG Game Masters, serving as a digital "GM Screen" for managing campaigns, combat, and world-building. Supports multiple TTRPG systems including D&D 5e, Pathfinder, and more.
 
-## Brand Structure (Updated March 4, 2026)
+## Brand Structure (Updated March 5, 2026)
+
+### Full Rebrand - Clean Modern Design
+**Color Scheme:**
+- GM Theme: Black/Gray/Red (#A4243B)
+- Player Theme: Black/Gray/Blue (#2563EB)
+- NO gold accents
+- Square corners throughout (border-radius: 2-4px)
+
+### Color Palette (NEW)
+```css
+/* Base */
+--bg-primary: #18181B;
+--bg-card: #242428;
+
+/* GM (Red) */
+--gm-primary: #A4243B;
+--gm-hover: #B82E47;
+
+/* Player (Blue) */
+--player-primary: #2563EB;
+--player-hover: #3B82F6;
+```
 
 ### Three-Layer Brand Hierarchy
 1. **Rookie Quest** - Parent brand/company
@@ -15,37 +37,34 @@ A comprehensive web application for Tabletop RPG Game Masters, serving as a digi
 - `/public/rqk-logo-text.png` - Text-only logo (footer)
 - `/public/rook-mascot.png` - ROOK mascot icon (AI features)
 
-### Grand Text Logo Component
-- `/app/frontend/src/components/ui/RQKLogo.js` - Reusable text logo component
-- `RQKLogo` - Large centered logo (Auth page, landing hero)
-- `RQKLogoInline` - Compact inline logo (navigation headers)
-
 ### ROOK AI Branding
 **R.O.O.K** = Roleplaying Organization Operations Keeper
 - "Your AI Game Master Assistant"
 - Button labels: "Generate with ROOK", "ROOK Worldbuilder", "ROOK Recap", "Ask ROOK"
-- Color: Cyan/Blue tones (#22D3EE, #3B82F6)
 
-### Design Enhancements (March 4, 2026)
-- **Parallax Scrolling**: Background elements move slower than foreground
-- **Entrance Animations**: Elements fade/slide in on scroll (AnimateOnScroll component)
-- **Live Demo Component**: `/app/frontend/src/components/RookDemo.js` - Animated ROOK demo showing NPC generation
-- **CSS Animations**: float, pulse-glow, spin-slow, shimmer
+## Unified Dashboard (NEW - March 5, 2026)
 
-### Color Palette
-- Background: #0B0F1A
-- Primary Blue: #3B82F6
-- Cyan Accent: #22D3EE
-- Purple Accent: #A855F7
-- Pink Accent: #EC4899 (Live Demo)
-- White Text: #FFFFFF
+### Post-Login Experience
+**Replaces Role Selection page** - After login, users go directly to Unified Dashboard at `/home`
 
-## Player Mode Experience ✅ (Updated - March 4, 2026)
+### Layout
+```
+┌─────────────────────────────────────────────────┐
+│  [Logo]           ⭐ Review    🔗 Referral Code │
+├──────────────────────┬──────────────────────────┤
+│   MY CHARACTERS      │    MY CAMPAIGNS          │
+│   (Blue Theme)       │    (Red Theme)           │
+│   [Character List]   │    [Campaign List]       │
+│   [+ New Character]  │    [+ New Campaign]      │
+└──────────────────────┴──────────────────────────┘
+```
 
-### Role Selection Page
-After login, users choose between "Game Master" or "Player" modes with distinct visual cards showing features for each role.
+### Features
+- Split view: Player characters (left, blue) | GM campaigns (right, red)
+- Header: Review button (opens star rating modal), Referral code button
+- Direct navigation to characters or campaigns from single page
 
-### Player Dashboard (/player)
+## Player Mode Experience ✅ (Updated - March 5, 2026)
 - **Tab Navigation**: "Characters" and "Notes" tabs
 - "My Characters" grid with character cards showing portraits, class color, stats
 - "My Campaigns" section showing joined campaigns
