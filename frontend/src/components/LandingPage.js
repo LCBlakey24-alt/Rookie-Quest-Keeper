@@ -12,7 +12,7 @@ import RookDemo from '@/components/RookDemo';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-// NEW Dark Minimalist Design System with #E11D48
+// Dual Tron Theme - Aries (GM/Red) + Legacy (Player/Blue)
 const theme = {
   bg: {
     black: '#0D0D0D',
@@ -22,6 +22,24 @@ const theme = {
     hover: '#2A2A2A',
     elevated: '#333333'
   },
+  // Tron Aries - GM Side (Red/Orange/Warm)
+  gm: {
+    primary: '#E11D48',
+    hover: '#F43F5E',
+    subtle: 'rgba(225, 29, 72, 0.15)',
+    border: 'rgba(225, 29, 72, 0.4)',
+    glow: '0 0 30px rgba(225, 29, 72, 0.3)'
+  },
+  // Tron Legacy - Player Side (Blue/Cyan/Cool)
+  player: {
+    primary: '#3B82F6',
+    cyan: '#06B6D4',
+    hover: '#60A5FA',
+    subtle: 'rgba(59, 130, 246, 0.15)',
+    border: 'rgba(59, 130, 246, 0.4)',
+    glow: '0 0 30px rgba(6, 182, 212, 0.3)'
+  },
+  // Keep old accent for backwards compatibility
   accent: {
     red: '#E11D48',
     redHover: '#F43F5E',
@@ -144,8 +162,8 @@ function LandingPage() {
               style={{ 
                 padding: '10px 20px',
                 background: 'transparent',
-                border: `1px solid ${theme.border.default}`,
-                color: theme.text.secondary
+                border: `1px solid ${theme.player.border}`,
+                color: theme.player.cyan
               }}
             >
               Log In
@@ -158,7 +176,7 @@ function LandingPage() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '8px',
-                background: theme.accent.red,
+                background: 'linear-gradient(135deg, #E11D48, #06B6D4)',
                 border: 'none',
                 color: theme.text.white
               }}
@@ -212,7 +230,9 @@ function LandingPage() {
             <p style={{
               fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
-              color: theme.accent.red,
+              background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
               letterSpacing: '6px',
               textTransform: 'uppercase',
               marginTop: '24px',
@@ -222,11 +242,11 @@ function LandingPage() {
             </p>
           </div>
 
-          {/* Divider */}
+          {/* Divider - Gradient */}
           <div style={{
             width: '120px',
             height: '2px',
-            background: theme.accent.red,
+            background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
             margin: '32px auto'
           }} />
 
@@ -239,8 +259,9 @@ function LandingPage() {
             marginBottom: '24px',
             lineHeight: '1.2'
           }}>
-            Run Better Tabletop Sessions{' '}
-            <span style={{ color: theme.accent.red }}>in Less Time</span>
+            <span style={{ color: theme.gm.primary }}>Game Masters</span> &{' '}
+            <span style={{ color: theme.player.cyan }}>Players</span>{' '}
+            United
           </h2>
 
           {/* Subheadline */}
@@ -252,8 +273,9 @@ function LandingPage() {
             margin: '0 auto 40px',
             lineHeight: '1.7'
           }}>
-            Rookie Quest Keeper is the all-in-one <strong style={{ color: theme.text.white }}>campaign operating system</strong> for 5e Game Masters — 
-            combining worldbuilding, AI content generation, combat control, and live session tools in one unified platform.
+            The all-in-one <strong style={{ color: theme.text.white }}>campaign operating system</strong> for 5e — 
+            combining <span style={{ color: theme.gm.primary }}>worldbuilding, AI generation, combat</span> for GMs and{' '}
+            <span style={{ color: theme.player.cyan }}>character sheets, journals, party tools</span> for players.
           </p>
 
           {/* CTA Buttons */}
@@ -268,19 +290,17 @@ function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                background: theme.accent.red,
+                background: theme.gm.primary,
                 border: 'none',
                 color: theme.text.white,
                 fontWeight: '600',
                 letterSpacing: '1px'
               }}
             >
-              <Play size={20} /> Start Free Campaign
+              <Sword size={20} /> I'm a Game Master
             </Button>
             <Button 
-              onClick={() => {
-                document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => navigate('/auth')}
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '16px',
@@ -288,13 +308,14 @@ function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                background: 'transparent',
-                border: `1px solid ${theme.border.default}`,
-                color: theme.text.secondary,
+                background: theme.player.primary,
+                border: 'none',
+                color: theme.text.white,
+                fontWeight: '600',
                 letterSpacing: '1px'
               }}
             >
-              Explore Features <ChevronRight size={20} />
+              <Users size={20} /> I'm a Player
             </Button>
           </div>
 
@@ -777,17 +798,19 @@ function LandingPage() {
 
       {/* Pricing */}
       <section style={{ padding: '80px 24px', background: theme.bg.dark }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <p style={{
-              color: '#22C55E',
+              background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
               fontSize: '16px',
-              fontWeight: '600',
-              letterSpacing: '1px',
+              fontWeight: '700',
+              letterSpacing: '2px',
               textTransform: 'uppercase',
               marginBottom: '12px'
             }}>
-              Start Free. Upgrade When You're Ready.
+              Choose Your Path
             </p>
             <h2 style={{
               fontSize: 'clamp(2rem, 4vw, 3rem)',
@@ -798,39 +821,47 @@ function LandingPage() {
               Simple, Transparent Pricing
             </h2>
             <p style={{ color: theme.text.secondary, fontSize: '18px' }}>
-              No credit card required. Free forever tier available.
+              Whether you're a <span style={{ color: theme.player.cyan }}>Player</span> or a <span style={{ color: theme.gm.primary }}>Game Master</span>, we've got you covered.
             </p>
           </div>
 
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '24px' 
+            gridTemplateColumns: 'repeat(4, 1fr)', 
+            gap: '20px',
+            '@media (max-width: 1200px)': {
+              gridTemplateColumns: 'repeat(2, 1fr)'
+            }
           }}>
             {/* Free Tier */}
             <div style={{
-              padding: '40px',
+              padding: '32px',
               background: theme.bg.card,
-              border: `1px solid ${theme.border.default}`
+              border: `1px solid ${theme.border.default}`,
+              display: 'flex',
+              flexDirection: 'column'
             }}>
-              <h3 style={{ fontSize: '24px', color: theme.text.white, fontWeight: '600', marginBottom: '8px' }}>
-                Free
-              </h3>
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '48px', color: theme.text.white, fontWeight: '700' }}>£0</span>
-                <span style={{ color: theme.text.muted }}>/forever</span>
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '20px', color: theme.text.white, fontWeight: '600', marginBottom: '4px' }}>
+                  Free
+                </h3>
+                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Get started</p>
               </div>
-              <ul style={{ margin: '0 0 32px', padding: 0, listStyle: 'none' }}>
-                {['2 Campaigns', '5 AI Generations/month', 'Full Combat System', 'GM Screen Access', 'Monster Database'].map((item, i) => (
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£0</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/forever</span>
+              </div>
+              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
+                {['1 Character', '1 Campaign (join only)', 'Basic Character Sheet', 'Dice Roller', '3 AI Generations/month'].map((item, i) => (
                   <li key={i} style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '10px',
+                    gap: '8px',
                     color: theme.text.secondary,
-                    fontSize: '15px',
-                    marginBottom: '12px'
+                    fontSize: '13px',
+                    marginBottom: '10px'
                   }}>
-                    <Check size={18} color="#22C55E" /> {item}
+                    <Check size={14} color={theme.text.muted} /> {item}
                   </li>
                 ))}
               </ul>
@@ -838,118 +869,247 @@ function LandingPage() {
                 onClick={() => navigate('/auth')}
                 style={{ 
                   width: '100%', 
-                  padding: '14px',
+                  padding: '12px',
                   background: 'transparent',
                   border: `1px solid ${theme.border.default}`,
-                  color: theme.text.secondary
+                  color: theme.text.secondary,
+                  marginTop: '20px'
                 }}
               >
-                Get Started Free
+                Get Started
               </Button>
             </div>
 
-            {/* Premium */}
+            {/* Hero Tier - Player (Blue) */}
             <div style={{
-              padding: '40px',
-              background: theme.accent.redSubtle,
-              border: `2px solid ${theme.accent.red}`,
-              position: 'relative'
+              padding: '32px',
+              background: theme.player.subtle,
+              border: `2px solid ${theme.player.primary}`,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: theme.player.glow
             }}>
               <div style={{
                 position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: theme.accent.red,
-                color: theme.text.white,
-                padding: '4px 12px',
-                fontSize: '12px',
-                fontWeight: '600'
+                top: '-12px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: theme.player.cyan,
+                color: '#000',
+                padding: '4px 16px',
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '1px'
               }}>
-                POPULAR
+                FOR PLAYERS
               </div>
-              <h3 style={{ 
-                fontSize: '24px', 
-                color: theme.accent.red, 
-                fontWeight: '600',
-                marginBottom: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <Crown size={24} /> Adventurer
-              </h3>
+              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
+                <h3 style={{ 
+                  fontSize: '20px', 
+                  color: theme.player.cyan, 
+                  fontWeight: '600', 
+                  marginBottom: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Users size={20} /> Hero
+                </h3>
+                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Serious players</p>
+              </div>
               <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '48px', color: theme.text.white, fontWeight: '700' }}>£3.99</span>
-                <span style={{ color: theme.text.muted }}>/month</span>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£3.99</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
               </div>
-              
-              <div style={{
-                padding: '16px',
-                background: theme.bg.card,
-                border: `1px solid ${theme.accent.red}`,
-                marginBottom: '20px'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px',
-                  color: theme.accent.red,
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  marginBottom: '8px'
-                }}>
-                  <TrendingUp size={20} /> Unlimited Campaigns
-                </div>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px',
-                  color: theme.accent.red,
-                  fontSize: '18px',
-                  fontWeight: '600'
-                }}>
-                  <Sparkles size={20} /> Unlimited AI Generations
-                </div>
-              </div>
-
-              <ul style={{ margin: '0 0 32px', padding: 0, listStyle: 'none' }}>
-                {['Priority Support', 'Early Access Features', 'Everything in Free'].map((item, i) => (
+              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
+                {['Unlimited Characters', 'Character Journal', 'Party Inventory Access', 'Session Recaps', 'AI Portrait Generation', '50 AI Calls/month'].map((item, i) => (
                   <li key={i} style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '10px',
+                    gap: '8px',
                     color: theme.text.secondary,
-                    fontSize: '15px',
-                    marginBottom: '12px'
+                    fontSize: '13px',
+                    marginBottom: '10px'
                   }}>
-                    <Check size={18} color="#22C55E" /> {item}
+                    <Check size={14} color={theme.player.cyan} /> {item}
                   </li>
                 ))}
               </ul>
-              
               <Button 
                 onClick={() => navigate('/auth')}
                 style={{ 
                   width: '100%', 
-                  padding: '14px',
-                  background: theme.accent.red,
+                  padding: '12px',
+                  background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.cyan})`,
                   border: 'none',
-                  color: theme.text.white,
+                  color: '#fff',
                   fontWeight: '600',
-                  marginBottom: '12px'
+                  marginTop: '20px'
                 }}
               >
-                Start Adventurer Trial
+                Start Hero Trial
               </Button>
-              
-              <p style={{
-                color: theme.text.muted,
-                fontSize: '13px',
-                textAlign: 'center'
-              }}>
-                Cancel anytime. No contracts.
-              </p>
             </div>
+
+            {/* Quest Master Tier - GM (Red) */}
+            <div style={{
+              padding: '32px',
+              background: theme.gm.subtle,
+              border: `2px solid ${theme.gm.primary}`,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: theme.gm.glow
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: theme.gm.primary,
+                color: '#fff',
+                padding: '4px 16px',
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '1px'
+              }}>
+                FOR GMs
+              </div>
+              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
+                <h3 style={{ 
+                  fontSize: '20px', 
+                  color: theme.gm.primary, 
+                  fontWeight: '600', 
+                  marginBottom: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Sword size={20} /> Quest Master
+                </h3>
+                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Game Masters</p>
+              </div>
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£3.99</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
+              </div>
+              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
+                {['Unlimited Campaigns', 'Full World Building', 'ROOK AI Generation', 'Combat Tracker', 'Reference Tools', 'Session Mode', 'Unlimited AI'].map((item, i) => (
+                  <li key={i} style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    color: theme.text.secondary,
+                    fontSize: '13px',
+                    marginBottom: '10px'
+                  }}>
+                    <Check size={14} color={theme.gm.primary} /> {item}
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                onClick={() => navigate('/auth')}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px',
+                  background: theme.gm.primary,
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: '600',
+                  marginTop: '20px'
+                }}
+              >
+                Start GM Trial
+              </Button>
+            </div>
+
+            {/* Legendary Tier - Both (Gradient) */}
+            <div style={{
+              padding: '32px',
+              background: `linear-gradient(135deg, ${theme.gm.subtle}, ${theme.player.subtle})`,
+              border: '2px solid transparent',
+              borderImage: 'linear-gradient(135deg, #E11D48, #06B6D4) 1',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
+                color: '#fff',
+                padding: '4px 16px',
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '1px'
+              }}>
+                BEST VALUE
+              </div>
+              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
+                <h3 style={{ 
+                  fontSize: '20px', 
+                  background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontWeight: '700', 
+                  marginBottom: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Crown size={20} color="#F59E0B" /> Legendary
+                </h3>
+                <p style={{ color: theme.text.muted, fontSize: '13px' }}>GM who also plays</p>
+              </div>
+              <div style={{ marginBottom: '24px' }}>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£5.99</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
+              </div>
+              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
+                {['Everything in Hero', 'Everything in Quest Master', 'Priority Support', 'Early Access Features', 'Exclusive Content'].map((item, i) => (
+                  <li key={i} style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    color: theme.text.secondary,
+                    fontSize: '13px',
+                    marginBottom: '10px'
+                  }}>
+                    <Check size={14} color="#F59E0B" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                onClick={() => navigate('/auth')}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px',
+                  background: 'linear-gradient(135deg, #E11D48, #06B6D4)',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: '600',
+                  marginTop: '20px'
+                }}
+              >
+                Go Legendary
+              </Button>
+            </div>
+          </div>
+
+          {/* Yearly Savings Note */}
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: '32px',
+            padding: '16px',
+            background: theme.bg.panel,
+            border: `1px solid ${theme.border.default}`
+          }}>
+            <p style={{ color: theme.text.secondary, fontSize: '14px' }}>
+              <strong style={{ color: theme.text.white }}>Save ~17% with yearly billing</strong> — Cancel anytime. No contracts.
+            </p>
           </div>
         </div>
       </section>

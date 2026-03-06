@@ -307,6 +307,20 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - Level Up API: ASI, Feats, HP calculation all tested
 - Level Up Modal UI: all 3 steps tested with E2E tests
 
+## Design System
+### Tron Aries (GM Side) - Red/Orange Theme
+- Primary: #E11D48
+- Hover: #F43F5E
+- Subtle: rgba(225, 29, 72, 0.15)
+- Glow: 0 0 20px rgba(225, 29, 72, 0.4)
+
+### Tron Legacy (Player Side) - Blue/Cyan Theme
+- Primary: #3B82F6
+- Cyan: #06B6D4
+- Hover: #60A5FA
+- Subtle: rgba(59, 130, 246, 0.15)
+- Glow: 0 0 30px rgba(6, 182, 212, 0.3)
+
 ---
 
 ## File Structure

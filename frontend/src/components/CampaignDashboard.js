@@ -22,7 +22,7 @@ import QuickTips, { TIPS } from '@/components/QuickTips';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Dark Minimalist Theme - NEW #E11D48
+// Tron Aries Theme - Red/Orange GM Style
 const theme = {
   bg: {
     black: '#0D0D0D',
@@ -35,7 +35,9 @@ const theme = {
   accent: {
     red: '#E11D48',
     redHover: '#F43F5E',
-    redSubtle: 'rgba(225, 29, 72, 0.15)'
+    redSubtle: 'rgba(225, 29, 72, 0.15)',
+    orange: '#F97316',
+    glow: '0 0 20px rgba(225, 29, 72, 0.4)'
   },
   text: {
     white: '#FFFFFF',

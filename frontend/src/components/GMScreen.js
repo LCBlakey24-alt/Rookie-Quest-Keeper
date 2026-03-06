@@ -271,10 +271,16 @@ function GMScreen({ username }) {
     { id: 'notes', icon: FileText, label: 'Notes' },
   ];
 
-  // Dark Minimalist Theme - NEW RED #E11D48
+  // Tron Aries Theme - Red/Orange GM Style
   const theme = {
     bg: { black: '#0D0D0D', dark: '#141414', panel: '#1A1A1A', card: '#1F1F1F', hover: '#2A2A2A' },
-    accent: { red: '#E11D48', redHover: '#F43F5E', redSubtle: 'rgba(225, 29, 72, 0.15)' },
+    accent: { 
+      red: '#E11D48', 
+      redHover: '#F43F5E', 
+      redSubtle: 'rgba(225, 29, 72, 0.15)',
+      orange: '#F97316',
+      glow: '0 0 20px rgba(225, 29, 72, 0.4)'
+    },
     text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },
     border: 'rgba(255, 255, 255, 0.1)'
   };
