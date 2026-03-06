@@ -8,6 +8,27 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 ---
 
+## Recent Major Updates (March 2026)
+
+### Rule System & Content Management
+- **Database-driven rule systems**: Support for D&D 5e 2014, 5e 2024, and custom systems
+- **Content storage**: Classes, subclasses, races, spells, items, feats, monsters, class features
+- **Mass upload**: JSON and CSV file upload for bulk content import
+- **AI rule awareness**: AI generation respects campaign rule system (2024 vs 2014 terminology)
+- **Custom systems**: Users can create custom rule systems (e.g., Sci-Fi with custom skills)
+
+### Character Multiclassing
+- **Multiclass API**: Add new classes to characters with requirement checking
+- **Level-up specific class**: Choose which class to level up for multiclass characters
+- **Proficiency handling**: Automatic multiclass proficiency grants
+
+### Admin Features
+- **Rule System Manager**: New tab in Admin panel for managing game content
+- **Content upload UI**: Visual interface for uploading classes, races, spells, etc.
+- **System selector**: Switch between 2014, 2024, and custom systems
+
+---
+
 ## Monetization (Updated March 2026)
 
 ### Subscription Tiers

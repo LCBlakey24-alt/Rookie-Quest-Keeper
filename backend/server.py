@@ -6356,7 +6356,16 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
 @api_router.post("/characters/{character_id}/multiclass")
 async def add_multiclass(character_id: str, class_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Add a new class to a character (multiclassing)"""
-    character = await db.characters.find_one({'id': character_id, 'owner': username}, {'_id': 0})
+    # Try player_characters first, then characters
+    character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
+    collection = db.player_characters
+    owner_field = 'user_id'
+    
+    if not character:
+        character = await db.characters.find_one({'id': character_id, 'owner': username}, {'_id': 0})
+        collection = db.characters
+        owner_field = 'owner'
+    
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
     
@@ -6400,19 +6409,27 @@ async def add_multiclass(character_id: str, class_data: Dict[str, Any], username
     current_proficiencies = character.get('proficiencies', [])
     updated_proficiencies = list(set(current_proficiencies + new_proficiencies))
     
-    await db.characters.update_one(
+    await collection.update_one(
         {'id': character_id},
         {'$set': {'classes': classes, 'level': total_level, 'proficiencies': updated_proficiencies, 'updated_at': datetime.now(timezone.utc).isoformat()}}
     )
     
-    updated = await db.characters.find_one({'id': character_id}, {'_id': 0})
+    updated = await collection.find_one({'id': character_id}, {'_id': 0})
     return updated
 
 @api_router.post("/characters/{character_id}/level-up-class")
 async def level_up_specific_class(character_id: str, class_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Level up a specific class for a multiclass character"""
     import random
-    character = await db.characters.find_one({'id': character_id, 'owner': username}, {'_id': 0})
+    
+    # Try player_characters first, then characters
+    character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
+    collection = db.player_characters
+    
+    if not character:
+        character = await db.characters.find_one({'id': character_id, 'owner': username}, {'_id': 0})
+        collection = db.characters
+    
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
     
@@ -6455,12 +6472,12 @@ async def level_up_specific_class(character_id: str, class_data: Dict[str, Any],
     hp_gain = max(1, hp_roll + con_mod)
     new_max_hp = character.get('max_hp', 10) + hp_gain
     
-    await db.characters.update_one(
+    await collection.update_one(
         {'id': character_id},
         {'$set': {'classes': classes, 'level': total_level, 'max_hp': new_max_hp, 'current_hp': new_max_hp, 'updated_at': datetime.now(timezone.utc).isoformat()}}
     )
     
-    updated = await db.characters.find_one({'id': character_id}, {'_id': 0})
+    updated = await collection.find_one({'id': character_id}, {'_id': 0})
     return {"character": updated, "hp_gained": hp_gain, "hp_roll": hp_roll, "class_leveled": class_name}
 
 
