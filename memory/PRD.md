@@ -284,18 +284,45 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 ### Backlog
 - [ ] Party Inventory tracking (Hero Tier)
-- [ ] **Session Recap AI (Quest Master Tier)** - AI-powered session summaries
-- [ ] **Smart Entity Linking** - Auto-link NPC names, locations to their pages
+- [ ] **Smart Entity Linking** - Auto-link NPC names, locations to their pages (SmartNoteParser exists)
 - [ ] Backend refactoring (split server.py into routers)
 - [ ] Mobile-first Combat Tracker
 - [ ] "Zero Prep Mode" AI generation
 - [ ] Shareable World Codex for players
 - [ ] Offline Mode
 - [ ] Ambient Soundscapes
+- [ ] **Modular Progression System** - Database-driven character progression (foundation exists)
+
+### Completed (March 2026 - Yellow Tier GM Features)
+- [x] **NPC Relationship Web** - Visual graph showing connections between NPCs
+  - Relationship types: Ally, Enemy, Family, Romantic, Business, Rival, Neutral, Serves
+  - Interactive canvas with drag-and-drop nodes
+  - Link mode for creating connections
+  - Zoom/Pan controls
+  - Backend: POST/GET/DELETE /api/campaigns/{id}/npc-relationships
+- [x] **Session Timeline** - Visual history of campaign events
+  - Event types: Session, Combat, NPC Met, Location, Quest, Death, Level Up, Major Event, Milestone
+  - Filter by event type
+  - Group by session number
+  - In-game date tracking
+  - Backend: POST/GET/DELETE /api/campaigns/{id}/timeline
+- [x] **Random Generator Tables** - Quick-roll tables for GM prep
+  - NPC Names (Human, Elf, Dwarf male/female + Random NPC with traits)
+  - Place Names (Tavern, Shop, Village, City, Dungeon)
+  - Treasure (CR 0-4, CR 5-10, CR 11+, Art Objects, Gems)
+  - Encounters (Forest, Dungeon, Road, Urban)
+  - Plot Hooks (Hooks, Rumors, NPC Secrets, Motivations)
+  - Copy to clipboard functionality
+- [x] **Campaign Dashboard Reorganization**
+  - World group: Setting, World Builder, Gods, Locations, NPCs, NPC Web, Calendar, Timeline
+  - Combat group: Combat, Battle Maps, Encounter Gen
+  - GM Tools group: Generators, References, Inventory
+  - Standalone tabs: Party Loot, AI Recap, Players, Notes
 
 ---
 
 ## Testing Status
+- 49/49 tests passing (Yellow Tier GM Features)
 - 44/44 tests passing (level up system + spells tabs)
 - 30/30 frontend tests passing (dice rolls, journal, subscription)
 - Comprehensive stress test passed (10/10 API tests)
@@ -306,6 +333,7 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - Session Journal CRUD verified working
 - Level Up API: ASI, Feats, HP calculation all tested
 - Level Up Modal UI: all 3 steps tested with E2E tests
+- **NEW: GM Features tested with 18 backend + 31 frontend tests**
 
 ## Design System
 ### Tron Aries (GM Side) - Red/Orange Theme
