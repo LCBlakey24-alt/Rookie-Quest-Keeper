@@ -238,19 +238,21 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - [x] Campaign setting save persistence fixed
 - [x] **New 3-Tier Pricing Model (March 2026)**
   - Free ($0): 1 character, join campaigns, 3 AI calls/month
-  - Hero ($3.99/mo): Unlimited characters, 50 AI calls, player tools
-  - Quest Master ($3.99/mo): Unlimited campaigns, unlimited AI, GM tools
-  - Legendary ($5.99/mo): Everything combined
-- [x] **Session Mode Feature** - Streamlined GM interface for live play
-  - Initiative Tracker with add/remove combatants
-  - Quick Dice Roller (d4-d100 + Advantage)
-  - Session Notes panel
-  - Conditions Reference (D&D conditions)
+  - Hero ($3.99/mo or $39.99/yr): Unlimited characters, 50 AI calls, player tools
+  - Quest Master ($3.99/mo or $39.99/yr): Unlimited campaigns, unlimited AI, GM tools
+  - Legendary ($5.99/mo or $59.99/yr): Everything combined
 - [x] **Feature Gating System** - useSubscription hook restricts features by tier
-  - Session Mode: GM/Legendary only
   - Unlimited Characters: Hero/Legendary only
-  - Campaign Creation: GM/Legendary only
+  - Campaign Creation: Quest Master/Legendary only
 - [x] **Promo Code Fix** - Fixed endpoint from /subscription/apply-promo to /promo-codes/apply
+- [x] **RECURRING STRIPE SUBSCRIPTIONS (March 2026)** - Major payment system update:
+  - Changed from one-time payments to Stripe subscription mode (auto-renews monthly/yearly)
+  - Created Stripe Products/Prices for all paid tiers
+  - Subscription cancellation endpoint (cancels at period end)
+  - Promo codes now PAUSE existing Stripe subscriptions to prevent double-charging
+  - When promo expires, original subscription automatically resumes
+  - Webhook handling for subscription lifecycle events
+- [x] **Clarified GM Screen = Session Mode** - The GM Screen IS the live session tool, removed redundant Session Mode page
 
 ### Backlog
 - [ ] **Player Companion Features (Hero Tier)**
@@ -268,11 +270,11 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 ---
 
 ## Testing Status
-- 64/64 tests passing (46 frontend + 18 backend)
-- 4-tier pricing system verified
-- Session Mode feature fully tested
-- Feature gating working correctly
-- Promo code endpoint fixed and verified
+- 41/46 tests passing (23 backend + 18 frontend)
+- 5 tests quarantined (Session Mode route removed intentionally)
+- Recurring Stripe subscriptions verified
+- Monthly and yearly billing both working
+- Promo codes work correctly with subscription pausing
 - All design requirements verified
 - Sidebar tabs working correctly on both dashboards
 

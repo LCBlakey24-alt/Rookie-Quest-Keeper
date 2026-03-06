@@ -79,13 +79,17 @@ function PricingPage({ username, onLogout }) {
     try {
       const response = await axios.post(`${API}/subscription/checkout`, {
         plan_id: planId,
-        billing_cycle: billingCycle
+        billing_cycle: billingCycle,
+        origin_url: window.location.origin
       });
       if (response.data.checkout_url) {
         window.location.href = response.data.checkout_url;
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to start checkout');
+      const errorMsg = error.response?.data?.detail;
+      // Handle validation errors (array) vs string errors
+      const message = Array.isArray(errorMsg) ? errorMsg[0]?.msg || 'Validation error' : errorMsg || 'Failed to start checkout';
+      toast.error(message);
       setCheckoutLoading(null);
     }
   };
