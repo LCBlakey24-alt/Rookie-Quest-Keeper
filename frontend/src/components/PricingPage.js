@@ -94,7 +94,7 @@ function PricingPage({ username, onLogout }) {
     if (!promoCode.trim()) return;
     setApplyingPromo(true);
     try {
-      await axios.post(`${API}/subscription/apply-promo`, { code: promoCode });
+      await axios.post(`${API}/promo-codes/apply`, { code: promoCode });
       toast.success('Promo code applied successfully!');
       setPromoCode('');
       fetchData();

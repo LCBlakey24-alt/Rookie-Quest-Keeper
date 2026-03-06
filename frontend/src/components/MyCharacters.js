@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Plus, User, Sword, Heart, Shield, Trash2, Edit, ArrowLeft } from 'lucide-react';
+import { Plus, User, Sword, Heart, Shield, Trash2, Edit, ArrowLeft, Lock } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -16,6 +17,7 @@ function MyCharacters({ username, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingCharacter, setDeletingCharacter] = useState(null);
+  const { tier, canCreateCharacter } = useSubscription();
 
   useEffect(() => {
     fetchCharacters();
@@ -104,11 +106,20 @@ function MyCharacters({ username, onLogout }) {
           </div>
           
           <Button
-            onClick={() => navigate('/characters/new')}
+            onClick={() => {
+              if (canCreateCharacter(characters.length)) {
+                navigate('/characters/new');
+              } else {
+                toast.error('Character limit reached!', {
+                  description: 'Free tier allows 1 character. Upgrade to Hero or Legendary for unlimited characters!'
+                });
+                navigate('/pricing');
+              }
+            }}
             className="btn-primary"
             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Plus size={20} />
+            {canCreateCharacter(characters.length) ? <Plus size={20} /> : <Lock size={20} />}
             Create Character
           </Button>
         </div>

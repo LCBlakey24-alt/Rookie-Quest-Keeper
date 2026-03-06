@@ -23,6 +23,8 @@ import CharacterSheet from '@/components/CharacterSheet';
 import CharacterSheetFull from '@/components/CharacterSheetFull';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+import SessionMode from '@/components/SessionMode';
+import { SubscriptionProvider } from '@/hooks/useSubscription';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -161,8 +163,9 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
-          <Routes>
+        <SubscriptionProvider>
+          <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
+            <Routes>
             <Route 
               path="/auth" 
               element={
@@ -244,6 +247,14 @@ function App() {
               } 
             />
             <Route 
+              path="/campaign/:campaignId/session" 
+              element={
+                isAuthenticated ? 
+                  <SessionMode /> : 
+                  <Navigate to="/auth" replace />
+              } 
+            />
+            <Route 
               path="/pricing" 
               element={
                 isAuthenticated ? 
@@ -291,6 +302,7 @@ function App() {
           {/* Floating Dice Roller - Only on gameplay pages */}
           <ConditionalDiceRoller isAuthenticated={isAuthenticated} />
         </KeyboardShortcutsProvider>
+        </SubscriptionProvider>
       </BrowserRouter>
       <Toaster position="top-right" richColors />
     </div>

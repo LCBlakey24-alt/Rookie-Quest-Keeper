@@ -181,8 +181,8 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
       await expect(promoInput).toHaveValue('TESTCODE123');
     });
 
-    test('should show error for invalid promo code (BUG: endpoint mismatch)', async ({ page }) => {
-      // BUG FOUND: PricingPage calls /api/subscription/apply-promo but backend expects /api/promo-codes/apply
+    test('should show error for invalid promo code', async ({ page }) => {
+      // Bug was fixed: PricingPage now calls /api/promo-codes/apply correctly
       await loginTestUser(page);
       await hideEmergentBadge(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
@@ -196,17 +196,13 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
       await promoInput.fill('INVALIDCODE99999');
       await applyBtn.click();
       
-      // Should show error toast - might show "Invalid promo code" or generic error
-      // Currently returns "Not Found" because wrong endpoint is called
+      // Should show error toast - with correct endpoint, we get "Invalid promo code"
       const errorAppeared = await Promise.race([
         page.getByText(/invalid/i).waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false),
-        page.getByText(/not found/i).waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false),
-        page.getByText(/error/i).waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false),
         page.locator('[data-sonner-toast]').waitFor({ state: 'visible', timeout: 5000 }).then(() => true).catch(() => false)
       ]);
       
-      // Skip assertion since we know there's a bug - just verify the action completes
-      // expect(errorAppeared).toBeTruthy();
+      expect(errorAppeared).toBeTruthy();
     });
   });
 

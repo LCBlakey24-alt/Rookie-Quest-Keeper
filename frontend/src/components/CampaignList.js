@@ -109,8 +109,12 @@ function CampaignList({ username, onLogout }) {
       return;
     }
 
-    if (subscription && !subscription.is_premium && campaigns.length >= 2) {
-      toast.error('Free tier is limited to 2 campaigns. Upgrade to Adventurer for unlimited campaigns!');
+    // Check tier-based campaign limits
+    const tier = subscription?.tier || 'free';
+    const canCreate = tier === 'gm' || tier === 'legendary';
+    
+    if (!canCreate) {
+      toast.error('Creating campaigns requires Quest Master or Legendary tier. Upgrade to unlock this feature!');
       navigate('/pricing');
       return;
     }

@@ -180,7 +180,9 @@ function SessionMode({ campaignId: propCampaignId }) {
       minHeight: '100vh', 
       background: theme.bg.black, 
       fontFamily: 'Cityworm, Inter, sans-serif'
-    }}>
+    }}
+    data-testid="session-mode-page"
+    >
       {/* Header */}
       <div style={{ 
         padding: '12px 20px',
@@ -188,15 +190,18 @@ function SessionMode({ campaignId: propCampaignId }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
-      }}>
+      }}
+      data-testid="session-mode-header"
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Button 
+            data-testid="session-back-btn"
             onClick={() => navigate(`/campaign/${campaignId}`)} 
             style={{ background: 'rgba(255,255,255,0.2)', border: 'none', padding: '8px' }}
           >
             <ArrowLeft size={20} color="#fff" />
           </Button>
-          <h1 style={{ color: '#fff', fontSize: '18px', fontWeight: '700', letterSpacing: '1px' }}>
+          <h1 data-testid="session-mode-title" style={{ color: '#fff', fontSize: '18px', fontWeight: '700', letterSpacing: '1px' }}>
             SESSION MODE
           </h1>
         </div>
@@ -229,6 +234,7 @@ function SessionMode({ campaignId: propCampaignId }) {
             </h2>
             <div style={{ display: 'flex', gap: '8px' }}>
               <Button
+                data-testid="combat-toggle-btn"
                 onClick={() => setCombatActive(!combatActive)}
                 style={{ 
                   background: combatActive ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
@@ -242,6 +248,7 @@ function SessionMode({ campaignId: propCampaignId }) {
                 <span style={{ marginLeft: '6px' }}>{combatActive ? 'Pause' : 'Start'}</span>
               </Button>
               <Button
+                data-testid="next-turn-btn"
                 onClick={nextTurn}
                 disabled={combatants.length === 0}
                 style={{ 
@@ -258,7 +265,9 @@ function SessionMode({ campaignId: propCampaignId }) {
           </div>
 
           {/* Add Combatant Form */}
-          <div style={{ 
+          <div 
+            data-testid="add-combatant-form"
+            style={{ 
             display: 'flex', 
             gap: '8px', 
             marginBottom: '16px',
@@ -267,12 +276,14 @@ function SessionMode({ campaignId: propCampaignId }) {
             border: `1px solid ${theme.border}`
           }}>
             <Input
+              data-testid="combatant-name-input"
               value={newCombatant.name}
               onChange={(e) => setNewCombatant({ ...newCombatant, name: e.target.value })}
               placeholder="Name"
               style={{ flex: 2, background: theme.bg.dark, border: `1px solid ${theme.border}`, color: theme.text.white }}
             />
             <Input
+              data-testid="combatant-initiative-input"
               value={newCombatant.initiative}
               onChange={(e) => setNewCombatant({ ...newCombatant, initiative: e.target.value })}
               placeholder="Init"
@@ -280,6 +291,7 @@ function SessionMode({ campaignId: propCampaignId }) {
               style={{ flex: 1, background: theme.bg.dark, border: `1px solid ${theme.border}`, color: theme.text.white }}
             />
             <Input
+              data-testid="combatant-hp-input"
               value={newCombatant.hp}
               onChange={(e) => setNewCombatant({ ...newCombatant, hp: e.target.value })}
               placeholder="HP"
@@ -287,13 +299,14 @@ function SessionMode({ campaignId: propCampaignId }) {
               style={{ flex: 1, background: theme.bg.dark, border: `1px solid ${theme.border}`, color: theme.text.white }}
             />
             <Input
+              data-testid="combatant-ac-input"
               value={newCombatant.ac}
               onChange={(e) => setNewCombatant({ ...newCombatant, ac: e.target.value })}
               placeholder="AC"
               type="number"
               style={{ flex: 1, background: theme.bg.dark, border: `1px solid ${theme.border}`, color: theme.text.white }}
             />
-            <Button onClick={addCombatant} style={{ background: theme.accent.red, border: 'none', padding: '8px 12px' }}>
+            <Button data-testid="add-combatant-btn" onClick={addCombatant} style={{ background: theme.accent.red, border: 'none', padding: '8px 12px' }}>
               <Plus size={18} />
             </Button>
           </div>
@@ -436,14 +449,16 @@ function SessionMode({ campaignId: propCampaignId }) {
         </div>
 
         {/* Sidebar - Quick Tools */}
-        <div style={{ 
+        <div 
+          data-testid="session-sidebar"
+          style={{ 
           background: theme.bg.panel, 
           borderLeft: `1px solid ${theme.border}`,
           display: 'flex',
           flexDirection: 'column'
         }}>
           {/* Quick Dice */}
-          <div style={{ padding: '16px', borderBottom: `1px solid ${theme.border}` }}>
+          <div data-testid="dice-roller-section" style={{ padding: '16px', borderBottom: `1px solid ${theme.border}` }}>
             <h3 style={{ color: theme.text.white, fontSize: '13px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Dices size={16} style={{ color: theme.accent.red }} />
               Quick Dice
@@ -452,6 +467,7 @@ function SessionMode({ campaignId: propCampaignId }) {
               {[4, 6, 8, 10, 12, 20, 100].map(sides => (
                 <button
                   key={sides}
+                  data-testid={`dice-d${sides}`}
                   onClick={() => rollDice(sides)}
                   style={{
                     padding: '10px 4px',
@@ -467,6 +483,7 @@ function SessionMode({ campaignId: propCampaignId }) {
                 </button>
               ))}
               <button
+                data-testid="dice-adv"
                 onClick={() => rollDice(20, 2)}
                 style={{
                   padding: '10px 4px',
@@ -482,7 +499,7 @@ function SessionMode({ campaignId: propCampaignId }) {
               </button>
             </div>
             {lastRoll && (
-              <div style={{ 
+              <div data-testid="dice-result" style={{ 
                 marginTop: '12px', 
                 padding: '12px',
                 background: lastRoll.isCrit ? 'rgba(34, 197, 94, 0.15)' : lastRoll.isFail ? 'rgba(239, 68, 68, 0.15)' : theme.bg.dark,
@@ -490,7 +507,7 @@ function SessionMode({ campaignId: propCampaignId }) {
                 textAlign: 'center'
               }}>
                 <div style={{ color: theme.text.muted, fontSize: '11px' }}>{lastRoll.dice}</div>
-                <div style={{ 
+                <div data-testid="dice-total" style={{ 
                   color: lastRoll.isCrit ? '#22c55e' : lastRoll.isFail ? '#ef4444' : theme.text.white,
                   fontSize: '28px',
                   fontWeight: '800'
@@ -504,24 +521,25 @@ function SessionMode({ campaignId: propCampaignId }) {
           </div>
 
           {/* Quick Notes */}
-          <div style={{ padding: '16px', borderBottom: `1px solid ${theme.border}`, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div data-testid="session-notes-section" style={{ padding: '16px', borderBottom: `1px solid ${theme.border}`, flex: 1, display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ color: theme.text.white, fontSize: '13px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FileText size={16} style={{ color: theme.accent.red }} />
               Session Notes
             </h3>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <Input
+                data-testid="session-note-input"
                 value={quickNote}
                 onChange={(e) => setQuickNote(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveQuickNote()}
                 placeholder="Quick note..."
                 style={{ flex: 1, background: theme.bg.dark, border: `1px solid ${theme.border}`, color: theme.text.white, fontSize: '13px' }}
               />
-              <Button onClick={saveQuickNote} style={{ background: theme.accent.red, border: 'none', padding: '8px' }}>
+              <Button data-testid="save-note-btn" onClick={saveQuickNote} style={{ background: theme.accent.red, border: 'none', padding: '8px' }}>
                 <Plus size={16} />
               </Button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div data-testid="session-notes-list" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {sessionNotes.slice(0, 10).map((note, i) => (
                 <div key={note.id || i} style={{ 
                   padding: '8px 10px', 
@@ -537,12 +555,12 @@ function SessionMode({ campaignId: propCampaignId }) {
           </div>
 
           {/* Conditions Reference */}
-          <div style={{ padding: '16px', maxHeight: '200px', overflowY: 'auto' }}>
+          <div data-testid="conditions-section" style={{ padding: '16px', maxHeight: '200px', overflowY: 'auto' }}>
             <h3 style={{ color: theme.text.white, fontSize: '13px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Zap size={16} style={{ color: theme.accent.red }} />
               Conditions
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div data-testid="conditions-list" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {conditions.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map(condition => (
                 <div key={condition.name} style={{ 
                   padding: '6px 10px', 
