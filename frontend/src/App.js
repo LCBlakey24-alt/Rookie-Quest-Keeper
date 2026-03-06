@@ -23,7 +23,6 @@ import CharacterSheet from '@/components/CharacterSheet';
 import CharacterSheetFull from '@/components/CharacterSheetFull';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
-import SessionMode from '@/components/SessionMode';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -243,14 +242,6 @@ function App() {
               element={
                 isAuthenticated ? 
                   <CombatPage /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/campaign/:campaignId/session" 
-              element={
-                isAuthenticated ? 
-                  <SessionMode /> : 
                   <Navigate to="/auth" replace />
               } 
             />

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight, Package, Lock } from 'lucide-react';
+import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight, Package } from 'lucide-react';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import GodsTab from '@/components/tabs/GodsTab';
 import NPCsTab from '@/components/tabs/NPCsTab';
@@ -18,7 +18,6 @@ import QuickReferenceTab from '@/components/tabs/QuickReferenceTab';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsTab from '@/components/tabs/MapsTab';
 import QuickTips, { TIPS } from '@/components/QuickTips';
-import { useSubscription } from '@/hooks/useSubscription';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -54,7 +53,6 @@ function CampaignDashboard({ username, onLogout }) {
   const [activeTab, setActiveTab] = useState('setting');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
-  const { canAccess } = useSubscription();
 
   useEffect(() => {
     fetchCampaign();
@@ -310,55 +308,25 @@ function CampaignDashboard({ username, onLogout }) {
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button 
-              data-testid="open-session-mode-btn"
-              onClick={() => {
-                if (canAccess('session_mode')) {
-                  navigate(`/campaign/${campaignId}/session`);
-                } else {
-                  toast.error('Session Mode requires Quest Master tier', {
-                    description: 'Upgrade to unlock this powerful GM tool!'
-                  });
-                  navigate('/pricing');
-                }
-              }}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                background: theme.bg.card,
-                border: `1px solid ${canAccess('session_mode') ? theme.accent.red : theme.text.muted}`,
-                color: canAccess('session_mode') ? theme.accent.red : theme.text.muted,
-                fontSize: 'clamp(12px, 2vw, 14px)',
-                padding: '10px 16px',
-                minHeight: '44px',
-                fontWeight: '600'
-              }}
-            >
-              {canAccess('session_mode') ? <Swords size={18} /> : <Lock size={18} />}
-              <span className="desktop-only">Session</span>
-            </Button>
-            <Button 
-              data-testid="open-dm-screen-btn"
-              onClick={handleOpenGMScreen}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                background: theme.accent.red,
-                border: 'none',
-                color: theme.text.white,
-                fontSize: 'clamp(12px, 2vw, 14px)',
-                padding: '10px 16px',
-                minHeight: '44px',
-                fontWeight: '600'
-              }}
-            >
-              <Monitor size={18} />
-              <span className="desktop-only">Open </span>GM Screen
-            </Button>
-          </div>
+          <Button 
+            data-testid="open-dm-screen-btn"
+            onClick={handleOpenGMScreen}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              background: theme.accent.red,
+              border: 'none',
+              color: theme.text.white,
+              fontSize: 'clamp(12px, 2vw, 14px)',
+              padding: '10px 16px',
+              minHeight: '44px',
+              fontWeight: '600'
+            }}
+          >
+            <Monitor size={18} />
+            <span className="desktop-only">Open </span>GM Screen
+          </Button>
         </div>
       </div>
 
