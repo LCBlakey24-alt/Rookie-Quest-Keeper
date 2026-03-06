@@ -734,17 +734,52 @@ class CustomItemUpdate(BaseModel):
 
 # ==================== SUBSCRIPTION MODELS ====================
 
-# Subscription pricing - affordable for users going through tough times
+# Subscription pricing - three tiers
 SUBSCRIPTION_PLANS = {
-    'free': {'name': 'Free', 'price': 0.0, 'campaigns': 2, 'ai_calls_per_month': 5},
-    'adventurer': {'name': 'Adventurer', 'price': 3.99, 'campaigns': -1, 'ai_calls_per_month': -1},  # -1 = unlimited
+    'free': {
+        'name': 'Free', 
+        'price_monthly': 0.0,
+        'price_yearly': 0.0,
+        'characters': 1,  # Only 1 character
+        'campaigns': 0,   # Can join but not create
+        'ai_calls_per_month': 3,
+        'features': ['basic_character_sheet', 'dice_roller', 'join_campaigns']
+    },
+    'player': {
+        'name': 'Hero', 
+        'price_monthly': 3.99,
+        'price_yearly': 39.99,  # ~2 months free
+        'characters': -1,  # Unlimited
+        'campaigns': 0,    # Can join but not create
+        'ai_calls_per_month': 50,
+        'features': ['unlimited_characters', 'character_journal', 'party_inventory', 'session_recaps', 'portrait_ai']
+    },
+    'gm': {
+        'name': 'Quest Master', 
+        'price_monthly': 3.99,
+        'price_yearly': 39.99,  # ~2 months free
+        'characters': 1,   # Basic character access
+        'campaigns': -1,   # Unlimited campaigns
+        'ai_calls_per_month': -1,  # Unlimited
+        'features': ['unlimited_campaigns', 'world_building', 'rook_ai', 'combat_tracker', 'reference_tools', 'session_mode']
+    },
+    'legendary': {
+        'name': 'Legendary', 
+        'price_monthly': 5.99,
+        'price_yearly': 59.99,  # ~2 months free
+        'characters': -1,  # Unlimited
+        'campaigns': -1,   # Unlimited
+        'ai_calls_per_month': -1,  # Unlimited
+        'features': ['all_player_features', 'all_gm_features', 'priority_support', 'early_access']
+    },
 }
 
 class SubscriptionTier(BaseModel):
-    tier: str = 'free'
+    tier: str = 'free'  # free, player, gm, legendary
+    billing_cycle: str = 'monthly'  # monthly, yearly
     stripe_customer_id: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
-    subscription_status: str = 'active'  # active, cancelled, past_due
+    subscription_status: str = 'active'  # active, cancelled, past_due, trialing
     ai_calls_this_month: int = 0
     ai_calls_reset_date: Optional[str] = None
     promo_code_used: Optional[str] = None
@@ -754,24 +789,29 @@ class SubscriptionTier(BaseModel):
     referral_count: int = 0  # How many people they've referred
     free_months_earned: int = 0  # Months earned from referrals
     free_months_used: int = 0  # Months already consumed
-    premium_expires_at: Optional[str] = None  # When referral premium expires
+    premium_expires_at: Optional[str] = None  # When premium expires (for promo codes)
+    upgraded_from: Optional[str] = None  # Previous tier if upgraded
 
 class PromoCode(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     code: str
-    tier_granted: str = 'adventurer'
-    duration_days: int = 30  # How many days of premium the code grants (default 30 days = 1 month)
-    uses_remaining: int = -1  # -1 = unlimited
-    expires_at: Optional[str] = None  # When the code itself expires (not the premium it grants)
+    tier_granted: str = 'legendary'  # player, gm, legendary
+    duration_days: int = -1  # -1 = forever (for testers), otherwise days of access
+    uses_remaining: int = -1  # -1 = unlimited uses
+    max_uses: int = -1  # Original max uses for display (-1 = unlimited)
+    expires_at: Optional[str] = None  # When the code itself expires
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    description: Optional[str] = None  # Internal note about the code
+    is_active: bool = True  # Can be disabled without deleting
 
 class PromoCodeCreate(BaseModel):
     code: str
-    tier_granted: str = 'adventurer'
-    duration_days: int = 30  # Days of premium access granted
-    uses_remaining: int = -1
+    tier_granted: str = 'legendary'  # player, gm, legendary
+    duration_days: int = -1  # -1 = forever, otherwise days
+    uses_remaining: int = -1  # -1 = unlimited
     expires_at: Optional[str] = None
+    description: Optional[str] = None
 
 class ApplyPromoCodeRequest(BaseModel):
     code: str
@@ -1428,6 +1468,10 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
     if not promo:
         raise HTTPException(status_code=404, detail="Invalid promo code")
     
+    # Check if code is active
+    if not promo.get('is_active', True):
+        raise HTTPException(status_code=400, detail="This promo code is no longer active")
+    
     # Check if expired
     if promo.get('expires_at'):
         expires = datetime.fromisoformat(promo['expires_at'].replace('Z', '+00:00'))
@@ -1445,8 +1489,8 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
         raise HTTPException(status_code=400, detail="You have already used a promo code")
     
     # Apply promo code with duration
-    tier = promo.get('tier_granted', 'adventurer')
-    duration_days = promo.get('duration_days', 30)  # Default to 30 days if not specified
+    tier = promo.get('tier_granted', 'legendary')
+    duration_days = promo.get('duration_days', -1)  # Default to lifetime if not specified
     
     # Handle lifetime codes (-1 means no expiration)
     if duration_days == -1:
@@ -1694,30 +1738,71 @@ async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatu
 
 @api_router.get("/subscription/plans")
 async def get_subscription_plans():
-    """Get available subscription plans"""
+    """Get available subscription plans with new three-tier structure"""
     return {
         'plans': [
             {
                 'id': 'free',
                 'name': 'Free',
-                'price': 0,
+                'price_monthly': 0,
+                'price_yearly': 0,
+                'target': 'casual',
+                'color': '#808080',
                 'features': [
-                    'Up to 2 campaigns',
-                    '5 AI generations per month',
-                    'Basic DM Screen features',
-                    'Dice roller & initiative tracker'
+                    '1 character',
+                    'Join campaigns (can\'t create)',
+                    'Basic character sheet',
+                    'Dice roller',
+                    '3 AI generations per month'
                 ]
             },
             {
-                'id': 'adventurer',
-                'name': 'Adventurer',
-                'price': 3.99,
+                'id': 'player',
+                'name': 'Hero',
+                'price_monthly': 3.99,
+                'price_yearly': 39.99,
+                'target': 'player',
+                'color': '#3B82F6',
+                'features': [
+                    'Unlimited characters',
+                    'Character journal',
+                    'Party inventory',
+                    'Session recaps',
+                    'AI portrait generation',
+                    '50 AI calls per month'
+                ]
+            },
+            {
+                'id': 'gm',
+                'name': 'Quest Master',
+                'price_monthly': 3.99,
+                'price_yearly': 39.99,
+                'target': 'gm',
+                'color': '#E11D48',
                 'features': [
                     'Unlimited campaigns',
-                    'Unlimited AI generations',
-                    'All DM Screen features',
+                    'Full world building tools',
+                    'ROOK AI generation',
+                    'Combat tracker',
+                    'Reference tools',
+                    'Session mode',
+                    'Unlimited AI calls'
+                ]
+            },
+            {
+                'id': 'legendary',
+                'name': 'Legendary',
+                'price_monthly': 5.99,
+                'price_yearly': 59.99,
+                'target': 'both',
+                'color': '#F59E0B',
+                'popular': True,
+                'features': [
+                    'Everything in Hero',
+                    'Everything in Quest Master',
                     'Priority support',
-                    'Early access to new features'
+                    'Early access to features',
+                    'Unlimited everything'
                 ]
             }
         ]

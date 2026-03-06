@@ -1,10 +1,61 @@
 # Rookie Quest Keeper - Product Requirements Document
 
 ## Overview
-Rookie Quest Keeper is a comprehensive TTRPG campaign management application designed for Game Masters (GMs) to run better tabletop sessions in less time.
+Rookie Quest Keeper is a comprehensive TTRPG campaign management application designed for Game Masters (GMs) and Players to run better tabletop sessions.
 
 ## Product Vision
-An all-in-one campaign operating system for 5e Game Masters combining worldbuilding, AI content generation (ROOK), combat control, and live session tools.
+An all-in-one campaign operating system for 5e combining worldbuilding, AI content generation (ROOK), combat control, player tools, and live session features.
+
+---
+
+## Monetization (Updated March 2026)
+
+### Subscription Tiers
+
+| Tier | Monthly | Yearly | Target |
+|------|---------|--------|--------|
+| **Free** | $0 | $0 | Casual players |
+| **Hero** | $3.99 | $39.99 (~2mo free) | Serious players |
+| **Quest Master** | $3.99 | $39.99 (~2mo free) | GMs |
+| **Legendary** | $5.99 | $59.99 (~2mo free) | GM who also plays |
+
+### Feature Breakdown
+
+**Free:**
+- 1 character
+- Join campaigns (can't create)
+- Basic character sheet
+- Dice roller
+- 3 AI generations/month
+
+**Hero (Player):**
+- Unlimited characters
+- Character journal
+- Party inventory
+- Session recaps
+- AI portrait generation
+- 50 AI calls/month
+
+**Quest Master (GM):**
+- Unlimited campaigns
+- Full world building
+- ROOK AI generation
+- Combat tracker
+- Reference tools
+- Session mode
+- Unlimited AI
+
+**Legendary (Both):**
+- Everything in Hero + Quest Master
+- Priority support
+- Early access to features
+
+### Promo Codes System
+- Tiers: player, gm, legendary
+- Duration: 7 days to Forever
+- Uses: Unlimited or limited
+- Description field for internal notes
+- Existing codes (e.g., CRITICALMIND) give lifetime legendary access
 
 ---
 

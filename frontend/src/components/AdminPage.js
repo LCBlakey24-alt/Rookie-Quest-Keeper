@@ -17,14 +17,22 @@ function AdminPage({ username }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCode, setNewCode] = useState({
     code: '',
-    tier_granted: 'adventurer',
-    duration_days: 30,
-    uses_remaining: -1
+    tier_granted: 'legendary',
+    duration_days: -1,
+    uses_remaining: -1,
+    description: ''
   });
   const [stats, setStats] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isAdmin, setIsAdmin] = useState(true);
   const [activeTab, setActiveTab] = useState('promos'); // 'promos' or 'reviews'
+
+  // Tier options for promo codes
+  const tierOptions = [
+    { value: 'player', label: 'Hero (Player) - $3.99 value', color: '#3B82F6' },
+    { value: 'gm', label: 'Quest Master (GM) - $3.99 value', color: '#E11D48' },
+    { value: 'legendary', label: 'Legendary (Both) - $5.99 value', color: '#F59E0B' }
+  ];
 
   // Duration options for promo codes
   const durationOptions = [
@@ -35,7 +43,18 @@ function AdminPage({ username }) {
     { value: 90, label: '3 Months' },
     { value: 180, label: '6 Months' },
     { value: 365, label: '1 Year' },
-    { value: -1, label: 'Lifetime (No Expiry)' }
+    { value: -1, label: 'Forever (Lifetime Access)' }
+  ];
+
+  // Uses options
+  const usesOptions = [
+    { value: -1, label: 'Unlimited Uses' },
+    { value: 1, label: '1 Use (Single)' },
+    { value: 5, label: '5 Uses' },
+    { value: 10, label: '10 Uses' },
+    { value: 25, label: '25 Uses' },
+    { value: 50, label: '50 Uses' },
+    { value: 100, label: '100 Uses' }
   ];
 
   useEffect(() => {
@@ -111,10 +130,11 @@ function AdminPage({ username }) {
         code: newCode.code.toUpperCase(),
         tier_granted: newCode.tier_granted,
         duration_days: parseInt(newCode.duration_days),
-        uses_remaining: parseInt(newCode.uses_remaining)
+        uses_remaining: parseInt(newCode.uses_remaining),
+        description: newCode.description || null
       });
       toast.success(`Promo code ${newCode.code.toUpperCase()} created!`);
-      setNewCode({ code: '', tier_granted: 'adventurer', duration_days: 30, uses_remaining: -1 });
+      setNewCode({ code: '', tier_granted: 'legendary', duration_days: -1, uses_remaining: -1, description: '' });
       setShowCreateForm(false);
       fetchData();
     } catch (error) {
@@ -297,32 +317,34 @@ function AdminPage({ username }) {
           {/* Create Form */}
           {showCreateForm && (
             <form onSubmit={handleCreateCode} style={{
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '2px solid #374151',
-              borderRadius: '12px',
-              padding: '20px',
+              background: '#1A1A1A',
+              border: '1px solid rgba(255,255,255,0.1)',
+              padding: '24px',
               marginBottom: '24px'
             }}>
+              <h3 style={{ color: '#E11D48', fontSize: '16px', fontWeight: '700', marginBottom: '20px', fontFamily: 'Cityworm, sans-serif' }}>
+                Create New Promo Code
+              </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', marginBottom: '8px', fontSize: '14px' }}>
-                    Code Name
+                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
+                    Code Name *
                   </label>
                   <Input
                     value={newCode.code}
                     onChange={(e) => setNewCode({ ...newCode, code: e.target.value })}
                     placeholder="e.g., LAUNCH2024"
                     style={{
-                      background: 'rgba(0, 0, 0, 0.4)',
-                      border: '2px solid #374151',
+                      background: '#0D0D0D',
+                      border: '1px solid rgba(255,255,255,0.1)',
                       color: '#fff',
                       textTransform: 'uppercase'
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', marginBottom: '8px', fontSize: '14px' }}>
-                    Tier Granted
+                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
+                    Tier Granted *
                   </label>
                   <select
                     value={newCode.tier_granted}
@@ -330,34 +352,39 @@ function AdminPage({ username }) {
                     style={{
                       width: '100%',
                       padding: '10px 14px',
-                      borderRadius: '8px',
-                      background: 'rgba(0, 0, 0, 0.4)',
-                      border: '2px solid #374151',
+                      background: '#0D0D0D',
+                      border: '1px solid rgba(255,255,255,0.1)',
                       color: '#fff'
                     }}
                   >
-                    <option value="adventurer">Adventurer (Premium)</option>
-                    <option value="free">Free</option>
+                    {tierOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', marginBottom: '8px', fontSize: '14px' }}>
-                    Uses (-1 = unlimited)
+                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
+                    Max Uses
                   </label>
-                  <Input
-                    type="number"
+                  <select
                     value={newCode.uses_remaining}
-                    onChange={(e) => setNewCode({ ...newCode, uses_remaining: e.target.value })}
+                    onChange={(e) => setNewCode({ ...newCode, uses_remaining: parseInt(e.target.value) })}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.4)',
-                      border: '2px solid #374151',
+                      width: '100%',
+                      padding: '10px 14px',
+                      background: '#0D0D0D',
+                      border: '1px solid rgba(255,255,255,0.1)',
                       color: '#fff'
                     }}
-                  />
+                  >
+                    {usesOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', marginBottom: '8px', fontSize: '14px' }}>
-                    Duration (Premium Access Length)
+                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
+                    Duration (Access Length)
                   </label>
                   <select
                     value={newCode.duration_days}
@@ -365,9 +392,8 @@ function AdminPage({ username }) {
                     style={{
                       width: '100%',
                       padding: '10px 14px',
-                      borderRadius: '8px',
-                      background: 'rgba(0, 0, 0, 0.4)',
-                      border: '2px solid #374151',
+                      background: '#0D0D0D',
+                      border: '1px solid rgba(255,255,255,0.1)',
                       color: '#fff'
                     }}
                   >
@@ -376,96 +402,122 @@ function AdminPage({ username }) {
                     ))}
                   </select>
                 </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
+                    Description (Internal Note)
+                  </label>
+                  <Input
+                    value={newCode.description}
+                    onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
+                    placeholder="e.g., For beta testers, For influencer X"
+                    style={{
+                      background: '#0D0D0D',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff'
+                    }}
+                  />
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <Button type="submit" className="btn-primary">Create Code</Button>
-                <Button type="button" onClick={() => setShowCreateForm(false)} className="btn-secondary">Cancel</Button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                <Button type="submit" style={{ background: '#E11D48', border: 'none', color: '#fff' }}>Create Code</Button>
+                <Button type="button" onClick={() => setShowCreateForm(false)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#B3B3B3' }}>Cancel</Button>
               </div>
             </form>
           )}
 
           {/* Codes List */}
           {promoCodes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#808080' }}>
               <Key size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
               <p>No promo codes yet. Create one above!</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {promoCodes.map((code) => (
+              {promoCodes.map((code) => {
+                const tierColors = {
+                  'player': { bg: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', label: 'Hero (Player)' },
+                  'gm': { bg: 'rgba(225, 29, 72, 0.15)', color: '#E11D48', label: 'Quest Master (GM)' },
+                  'legendary': { bg: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', label: 'Legendary (Both)' },
+                  'adventurer': { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', label: 'Legacy Premium' }
+                };
+                const tierStyle = tierColors[code.tier_granted] || tierColors['legendary'];
+                
+                return (
                 <div
                   key={code.id}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '2px solid #374151',
-                    borderRadius: '10px',
-                    padding: '16px 20px',
-                    flexWrap: 'wrap',
-                    gap: '12px'
+                    background: '#1A1A1A',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '16px 20px'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{
-                      fontFamily: 'monospace',
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: '#22c55e',
-                      letterSpacing: '1px'
-                    }}>
-                      {code.code}
-                    </span>
-                    <span style={{
-                      background: code.tier_granted === 'adventurer' ? '#22c55e20' : '#4a7dff20',
-                      color: code.tier_granted === 'adventurer' ? '#22c55e' : '#4a7dff',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>
-                      {code.tier_granted}
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                      <span style={{
+                        fontFamily: 'Cityworm, monospace',
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: '#E11D48',
+                        letterSpacing: '1px'
+                      }}>
+                        {code.code}
+                      </span>
+                      <span style={{
+                        background: tierStyle.bg,
+                        color: tierStyle.color,
+                        padding: '4px 12px',
+                        fontSize: '11px',
+                        fontWeight: '600'
+                      }}>
+                        {tierStyle.label}
+                      </span>
+                      <span style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        color: '#808080',
+                        padding: '4px 10px',
+                        fontSize: '11px'
+                      }}>
+                        Uses: {code.uses_remaining === -1 ? '∞ Unlimited' : `${code.uses_remaining} left`}
+                      </span>
+                      <span style={{ 
+                        color: code.duration_days === -1 ? '#22c55e' : '#F59E0B', 
+                        fontSize: '12px',
+                        background: code.duration_days === -1 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        padding: '4px 10px'
+                      }}>
+                        {code.duration_days === -1 ? 'Forever' : 
+                         code.duration_days === 7 ? '1 Week' :
+                         code.duration_days === 14 ? '2 Weeks' :
+                         code.duration_days === 30 ? '1 Month' :
+                         code.duration_days === 60 ? '2 Months' :
+                         code.duration_days === 90 ? '3 Months' :
+                         code.duration_days === 180 ? '6 Months' :
+                         code.duration_days === 365 ? '1 Year' :
+                         `${code.duration_days || 30} Days`}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Button
+                        onClick={() => copyCode(code.code)}
+                        style={{ padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}
+                      >
+                        <Copy size={16} color="#808080" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCode(code.id)}
+                        style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.15)', border: 'none' }}
+                      >
+                        <Trash2 size={16} color="#ef4444" />
+                      </Button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '14px' }}>
-                      Uses: {code.uses_remaining === -1 ? '∞' : code.uses_remaining}
-                    </span>
-                    <span style={{ 
-                      color: '#f59e0b', 
-                      fontSize: '14px',
-                      background: '#f59e0b20',
-                      padding: '4px 10px',
-                      borderRadius: '6px'
-                    }}>
-                      {code.duration_days === -1 ? 'Lifetime' : 
-                       code.duration_days === 7 ? '1 Week' :
-                       code.duration_days === 14 ? '2 Weeks' :
-                       code.duration_days === 30 ? '1 Month' :
-                       code.duration_days === 60 ? '2 Months' :
-                       code.duration_days === 90 ? '3 Months' :
-                       code.duration_days === 180 ? '6 Months' :
-                       code.duration_days === 365 ? '1 Year' :
-                       `${code.duration_days || 30} Days`}
-                    </span>
-                    <Button
-                      onClick={() => copyCode(code.code)}
-                      className="btn-icon"
-                      style={{ padding: '8px' }}
-                    >
-                      <Copy size={16} />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteCode(code.id)}
-                      className="btn-danger"
-                      style={{ padding: '8px' }}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
+                  {code.description && (
+                    <p style={{ color: '#808080', fontSize: '12px', marginTop: '8px', fontStyle: 'italic' }}>
+                      Note: {code.description}
+                    </p>
+                  )}
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>
