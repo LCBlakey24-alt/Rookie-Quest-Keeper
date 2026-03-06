@@ -132,7 +132,7 @@ export const RQKLogoInline = ({ size = 'small' }) => {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <img src="/rook-mascot.png" alt="ROOK" style={{ height: '32px' }} />
+      <img src="/rqk-mascot.png" alt="ROOK" style={{ height: '32px' }} />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <span style={{
           fontSize: s.fontSize,

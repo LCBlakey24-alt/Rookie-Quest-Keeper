@@ -638,22 +638,21 @@ function CharacterBuilder() {
             <Card style={{
               background: aiGenerated 
                 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 211, 238, 0.1))'
-                : 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(139, 92, 246, 0.1))',
-              border: aiGenerated ? '1px solid #10B981' : '1px solid #7C3AED',
-              borderRadius: '16px'
+                : playerBlueSubtle,
+              border: aiGenerated ? '1px solid #10B981' : `1px solid ${playerBlue}`,
             }}>
               <CardContent style={{ padding: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
                   <div style={{
                     width: '48px',
                     height: '48px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+                    background: playerBlueSubtle,
+                    border: `1px solid ${playerBlue}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}>
-                    <Wand2 size={24} color="#fff" />
+                    <Wand2 size={24} color={playerBlue} />
                   </div>
                   <div>
                     <h3 style={{ 
@@ -680,8 +679,7 @@ function CharacterBuilder() {
                     minHeight: '120px',
                     padding: '14px',
                     background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(124, 58, 237, 0.3)',
-                    borderRadius: '12px',
+                    border: `1px solid ${playerBlue}40`,
                     color: '#E5E7EB',
                     fontSize: '14px',
                     resize: 'none',
@@ -699,10 +697,9 @@ function CharacterBuilder() {
                         onClick={() => setAiPrompt(s)}
                         style={{
                           padding: '5px 10px',
-                          background: 'rgba(124, 58, 237, 0.15)',
-                          border: '1px solid rgba(124, 58, 237, 0.3)',
-                          borderRadius: '16px',
-                          color: '#C4B5FD',
+                          background: playerBlueSubtle,
+                          border: `1px solid ${playerBlue}50`,
+                          color: playerBlueHover,
                           fontSize: '11px',
                           cursor: 'pointer'
                         }}
@@ -720,9 +717,8 @@ function CharacterBuilder() {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    background: aiGenerating ? 'rgba(124, 58, 237, 0.5)' : 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+                    background: aiGenerating ? 'rgba(59, 130, 246, 0.5)' : playerBlue,
                     border: 'none',
-                    borderRadius: '10px',
                     color: '#fff',
                     fontWeight: '700',
                     fontSize: '15px',
@@ -1163,9 +1159,8 @@ function CharacterBuilder() {
                   gap: '32px', 
                   marginTop: '24px',
                   padding: '20px',
-                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(34, 211, 238, 0.1))',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(124, 58, 237, 0.2)'
+                  background: playerBlueSubtle,
+                  border: `1px solid ${playerBlue}30`
                 }}>
                   <div style={{ textAlign: 'center' }}>
                     <Heart size={24} style={{ color: '#EF4444', marginBottom: '4px' }} />
@@ -1429,10 +1424,10 @@ function CharacterBuilder() {
             </Card>
 
             {/* Portrait Panel */}
-            <Card style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: '16px', height: 'fit-content' }}>
+            <Card style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', height: 'fit-content' }}>
               <CardContent style={{ padding: '24px' }}>
                 <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Image size={18} style={{ color: '#7C3AED' }} />
+                  <Image size={18} style={{ color: playerBlue }} />
                   Portrait
                 </h3>
 
@@ -1440,9 +1435,8 @@ function CharacterBuilder() {
                 <div style={{
                   width: '100%',
                   aspectRatio: '1',
-                  background: portraitImage ? 'transparent' : 'rgba(124, 58, 237, 0.1)',
-                  border: '2px dashed #374151',
-                  borderRadius: '12px',
+                  background: portraitImage ? 'transparent' : playerBlueSubtle,
+                  border: `1px dashed ${playerBlue}50`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1453,7 +1447,7 @@ function CharacterBuilder() {
                     <img 
                       src={portraitImage} 
                       alt="Character portrait"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
                     <User size={48} style={{ color: '#374151' }} />
@@ -1469,10 +1463,9 @@ function CharacterBuilder() {
                       style={{
                         flex: 1,
                         padding: '8px',
-                        borderRadius: '6px',
-                        border: gender === g ? '1px solid #7C3AED' : '1px solid #374151',
-                        background: gender === g ? 'rgba(124, 58, 237, 0.2)' : 'transparent',
-                        color: gender === g ? '#C4B5FD' : '#9CA3AF',
+                        border: gender === g ? `1px solid ${playerBlue}` : '1px solid rgba(255,255,255,0.1)',
+                        background: gender === g ? playerBlueSubtle : 'transparent',
+                        color: gender === g ? playerBlueHover : '#9CA3AF',
                         fontSize: '11px',
                         fontWeight: '600',
                         cursor: 'pointer',
@@ -1490,9 +1483,8 @@ function CharacterBuilder() {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: portraitGenerating ? 'rgba(124, 58, 237, 0.5)' : 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+                    background: portraitGenerating ? 'rgba(59, 130, 246, 0.5)' : playerBlue,
                     border: 'none',
-                    borderRadius: '8px',
                     color: '#fff',
                     fontWeight: '600',
                     fontSize: '13px',

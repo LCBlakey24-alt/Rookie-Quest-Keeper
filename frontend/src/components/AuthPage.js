@@ -183,7 +183,7 @@ function AuthPage({ onLogin }) {
       }}>
         {/* ROOK Mascot */}
         <img 
-          src="/rook-mascot.png" 
+          src="/rqk-mascot.png" 
           alt="ROOK" 
           className="animate-float"
           style={{ 

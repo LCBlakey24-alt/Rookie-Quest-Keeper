@@ -73,23 +73,23 @@ export const RookDemo = () => {
       {/* Header */}
       <div style={{
         padding: '16px 20px',
-        background: 'linear-gradient(90deg, rgba(34, 211, 238, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
-        borderBottom: '1px solid rgba(34, 211, 238, 0.2)',
+        background: 'rgba(225, 29, 72, 0.1)',
+        borderBottom: '1px solid rgba(225, 29, 72, 0.3)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px'
       }}>
-        <img src="/rook-mascot.png" alt="ROOK" style={{ height: '32px' }} />
+        <img src="/rqk-mascot.png" alt="ROOK" style={{ height: '32px' }} />
         <div>
           <div style={{ 
-            color: '#22D3EE', 
+            color: '#E11D48', 
             fontWeight: '700', 
             fontSize: '16px',
-            fontFamily: 'Montserrat, sans-serif'
+            fontFamily: 'Cityworm, sans-serif'
           }}>
             ROOK
           </div>
-          <div style={{ color: '#64748b', fontSize: '11px' }}>AI Assistant</div>
+          <div style={{ color: '#808080', fontSize: '11px' }}>AI Assistant</div>
         </div>
         <div style={{ 
           marginLeft: 'auto',
@@ -218,13 +218,13 @@ export const RookDemo = () => {
               <div style={{
                 width: '48px',
                 height: '48px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                background: 'rgba(225, 29, 72, 0.15)',
+                border: '1px solid #E11D48',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <User size={24} color="#fff" />
+                <User size={24} color="#E11D48" />
               </div>
               <div>
                 <div style={{ color: '#ffffff', fontWeight: '700', fontSize: '16px' }}>

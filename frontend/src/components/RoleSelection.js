@@ -104,19 +104,19 @@ function RoleSelection({ username, onLogout }) {
               <div style={{
                 width: '80px',
                 height: '80px',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)',
-                borderRadius: '20px',
+                background: 'rgba(225, 29, 72, 0.15)',
+                border: '2px solid #E11D48',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '16px',
-                boxShadow: '0 0 30px rgba(124, 58, 237, 0.5)'
+                boxShadow: '0 0 30px rgba(225, 29, 72, 0.3)'
               }}>
-                <Crown size={40} color="#ffffff" />
+                <Crown size={40} color="#E11D48" />
               </div>
               <CardTitle style={{
                 fontSize: '28px',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '800',
                 color: '#ffffff'
               }}>
@@ -170,14 +170,13 @@ function RoleSelection({ username, onLogout }) {
             </CardContent>
           </Card>
 
-          {/* Player Card */}
+          {/* Player Card - Uses BLUE theme */}
           <Card 
             data-testid="player-role-card"
             onClick={() => navigate('/player')}
             style={{
-              background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%)',
-              border: '2px solid rgba(34, 211, 238, 0.3)',
-              borderRadius: '20px',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '2px solid rgba(59, 130, 246, 0.3)',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               overflow: 'hidden'
@@ -188,19 +187,19 @@ function RoleSelection({ username, onLogout }) {
               <div style={{
                 width: '80px',
                 height: '80px',
-                background: 'linear-gradient(135deg, #22D3EE 0%, #10B981 100%)',
-                borderRadius: '20px',
+                background: 'rgba(59, 130, 246, 0.15)',
+                border: '2px solid #3B82F6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '16px',
-                boxShadow: '0 0 30px rgba(34, 211, 238, 0.5)'
+                boxShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
               }}>
-                <User size={40} color="#ffffff" />
+                <User size={40} color="#3B82F6" />
               </div>
               <CardTitle style={{
                 fontSize: '28px',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '800',
                 color: '#ffffff'
               }}>
@@ -246,14 +245,13 @@ function RoleSelection({ username, onLogout }) {
                   width: '100%', 
                   padding: '14px',
                   fontSize: '16px',
-                  background: 'linear-gradient(135deg, #22D3EE 0%, #10B981 100%)',
+                  background: '#3B82F6',
                   border: 'none',
-                  borderRadius: '10px',
                   color: '#ffffff',
                   fontWeight: '700',
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(34, 211, 238, 0.4)'
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
                 }}
               >
                 Enter as Player

@@ -7,7 +7,7 @@ import React from 'react';
 export const RookIcon = ({ size = 24, className = '', style = {} }) => {
   return (
     <img 
-      src="/rook-mascot.png" 
+      src="/rqk-mascot.png" 
       alt="ROOK AI"
       width={size}
       height={size}

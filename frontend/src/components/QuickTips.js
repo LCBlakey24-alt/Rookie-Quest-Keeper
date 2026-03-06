@@ -152,7 +152,7 @@ export const TIPS = {
     { highlight: 'Create Campaign:', text: 'Click "+ NEW CAMPAIGN" to start your adventure!' },
     { highlight: 'Manage:', text: 'Click "MANAGE" to access all your campaign tools - NPCs, locations, combat, and more.' },
     { highlight: 'GM Screen:', text: 'Inside a campaign, click "Open GM Screen" for live session tools.' },
-    { highlight: 'Dice Roller:', text: 'The purple dice button (bottom right) is available on every page!' },
+    { highlight: 'Dice Roller:', text: 'The red dice button (bottom left) is available on every page! Press R to toggle.' },
   ],
   campaignDashboard: [
     { highlight: 'Setting:', text: 'Define your world\'s tone, theme, and core details.' },

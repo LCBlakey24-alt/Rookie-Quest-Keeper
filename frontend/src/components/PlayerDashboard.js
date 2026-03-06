@@ -121,7 +121,7 @@ function PlayerDashboard({ username, onLogout }) {
       'Sorcerer': '#7C3AED',
       'Warlock': '#6366F1'
     };
-    return colors[charClass] || '#7C3AED';
+    return colors[charClass] || playerTheme.primary;
   };
 
   if (loading) {
@@ -353,18 +353,17 @@ function PlayerDashboard({ username, onLogout }) {
                 data-testid="join-campaign-btn"
                 style={{
                   padding: '20px',
-                  background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)',
+                  background: playerTheme.primary,
                   border: 'none',
-                  borderRadius: '14px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                   color: '#ffffff',
                   fontWeight: '700',
                   fontSize: '16px',
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(124, 58, 237, 0.4)'
+                  boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
                 }}
               >
                 <Link size={24} />
@@ -597,7 +596,7 @@ function PlayerDashboard({ username, onLogout }) {
               alignItems: 'center',
               gap: '12px'
             }}>
-              <BookOpen size={24} style={{ color: '#7C3AED' }} />
+              <BookOpen size={24} style={{ color: playerTheme.primary }} />
               My Campaigns
               <span style={{ 
                 fontSize: '14px', 
@@ -611,9 +610,8 @@ function PlayerDashboard({ username, onLogout }) {
 
           {joinedCampaigns.length === 0 ? (
             <Card style={{
-              background: '#111827',
-              border: '2px dashed #1F2937',
-              borderRadius: '16px',
+              background: playerTheme.card,
+              border: `1px dashed ${playerTheme.border}`,
               padding: '48px',
               textAlign: 'center'
             }}>
@@ -656,13 +654,13 @@ function PlayerDashboard({ username, onLogout }) {
                   }}
                 >
                   <div style={{
-                    height: '8px',
-                    background: 'linear-gradient(90deg, #7C3AED, #8B5CF6)'
+                    height: '4px',
+                    background: playerTheme.primary
                   }} />
                   <CardContent style={{ padding: '20px' }}>
                     <h3 style={{
                       fontSize: '18px',
-                      fontFamily: 'Montserrat, sans-serif',
+                      fontFamily: 'Cityworm, sans-serif',
                       fontWeight: '700',
                       color: '#ffffff',
                       marginBottom: '8px'
