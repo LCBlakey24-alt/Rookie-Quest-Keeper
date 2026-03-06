@@ -5,27 +5,39 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
   User, Crown, Plus, ChevronRight, Star, Link2, Settings,
-  Users, MapPin, LogOut, Shield
+  Users, MapPin, LogOut, Shield, Sword
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Dark Minimalist Theme - NEW #E11D48
+// Dual Tron Theme - Split Design
 const theme = {
   bg: {
     black: '#0D0D0D',
     dark: '#141414',
     panel: '#1A1A1A',
     card: '#1F1F1F',
-    hover: '#2A2A2A',
-    elevated: '#333333'
+    hover: '#2A2A2A'
   },
-  accent: {
-    red: '#E11D48',
-    redHover: '#F43F5E',
-    redSubtle: 'rgba(225, 29, 72, 0.15)',
-    redBorder: 'rgba(225, 29, 72, 0.4)'
+  // Tron Legacy - Player Side (Blue/Cyan)
+  player: {
+    primary: '#3B82F6',
+    cyan: '#06B6D4',
+    hover: '#60A5FA',
+    subtle: 'rgba(59, 130, 246, 0.08)',
+    border: 'rgba(6, 182, 212, 0.3)',
+    glow: '0 0 40px rgba(6, 182, 212, 0.15)',
+    gradient: 'linear-gradient(180deg, rgba(6, 182, 212, 0.1) 0%, transparent 100%)'
+  },
+  // Tron Aries - GM Side (Red/Orange)
+  gm: {
+    primary: '#E11D48',
+    hover: '#F43F5E',
+    subtle: 'rgba(225, 29, 72, 0.08)',
+    border: 'rgba(225, 29, 72, 0.3)',
+    glow: '0 0 40px rgba(225, 29, 72, 0.15)',
+    gradient: 'linear-gradient(180deg, rgba(225, 29, 72, 0.1) 0%, transparent 100%)'
   },
   text: {
     white: '#FFFFFF',
@@ -53,7 +65,6 @@ function UnifiedDashboard({ username, onLogout }) {
   }, []);
 
   useEffect(() => {
-    // Check if user is admin
     const adminUsers = ['rookiequestadmin', 'criticalfusion', 'admin'];
     setIsAdmin(adminUsers.some(admin => username?.toLowerCase().includes(admin)));
   }, [username]);
@@ -142,32 +153,34 @@ function UnifiedDashboard({ username, onLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <h1 style={{
             fontWeight: '700',
-            fontSize: '24px',
+            fontSize: '20px',
             color: theme.text.white,
-            margin: 0
+            margin: 0,
+            fontFamily: 'Cityworm, sans-serif',
+            letterSpacing: '2px'
           }}>
             ROOKIE QUEST KEEPER
           </h1>
           <span style={{ 
             color: theme.text.muted, 
-            fontSize: '14px',
+            fontSize: '13px',
             borderLeft: `1px solid ${theme.border}`,
             paddingLeft: '16px'
           }}>
-            Welcome, {username}
+            Welcome, <span style={{ color: theme.text.white }}>{username}</span>
           </span>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {/* Admin Button - Only for admins */}
           {isAdmin && (
             <Button
               onClick={() => navigate('/admin')}
               data-testid="admin-btn"
               style={{
-                background: theme.accent.redSubtle,
-                border: `1px solid ${theme.accent.red}`,
-                color: theme.accent.red,
+                background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(6, 182, 212, 0.2))',
+                border: '1px solid',
+                borderImage: 'linear-gradient(135deg, #E11D48, #06B6D4) 1',
+                color: theme.text.white,
                 padding: '8px 16px',
                 display: 'flex',
                 alignItems: 'center',
@@ -180,14 +193,13 @@ function UnifiedDashboard({ username, onLogout }) {
             </Button>
           )}
 
-          {/* Review Button */}
           <Button
             onClick={() => setShowReviewModal(true)}
             data-testid="review-btn"
             style={{
               background: 'transparent',
               border: `1px solid ${theme.border}`,
-              color: theme.text.secondary,
+              color: theme.text.muted,
               padding: '8px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -198,14 +210,13 @@ function UnifiedDashboard({ username, onLogout }) {
             Review
           </Button>
 
-          {/* Referral Button */}
           <Button
             onClick={() => setShowReferralModal(true)}
             data-testid="referral-btn"
             style={{
               background: 'transparent',
               border: `1px solid ${theme.border}`,
-              color: theme.text.secondary,
+              color: theme.text.muted,
               padding: '8px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -216,7 +227,6 @@ function UnifiedDashboard({ username, onLogout }) {
             Referral
           </Button>
 
-          {/* Settings */}
           <Button
             onClick={() => navigate('/account')}
             style={{
@@ -226,10 +236,9 @@ function UnifiedDashboard({ username, onLogout }) {
               color: theme.text.muted
             }}
           >
-            <Settings size={20} />
+            <Settings size={18} />
           </Button>
 
-          {/* Logout */}
           <Button
             onClick={onLogout}
             style={{
@@ -239,251 +248,348 @@ function UnifiedDashboard({ username, onLogout }) {
               color: theme.text.muted
             }}
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
           </Button>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Content - Split Design */}
       <div style={{
         flex: 1,
         display: 'grid',
-        gridTemplateColumns: '1fr 1px 1fr',
-        padding: '32px',
-        gap: '0'
+        gridTemplateColumns: '1fr 1fr',
+        minHeight: 'calc(100vh - 70px)'
       }}>
-        {/* LEFT: Characters */}
-        <div style={{ padding: '0 32px 0 0' }}>
+        {/* LEFT: Characters - Tron Legacy BLUE */}
+        <div style={{ 
+          background: theme.player.subtle,
+          borderRight: `1px solid ${theme.player.border}`,
+          padding: '32px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Glow effect */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{
-              fontWeight: '700',
-              fontSize: '18px',
-              color: theme.text.white,
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <User size={20} color={theme.accent.red} />
-              MY CHARACTERS
-            </h2>
-            <Button
-              onClick={() => navigate('/character-builder')}
-              data-testid="new-character-btn"
-              style={{
-                background: theme.accent.red,
-                border: 'none',
-                color: theme.text.white,
-                padding: '10px 20px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <Plus size={18} />
-              New Character
-            </Button>
-          </div>
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '200px',
+            background: theme.player.gradient,
+            pointerEvents: 'none'
+          }} />
+          
+          {/* Vertical accent line */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '2px',
+            height: '100%',
+            background: `linear-gradient(180deg, ${theme.player.cyan}, transparent)`,
+            boxShadow: theme.player.glow
+          }} />
 
-          {/* Character List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {characters.length === 0 ? (
-              <div style={{
-                background: theme.bg.card,
-                border: `1px solid ${theme.border}`,
-                padding: '40px',
-                textAlign: 'center'
-              }}>
-                <User size={48} style={{ color: theme.text.muted, marginBottom: '16px' }} />
-                <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '16px' }}>
-                  No Characters Yet
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '32px'
+            }}>
+              <div>
+                <h2 style={{
+                  fontWeight: '700',
+                  fontSize: '14px',
+                  color: theme.player.cyan,
+                  margin: '0 0 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontFamily: 'Cityworm, sans-serif',
+                  letterSpacing: '2px'
+                }}>
+                  <User size={18} />
+                  PLAYER SIDE
+                </h2>
+                <h3 style={{
+                  fontWeight: '700',
+                  fontSize: '24px',
+                  color: theme.text.white,
+                  margin: 0
+                }}>
+                  My Characters
                 </h3>
-                <p style={{ color: theme.text.muted, margin: '0 0 20px', fontSize: '14px' }}>
-                  Create your first character to join campaigns
-                </p>
-                <Button
-                  onClick={() => navigate('/character-builder')}
-                  style={{
-                    background: theme.accent.red,
-                    border: 'none',
-                    padding: '12px 24px',
-                    color: theme.text.white
-                  }}
-                >
-                  Create Character
-                </Button>
               </div>
-            ) : (
-              characters.map(char => (
-                <div
-                  key={char.id}
-                  onClick={() => navigate(`/characters/${char.id}`)}
-                  data-testid={`character-${char.id}`}
-                  style={{
-                    background: theme.bg.card,
-                    border: `1px solid ${theme.border}`,
-                    borderLeft: `3px solid ${theme.accent.red}`,
-                    padding: '16px 20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = theme.bg.hover;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = theme.bg.card;
-                  }}
-                >
-                  <div>
-                    <h3 style={{ 
-                      color: theme.text.white, 
-                      margin: '0 0 4px', 
-                      fontSize: '16px',
+              <Button
+                onClick={() => navigate('/characters/new')}
+                data-testid="new-character-btn"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.cyan})`,
+                  border: 'none',
+                  color: '#fff',
+                  padding: '12px 24px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: theme.player.glow
+                }}
+              >
+                <Plus size={18} />
+                New Character
+              </Button>
+            </div>
+
+            {/* Character List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {characters.length === 0 ? (
+                <div style={{
+                  background: theme.bg.card,
+                  border: `1px solid ${theme.player.border}`,
+                  padding: '60px 40px',
+                  textAlign: 'center'
+                }}>
+                  <User size={56} style={{ color: theme.player.cyan, marginBottom: '20px', opacity: 0.5 }} />
+                  <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '18px' }}>
+                    No Characters Yet
+                  </h3>
+                  <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
+                    Create your first character to join campaigns
+                  </p>
+                  <Button
+                    onClick={() => navigate('/characters/new')}
+                    style={{
+                      background: theme.player.primary,
+                      border: 'none',
+                      padding: '14px 28px',
+                      color: '#fff',
                       fontWeight: '600'
-                    }}>
-                      {char.name}
-                    </h3>
-                    <p style={{ color: theme.text.secondary, margin: 0, fontSize: '13px' }}>
-                      Level {char.level} {char.race} {char.character_class}
-                    </p>
-                  </div>
-                  <ChevronRight size={20} style={{ color: theme.accent.red }} />
+                    }}
+                  >
+                    Create Character
+                  </Button>
                 </div>
-              ))
-            )}
+              ) : (
+                characters.map(char => (
+                  <div
+                    key={char.id}
+                    onClick={() => navigate(`/characters/${char.id}`)}
+                    data-testid={`character-${char.id}`}
+                    style={{
+                      background: theme.bg.card,
+                      border: `1px solid ${theme.player.border}`,
+                      borderLeft: `3px solid ${theme.player.cyan}`,
+                      padding: '20px 24px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = theme.bg.hover;
+                      e.currentTarget.style.borderColor = theme.player.cyan;
+                      e.currentTarget.style.boxShadow = theme.player.glow;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = theme.bg.card;
+                      e.currentTarget.style.borderColor = theme.player.border;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div>
+                      <h3 style={{ 
+                        color: theme.text.white, 
+                        margin: '0 0 6px', 
+                        fontSize: '18px',
+                        fontWeight: '600'
+                      }}>
+                        {char.name}
+                      </h3>
+                      <p style={{ 
+                        color: theme.player.cyan, 
+                        margin: 0, 
+                        fontSize: '13px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        Level {char.level} {char.race} {char.character_class}
+                      </p>
+                    </div>
+                    <ChevronRight size={24} style={{ color: theme.player.cyan }} />
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div style={{ background: theme.border, width: '1px' }} />
-
-        {/* RIGHT: Campaigns */}
-        <div style={{ padding: '0 0 0 32px' }}>
+        {/* RIGHT: Campaigns - Tron Aries RED */}
+        <div style={{ 
+          background: theme.gm.subtle,
+          padding: '32px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Glow effect */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{
-              fontWeight: '700',
-              fontSize: '18px',
-              color: theme.text.white,
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <Crown size={20} color={theme.accent.red} />
-              MY CAMPAIGNS
-            </h2>
-            <Button
-              onClick={() => navigate('/campaigns?create=true')}
-              data-testid="new-campaign-btn"
-              style={{
-                background: theme.accent.red,
-                border: 'none',
-                color: theme.text.white,
-                padding: '10px 20px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <Plus size={18} />
-              New Campaign
-            </Button>
-          </div>
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '200px',
+            background: theme.gm.gradient,
+            pointerEvents: 'none'
+          }} />
+          
+          {/* Vertical accent line */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '2px',
+            height: '100%',
+            background: `linear-gradient(180deg, ${theme.gm.primary}, transparent)`,
+            boxShadow: theme.gm.glow
+          }} />
 
-          {/* Campaign List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {campaigns.length === 0 ? (
-              <div style={{
-                background: theme.bg.card,
-                border: `1px solid ${theme.border}`,
-                padding: '40px',
-                textAlign: 'center'
-              }}>
-                <Crown size={48} style={{ color: theme.text.muted, marginBottom: '16px' }} />
-                <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '16px' }}>
-                  No Campaigns Yet
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '32px'
+            }}>
+              <div>
+                <h2 style={{
+                  fontWeight: '700',
+                  fontSize: '14px',
+                  color: theme.gm.primary,
+                  margin: '0 0 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontFamily: 'Cityworm, sans-serif',
+                  letterSpacing: '2px'
+                }}>
+                  <Sword size={18} />
+                  GM SIDE
+                </h2>
+                <h3 style={{
+                  fontWeight: '700',
+                  fontSize: '24px',
+                  color: theme.text.white,
+                  margin: 0
+                }}>
+                  My Campaigns
                 </h3>
-                <p style={{ color: theme.text.muted, margin: '0 0 20px', fontSize: '14px' }}>
-                  Create your first campaign to start GMing
-                </p>
-                <Button
-                  onClick={() => navigate('/campaigns/new')}
-                  style={{
-                    background: theme.accent.red,
-                    border: 'none',
-                    padding: '12px 24px',
-                    color: theme.text.white
-                  }}
-                >
-                  Create Campaign
-                </Button>
               </div>
-            ) : (
-              campaigns.map(campaign => (
-                <div
-                  key={campaign.id}
-                  onClick={() => navigate(`/campaign/${campaign.id}`)}
-                  data-testid={`campaign-${campaign.id}`}
-                  style={{
-                    background: theme.bg.card,
-                    border: `1px solid ${theme.border}`,
-                    borderLeft: `3px solid ${theme.accent.red}`,
-                    padding: '16px 20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = theme.bg.hover;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = theme.bg.card;
-                  }}
-                >
-                  <div>
-                    <h3 style={{ 
-                      color: theme.text.white, 
-                      margin: '0 0 4px', 
-                      fontSize: '16px',
+              <Button
+                onClick={() => navigate('/campaigns?create=true')}
+                data-testid="new-campaign-btn"
+                style={{
+                  background: theme.gm.primary,
+                  border: 'none',
+                  color: '#fff',
+                  padding: '12px 24px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: theme.gm.glow
+                }}
+              >
+                <Plus size={18} />
+                New Campaign
+              </Button>
+            </div>
+
+            {/* Campaign List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {campaigns.length === 0 ? (
+                <div style={{
+                  background: theme.bg.card,
+                  border: `1px solid ${theme.gm.border}`,
+                  padding: '60px 40px',
+                  textAlign: 'center'
+                }}>
+                  <Crown size={56} style={{ color: theme.gm.primary, marginBottom: '20px', opacity: 0.5 }} />
+                  <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '18px' }}>
+                    No Campaigns Yet
+                  </h3>
+                  <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
+                    Create your first campaign to start GMing
+                  </p>
+                  <Button
+                    onClick={() => navigate('/campaigns/new')}
+                    style={{
+                      background: theme.gm.primary,
+                      border: 'none',
+                      padding: '14px 28px',
+                      color: '#fff',
                       fontWeight: '600'
-                    }}>
-                      {campaign.name}
-                    </h3>
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '16px',
-                      color: theme.text.secondary, 
-                      fontSize: '13px' 
-                    }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Users size={12} /> {campaign.player_count || 0} players
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <MapPin size={12} /> {campaign.setting || 'Fantasy'}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight size={20} style={{ color: theme.accent.red }} />
+                    }}
+                  >
+                    Create Campaign
+                  </Button>
                 </div>
-              ))
-            )}
+              ) : (
+                campaigns.map(campaign => (
+                  <div
+                    key={campaign.id}
+                    onClick={() => navigate(`/campaign/${campaign.id}`)}
+                    data-testid={`campaign-${campaign.id}`}
+                    style={{
+                      background: theme.bg.card,
+                      border: `1px solid ${theme.gm.border}`,
+                      borderLeft: `3px solid ${theme.gm.primary}`,
+                      padding: '20px 24px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = theme.bg.hover;
+                      e.currentTarget.style.borderColor = theme.gm.primary;
+                      e.currentTarget.style.boxShadow = theme.gm.glow;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = theme.bg.card;
+                      e.currentTarget.style.borderColor = theme.gm.border;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div>
+                      <h3 style={{ 
+                        color: theme.text.white, 
+                        margin: '0 0 6px', 
+                        fontSize: '18px',
+                        fontWeight: '600'
+                      }}>
+                        {campaign.name}
+                      </h3>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '16px',
+                        color: theme.gm.primary, 
+                        fontSize: '13px' 
+                      }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Users size={12} /> {campaign.player_count || 0} players
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={12} /> {campaign.setting || 'Fantasy'}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight size={24} style={{ color: theme.gm.primary }} />
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -493,7 +599,7 @@ function UnifiedDashboard({ username, onLogout }) {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'rgba(0, 0, 0, 0.85)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -507,7 +613,7 @@ function UnifiedDashboard({ username, onLogout }) {
               border: `1px solid ${theme.border}`,
               padding: '32px',
               width: '100%',
-              maxWidth: '400px'
+              maxWidth: '420px'
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -523,7 +629,6 @@ function UnifiedDashboard({ username, onLogout }) {
               How would you rate your experience?
             </p>
 
-            {/* Star Rating */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5].map(star => (
                 <button
@@ -533,11 +638,14 @@ function UnifiedDashboard({ username, onLogout }) {
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '4px'
+                    padding: '4px',
+                    transition: 'transform 0.1s'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   <Star 
-                    size={32} 
+                    size={36} 
                     fill={star <= reviewRating ? '#F59E0B' : 'transparent'}
                     color={star <= reviewRating ? '#F59E0B' : theme.text.muted}
                   />
@@ -545,7 +653,6 @@ function UnifiedDashboard({ username, onLogout }) {
               ))}
             </div>
 
-            {/* Review Text */}
             <textarea
               value={reviewText}
               onChange={e => setReviewText(e.target.value)}
@@ -570,7 +677,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   flex: 1,
                   background: 'transparent',
                   border: `1px solid ${theme.border}`,
-                  color: theme.text.secondary,
+                  color: theme.text.muted,
                   padding: '12px'
                 }}
               >
@@ -581,10 +688,11 @@ function UnifiedDashboard({ username, onLogout }) {
                 disabled={submittingReview}
                 style={{
                   flex: 1,
-                  background: theme.accent.red,
+                  background: 'linear-gradient(135deg, #E11D48, #06B6D4)',
                   border: 'none',
-                  color: theme.text.white,
-                  padding: '12px'
+                  color: '#fff',
+                  padding: '12px',
+                  fontWeight: '600'
                 }}
               >
                 {submittingReview ? 'Submitting...' : 'Submit'}
@@ -599,7 +707,7 @@ function UnifiedDashboard({ username, onLogout }) {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'rgba(0, 0, 0, 0.85)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -613,7 +721,7 @@ function UnifiedDashboard({ username, onLogout }) {
               border: `1px solid ${theme.border}`,
               padding: '32px',
               width: '100%',
-              maxWidth: '400px'
+              maxWidth: '420px'
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -632,14 +740,17 @@ function UnifiedDashboard({ username, onLogout }) {
             <div style={{
               background: theme.bg.dark,
               border: `1px solid ${theme.border}`,
-              padding: '16px',
+              padding: '20px',
               marginBottom: '20px',
               textAlign: 'center'
             }}>
               <code style={{ 
-                color: theme.accent.red, 
-                fontSize: '16px',
-                fontWeight: '600'
+                background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontSize: '18px',
+                fontWeight: '700',
+                letterSpacing: '2px'
               }}>
                 {referralCode || 'Loading...'}
               </code>
@@ -649,14 +760,18 @@ function UnifiedDashboard({ username, onLogout }) {
               onClick={copyReferralCode}
               style={{
                 width: '100%',
-                background: theme.accent.red,
+                background: 'linear-gradient(135deg, #E11D48, #06B6D4)',
                 border: 'none',
-                color: theme.text.white,
-                padding: '12px',
-                fontWeight: '600'
+                color: '#fff',
+                padding: '14px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
-              <Link2 size={16} style={{ marginRight: '8px' }} />
+              <Link2 size={18} />
               Copy Referral Link
             </Button>
           </div>

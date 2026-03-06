@@ -358,11 +358,12 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 ---
 
 ## Next Steps
-1. Party Inventory (Hero Tier Feature) - shared loot tracking
-2. Landing Page Enhancements - social proof, player invites, quick start templates
-3. Session Recap AI (Quest Master Tier) - AI-powered session summaries
-4. Smart Entity Linking - auto-link NPC names, locations in notes
-5. Mobile Responsiveness Audit - GM Screen for tablets, Character Sheet for mobile
+1. Complete frontend UI for the Level-Up Wizard using the new progression API
+2. Party Inventory (Hero Tier Feature) - shared loot tracking
+3. Landing Page Enhancements - social proof, player invites, quick start templates
+4. Session Recap AI (Quest Master Tier) - AI-powered session summaries
+5. Smart Entity Linking - auto-link NPC names, locations in notes
+6. Mobile Responsiveness Audit - GM Screen for tablets, Character Sheet for mobile
 
 ---
 

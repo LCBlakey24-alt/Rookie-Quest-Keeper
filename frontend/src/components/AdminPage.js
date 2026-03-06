@@ -4,10 +4,47 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Plus, Trash2, Copy, Users, Gift, Shield, Key, Star, Check, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Users, Gift, Shield, Key, Star, Check, X, Sword, User } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Dual Tron Theme - Aries (Red) + Legacy (Blue)
+const theme = {
+  bg: {
+    black: '#0D0D0D',
+    dark: '#141414',
+    panel: '#1A1A1A',
+    card: '#1F1F1F',
+    hover: '#2A2A2A'
+  },
+  gm: {
+    primary: '#E11D48',
+    hover: '#F43F5E',
+    subtle: 'rgba(225, 29, 72, 0.15)',
+    border: 'rgba(225, 29, 72, 0.4)',
+    glow: '0 0 20px rgba(225, 29, 72, 0.3)'
+  },
+  player: {
+    primary: '#3B82F6',
+    cyan: '#06B6D4',
+    hover: '#60A5FA',
+    subtle: 'rgba(59, 130, 246, 0.15)',
+    border: 'rgba(59, 130, 246, 0.4)',
+    glow: '0 0 20px rgba(6, 182, 212, 0.3)'
+  },
+  legendary: {
+    primary: '#F59E0B',
+    subtle: 'rgba(245, 158, 11, 0.15)',
+    border: 'rgba(245, 158, 11, 0.4)'
+  },
+  text: {
+    white: '#FFFFFF',
+    secondary: '#B3B3B3',
+    muted: '#808080'
+  },
+  border: 'rgba(255, 255, 255, 0.1)'
+};
 
 function AdminPage({ username }) {
   const navigate = useNavigate();
@@ -25,16 +62,14 @@ function AdminPage({ username }) {
   const [stats, setStats] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isAdmin, setIsAdmin] = useState(true);
-  const [activeTab, setActiveTab] = useState('promos'); // 'promos' or 'reviews'
+  const [activeTab, setActiveTab] = useState('promos');
 
-  // Tier options for promo codes
   const tierOptions = [
-    { value: 'player', label: 'Hero (Player) - $3.99 value', color: '#3B82F6' },
-    { value: 'gm', label: 'Quest Master (GM) - $3.99 value', color: '#E11D48' },
-    { value: 'legendary', label: 'Legendary (Both) - $5.99 value', color: '#F59E0B' }
+    { value: 'player', label: 'Hero (Player) - £3.99 value', color: theme.player.primary, icon: User },
+    { value: 'gm', label: 'Quest Master (GM) - £3.99 value', color: theme.gm.primary, icon: Sword },
+    { value: 'legendary', label: 'Legendary (Both) - £5.99 value', color: theme.legendary.primary, icon: Star }
   ];
 
-  // Duration options for promo codes
   const durationOptions = [
     { value: 7, label: '1 Week' },
     { value: 14, label: '2 Weeks' },
@@ -46,7 +81,6 @@ function AdminPage({ username }) {
     { value: -1, label: 'Forever (Lifetime Access)' }
   ];
 
-  // Uses options
   const usesOptions = [
     { value: -1, label: 'Unlimited Uses' },
     { value: 1, label: '1 Use (Single)' },
@@ -63,7 +97,6 @@ function AdminPage({ username }) {
 
   const checkAdminAndFetch = async () => {
     try {
-      // First check if user is admin
       const adminCheck = await axios.get(`${API}/admin/check`);
       if (!adminCheck.data.is_admin) {
         toast.error('Admin access required');
@@ -90,7 +123,6 @@ function AdminPage({ username }) {
       setLeaderboard(leaderboardRes.data.leaderboard || []);
       setReviews(reviewsRes.data || []);
     } catch (error) {
-      // If admin endpoint doesn't exist yet, just show empty
       console.error('Failed to fetch admin data:', error);
     } finally {
       setLoading(false);
@@ -144,7 +176,6 @@ function AdminPage({ username }) {
 
   const handleDeleteCode = async (codeId) => {
     if (!window.confirm('Are you sure you want to delete this promo code?')) return;
-    
     try {
       await axios.delete(`${API}/admin/promo-codes/${codeId}`);
       toast.success('Promo code deleted');
@@ -161,7 +192,13 @@ function AdminPage({ username }) {
 
   if (loading) {
     return (
-      <div className="loading-screen">
+      <div style={{ 
+        minHeight: '100vh', 
+        background: theme.bg.black,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         <div className="loading-spinner"></div>
       </div>
     );
@@ -170,382 +207,563 @@ function AdminPage({ username }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #030014 0%, #0a0a2e 50%, #030014 100%)',
+      background: theme.bg.black,
       padding: '24px'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header with gradient accent */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '16px', 
+          marginBottom: '40px',
+          paddingBottom: '24px',
+          borderBottom: '1px solid',
+          borderImage: 'linear-gradient(90deg, #E11D48, #06B6D4) 1'
+        }}>
           <Button 
-            onClick={() => navigate('/campaigns')} 
-            className="btn-icon"
+            onClick={() => navigate('/home')} 
+            style={{
+              background: 'transparent',
+              border: `1px solid ${theme.border}`,
+              padding: '10px',
+              color: theme.text.muted
+            }}
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={20} />
           </Button>
           <div>
             <h1 style={{ 
-              fontSize: '32px', 
-              color: '#fff',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '800',
+              fontSize: '28px', 
+              color: theme.text.white,
+              fontFamily: 'Cityworm, sans-serif',
+              fontWeight: '700',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '12px',
+              margin: 0
             }}>
-              <Shield size={32} color="#ef4444" />
-              Admin Panel
+              <Shield size={28} color={theme.gm.primary} />
+              ADMIN PANEL
             </h1>
-            <p style={{ color: '#94a3b8', marginTop: '4px' }}>Manage promo codes, reviews, and view stats</p>
+            <p style={{ color: theme.text.muted, marginTop: '4px', fontSize: '14px' }}>
+              Manage promo codes, reviews, and view statistics
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Cards - Gradient themed */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '16px',
+          marginBottom: '32px'
+        }}>
+          <div style={{
+            background: theme.player.subtle,
+            border: `1px solid ${theme.player.border}`,
+            padding: '20px',
+            textAlign: 'center',
+            boxShadow: theme.player.glow
+          }}>
+            <User size={24} color={theme.player.cyan} style={{ marginBottom: '8px' }} />
+            <div style={{ color: theme.player.cyan, fontSize: '28px', fontWeight: '800' }}>
+              {stats?.total_users || 0}
+            </div>
+            <div style={{ color: theme.text.muted, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Total Users
+            </div>
+          </div>
+          
+          <div style={{
+            background: theme.gm.subtle,
+            border: `1px solid ${theme.gm.border}`,
+            padding: '20px',
+            textAlign: 'center',
+            boxShadow: theme.gm.glow
+          }}>
+            <Key size={24} color={theme.gm.primary} style={{ marginBottom: '8px' }} />
+            <div style={{ color: theme.gm.primary, fontSize: '28px', fontWeight: '800' }}>
+              {promoCodes.length}
+            </div>
+            <div style={{ color: theme.text.muted, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Active Codes
+            </div>
+          </div>
+          
+          <div style={{
+            background: theme.legendary.subtle,
+            border: `1px solid ${theme.legendary.border}`,
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <Gift size={24} color={theme.legendary.primary} style={{ marginBottom: '8px' }} />
+            <div style={{ color: theme.legendary.primary, fontSize: '28px', fontWeight: '800' }}>
+              {stats?.total_referrals || 0}
+            </div>
+            <div style={{ color: theme.text.muted, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Referrals
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(34, 197, 94, 0.15)',
+            border: '1px solid rgba(34, 197, 94, 0.4)',
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <Star size={24} color="#22c55e" style={{ marginBottom: '8px' }} />
+            <div style={{ color: '#22c55e', fontSize: '28px', fontWeight: '800' }}>
+              {reviews.filter(r => r.is_approved).length}
+            </div>
+            <div style={{ color: theme.text.muted, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Reviews
+            </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
         <div style={{ 
           display: 'flex', 
-          gap: '8px', 
-          marginBottom: '24px',
-          borderBottom: '2px solid #1e40af',
-          paddingBottom: '12px'
+          gap: '0', 
+          marginBottom: '24px'
         }}>
-          <Button
+          <button
             onClick={() => setActiveTab('promos')}
-            className={activeTab === 'promos' ? 'btn-primary' : 'btn-outline'}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{
+              flex: 1,
+              padding: '16px',
+              background: activeTab === 'promos' ? theme.gm.subtle : theme.bg.dark,
+              border: 'none',
+              borderBottom: activeTab === 'promos' ? `2px solid ${theme.gm.primary}` : `1px solid ${theme.border}`,
+              color: activeTab === 'promos' ? theme.gm.primary : theme.text.muted,
+              fontSize: '14px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontFamily: 'Cityworm, sans-serif',
+              letterSpacing: '1px'
+            }}
           >
             <Key size={18} />
-            Promo Codes ({promoCodes.length})
-          </Button>
-          <Button
+            PROMO CODES ({promoCodes.length})
+          </button>
+          <button
             onClick={() => setActiveTab('reviews')}
-            className={activeTab === 'reviews' ? 'btn-primary' : 'btn-outline'}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{
+              flex: 1,
+              padding: '16px',
+              background: activeTab === 'reviews' ? theme.player.subtle : theme.bg.dark,
+              border: 'none',
+              borderBottom: activeTab === 'reviews' ? `2px solid ${theme.player.cyan}` : `1px solid ${theme.border}`,
+              color: activeTab === 'reviews' ? theme.player.cyan : theme.text.muted,
+              fontSize: '14px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontFamily: 'Cityworm, sans-serif',
+              letterSpacing: '1px'
+            }}
           >
             <Star size={18} />
-            Reviews ({reviews.length})
-          </Button>
+            REVIEWS ({reviews.length})
+          </button>
         </div>
 
-        {/* Stats Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '20px',
-          marginBottom: '40px'
-        }}>
-          <div style={{
-            background: 'rgba(34, 197, 94, 0.1)',
-            border: '2px solid #22c55e',
-            borderRadius: '12px',
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <Key size={28} color="#22c55e" style={{ marginBottom: '8px' }} />
-            <div style={{ color: '#22c55e', fontSize: '32px', fontWeight: '800' }}>
-              {promoCodes.length}
-            </div>
-            <div style={{ color: '#94a3b8', fontSize: '14px' }}>Active Promo Codes</div>
-          </div>
-          
-          <div style={{
-            background: 'rgba(74, 125, 255, 0.1)',
-            border: '2px solid #4a7dff',
-            borderRadius: '12px',
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <Users size={28} color="#4a7dff" style={{ marginBottom: '8px' }} />
-            <div style={{ color: '#4a7dff', fontSize: '32px', fontWeight: '800' }}>
-              {stats?.total_users || 0}
-            </div>
-            <div style={{ color: '#94a3b8', fontSize: '14px' }}>Total Users</div>
-          </div>
-          
-          <div style={{
-            background: 'rgba(168, 85, 247, 0.1)',
-            border: '2px solid #a855f7',
-            borderRadius: '12px',
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <Gift size={28} color="#a855f7" style={{ marginBottom: '8px' }} />
-            <div style={{ color: '#a855f7', fontSize: '32px', fontWeight: '800' }}>
-              {stats?.total_referrals || 0}
-            </div>
-            <div style={{ color: '#94a3b8', fontSize: '14px' }}>Total Referrals</div>
-          </div>
-        </div>
-
-        {/* Promo Codes Tab Content */}
+        {/* Promo Codes Tab */}
         {activeTab === 'promos' && (
-        <>
-        {/* Promo Codes Section */}
-        <div style={{
-          background: 'rgba(30, 30, 60, 0.5)',
-          border: '2px solid #1e40af',
-          borderRadius: '16px',
-          padding: '24px',
-          marginBottom: '40px'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '24px'
+          <div style={{
+            background: theme.bg.panel,
+            border: `1px solid ${theme.gm.border}`,
+            padding: '24px'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px'
+            }}>
+              <h2 style={{ 
+                color: theme.gm.primary, 
+                fontSize: '18px',
+                fontFamily: 'Cityworm, sans-serif',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                margin: 0
+              }}>
+                <Key size={20} />
+                PROMO CODES
+              </h2>
+              <Button
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                style={{
+                  background: theme.gm.primary,
+                  border: 'none',
+                  color: '#fff',
+                  padding: '10px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: '600'
+                }}
+              >
+                <Plus size={16} />
+                Create Code
+              </Button>
+            </div>
+
+            {/* Create Form */}
+            {showCreateForm && (
+              <form onSubmit={handleCreateCode} style={{
+                background: theme.bg.dark,
+                border: `1px solid ${theme.gm.border}`,
+                padding: '24px',
+                marginBottom: '24px'
+              }}>
+                <h3 style={{ 
+                  color: theme.gm.primary, 
+                  fontSize: '14px', 
+                  fontWeight: '700', 
+                  marginBottom: '20px',
+                  fontFamily: 'Cityworm, sans-serif',
+                  letterSpacing: '1px'
+                }}>
+                  CREATE NEW PROMO CODE
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', color: theme.text.muted, marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase' }}>
+                      Code Name *
+                    </label>
+                    <Input
+                      value={newCode.code}
+                      onChange={(e) => setNewCode({ ...newCode, code: e.target.value })}
+                      placeholder="e.g., LAUNCH2024"
+                      style={{
+                        background: theme.bg.black,
+                        border: `1px solid ${theme.border}`,
+                        color: '#fff',
+                        textTransform: 'uppercase'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: theme.text.muted, marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase' }}>
+                      Tier Granted *
+                    </label>
+                    <select
+                      value={newCode.tier_granted}
+                      onChange={(e) => setNewCode({ ...newCode, tier_granted: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: theme.bg.black,
+                        border: `1px solid ${theme.border}`,
+                        color: '#fff'
+                      }}
+                    >
+                      {tierOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: theme.text.muted, marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase' }}>
+                      Max Uses
+                    </label>
+                    <select
+                      value={newCode.uses_remaining}
+                      onChange={(e) => setNewCode({ ...newCode, uses_remaining: parseInt(e.target.value) })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: theme.bg.black,
+                        border: `1px solid ${theme.border}`,
+                        color: '#fff'
+                      }}
+                    >
+                      {usesOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: theme.text.muted, marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase' }}>
+                      Duration
+                    </label>
+                    <select
+                      value={newCode.duration_days}
+                      onChange={(e) => setNewCode({ ...newCode, duration_days: parseInt(e.target.value) })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: theme.bg.black,
+                        border: `1px solid ${theme.border}`,
+                        color: '#fff'
+                      }}
+                    >
+                      {durationOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', color: theme.text.muted, marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase' }}>
+                      Description (Internal)
+                    </label>
+                    <Input
+                      value={newCode.description}
+                      onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
+                      placeholder="e.g., For beta testers"
+                      style={{
+                        background: theme.bg.black,
+                        border: `1px solid ${theme.border}`,
+                        color: '#fff'
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                  <Button type="submit" style={{ background: theme.gm.primary, border: 'none', color: '#fff', padding: '10px 24px' }}>
+                    Create Code
+                  </Button>
+                  <Button type="button" onClick={() => setShowCreateForm(false)} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.muted, padding: '10px 24px' }}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {/* Codes List */}
+            {promoCodes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px', color: theme.text.muted }}>
+                <Key size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                <p>No promo codes yet. Create one above!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {promoCodes.map((code) => {
+                  const tierStyles = {
+                    'player': { bg: theme.player.subtle, color: theme.player.cyan, label: 'Hero', border: theme.player.border },
+                    'gm': { bg: theme.gm.subtle, color: theme.gm.primary, label: 'Quest Master', border: theme.gm.border },
+                    'legendary': { bg: theme.legendary.subtle, color: theme.legendary.primary, label: 'Legendary', border: theme.legendary.border },
+                    'adventurer': { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', label: 'Legacy', border: 'rgba(34, 197, 94, 0.4)' }
+                  };
+                  const style = tierStyles[code.tier_granted] || tierStyles['legendary'];
+                  
+                  return (
+                    <div
+                      key={code.id}
+                      style={{
+                        background: theme.bg.card,
+                        border: `1px solid ${theme.border}`,
+                        borderLeft: `3px solid ${style.color}`,
+                        padding: '16px 20px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            fontFamily: 'Cityworm, monospace',
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            color: style.color,
+                            letterSpacing: '1px'
+                          }}>
+                            {code.code}
+                          </span>
+                          <span style={{
+                            background: style.bg,
+                            color: style.color,
+                            padding: '4px 12px',
+                            fontSize: '11px',
+                            fontWeight: '600'
+                          }}>
+                            {style.label}
+                          </span>
+                          <span style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            color: theme.text.muted,
+                            padding: '4px 10px',
+                            fontSize: '11px'
+                          }}>
+                            Uses: {code.uses_remaining === -1 ? '∞' : code.uses_remaining}
+                          </span>
+                          <span style={{ 
+                            color: code.duration_days === -1 ? '#22c55e' : theme.legendary.primary, 
+                            fontSize: '11px',
+                            background: code.duration_days === -1 ? 'rgba(34, 197, 94, 0.15)' : theme.legendary.subtle,
+                            padding: '4px 10px'
+                          }}>
+                            {code.duration_days === -1 ? 'Forever' : `${code.duration_days} days`}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Button
+                            onClick={() => copyCode(code.code)}
+                            style={{ padding: '8px', background: 'transparent', border: `1px solid ${theme.border}` }}
+                          >
+                            <Copy size={14} color={theme.text.muted} />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteCode(code.id)}
+                            style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.15)', border: 'none' }}
+                          >
+                            <Trash2 size={14} color="#ef4444" />
+                          </Button>
+                        </div>
+                      </div>
+                      {code.description && (
+                        <p style={{ color: theme.text.muted, fontSize: '12px', marginTop: '8px', fontStyle: 'italic' }}>
+                          {code.description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div style={{
+            background: theme.bg.panel,
+            border: `1px solid ${theme.player.border}`,
+            padding: '24px'
           }}>
             <h2 style={{ 
-              color: '#fff', 
-              fontSize: '20px',
-              fontFamily: 'Montserrat, sans-serif',
+              color: theme.player.cyan, 
+              fontSize: '18px',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
+              marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
               gap: '10px'
             }}>
-              <Key size={22} />
-              Promo Codes
+              <Star size={20} />
+              USER REVIEWS
             </h2>
-            <Button
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Plus size={18} />
-              Create Code
-            </Button>
-          </div>
-
-          {/* Create Form */}
-          {showCreateForm && (
-            <form onSubmit={handleCreateCode} style={{
-              background: '#1A1A1A',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '24px',
-              marginBottom: '24px'
-            }}>
-              <h3 style={{ color: '#E11D48', fontSize: '16px', fontWeight: '700', marginBottom: '20px', fontFamily: 'Cityworm, sans-serif' }}>
-                Create New Promo Code
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
-                    Code Name *
-                  </label>
-                  <Input
-                    value={newCode.code}
-                    onChange={(e) => setNewCode({ ...newCode, code: e.target.value })}
-                    placeholder="e.g., LAUNCH2024"
-                    style={{
-                      background: '#0D0D0D',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
-                      textTransform: 'uppercase'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
-                    Tier Granted *
-                  </label>
-                  <select
-                    value={newCode.tier_granted}
-                    onChange={(e) => setNewCode({ ...newCode, tier_granted: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#0D0D0D',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff'
-                    }}
-                  >
-                    {tierOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
-                    Max Uses
-                  </label>
-                  <select
-                    value={newCode.uses_remaining}
-                    onChange={(e) => setNewCode({ ...newCode, uses_remaining: parseInt(e.target.value) })}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#0D0D0D',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff'
-                    }}
-                  >
-                    {usesOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
-                    Duration (Access Length)
-                  </label>
-                  <select
-                    value={newCode.duration_days}
-                    onChange={(e) => setNewCode({ ...newCode, duration_days: parseInt(e.target.value) })}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: '#0D0D0D',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff'
-                    }}
-                  >
-                    {durationOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', color: '#B3B3B3', marginBottom: '8px', fontSize: '13px' }}>
-                    Description (Internal Note)
-                  </label>
-                  <Input
-                    value={newCode.description}
-                    onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
-                    placeholder="e.g., For beta testers, For influencer X"
-                    style={{
-                      background: '#0D0D0D',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff'
-                    }}
-                  />
-                </div>
+            <p style={{ color: theme.text.muted, marginBottom: '20px', fontSize: '13px' }}>
+              4-5 star reviews are auto-approved. Toggle to show/hide reviews on the landing page.
+            </p>
+            
+            {reviews.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px', color: theme.text.muted }}>
+                <Star size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                <p>No reviews yet</p>
               </div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                <Button type="submit" style={{ background: '#E11D48', border: 'none', color: '#fff' }}>Create Code</Button>
-                <Button type="button" onClick={() => setShowCreateForm(false)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#B3B3B3' }}>Cancel</Button>
-              </div>
-            </form>
-          )}
-
-          {/* Codes List */}
-          {promoCodes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#808080' }}>
-              <Key size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
-              <p>No promo codes yet. Create one above!</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {promoCodes.map((code) => {
-                const tierColors = {
-                  'player': { bg: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', label: 'Hero (Player)' },
-                  'gm': { bg: 'rgba(225, 29, 72, 0.15)', color: '#E11D48', label: 'Quest Master (GM)' },
-                  'legendary': { bg: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', label: 'Legendary (Both)' },
-                  'adventurer': { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', label: 'Legacy Premium' }
-                };
-                const tierStyle = tierColors[code.tier_granted] || tierColors['legendary'];
-                
-                return (
-                <div
-                  key={code.id}
-                  style={{
-                    background: '#1A1A1A',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    padding: '16px 20px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                      <span style={{
-                        fontFamily: 'Cityworm, monospace',
-                        fontSize: '18px',
-                        fontWeight: '700',
-                        color: '#E11D48',
-                        letterSpacing: '1px'
-                      }}>
-                        {code.code}
-                      </span>
-                      <span style={{
-                        background: tierStyle.bg,
-                        color: tierStyle.color,
-                        padding: '4px 12px',
-                        fontSize: '11px',
-                        fontWeight: '600'
-                      }}>
-                        {tierStyle.label}
-                      </span>
-                      <span style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        color: '#808080',
-                        padding: '4px 10px',
-                        fontSize: '11px'
-                      }}>
-                        Uses: {code.uses_remaining === -1 ? '∞ Unlimited' : `${code.uses_remaining} left`}
-                      </span>
-                      <span style={{ 
-                        color: code.duration_days === -1 ? '#22c55e' : '#F59E0B', 
-                        fontSize: '12px',
-                        background: code.duration_days === -1 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                        padding: '4px 10px'
-                      }}>
-                        {code.duration_days === -1 ? 'Forever' : 
-                         code.duration_days === 7 ? '1 Week' :
-                         code.duration_days === 14 ? '2 Weeks' :
-                         code.duration_days === 30 ? '1 Month' :
-                         code.duration_days === 60 ? '2 Months' :
-                         code.duration_days === 90 ? '3 Months' :
-                         code.duration_days === 180 ? '6 Months' :
-                         code.duration_days === 365 ? '1 Year' :
-                         `${code.duration_days || 30} Days`}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Button
-                        onClick={() => copyCode(code.code)}
-                        style={{ padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}
-                      >
-                        <Copy size={16} color="#808080" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteCode(code.id)}
-                        style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.15)', border: 'none' }}
-                      >
-                        <Trash2 size={16} color="#ef4444" />
-                      </Button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    style={{
+                      background: theme.bg.card,
+                      border: `1px solid ${review.is_approved ? theme.player.border : theme.border}`,
+                      borderLeft: `3px solid ${review.is_approved ? theme.player.cyan : theme.text.muted}`,
+                      padding: '16px 20px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                          <span style={{ color: theme.text.white, fontWeight: '600' }}>{review.username}</span>
+                          <div style={{ display: 'flex' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star 
+                                key={star} 
+                                size={14} 
+                                fill={review.rating >= star ? "#F59E0B" : "transparent"}
+                                color={review.rating >= star ? "#F59E0B" : theme.text.muted}
+                              />
+                            ))}
+                          </div>
+                          {review.is_approved && (
+                            <span style={{
+                              background: theme.player.subtle,
+                              color: theme.player.cyan,
+                              padding: '2px 8px',
+                              fontSize: '10px',
+                              fontWeight: '600'
+                            }}>
+                              VISIBLE
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ color: theme.text.secondary, fontSize: '13px', fontStyle: 'italic', margin: '0 0 8px' }}>
+                          "{review.comment}"
+                        </p>
+                        <p style={{ color: theme.text.muted, fontSize: '11px', margin: 0 }}>
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button
+                          onClick={() => handleToggleReview(review.id)}
+                          style={{
+                            padding: '8px 12px',
+                            fontSize: '11px',
+                            background: review.is_approved ? 'transparent' : theme.player.primary,
+                            border: review.is_approved ? `1px solid ${theme.border}` : 'none',
+                            color: review.is_approved ? theme.text.muted : '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          {review.is_approved ? <X size={12} /> : <Check size={12} />}
+                          {review.is_approved ? 'Hide' : 'Show'}
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteReview(review.id)}
+                          style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.15)', border: 'none' }}
+                        >
+                          <Trash2 size={14} color="#ef4444" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  {code.description && (
-                    <p style={{ color: '#808080', fontSize: '12px', marginTop: '8px', fontStyle: 'italic' }}>
-                      Note: {code.description}
-                    </p>
-                  )}
-                </div>
-              )})}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Referral Leaderboard */}
         <div style={{
-          background: 'rgba(30, 30, 60, 0.5)',
-          border: '2px solid #1e40af',
-          borderRadius: '16px',
-          padding: '24px'
+          background: theme.bg.panel,
+          border: `1px solid ${theme.border}`,
+          padding: '24px',
+          marginTop: '24px'
         }}>
           <h2 style={{ 
-            color: '#fff', 
-            fontSize: '20px',
-            fontFamily: 'Montserrat, sans-serif',
+            color: theme.legendary.primary, 
+            fontSize: '18px',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700',
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
             gap: '10px'
           }}>
-            <Users size={22} />
-            Top Referrers
+            <Users size={20} />
+            TOP REFERRERS
           </h2>
           
           {leaderboard.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-              <Users size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
+            <div style={{ textAlign: 'center', padding: '40px', color: theme.text.muted }}>
+              <Users size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
               <p>No referrals yet</p>
             </div>
           ) : (
@@ -557,9 +775,8 @@ function AdminPage({ username }) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    background: index === 0 ? 'rgba(234, 179, 8, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-                    border: index === 0 ? '2px solid #eab308' : '1px solid #374151',
-                    borderRadius: '8px',
+                    background: index === 0 ? theme.legendary.subtle : theme.bg.card,
+                    border: `1px solid ${index === 0 ? theme.legendary.border : theme.border}`,
                     padding: '12px 16px'
                   }}
                 >
@@ -567,18 +784,17 @@ function AdminPage({ username }) {
                     <span style={{
                       width: '28px',
                       height: '28px',
-                      borderRadius: '50%',
-                      background: index === 0 ? '#eab308' : index === 1 ? '#94a3b8' : index === 2 ? '#cd7f32' : '#374151',
+                      background: index === 0 ? theme.legendary.primary : index === 1 ? '#94a3b8' : index === 2 ? '#cd7f32' : theme.bg.hover,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: '700',
                       fontSize: '14px',
-                      color: '#000'
+                      color: index < 3 ? '#000' : theme.text.white
                     }}>
                       {index + 1}
                     </span>
-                    <span style={{ color: '#fff', fontWeight: '600' }}>{user.username}</span>
+                    <span style={{ color: theme.text.white, fontWeight: '600' }}>{user.username}</span>
                   </div>
                   <span style={{ color: '#22c55e', fontWeight: '700' }}>
                     {user.referrals} referrals
@@ -588,109 +804,6 @@ function AdminPage({ username }) {
             </div>
           )}
         </div>
-        </>
-        )}
-
-        {/* Reviews Tab Content */}
-        {activeTab === 'reviews' && (
-          <div style={{
-            background: 'rgba(30, 30, 60, 0.5)',
-            border: '2px solid #1e40af',
-            borderRadius: '16px',
-            padding: '24px'
-          }}>
-            <h2 style={{ 
-              color: '#fff', 
-              fontSize: '20px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '700',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <Star size={22} />
-              User Reviews
-            </h2>
-            <p style={{ color: '#94a3b8', marginBottom: '20px', fontSize: '14px' }}>
-              4-5 star reviews are auto-approved. Toggle to hide/show reviews on the landing page.
-            </p>
-            
-            {reviews.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                <Star size={48} style={{ opacity: 0.5, marginBottom: '16px' }} />
-                <p>No reviews yet</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    style={{
-                      background: review.is_approved ? 'rgba(34, 197, 94, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-                      border: `2px solid ${review.is_approved ? '#22c55e' : '#374151'}`,
-                      borderRadius: '12px',
-                      padding: '16px 20px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                          <span style={{ color: '#fff', fontWeight: '700' }}>{review.username}</span>
-                          <div style={{ display: 'flex' }}>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star 
-                                key={star} 
-                                size={16} 
-                                fill={review.rating >= star ? "#eab308" : "transparent"}
-                                color={review.rating >= star ? "#eab308" : "#475569"}
-                              />
-                            ))}
-                          </div>
-                          {review.is_featured && (
-                            <span style={{
-                              background: '#22c55e20',
-                              color: '#22c55e',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: '600'
-                            }}>
-                              FEATURED
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ color: '#e2e8f0', fontSize: '14px', fontStyle: 'italic' }}>
-                          "{review.comment}"
-                        </p>
-                        <p style={{ color: '#64748b', fontSize: '12px', marginTop: '8px' }}>
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <Button
-                          onClick={() => handleToggleReview(review.id)}
-                          className={review.is_approved ? 'btn-outline' : 'btn-primary'}
-                          style={{ padding: '8px 12px', fontSize: '12px' }}
-                        >
-                          {review.is_approved ? <X size={14} /> : <Check size={14} />}
-                          {review.is_approved ? 'Hide' : 'Approve'}
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteReview(review.id)}
-                          className="btn-danger"
-                          style={{ padding: '8px' }}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

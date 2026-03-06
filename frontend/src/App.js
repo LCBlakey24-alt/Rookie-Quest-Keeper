@@ -209,6 +209,14 @@ function App() {
               } 
             />
             <Route 
+              path="/character-builder" 
+              element={
+                isAuthenticated ? 
+                  <CharacterBuilder /> : 
+                  <Navigate to="/auth" replace />
+              } 
+            />
+            <Route 
               path="/characters/:characterId" 
               element={
                 isAuthenticated ? 

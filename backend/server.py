@@ -532,6 +532,124 @@ class PlayerUpdate(BaseModel):
     stats: Optional[PlayerStats] = None
     notes: Optional[str] = None
 
+
+# ==================== MODULAR PROGRESSION SYSTEM ====================
+# Database-driven character progression that supports multiple rule systems
+
+class RuleSystem(BaseModel):
+    """Defines a rule system (e.g., 5e, Pathfinder 2e, homebrew)"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # "5e", "Pathfinder 2e", "Custom"
+    version: str = "1.0"
+    description: str = ""
+    max_level: int = 20
+    ability_scores: List[str] = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ProgressionClass(BaseModel):
+    """Defines a class within a rule system"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    system_id: str  # References RuleSystem
+    name: str  # "Fighter", "Wizard", etc.
+    hit_die: int = 8  # d6, d8, d10, d12
+    primary_ability: str = "strength"
+    saving_throw_proficiencies: List[str] = []
+    skill_choices: int = 2
+    available_skills: List[str] = []
+    armor_proficiencies: List[str] = []
+    weapon_proficiencies: List[str] = []
+    description: str = ""
+    subclass_level: int = 3  # Level at which subclass is chosen
+
+class ProgressionRace(BaseModel):
+    """Defines a race within a rule system"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    system_id: str
+    name: str
+    ability_bonuses: Dict[str, int] = {}  # {"strength": 2, "constitution": 1}
+    size: str = "Medium"
+    speed: int = 30
+    languages: List[str] = ["Common"]
+    traits: List[str] = []  # IDs of features granted by race
+    description: str = ""
+
+class ProgressionFeature(BaseModel):
+    """Defines a feature that can be granted at various levels"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    system_id: str
+    name: str
+    description: str
+    source_type: str  # "class", "race", "subclass", "feat", "background"
+    source_id: Optional[str] = None  # ID of class/race/subclass that grants this
+    level_requirement: int = 1
+    prerequisites: Dict[str, Any] = {}  # {"ability": {"strength": 13}, "proficiency": "heavy_armor"}
+    effects: Dict[str, Any] = {}  # {"proficiency": ["perception"], "damage_resistance": ["fire"]}
+    is_choice: bool = False  # If true, this feature offers choices
+
+class FeatureChoice(BaseModel):
+    """Defines choices available for a feature (e.g., ASI options, feat list)"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    feature_id: str
+    choice_type: str  # "asi", "feat", "skill", "spell", "subclass", "ability_option"
+    name: str
+    description: str = ""
+    options: List[Dict[str, Any]] = []  # List of selectable options
+    num_choices: int = 1  # How many options can be selected
+    
+class ClassLevelProgression(BaseModel):
+    """Defines what a class gains at each level"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    class_id: str
+    level: int
+    features: List[str] = []  # Feature IDs gained at this level
+    choice_groups: List[str] = []  # FeatureChoice IDs available at this level
+    proficiency_bonus: int = 2
+    cantrips_known: Optional[int] = None
+    spells_known: Optional[int] = None
+    spell_slots: Dict[str, int] = {}  # {"1": 2, "2": 1}
+    extra_attack: int = 0
+    sneak_attack_dice: Optional[str] = None  # "1d6", "2d6", etc.
+    rage_count: Optional[int] = None
+    ki_points: Optional[int] = None
+    # Class-specific resources
+    class_resources: Dict[str, Any] = {}
+
+class CharacterFeatureSelection(BaseModel):
+    """Records a character's selected features and choices"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    character_id: str
+    feature_id: str
+    level_gained: int
+    choice_made: Optional[Dict[str, Any]] = None  # The actual selection made
+    is_active: bool = True
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class LevelUpWizardState(BaseModel):
+    """Tracks state of level-up wizard for a character"""
+    character_id: str
+    current_level: int
+    target_level: int
+    pending_features: List[str] = []
+    pending_choices: List[Dict[str, Any]] = []
+    completed_selections: List[Dict[str, Any]] = []
+    hp_method: str = "average"  # "average" or "roll"
+    hp_roll_result: Optional[int] = None
+
+class ProgressionQueryRequest(BaseModel):
+    system_id: Optional[str] = None
+    class_id: Optional[str] = None
+    race_id: Optional[str] = None
+    level: Optional[int] = None
+
+
+
 class NPC(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1048,8 +1166,8 @@ async def register(user_data: UserRegister):
     subscription = SubscriptionTier(referral_code=referral_code, referred_by=referred_by)
     
     # Auto-upgrade admin user to premium
-    if user_data.username == ADMIN_USERNAME:
-        subscription.tier = "premium"
+    if user_data.username.lower() in ADMIN_USERNAMES:
+        subscription.tier = "legendary"
         subscription.premium_expires_at = None  # Never expires for admin
     
     user_doc = {
@@ -1768,12 +1886,12 @@ async def cancel_subscription(username: str = Depends(get_current_user)):
 
 # ==================== PROMO CODE ROUTES ====================
 
-# Admin username - only this user can access admin features
-ADMIN_USERNAME = "RookieQuestAdmin"
+# Admin usernames - these users can access admin features
+ADMIN_USERNAMES = ["rookiequestadmin", "criticalfusion", "admin"]
 
 async def verify_admin(username: str):
     """Check if user is admin"""
-    if username != ADMIN_USERNAME:
+    if username.lower() not in ADMIN_USERNAMES:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return True
 
@@ -2256,7 +2374,7 @@ async def get_referral_leaderboard():
 @api_router.get("/admin/check")
 async def check_admin_status(username: str = Depends(get_current_user)):
     """Check if current user is admin"""
-    return {"is_admin": username == ADMIN_USERNAME}
+    return {"is_admin": username.lower() in ADMIN_USERNAMES}
 
 @api_router.get("/admin/promo-codes")
 async def get_all_promo_codes(username: str = Depends(get_current_user)):
@@ -5126,6 +5244,396 @@ async def get_class_features_at_level(class_name: str, level: int):
             }
     
     raise HTTPException(status_code=404, detail="Class not found")
+
+
+# ==================== MODULAR PROGRESSION SYSTEM ENDPOINTS ====================
+
+@api_router.get("/progression/systems")
+async def get_rule_systems():
+    """Get all available rule systems"""
+    systems = await db.rule_systems.find({}, {'_id': 0}).to_list(100)
+    if not systems:
+        # Return default 5e system if none exist
+        default_system = {
+            "id": "5e-srd",
+            "name": "5e SRD",
+            "version": "5.1",
+            "description": "Fifth Edition System Reference Document",
+            "max_level": 20,
+            "ability_scores": ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
+        }
+        return {"systems": [default_system]}
+    return {"systems": systems}
+
+@api_router.post("/progression/systems")
+async def create_rule_system(system: RuleSystem, username: str = Depends(get_current_user)):
+    """Create a new rule system (admin only)"""
+    system_dict = system.model_dump()
+    system_dict['created_by'] = username
+    await db.rule_systems.insert_one(system_dict)
+    return {"success": True, "system": system_dict}
+
+@api_router.get("/progression/classes")
+async def get_progression_classes(system_id: Optional[str] = None):
+    """Get all classes, optionally filtered by system"""
+    query = {}
+    if system_id:
+        query['system_id'] = system_id
+    classes = await db.progression_classes.find(query, {'_id': 0}).to_list(100)
+    return {"classes": classes}
+
+@api_router.get("/progression/classes/{class_id}")
+async def get_progression_class(class_id: str):
+    """Get a specific class with all its level progressions"""
+    cls = await db.progression_classes.find_one({'id': class_id}, {'_id': 0})
+    if not cls:
+        raise HTTPException(status_code=404, detail="Class not found")
+    
+    # Get level progressions for this class
+    progressions = await db.class_level_progressions.find(
+        {'class_id': class_id}, {'_id': 0}
+    ).sort('level', 1).to_list(20)
+    
+    cls['level_progressions'] = progressions
+    return cls
+
+@api_router.post("/progression/classes")
+async def create_progression_class(cls: ProgressionClass, username: str = Depends(get_current_user)):
+    """Create a new class definition"""
+    cls_dict = cls.model_dump()
+    cls_dict['created_by'] = username
+    await db.progression_classes.insert_one(cls_dict)
+    return {"success": True, "class": cls_dict}
+
+@api_router.get("/progression/races")
+async def get_progression_races(system_id: Optional[str] = None):
+    """Get all races, optionally filtered by system"""
+    query = {}
+    if system_id:
+        query['system_id'] = system_id
+    races = await db.progression_races.find(query, {'_id': 0}).to_list(100)
+    return {"races": races}
+
+@api_router.post("/progression/races")
+async def create_progression_race(race: ProgressionRace, username: str = Depends(get_current_user)):
+    """Create a new race definition"""
+    race_dict = race.model_dump()
+    race_dict['created_by'] = username
+    await db.progression_races.insert_one(race_dict)
+    return {"success": True, "race": race_dict}
+
+@api_router.get("/progression/features")
+async def get_progression_features(
+    system_id: Optional[str] = None,
+    source_type: Optional[str] = None,
+    source_id: Optional[str] = None
+):
+    """Get features with optional filters"""
+    query = {}
+    if system_id:
+        query['system_id'] = system_id
+    if source_type:
+        query['source_type'] = source_type
+    if source_id:
+        query['source_id'] = source_id
+    
+    features = await db.progression_features.find(query, {'_id': 0}).to_list(500)
+    return {"features": features}
+
+@api_router.post("/progression/features")
+async def create_progression_feature(feature: ProgressionFeature, username: str = Depends(get_current_user)):
+    """Create a new feature"""
+    feature_dict = feature.model_dump()
+    feature_dict['created_by'] = username
+    await db.progression_features.insert_one(feature_dict)
+    return {"success": True, "feature": feature_dict}
+
+@api_router.get("/progression/feature-choices/{feature_id}")
+async def get_feature_choices(feature_id: str):
+    """Get all choices available for a feature"""
+    choices = await db.feature_choices.find({'feature_id': feature_id}, {'_id': 0}).to_list(100)
+    return {"choices": choices}
+
+@api_router.post("/progression/feature-choices")
+async def create_feature_choice(choice: FeatureChoice, username: str = Depends(get_current_user)):
+    """Create a new feature choice"""
+    choice_dict = choice.model_dump()
+    choice_dict['created_by'] = username
+    await db.feature_choices.insert_one(choice_dict)
+    return {"success": True, "choice": choice_dict}
+
+@api_router.get("/progression/class-level/{class_id}/{level}")
+async def get_class_level_progression(class_id: str, level: int):
+    """Get what a class gains at a specific level"""
+    progression = await db.class_level_progressions.find_one(
+        {'class_id': class_id, 'level': level}, {'_id': 0}
+    )
+    
+    if not progression:
+        # Return default progression if not customized
+        progression = {
+            'class_id': class_id,
+            'level': level,
+            'features': [],
+            'choice_groups': [],
+            'proficiency_bonus': 2 + ((level - 1) // 4)
+        }
+    
+    # Fetch full feature details
+    if progression.get('features'):
+        features = await db.progression_features.find(
+            {'id': {'$in': progression['features']}}, {'_id': 0}
+        ).to_list(50)
+        progression['feature_details'] = features
+    
+    # Fetch choice details
+    if progression.get('choice_groups'):
+        choices = await db.feature_choices.find(
+            {'id': {'$in': progression['choice_groups']}}, {'_id': 0}
+        ).to_list(50)
+        progression['choice_details'] = choices
+    
+    return progression
+
+@api_router.post("/progression/class-levels")
+async def create_class_level_progression(
+    progression: ClassLevelProgression, 
+    username: str = Depends(get_current_user)
+):
+    """Create or update class level progression"""
+    prog_dict = progression.model_dump()
+    prog_dict['created_by'] = username
+    
+    # Upsert to allow updates
+    await db.class_level_progressions.update_one(
+        {'class_id': progression.class_id, 'level': progression.level},
+        {'$set': prog_dict},
+        upsert=True
+    )
+    return {"success": True, "progression": prog_dict}
+
+@api_router.get("/progression/level-up-wizard/{character_id}")
+async def get_level_up_wizard(character_id: str, username: str = Depends(get_current_user)):
+    """Get the level-up wizard state for a character"""
+    # Verify ownership
+    character = await db.player_characters.find_one(
+        {'id': character_id, 'user_id': username}, {'_id': 0}
+    )
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    current_level = character.get('level', 1)
+    target_level = current_level + 1
+    char_class = character.get('character_class', '').lower()
+    
+    # Determine what choices are needed at this level
+    # Standard ASI levels
+    asi_levels = [4, 8, 12, 16, 19]
+    if char_class == 'fighter':
+        asi_levels.extend([6, 14])
+    elif char_class == 'rogue':
+        asi_levels.append(10)
+    asi_levels.sort()
+    
+    is_asi_level = target_level in asi_levels
+    
+    # Build wizard state
+    pending_choices = []
+    
+    # HP choice
+    pending_choices.append({
+        "choice_type": "hp",
+        "name": "Hit Points",
+        "description": "Choose how to gain HP for this level",
+        "options": [
+            {"id": "average", "name": "Take Average", "value": "average"},
+            {"id": "roll", "name": "Roll Hit Die", "value": "roll"}
+        ]
+    })
+    
+    # ASI/Feat choice at appropriate levels
+    if is_asi_level:
+        pending_choices.append({
+            "choice_type": "asi_or_feat",
+            "name": "Ability Score Improvement",
+            "description": "Increase ability scores or select a feat",
+            "options": [
+                {"id": "asi", "name": "Ability Score Improvement", "description": "+2 to one ability or +1 to two abilities"},
+                {"id": "feat", "name": "Select a Feat", "description": "Choose a feat from the available list"}
+            ]
+        })
+    
+    # Check for subclass selection (usually level 3)
+    subclass_levels = {
+        'barbarian': 3, 'bard': 3, 'cleric': 1, 'druid': 2,
+        'fighter': 3, 'monk': 3, 'paladin': 3, 'ranger': 3,
+        'rogue': 3, 'sorcerer': 1, 'warlock': 1, 'wizard': 2
+    }
+    subclass_level = subclass_levels.get(char_class, 3)
+    
+    if target_level == subclass_level and not character.get('subclass'):
+        pending_choices.append({
+            "choice_type": "subclass",
+            "name": "Choose Subclass",
+            "description": f"Select your {char_class.title()} subclass/archetype",
+            "options": []  # Would be populated from progression data
+        })
+    
+    # Get class-specific level features
+    class_progression = await db.class_level_progressions.find_one(
+        {'class_id': char_class, 'level': target_level}, {'_id': 0}
+    )
+    
+    pending_features = []
+    if class_progression and class_progression.get('features'):
+        features = await db.progression_features.find(
+            {'id': {'$in': class_progression['features']}}, {'_id': 0}
+        ).to_list(50)
+        pending_features = features
+    
+    wizard_state = {
+        "character_id": character_id,
+        "character_name": character.get('name'),
+        "character_class": character.get('character_class'),
+        "current_level": current_level,
+        "target_level": target_level,
+        "is_asi_level": is_asi_level,
+        "pending_features": pending_features,
+        "pending_choices": pending_choices,
+        "hit_die": {
+            'barbarian': 12, 'fighter': 10, 'paladin': 10, 'ranger': 10,
+            'bard': 8, 'cleric': 8, 'druid': 8, 'monk': 8, 'rogue': 8, 'warlock': 8,
+            'sorcerer': 6, 'wizard': 6
+        }.get(char_class, 8),
+        "proficiency_bonus": 2 + ((target_level - 1) // 4)
+    }
+    
+    return wizard_state
+
+@api_router.post("/progression/character-features")
+async def save_character_feature_selection(
+    selection: CharacterFeatureSelection,
+    username: str = Depends(get_current_user)
+):
+    """Save a character's feature selection"""
+    # Verify ownership
+    character = await db.player_characters.find_one(
+        {'id': selection.character_id, 'user_id': username}
+    )
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    selection_dict = selection.model_dump()
+    await db.character_features.insert_one(selection_dict)
+    return {"success": True, "selection": selection_dict}
+
+@api_router.get("/progression/character-features/{character_id}")
+async def get_character_features(character_id: str, username: str = Depends(get_current_user)):
+    """Get all feature selections for a character"""
+    # Verify ownership
+    character = await db.player_characters.find_one(
+        {'id': character_id, 'user_id': username}
+    )
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    features = await db.character_features.find(
+        {'character_id': character_id, 'is_active': True}, {'_id': 0}
+    ).to_list(100)
+    
+    return {"features": features}
+
+@api_router.post("/progression/seed-default-data")
+async def seed_default_progression_data(username: str = Depends(get_current_user)):
+    """Seed the database with default 5e progression data"""
+    # Check if admin
+    admin_users = ['rookiequestadmin', 'criticalfusion', 'admin']
+    if not any(admin in username.lower() for admin in admin_users):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Create default 5e system
+    default_system = {
+        "id": "5e-srd",
+        "name": "5e SRD",
+        "version": "5.1",
+        "description": "Fifth Edition System Reference Document",
+        "max_level": 20,
+        "ability_scores": ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.rule_systems.update_one({'id': '5e-srd'}, {'$set': default_system}, upsert=True)
+    
+    # Create default classes
+    classes_data = [
+        {"id": "5e-fighter", "system_id": "5e-srd", "name": "Fighter", "hit_die": 10, "primary_ability": "strength", "saving_throw_proficiencies": ["strength", "constitution"], "skill_choices": 2, "subclass_level": 3},
+        {"id": "5e-wizard", "system_id": "5e-srd", "name": "Wizard", "hit_die": 6, "primary_ability": "intelligence", "saving_throw_proficiencies": ["intelligence", "wisdom"], "skill_choices": 2, "subclass_level": 2},
+        {"id": "5e-rogue", "system_id": "5e-srd", "name": "Rogue", "hit_die": 8, "primary_ability": "dexterity", "saving_throw_proficiencies": ["dexterity", "intelligence"], "skill_choices": 4, "subclass_level": 3},
+        {"id": "5e-cleric", "system_id": "5e-srd", "name": "Cleric", "hit_die": 8, "primary_ability": "wisdom", "saving_throw_proficiencies": ["wisdom", "charisma"], "skill_choices": 2, "subclass_level": 1},
+        {"id": "5e-barbarian", "system_id": "5e-srd", "name": "Barbarian", "hit_die": 12, "primary_ability": "strength", "saving_throw_proficiencies": ["strength", "constitution"], "skill_choices": 2, "subclass_level": 3},
+        {"id": "5e-bard", "system_id": "5e-srd", "name": "Bard", "hit_die": 8, "primary_ability": "charisma", "saving_throw_proficiencies": ["dexterity", "charisma"], "skill_choices": 3, "subclass_level": 3},
+        {"id": "5e-druid", "system_id": "5e-srd", "name": "Druid", "hit_die": 8, "primary_ability": "wisdom", "saving_throw_proficiencies": ["intelligence", "wisdom"], "skill_choices": 2, "subclass_level": 2},
+        {"id": "5e-monk", "system_id": "5e-srd", "name": "Monk", "hit_die": 8, "primary_ability": "dexterity", "saving_throw_proficiencies": ["strength", "dexterity"], "skill_choices": 2, "subclass_level": 3},
+        {"id": "5e-paladin", "system_id": "5e-srd", "name": "Paladin", "hit_die": 10, "primary_ability": "strength", "saving_throw_proficiencies": ["wisdom", "charisma"], "skill_choices": 2, "subclass_level": 3},
+        {"id": "5e-ranger", "system_id": "5e-srd", "name": "Ranger", "hit_die": 10, "primary_ability": "dexterity", "saving_throw_proficiencies": ["strength", "dexterity"], "skill_choices": 3, "subclass_level": 3},
+        {"id": "5e-sorcerer", "system_id": "5e-srd", "name": "Sorcerer", "hit_die": 6, "primary_ability": "charisma", "saving_throw_proficiencies": ["constitution", "charisma"], "skill_choices": 2, "subclass_level": 1},
+        {"id": "5e-warlock", "system_id": "5e-srd", "name": "Warlock", "hit_die": 8, "primary_ability": "charisma", "saving_throw_proficiencies": ["wisdom", "charisma"], "skill_choices": 2, "subclass_level": 1}
+    ]
+    
+    for cls in classes_data:
+        await db.progression_classes.update_one({'id': cls['id']}, {'$set': cls}, upsert=True)
+    
+    # Create default races
+    races_data = [
+        {"id": "5e-human", "system_id": "5e-srd", "name": "Human", "ability_bonuses": {"strength": 1, "dexterity": 1, "constitution": 1, "intelligence": 1, "wisdom": 1, "charisma": 1}, "size": "Medium", "speed": 30},
+        {"id": "5e-elf", "system_id": "5e-srd", "name": "Elf", "ability_bonuses": {"dexterity": 2}, "size": "Medium", "speed": 30, "traits": ["darkvision", "fey_ancestry", "trance"]},
+        {"id": "5e-dwarf", "system_id": "5e-srd", "name": "Dwarf", "ability_bonuses": {"constitution": 2}, "size": "Medium", "speed": 25, "traits": ["darkvision", "dwarven_resilience", "stonecunning"]},
+        {"id": "5e-halfling", "system_id": "5e-srd", "name": "Halfling", "ability_bonuses": {"dexterity": 2}, "size": "Small", "speed": 25, "traits": ["lucky", "brave", "halfling_nimbleness"]},
+        {"id": "5e-dragonborn", "system_id": "5e-srd", "name": "Dragonborn", "ability_bonuses": {"strength": 2, "charisma": 1}, "size": "Medium", "speed": 30, "traits": ["breath_weapon", "damage_resistance"]},
+        {"id": "5e-gnome", "system_id": "5e-srd", "name": "Gnome", "ability_bonuses": {"intelligence": 2}, "size": "Small", "speed": 25, "traits": ["darkvision", "gnome_cunning"]},
+        {"id": "5e-half-elf", "system_id": "5e-srd", "name": "Half-Elf", "ability_bonuses": {"charisma": 2}, "size": "Medium", "speed": 30, "traits": ["darkvision", "fey_ancestry", "skill_versatility"]},
+        {"id": "5e-half-orc", "system_id": "5e-srd", "name": "Half-Orc", "ability_bonuses": {"strength": 2, "constitution": 1}, "size": "Medium", "speed": 30, "traits": ["darkvision", "menacing", "relentless_endurance", "savage_attacks"]},
+        {"id": "5e-tiefling", "system_id": "5e-srd", "name": "Tiefling", "ability_bonuses": {"charisma": 2, "intelligence": 1}, "size": "Medium", "speed": 30, "traits": ["darkvision", "hellish_resistance", "infernal_legacy"]}
+    ]
+    
+    for race in races_data:
+        await db.progression_races.update_one({'id': race['id']}, {'$set': race}, upsert=True)
+    
+    # Create common features (ASI)
+    asi_feature = {
+        "id": "5e-asi",
+        "system_id": "5e-srd",
+        "name": "Ability Score Improvement",
+        "description": "Increase one ability score by 2, or two ability scores by 1 each. Alternatively, choose a feat.",
+        "source_type": "class",
+        "is_choice": True
+    }
+    await db.progression_features.update_one({'id': '5e-asi'}, {'$set': asi_feature}, upsert=True)
+    
+    # Create ASI choice
+    asi_choice = {
+        "id": "5e-asi-choice",
+        "feature_id": "5e-asi",
+        "choice_type": "asi_or_feat",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Choose to increase ability scores or select a feat",
+        "options": [
+            {"id": "asi", "name": "Ability Score Improvement", "type": "asi"},
+            {"id": "feat", "name": "Feat", "type": "feat"}
+        ],
+        "num_choices": 1
+    }
+    await db.feature_choices.update_one({'id': '5e-asi-choice'}, {'$set': asi_choice}, upsert=True)
+    
+    return {
+        "success": True,
+        "message": "Default 5e progression data seeded",
+        "systems": 1,
+        "classes": len(classes_data),
+        "races": len(races_data),
+        "features": 1
+    }
+
+
 
 # Include the router in the main app
 app.include_router(api_router)
