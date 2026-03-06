@@ -253,11 +253,20 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
   - When promo expires, original subscription automatically resumes
   - Webhook handling for subscription lifecycle events
 - [x] **Clarified GM Screen = Session Mode** - The GM Screen IS the live session tool, removed redundant Session Mode page
+- [x] **CLICKABLE DICE ROLLERS ON CHARACTER SHEET (March 2026)**
+  - All ability score modifiers are clickable (rolls d20 + ability modifier)
+  - All saving throw modifiers are clickable (rolls d20 + save modifier)
+  - All 18 skill modifiers are clickable (rolls d20 + skill modifier)
+  - Initiative is clickable (rolls d20 + DEX modifier)
+  - Toast notifications show roll results (green for crit 20, red for nat 1)
+- [x] **SESSION JOURNAL (Hero Tier Feature)** - New player companion feature
+  - CRUD operations for journal entries
+  - Entry types: session, combat, npc, location, loot, note
+  - Search and filter functionality
+  - Journal tab added to Player Dashboard
 
 ### Backlog
-- [ ] **Player Companion Features (Hero Tier)**
-  - Session Journal
-  - Party Inventory tracking
+- [ ] Party Inventory tracking (Hero Tier)
 - [ ] **Session Recap AI (Quest Master Tier)** - AI-powered session summaries
 - [ ] **Smart Entity Linking** - Auto-link NPC names, locations to their pages
 - [ ] Backend refactoring (split server.py into routers)
@@ -270,13 +279,13 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 ---
 
 ## Testing Status
-- 41/46 tests passing (23 backend + 18 frontend)
-- 5 tests quarantined (Session Mode route removed intentionally)
+- 30/30 frontend tests passing (dice rolls, journal, subscription)
+- Comprehensive stress test passed (10/10 API tests)
 - Recurring Stripe subscriptions verified
 - Monthly and yearly billing both working
 - Promo codes work correctly with subscription pausing
-- All design requirements verified
-- Sidebar tabs working correctly on both dashboards
+- All dice roll buttons verified working (ability checks, saves, skills, initiative)
+- Session Journal CRUD verified working
 
 ---
 
