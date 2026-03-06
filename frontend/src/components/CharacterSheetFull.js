@@ -15,6 +15,7 @@ import {
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import { RookSuggestionPopup, useRookSuggestions } from './RookSuggestions';
+import { DiceRollButton } from '@/components/DiceRollButton';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -90,16 +91,13 @@ const glassPanel = {
 function AbilityScoreBlock({ ability, score, modifier, isProficientSave, profBonus, onClick, isEditing, onScoreChange }) {
   const Icon = ability.icon;
   const saveModifier = isProficientSave ? modifier + profBonus : modifier;
-  const saveDisplay = saveModifier >= 0 ? `+${saveModifier}` : `${saveModifier}`;
   
   return (
     <div 
-      onClick={onClick}
       data-testid={`ability-${ability.key}`}
       style={{
         ...glassPanel,
         padding: '10px 8px',
-        cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s ease',
         textAlign: 'center',
         minWidth: '70px'
@@ -140,47 +138,54 @@ function AbilityScoreBlock({ ability, score, modifier, isProficientSave, profBon
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <div style={{ 
-          fontSize: '22px', 
-          fontWeight: '800', 
-          color: '#fff',
-          fontFamily: 'Montserrat, sans-serif',
-          lineHeight: 1
-        }}>
-          {score}
-        </div>
+        <>
+          <div style={{ 
+            fontSize: '22px', 
+            fontWeight: '800', 
+            color: '#fff',
+            fontFamily: 'Montserrat, sans-serif',
+            lineHeight: 1
+          }}>
+            {score}
+          </div>
+          {/* Clickable ability check dice roll */}
+          <DiceRollButton 
+            modifier={modifier}
+            label={`${ability.fullName} Check`}
+            color={ability.color}
+            size="small"
+          />
+        </>
       )}
-      
-      <div style={{ 
-        fontSize: '14px', 
-        fontWeight: '700', 
-        color: ability.color,
-        marginTop: '2px'
-      }}>
-        {modifier >= 0 ? `+${modifier}` : modifier}
-      </div>
       
       <div style={{
         marginTop: '4px',
         paddingTop: '4px',
         borderTop: `1px solid ${ability.color}30`,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '3px'
+        gap: '2px'
       }}>
-        {isProficientSave && (
-          <div style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: '#22c55e'
-          }} />
-        )}
-        <span style={{ color: '#94a3b8', fontSize: '9px' }}>SAVE</span>
-        <span style={{ color: isProficientSave ? '#22c55e' : '#e2e8f0', fontSize: '12px', fontWeight: '700' }}>
-          {saveDisplay}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+          {isProficientSave && (
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#22c55e'
+            }} />
+          )}
+          <span style={{ color: '#94a3b8', fontSize: '9px' }}>SAVE</span>
+        </div>
+        {/* Clickable saving throw dice roll */}
+        <DiceRollButton 
+          modifier={saveModifier}
+          label={`${ability.fullName} Save`}
+          color={isProficientSave ? '#22c55e' : '#e2e8f0'}
+          size="small"
+          showDice={false}
+        />
       </div>
     </div>
   );
@@ -190,7 +195,6 @@ function AbilityScoreBlock({ ability, score, modifier, isProficientSave, profBon
 function SkillRow({ skill, abilityMod, profBonus, isProficient, isExpert, onToggle, isEditing }) {
   const Icon = skill.icon;
   const totalMod = abilityMod + (isProficient ? profBonus : 0) + (isExpert ? profBonus : 0);
-  const display = totalMod >= 0 ? `+${totalMod}` : `${totalMod}`;
   
   const ability = ABILITIES.find(a => a.key === skill.ability);
   
@@ -245,21 +249,20 @@ function SkillRow({ skill, abilityMod, profBonus, isProficient, isExpert, onTogg
       <span style={{ 
         color: ability?.color || '#64748b', 
         fontSize: '9px',
-        marginRight: '12px',
+        marginRight: '8px',
         opacity: 0.7
       }}>
         {ability?.label}
       </span>
       
-      <span style={{ 
-        color: isProficient ? '#22c55e' : '#fff',
-        fontSize: '14px',
-        fontWeight: '700',
-        minWidth: '32px',
-        textAlign: 'right'
-      }}>
-        {display}
-      </span>
+      {/* Clickable skill check dice roll */}
+      <DiceRollButton 
+        modifier={totalMod}
+        label={skill.name}
+        color={isProficient ? '#22c55e' : '#fff'}
+        size="small"
+        showDice={false}
+      />
     </div>
   );
 }
@@ -563,6 +566,10 @@ function CharacterSheetFull() {
     return mod >= 0 ? `+${mod}` : `${mod}`;
   }, [calculateModifier]);
 
+  const getModifier = useCallback((score) => {
+    return calculateModifier(score);
+  }, [calculateModifier]);
+
   // Get class features based on character class and level
   const classFeatures = useMemo(() => {
     if (!character || !srdClasses.length) return [];
@@ -850,9 +857,12 @@ function CharacterSheetFull() {
             <Zap size={16} color="#eab308" />
             <div>
               <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>INIT</span>
-              <span style={{ color: '#eab308', fontWeight: '800', fontSize: '16px' }}>
-                {getModifierDisplay(data.dexterity)}
-              </span>
+              <DiceRollButton 
+                modifier={getModifier(data.dexterity)}
+                label="Initiative"
+                color="#eab308"
+                size="small"
+              />
             </div>
           </div>
 

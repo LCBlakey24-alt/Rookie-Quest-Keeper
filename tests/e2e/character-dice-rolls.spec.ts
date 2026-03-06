@@ -9,10 +9,10 @@ import {
  * Character Sheet Dice Roll Tests
  * Tests for clickable dice roll buttons on character sheet
  * 
- * KNOWN ISSUE: CharacterSheetFull.js does not implement DiceRollButton components
- * The ability scores, saving throws, and skills display modifiers but are not clickable
- * for dice rolling. The DiceRollButton component exists in CharacterSheet.js but that
- * component is not used in the app routes.
+ * FIXED: CharacterSheetFull.js now imports DiceRollButton and uses it in:
+ * - AbilityScoreBlock for ability checks and saving throws
+ * - SkillRow for skill checks  
+ * - Initiative display
  */
 
 test.describe('Character Sheet Dice Functionality', () => {
@@ -34,7 +34,7 @@ test.describe('Character Sheet Dice Functionality', () => {
     await expect(page.getByTestId('ability-wisdom')).toBeVisible();
     await expect(page.getByTestId('ability-charisma')).toBeVisible();
     
-    // Check that modifiers are displayed
+    // Check that modifiers are displayed (the DiceRollButton shows these)
     await expect(page.getByTestId('ability-strength')).toContainText('-1');
     await expect(page.getByTestId('ability-intelligence')).toContainText('+4');
   });
@@ -69,50 +69,55 @@ test.describe('Character Sheet Dice Functionality', () => {
     await expect(page.getByTestId('initiative-display')).toContainText('+');
   });
 
-  test.skip('KNOWN BUG: Ability scores should have clickable dice roll buttons', async ({ page }) => {
-    // This test documents that dice roll buttons don't exist in CharacterSheetFull
-    // The DiceRollButton component is defined but not used in CharacterSheetFull.js
+  test('Ability scores have clickable dice roll buttons', async ({ page }) => {
+    // Verify Intelligence ability check dice roll button exists and works
+    const intCheckDiceBtn = page.getByTestId('dice-roll-intelligence-check');
+    await expect(intCheckDiceBtn).toBeVisible();
     
-    // Look for dice roll test ids - these don't exist because CharacterSheetFull
-    // doesn't use DiceRollButton
-    const diceButton = page.getByTestId('dice-roll-strength-check');
-    await expect(diceButton).toBeVisible();
+    // Click the dice roll button
+    await intCheckDiceBtn.click();
     
-    // If the button existed, clicking it should show a toast with roll result
-    await diceButton.click();
+    // Verify toast notification appears with roll result
     await expect(page.locator('[data-sonner-toast]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-sonner-toast]')).toContainText('Intelligence Check');
   });
 
-  test.skip('KNOWN BUG: Saving throws should have clickable dice roll buttons', async ({ page }) => {
-    // Dice roll buttons for saving throws don't exist in CharacterSheetFull
-    const saveDiceButton = page.getByTestId('dice-roll-strength-save');
-    await expect(saveDiceButton).toBeVisible();
+  test('Saving throws have clickable dice roll buttons', async ({ page }) => {
+    // Verify Intelligence save dice roll button exists and works
+    const intSaveDiceBtn = page.getByTestId('dice-roll-intelligence-save');
+    await expect(intSaveDiceBtn).toBeVisible();
+    
+    // Click the dice roll button
+    await intSaveDiceBtn.click();
+    
+    // Verify toast notification appears with roll result
+    await expect(page.locator('[data-sonner-toast]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-sonner-toast]')).toContainText('Intelligence Save');
   });
 
-  test.skip('KNOWN BUG: Skills should have clickable dice roll buttons', async ({ page }) => {
-    // Dice roll buttons for skills don't exist in CharacterSheetFull
-    const skillDiceButton = page.getByTestId('dice-roll-perception');
-    await expect(skillDiceButton).toBeVisible();
+  test('Skills have clickable dice roll buttons', async ({ page }) => {
+    // Verify Arcana skill dice roll button exists and works
+    const arcanaDiceBtn = page.getByTestId('dice-roll-arcana');
+    await expect(arcanaDiceBtn).toBeVisible();
+    
+    // Click the dice roll button
+    await arcanaDiceBtn.click();
+    
+    // Verify toast notification appears with roll result
+    await expect(page.locator('[data-sonner-toast]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-sonner-toast]')).toContainText('Arcana');
   });
 
-  test.skip('KNOWN BUG: Initiative should have clickable dice roll button', async ({ page }) => {
-    // Dice roll button for initiative doesn't exist in CharacterSheetFull
-    const initDiceButton = page.getByTestId('dice-roll-initiative');
-    await expect(initDiceButton).toBeVisible();
+  test('Initiative has clickable dice roll button', async ({ page }) => {
+    // Verify initiative dice roll button exists and works
+    const initDiceBtn = page.getByTestId('dice-roll-initiative');
+    await expect(initDiceBtn).toBeVisible();
+    
+    // Click the dice roll button
+    await initDiceBtn.click();
+    
+    // Verify toast notification appears with roll result
+    await expect(page.locator('[data-sonner-toast]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-sonner-toast]')).toContainText('Initiative');
   });
 });
-
-/**
- * RECOMMENDED FIX:
- * Update CharacterSheetFull.js to import and use DiceRollButton from DiceRollButton.js
- * 
- * In AbilityScoreBlock component:
- * - Import: import { DiceRollButton } from '@/components/DiceRollButton';
- * - Add: <DiceRollButton modifier={modifier} label={`${ability.fullName} Check`} />
- * 
- * In SkillRow component:
- * - Add: <DiceRollButton modifier={totalMod} label={skill.name} />
- * 
- * For Initiative:
- * - Add: <DiceRollButton modifier={initMod} label="Initiative" />
- */
