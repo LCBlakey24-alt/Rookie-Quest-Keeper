@@ -863,7 +863,8 @@ class CustomCreatureCreate(BaseModel):
 
 class CreateCheckoutRequest(BaseModel):
     origin_url: str
-    plan: str = 'adventurer'
+    plan_id: str = 'legendary'  # player, gm, legendary
+    billing_cycle: str = 'monthly'  # monthly, yearly
 
 class SubscriptionResponse(BaseModel):
     tier: str
@@ -1297,9 +1298,18 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         if not api_key:
             raise HTTPException(status_code=500, detail="Stripe not configured")
         
-        plan = SUBSCRIPTION_PLANS.get(request.plan)
-        if not plan or plan['price'] == 0:
+        plan = SUBSCRIPTION_PLANS.get(request.plan_id)
+        if not plan:
             raise HTTPException(status_code=400, detail="Invalid plan")
+        
+        # Get price based on billing cycle
+        if request.billing_cycle == 'yearly':
+            price = plan['price_yearly']
+        else:
+            price = plan['price_monthly']
+        
+        if price == 0:
+            raise HTTPException(status_code=400, detail="Cannot checkout free plan")
         
         host_url = str(http_request.base_url).rstrip('/')
         webhook_url = f"{host_url}/api/webhook/stripe"
@@ -1311,13 +1321,14 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         cancel_url = f"{request.origin_url}/subscription/cancel"
         
         checkout_request = CheckoutSessionRequest(
-            amount=float(plan['price']),
+            amount=float(price),
             currency="usd",
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
                 "username": username,
-                "plan": request.plan,
+                "plan_id": request.plan_id,
+                "billing_cycle": request.billing_cycle,
                 "type": "subscription"
             }
         )
@@ -1329,9 +1340,10 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
             'id': str(uuid.uuid4()),
             'session_id': session.session_id,
             'username': username,
-            'amount': plan['price'],
+            'amount': price,
             'currency': 'usd',
-            'plan': request.plan,
+            'plan_id': request.plan_id,
+            'billing_cycle': request.billing_cycle,
             'payment_status': 'pending',
             'created_at': datetime.now(timezone.utc).isoformat()
         }
@@ -1361,12 +1373,15 @@ async def get_checkout_status(session_id: str, http_request: Request, username: 
         transaction = await db.payment_transactions.find_one({'session_id': session_id})
         
         if status.payment_status == 'paid' and transaction and transaction.get('payment_status') != 'paid':
-            # Activate subscription
-            plan = transaction.get('plan', 'adventurer')
+            # Activate subscription with new plan_id
+            plan_id = transaction.get('plan_id', transaction.get('plan', 'legendary'))
+            billing_cycle = transaction.get('billing_cycle', 'monthly')
+            
             await db.users.update_one(
                 {'username': username},
                 {'$set': {
-                    'subscription.tier': plan,
+                    'subscription.tier': plan_id,
+                    'subscription.billing_cycle': billing_cycle,
                     'subscription.subscription_status': 'active',
                     'subscription.stripe_subscription_id': session_id
                 }}

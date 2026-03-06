@@ -3,11 +3,18 @@ import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, Crown, Sparkles, Loader2, Copy, Users, Gift } from 'lucide-react';
-import QuickTips, { TIPS } from '@/components/QuickTips';
+import { ArrowLeft, Check, Crown, Sparkles, Loader2, Copy, Users, Gift, Swords, User, Star } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Theme
+const theme = {
+  bg: { black: '#0D0D0D', dark: '#141414', panel: '#1A1A1A', card: '#1F1F1F' },
+  accent: { red: '#E11D48', blue: '#3B82F6', gold: '#F59E0B' },
+  text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },
+  border: 'rgba(255, 255, 255, 0.1)'
+};
 
 function PricingPage({ username, onLogout }) {
   const navigate = useNavigate();
@@ -15,15 +22,14 @@ function PricingPage({ username, onLogout }) {
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(null);
   const [promoCode, setPromoCode] = useState('');
   const [applyingPromo, setApplyingPromo] = useState(false);
   const [referralInfo, setReferralInfo] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly');
 
   useEffect(() => {
     fetchData();
-    
-    // Check for session_id in URL (returning from Stripe)
     const sessionId = searchParams.get('session_id');
     if (sessionId) {
       pollPaymentStatus(sessionId);
@@ -49,65 +55,49 @@ function PricingPage({ username, onLogout }) {
 
   const pollPaymentStatus = async (sessionId, attempts = 0) => {
     const maxAttempts = 5;
-    const pollInterval = 2000;
-
     if (attempts >= maxAttempts) {
-      toast.error('Payment status check timed out. Please refresh the page.');
+      toast.error('Payment status check timed out. Please refresh.');
       return;
     }
-
     try {
       const response = await axios.get(`${API}/subscription/checkout/status/${sessionId}`);
-      
-      if (response.data.payment_status === 'paid') {
-        toast.success('Payment successful! You now have Adventurer access!');
-        fetchData(); // Refresh subscription status
-        // Clear URL params
-        navigate('/pricing', { replace: true });
-        return;
+      if (response.data.status === 'complete') {
+        toast.success('Welcome to your new subscription!');
+        fetchData();
+        window.history.replaceState({}, '', '/pricing');
+      } else if (response.data.status === 'open') {
+        setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
       }
-
-      // Continue polling if not yet paid
-      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
     } catch (error) {
-      console.error('Error checking payment status:', error);
-      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
     }
   };
 
-  const handleCheckout = async (planId) => {
+  const handleSubscribe = async (planId) => {
     if (planId === 'free') return;
-    
-    setCheckoutLoading(true);
+    setCheckoutLoading(planId);
     try {
       const response = await axios.post(`${API}/subscription/checkout`, {
-        origin_url: window.location.origin,
-        plan: planId
+        plan_id: planId,
+        billing_cycle: billingCycle
       });
-      
-      // Redirect to Stripe checkout
-      window.location.href = response.data.checkout_url;
+      if (response.data.checkout_url) {
+        window.location.href = response.data.checkout_url;
+      }
     } catch (error) {
-      toast.error('Failed to start checkout. Please try again.');
-      setCheckoutLoading(false);
+      toast.error(error.response?.data?.detail || 'Failed to start checkout');
+      setCheckoutLoading(null);
     }
   };
 
-  const handleApplyPromo = async (e) => {
-    e.preventDefault();
-    if (!promoCode.trim()) {
-      toast.error('Please enter a promo code');
-      return;
-    }
-    
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
     setApplyingPromo(true);
     try {
-      const response = await axios.post(`${API}/promo-codes/apply`, {
-        code: promoCode.trim()
-      });
-      toast.success(response.data.message);
+      await axios.post(`${API}/subscription/apply-promo`, { code: promoCode });
+      toast.success('Promo code applied successfully!');
       setPromoCode('');
-      fetchData(); // Refresh subscription status
+      fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Invalid promo code');
     } finally {
@@ -115,54 +105,82 @@ function PricingPage({ username, onLogout }) {
     }
   };
 
+  const copyReferralCode = () => {
+    if (referralInfo?.referral_code) {
+      navigator.clipboard.writeText(`${window.location.origin}?ref=${referralInfo.referral_code}`);
+      toast.success('Referral link copied!');
+    }
+  };
+
+  const getPlanIcon = (planId) => {
+    switch (planId) {
+      case 'player': return <User size={28} />;
+      case 'gm': return <Swords size={28} />;
+      case 'legendary': return <Crown size={28} />;
+      default: return <Sparkles size={28} />;
+    }
+  };
+
+  const getPlanColor = (planId) => {
+    switch (planId) {
+      case 'player': return theme.accent.blue;
+      case 'gm': return theme.accent.red;
+      case 'legendary': return theme.accent.gold;
+      default: return theme.text.muted;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="loading-screen">
-        <div className="loading-spinner"></div>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: theme.bg.black, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        <Loader2 size={40} className="animate-spin" style={{ color: theme.accent.red }} />
       </div>
     );
   }
 
+  const currentTier = subscription?.tier || 'free';
+  const isLifetime = subscription?.lifetime_access;
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #030014 0%, #0a0a2e 50%, #030014 100%)',
-      padding: '24px'
+    <div style={{ 
+      minHeight: '100vh', 
+      background: theme.bg.black, 
+      fontFamily: 'Cityworm, Inter, sans-serif' 
     }}>
       {/* Header */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-          <Button 
-            data-testid="back-btn"
-            onClick={() => navigate('/campaigns')} 
-            className="btn-icon"
-          >
-            <ArrowLeft size={24} />
+      <div style={{ 
+        padding: '20px 24px', 
+        borderBottom: `1px solid ${theme.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Button onClick={() => navigate('/home')} style={{ background: 'transparent', border: 'none', padding: '8px' }}>
+            <ArrowLeft size={24} color={theme.text.white} />
           </Button>
-          <h1 style={{ 
-            fontSize: '32px', 
-            color: '#fff',
-            fontFamily: 'Montserrat, sans-serif',
-            fontWeight: '800'
-          }}>
-            Choose Your Adventure
+          <h1 style={{ color: theme.text.white, fontSize: '24px', fontWeight: '700' }}>
+            Subscription Plans
           </h1>
         </div>
+        <div style={{ color: theme.text.secondary, fontSize: '14px' }}>
+          Logged in as <span style={{ color: theme.accent.red }}>{username}</span>
+        </div>
+      </div>
 
-        {/* Quick Tips */}
-        <QuickTips 
-          tips={TIPS.pricing} 
-          pageId="pricing" 
-          title="Subscription Tips"
-        />
-
+      <div style={{ padding: '40px 24px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Current Status */}
-        {subscription && (
+        {currentTier !== 'free' && (
           <div style={{
-            background: 'rgba(74, 125, 255, 0.1)',
-            border: '2px solid #4a7dff',
-            borderRadius: '12px',
-            padding: '16px 24px',
+            background: `linear-gradient(135deg, ${getPlanColor(currentTier)}20, transparent)`,
+            border: `1px solid ${getPlanColor(currentTier)}50`,
+            padding: '20px 24px',
             marginBottom: '32px',
             display: 'flex',
             alignItems: 'center',
@@ -170,348 +188,358 @@ function PricingPage({ username, onLogout }) {
             flexWrap: 'wrap',
             gap: '16px'
           }}>
-            <div>
-              <span style={{ color: '#94a3b8', fontSize: '14px' }}>Current Plan: </span>
-              <span style={{ 
-                color: subscription.is_premium ? '#22c55e' : '#fff',
-                fontWeight: '700',
-                fontSize: '18px'
-              }}>
-                {subscription.tier_name}
-                {subscription.is_premium && <Crown size={18} style={{ marginLeft: '8px', display: 'inline' }} />}
-              </span>
-            </div>
-            {!subscription.is_premium && (
-              <div style={{ color: '#94a3b8', fontSize: '14px' }}>
-                AI Generations: {subscription.ai_calls_used} / {subscription.ai_calls_limit} this month
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Star size={24} style={{ color: getPlanColor(currentTier) }} />
+              <div>
+                <span style={{ color: theme.text.white, fontWeight: '700' }}>
+                  Current Plan: {plans.find(p => p.id === currentTier)?.name || currentTier}
+                </span>
+                {isLifetime && (
+                  <span style={{ 
+                    marginLeft: '12px',
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    color: '#22c55e',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: '600'
+                  }}>
+                    LIFETIME ACCESS
+                  </span>
+                )}
               </div>
-            )}
+            </div>
           </div>
         )}
 
-        {/* Promo Code Section */}
-        <div style={{
-          background: 'rgba(168, 85, 247, 0.1)',
-          border: '2px solid #a855f7',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          marginBottom: '40px'
+        {/* Billing Toggle */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          marginBottom: '32px',
+          gap: '8px'
         }}>
-          <h3 style={{ 
-            color: '#a855f7', 
-            marginBottom: '12px',
-            fontFamily: 'Montserrat, sans-serif',
-            fontWeight: '700',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Sparkles size={20} />
-            Have a Promo Code?
-          </h3>
-          <form onSubmit={handleApplyPromo} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <input
-              type="text"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              placeholder="Enter your code"
-              data-testid="promo-code-input"
-              style={{
-                flex: '1',
-                minWidth: '200px',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                border: '2px solid #374151',
-                background: 'rgba(0, 0, 0, 0.3)',
-                color: '#fff',
-                fontSize: '16px'
-              }}
-            />
-            <Button
-              type="submit"
-              data-testid="apply-promo-btn"
-              disabled={applyingPromo}
-              className="btn-primary"
-              style={{ minWidth: '120px' }}
-            >
-              {applyingPromo ? <Loader2 className="animate-spin" size={18} /> : 'Apply'}
-            </Button>
-          </form>
-        </div>
-
-        {/* Referral Program Section */}
-        {referralInfo && (
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(74, 125, 255, 0.1) 100%)',
-            border: '2px solid #22c55e',
-            borderRadius: '12px',
-            padding: '24px',
-            marginBottom: '40px'
-          }}>
-            <h3 style={{ 
-              color: '#22c55e', 
-              marginBottom: '16px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: '700',
-              fontSize: '20px',
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            style={{
+              padding: '12px 24px',
+              background: billingCycle === 'monthly' ? theme.accent.red : 'transparent',
+              border: billingCycle === 'monthly' ? 'none' : `1px solid ${theme.border}`,
+              color: theme.text.white,
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('yearly')}
+            style={{
+              padding: '12px 24px',
+              background: billingCycle === 'yearly' ? theme.accent.red : 'transparent',
+              border: billingCycle === 'yearly' ? 'none' : `1px solid ${theme.border}`,
+              color: theme.text.white,
+              fontWeight: '600',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px'
+              gap: '8px'
+            }}
+          >
+            Yearly
+            <span style={{ 
+              background: '#22c55e', 
+              color: '#fff', 
+              padding: '2px 8px', 
+              fontSize: '10px',
+              fontWeight: '700'
             }}>
-              <Gift size={24} />
-              Refer Friends, Earn Free Premium!
-            </h3>
-            <p style={{ color: '#94a3b8', marginBottom: '20px', lineHeight: '1.6' }}>
-              Share your referral code with friends. When they sign up, <strong style={{ color: '#22c55e' }}>you get 1 FREE month</strong> of Adventurer access!
-            </p>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              alignItems: 'center', 
-              flexWrap: 'wrap',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                flex: '1',
-                minWidth: '200px',
-                padding: '14px 18px',
-                borderRadius: '8px',
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '2px solid #374151',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px'
-              }}>
-                <span style={{ 
-                  color: '#fff', 
-                  fontWeight: '700',
-                  fontFamily: 'monospace',
-                  fontSize: '18px',
-                  letterSpacing: '2px'
-                }}>
-                  {referralInfo.referral_code}
-                </span>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(referralInfo.referral_code);
-                    toast.success('Referral code copied!');
-                  }}
-                  className="btn-icon"
-                  style={{ padding: '8px' }}
-                  data-testid="copy-referral-btn"
-                >
-                  <Copy size={18} />
-                </Button>
-              </div>
-              <Button
-                onClick={() => {
-                  const shareUrl = `${window.location.origin}/auth?ref=${referralInfo.referral_code}`;
-                  navigator.clipboard.writeText(shareUrl);
-                  toast.success('Share link copied!');
-                }}
-                className="btn-primary"
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  background: 'linear-gradient(90deg, #22c55e, #16a34a)'
-                }}
-                data-testid="copy-share-link-btn"
-              >
-                <Users size={18} />
-                Copy Share Link
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '24px', 
-              flexWrap: 'wrap',
-              paddingTop: '16px',
-              borderTop: '1px solid rgba(34, 197, 94, 0.3)'
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#22c55e', fontSize: '28px', fontWeight: '800' }}>
-                  {referralInfo.referral_count || 0}
-                </div>
-                <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
-                  Friends Referred
-                </div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#4a7dff', fontSize: '28px', fontWeight: '800' }}>
-                  {referralInfo.free_months_earned || 0}
-                </div>
-                <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
-                  Free Months Earned
-                </div>
-              </div>
-              {subscription?.premium_expires_at && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ color: '#a855f7', fontSize: '16px', fontWeight: '700' }}>
-                    {new Date(subscription.premium_expires_at).toLocaleDateString()}
-                  </div>
-                  <div style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' }}>
-                    Premium Until
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+              SAVE ~17%
+            </span>
+          </button>
+        </div>
 
         {/* Pricing Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px',
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', 
+          gap: '20px',
           marginBottom: '40px'
         }}>
           {plans.map((plan) => {
-            const isCurrentPlan = subscription?.tier === plan.id;
-            const isPremium = plan.id !== 'free';
-            
+            const isCurrentPlan = currentTier === plan.id;
+            const planColor = getPlanColor(plan.id);
+            const price = billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
+            const isPopular = plan.popular;
+
             return (
               <div
                 key={plan.id}
                 data-testid={`plan-card-${plan.id}`}
                 style={{
-                  background: isPremium 
-                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(74, 125, 255, 0.15) 100%)'
-                    : 'rgba(30, 30, 60, 0.5)',
-                  border: isPremium 
-                    ? '3px solid #22c55e' 
-                    : '2px solid #374151',
-                  borderRadius: '16px',
-                  padding: '32px',
+                  background: theme.bg.panel,
+                  border: isPopular ? `2px solid ${planColor}` : `1px solid ${theme.border}`,
+                  padding: '0',
                   position: 'relative',
-                  transform: isPremium ? 'scale(1.02)' : 'none',
-                  boxShadow: isPremium ? '0 0 40px rgba(34, 197, 94, 0.3)' : 'none'
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}
               >
-                {isPremium && (
+                {/* Popular Badge */}
+                {isPopular && (
                   <div style={{
                     position: 'absolute',
                     top: '-12px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'linear-gradient(90deg, #22c55e, #4a7dff)',
-                    padding: '6px 20px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: '700',
+                    background: planColor,
                     color: '#fff',
-                    textTransform: 'uppercase',
+                    padding: '4px 16px',
+                    fontSize: '11px',
+                    fontWeight: '700',
                     letterSpacing: '1px'
                   }}>
-                    Most Popular
+                    MOST POPULAR
                   </div>
                 )}
 
-                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                  <h2 style={{ 
-                    fontSize: '28px', 
-                    color: '#fff',
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: '800',
-                    marginBottom: '8px',
+                {/* Header */}
+                <div style={{
+                  padding: '24px 20px 16px',
+                  borderBottom: `1px solid ${theme.border}`,
+                  textAlign: 'center'
+                }}>
+                  <div style={{ 
+                    color: planColor, 
+                    marginBottom: '12px',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
+                    justifyContent: 'center'
                   }}>
-                    {isPremium && <Crown size={24} color="#22c55e" />}
+                    {getPlanIcon(plan.id)}
+                  </div>
+                  <h3 style={{ 
+                    color: theme.text.white, 
+                    fontSize: '22px', 
+                    fontWeight: '700',
+                    marginBottom: '4px'
+                  }}>
                     {plan.name}
-                  </h2>
-                  <div style={{ marginBottom: '8px' }}>
-                    <span style={{ 
-                      fontSize: '48px', 
-                      fontWeight: '800', 
-                      color: isPremium ? '#22c55e' : '#fff',
-                      fontFamily: 'Montserrat, sans-serif'
-                    }}>
-                      ${plan.price}
+                  </h3>
+                  <p style={{ color: theme.text.muted, fontSize: '12px' }}>
+                    {plan.target === 'player' && 'For Players'}
+                    {plan.target === 'gm' && 'For Game Masters'}
+                    {plan.target === 'both' && 'For Everyone'}
+                    {plan.target === 'casual' && 'Get Started'}
+                  </p>
+                </div>
+
+                {/* Price */}
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                    <span style={{ color: planColor, fontSize: '36px', fontWeight: '800' }}>
+                      ${price}
                     </span>
-                    {plan.price > 0 && (
-                      <span style={{ color: '#94a3b8', fontSize: '16px' }}>/month</span>
+                    {price > 0 && (
+                      <span style={{ color: theme.text.muted, fontSize: '14px' }}>
+                        /{billingCycle === 'yearly' ? 'year' : 'month'}
+                      </span>
                     )}
                   </div>
-                  {isPremium && (
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                      Less than a coffee - support indie devs!
+                  {billingCycle === 'yearly' && price > 0 && (
+                    <p style={{ color: theme.text.muted, fontSize: '12px', marginTop: '4px' }}>
+                      (${(price / 12).toFixed(2)}/month)
                     </p>
                   )}
                 </div>
 
-                <ul style={{ marginBottom: '32px', listStyle: 'none', padding: 0 }}>
-                  {plan.features.map((feature, index) => (
-                    <li 
-                      key={index}
+                {/* Features */}
+                <div style={{ padding: '0 20px 20px', flex: 1 }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {plan.features.map((feature, i) => (
+                      <li key={i} style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '10px',
+                        marginBottom: '10px',
+                        fontSize: '13px',
+                        color: theme.text.secondary
+                      }}>
+                        <Check size={16} style={{ color: planColor, flexShrink: 0, marginTop: '2px' }} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* CTA Button */}
+                <div style={{ padding: '0 20px 20px' }}>
+                  {isCurrentPlan ? (
+                    <div style={{
+                      padding: '14px',
+                      background: `${planColor}20`,
+                      border: `1px solid ${planColor}`,
+                      color: planColor,
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>
+                      Current Plan
+                    </div>
+                  ) : plan.id === 'free' ? (
+                    <div style={{
+                      padding: '14px',
+                      background: theme.bg.card,
+                      color: theme.text.muted,
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>
+                      Free Forever
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={checkoutLoading === plan.id}
+                      data-testid={`subscribe-${plan.id}-btn`}
                       style={{
+                        width: '100%',
+                        padding: '14px',
+                        background: planColor,
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
-                        padding: '10px 0',
-                        borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-                        color: '#e2e8f0'
+                        justifyContent: 'center',
+                        gap: '8px'
                       }}
                     >
-                      <Check size={18} color={isPremium ? '#22c55e' : '#4a7dff'} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {isCurrentPlan ? (
-                  <Button
-                    disabled
-                    className="btn-secondary"
-                    style={{ width: '100%', opacity: 0.7 }}
-                  >
-                    Current Plan
-                  </Button>
-                ) : isPremium ? (
-                  <Button
-                    onClick={() => handleCheckout(plan.id)}
-                    disabled={checkoutLoading}
-                    data-testid={`checkout-btn-${plan.id}`}
-                    className="btn-primary"
-                    style={{ 
-                      width: '100%',
-                      background: 'linear-gradient(90deg, #22c55e, #16a34a)',
-                      boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
-                    }}
-                  >
-                    {checkoutLoading ? (
-                      <Loader2 className="animate-spin" size={18} />
-                    ) : (
-                      'Upgrade Now'
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className="btn-secondary"
-                    style={{ width: '100%' }}
-                  >
-                    Free Forever
-                  </Button>
-                )}
+                      {checkoutLoading === plan.id ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <>
+                          {currentTier !== 'free' ? 'Upgrade' : 'Subscribe'}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* FAQ or Support */}
-        <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '14px' }}>
-          <p>Questions? Reach out to us anytime. We're here to help!</p>
-          <p style={{ marginTop: '8px' }}>
-            All payments are securely processed through Stripe.
-          </p>
+        {/* Promo Code Section */}
+        <div style={{
+          background: theme.bg.panel,
+          border: `1px solid ${theme.border}`,
+          padding: '24px',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{ 
+            color: theme.text.white, 
+            fontSize: '16px', 
+            fontWeight: '700', 
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <Gift size={20} style={{ color: theme.accent.gold }} />
+            Have a Promo Code?
+          </h3>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              placeholder="Enter promo code"
+              data-testid="promo-code-input"
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                background: theme.bg.dark,
+                border: `1px solid ${theme.border}`,
+                color: theme.text.white,
+                fontSize: '14px',
+                textTransform: 'uppercase'
+              }}
+            />
+            <Button
+              onClick={handleApplyPromo}
+              disabled={applyingPromo || !promoCode.trim()}
+              data-testid="apply-promo-btn"
+              style={{
+                padding: '12px 24px',
+                background: theme.accent.red,
+                border: 'none',
+                color: '#fff',
+                fontWeight: '600'
+              }}
+            >
+              {applyingPromo ? <Loader2 size={18} className="animate-spin" /> : 'Apply'}
+            </Button>
+          </div>
         </div>
+
+        {/* Referral Section */}
+        {referralInfo && (
+          <div style={{
+            background: theme.bg.panel,
+            border: `1px solid ${theme.border}`,
+            padding: '24px'
+          }}>
+            <h3 style={{ 
+              color: theme.text.white, 
+              fontSize: '16px', 
+              fontWeight: '700', 
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <Users size={20} style={{ color: theme.accent.blue }} />
+              Refer Friends, Get Free Months
+            </h3>
+            <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '16px' }}>
+              Share your link and both you and your friend get a free month when they subscribe!
+            </p>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{
+                flex: 1,
+                padding: '12px 16px',
+                background: theme.bg.dark,
+                border: `1px solid ${theme.border}`,
+                color: theme.accent.blue,
+                fontSize: '14px',
+                fontFamily: 'monospace'
+              }}>
+                {window.location.origin}?ref={referralInfo.referral_code}
+              </div>
+              <Button
+                onClick={copyReferralCode}
+                style={{
+                  padding: '12px 16px',
+                  background: theme.accent.blue,
+                  border: 'none'
+                }}
+              >
+                <Copy size={18} color="#fff" />
+              </Button>
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              gap: '24px', 
+              marginTop: '16px',
+              color: theme.text.muted,
+              fontSize: '13px'
+            }}>
+              <span>Referrals: <strong style={{ color: theme.text.white }}>{referralInfo.referral_count}</strong></span>
+              <span>Free months earned: <strong style={{ color: '#22c55e' }}>{referralInfo.free_months_earned}</strong></span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

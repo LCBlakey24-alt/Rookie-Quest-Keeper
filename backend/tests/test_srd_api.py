@@ -8,7 +8,7 @@ import requests
 import os
 
 # Use conftest.py value or default
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://quest-reference.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://hero-player-hub.preview.emergentagent.com').rstrip('/')
 
 
 @pytest.fixture

@@ -1,74 +1,97 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to build a Player Site for their TTRPG application. This has since evolved into a series of major feature implementations and UI overhauls.
+The user's core objective is to build a TTRPG application, Rookie Quest Keeper (ROOK). The project has evolved from a UI/UX rebrand to a focus on implementing a sustainable revenue model and unique, AI-driven features to differentiate it from competitors.
 
-Key requests during the last sessions:
-1.  **Combat Bug Fixes:** Resolve an issue where combat ends in a black screen and another where the dice roller had a limited capacity.
-2.  **Enhanced Combat UI:** Add clickable abilities to enemy cards in combat, generate AI tokens for creatures, and allow NPCs to be added to an ongoing battle.
-3.  **Custom Referral Codes:** Allow users to customize their personal referral code.
-4.  **DM Map Maker:** Pivot from player-side features to build a comprehensive, in-app map builder for Dungeon Masters, including tools for terrain, walls, doors, and fog of war.
-5.  **Full UI Redesign:** Overhaul the GM and Player dashboards to match the modern, animated aesthetic of the landing page, using parallax backgrounds and glass morphism effects.
-6.  **SRD Content:** Build a copyright-safe database of spells, feats, and abilities based on the D&D 5e System Reference Document (SRD).
-7.  **Map & AI Integration:** Integrate the new Map Maker with the combat system so DMs can load maps into encounters. Add ROOK AI suggestions to provide contextual tips to players and GMs.
-8.  **Future Vision:** The user has outlined a long-term goal for a never leave the page character sheet experience, similar to D&D Beyond but more streamlined, and a system for users to import their own custom (potentially copyrighted) content.
+PRODUCT REQUIREMENTS:
+1.  **UI/UX System:**
+    *   Maintain the established dark minimalist theme: dark grey/black background (), white text.
+    *   Use a red accent color () for all GM-facing tools and general UI.
+    *   Use a blue accent color for all Player-facing features (Character Builder, Player Dashboard, Character Sheet).
+    *   Use the  font for headings and key elements.
+    *   Ensure all UI elements have sharp, square corners (0px border-radius).
+2.  **Revenue Model (New):**
+    *   Implement a 3-tier subscription model with Stripe:
+        *   **Hero (Player):** .99/month
+        *   **Quest Master (GM):** .99/month
+        *   **Legendary (Both):** .99/month
+    *   Support yearly billing with a discount.
+    *   Enhance the admin panel to create promo codes with specific tiers, usage limits, and durations.
+    *   Grandfather existing promo codes (e.g., ) to have permanent Legendary access.
+    *   Implement feature-gating logic based on a user's subscription tier.
+3.  **Feature Implementation (User Approved Priority):**
+    *   **Phase 1 (Revenue Foundation):** Complete pricing tiers, Stripe integration, and feature gating.
+    *   **Phase 2 (Player Features):** Implement Session Journal, Unlimited Characters (for paid tiers), and Party Inventory.
+    *   **Phase 3 (GM Killer Features):**
+        *   **Session Mode:** A streamlined UI for live play. (Started)
+        *   **Session Recap AI:** AI-powered summary of session events.
+        *   **Smart Entity Linking:** Automatically link text (e.g., NPC names) to their corresponding pages.
+4.  **Bug Fixes & Housekeeping:**
+    *   Address all bugs reported by the user or found by the testing agent.
+    *   Perform a site-wide audit to remove any outdated assets, colors, or text.
+    *   Keep the backend refactor ( split) in the future backlog.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-featured TTRPG platform with distinct GM and Player roles.
-- **Modern UI/UX:** The entire application, including the Landing Page, GM Screen, and Player Dashboard, now shares a consistent, modern design language featuring parallax backgrounds, glass morphism (frosted glass) effects, and improved visual hierarchy.
-- **Robust DM Tools:**
-    - A full-featured **Map Builder** allows DMs to create, save, and load custom battle maps.
-    - An enhanced **Combat Tracker** displays clickable creature abilities and allows for dynamic addition of NPCs.
-    - An AI-powered **Token Generator** creates unique creature tokens.
-- **Player Features:**
-    - Players have a dashboard to manage characters and notes.
-    - GM-generated session recaps are automatically synced to player notes.
-- **Core Systems:**
-    - The ROOK AI branding is consistently used for all AI-driven features.
-    - A backend API serves copyright-safe SRD data (spells, feats, etc.) for future use.
-    - A customizable referral code system is in place.
-    - **ROOK AI Suggestions** provide contextual tips during gameplay.
-    - The Map Builder is integrated with the combat system, allowing maps to be loaded into encounters.
+The application has a consistent dark theme with red (GM) and blue (Player) accent colors. The backend and frontend have been updated to support a new 3-tier pricing model, including changes to the database schema, API endpoints, Admin Page UI, and the main Pricing Page. The  is fully functional with comprehensive SRD data. The ROOK AI is now context-aware, pulling campaign data for better suggestions. The main dashboard sidebar has been reorganized with collapsible groups. Numerous bugs have been fixed, and a site-wide cleanup of outdated UI elements has been completed. The implementation of Session Mode, the first of the new killer features, has just begun.
 
 **Last working item**:
-- **Last item agent was working:** The agent finished implementing two high-priority features: integrating the Map Builder into the combat UI (P3) and adding ROOK AI suggestions for players and GMs (P2). It successfully created the UI for selecting a map for an encounter and the pop-up component for ROOK's tips. The final step was to run a comprehensive test suite.
-- **Status:** USER VERIFICATION PENDING
-- **Agent Testing Done:** N (The agent was about to run the testing subagent when the user interrupted, so this final validation step was skipped.)
+- **Last item agent was working:** The agent was executing a large, multi-part task to implement the new pricing model and begin building new features. The very last action was creating the file  to start the Session Mode feature.
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
 - **Which testing method agent to use?** both
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- No pending bugs or issues. The current focus is on feature development and testing.
+- **Issue 1: Campaign setting save not persisting (P0)**
+    - **Description:** A bug identified by the testing agent where saving settings for a newly created campaign fails because the  is not included in the initial database document.
+    - **Attempted fixes:** A fix was implemented in  to use  during the upsert operation.
+    - **Next debug checklist:**
+        1.  Immediately run the  to verify the fix and check for any regressions before proceeding with new feature development.
+    - **Why fix this issue and what will be achieved with the fix?** This breaks a core user workflow. Fixing it ensures that GMs can correctly configure their campaigns from the start.
+    - **Status:** TESTING PENDING
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on other issue:** None.
 
 **In progress Task List**:
-- **Task 1: Validate Latest Features with Testing Agent (P0)**
-    - **Where to resume:** The previous agent was interrupted just before calling the  to validate the Map-to-Combat integration and the new ROOK AI suggestion features. This call needs to be executed immediately to ensure these features are stable and have not introduced regressions.
-    - **What will be achieved with this?** A full regression test run will confirm the stability of the entire application after the recent major UI and feature additions.
+- **Task 1: Complete New Revenue Model & Session Mode Feature (P0)**
+    - **Description:** This is the large, active task to implement the new pricing structure and the first of the user's desired differentiator features.
+    - **Where to resume:**
+        1.  Integrate the new  into the application's router in .
+        2.  Build out the UI and functionality for the Session Mode page.
+        3.  Implement **feature gating** logic throughout the frontend to restrict access to features based on the user's subscription tier.
+    - **What will be achieved with this?** This will complete the foundational work for the new revenue model and deliver the first major new feature requested by the user.
     - **Status:** IN PROGRESS
     - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on something:** No.
+    - **Blocked on something:** The Campaign setting save bug should be verified as fixed before investing significant effort here.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **P0: All-in-One Player Character Sheet:** As per the user's explicit request, begin building the framework for a new player character sheet experience. The goal is a single, interactive page where players can see and edit stats, skills, spells (prepared vs. known), feats, and abilities without navigating away. This will utilize the newly created SRD data API.
-    - **P1: GM→Player Item Linking:** Implement the feature where items assigned by a GM automatically sync to the player's character sheet with functional stats.
-    - **P2: Player Mode (Full Combat View):** Build the player-side combat experience, showing a simplified combat tracker and allowing players to take actions that sync with the GM's view.
-    - **P3: Add Database Indexes:** Add indexes to MongoDB for frequently queried fields (, ) to improve performance.
-
+    - **P1: Player Companion Features (Hero Tier):** Implement the  and  to add value to the player-focused subscription.
+    - **P1: Session Recap AI (Quest Master Tier):** Enhance the ROOK AI to generate summaries of game sessions based on notes and logs.
+    - **P2: Smart Entity Linking:** Implement auto-linking of text to world entities (NPCs, locations, etc.) to improve usability.
 - **Future Tasks:**
-    - **Custom Content Import System:** Build the feature allowing users to upload a file (e.g., JSON) to import custom/copyrighted game data (classes, spells, monsters) into the application for their private use.
-    - **AI-Powered Smart Note Parsing:** Resume the paused feature that allows ROOK to parse GM notes and automatically update game entities (e.g., character health, inventory).
-    - **Backend Refactoring:** Split the monolithic  into a more scalable structure using FastAPI routers.
+    - Backend Refactoring (split ).
+    - Mobile-first Combat Tracker.
+    - Zero Prep Mode AI generation.
+    - Shareable World Codex for players.
+    - Offline Mode.
+    - Ambient Soundscapes.
 
 **Completed work in this session**
-- **Combat Bug Fixes:** Fixed the black screen on combat end bug and verified the dice roller now supports up to 999 dice.
-- **Enhanced Combat UI:** Implemented clickable ability cards, an AI token generator, and an NPC recruiter in the combat tracker.
-- **Customizable Referral Codes:** Implemented the full stack for users to customize their referral codes.
-- **DM Map Maker Feature:** Built and integrated a complete, from-scratch battle map builder into the GM Screen.
-- **Full UI Redesign:** Overhauled the GM and Player dashboards with parallax backgrounds and glass morphism to match the landing page.
-- **SRD Content API:** Created and exposed a copyright-safe database of SRD content (spells, feats, abilities).
-- **Map-to-Combat Integration:** Added UI for DMs to load saved maps into a combat encounter.
-- **ROOK AI Suggestions:** Implemented a pop-up component that provides contextual AI tips on the Player and Combat pages.
+- **New Revenue Model Foundation:**
+    - Updated backend models (, ) and API endpoints in  for a 3-tier system.
+    - Rewrote  to reflect the new tiers.
+    - Updated  to allow creation of tiered promo codes.
+    - Updated Stripe checkout logic to handle the new plans.
+- ** Overhaul:** Replaced hardcoded data with a fully functional reference section fetching live SRD data.
+- **Context-Aware ROOK AI:** Modified the AI backend to use campaign-specific data for more relevant suggestions.
+- **UI/UX Overhaul & Bug Fixes:**
+    - Reorganized the  sidebar with collapsible groups.
+    - Re-themed the Dice Roller and moved it to a more practical location.
+    - Applied a blue theme to all Player-facing components (, , etc.).
+    - Fixed a critical bug preventing campaign settings from being saved.
+    - Completed a site-wide audit to remove outdated UI colors and assets.
 
 **Earlier issues found/mentioned but not fixed**
 - None.
@@ -80,68 +103,74 @@ The application is a full-featured TTRPG platform with distinct GM and Player ro
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, MongoDB (via ), Pydantic, JWT authentication.
-- **Frontend:** React, Tailwind CSS, , , HTML5 Canvas (for Map Builder), Intersection Observer API.
-- **AI:**  library for text and image generation (branded as ROOK).
-- **Architecture:** Full-stack, role-based (GM/Player), with a monolithic backend and static JSON files for SRD data.
+- **Frontend:** React, Tailwind CSS, Shadcn UI, .
+- **Backend:** FastAPI, MongoDB (), Pydantic models.
+- **Revenue:** Stripe for subscriptions, with a custom 3-tier model (, , ) and advanced promo code logic implemented.
 
 **key DB schema**
-- **maps:**  (New)
-- **tokens:**  (New)
-- , , , ,  schemas are unchanged.
+- ****: Schema updated to include  (String),  (Int), and  (Int).
+- ****: Now correctly includes  on initial creation to fix an upsert bug.
 
 **changes in tech stack**
-- No fundamental changes.
+- None.
 
 **All files of reference**
-- ****: Heavily modified to integrate the Map Selector modal and ROOK suggestions.
-- ****: Redesigned and updated to include the Maps tab and Map Builder.
-- ****: Redesigned and updated to include ROOK suggestions.
-- ****: New directory containing the entire map maker feature.
-- ****: Updated with new API endpoints for maps, tokens, SRD data, and referral code customization.
-- ****: New directory containing copyright-safe game data.
-- ****: New component for displaying AI-driven tips.
-- ****: New file centralizing the new UI's design tokens and styles.
+- ****: Contains all new pricing/promo logic, AI context, and bug fixes.
+- ****: Completely new implementation for the 3-tier model.
+- ****: UI for creating tiered promo codes.
+- ****: Contains the latest sidebar navigation structure.
+- ****: The starting point for the next task.
+
+**Areas that need refactoring**:
+-  is over 4,400 lines and is the top candidate for refactoring into FastAPI routers. The user has approved this for the future backlog.
+
+**key api endpoints**
+- : Returns the new 3-tier pricing structure.
+- : Creates promo codes with new tier/duration/uses fields.
+- : Handles checkout for the new plans.
+- : Now context-aware.
+- : Bug fix applied to this endpoint.
 
 **Critical Info for New Agent**
-- **Your first action must be to run the  command that was prepared at the end of the last session.** This is critical to validate the latest features (Map-Combat integration, ROOK suggestions) and check for regressions before starting new work.
-- The user's next major priority (P0) is the **All-in-One Player Character Sheet**. You should begin planning and building the framework for this feature after the tests have passed.
-- All new UI development must adhere to the new design system established in  (parallax backgrounds, glass morphism, consistent color palette).
+- **Your first action must be to verify the pending bug fix.** Run the  to confirm that the Campaign setting save issue is resolved before writing any new code.
+- **Your main task is to complete the in-progress work.** This involves:
+    1.  Building the Session Mode feature, starting with .
+    2.  Implementing **feature gating** across the application to enforce the new subscription tiers. This is a critical and un-started part of the current task.
+- Once the current task is complete and tested, proceed with the user-approved feature list, starting with Player Companion features () to add value to the new paid tiers.
 
 **documents and test reports created in this job**
--  (Updated)
-- Multiple test reports exist under .
+-  (updated multiple times)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Let's go with p1 next make sure we're not breaking any rules also what changes or additions do you reccomend making? Possible changes to graphics on the GM and player pages to match the look of the landing page? (Status: Completed)
-2.  **Agent:** Proposed a full UI redesign and building the SRD database. (Status: Completed)
-3.  **User:** Let go full redesign to match and b for both questions (Status: Completed)
-4.  **Agent:** Implemented the redesign and SRD database. (Status: Completed)
-5.  **User:** Let's go P3 and P2 also can you send me screen shots of the new site design? (Status: Completed)
-6.  **Agent:** Provided screenshots and implemented the Map-to-Combat integration (P3) and ROOK suggestions (P2). (Status: Completed)
-7.  **User:**  (This interrupted the agent's final testing step). (Status: Actioned, but implies approval to proceed).
-8.  **Agent:** Finished the job without running the final test due to the user's interruption. (Status: Completed).
-There are no pending messages requiring a direct response. The next step is to act on the last planned action.
+1.  **User:** Asks for ideas to differentiate ROOK. (Status: Actioned)
+2.  **User:** Approves new features, defines new 3-tier pricing, and specifies promo code requirements. (Status: Actioned)
+3.  **User:** Confirms pricing details and promo code admin requirements. (Status: Actioned)
+4.  **User:** Continue will all updates (Status: **In Progress**)
+5.  **User:** Continue (Status: **In Progress**)
+6.  **User:** We carnt be having bugs or issues so that needs dealing with first.... Also gives new sidebar grouping rules and other UI theme changes. (Status: Actioned)
+7.  **User:** Confirms the plan. (Status: Actioned)
+8.  **User:** Reports bugs with character builder and asks to move dice roller. (Status: Actioned)
+9.  **User:** Asks for a scan of all pages for outdated UI elements. (Status: Actioned)
+10. **User:** Asks for an explanation of backend refactoring. (Status: Actioned)
 
 **Project Health Check:**
-- **Broken:** None known, but a full test run is pending.
-- **Mocked:** None.
+- **Broken:** The fix for the campaign setting save bug is unverified and blocks confident forward progress.
+- **Mocked:**  is an empty placeholder file.
 
 **3rd Party Integrations**
-- **resend:** Used for sending emails.
-- **Stripe:** Integrated for a freemium subscription model.
-- **Emergent LLM Key (via  library):**
-    - Used for OpenAI text generation (branded as ROOK).
-    - Used for OpenAI image generation (AI character portraits, tokens).
+- **Stripe:** For payments. Backend logic has been updated for the new 3-tier pricing model.
+- **resend:** For emails.
+- **Emergent LLM Key (via ):** Used for OpenAI text generation (ROOK AI).
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, used multiple times. However, the final test run for the last set of features was skipped.
-- **Troubleshoot agent used after agent stuck in loop:** No.
-- **Test files created:** Yes, a comprehensive suite exists.
-- **Known regressions:** None currently, pending final test run.
+- **Testing agent used after significant changes:** YES. It was last used to validate sidebar changes, where it discovered the campaign setting save bug. It has *not* been run since the fix was implemented.
+- **Test files created:** Yes, a test suite exists.
+- **Known regressions:** The campaign setting save issue was a known regression. A fix has been implemented but awaits verification.
 
 **Credentials to test flow:**
-- Create a new account via the standard user registration flow on the landing page.
+- Register a new user through the standard flow on the landing page.
 
 **What agent forgot to execute**
-- The agent was interrupted by the user while preparing to call  to validate the last implemented features (Map-to-Combat integration and ROOK AI Suggestions). This final validation step must be completed.</analysis>
+- The agent did not run the testing agent to verify the fix for the Campaign setting save bug before moving on. This is the most critical un-finished step and should be the immediate first action.
+- The agent started the Session Mode feature but was interrupted before fully integrating the new page or building its functionality.
+- The agent has not yet started implementing the **feature gating** logic, which is a critical part of the new revenue model task.</analysis>

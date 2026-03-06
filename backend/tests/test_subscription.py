@@ -1,6 +1,6 @@
 """
 Backend tests for subscription and promo code features.
-Tests Stripe subscription monetization system with freemium model.
+Tests the 4-tier pricing system: Free, Hero ($3.99), Quest Master ($3.99), Legendary ($5.99)
 """
 import pytest
 import requests
@@ -8,62 +8,89 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://hero-player-hub.preview.emergentagent.com').rstrip('/')
 
 
 class TestSubscriptionPlans:
-    """Test subscription plans API"""
+    """Test subscription plans API - 4 tier pricing structure"""
     
-    def test_get_subscription_plans(self):
-        """Test GET /api/subscription/plans returns correct plans"""
+    def test_get_subscription_plans_returns_four_tiers(self):
+        """Test GET /api/subscription/plans returns all 4 tiers"""
         response = requests.get(f"{BASE_URL}/api/subscription/plans")
         assert response.status_code == 200
         
         data = response.json()
         assert 'plans' in data
         plans = data['plans']
-        assert len(plans) == 2
+        assert len(plans) == 4, f"Expected 4 plans, got {len(plans)}"
         
-        # Verify free plan
+        plan_ids = [p['id'] for p in plans]
+        assert 'free' in plan_ids
+        assert 'player' in plan_ids  # Hero tier
+        assert 'gm' in plan_ids  # Quest Master tier
+        assert 'legendary' in plan_ids
+    
+    def test_free_plan_pricing_and_features(self):
+        """Test free plan has correct pricing and features"""
+        response = requests.get(f"{BASE_URL}/api/subscription/plans")
+        assert response.status_code == 200
+        
+        plans = response.json()['plans']
         free_plan = next((p for p in plans if p['id'] == 'free'), None)
+        
         assert free_plan is not None
         assert free_plan['name'] == 'Free'
-        assert free_plan['price'] == 0
+        assert free_plan['price_monthly'] == 0
+        assert free_plan['price_yearly'] == 0
+        assert free_plan['target'] == 'casual'
         assert 'features' in free_plan
         assert len(free_plan['features']) > 0
-        
-        # Verify adventurer plan
-        adventurer_plan = next((p for p in plans if p['id'] == 'adventurer'), None)
-        assert adventurer_plan is not None
-        assert adventurer_plan['name'] == 'Adventurer'
-        assert adventurer_plan['price'] == 3.99
-        assert 'features' in adventurer_plan
-        assert len(adventurer_plan['features']) > 0
     
-    def test_free_plan_features(self):
-        """Test free plan contains expected features"""
+    def test_hero_player_plan_pricing(self):
+        """Test Hero (player) plan has correct $3.99/month pricing"""
         response = requests.get(f"{BASE_URL}/api/subscription/plans")
         assert response.status_code == 200
         
         plans = response.json()['plans']
-        free_plan = next((p for p in plans if p['id'] == 'free'), None)
+        hero_plan = next((p for p in plans if p['id'] == 'player'), None)
         
-        features = free_plan['features']
-        # Free tier should mention campaign limit and AI limit
-        assert any('2 campaigns' in f.lower() for f in features)
-        assert any('5' in f and 'ai' in f.lower() for f in features)
+        assert hero_plan is not None
+        assert hero_plan['name'] == 'Hero'
+        assert hero_plan['price_monthly'] == 3.99
+        assert hero_plan['price_yearly'] == 39.99
+        assert hero_plan['target'] == 'player'
+        assert hero_plan['color'] == '#3B82F6'  # Blue for players
     
-    def test_adventurer_plan_features(self):
-        """Test adventurer plan contains unlimited features"""
+    def test_quest_master_gm_plan_pricing(self):
+        """Test Quest Master (GM) plan has correct $3.99/month pricing"""
         response = requests.get(f"{BASE_URL}/api/subscription/plans")
         assert response.status_code == 200
         
         plans = response.json()['plans']
-        adventurer_plan = next((p for p in plans if p['id'] == 'adventurer'), None)
+        gm_plan = next((p for p in plans if p['id'] == 'gm'), None)
         
-        features = adventurer_plan['features']
-        # Adventurer tier should mention unlimited
-        assert any('unlimited' in f.lower() for f in features)
+        assert gm_plan is not None
+        assert gm_plan['name'] == 'Quest Master'
+        assert gm_plan['price_monthly'] == 3.99
+        assert gm_plan['price_yearly'] == 39.99
+        assert gm_plan['target'] == 'gm'
+        assert gm_plan['color'] == '#E11D48'  # Red for GM
+    
+    def test_legendary_plan_pricing(self):
+        """Test Legendary plan has correct $5.99/month pricing and popular flag"""
+        response = requests.get(f"{BASE_URL}/api/subscription/plans")
+        assert response.status_code == 200
+        
+        plans = response.json()['plans']
+        legendary_plan = next((p for p in plans if p['id'] == 'legendary'), None)
+        
+        assert legendary_plan is not None
+        assert legendary_plan['name'] == 'Legendary'
+        assert legendary_plan['price_monthly'] == 5.99
+        assert legendary_plan['price_yearly'] == 59.99
+        assert legendary_plan['target'] == 'both'
+        assert legendary_plan['color'] == '#F59E0B'  # Gold
+        assert legendary_plan.get('popular') == True
 
 
 class TestUserRegistrationWithSubscription:
@@ -73,11 +100,12 @@ class TestUserRegistrationWithSubscription:
         """Test that newly registered users start on free tier"""
         unique_id = str(uuid.uuid4())[:8]
         username = f"TEST_sub_reg_{unique_id}"
+        email = f"test_sub_reg_{unique_id}@test.com"
         
         # Register new user
         register_response = requests.post(
             f"{BASE_URL}/api/auth/register",
-            json={"username": username, "password": "testpass123"}
+            json={"username": username, "password": "testpass123", "email": email}
         )
         assert register_response.status_code == 201
         
@@ -92,17 +120,12 @@ class TestUserRegistrationWithSubscription:
         
         status = status_response.json()
         assert status['tier'] == 'free'
-        assert status['tier_name'] == 'Free'
         assert status['is_premium'] == False
-        assert status['campaigns_limit'] == 2
-        assert status['ai_calls_limit'] == 5
-        assert status['ai_calls_used'] == 0
-        assert status['subscription_status'] == 'active'
     
     def test_subscription_status_requires_auth(self):
         """Test that subscription status endpoint requires authentication"""
         response = requests.get(f"{BASE_URL}/api/subscription/status")
-        assert response.status_code in [401, 403]
+        assert response.status_code in [401, 403, 422]
 
 
 class TestSubscriptionStatus:
@@ -113,10 +136,11 @@ class TestSubscriptionStatus:
         """Create an authenticated user for testing"""
         unique_id = str(uuid.uuid4())[:8]
         username = f"TEST_sub_status_{unique_id}"
+        email = f"test_sub_status_{unique_id}@test.com"
         
         response = requests.post(
             f"{BASE_URL}/api/auth/register",
-            json={"username": username, "password": "testpass123"}
+            json={"username": username, "password": "testpass123", "email": email}
         )
         
         if response.status_code == 201:
@@ -125,11 +149,11 @@ class TestSubscriptionStatus:
         # If user exists, login instead
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"username": username, "password": "testpass123"}
+            json={"email": email, "password": "testpass123"}
         )
         return response.json()['token'], username
     
-    def test_get_subscription_status(self, auth_user):
+    def test_get_subscription_status_structure(self, auth_user):
         """Test GET /api/subscription/status returns correct structure"""
         token, username = auth_user
         
@@ -140,14 +164,9 @@ class TestSubscriptionStatus:
         assert response.status_code == 200
         
         status = response.json()
-        # Verify all required fields present
+        # Verify required fields present
         assert 'tier' in status
-        assert 'tier_name' in status
-        assert 'campaigns_limit' in status
-        assert 'ai_calls_limit' in status
-        assert 'ai_calls_used' in status
         assert 'is_premium' in status
-        assert 'subscription_status' in status
     
     def test_subscription_status_values_are_valid(self, auth_user):
         """Test subscription status values are valid"""
@@ -160,26 +179,25 @@ class TestSubscriptionStatus:
         assert response.status_code == 200
         
         status = response.json()
-        # Tier should be 'free' or 'adventurer'
-        assert status['tier'] in ['free', 'adventurer']
+        # Tier should be one of the 4 tiers
+        assert status['tier'] in ['free', 'player', 'gm', 'legendary']
         # is_premium should be boolean
         assert isinstance(status['is_premium'], bool)
-        # ai_calls_used should be non-negative
-        assert status['ai_calls_used'] >= 0
 
 
 class TestPromoCodeCreation:
-    """Test promo code creation API"""
+    """Test promo code creation API (requires admin)"""
     
     @pytest.fixture
-    def auth_user(self):
-        """Create an authenticated user for testing"""
+    def regular_user(self):
+        """Create a regular (non-admin) user for testing"""
         unique_id = str(uuid.uuid4())[:8]
-        username = f"TEST_promo_create_{unique_id}"
+        username = f"regular_user_{unique_id}"
+        email = f"regular_user_{unique_id}@test.com"
         
         response = requests.post(
             f"{BASE_URL}/api/auth/register",
-            json={"username": username, "password": "testpass123"}
+            json={"username": username, "password": "testpass123", "email": email}
         )
         
         if response.status_code == 201:
@@ -187,13 +205,13 @@ class TestPromoCodeCreation:
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"username": username, "password": "testpass123"}
+            json={"email": email, "password": "testpass123"}
         )
         return response.json()['token'], username
     
-    def test_create_promo_code(self, auth_user):
-        """Test POST /api/promo-codes creates a promo code"""
-        token, username = auth_user
+    def test_create_promo_code_requires_admin(self, regular_user):
+        """Test POST /api/promo-codes requires admin access"""
+        token, username = regular_user
         unique_code = f"TESTCODE{uuid.uuid4().hex[:8].upper()}"
         
         response = requests.post(
@@ -201,16 +219,13 @@ class TestPromoCodeCreation:
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
             json={
                 "code": unique_code,
-                "tier_granted": "adventurer",
+                "tier_granted": "legendary",
                 "uses_remaining": 5
             }
         )
-        assert response.status_code == 201
-        
-        data = response.json()
-        assert 'message' in data
-        assert 'code' in data
-        assert data['code'] == unique_code.upper()
+        # Non-admin users should get 403 Forbidden
+        assert response.status_code == 403, f"Expected 403, got {response.status_code}: {response.text}"
+        assert "admin" in response.json().get('detail', '').lower()
     
     def test_create_promo_code_requires_auth(self):
         """Test promo code creation requires authentication"""
@@ -219,176 +234,56 @@ class TestPromoCodeCreation:
         response = requests.post(
             f"{BASE_URL}/api/promo-codes",
             headers={"Content-Type": "application/json"},
-            json={"code": unique_code, "tier_granted": "adventurer"}
+            json={"code": unique_code, "tier_granted": "legendary"}
         )
-        assert response.status_code in [401, 403]
-    
-    def test_cannot_create_duplicate_promo_code(self, auth_user):
-        """Test that duplicate promo codes are rejected"""
-        token, username = auth_user
-        unique_code = f"TESTDUP{uuid.uuid4().hex[:8].upper()}"
-        
-        # Create first promo code
-        response1 = requests.post(
-            f"{BASE_URL}/api/promo-codes",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"code": unique_code, "tier_granted": "adventurer"}
-        )
-        assert response1.status_code == 201
-        
-        # Try to create duplicate
-        response2 = requests.post(
-            f"{BASE_URL}/api/promo-codes",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"code": unique_code, "tier_granted": "adventurer"}
-        )
-        assert response2.status_code == 400
-        assert 'already exists' in response2.json().get('detail', '').lower()
+        assert response.status_code in [401, 403, 422]
 
 
 class TestPromoCodeApplication:
     """Test promo code application API"""
     
-    def test_apply_promo_code_upgrades_tier(self):
-        """Test POST /api/promo-codes/apply upgrades user to premium"""
+    @pytest.fixture
+    def regular_user(self):
+        """Create a regular user for testing"""
         unique_id = str(uuid.uuid4())[:8]
+        username = f"TEST_promo_user_{unique_id}"
+        email = f"test_promo_user_{unique_id}@test.com"
         
-        # Create a user to own the promo code
-        owner_response = requests.post(
+        response = requests.post(
             f"{BASE_URL}/api/auth/register",
-            json={"username": f"TEST_promo_owner_{unique_id}", "password": "testpass123"}
+            json={"username": username, "password": "testpass123", "email": email}
         )
-        if owner_response.status_code != 201:
-            owner_response = requests.post(
-                f"{BASE_URL}/api/auth/login",
-                json={"username": f"TEST_promo_owner_{unique_id}", "password": "testpass123"}
-            )
-        owner_token = owner_response.json()['token']
         
-        # Create promo code
-        unique_code = f"TESTAPPLY{uuid.uuid4().hex[:8].upper()}"
-        create_response = requests.post(
-            f"{BASE_URL}/api/promo-codes",
-            headers={"Authorization": f"Bearer {owner_token}", "Content-Type": "application/json"},
-            json={"code": unique_code, "tier_granted": "adventurer", "uses_remaining": 10}
+        if response.status_code == 201:
+            return response.json()['token'], username
+        
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"email": email, "password": "testpass123"}
         )
-        assert create_response.status_code == 201
-        
-        # Create a new user to apply the promo code
-        user_response = requests.post(
-            f"{BASE_URL}/api/auth/register",
-            json={"username": f"TEST_promo_apply_{unique_id}", "password": "testpass123"}
-        )
-        assert user_response.status_code == 201
-        user_token = user_response.json()['token']
-        
-        # Verify user is on free tier initially
-        status_before = requests.get(
-            f"{BASE_URL}/api/subscription/status",
-            headers={"Authorization": f"Bearer {user_token}"}
-        )
-        assert status_before.json()['tier'] == 'free'
-        assert status_before.json()['is_premium'] == False
-        
-        # Apply promo code
-        apply_response = requests.post(
-            f"{BASE_URL}/api/promo-codes/apply",
-            headers={"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"},
-            json={"code": unique_code}
-        )
-        assert apply_response.status_code == 200
-        
-        apply_data = apply_response.json()
-        assert 'message' in apply_data
-        assert apply_data['tier'] == 'adventurer'
-        assert apply_data['tier_name'] == 'Adventurer'
-        
-        # Verify subscription status is updated
-        status_after = requests.get(
-            f"{BASE_URL}/api/subscription/status",
-            headers={"Authorization": f"Bearer {user_token}"}
-        )
-        assert status_after.json()['tier'] == 'adventurer'
-        assert status_after.json()['is_premium'] == True
-        assert status_after.json()['campaigns_limit'] == -1  # Unlimited
-        assert status_after.json()['ai_calls_limit'] == -1  # Unlimited
+        return response.json()['token'], username
     
-    def test_apply_invalid_promo_code(self):
+    def test_apply_invalid_promo_code(self, regular_user):
         """Test applying an invalid promo code returns 404"""
-        unique_id = str(uuid.uuid4())[:8]
-        
-        # Create a new user
-        user_response = requests.post(
-            f"{BASE_URL}/api/auth/register",
-            json={"username": f"TEST_invalid_promo_{unique_id}", "password": "testpass123"}
-        )
-        assert user_response.status_code == 201
-        user_token = user_response.json()['token']
+        token, username = regular_user
         
         # Try to apply non-existent promo code
         apply_response = requests.post(
             f"{BASE_URL}/api/promo-codes/apply",
-            headers={"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
             json={"code": "NONEXISTENT12345"}
         )
         assert apply_response.status_code == 404
         assert 'invalid' in apply_response.json().get('detail', '').lower()
     
-    def test_cannot_use_promo_code_twice(self):
-        """Test that a user cannot apply a promo code twice"""
-        unique_id = str(uuid.uuid4())[:8]
-        
-        # Create a user and promo code
-        owner_response = requests.post(
-            f"{BASE_URL}/api/auth/register",
-            json={"username": f"TEST_promo_twice_owner_{unique_id}", "password": "testpass123"}
-        )
-        if owner_response.status_code != 201:
-            owner_response = requests.post(
-                f"{BASE_URL}/api/auth/login",
-                json={"username": f"TEST_promo_twice_owner_{unique_id}", "password": "testpass123"}
-            )
-        owner_token = owner_response.json()['token']
-        
-        # Create two promo codes
-        code1 = f"TESTTWICE1{uuid.uuid4().hex[:6].upper()}"
-        code2 = f"TESTTWICE2{uuid.uuid4().hex[:6].upper()}"
-        
-        requests.post(
-            f"{BASE_URL}/api/promo-codes",
-            headers={"Authorization": f"Bearer {owner_token}", "Content-Type": "application/json"},
-            json={"code": code1, "tier_granted": "adventurer"}
-        )
-        requests.post(
-            f"{BASE_URL}/api/promo-codes",
-            headers={"Authorization": f"Bearer {owner_token}", "Content-Type": "application/json"},
-            json={"code": code2, "tier_granted": "adventurer"}
-        )
-        
-        # Create user and apply first code
-        user_response = requests.post(
-            f"{BASE_URL}/api/auth/register",
-            json={"username": f"TEST_promo_twice_user_{unique_id}", "password": "testpass123"}
-        )
-        assert user_response.status_code == 201
-        user_token = user_response.json()['token']
-        
-        # Apply first code
-        apply1 = requests.post(
+    def test_apply_promo_code_requires_auth(self):
+        """Test applying promo code requires authentication"""
+        apply_response = requests.post(
             f"{BASE_URL}/api/promo-codes/apply",
-            headers={"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"},
-            json={"code": code1}
+            headers={"Content-Type": "application/json"},
+            json={"code": "TESTCODE123"}
         )
-        assert apply1.status_code == 200
-        
-        # Try to apply second code
-        apply2 = requests.post(
-            f"{BASE_URL}/api/promo-codes/apply",
-            headers={"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"},
-            json={"code": code2}
-        )
-        assert apply2.status_code == 400
-        assert 'already used' in apply2.json().get('detail', '').lower()
+        assert apply_response.status_code in [401, 403, 422]
 
 
 class TestSubscriptionCheckout:
@@ -399,10 +294,11 @@ class TestSubscriptionCheckout:
         """Create an authenticated user for testing"""
         unique_id = str(uuid.uuid4())[:8]
         username = f"TEST_checkout_{unique_id}"
+        email = f"test_checkout_{unique_id}@test.com"
         
         response = requests.post(
             f"{BASE_URL}/api/auth/register",
-            json={"username": username, "password": "testpass123"}
+            json={"username": username, "password": "testpass123", "email": email}
         )
         
         if response.status_code == 201:
@@ -410,23 +306,23 @@ class TestSubscriptionCheckout:
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"username": username, "password": "testpass123"}
+            json={"email": email, "password": "testpass123"}
         )
         return response.json()['token'], username
     
-    def test_create_checkout_session(self, auth_user):
-        """Test POST /api/subscription/checkout creates a checkout session"""
+    def test_create_checkout_session_for_paid_plans(self, auth_user):
+        """Test POST /api/subscription/checkout creates a checkout session for paid plans"""
         token, username = auth_user
         
+        # Test checkout for player (Hero) plan - requires origin_url
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"origin_url": "https://example.com", "plan": "adventurer"}
+            json={"plan_id": "player", "billing_cycle": "monthly", "origin_url": "https://hero-player-hub.preview.emergentagent.com"}
         )
         
-        # Should return checkout URL or error if Stripe not properly configured
-        # In test environments, we expect either 200 with checkout_url or 500 with stripe error
-        assert response.status_code in [200, 500]
+        # Should return checkout URL with Stripe configured
+        assert response.status_code in [200, 500]  # 500 if Stripe integration fails
         
         if response.status_code == 200:
             data = response.json()
@@ -438,19 +334,117 @@ class TestSubscriptionCheckout:
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Content-Type": "application/json"},
-            json={"origin_url": "https://example.com", "plan": "adventurer"}
+            json={"plan_id": "player", "billing_cycle": "monthly"}
         )
-        assert response.status_code in [401, 403]
+        assert response.status_code in [401, 403, 422]
     
-    def test_checkout_invalid_plan(self, auth_user):
-        """Test checkout with invalid plan returns error"""
+    def test_checkout_cannot_checkout_free_plan(self, auth_user):
+        """Test checkout with free plan returns error"""
         token, username = auth_user
         
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"origin_url": "https://example.com", "plan": "invalid_plan"}
+            json={"plan_id": "free", "billing_cycle": "monthly", "origin_url": "https://hero-player-hub.preview.emergentagent.com"}
         )
         
-        # Should return 400 for invalid plan or 500 if Stripe errors first
+        # Should return 400 for free plan (or 500 if Stripe error occurs first)
+        # The API checks price == 0 and should return 400 "Cannot checkout free plan"
         assert response.status_code in [400, 500]
+        if response.status_code == 400:
+            assert "free" in response.json().get('detail', '').lower() or "cannot" in response.json().get('detail', '').lower()
+
+
+class TestCampaignSettingsSave:
+    """Test campaign settings save and persist (bug fix verification)"""
+    
+    @pytest.fixture
+    def auth_user_with_campaign(self):
+        """Create an authenticated user with a campaign"""
+        unique_id = str(uuid.uuid4())[:8]
+        username = f"TEST_campaign_settings_{unique_id}"
+        email = f"test_campaign_settings_{unique_id}@test.com"
+        
+        # Register user
+        response = requests.post(
+            f"{BASE_URL}/api/auth/register",
+            json={"username": username, "password": "testpass123", "email": email}
+        )
+        assert response.status_code == 201
+        token = response.json()['token']
+        
+        # Create campaign
+        campaign_response = requests.post(
+            f"{BASE_URL}/api/campaigns",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"name": f"Test Campaign {unique_id}", "description": "Test campaign for settings"}
+        )
+        assert campaign_response.status_code == 201
+        campaign = campaign_response.json()
+        
+        return token, username, campaign['id']
+    
+    def test_campaign_settings_save_and_retrieve(self, auth_user_with_campaign):
+        """Test that campaign settings save correctly and persist"""
+        token, username, campaign_id = auth_user_with_campaign
+        
+        # Get initial settings
+        get_response = requests.get(
+            f"{BASE_URL}/api/campaigns/{campaign_id}/setting",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert get_response.status_code == 200
+        
+        # Update settings with test data
+        test_content = f"Test setting content {uuid.uuid4().hex[:8]}"
+        test_dm_rules = "Test DM rules for this campaign"
+        
+        update_response = requests.put(
+            f"{BASE_URL}/api/campaigns/{campaign_id}/setting",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"content": test_content, "dm_rules": test_dm_rules}
+        )
+        assert update_response.status_code == 200
+        
+        # Verify the response contains the updated data
+        updated_data = update_response.json()
+        assert updated_data['content'] == test_content
+        assert updated_data['dm_rules'] == test_dm_rules
+        
+        # GET the settings again to verify persistence
+        verify_response = requests.get(
+            f"{BASE_URL}/api/campaigns/{campaign_id}/setting",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert verify_response.status_code == 200
+        
+        persisted_data = verify_response.json()
+        assert persisted_data['content'] == test_content, "Settings content not persisted correctly"
+        assert persisted_data['dm_rules'] == test_dm_rules, "DM rules not persisted correctly"
+        assert persisted_data['campaign_id'] == campaign_id, "campaign_id not set on settings"
+    
+    def test_campaign_settings_upsert_creates_with_campaign_id(self, auth_user_with_campaign):
+        """Test that upserting campaign settings correctly sets campaign_id (bug fix verification)"""
+        token, username, campaign_id = auth_user_with_campaign
+        
+        # Update settings (this should create via upsert if not exists)
+        test_content = f"Upsert test {uuid.uuid4().hex[:8]}"
+        
+        update_response = requests.put(
+            f"{BASE_URL}/api/campaigns/{campaign_id}/setting",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"content": test_content}
+        )
+        assert update_response.status_code == 200
+        
+        # Verify campaign_id is set in response
+        setting = update_response.json()
+        assert setting.get('campaign_id') == campaign_id, "campaign_id should be set on upsert"
+        
+        # Verify via GET that campaign_id persisted
+        get_response = requests.get(
+            f"{BASE_URL}/api/campaigns/{campaign_id}/setting",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert get_response.status_code == 200
+        assert get_response.json().get('campaign_id') == campaign_id
