@@ -304,7 +304,6 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
   - Search and level filtering for spells
 
 ### Backlog
-- [ ] Party Inventory tracking (Hero Tier)
 - [ ] **Smart Entity Linking** - Auto-link NPC names, locations to their pages (SmartNoteParser exists)
 - [ ] Backend refactoring (split server.py into routers)
 - [ ] Mobile-first Combat Tracker
@@ -312,7 +311,27 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - [ ] Shareable World Codex for players
 - [ ] Offline Mode
 - [ ] Ambient Soundscapes
-- [ ] **Modular Progression System** - Database-driven character progression (foundation exists)
+- [ ] Custom rule system AI assistance (help write rules)
+
+### Completed (March 2026 - Rule Systems & Player Features)
+- [x] **Rule System Management** (Copyright-Safe)
+  - Generic rule systems (no official D&D content pre-loaded)
+  - User-created and shared systems
+  - Content upload (classes, races, spells, items, feats, monsters)
+  - JSON/CSV file upload support
+  - Admin Rule Systems tab
+- [x] **AI Rule Awareness**
+  - AI respects campaign's rule system
+  - Generates content using uploaded system data
+- [x] **Multiclass Support**
+  - API endpoints for multiclassing
+  - Requirement checking (ability scores)
+  - Level-up specific class
+- [x] **Party Loot for Players**
+  - New "Party Loot" tab in Player Hub
+  - View shared loot from joined campaigns
+  - Claim items for your character
+  - Items grouped by type with rarity badges
 
 ### Completed (March 2026 - Yellow Tier GM Features)
 - [x] **NPC Relationship Web** - Visual graph showing connections between NPCs

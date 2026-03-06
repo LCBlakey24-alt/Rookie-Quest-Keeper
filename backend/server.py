@@ -3920,6 +3920,53 @@ async def delete_inventory_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return {"message": "Item deleted"}
 
+@api_router.post("/campaigns/{campaign_id}/inventory/{item_id}/claim")
+async def claim_inventory_item(
+    campaign_id: str,
+    item_id: str,
+    claim_data: Dict[str, Any],
+    current_user: str = Depends(get_current_user)
+):
+    """Claim an item from party inventory for a character"""
+    item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if item.get('claimed_by'):
+        raise HTTPException(status_code=400, detail="Item already claimed")
+    
+    character_id = claim_data.get('character_id')
+    character_name = claim_data.get('character_name', 'Unknown')
+    
+    await db.inventory.update_one(
+        {'id': item_id},
+        {'$set': {
+            'claimed_by': character_name,
+            'claimed_by_id': character_id,
+            'claimed_at': datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": f"Item claimed by {character_name}"}
+
+@api_router.post("/campaigns/{campaign_id}/inventory/{item_id}/unclaim")
+async def unclaim_inventory_item(
+    campaign_id: str,
+    item_id: str,
+    current_user: str = Depends(get_current_user)
+):
+    """Return an item to party inventory (unclaim)"""
+    item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    await db.inventory.update_one(
+        {'id': item_id},
+        {'$unset': {'claimed_by': '', 'claimed_by_id': '', 'claimed_at': ''}}
+    )
+    
+    return {"message": "Item returned to party inventory"}
+
 @api_router.get("/campaigns/{campaign_id}/currency")
 async def get_party_currency(campaign_id: str, current_user: str = Depends(get_current_user)):
     """Get party currency"""
@@ -5850,15 +5897,15 @@ async def delete_npc_relationship(campaign_id: str, relationship_id: str, userna
 # ==================== RULE SYSTEM & CONTENT MANAGEMENT ====================
 
 class RuleSystem(BaseModel):
-    """A complete rule system (e.g., D&D 5e 2014, D&D 5e 2024, Custom Sci-Fi)"""
+    """A complete rule system (e.g., Fantasy d20, Sci-Fi, Custom Homebrew)"""
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str  # "D&D 5e 2014", "D&D 5e 2024", "Starfinder", "Custom Sci-Fi"
-    short_code: str  # "5e2014", "5e2024", "custom_scifi"
+    name: str  # "Fantasy d20", "Sci-Fi RPG", "My Homebrew"
+    short_code: str  # "fantasy_d20", "scifi_rpg", "homebrew_v1"
     description: str = ""
-    is_official: bool = False  # True for official systems, False for custom
-    owner_id: Optional[str] = None  # For custom systems, who created it
-    base_system: Optional[str] = None  # Parent system (e.g., custom sci-fi based on 5e2024)
+    is_official: bool = False  # Reserved for future use
+    owner_id: Optional[str] = None  # Who created this system
+    base_system: Optional[str] = None  # Parent system for variants
     # Core mechanics
     ability_scores: List[str] = Field(default_factory=lambda: ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"])
     skills: List[Dict[str, Any]] = Field(default_factory=list)  # [{name, ability, description}]
@@ -6160,11 +6207,13 @@ async def bulk_upload_content(system_id: str, upload: ContentUpload, username: s
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    if system.get('is_official') and not await is_admin(username):
-        raise HTTPException(status_code=403, detail="Only admins can upload to official rule systems")
+    # Allow upload if user is owner, admin, or system has no owner (shared)
+    is_admin_user = await is_admin(username)
+    is_owner = system.get('owner_id') == username
+    is_shared = system.get('owner_id') is None
     
-    if not system.get('is_official') and system.get('owner_id') != username:
-        raise HTTPException(status_code=403, detail="Only the owner can upload to this rule system")
+    if not (is_admin_user or is_owner or is_shared):
+        raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
     collection_map = {
         'classes': db.game_classes,
@@ -6213,11 +6262,13 @@ async def upload_content_file(system_id: str, content_type: str, file: UploadFil
     if not system:
         raise HTTPException(status_code=404, detail="Rule system not found")
     
-    if system.get('is_official') and not await is_admin(username):
-        raise HTTPException(status_code=403, detail="Only admins can upload to official rule systems")
+    # Allow upload if user is owner, admin, or system has no owner (shared)
+    is_admin_user = await is_admin(username)
+    is_owner = system.get('owner_id') == username
+    is_shared = system.get('owner_id') is None
     
-    if not system.get('is_official') and system.get('owner_id') != username:
-        raise HTTPException(status_code=403, detail="Only the owner can upload to this rule system")
+    if not (is_admin_user or is_owner or is_shared):
+        raise HTTPException(status_code=403, detail="You don't have permission to upload to this rule system")
     
     content = await file.read()
     filename = file.filename.lower()
@@ -6263,13 +6314,12 @@ async def get_campaign_rule_system(campaign_id: str) -> Dict[str, Any]:
     if not campaign:
         return None
     
-    system_name = campaign.get('system', '5e 2024 Compatible')
-    if '2014' in system_name.lower():
-        system = await db.rule_systems.find_one({'short_code': '5e2014'}, {'_id': 0})
-    elif '2024' in system_name.lower():
-        system = await db.rule_systems.find_one({'short_code': '5e2024'}, {'_id': 0})
-    else:
-        system = await db.rule_systems.find_one({'name': {'$regex': system_name, '$options': 'i'}}, {'_id': 0})
+    system_name = campaign.get('system', 'Fantasy d20')
+    # Try to find a matching rule system by name
+    system = await db.rule_systems.find_one({'name': {'$regex': system_name, '$options': 'i'}}, {'_id': 0})
+    if not system:
+        # Try by short_code
+        system = await db.rule_systems.find_one({'short_code': {'$regex': system_name.replace(' ', '_').lower(), '$options': 'i'}}, {'_id': 0})
     return system
 
 @api_router.post("/ai/generate-with-rules")
@@ -6287,38 +6337,25 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         raise HTTPException(status_code=404, detail="Campaign not found")
     
     rule_system = await get_campaign_rule_system(campaign_id)
-    system_name = campaign.get('system', '5e 2024 Compatible')
+    system_name = campaign.get('system', 'Fantasy d20')
     
+    # Build context from uploaded content in the rule system
     system_context = ""
     if rule_system:
         system_id = rule_system.get('id')
-        classes = await db.game_classes.find({'system_id': system_id}, {'_id': 0, 'name': 1}).to_list(5)
-        races = await db.game_races.find({'system_id': system_id}, {'_id': 0, 'name': 1}).to_list(5)
+        classes = await db.game_classes.find({'system_id': system_id}, {'_id': 0, 'name': 1}).to_list(10)
+        races = await db.game_races.find({'system_id': system_id}, {'_id': 0, 'name': 1}).to_list(10)
         if classes or races:
-            system_context = f"\n\nAvailable in this system:\n"
+            system_context = f"\n\nContent available in this campaign's rule system:\n"
             if classes:
                 system_context += f"Classes: {', '.join(c['name'] for c in classes)}\n"
             if races:
-                system_context += f"Races: {', '.join(r['name'] for r in races)}\n"
+                system_context += f"Races/Species: {', '.join(r['name'] for r in races)}\n"
     
+    # Generic rule instructions based on campaign system setting
     rule_instructions = f"You are a TTRPG assistant for a campaign using the {system_name} rules.\n\n"
-    
-    if '2024' in system_name.lower():
-        rule_instructions += """IMPORTANT 2024 RULES:
-- Backgrounds now grant origin feats at level 1
-- Species (not races) have flexible ability scores
-- Weapon mastery properties are available
-- Updated spell lists and class features
-- Simplified exhaustion system (1-6 levels)
-"""
-    elif '2014' in system_name.lower():
-        rule_instructions += """IMPORTANT 2014 RULES:
-- Races grant fixed ability score increases
-- Use original feat and class feature lists
-- Original spell lists and components
-- Original exhaustion rules with specific penalties
-"""
-    
+    rule_instructions += "Generate content that fits this campaign's setting and rule system. "
+    rule_instructions += "Use appropriate terminology and mechanics for the system being used.\n"
     rule_instructions += system_context
     
     prompts = {
@@ -6484,12 +6521,13 @@ async def level_up_specific_class(character_id: str, class_data: Dict[str, Any],
 # ==================== INITIALIZE DEFAULT RULE SYSTEMS ====================
 
 async def initialize_rule_systems():
-    """Create default rule systems if they don't exist"""
+    """Create default generic rule systems if none exist - users add their own content"""
     existing = await db.rule_systems.count_documents({})
     if existing > 0:
         return
     
-    skills_5e = [
+    # Generic fantasy skills that work with most d20 systems
+    generic_skills = [
         {"name": "Acrobatics", "ability": "Dexterity"},
         {"name": "Animal Handling", "ability": "Wisdom"},
         {"name": "Arcana", "ability": "Intelligence"},
@@ -6510,26 +6548,19 @@ async def initialize_rule_systems():
         {"name": "Survival", "ability": "Wisdom"},
     ]
     
-    system_2014 = RuleSystem(
-        id="5e-2014",
-        name="D&D 5e 2014 (PHB)",
-        short_code="5e2014",
-        description="Dungeons & Dragons 5th Edition (2014 Player's Handbook rules)",
-        is_official=True,
-        skills=skills_5e,
+    # Create a single generic starter system - users can rename or create their own
+    starter_system = RuleSystem(
+        id="starter-fantasy",
+        name="Fantasy d20 System",
+        short_code="fantasy_d20",
+        description="A generic d20 fantasy rule system. Upload your own classes, races, spells, and more!",
+        is_official=False,
+        owner_id=None,  # Shared system anyone can use as a base
+        skills=generic_skills,
     )
     
-    system_2024 = RuleSystem(
-        id="5e-2024",
-        name="D&D 5e 2024 (One D&D)",
-        short_code="5e2024",
-        description="Dungeons & Dragons 5th Edition (2024 revised rules with weapon mastery, new species, etc.)",
-        is_official=True,
-        skills=skills_5e,
-    )
-    
-    await db.rule_systems.insert_many([system_2014.model_dump(), system_2024.model_dump()])
-    logger.info("Initialized default rule systems (5e 2014 and 5e 2024)")
+    await db.rule_systems.insert_one(starter_system.model_dump())
+    logger.info("Initialized starter rule system (Fantasy d20)")
 
 
 # Include the router in the main app

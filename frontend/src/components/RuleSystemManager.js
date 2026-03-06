@@ -349,9 +349,6 @@ function RuleSystemManager() {
             }}
           >
             {system.name}
-            {system.is_official && (
-              <span style={{ marginLeft: '8px', fontSize: '10px', opacity: 0.7 }}>OFFICIAL</span>
-            )}
           </Button>
         ))}
       </div>

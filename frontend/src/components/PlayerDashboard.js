@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Plus, User, ArrowLeft, Settings, LogOut, Swords, Shield, Heart,
-  Sparkles, Link, Loader, ChevronRight, Users, BookOpen, FileText
+  Sparkles, Link, Loader, ChevronRight, Users, BookOpen, FileText, Package
 } from 'lucide-react';
 import PlayerNotesTab from './tabs/PlayerNotesTab';
 import SessionJournal from './SessionJournal';
+import PlayerPartyLoot from './PlayerPartyLoot';
 import { RookSuggestionPopup, useRookSuggestions, getRandomTip } from './RookSuggestions';
 import { RQKLogoInline } from '@/components/ui/RQKLogo';
 
@@ -339,6 +340,32 @@ function PlayerDashboard({ username, onLogout }) {
           >
             <BookOpen size={18} />
             Journal
+          </button>
+          <button
+            onClick={() => setActiveTab('loot')}
+            data-testid="tab-loot"
+            style={{
+              padding: '12px 24px',
+              background: activeTab === 'loot' 
+                ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' 
+                : 'transparent',
+              border: activeTab === 'loot' 
+                ? 'none' 
+                : '1px solid #374151',
+              borderRadius: '10px',
+              color: '#ffffff',
+              fontWeight: '600',
+              fontSize: '14px',
+              fontFamily: 'Montserrat, sans-serif',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Package size={18} />
+            Party Loot
           </button>
         </div>
 
@@ -721,6 +748,43 @@ function PlayerDashboard({ username, onLogout }) {
             characterId={selectedCharacter?.id}
             campaignId={null}
           />
+        )}
+
+        {activeTab === 'loot' && (
+          <div>
+            {joinedCampaigns.length === 0 ? (
+              <div style={{
+                padding: '60px 20px',
+                textAlign: 'center',
+                color: '#6B7280'
+              }}>
+                <Package size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                <h3 style={{ color: '#fff', marginBottom: '8px' }}>No Campaigns Joined</h3>
+                <p>Join a campaign to view shared party loot</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {joinedCampaigns.map(campaign => (
+                  <div key={campaign.id}>
+                    <h3 style={{ 
+                      color: '#F59E0B', 
+                      fontSize: '16px', 
+                      fontWeight: '700',
+                      marginBottom: '12px',
+                      fontFamily: 'Montserrat, sans-serif'
+                    }}>
+                      {campaign.name}
+                    </h3>
+                    <PlayerPartyLoot 
+                      campaignId={campaign.id}
+                      characterId={selectedCharacter?.id}
+                      characterName={selectedCharacter?.name}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
