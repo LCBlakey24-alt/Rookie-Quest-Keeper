@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 // Logo import removed for minimalist design
 import { 
   Sword, Users, BookOpen, Send, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import LootGenerator from '@/components/LootGenerator';
@@ -17,6 +17,7 @@ import RandomTables from '@/components/RandomTables';
 import QuickTips, { TIPS } from '@/components/QuickTips';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import QuickCombatModal from '@/components/QuickCombatModal';
+import PartyLocationTracker from '@/components/PartyLocationTracker';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -260,6 +261,7 @@ function GMScreen({ username }) {
 
   const tabs = [
     { id: 'combat', icon: Swords, label: 'Combat' },
+    { id: 'location', icon: Compass, label: 'Location' },
     { id: 'dice', icon: Dices, label: 'Dice' },
     { id: 'monsters', icon: Skull, label: 'Monsters' },
     { id: 'creatures', icon: PlusCircle, label: 'Creatures' },
@@ -555,6 +557,11 @@ function GMScreen({ username }) {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* LOCATION TAB */}
+          {activeTab === 'location' && (
+            <PartyLocationTracker campaignId={campaignId} />
           )}
 
           {/* DICE TAB */}

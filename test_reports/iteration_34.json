@@ -1,0 +1,137 @@
+{
+  "summary": "Party Location Tracker Feature Testing - 36 tests total (14 backend + 22 frontend). All tests PASSED. New PartyLocationTracker component fully functional in GM Screen.",
+  "mode": "generate",
+  "baseline_commit": "f398067ea1371850c7a10e6a04677c261f031cab",
+  "head_commit": "5f6dd5951663b43500e4194686010b978d4ad293",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 36,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 1,
+    "breakdown": {
+      "test_party_location_tracker.py (backend)": "14/14 passed - World Map list, Nearby locations, Travel calculation, Local maps integration",
+      "party-location-tracker.spec.ts (frontend)": "22/22 passed (1 skipped) - GM Screen Location tab, World Map selector, Location selection, Places of Interest, Travel Distances, Travel Mode selector, Travel button"
+    }
+  },
+  "specs_created": [
+    "/app/backend/tests/test_party_location_tracker.py",
+    "/app/tests/e2e/party-location-tracker.spec.ts"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_party_location_tracker.py",
+    "/app/tests/e2e/party-location-tracker.spec.ts",
+    "/app/test_reports/pytest/party_location_tracker_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_party_location_tracker.py",
+    "/app/tests/e2e/party-location-tracker.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "100% (22/22 tests passed, 1 skipped)"
+  },
+  "seed_data_creation": "Created test world map 'Forgotten Realms' with 3 pins (Waterdeep, Baldurs Gate, Neverwinter) and 2 travel paths for stress test campaign",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Party Location Tracker feature is fully tested. The component allows GMs to: 1) Select world map from dropdown, 2) Choose current party location from pins, 3) See places of interest from linked local maps, 4) View travel distances to nearby locations with different travel modes (walking, horseback, cart, ship, flying), 5) Move party to new locations via Travel button. Test data was added to stress test campaign (world map ID: 7ca8a46c-2d19-4cb0-a9ac-ebb5cef035db).",
+  "features_tested": {
+    "gm_screen_location_tab": {
+      "status": "PASS",
+      "features": [
+        "Location tab visible in GM Screen sidebar",
+        "PartyLocationTracker component renders on tab click"
+      ],
+      "tests": 2
+    },
+    "world_map_selector": {
+      "status": "PASS",
+      "features": [
+        "World map dropdown shows available maps",
+        "Location pins list displays from selected world map"
+      ],
+      "tests": 2
+    },
+    "location_selection": {
+      "status": "PASS",
+      "features": [
+        "Click location shows toast notification",
+        "Location type badge (CAPITAL, CITY, etc) displays",
+        "Location descriptions visible"
+      ],
+      "tests": 3
+    },
+    "places_of_interest": {
+      "status": "PASS",
+      "features": [
+        "Section appears after location selection",
+        "Empty state message when no places mapped"
+      ],
+      "tests": 2
+    },
+    "travel_distances": {
+      "status": "PASS",
+      "features": [
+        "Shows destinations count",
+        "Displays distance and terrain info",
+        "Shows travel time calculation"
+      ],
+      "tests": 3
+    },
+    "travel_mode_selector": {
+      "status": "PASS",
+      "features": [
+        "All 5 travel modes displayed (On Foot, Horseback, Cart, Ship, Flying)",
+        "Default to On Foot",
+        "Mode change updates travel time"
+      ],
+      "tests": 3
+    },
+    "travel_button": {
+      "status": "PASS",
+      "features": [
+        "Travel buttons visible for destinations",
+        "Clicking Travel moves party and shows toast",
+        "Current location updates after travel"
+      ],
+      "tests": 3
+    },
+    "backend_world_maps_api": {
+      "status": "PASS",
+      "endpoints": [
+        "GET /api/campaigns/{id}/world-maps",
+        "GET /api/campaigns/{id}/world-maps/{map_id}",
+        "GET /api/campaigns/{id}/world-maps/{map_id}/nearby"
+      ],
+      "tests": 7
+    },
+    "backend_travel_api": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/world-maps/{map_id}/calculate-travel"
+      ],
+      "tests": 4
+    },
+    "backend_local_maps_api": {
+      "status": "PASS",
+      "endpoints": [
+        "GET /api/campaigns/{id}/local-maps",
+        "POST /api/campaigns/{id}/local-maps",
+        "GET /api/campaigns/{id}/locations"
+      ],
+      "tests": 3
+    }
+  }
+}
