@@ -16,12 +16,16 @@ import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+# STRIPE DISABLED TEMPORARILY - Re-enable when key is fixed
+# from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import base64
 import asyncio
 import secrets
 import resend
-import stripe  # Direct Stripe SDK for subscriptions
+# import stripe  # STRIPE DISABLED TEMPORARILY
+
+# Flag to disable Stripe completely
+STRIPE_ENABLED = False
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -1680,6 +1684,10 @@ async def get_subscription_status(username: str = Depends(get_current_user)):
 @api_router.post("/subscription/checkout")
 async def create_checkout_session(request: CreateCheckoutRequest, http_request: Request, username: str = Depends(get_current_user)):
     """Create Stripe checkout session for RECURRING subscription"""
+    # STRIPE DISABLED CHECK
+    if not STRIPE_ENABLED:
+        raise HTTPException(status_code=503, detail="Subscriptions temporarily unavailable. Please try again later.")
+    
     try:
         api_key = os.environ.get('STRIPE_API_KEY')
         if not api_key:
@@ -1778,6 +1786,10 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
 @api_router.get("/subscription/checkout/status/{session_id}")
 async def get_checkout_status(session_id: str, http_request: Request, username: str = Depends(get_current_user)):
     """Check payment status and activate subscription if paid"""
+    # STRIPE DISABLED CHECK
+    if not STRIPE_ENABLED:
+        raise HTTPException(status_code=503, detail="Subscriptions temporarily unavailable.")
+    
     try:
         api_key = os.environ.get('STRIPE_API_KEY')
         if not api_key:
@@ -7183,15 +7195,17 @@ async def health_check():
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize Stripe products and rule systems on startup"""
-    # Stripe initialization - non-blocking (don't fail startup if Stripe fails)
-    try:
-        logger.info("Starting up - initializing Stripe products...")
-        await setup_stripe_products()
-        logger.info("Stripe products initialized")
-    except Exception as e:
-        logger.warning(f"Stripe initialization failed (non-blocking): {e}")
-        logger.warning("App will continue - Stripe features may not work until key is fixed")
+    """Initialize rule systems on startup"""
+    # STRIPE DISABLED - Skip Stripe initialization
+    if STRIPE_ENABLED:
+        try:
+            logger.info("Starting up - initializing Stripe products...")
+            await setup_stripe_products()
+            logger.info("Stripe products initialized")
+        except Exception as e:
+            logger.warning(f"Stripe initialization failed (non-blocking): {e}")
+    else:
+        logger.info("Stripe is DISABLED - skipping initialization")
     
     # Rule systems - always initialize
     await initialize_rule_systems()
