@@ -351,6 +351,23 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
   - Animation: Smooth fade-in/out with slide effect
   - Variants: 'card' (large info panel) and 'tooltip' (small floating tip)
   - resetAllGuides() utility function for testing/admin purposes
+- [x] **Billing Toggle & Pricing Consistency (March 2026)**
+  - Added Monthly/Yearly billing toggle to landing page pricing section
+  - Dynamic price updates when toggling billing cycle
+  - Monthly: Hero £3.99, Quest Master £3.99, Legendary £5.99
+  - Yearly: Hero £39.99 (£3.33/mo), Quest Master £39.99 (£3.33/mo), Legendary £59.99 (£5.00/mo)
+  - "SAVE ~17%" badge on yearly option
+  - Shows monthly equivalent for yearly pricing for clarity
+- [x] **Campaign Dashboard Tab Consolidation (March 2026)**
+  - Reduced tabs from 16+ to 10 main tabs for cleaner navigation
+  - **Maps** tab: Combines World Map + Local Maps with sub-tab navigation
+  - **NPCs** tab: Combines NPC Manager + Relationship Web
+  - **Chronicle** tab: Combines Session Timeline + In-Game Calendar
+  - **Combat** tab: Combines Combat Creator + Encounter Generator
+  - **Tools** tab: Combines Quick Reference + Random Generators
+  - **Inventory** tab: Combines Party Loot + Item Creator
+  - Each consolidated tab has descriptive sub-tabs with icons
+  - RookGuide entries added for all consolidated tabs
 - [x] **Professional Screen Animations**
   - Fade-in animations for page loads
   - Staggered list animations (cards appear sequentially)
