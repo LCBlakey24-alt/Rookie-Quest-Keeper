@@ -7184,9 +7184,16 @@ async def health_check():
 @app.on_event("startup")
 async def startup_event():
     """Initialize Stripe products and rule systems on startup"""
-    logger.info("Starting up - initializing Stripe products...")
-    await setup_stripe_products()
-    logger.info("Stripe products initialized")
+    # Stripe initialization - non-blocking (don't fail startup if Stripe fails)
+    try:
+        logger.info("Starting up - initializing Stripe products...")
+        await setup_stripe_products()
+        logger.info("Stripe products initialized")
+    except Exception as e:
+        logger.warning(f"Stripe initialization failed (non-blocking): {e}")
+        logger.warning("App will continue - Stripe features may not work until key is fixed")
+    
+    # Rule systems - always initialize
     await initialize_rule_systems()
     logger.info("Rule systems initialized")
 
