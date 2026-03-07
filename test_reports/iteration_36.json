@@ -1,0 +1,108 @@
+{
+  "summary": "Tron Light Cycle Background Effects Testing - 11 frontend tests + 6 backend tests all PASSED. TronBackground component renders correctly on Landing Page, Auth Page, and Unified Dashboard with dual color scheme (blue for players, red for GMs).",
+  "mode": "generate",
+  "baseline_commit": "d3a5b27bba46044f07d2f82040988ce140335ada",
+  "head_commit": "9970d515fe85374689ba3f00796e5c5fdeaa5e0c",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "tron-background-effects.spec.ts (frontend)": "11/11 passed - Tron effects on Landing, Auth, Dashboard, mobile toggle, navigation",
+      "test_npc_quick_reference.py (backend)": "6/6 passed - NPCs CRUD, Locations, Campaigns, Characters APIs"
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/tron-background-effects.spec.ts"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/tests/e2e/tron-background-effects.spec.ts",
+    "/app/backend/tests/test_npc_quick_reference.py",
+    "/app/test_reports/pytest/npc_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/e2e/tron-background-effects.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 tests passed)",
+    "frontend": "100% (11/11 tests passed)"
+  },
+  "seed_data_creation": "None - used existing admin user",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "TronBackground component tested on 6 pages: LandingPage (variant='landing'), AuthPage (variant='both'), UnifiedDashboard (variant='blue' for player section, variant='red' for GM section), CharacterSheetFull (variant='blue'), CampaignDashboard (variant='red'), GMScreen (variant='red'). The CSS animations for light trails are in App.css (lines 1014-1270). Key verified features: 1) .tron-effects-container has pointer-events: none and z-index: 0 so UI elements remain interactive, 2) .light-trail-blue animates left-to-right, .light-trail-red animates right-to-left, 3) Mobile toggle works correctly showing PLAYER HUB and GM SIDE buttons on <768px viewport, 4) Login/logout flow works correctly with Tron effects.",
+  "features_tested": {
+    "tron_landing_page": {
+      "status": "PASS",
+      "features": [
+        "TronBackground renders with variant='landing'",
+        ".tron-grid visible on page",
+        "Blue and red light trails both visible",
+        "Get Started button clickable despite effects layer"
+      ],
+      "tests": 2
+    },
+    "tron_auth_page": {
+      "status": "PASS",
+      "features": [
+        "TronBackground renders with variant='both'",
+        "Blue and red trails visible",
+        "Login form inputs accessible",
+        "Login flow works correctly"
+      ],
+      "tests": 2
+    },
+    "tron_dashboard": {
+      "status": "PASS",
+      "features": [
+        "Dual TronBackground - blue player side, red GM side",
+        "Player section has 'PLAYER SIDE' header with cyan styling",
+        "GM section has 'GM SIDE' header with red styling",
+        "Dashboard buttons clickable (NEW CHARACTER, NEW CAMPAIGN, Review, Referral)"
+      ],
+      "tests": 3
+    },
+    "mobile_responsiveness": {
+      "status": "PASS",
+      "features": [
+        "#mobile-nav-toggle visible on <768px viewport",
+        "PLAYER HUB and GM SIDE toggle buttons work",
+        "View switching between player and GM sections"
+      ],
+      "tests": 1
+    },
+    "navigation_and_logout": {
+      "status": "PASS",
+      "features": [
+        "Navigation between pages preserves Tron effects",
+        "Logout redirects to auth page with Tron effects",
+        "No layout breaks during navigation"
+      ],
+      "tests": 2
+    },
+    "css_animations": {
+      "status": "PASS",
+      "features": [
+        "pointer-events: none on .tron-effects-container",
+        "z-index: 0 keeps effects in background",
+        ".light-trail-blue has lightTrailLeft animation",
+        ".light-trail-red has lightTrailRight animation"
+      ],
+      "tests": 2
+    }
+  }
+}

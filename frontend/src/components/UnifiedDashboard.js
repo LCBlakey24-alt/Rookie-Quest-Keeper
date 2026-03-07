@@ -7,6 +7,7 @@ import {
   User, Crown, Plus, ChevronRight, Star, Link2, Settings,
   Users, MapPin, LogOut, Shield, Sword
 } from 'lucide-react';
+import TronBackground from '@/components/TronBackground';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -339,6 +340,9 @@ function UnifiedDashboard({ username, onLogout }) {
             minHeight: '400px'
           }}
         >
+          {/* Tron Light Trails - Blue */}
+          <TronBackground variant="blue" intensity="subtle" showGrid={false} />
+          
           {/* Glow effect */}
           <div style={{
             position: 'absolute',
@@ -506,6 +510,9 @@ function UnifiedDashboard({ username, onLogout }) {
             minHeight: '400px'
           }}
         >
+          {/* Tron Light Trails - Red */}
+          <TronBackground variant="red" intensity="subtle" showGrid={false} />
+          
           {/* Glow effect */}
           <div style={{
             position: 'absolute',

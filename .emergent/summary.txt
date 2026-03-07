@@ -2,71 +2,73 @@
 The user's core objective is to build a TTRPG application, Rookie Quest Keeper (ROOK). The initial project included a dual Tron aesthetic, a live subscription model, and several GM/player features.
 
 The scope has since expanded significantly based on user feedback:
-1.  **Modular, Copyright-Safe Rule System:** The most critical requirement is a flexible, database-driven character progression system that is NOT hardcoded to any specific rule set. The user explicitly requested to remove all official D&D content and branding, instead providing a framework for GMs to create their own rule systems and mass-upload content (classes, races, items, etc.).
-2.  **AI Rule Awareness:** Any AI-powered feature (like campaign idea generation) must respect the specific rule system selected for that campaign.
+1.  **Modular, Copyright-Safe Rule System:** A flexible, database-driven character progression system where GMs can create their own rule systems and mass-upload content.
+2.  **AI Rule Awareness:** Any AI-powered feature must respect the specific rule system selected for that campaign.
 3.  **Multiclassing:** Players should have the ability to multiclass.
-4.  **GM Features:** Implement a suite of tools for Game Masters, including an NPC Relationship Web, Random Generators, Smart Entity Linking, and a Session Timeline.
-5.  **Player Features:** Implement a shared Party Inventory view for players.
-6.  **Stress Testing:** The user has requested thorough stress testing of all major features, including campaign management, character creation, and character leveling.
+4.  **GM Features:** A suite of tools for Game Masters, including an NPC Relationship Web, Random Generators, Smart Entity Linking, Session Timeline, and a new **World/Local Map system**.
+5.  **Player Features:** A shared Party Inventory view for players.
+6.  **UI/UX and Aesthetics:** The application must have a professional feel with animations and a strong Tron aesthetic, including subtle background light-cycle effects. It also needs to be mobile-friendly.
+7.  **Live Game Tools:** GMs need a Party Location Tracker on their main screen to see the party's current location, nearby points of interest, and travel times.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app with a functional Stripe subscription model and a fully implemented dual-color Tron aesthetic (blue for players, red for GMs).
+The application is a full-stack React/FastAPI app with a functional Stripe subscription model and a dual-color Tron aesthetic (blue for players, red for GMs).
 
 Key implemented features include:
--   **GM Tool Suite:** The Yellow Tier GM features (NPC Relationship Web, Session Timeline, Random Generators, Smart Entity Linking) are fully implemented, integrated into the , and functional with corresponding backend APIs.
--   **Copyright-Safe Rule System Framework:** A complete backend and admin frontend is in place. GMs can use the  to create custom rule systems and upload content via API. The system is generic and contains no copyrighted material.
--   **AI Rule Awareness:** The AI idea generation endpoint now uses the campaign's specific rule set to provide relevant suggestions.
--   **Party Inventory:** A Party Loot manager exists for GMs, and a corresponding read-only Party Loot tab has been added to the player dashboard so they can see shared items.
--   **Character Creator & Leveling:** A 5-step character creation wizard and a fully functional leveling system are in place and have been successfully stress-tested.
--   **Multiclassing (Backend):** Backend APIs to check for multiclass eligibility and level up in a new class are implemented.
+-   **GM Tool Suite:** The Yellow Tier GM features (NPC Relationship Web, Session Timeline, Random Generators) are fully implemented.
+-   **Map System:** A comprehensive World and Local map system with backend APIs and frontend components allowing GMs to upload map images and (conceptually) pin locations.
+-   **Live Game Dashboard:** The GM screen includes a Party Location Tracker and an NPC Quick Reference tab.
+-   **Copyright-Safe Rule System:** A complete backend and admin frontend is in place for GMs to create and manage custom rule systems.
+-   **Character System:** A 5-step character creation wizard and a fully functional leveling system are in place, including a frontend UI for multiclassing.
+-   **Mobile Experience:** The main dashboard is now mobile-responsive and features a toggle to switch between the Player Hub and GM Side on smaller screens.
+-   **UI/UX:** The site features  and  animations on cards and components for a more professional feel. A reusable  component has been created to add subtle, animated light trails.
 
 **Last working item**:
--   **Last item agent was working:** The agent was performing a user-requested stress test of the character leveling system. It successfully leveled the character Elara Nightwhisper from 1 to 20 and was verifying the final results.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y
--   **Which testing method agent to use?** frontend testing agent
+-   **Last item agent was working:** Implementing a Tron light cycle aesthetic. A reusable  component was created to add subtle, animated light trails. The agent was in the process of adding this component to major pages like the Landing Page, Dashboard, GM Screen, Character Sheet, and Auth Page to create a consistent, thematic feel.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** screenshot tool (To visually verify the new background effects are present and not breaking layouts on all updated pages).
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Potential Bug in Level-Up History Display (P1)**
-    -   **Description:** During the level-up stress test, the agent noted that in the character's level progression history, levels where an Ability Score Improvement (ASI) was chosen displayed HP Gained: 0. This is likely a display bug, as HP should increase if the Constitution score is raised.
-    -   **Attempted fixes:** None.
-    -   **Next debug checklist:**
-        1.  Investigate the  endpoint in .
-        2.  Confirm if the  object correctly calculates and stores HP gained on levels where Constitution is increased via an ASI.
-        3.  Inspect the frontend component that renders the level-up history to ensure it's displaying the stored data correctly.
-    -   **Why fix this issue and what will be achieved with the fix?** To provide players with an accurate and clear history of their character's progression.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** None
+-   None. All previously identified bugs have been resolved.
 
 **In progress Task List**:
--   None
+-   **Task 1: Complete and Verify Tron Light Cycle Effect Implementation (P0)**
+    -   **Where to resume:** The  component has been added to , , , , and . The next step is to test and verify that the effect renders correctly on all these pages without negatively impacting layout or performance.
+    -   **What will be achieved with this?** A consistent and aesthetically pleasing Tron-like background animation across the application, fulfilling a specific user request for visual flair.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on something:** None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0: Implement Frontend for Multiclassing:** Build the UI within the level-up modal ( or similar) to allow players to select a new class, fulfilling the multiclassing feature. The backend APIs are already in place.
-    -   **P1: Implement Frontend for Mass Content Upload:** Create the UI component in the Admin Panel () that allows a user to select a file (e.g., JSON) and upload it to populate a chosen rule system.
-    -   **P2: Mobile Responsiveness Audit:** Conduct a general audit of the application's mobile-friendliness, focusing on the most complex views like the GM Screen () and the Character Sheet ().
+    -   **P0: Finalize Interactive Map Functionality:** The backend and UI components for maps exist, but the frontend needs to be fully wired up to allow GMs to interactively place pins on the uploaded map image, link them to saved locations, and define paths/terrain.
+    -   **P1: Quick Start Tutorial:** Implement a guided walkthrough for new GMs to showcase the core workflow: creating a campaign, adding a location, uploading a map, and starting a session.
+    -   **P2: Implement Session Mode:** Create a one-click Start Session button that opens a dedicated GM view with the most critical live-play components visible at once (e.g., Location Tracker, Initiative Tracker, Dice Roller, Notes).
 
 -   **Future Tasks:**
-    -   AI-Assisted Custom Rule Creation.
-    -   Backend refactoring (split  into routers).
+    -   AI-powered travel time estimation based on map pins and terrain.
+    -   A fog of war map view for players, showing only visited locations.
+    -   Backend refactoring: Split the monolithic  into modular, domain-specific routers.
     -   Mobile-first Combat Tracker.
-    -   Zero Prep Mode AI content generation.
+    -   Zero Prep Mode for AI-driven content generation.
     -   Shareable World Codex for players.
+    -   Loading states, empty states, and keyboard shortcuts for polish.
 
 **Completed work in this session**
--   **GM Tool Suite Implementation:** Successfully built and integrated the NPC Relationship Web, Session Timeline, and Random Generators into the .
--   **Modular Rule System Implementation:** Created the backend and admin UI for a generic, copyright-safe rule system, allowing users to create systems and upload content. Refactored all D&D-specific references out of the codebase.
--   **AI Rule System Awareness:** Updated the AI generation endpoint to be aware of the campaign's selected rule system.
--   **Player-Facing Party Loot:** Added a Party Loot tab to the  for players to view shared campaign inventory.
--   **Bug Fixes:** Resolved an incorrect API path in  and fixed multiclassing endpoints to query the correct database collection.
--   **Comprehensive Stress Testing:** Successfully stress-tested the campaign dashboard, the 5-step character creator wizard, and the level 1-20 character progression system.
--   **Documentation:** Updated  to reflect all completed tasks.
+-   **Bug Fix (HP Display):** Resolved an issue where HP gained from Constitution ASI was not displayed in level-up history.
+-   **Bug Fix (Multiclassing):** Fixed a bug where a character's original class name appeared as Unknown after multiclassing.
+-   **Feature (Multiclassing Frontend):** The level-up modal was enhanced to allow players to choose between leveling their current class or adding a new one.
+-   **Feature (Map System):** Implemented backend endpoints and frontend components (, ) for uploading and managing campaign maps.
+-   **Feature (Live GM Tools):** Added a Party Location Tracker and NPC Quick Reference tab to the GM Screen.
+-   **Feature (Mobile Navigation):** Overhauled the main dashboard () to be mobile-friendly with a toggle to switch between Player and GM views.
+-   **Feature (UI Animations):** Added CSS animations for a more dynamic and professional user interface.
+-   **User Account Support:** Resolved an admin login failure by creating a new admin account () for the user.
+-   **Bug Fix (Navigation):** Fixed the New Campaign button routing and the Back button navigation in the character creator.
+-   **Asset Removal:** Per user request, removed all previously added custom logos and images from the entire site and codebase.
+-   **Testing:** Successfully used the testing agent to validate all major fixes and features implemented during the session.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -78,72 +80,77 @@ Key implemented features include:
 
 
 **Key Technical Concepts**
--   **Generic Rule System:** A database-driven architecture allowing users to define their own game systems and upload content (classes, races, etc.), ensuring the app is copyright-safe.
--   **AI Context Awareness:** AI generation is now tied to a specific  associated with a campaign, providing more relevant and accurate content.
--   **Full-Stack Feature Implementation:** New features were built with both frontend React components and backend FastAPI endpoints.
--   **Stress Testing:** Using  to rapidly populate the database with test data to verify system stability and performance under load.
+-   **Dynamic Background Effects:** Using a dedicated React component () with CSS keyframe animations to create an ambient, themed visual effect that can be applied across the application.
+-   **Responsive UI Toggling:** Using React state () and conditional classes to create a mobile-specific navigation toggle, allowing two desktop columns to be presented as switchable tabs on mobile.
+-   **Monolithic Backend:** All backend logic currently resides in a single  file, making it a candidate for future refactoring into a more scalable structure with FastAPI routers.
 
 **key DB schema**
--   ****: Stores user-created rule systems (e.g., ).
--   ****: Stores content linked to a system (e.g., ).
--   ****: Now contains a  field to link to a specific rule set.
+-   ****: 
+-   ****: 
+-   ****: 
+-   ****: 
+-   ****: 
+-   ****: 
+
+**changes in tech stack**
+-   None.
 
 **All files of reference**
--   : Contains all new backend logic for rule systems, GM tools, AI awareness, and multiclassing.
--   : Hosts the new .
--   : The UI for managing rule systems.
--   : Integrates the new GM features.
--   : Integrates the player-facing Party Loot view.
--   : The 5-step character creation wizard.
+-   : Contains all backend logic, including recent additions for the map system.
+-   : Contains the critical mobile-responsive layout and view toggle.
+-   : Integrates all the new GM screen tabs (Maps, Location, NPCs).
+-   : The new reusable component for the Tron aesthetic.
+-   : The component for the live game location tool.
+-   : Contains the routing logic for the application.
 
 **Areas that need refactoring**:
--    is now very large and is a prime candidate for being split into multiple, domain-specific router files (e.g., , , ).
+-   ****: This file is now extremely large and complex. It is the highest priority for refactoring. It should be split into multiple, domain-specific router files (e.g., , , ).
 
 **key api endpoints**
--   : Create a new rule system.
--   : Upload content (classes, races, etc.) for a rule system.
--   : Get NPC relationships for the graph visualization.
--   : Add a new event to the session timeline.
--   : The primary endpoint for character leveling.
--   : The AI generation endpoint, now aware of the campaign's rule system.
+-   : Primary endpoint for character leveling (fixed).
+-   : Endpoint to add a new class to a character (fixed).
+-   : Create a world map for a campaign.
+-   : Add a pin (location) to a specific map.
+-   : Define a travel path between two pins on a map.
 
 **Critical Info for New Agent**
--   **Copyright is paramount.** The application's rule system is intentionally generic. Do not introduce any official or copyrighted content. The entire framework is built for user-uploaded data.
--   The immediate priority is to build the frontend UIs for features that already have backend support: **multiclassing** and **content uploading**.
--   Begin by investigating the potential bug in the level-up history display where ASI levels show 0 HP gain.
+-   **Aesthetics and UX are a top priority.** The user is very invested in the Tron theme and a clean, professional, mobile-friendly experience. The  component is a key part of this vision.
+-   **All user-provided logos have been intentionally removed.** Do not re-add any image-based logos. The branding is text-only (RQK, Rookie Quest Keeper).
+-   **Refactoring  is critical.** The backend has become a large monolith. Proposing a plan to break it into smaller, manageable FastAPI routers should be a high-priority task for the future to ensure maintainability.
 
 **documents and test reports created in this job**
--   
+-    (Updated multiple times)
+-   Multiple test reports from the testing agent, such as , , etc.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   User requests to make the rule system copyright-safe by removing all official D&D branding and content.
--   User asks to proceed with user improvements.
--   User requests a stress test by creating a new character and a new campaign.
--   User requests a specific stress test of the character creator wizard.
--   User requests a stress test of leveling a character from 1 to 20.
--   User wants AI for campaigns to follow the selected rule set (e.g., 2014 vs 2024 rules).
--   User wants the ability to mass upload rule items.
--   User wants multiclassing for players.
--   User expresses a future goal for AI-assisted custom rule creation for new genres (e.g., Sci-Fi).
+1.  **User Request:** Add Tron-like light cycle effects to the background for aesthetics. (Status: IN PROGRESS)
+2.  **User Request:** Add screen animations, an NPC quick reference tab, and a mobile navigation toggle. (Status: COMPLETED)
+3.  **User Feedback:** Agent to suggest updates. (Status: COMPLETED)
+4.  **User Request:** Remove all previously uploaded logos from the entire site. (Status: COMPLETED)
+5.  **User Request:** Add a specific logo back to the site. (Status: COMPLETED, then reverted by the next request)
+6.  **User Bug Report:** New Campaign button doesn't work; Back button in character creator navigates incorrectly. (Status: COMPLETED)
+7.  **User Bug Report:** Login fails with an error message. (Status: COMPLETED, user was using a non-existent admin email)
+8.  **User Bug Report:** Admin login is failing. (Status: COMPLETED, agent created a new admin account for the user)
+9.  **User Request:** GM needs to see the party's current location and travel distances during a live game. (Status: COMPLETED, implemented as Party Location Tracker)
+10. **User Request:** Implement a world/local map system where GMs can upload maps, pin locations, and calculate travel distances. (Status: COMPLETED, backend/frontend shells are built)
 
 **Project Health Check:**
--   **Broken:** None
+-   **Broken:** None.
 -   **Mocked:**
-    -   The frontend UI for multiclass selection during level up.
-    -   The frontend UI for the file upload flow in the .
+    -   The interactive functionality of the  and  components. The UI exists, but the ability to click and add pins/paths on the map image is not yet implemented.
 
 **3rd Party Integrations**
 -   **Stripe:** For subscriptions.
 -   **resend:** For emails.
--   **Emergent LLM Key (via ):** Used for all OpenAI-powered features (AI-assisted generation for ideas, recaps, portraits).
+-   **Emergent LLM Key (via ):** Used for all OpenAI-powered features.
 
 **Testing status**
 -   **Testing agent used after significant changes:** YES
--   **Test files created:** Yes, the existing test suite has been expanded.
--   **Known regressions:** None
+-   **Test files created:** Yes, the testing agent has expanded the existing test suites in  and created new Cypress specs.
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
--   The user  has admin privileges. New users can be registered for player-side testing.
-
-**What agent forgot to execute**
--   The agent identified a potential bug with HP gain not showing on ASI levels in the level-up history but did not get a chance to investigate or fix it.</analysis>
+-   **Admin User:**
+    -   **Email:** 
+    -   **Password:** 
+-   Regular users can be registered through the signup form for player-side testing.</analysis>

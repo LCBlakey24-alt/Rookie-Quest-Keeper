@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.483" timestamp="2026-03-07T09:19:10.503258+00:00" hostname="agent-env-4122b393-78c1-44d0-9f6d-9432e58c20f9"><testcase classname="tests.test_account_management.TestAuthAPI" name="test_health_check" time="0.001"><failure message="requests.exceptions.MissingSchema: Invalid URL '/': No scheme supplied. Perhaps you meant https:///?">tests/test_account_management.py:31: in test_health_check
+    response = self.session.get(f"{BASE_URL}/")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:602: in get
+    return self.request("GET", url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/': No scheme supplied. Perhaps you meant https:///?</failure></testcase></testsuite></testsuites>

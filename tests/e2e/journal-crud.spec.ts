@@ -79,18 +79,18 @@ test.describe('Session Journal CRUD', () => {
     await expect(page.getByText(entryTitle)).toBeVisible({ timeout: 10000 });
     
     // Cleanup - Delete the entry via API
-    const loginRes = await request.post('https://rook-ttrpg.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('https://gm-toolkit-preview.preview.emergentagent.com/api/auth/login', {
       data: { email: TEST_USER.email, password: TEST_USER.password }
     });
     const { token } = await loginRes.json();
     
-    const response = await request.get('https://rook-ttrpg.preview.emergentagent.com/api/player/journal', {
+    const response = await request.get('https://gm-toolkit-preview.preview.emergentagent.com/api/player/journal', {
       headers: { Authorization: `Bearer ${token}` }
     });
     const entries = await response.json();
     const entry = entries.find((e: any) => e.title === entryTitle);
     if (entry) {
-      await request.delete(`https://rook-ttrpg.preview.emergentagent.com/api/player/journal/${entry.id}`, {
+      await request.delete(`https://gm-toolkit-preview.preview.emergentagent.com/api/player/journal/${entry.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
     }
@@ -135,7 +135,7 @@ test.describe('Session Journal CRUD', () => {
 test.describe('Session Journal API Tests', () => {
   test('Create and delete journal entry via API', async ({ page, request }) => {
     // Login to get token
-    const loginRes = await request.post('https://rook-ttrpg.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('https://gm-toolkit-preview.preview.emergentagent.com/api/auth/login', {
       data: {
         email: TEST_USER.email,
         password: TEST_USER.password
@@ -148,7 +148,7 @@ test.describe('Session Journal API Tests', () => {
     const entryTitle = `TEST_API_Journal_${uniqueId}`;
     
     // Create entry
-    const createRes = await request.post('https://rook-ttrpg.preview.emergentagent.com/api/player/journal', {
+    const createRes = await request.post('https://gm-toolkit-preview.preview.emergentagent.com/api/player/journal', {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         title: entryTitle,
@@ -161,7 +161,7 @@ test.describe('Session Journal API Tests', () => {
     expect(entry.title).toBe(entryTitle);
     
     // Delete entry
-    const deleteRes = await request.delete(`https://rook-ttrpg.preview.emergentagent.com/api/player/journal/${entry.id}`, {
+    const deleteRes = await request.delete(`https://gm-toolkit-preview.preview.emergentagent.com/api/player/journal/${entry.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(deleteRes.ok()).toBeTruthy();

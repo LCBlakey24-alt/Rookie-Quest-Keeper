@@ -7,7 +7,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rook-ttrpg.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://gm-toolkit-preview.preview.emergentagent.com').rstrip('/')
 
 # Test user credentials
 TEST_USER_EMAIL = 'stress_test_1772651200@test.com'

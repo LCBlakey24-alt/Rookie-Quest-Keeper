@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Gift, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import TronBackground from '@/components/TronBackground';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -171,15 +172,22 @@ function AuthPage({ onLogin }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px',
-      background: theme.bg.black
+      background: theme.bg.black,
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Tron Light Cycle Effects */}
+      <TronBackground variant="both" intensity="subtle" showGrid={true} />
+      
       <div style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
         maxWidth: '420px',
-        gap: '40px'
+        gap: '40px',
+        position: 'relative',
+        zIndex: 1
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center' }}>

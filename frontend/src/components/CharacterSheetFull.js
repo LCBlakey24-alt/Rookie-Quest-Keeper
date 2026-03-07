@@ -18,6 +18,7 @@ import LevelUpModal from '@/components/LevelUpModal';
 import DiceRollTooltip from '@/components/DiceRollTooltip';
 import { RookSuggestionPopup, useRookSuggestions } from './RookSuggestions';
 import { DiceRollButton } from '@/components/DiceRollButton';
+import TronBackground from '@/components/TronBackground';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -672,6 +673,9 @@ function CharacterSheetFull() {
       overflow: 'hidden',
       fontFamily: 'Cityworm, Inter, sans-serif'
     }}>
+      {/* Tron Light Cycle Effects - Player Blue */}
+      <TronBackground variant="blue" intensity="subtle" showGrid={true} />
+      
       {/* Subtle Blue Gradient Background */}
       <div style={{
         position: 'absolute',

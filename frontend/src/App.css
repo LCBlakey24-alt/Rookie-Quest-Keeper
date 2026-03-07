@@ -1009,3 +1009,261 @@ select option {
 .slide-panel-visible {
   transform: translateX(0);
 }
+
+
+/* ============================================
+   TRON LIGHT CYCLE EFFECTS
+   ============================================ */
+
+/* Light Trail Keyframes - Horizontal */
+@keyframes lightTrailLeft {
+  0% {
+    transform: translateX(-100%) scaleX(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200vw) scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes lightTrailRight {
+  0% {
+    transform: translateX(200vw) scaleX(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%) scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* Light Trail Keyframes - Diagonal */
+@keyframes lightTrailDiagonal {
+  0% {
+    transform: translate(-100%, 100%) rotate(-15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(200vw, -100vh) rotate(-15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes lightTrailDiagonalReverse {
+  0% {
+    transform: translate(200vw, 100%) rotate(15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-100%, -100vh) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+/* Light Trail Pulse */
+@keyframes trailPulse {
+  0%, 100% {
+    filter: blur(1px) brightness(1);
+  }
+  50% {
+    filter: blur(2px) brightness(1.3);
+  }
+}
+
+/* Container for Tron Effects */
+.tron-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.tron-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Light Trail Base */
+.light-trail {
+  position: absolute;
+  height: 2px;
+  width: 150px;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 2px;
+}
+
+/* Blue/Cyan Trails (Player Side) */
+.light-trail-blue {
+  background: linear-gradient(90deg, transparent, #06B6D4, #3B82F6, transparent);
+  box-shadow: 0 0 10px #06B6D4, 0 0 20px #06B6D4, 0 0 30px rgba(6, 182, 212, 0.5);
+  animation: lightTrailLeft 8s linear infinite, trailPulse 2s ease-in-out infinite;
+}
+
+.light-trail-blue-2 {
+  background: linear-gradient(90deg, transparent, #22D3EE, #0EA5E9, transparent);
+  box-shadow: 0 0 8px #22D3EE, 0 0 15px #22D3EE;
+  animation: lightTrailLeft 12s linear infinite 3s, trailPulse 2.5s ease-in-out infinite;
+}
+
+.light-trail-blue-3 {
+  background: linear-gradient(90deg, transparent, #3B82F6, #06B6D4, transparent);
+  box-shadow: 0 0 12px #3B82F6, 0 0 25px rgba(59, 130, 246, 0.6);
+  animation: lightTrailDiagonal 15s linear infinite 5s;
+}
+
+/* Red Trails (GM Side) */
+.light-trail-red {
+  background: linear-gradient(90deg, transparent, #E11D48, #F43F5E, transparent);
+  box-shadow: 0 0 10px #E11D48, 0 0 20px #E11D48, 0 0 30px rgba(225, 29, 72, 0.5);
+  animation: lightTrailRight 9s linear infinite, trailPulse 2s ease-in-out infinite;
+}
+
+.light-trail-red-2 {
+  background: linear-gradient(90deg, transparent, #FB7185, #F43F5E, transparent);
+  box-shadow: 0 0 8px #FB7185, 0 0 15px #FB7185;
+  animation: lightTrailRight 11s linear infinite 2s, trailPulse 2.5s ease-in-out infinite;
+}
+
+.light-trail-red-3 {
+  background: linear-gradient(90deg, transparent, #E11D48, #DC2626, transparent);
+  box-shadow: 0 0 12px #E11D48, 0 0 25px rgba(225, 29, 72, 0.6);
+  animation: lightTrailDiagonalReverse 14s linear infinite 4s;
+}
+
+/* Grid Overlay - Tron Style */
+.tron-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle Grid with color tint */
+.tron-grid-blue {
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.tron-grid-red {
+  background-image: 
+    linear-gradient(rgba(225, 29, 72, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(225, 29, 72, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Glow Pulse for accent elements */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+.glow-pulse-blue {
+  animation: glowPulse 3s ease-in-out infinite;
+  color: #06B6D4;
+}
+
+.glow-pulse-red {
+  animation: glowPulse 3s ease-in-out infinite;
+  color: #E11D48;
+}
+
+/* Edge Glow Effects */
+.edge-glow-blue {
+  box-shadow: inset 0 1px 0 rgba(6, 182, 212, 0.3), 
+              inset 0 -1px 0 rgba(6, 182, 212, 0.1);
+}
+
+.edge-glow-red {
+  box-shadow: inset 0 1px 0 rgba(225, 29, 72, 0.3), 
+              inset 0 -1px 0 rgba(225, 29, 72, 0.1);
+}
+
+/* Horizon Glow - Bottom gradient */
+.horizon-glow-blue {
+  background: linear-gradient(to top, rgba(6, 182, 212, 0.1) 0%, transparent 30%);
+}
+
+.horizon-glow-red {
+  background: linear-gradient(to top, rgba(225, 29, 72, 0.1) 0%, transparent 30%);
+}
+
+/* Scanline Effect */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scanline {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to bottom, 
+    transparent, 
+    rgba(255, 255, 255, 0.03), 
+    transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .light-trail,
+  .light-trail-blue,
+  .light-trail-blue-2,
+  .light-trail-blue-3,
+  .light-trail-red,
+  .light-trail-red-2,
+  .light-trail-red-3,
+  .scanline {
+    animation: none;
+    opacity: 0;
+  }
+}

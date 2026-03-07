@@ -19,6 +19,7 @@ import CustomCreatureManager from '@/components/CustomCreatureManager';
 import QuickCombatModal from '@/components/QuickCombatModal';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
 import NPCQuickReference from '@/components/NPCQuickReference';
+import TronBackground from '@/components/TronBackground';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -293,8 +294,12 @@ function GMScreen({ username }) {
     <div style={{ 
       minHeight: '100vh', 
       background: theme.bg.black,
-      position: 'relative'
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Tron Light Cycle Effects - Red Theme */}
+      <TronBackground variant="red" intensity="subtle" showGrid={true} />
+      
       {/* Header */}
       <div style={{ 
         position: 'relative',

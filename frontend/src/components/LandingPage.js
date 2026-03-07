@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RookDemo from '@/components/RookDemo';
+import TronBackground from '@/components/TronBackground';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -135,8 +136,13 @@ function LandingPage() {
     <div style={{ 
       minHeight: '100vh', 
       background: theme.bg.black,
-      color: theme.text.white
+      color: theme.text.white,
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Tron Light Cycle Effects */}
+      <TronBackground variant="landing" intensity="medium" showGrid={true} />
+      
       {/* Navigation */}
       <nav style={{
         position: 'fixed',

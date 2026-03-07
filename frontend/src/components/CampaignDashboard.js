@@ -25,6 +25,7 @@ import RandomGeneratorTables from '@/components/RandomGeneratorTables';
 import SessionTimeline from '@/components/SessionTimeline';
 import WorldMapTab from '@/components/tabs/WorldMapTab';
 import LocalMapTab from '@/components/tabs/LocalMapTab';
+import TronBackground from '@/components/TronBackground';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -254,8 +255,13 @@ function CampaignDashboard({ username, onLogout }) {
       minHeight: '100vh',
       background: theme.bg.black,
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Tron Light Cycle Effects - GM Red */}
+      <TronBackground variant="red" intensity="subtle" showGrid={true} />
+      
       {/* Header */}
       <div style={{
         background: theme.bg.dark,
