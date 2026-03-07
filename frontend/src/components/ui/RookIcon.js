@@ -84,7 +84,7 @@ export const RookBadge = ({
     borderRadius: '8px',
     fontSize: s.fontSize,
     fontWeight: '700',
-    fontFamily: 'Excluded, sans-serif',
+    fontFamily: 'Cityworm, sans-serif',
     transition: 'all 0.2s ease'
   };
 

@@ -76,7 +76,7 @@ export const animatedCardHover = {
 export const sectionHeader = {
   fontSize: '24px',
   fontWeight: '800',
-  fontFamily: 'Excluded, sans-serif',
+  fontFamily: 'Cityworm, sans-serif',
   color: COLORS.textPrimary,
   marginBottom: '8px'
 };
@@ -95,7 +95,7 @@ export const tabButton = (isActive, color = COLORS.blue) => ({
   border: `2px solid ${isActive ? color : 'transparent'}`,
   background: isActive ? `${color}15` : 'rgba(255, 255, 255, 0.03)',
   color: isActive ? color : COLORS.textSecondary,
-  fontFamily: 'Excluded, sans-serif',
+  fontFamily: 'Cityworm, sans-serif',
   fontWeight: '700',
   fontSize: '13px',
   cursor: 'pointer',

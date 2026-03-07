@@ -573,7 +573,7 @@ function CharacterBuilder() {
       minHeight: '100vh',
       background: '#0D0D0D',
       padding: '24px',
-      fontFamily: 'Excluded, sans-serif'
+      fontFamily: 'Cityworm, sans-serif'
     }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         {/* Header */}
@@ -584,7 +584,7 @@ function CharacterBuilder() {
           <div style={{ flex: 1 }}>
             <h1 style={{
               fontSize: '28px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '800',
               color: '#ffffff'
             }}>
@@ -673,7 +673,7 @@ function CharacterBuilder() {
                       color: '#fff', 
                       fontSize: '18px', 
                       fontWeight: '700',
-                      fontFamily: 'Excluded, sans-serif'
+                      fontFamily: 'Cityworm, sans-serif'
                     }}>
                       ROOK
                     </h3>
@@ -769,7 +769,7 @@ function CharacterBuilder() {
                   color: '#fff', 
                   fontSize: '18px', 
                   fontWeight: '700',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   marginBottom: '20px'
                 }}>
                   Basic Info

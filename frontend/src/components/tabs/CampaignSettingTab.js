@@ -92,7 +92,7 @@ function CampaignSettingTab({ campaignId }) {
           <h2 style={{ 
             fontSize: '26px', 
             color: '#ffffff',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '800'
           }}>
             Campaign Setting
@@ -243,7 +243,7 @@ function CampaignSettingTab({ campaignId }) {
             display: 'flex', 
             alignItems: 'center', 
             gap: '10px',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700'
           }}>
             <Users size={20} style={{ color: '#22c55e' }} />

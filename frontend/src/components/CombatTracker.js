@@ -280,7 +280,7 @@ function CombatTracker({ players = [], npcs = [] }) {
         <h3 style={{ 
           fontSize: '18px', 
           color: '#ffffff',
-          fontFamily: 'Excluded, sans-serif',
+          fontFamily: 'Cityworm, sans-serif',
           fontWeight: '700',
           display: 'flex',
           alignItems: 'center',
@@ -307,7 +307,7 @@ function CombatTracker({ players = [], npcs = [] }) {
               fontSize: '13px',
               fontWeight: '700',
               color: '#ef4444',
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               Round {round}
             </div>
@@ -480,7 +480,7 @@ function CombatTracker({ players = [], npcs = [] }) {
                       fontWeight: '800',
                       fontSize: '14px',
                       color: '#ffffff',
-                      fontFamily: 'Excluded, sans-serif',
+                      fontFamily: 'Cityworm, sans-serif',
                       flexShrink: 0
                     }}>
                       {combatant.initiative}
@@ -491,7 +491,7 @@ function CombatTracker({ players = [], npcs = [] }) {
                         fontSize: '15px', 
                         fontWeight: '700', 
                         color: isDead ? '#64748b' : '#ffffff',
-                        fontFamily: 'Excluded, sans-serif',
+                        fontFamily: 'Cityworm, sans-serif',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px'
@@ -579,7 +579,7 @@ function CombatTracker({ players = [], npcs = [] }) {
                           color: '#ef4444', 
                           fontWeight: '700', 
                           fontSize: '13px',
-                          fontFamily: 'Excluded, sans-serif',
+                          fontFamily: 'Cityworm, sans-serif',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '6px'

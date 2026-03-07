@@ -574,7 +574,7 @@ function GMScreen({ username }) {
           {/* DICE TAB */}
           {activeTab === 'dice' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Dices size={24} style={{ color: '#a855f7' }} /> Dice Roller
               </h2>
               <DiceRoller />
@@ -584,7 +584,7 @@ function GMScreen({ username }) {
           {/* MONSTER LOOKUP TAB */}
           {activeTab === 'monsters' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Skull size={24} style={{ color: '#dc2626' }} /> Monster Lookup
               </h2>
               <MonsterLookup />
@@ -594,7 +594,7 @@ function GMScreen({ username }) {
           {/* CUSTOM CREATURES TAB */}
           {activeTab === 'creatures' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <PlusCircle size={24} style={{ color: '#10b981' }} /> Custom Creatures
               </h2>
               <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>
@@ -615,7 +615,7 @@ function GMScreen({ username }) {
           {/* NAMES GENERATOR TAB */}
           {activeTab === 'names' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <UserPlus size={24} style={{ color: '#f97316' }} /> NPC Name Generator
               </h2>
               
@@ -715,7 +715,7 @@ function GMScreen({ username }) {
                       <h3 style={{ 
                         fontSize: '28px', 
                         color: '#fff', 
-                        fontFamily: 'Excluded', 
+                        fontFamily: 'Montserrat', 
                         fontWeight: '800',
                         marginBottom: '8px',
                         textShadow: '0 0 20px rgba(249, 115, 22, 0.5)'
@@ -831,7 +831,7 @@ function GMScreen({ username }) {
           {/* RANDOM TABLES TAB */}
           {activeTab === 'tables' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Wand2 size={24} style={{ color: '#22c55e' }} /> Random Tables
               </h2>
               <RandomTables onSaveAsNote={(text) => {
@@ -850,7 +850,7 @@ function GMScreen({ username }) {
           {/* LOOT GENERATOR TAB */}
           {activeTab === 'loot' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Coins size={24} style={{ color: '#eab308' }} /> Loot Generator
               </h2>
               <LootGenerator />
@@ -860,7 +860,7 @@ function GMScreen({ username }) {
           {/* INVENTORY TAB */}
           {activeTab === 'inventory' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Package size={24} style={{ color: '#67e8f9' }} /> Party Inventory
               </h2>
               <PartyInventory campaignId={campaignId} players={players} />
@@ -870,7 +870,7 @@ function GMScreen({ username }) {
           {/* PARTY TAB */}
           {activeTab === 'party' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Users size={24} style={{ color: '#4a7dff' }} /> Party Overview
               </h2>
               
@@ -893,12 +893,12 @@ function GMScreen({ username }) {
                           width: '48px', height: '48px', borderRadius: '50%', 
                           background: 'linear-gradient(135deg, #4a7dff 0%, #22c55e 100%)', 
                           display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                          fontWeight: '800', color: '#fff', fontSize: '18px', fontFamily: 'Excluded'
+                          fontWeight: '800', color: '#fff', fontSize: '18px', fontFamily: 'Montserrat'
                         }}>
                           {player.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ color: '#ffffff', fontWeight: '700', fontSize: '16px', fontFamily: 'Excluded' }}>{player.name}</div>
+                          <div style={{ color: '#ffffff', fontWeight: '700', fontSize: '16px', fontFamily: 'Montserrat' }}>{player.name}</div>
                           <div style={{ color: '#67e8f9', fontSize: '12px' }}>
                             {player.race || 'Unknown'} {player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}
                           </div>
@@ -951,7 +951,7 @@ function GMScreen({ username }) {
           {/* NOTES TAB */}
           {activeTab === 'notes' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <FileText size={24} style={{ color: '#67e8f9' }} /> Session Notes
               </h2>
               

@@ -183,7 +183,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
             <h2 style={{ 
               color: '#fff', 
               fontSize: '24px', 
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               display: 'flex',
               alignItems: 'center',

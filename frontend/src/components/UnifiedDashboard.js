@@ -160,7 +160,7 @@ function UnifiedDashboard({ username, onLogout }) {
             fontSize: '20px',
             color: theme.text.white,
             margin: 0,
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             letterSpacing: '2px'
           }}>
             ROOKIE QUEST KEEPER
@@ -379,7 +379,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   letterSpacing: '2px'
                 }}>
                   <User size={18} />
@@ -549,7 +549,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   letterSpacing: '2px'
                 }}>
                   <Sword size={18} />

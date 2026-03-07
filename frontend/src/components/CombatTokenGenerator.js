@@ -53,7 +53,7 @@ function SimpleToken({ name, size = 40, color, type = 'enemy', hp, maxHp }) {
       fontWeight: '800',
       fontSize: size * 0.35,
       color: '#fff',
-      fontFamily: 'Excluded, sans-serif',
+      fontFamily: 'Cityworm, sans-serif',
       textShadow: '0 1px 3px rgba(0,0,0,0.5)',
       boxShadow: `0 0 ${size * 0.25}px ${tokenColor}60, inset 0 -${size * 0.1}px ${size * 0.2}px rgba(0,0,0,0.3)`,
       position: 'relative',

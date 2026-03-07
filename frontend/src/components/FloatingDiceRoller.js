@@ -147,7 +147,7 @@ function FloatingDiceRoller() {
         border: `1px solid ${theme.border}`,
         boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
         zIndex: 9999,
-        fontFamily: 'Excluded, sans-serif'
+        fontFamily: 'Cityworm, sans-serif'
       }}
     >
       {/* Header */}
@@ -340,7 +340,7 @@ function FloatingDiceRoller() {
                       color: roll.isCrit ? '#22c55e' : roll.isFail ? '#ef4444' : theme.text.white,
                       fontWeight: '800',
                       fontSize: '22px',
-                      fontFamily: 'Excluded, sans-serif'
+                      fontFamily: 'Cityworm, sans-serif'
                     }}>
                       {roll.total}
                     </span>

@@ -179,7 +179,7 @@ function SessionMode({ campaignId: propCampaignId }) {
     <div style={{ 
       minHeight: '100vh', 
       background: theme.bg.black, 
-      fontFamily: 'Excluded, sans-serif'
+      fontFamily: 'Cityworm, sans-serif'
     }}
     data-testid="session-mode-page"
     >

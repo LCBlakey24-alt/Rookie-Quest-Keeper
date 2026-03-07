@@ -232,7 +232,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
             color: '#eab308',
             textShadow: '0 0 40px #eab308, 0 0 80px #eab308',
             animation: 'critPulse 1s ease-out',
-            fontFamily: 'Excluded, sans-serif'
+            fontFamily: 'Cityworm, sans-serif'
           }}>
             CRITICAL!
           </div>
@@ -387,7 +387,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                       fontSize: '20px', 
                       fontWeight: '800', 
                       color: result.isCrit ? '#eab308' : result.hits ? '#22c55e' : '#ef4444',
-                      fontFamily: 'Excluded'
+                      fontFamily: 'Montserrat'
                     }}>
                       {result.total}
                     </div>
@@ -494,7 +494,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                   color: '#fff', 
                   fontSize: '28px', 
                   fontWeight: '800',
-                  fontFamily: 'Excluded',
+                  fontFamily: 'Montserrat',
                   textShadow: '0 0 20px rgba(255,255,255,0.5)'
                 }}>
                   {damageResults.totalDamage}

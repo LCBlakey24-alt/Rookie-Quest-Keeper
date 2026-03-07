@@ -222,7 +222,7 @@ function PlayerDashboard({ username, onLogout }) {
           <div>
             <h1 style={{
               fontSize: '20px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '800',
               color: '#ffffff'
             }}>
@@ -278,7 +278,7 @@ function PlayerDashboard({ username, onLogout }) {
               color: '#ffffff',
               fontWeight: '600',
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -304,7 +304,7 @@ function PlayerDashboard({ username, onLogout }) {
               color: '#ffffff',
               fontWeight: '600',
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -330,7 +330,7 @@ function PlayerDashboard({ username, onLogout }) {
               color: '#ffffff',
               fontWeight: '600',
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -356,7 +356,7 @@ function PlayerDashboard({ username, onLogout }) {
               color: '#ffffff',
               fontWeight: '600',
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -393,7 +393,7 @@ function PlayerDashboard({ username, onLogout }) {
                   color: '#ffffff',
                   fontWeight: '700',
                   fontSize: '16px',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   cursor: 'pointer',
                   boxShadow: '0 4px 20px rgba(34, 211, 238, 0.4)'
                 }}
@@ -415,7 +415,7 @@ function PlayerDashboard({ username, onLogout }) {
                   color: '#ffffff',
                   fontWeight: '700',
                   fontSize: '16px',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   cursor: 'pointer',
                   boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
                 }}
@@ -435,7 +435,7 @@ function PlayerDashboard({ username, onLogout }) {
           }}>
             <h2 style={{
               fontSize: '22px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               color: '#ffffff',
               display: 'flex',
@@ -467,7 +467,7 @@ function PlayerDashboard({ username, onLogout }) {
                 color: '#9CA3AF', 
                 fontSize: '18px', 
                 marginBottom: '8px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '600'
               }}>
                 No Characters Yet
@@ -539,7 +539,7 @@ function PlayerDashboard({ username, onLogout }) {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <h3 style={{
                           fontSize: '18px',
-                          fontFamily: 'Excluded, sans-serif',
+                          fontFamily: 'Cityworm, sans-serif',
                           fontWeight: '700',
                           color: '#ffffff',
                           marginBottom: '4px',
@@ -643,7 +643,7 @@ function PlayerDashboard({ username, onLogout }) {
           }}>
             <h2 style={{
               fontSize: '22px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               color: '#ffffff',
               display: 'flex',
@@ -674,7 +674,7 @@ function PlayerDashboard({ username, onLogout }) {
                 color: '#9CA3AF', 
                 fontSize: '18px', 
                 marginBottom: '8px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '600'
               }}>
                 No Campaigns Joined
@@ -714,7 +714,7 @@ function PlayerDashboard({ username, onLogout }) {
                   <CardContent style={{ padding: '20px' }}>
                     <h3 style={{
                       fontSize: '18px',
-                      fontFamily: 'Excluded, sans-serif',
+                      fontFamily: 'Cityworm, sans-serif',
                       fontWeight: '700',
                       color: '#ffffff',
                       marginBottom: '8px'
@@ -771,7 +771,7 @@ function PlayerDashboard({ username, onLogout }) {
                       fontSize: '16px', 
                       fontWeight: '700',
                       marginBottom: '12px',
-                      fontFamily: 'Excluded, sans-serif'
+                      fontFamily: 'Cityworm, sans-serif'
                     }}>
                       {campaign.name}
                     </h3>
@@ -794,7 +794,7 @@ function PlayerDashboard({ username, onLogout }) {
           <DialogHeader>
             <DialogTitle style={{
               fontSize: '24px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               color: '#ffffff'
             }}>

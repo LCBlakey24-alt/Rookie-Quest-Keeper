@@ -199,7 +199,7 @@ function PartyInventory({ campaignId, players = [] }) {
     <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
       {/* Currency Section */}
       <div className="glow-panel" style={{ padding: '16px' }}>
-        <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Coins size={18} style={{ color: '#eab308' }} /> Party Treasury
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
@@ -229,7 +229,7 @@ function PartyInventory({ campaignId, players = [] }) {
           {/* Inventory Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Package size={18} style={{ color: '#22c55e' }} /> Party Loot
               </h3>
               <p style={{ fontSize: '11px', color: '#67e8f9', marginTop: '2px' }}>
@@ -309,7 +309,7 @@ function PartyInventory({ campaignId, players = [] }) {
           {partyItems.length === 0 ? (
             <div className="glow-panel" style={{ padding: '30px', textAlign: 'center' }}>
               <Package size={36} style={{ color: '#1e40af', margin: '0 auto 12px' }} />
-              <h4 style={{ fontSize: '14px', color: '#ffffff', marginBottom: '6px', fontFamily: 'Excluded', fontWeight: '700' }}>
+              <h4 style={{ fontSize: '14px', color: '#ffffff', marginBottom: '6px', fontFamily: 'Montserrat', fontWeight: '700' }}>
                 {items.length === 0 ? 'Inventory Empty' : 'All Items Assigned'}
               </h4>
               <p style={{ color: '#94a3b8', fontSize: '12px' }}>
@@ -370,7 +370,7 @@ function PartyInventory({ campaignId, players = [] }) {
         {/* Right Column - Players Drop Zones */}
         {players.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h4 style={{ fontSize: '14px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+            <h4 style={{ fontSize: '14px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
               <Users size={16} style={{ color: '#4a7dff' }} /> Assign to Player
             </h4>
             

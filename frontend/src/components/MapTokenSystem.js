@@ -302,7 +302,7 @@ function MapTokenSystem({ players = [], npcs = [] }) {
       
       // Name label
       ctx.fillStyle = '#ffffff';
-      ctx.font = `bold ${12 / zoom}px Excluded, sans-serif`;
+      ctx.font = `bold ${12 / zoom}px Montserrat, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText(token.name.substring(0, 10), token.x, token.y + token.size / 2 + 14);
       
@@ -329,7 +329,7 @@ function MapTokenSystem({ players = [], npcs = [] }) {
         <h3 style={{ 
           fontSize: '18px', 
           color: '#ffffff',
-          fontFamily: 'Excluded, sans-serif',
+          fontFamily: 'Cityworm, sans-serif',
           fontWeight: '700',
           display: 'flex',
           alignItems: 'center',

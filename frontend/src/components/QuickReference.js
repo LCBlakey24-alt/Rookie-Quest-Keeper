@@ -278,7 +278,7 @@ export function QuickReferencePopup({ type, id, children, position = 'top' }) {
               color: '#22c55e', 
               fontWeight: '700', 
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               {ref.name}
             </span>
@@ -392,7 +392,7 @@ export function QuickReferenceModal({ isOpen, onClose }) {
           <h2 style={{ 
             fontSize: '24px', 
             color: '#ffffff',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '800',
             display: 'flex',
             alignItems: 'center',
@@ -466,7 +466,7 @@ export function QuickReferenceModal({ isOpen, onClose }) {
                 fontSize: '16px', 
                 fontWeight: '700',
                 marginBottom: '8px',
-                fontFamily: 'Excluded, sans-serif'
+                fontFamily: 'Cityworm, sans-serif'
               }}>
                 {item.name}
               </h3>

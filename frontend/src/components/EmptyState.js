@@ -23,7 +23,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, onAction, col
       
       <h3 style={{
         fontSize: '24px',
-        fontFamily: 'Excluded, sans-serif',
+        fontFamily: 'Cityworm, sans-serif',
         fontWeight: '700',
         color: '#ffffff',
         marginBottom: '12px'

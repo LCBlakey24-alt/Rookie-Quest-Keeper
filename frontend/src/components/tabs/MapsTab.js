@@ -84,7 +84,7 @@ function MapsTab({ campaignId }) {
           <h2 style={{ 
             fontSize: '24px', 
             color: '#ffffff', 
-            fontFamily: 'Excluded, sans-serif', 
+            fontFamily: 'Cityworm, sans-serif', 
             fontWeight: '800',
             display: 'flex',
             alignItems: 'center',
@@ -125,7 +125,7 @@ function MapsTab({ campaignId }) {
           border: '2px dashed rgba(6, 182, 212, 0.3)'
         }}>
           <Map size={64} style={{ color: '#06b6d4', opacity: 0.3, margin: '0 auto 20px' }} />
-          <h3 style={{ color: '#fff', fontSize: '20px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Excluded' }}>
+          <h3 style={{ color: '#fff', fontSize: '20px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
             No Battle Maps Yet
           </h3>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
@@ -205,7 +205,7 @@ function MapsTab({ campaignId }) {
                   fontSize: '16px', 
                   fontWeight: '700', 
                   marginBottom: '6px',
-                  fontFamily: 'Excluded'
+                  fontFamily: 'Montserrat'
                 }}>
                   {map.name}
                 </h3>

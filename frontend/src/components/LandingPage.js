@@ -174,7 +174,7 @@ function LandingPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ 
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: '20px',
               fontWeight: '700',
               color: theme.text.white,
@@ -229,7 +229,7 @@ function LandingPage() {
           {/* Logo and Text */}
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(2.5rem, 8vw, 5rem)',
               fontWeight: '700',
               color: theme.text.white,
@@ -242,7 +242,7 @@ function LandingPage() {
             </h1>
             
             <h1 style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(3rem, 10vw, 6rem)',
               fontWeight: '700',
               color: theme.text.white,
@@ -255,7 +255,7 @@ function LandingPage() {
             </h1>
             
             <p style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
               background: 'linear-gradient(90deg, #E11D48, #06B6D4)',
               WebkitBackgroundClip: 'text',
@@ -279,7 +279,7 @@ function LandingPage() {
 
           {/* Headline */}
           <h2 style={{
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontSize: 'clamp(2rem, 4vw, 3.5rem)',
             fontWeight: '700',
             color: theme.text.white,
@@ -293,7 +293,7 @@ function LandingPage() {
 
           {/* Subheadline */}
           <p style={{
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
             color: theme.text.secondary,
             maxWidth: '800px',
@@ -313,7 +313,7 @@ function LandingPage() {
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '16px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
@@ -331,7 +331,7 @@ function LandingPage() {
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '16px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
@@ -412,7 +412,7 @@ function LandingPage() {
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
               fontWeight: '700',
               color: theme.text.white,
@@ -421,7 +421,7 @@ function LandingPage() {
               Your Entire Campaign. <span style={{ color: theme.accent.red }}>One System.</span>
             </h2>
             <p style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               color: theme.text.secondary,
               fontSize: '16px',
               lineHeight: '1.8',
@@ -476,7 +476,7 @@ function LandingPage() {
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
               fontWeight: '700',
               color: theme.text.white,
@@ -485,7 +485,7 @@ function LandingPage() {
               Try <span style={{ color: theme.accent.red }}>ROOK</span> Right Now
             </h2>
             <p style={{ 
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               color: theme.text.secondary, 
               fontSize: '16px', 
               maxWidth: '600px', 
@@ -511,7 +511,7 @@ function LandingPage() {
               style={{
                 padding: '16px 40px',
                 fontSize: '16px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '600',
                 background: theme.accent.red,
                 border: 'none',
@@ -1322,7 +1322,7 @@ function LandingPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ 
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontSize: '16px',
                 fontWeight: '700',
                 color: theme.text.white,

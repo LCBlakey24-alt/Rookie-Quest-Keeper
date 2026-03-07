@@ -214,7 +214,7 @@ Please provide a JSON response with this exact structure:
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
         <Sparkles size={28} style={{ color: '#eab308' }} />
         <div>
-          <h2 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800' }}>
+          <h2 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800' }}>
             Random Encounter Generator
           </h2>
           <p style={{ fontSize: '13px', color: '#67e8f9' }}>
@@ -387,7 +387,7 @@ Please provide a JSON response with this exact structure:
           {!generatedEncounter ? (
             <div className="glow-panel" style={{ padding: '60px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <Swords size={64} style={{ color: '#1e40af', marginBottom: '20px', opacity: 0.5 }} />
-              <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '8px' }}>
+              <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '8px' }}>
                 No Encounter Generated
               </h3>
               <p style={{ color: '#94a3b8', fontSize: '13px', maxWidth: '300px' }}>
@@ -399,7 +399,7 @@ Please provide a JSON response with this exact structure:
               {/* Encounter Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800', marginBottom: '6px' }}>
+                  <h3 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '6px' }}>
                     {generatedEncounter.name}
                   </h3>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

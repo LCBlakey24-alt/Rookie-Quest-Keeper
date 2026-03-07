@@ -197,7 +197,7 @@ Respond with JSON only:
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Wand2 size={28} style={{ color: '#eab308' }} />
           <div>
-            <h2 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '800' }}>Item Creator</h2>
+            <h2 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800' }}>Item Creator</h2>
             <p style={{ fontSize: '13px', color: '#67e8f9' }}>Create custom magic items and equipment</p>
           </div>
         </div>
@@ -295,7 +295,7 @@ Respond with JSON only:
       {filteredItems.length === 0 ? (
         <div className="glow-panel" style={{ padding: '60px', textAlign: 'center' }}>
           <Wand2 size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '8px' }}>
             {items.length === 0 ? 'No Custom Items' : 'No Items Found'}
           </h3>
           <p style={{ color: '#94a3b8', fontSize: '13px' }}>

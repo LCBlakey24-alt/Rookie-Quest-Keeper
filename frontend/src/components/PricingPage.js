@@ -155,7 +155,7 @@ function PricingPage({ username, onLogout }) {
     <div style={{ 
       minHeight: '100vh', 
       background: theme.bg.black, 
-      fontFamily: 'Excluded, sans-serif' 
+      fontFamily: 'Cityworm, sans-serif' 
     }}>
       {/* Header */}
       <div style={{ 

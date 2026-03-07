@@ -47,7 +47,7 @@ export const RQKLogo = ({
       {/* ROOKIE QUEST */}
       <div style={{
         fontSize: s.rookieQuest,
-        fontFamily: 'Excluded, sans-serif',
+        fontFamily: 'Cityworm, sans-serif',
         fontWeight: '700',
         color: '#ffffff',
         letterSpacing: s.letterSpacing,
@@ -78,7 +78,7 @@ export const RQKLogo = ({
         {/* KEEPER text */}
         <div style={{
           fontSize: s.keeper,
-          fontFamily: 'Excluded, sans-serif',
+          fontFamily: 'Cityworm, sans-serif',
           fontWeight: '900',
           letterSpacing: s.keeperSpacing,
           textTransform: 'uppercase',
@@ -135,7 +135,7 @@ export const RQKLogoInline = ({ size = 'small' }) => {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <span style={{
           fontSize: s.fontSize,
-          fontFamily: 'Excluded, sans-serif',
+          fontFamily: 'Cityworm, sans-serif',
           fontWeight: '700',
           color: '#ffffff',
           letterSpacing: '1px',
@@ -152,7 +152,7 @@ export const RQKLogoInline = ({ size = 'small' }) => {
           }} />
           <span style={{
             fontSize: s.keeperSize,
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '900',
             background: 'linear-gradient(180deg, #ffffff, #94a3b8)',
             WebkitBackgroundClip: 'text',

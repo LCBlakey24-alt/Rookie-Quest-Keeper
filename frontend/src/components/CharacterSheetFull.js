@@ -150,7 +150,7 @@ function AbilityScoreBlock({ ability, score, modifier, isProficientSave, profBon
             fontSize: '22px', 
             fontWeight: '800', 
             color: '#fff',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             lineHeight: 1
           }}>
             {score}
@@ -669,7 +669,7 @@ function CharacterSheetFull() {
     <div data-testid="character-sheet-full" style={{
       minHeight: '100vh',
       background: '#0D0D0D',
-      fontFamily: 'Excluded, sans-serif'
+      fontFamily: 'Cityworm, sans-serif'
     }}>
       {/* Subtle Blue Gradient Background */}
       <div style={{
@@ -705,7 +705,7 @@ function CharacterSheetFull() {
             <div>
               <h1 style={{
                 fontSize: 'clamp(24px, 4vw, 36px)',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '800',
                 color: '#fff',
                 marginBottom: '4px'
@@ -996,7 +996,7 @@ function CharacterSheetFull() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
               {/* Ability Scores */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Ability Scores
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
@@ -1017,7 +1017,7 @@ function CharacterSheetFull() {
 
               {/* Character Info */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Character Info
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1045,7 +1045,7 @@ function CharacterSheetFull() {
 
               {/* Quick Skills */}
               <div style={{ ...glassPanel, padding: '20px', gridColumn: 'span 2' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Skills
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '4px' }}>
@@ -1074,7 +1074,7 @@ function CharacterSheetFull() {
             <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px' }}>
               {/* Ability Scores - Large */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Ability Scores
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1095,7 +1095,7 @@ function CharacterSheetFull() {
 
               {/* Skills - Full */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Skills {editMode && <span style={{ color: '#64748b', fontWeight: '400', fontSize: '12px' }}>(click to toggle proficiency)</span>}
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '4px' }}>
@@ -1413,7 +1413,7 @@ function CharacterSheetFull() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '20px' }}>
               {/* Class Features */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#60a5fa', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#60a5fa', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Class Features ({data.character_class})
                 </h3>
                 {classFeatures.length === 0 ? (
@@ -1427,7 +1427,7 @@ function CharacterSheetFull() {
 
               {/* Racial Traits */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#4ade80', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#4ade80', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Racial Traits ({data.race})
                 </h3>
                 {!data.racial_traits?.length ? (
@@ -1441,7 +1441,7 @@ function CharacterSheetFull() {
 
               {/* Feats */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#fb923c', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#fb923c', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Feats
                 </h3>
                 {!data.feats?.length ? (
@@ -1494,7 +1494,7 @@ function CharacterSheetFull() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
               {/* Currency */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#eab308', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ color: '#eab308', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Coins size={18} color="#eab308" />
                   Currency
                 </h3>
@@ -1532,7 +1532,7 @@ function CharacterSheetFull() {
 
               {/* Equipment */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#ef4444', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ color: '#ef4444', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Swords size={18} color="#ef4444" />
                   Equipment
                 </h3>
@@ -1562,7 +1562,7 @@ function CharacterSheetFull() {
 
               {/* Inventory */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#3b82f6', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ color: '#3b82f6', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Package size={18} color="#3b82f6" />
                   Inventory
                 </h3>
@@ -1593,7 +1593,7 @@ function CharacterSheetFull() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
               {/* Personality */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#ec4899', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#ec4899', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Personality
                 </h3>
                 {['personality_traits', 'ideals', 'bonds', 'flaws'].map(field => (
@@ -1628,7 +1628,7 @@ function CharacterSheetFull() {
 
               {/* Backstory */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#a855f7', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#a855f7', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Backstory
                 </h3>
                 {editMode ? (
@@ -1657,7 +1657,7 @@ function CharacterSheetFull() {
 
               {/* Notes */}
               <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#22d3ee', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Excluded' }}>
+                <h3 style={{ color: '#22d3ee', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
                   Notes
                 </h3>
                 {editMode ? (

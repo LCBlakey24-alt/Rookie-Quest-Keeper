@@ -353,7 +353,7 @@ function PlayersTab({ campaignId }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Excluded, sans-serif', fontWeight: '800' }}>Players</h2>
+        <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '800' }}>Players</h2>
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
           <DialogTrigger asChild>
             <Button data-testid="add-player-btn" className="btn-primary" style={{ display: 'flex', gap: '8px' }}>
@@ -363,7 +363,7 @@ function PlayersTab({ campaignId }) {
           </DialogTrigger>
           <DialogContent className="modal" style={{ maxWidth: '900px', maxHeight: '90vh', overflow: 'auto' }}>
             <DialogHeader>
-              <DialogTitle style={{ fontSize: '24px', color: '#ffffff', fontFamily: 'Excluded, sans-serif', fontWeight: '800' }}>
+              <DialogTitle style={{ fontSize: '24px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '800' }}>
                 {editingPlayer ? 'Edit Character' : 'Character Creator'}
               </DialogTitle>
             </DialogHeader>
@@ -397,7 +397,7 @@ function PlayersTab({ campaignId }) {
             {/* Step 1: Name & Level */}
             {wizardStep === 1 && (
               <div className="glow-panel">
-                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Excluded, sans-serif', fontWeight: '700' }}>
+                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Cityworm, sans-serif', fontWeight: '700' }}>
                   Character Name & Level
                 </h3>
                 <div style={{ marginBottom: '20px' }}>
@@ -434,7 +434,7 @@ function PlayersTab({ campaignId }) {
                           fontSize: '16px',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
-                          fontFamily: 'Excluded, sans-serif'
+                          fontFamily: 'Cityworm, sans-serif'
                         }}
                       >
                         {lvl}
@@ -448,7 +448,7 @@ function PlayersTab({ campaignId }) {
             {/* Step 2: Race */}
             {wizardStep === 2 && (
               <div className="glow-panel">
-                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Excluded, sans-serif', fontWeight: '700' }}>
+                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Cityworm, sans-serif', fontWeight: '700' }}>
                   Choose Your Race
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
@@ -508,7 +508,7 @@ function PlayersTab({ campaignId }) {
             {/* Step 3: Class */}
             {wizardStep === 3 && (
               <div className="glow-panel">
-                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Excluded, sans-serif', fontWeight: '700' }}>
+                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Cityworm, sans-serif', fontWeight: '700' }}>
                   Choose Your Class
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
@@ -564,7 +564,7 @@ function PlayersTab({ campaignId }) {
             {/* Step 4: Background */}
             {wizardStep === 4 && (
               <div className="glow-panel">
-                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Excluded, sans-serif', fontWeight: '700' }}>
+                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Cityworm, sans-serif', fontWeight: '700' }}>
                   Choose Your Background
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
@@ -594,7 +594,7 @@ function PlayersTab({ campaignId }) {
             {/* Step 5: Stats */}
             {wizardStep === 5 && (
               <div className="glow-panel">
-                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Excluded, sans-serif', fontWeight: '700' }}>
+                <h3 style={{ color: '#22c55e', marginBottom: '20px', fontSize: '20px', fontFamily: 'Cityworm, sans-serif', fontWeight: '700' }}>
                   Set Ability Scores
                 </h3>
                 
@@ -661,7 +661,7 @@ function PlayersTab({ campaignId }) {
                               color: isUsed ? '#22c55e' : '#ffffff',
                               fontWeight: '700',
                               fontSize: '18px',
-                              fontFamily: 'Excluded, sans-serif',
+                              fontFamily: 'Cityworm, sans-serif',
                               opacity: isUsed ? 0.5 : 1
                             }}
                           >
@@ -720,7 +720,7 @@ function PlayersTab({ campaignId }) {
                           <label style={{ display: 'block', color: '#67e8f9', marginBottom: '8px', textTransform: 'uppercase', fontSize: '12px', fontWeight: '600' }}>
                             {STAT_LABELS[stat]}
                           </label>
-                          <div style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', fontFamily: 'Excluded, sans-serif' }}>
+                          <div style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', fontFamily: 'Cityworm, sans-serif' }}>
                             {characterData.stats[stat]}
                           </div>
                           <div style={{ marginTop: '4px', color: '#22c55e', fontWeight: '600' }}>
@@ -776,7 +776,7 @@ function PlayersTab({ campaignId }) {
                                   textAlign: 'center'
                                 }}
                               >
-                                <div style={{ fontSize: '24px', fontWeight: '700', color: isUsed ? '#22c55e' : '#ffffff', fontFamily: 'Excluded, sans-serif' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '700', color: isUsed ? '#22c55e' : '#ffffff', fontFamily: 'Cityworm, sans-serif' }}>
                                   {roll.total}
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#64748b' }}>
@@ -864,15 +864,15 @@ function PlayersTab({ campaignId }) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '20px' }}>
                   <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #ef4444', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                     <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}>Hit Points</div>
-                    <div style={{ color: '#ef4444', fontSize: '32px', fontWeight: '800', fontFamily: 'Excluded, sans-serif' }}>{calculateHP()}</div>
+                    <div style={{ color: '#ef4444', fontSize: '32px', fontWeight: '800', fontFamily: 'Cityworm, sans-serif' }}>{calculateHP()}</div>
                   </div>
                   <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #4a7dff', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                     <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}>Armor Class</div>
-                    <div style={{ color: '#4a7dff', fontSize: '32px', fontWeight: '800', fontFamily: 'Excluded, sans-serif' }}>{calculateAC()}</div>
+                    <div style={{ color: '#4a7dff', fontSize: '32px', fontWeight: '800', fontFamily: 'Cityworm, sans-serif' }}>{calculateAC()}</div>
                   </div>
                   <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #22c55e', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                     <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}>Level</div>
-                    <div style={{ color: '#22c55e', fontSize: '32px', fontWeight: '800', fontFamily: 'Excluded, sans-serif' }}>{characterData.level}</div>
+                    <div style={{ color: '#22c55e', fontSize: '32px', fontWeight: '800', fontFamily: 'Cityworm, sans-serif' }}>{characterData.level}</div>
                   </div>
                 </div>
               </div>
@@ -932,7 +932,7 @@ function PlayersTab({ campaignId }) {
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Excluded, sans-serif', fontWeight: '700', marginBottom: '4px' }}>
+                  <h3 style={{ fontSize: '22px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '700', marginBottom: '4px' }}>
                     {player.name}
                   </h3>
                   <p style={{ fontSize: '14px', color: '#22c55e', fontWeight: '600' }}>

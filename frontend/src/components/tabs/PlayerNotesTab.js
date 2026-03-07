@@ -136,7 +136,7 @@ function PlayerNotesTab({ campaigns = [] }) {
         }}>
           <h2 style={{
             fontSize: '22px',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700',
             color: '#ffffff',
             display: 'flex',
@@ -168,7 +168,7 @@ function PlayerNotesTab({ campaigns = [] }) {
               color: '#9CA3AF', 
               fontSize: '18px', 
               marginBottom: '8px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '600'
             }}>
               No Session Recaps Yet
@@ -297,7 +297,7 @@ function PlayerNotesTab({ campaigns = [] }) {
         }}>
           <h2 style={{
             fontSize: '22px',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700',
             color: '#ffffff',
             display: 'flex',
@@ -332,7 +332,7 @@ function PlayerNotesTab({ campaigns = [] }) {
               color: '#ffffff',
               fontWeight: '600',
               fontSize: '14px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               cursor: 'pointer'
             }}
           >
@@ -354,7 +354,7 @@ function PlayerNotesTab({ campaigns = [] }) {
               color: '#9CA3AF', 
               fontSize: '18px', 
               marginBottom: '8px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '600'
             }}>
               No Personal Notes Yet
@@ -402,7 +402,7 @@ function PlayerNotesTab({ campaigns = [] }) {
                     <div style={{ flex: 1 }}>
                       <h3 style={{
                         fontSize: '16px',
-                        fontFamily: 'Excluded, sans-serif',
+                        fontFamily: 'Cityworm, sans-serif',
                         fontWeight: '700',
                         color: '#ffffff',
                         marginBottom: '6px'
@@ -479,7 +479,7 @@ function PlayerNotesTab({ campaigns = [] }) {
           <DialogHeader>
             <DialogTitle style={{
               fontSize: '24px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               color: '#ffffff'
             }}>

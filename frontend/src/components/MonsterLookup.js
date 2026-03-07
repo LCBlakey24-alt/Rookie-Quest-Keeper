@@ -159,7 +159,7 @@ function MonsterLookup({ onAddToCombat }) {
               color: '#ef4444', 
               fontSize: '22px', 
               fontWeight: '800', 
-              fontFamily: 'Excluded',
+              fontFamily: 'Montserrat',
               marginBottom: '4px'
             }}>
               {selectedMonster.name}

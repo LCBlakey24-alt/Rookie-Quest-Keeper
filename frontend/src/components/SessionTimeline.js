@@ -171,7 +171,7 @@ function SessionTimeline({ campaignId }) {
               fontSize: '18px', 
               fontWeight: '700',
               margin: 0,
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               SESSION TIMELINE
             </h3>

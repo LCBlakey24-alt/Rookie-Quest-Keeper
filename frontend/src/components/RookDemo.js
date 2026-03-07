@@ -85,7 +85,7 @@ export const RookDemo = () => {
             color: '#E11D48', 
             fontWeight: '700', 
             fontSize: '16px',
-            fontFamily: 'Excluded, sans-serif'
+            fontFamily: 'Cityworm, sans-serif'
           }}>
             ROOK
           </div>
@@ -166,7 +166,7 @@ export const RookDemo = () => {
           color: '#ffffff',
           fontWeight: '700',
           fontSize: '14px',
-          fontFamily: 'Excluded, sans-serif',
+          fontFamily: 'Cityworm, sans-serif',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

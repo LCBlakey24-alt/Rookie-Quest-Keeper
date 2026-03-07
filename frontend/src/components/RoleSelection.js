@@ -60,7 +60,7 @@ function RoleSelection({ username, onLogout }) {
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{
             fontSize: 'clamp(32px, 5vw, 48px)',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '800',
             color: '#ffffff',
             marginBottom: '16px'
@@ -116,7 +116,7 @@ function RoleSelection({ username, onLogout }) {
               </div>
               <CardTitle style={{
                 fontSize: '28px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '800',
                 color: '#ffffff'
               }}>
@@ -199,7 +199,7 @@ function RoleSelection({ username, onLogout }) {
               </div>
               <CardTitle style={{
                 fontSize: '28px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '800',
                 color: '#ffffff'
               }}>
@@ -249,7 +249,7 @@ function RoleSelection({ username, onLogout }) {
                   border: 'none',
                   color: '#ffffff',
                   fontWeight: '700',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   cursor: 'pointer',
                   boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
                 }}

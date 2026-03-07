@@ -223,7 +223,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
             fontSize: '28px',
             fontWeight: '800',
             color: '#ffffff',
-            fontFamily: 'Excluded, sans-serif'
+            fontFamily: 'Cityworm, sans-serif'
           }}>
             Account Settings
           </h1>
@@ -242,7 +242,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '700',
               color: '#ffffff',
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               Profile Information
             </h2>
@@ -319,7 +319,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '700',
               color: '#ffffff',
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               Change Password
             </h2>
@@ -467,7 +467,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '700',
               color: '#ef4444',
-              fontFamily: 'Excluded, sans-serif'
+              fontFamily: 'Cityworm, sans-serif'
             }}>
               Danger Zone
             </h2>
@@ -542,7 +542,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '700',
               color: '#ffffff',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               marginBottom: '16px'
             }}>
               Subscription

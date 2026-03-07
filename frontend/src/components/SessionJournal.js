@@ -158,7 +158,7 @@ function SessionJournal({ characterId, campaignId }) {
             color: theme.text, 
             fontSize: '24px', 
             fontWeight: '700',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             display: 'flex',
             alignItems: 'center',
             gap: '12px'

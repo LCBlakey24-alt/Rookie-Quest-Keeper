@@ -237,7 +237,7 @@ function AdminPage({ username }) {
             <h1 style={{ 
               fontSize: '28px', 
               color: theme.text.white,
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               display: 'flex',
               alignItems: 'center',
@@ -345,7 +345,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               letterSpacing: '1px'
             }}
           >
@@ -368,7 +368,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               letterSpacing: '1px'
             }}
           >
@@ -391,7 +391,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               letterSpacing: '1px'
             }}
           >
@@ -416,7 +416,7 @@ function AdminPage({ username }) {
               <h2 style={{ 
                 color: theme.gm.primary, 
                 fontSize: '18px',
-                fontFamily: 'Excluded, sans-serif',
+                fontFamily: 'Cityworm, sans-serif',
                 fontWeight: '700',
                 display: 'flex',
                 alignItems: 'center',
@@ -457,7 +457,7 @@ function AdminPage({ username }) {
                   fontSize: '14px', 
                   fontWeight: '700', 
                   marginBottom: '20px',
-                  fontFamily: 'Excluded, sans-serif',
+                  fontFamily: 'Cityworm, sans-serif',
                   letterSpacing: '1px'
                 }}>
                   CREATE NEW PROMO CODE
@@ -596,7 +596,7 @@ function AdminPage({ username }) {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                           <span style={{
-                            fontFamily: 'Excluded, monospace',
+                            fontFamily: 'Montserrat, monospace',
                             fontSize: '16px',
                             fontWeight: '700',
                             color: style.color,
@@ -668,7 +668,7 @@ function AdminPage({ username }) {
             <h2 style={{ 
               color: theme.player.cyan, 
               fontSize: '18px',
-              fontFamily: 'Excluded, sans-serif',
+              fontFamily: 'Cityworm, sans-serif',
               fontWeight: '700',
               marginBottom: '20px',
               display: 'flex',
@@ -774,7 +774,7 @@ function AdminPage({ username }) {
           <h2 style={{ 
             color: theme.legendary.primary, 
             fontSize: '18px',
-            fontFamily: 'Excluded, sans-serif',
+            fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700',
             marginBottom: '20px',
             display: 'flex',

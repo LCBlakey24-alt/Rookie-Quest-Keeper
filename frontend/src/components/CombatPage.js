@@ -466,7 +466,7 @@ function CombatPage() {
       
       // Name
       ctx.fillStyle = '#fff';
-      ctx.font = `bold ${11 / zoom}px Excluded, sans-serif`;
+      ctx.font = `bold ${11 / zoom}px Montserrat, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText(token.name.substring(0, 10), token.x, token.y + token.size / 2 + 14);
       
@@ -507,7 +507,7 @@ function CombatPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Button onClick={endCombat} className="btn-icon"><ArrowLeft size={20} /></Button>
           <div>
-            <h1 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Excluded', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ fontSize: '20px', color: '#fff', fontFamily: 'Montserrat', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Sword size={22} style={{ color: '#ef4444' }} />
               {scenarioData.name}
             </h1>
@@ -523,7 +523,7 @@ function CombatPage() {
             color: '#ef4444',
             fontWeight: '800',
             fontSize: '16px',
-            fontFamily: 'Excluded'
+            fontFamily: 'Montserrat'
           }}>
             Round {round}
           </div>
@@ -546,7 +546,7 @@ function CombatPage() {
           overflowY: 'auto',
           maxHeight: 'calc(100vh - 70px)'
         }}>
-          <h2 style={{ fontSize: '18px', color: '#fff', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ fontSize: '18px', color: '#fff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Users size={20} style={{ color: '#4a7dff' }} />
             Initiative Order
           </h2>
@@ -578,13 +578,13 @@ function CombatPage() {
                       width: '40px', height: '40px', borderRadius: '50%',
                       background: isCurrent ? '#22c55e' : c.type === 'player' ? '#4a7dff' : '#ef4444',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '800', fontSize: '16px', color: '#fff', fontFamily: 'Excluded',
+                      fontWeight: '800', fontSize: '16px', color: '#fff', fontFamily: 'Montserrat',
                       boxShadow: isCurrent ? '0 0 15px rgba(34, 197, 94, 0.6)' : 'none'
                     }}>
                       {c.initiative}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '16px', fontWeight: '700', color: isDead ? '#64748b' : '#fff', fontFamily: 'Excluded', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: '700', color: isDead ? '#64748b' : '#fff', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {c.name}
                         {isDead && <Skull size={14} />}
                         {isCurrent && !isDown && <span style={{ fontSize: '11px', color: '#22c55e', background: 'rgba(34,197,94,0.2)', padding: '2px 8px', borderRadius: '10px' }}>TURN</span>}
@@ -840,7 +840,7 @@ function CombatPage() {
           zIndex: 100
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '16px', color: '#eab308', fontFamily: 'Excluded', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', color: '#eab308', fontFamily: 'Montserrat', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Coins size={18} /> Collected Loot ({collectedLoot.length})
             </h3>
             <button onClick={() => setShowLootPanel(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}>
@@ -965,7 +965,7 @@ function CombatPage() {
             overflow: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '800', fontFamily: 'Excluded', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '800', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Map size={24} color="#06b6d4" />
                 Select Battle Map
               </h2>

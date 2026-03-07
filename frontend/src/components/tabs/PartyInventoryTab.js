@@ -152,7 +152,7 @@ function PartyInventoryTab({ campaignId }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Excluded, sans-serif', fontWeight: '800' }}>
+          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '800' }}>
             Party Inventory
           </h2>
           <p style={{ fontSize: '14px', color: '#67e8f9', marginTop: '4px' }}>
@@ -167,7 +167,7 @@ function PartyInventoryTab({ campaignId }) {
 
       {/* Currency Section */}
       <div className="glow-panel" style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Coins size={22} style={{ color: '#eab308' }} />
           Party Funds
         </h3>
@@ -180,7 +180,7 @@ function PartyInventoryTab({ campaignId }) {
           ].map(coin => (
             <div key={coin.type} style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '12px', color: coin.color, marginBottom: '8px', fontWeight: '600' }}>{coin.label}</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', fontFamily: 'Excluded', marginBottom: '10px' }}>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', fontFamily: 'Montserrat', marginBottom: '10px' }}>
                 {inventory[coin.type] || 0}
               </div>
               <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
@@ -220,7 +220,7 @@ function PartyInventoryTab({ campaignId }) {
       {/* Add Item Form */}
       {showAddItem && (
         <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#22c55e' }}>
-          <h3 style={{ fontSize: '16px', color: '#22c55e', fontFamily: 'Excluded', fontWeight: '700', marginBottom: '16px' }}>Add New Item</h3>
+          <h3 style={{ fontSize: '16px', color: '#22c55e', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px' }}>Add New Item</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Item Name *</label>
@@ -298,14 +298,14 @@ function PartyInventoryTab({ campaignId }) {
       {groupedItems.length === 0 ? (
         <div className="glow-panel" style={{ padding: '50px', textAlign: 'center' }}>
           <Package size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: 'Excluded', fontWeight: '700' }}>No Items</h3>
+          <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: 'Montserrat', fontWeight: '700' }}>No Items</h3>
           <p style={{ color: '#94a3b8' }}>Add items to track your party's loot</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {groupedItems.map(category => (
             <div key={category.id} className="glow-panel">
-              <h3 style={{ fontSize: '16px', color: category.color, fontFamily: 'Excluded', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '16px', color: category.color, fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <category.icon size={18} />
                 {category.label} ({category.items.length})
               </h3>
