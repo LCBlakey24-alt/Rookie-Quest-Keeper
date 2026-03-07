@@ -16,16 +16,10 @@ import bcrypt
 import jwt
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
-# STRIPE DISABLED TEMPORARILY - Re-enable when key is fixed
-# from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import base64
 import asyncio
 import secrets
 import resend
-# import stripe  # STRIPE DISABLED TEMPORARILY
-
-# Flag to disable Stripe completely
-STRIPE_ENABLED = False
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -44,6 +38,11 @@ JWT_EXPIRATION_HOURS = 24
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
 APP_URL = os.environ.get('APP_URL', 'http://localhost:3000')
+
+# STRIPE INTEGRATION COMPLETELY DISABLED
+# Set to False to disable all Stripe functionality
+# Will be re-enabled when new API key is properly configured
+STRIPE_ENABLED = False
 
 if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
     resend.api_key = RESEND_API_KEY
@@ -1030,80 +1029,11 @@ SUBSCRIPTION_PLANS = {
     },
 }
 
-# Initialize Stripe products and prices on startup
+# Initialize Stripe products and prices on startup - DISABLED
 async def setup_stripe_products():
-    """Create or fetch Stripe products and prices for subscription plans"""
-    # STRIPE DISABLED - Return immediately
-    if not STRIPE_ENABLED:
-        logger.info("Stripe is disabled - skipping product setup")
-        return
-    
-    api_key = os.environ.get('STRIPE_API_KEY')
-    if not api_key:
-        logger.warning("STRIPE_API_KEY not set - subscriptions will not work")
-        return
-    
-    import stripe  # Import only if enabled
-    stripe.api_key = api_key
-    
-    for plan_id, plan in SUBSCRIPTION_PLANS.items():
-        if plan['price_monthly'] == 0:
-            continue  # Skip free tier
-        
-        try:
-            # Check if product exists in database cache
-            cached = await db.stripe_products.find_one({'plan_id': plan_id})
-            if cached:
-                SUBSCRIPTION_PLANS[plan_id]['stripe_price_id_monthly'] = cached.get('price_id_monthly')
-                SUBSCRIPTION_PLANS[plan_id]['stripe_price_id_yearly'] = cached.get('price_id_yearly')
-                logger.info(f"Loaded cached Stripe prices for {plan_id}")
-                continue
-            
-            # Create product
-            product = stripe.Product.create(
-                name=f"ROOK {plan['name']}",
-                description=f"Rookie Quest Keeper - {plan['name']} subscription"
-            )
-            
-            # Create monthly price
-            monthly_price = stripe.Price.create(
-                product=product.id,
-                unit_amount=int(plan['price_monthly'] * 100),  # Convert to pence
-                currency='gbp',
-                recurring={'interval': 'month'}
-            )
-            
-            # Create yearly price
-            yearly_price = stripe.Price.create(
-                product=product.id,
-                unit_amount=int(plan['price_yearly'] * 100),  # Convert to pence
-                currency='gbp',
-                recurring={'interval': 'year'}
-            )
-            
-            # Cache in database
-            await db.stripe_products.update_one(
-                {'plan_id': plan_id},
-                {'$set': {
-                    'plan_id': plan_id,
-                    'product_id': product.id,
-                    'price_id_monthly': monthly_price.id,
-                    'price_id_yearly': yearly_price.id,
-                    'updated_at': datetime.now(timezone.utc).isoformat()
-                }},
-                upsert=True
-            )
-            
-            # Update in-memory config
-            SUBSCRIPTION_PLANS[plan_id]['stripe_price_id_monthly'] = monthly_price.id
-            SUBSCRIPTION_PLANS[plan_id]['stripe_price_id_yearly'] = yearly_price.id
-            
-            logger.info(f"Created Stripe products for {plan_id}: monthly={monthly_price.id}, yearly={yearly_price.id}")
-            
-        except stripe.StripeError as e:
-            logger.error(f"Stripe error creating products for {plan_id}: {e}")
-        except Exception as e:
-            logger.error(f"Error creating Stripe products for {plan_id}: {e}")
+    """Stripe products initialization - DISABLED"""
+    logger.info("Stripe is DISABLED - skipping product setup")
+    return
 
 class SubscriptionTier(BaseModel):
     tier: str = 'free'  # free, player, gm, legendary
@@ -1536,66 +1466,17 @@ async def get_user_subscription(username: str) -> dict:
     if promo_expires and subscription.get('promo_code_used'):
         expires_dt = datetime.fromisoformat(promo_expires.replace('Z', '+00:00'))
         if datetime.now(timezone.utc) >= expires_dt:
-            # Promo expired - check if they have a paused Stripe subscription to resume
-            paused_sub_id = subscription.get('paused_stripe_subscription')
-            
-            if paused_sub_id:
-                try:
-                    api_key = os.environ.get('STRIPE_API_KEY')
-                    stripe.api_key = api_key
-                    
-                    # Resume the paused subscription
-                    stripe.Subscription.modify(
-                        paused_sub_id,
-                        pause_collection=''  # Removes pause, resumes billing
-                    )
-                    
-                    # Get the subscription to find the tier
-                    stripe_sub = stripe.Subscription.retrieve(paused_sub_id)
-                    # Get tier from metadata or default to the plan they were on
-                    original_tier = stripe_sub.metadata.get('plan_id', 'player')
-                    
-                    subscription['tier'] = original_tier
-                    subscription['subscription_status'] = 'active'
-                    subscription['stripe_subscription_id'] = paused_sub_id
-                    subscription['paused_stripe_subscription'] = None
-                    subscription['promo_expires_at'] = None
-                    
-                    await db.users.update_one(
-                        {'username': username},
-                        {'$set': {
-                            'subscription.tier': original_tier,
-                            'subscription.subscription_status': 'active',
-                            'subscription.stripe_subscription_id': paused_sub_id,
-                            'subscription.paused_stripe_subscription': None,
-                            'subscription.promo_expires_at': None
-                        }}
-                    )
-                    logger.info(f"Resumed Stripe subscription for {username} after promo expired")
-                except Exception as e:
-                    logger.error(f"Failed to resume subscription for {username}: {e}")
-                    # Fall back to free tier
-                    subscription['tier'] = 'free'
-                    subscription['subscription_status'] = 'expired'
-                    await db.users.update_one(
-                        {'username': username},
-                        {'$set': {
-                            'subscription.tier': 'free',
-                            'subscription.subscription_status': 'expired'
-                        }}
-                    )
-            else:
-                # No paused subscription, revert to free
-                subscription['tier'] = 'free'
-                subscription['subscription_status'] = 'expired'
-                await db.users.update_one(
-                    {'username': username},
-                    {'$set': {
-                        'subscription.tier': 'free',
-                        'subscription.subscription_status': 'expired',
-                        'subscription.promo_expires_at': None
-                    }}
-                )
+            # Promo expired - revert to free tier (Stripe integration removed)
+            subscription['tier'] = 'free'
+            subscription['subscription_status'] = 'expired'
+            await db.users.update_one(
+                {'username': username},
+                {'$set': {
+                    'subscription.tier': 'free',
+                    'subscription.subscription_status': 'expired',
+                    'subscription.promo_expires_at': None
+                }}
+            )
     
     # Check if referral/other premium has expired (legacy check)
     premium_expires = subscription.get('premium_expires_at')
@@ -1689,332 +1570,42 @@ async def get_subscription_status(username: str = Depends(get_current_user)):
 
 @api_router.post("/subscription/checkout")
 async def create_checkout_session(request: CreateCheckoutRequest, http_request: Request, username: str = Depends(get_current_user)):
-    """Create Stripe checkout session for RECURRING subscription"""
-    # STRIPE DISABLED CHECK
-    if not STRIPE_ENABLED:
-        raise HTTPException(status_code=503, detail="Subscriptions temporarily unavailable. Please try again later.")
-    
-    try:
-        api_key = os.environ.get('STRIPE_API_KEY')
-        if not api_key:
-            raise HTTPException(status_code=500, detail="Stripe not configured")
-        
-        stripe.api_key = api_key
-        
-        plan = SUBSCRIPTION_PLANS.get(request.plan_id)
-        if not plan:
-            raise HTTPException(status_code=400, detail="Invalid plan")
-        
-        # Get price ID based on billing cycle
-        if request.billing_cycle == 'yearly':
-            price_id = plan.get('stripe_price_id_yearly')
-            price_amount = plan['price_yearly']
-        else:
-            price_id = plan.get('stripe_price_id_monthly')
-            price_amount = plan['price_monthly']
-        
-        if price_amount == 0:
-            raise HTTPException(status_code=400, detail="Cannot checkout free plan")
-        
-        if not price_id:
-            raise HTTPException(status_code=500, detail="Stripe prices not configured. Please contact support.")
-        
-        # Get or create Stripe customer for this user
-        user = await db.users.find_one({'username': username})
-        customer_id = user.get('subscription', {}).get('stripe_customer_id')
-        
-        if not customer_id:
-            # Create a new Stripe customer
-            customer = stripe.Customer.create(
-                email=user.get('email'),
-                name=username,
-                metadata={'username': username}
-            )
-            customer_id = customer.id
-            
-            # Save customer ID to user
-            await db.users.update_one(
-                {'username': username},
-                {'$set': {'subscription.stripe_customer_id': customer_id}}
-            )
-        
-        # Build success/cancel URLs from frontend origin
-        success_url = f"{request.origin_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{request.origin_url}/subscription/cancel"
-        
-        # Create Stripe Checkout Session in SUBSCRIPTION mode
-        checkout_session = stripe.checkout.Session.create(
-            customer=customer_id,
-            mode='subscription',  # THIS IS THE KEY - recurring subscription
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
-                'username': username,
-                'plan_id': request.plan_id,
-                'billing_cycle': request.billing_cycle
-            },
-            subscription_data={
-                'metadata': {
-                    'username': username,
-                    'plan_id': request.plan_id
-                }
-            }
-        )
-        
-        # Create payment transaction record
-        transaction = {
-            'id': str(uuid.uuid4()),
-            'session_id': checkout_session.id,
-            'username': username,
-            'amount': price_amount,
-            'currency': 'usd',
-            'plan_id': request.plan_id,
-            'billing_cycle': request.billing_cycle,
-            'payment_status': 'pending',
-            'subscription_mode': True,  # Mark as subscription
-            'created_at': datetime.now(timezone.utc).isoformat()
-        }
-        await db.payment_transactions.insert_one(transaction)
-        
-        return {"checkout_url": checkout_session.url, "session_id": checkout_session.id}
-        
-    except stripe.StripeError as e:
-        logger.error(f"Stripe checkout error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Stripe error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Checkout error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Checkout failed: {str(e)}")
+    """Create checkout session - STRIPE REMOVED - Will be re-integrated with fresh API key"""
+    raise HTTPException(status_code=503, detail="Paid subscriptions temporarily unavailable. Use promo codes for premium access or contact support.")
 
 @api_router.get("/subscription/checkout/status/{session_id}")
 async def get_checkout_status(session_id: str, http_request: Request, username: str = Depends(get_current_user)):
-    """Check payment status and activate subscription if paid"""
-    # STRIPE DISABLED CHECK
-    if not STRIPE_ENABLED:
-        raise HTTPException(status_code=503, detail="Subscriptions temporarily unavailable.")
-    
-    try:
-        api_key = os.environ.get('STRIPE_API_KEY')
-        if not api_key:
-            raise HTTPException(status_code=500, detail="Stripe not configured")
-        
-        host_url = str(http_request.base_url).rstrip('/')
-        webhook_url = f"{host_url}/api/webhook/stripe"
-        
-        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
-        status = await stripe_checkout.get_checkout_status(session_id)
-        
-        # Update transaction
-        transaction = await db.payment_transactions.find_one({'session_id': session_id})
-        
-        if status.payment_status == 'paid' and transaction and transaction.get('payment_status') != 'paid':
-            # Activate subscription with new plan_id
-            plan_id = transaction.get('plan_id', transaction.get('plan', 'legendary'))
-            billing_cycle = transaction.get('billing_cycle', 'monthly')
-            
-            await db.users.update_one(
-                {'username': username},
-                {'$set': {
-                    'subscription.tier': plan_id,
-                    'subscription.billing_cycle': billing_cycle,
-                    'subscription.subscription_status': 'active',
-                    'subscription.stripe_subscription_id': session_id
-                }}
-            )
-            
-            # Update transaction status
-            await db.payment_transactions.update_one(
-                {'session_id': session_id},
-                {'$set': {'payment_status': 'paid', 'completed_at': datetime.now(timezone.utc).isoformat()}}
-            )
-        
-        return {
-            "status": status.status,
-            "payment_status": status.payment_status,
-            "amount": status.amount_total / 100,  # Convert from cents
-            "currency": status.currency
-        }
-        
-    except Exception as e:
-        logger.error(f"Status check error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
+    """Check payment status - STRIPE REMOVED"""
+    raise HTTPException(status_code=503, detail="Payment processing temporarily unavailable.")
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhooks for subscription lifecycle events"""
-    try:
-        api_key = os.environ.get('STRIPE_API_KEY')
-        stripe.api_key = api_key
-        body = await request.body()
-        # signature = request.headers.get("Stripe-Signature")  # For production webhook verification
-        
-        # For test mode without webhook signing, parse the event directly
-        # In production, you'd verify the signature with webhook secret
-        try:
-            event = json.loads(body)
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON in webhook body")
-            return {"status": "error", "message": "Invalid JSON"}
-        
-        event_type = event.get('type', '')
-        data = event.get('data', {}).get('object', {})
-        
-        logger.info(f"Received Stripe webhook: {event_type}")
-        
-        # Handle checkout session completed (initial subscription)
-        if event_type == 'checkout.session.completed':
-            session_id = data.get('id')
-            metadata = data.get('metadata', {})
-            username = metadata.get('username')
-            plan_id = metadata.get('plan_id')
-            subscription_id = data.get('subscription')
-            customer_id = data.get('customer')
-            
-            if username and plan_id:
-                await db.users.update_one(
-                    {'username': username},
-                    {'$set': {
-                        'subscription.tier': plan_id,
-                        'subscription.subscription_status': 'active',
-                        'subscription.stripe_subscription_id': subscription_id,
-                        'subscription.stripe_customer_id': customer_id
-                    }}
-                )
-                
-                await db.payment_transactions.update_one(
-                    {'session_id': session_id},
-                    {'$set': {
-                        'payment_status': 'paid',
-                        'stripe_subscription_id': subscription_id,
-                        'completed_at': datetime.now(timezone.utc).isoformat()
-                    }}
-                )
-                logger.info(f"Subscription activated for {username}: {plan_id}")
-        
-        # Handle invoice paid (recurring payments)
-        elif event_type == 'invoice.paid':
-            subscription_id = data.get('subscription')
-            customer_id = data.get('customer')
-            
-            if subscription_id:
-                # Find user by subscription ID or customer ID
-                user = await db.users.find_one({
-                    '$or': [
-                        {'subscription.stripe_subscription_id': subscription_id},
-                        {'subscription.stripe_customer_id': customer_id}
-                    ]
-                })
-                
-                if user:
-                    await db.users.update_one(
-                        {'username': user['username']},
-                        {'$set': {
-                            'subscription.subscription_status': 'active',
-                            'subscription.last_payment_at': datetime.now(timezone.utc).isoformat()
-                        }}
-                    )
-                    logger.info(f"Recurring payment received for {user['username']}")
-        
-        # Handle subscription cancelled
-        elif event_type in ['customer.subscription.deleted', 'customer.subscription.canceled']:
-            subscription_id = data.get('id')
-            
-            user = await db.users.find_one({'subscription.stripe_subscription_id': subscription_id})
-            if user:
-                await db.users.update_one(
-                    {'username': user['username']},
-                    {'$set': {
-                        'subscription.tier': 'free',
-                        'subscription.subscription_status': 'cancelled',
-                        'subscription.cancelled_at': datetime.now(timezone.utc).isoformat()
-                    }}
-                )
-                logger.info(f"Subscription cancelled for {user['username']}")
-        
-        # Handle payment failed
-        elif event_type == 'invoice.payment_failed':
-            subscription_id = data.get('subscription')
-            
-            user = await db.users.find_one({'subscription.stripe_subscription_id': subscription_id})
-            if user:
-                await db.users.update_one(
-                    {'username': user['username']},
-                    {'$set': {
-                        'subscription.subscription_status': 'past_due'
-                    }}
-                )
-                logger.warning(f"Payment failed for {user['username']}")
-        
-        # Handle subscription updated (plan changes)
-        elif event_type == 'customer.subscription.updated':
-            subscription_id = data.get('id')
-            status_str = data.get('status')  # active, past_due, canceled, etc.
-            
-            user = await db.users.find_one({'subscription.stripe_subscription_id': subscription_id})
-            if user:
-                await db.users.update_one(
-                    {'username': user['username']},
-                    {'$set': {
-                        'subscription.subscription_status': status_str or 'active'
-                    }}
-                )
-        
-        return {"status": "received"}
-        
-    except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
-        return {"status": "error", "message": str(e)}
+    """Handle Stripe webhooks - STRIPE REMOVED"""
+    logger.info("Stripe webhook received but Stripe is disabled")
+    return {"status": "ignored", "message": "Stripe integration disabled"}
 
 @api_router.post("/subscription/cancel")
 async def cancel_subscription(username: str = Depends(get_current_user)):
-    """Cancel the user's recurring subscription"""
-    try:
-        api_key = os.environ.get('STRIPE_API_KEY')
-        if not api_key:
-            raise HTTPException(status_code=500, detail="Stripe not configured")
-        
-        stripe.api_key = api_key
-        
-        user = await db.users.find_one({'username': username})
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        subscription_id = user.get('subscription', {}).get('stripe_subscription_id')
-        
-        if not subscription_id:
-            raise HTTPException(status_code=400, detail="No active subscription to cancel")
-        
-        # Cancel the subscription at period end (user keeps access until paid period ends)
-        stripe.Subscription.modify(
-            subscription_id,
-            cancel_at_period_end=True
-        )
-        
-        # Update database
-        await db.users.update_one(
-            {'username': username},
-            {'$set': {
-                'subscription.subscription_status': 'cancelling',
-                'subscription.cancel_at_period_end': True
-            }}
-        )
-        
-        return {
-            "message": "Subscription will be cancelled at the end of the current billing period",
-            "status": "cancelling"
-        }
-        
-    except stripe.StripeError as e:
-        logger.error(f"Stripe cancel error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to cancel: {str(e)}")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Cancel subscription error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Cancel subscription - STRIPE REMOVED"""
+    # Just update the local status since we can't communicate with Stripe
+    user = await db.users.find_one({'username': username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update to free tier
+    await db.users.update_one(
+        {'username': username},
+        {'$set': {
+            'subscription.tier': 'free',
+            'subscription.subscription_status': 'cancelled',
+            'subscription.cancelled_at': datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Subscription cancelled. You now have free tier access.",
+        "status": "cancelled"
+    }
 
 # ==================== PROMO CODE ROUTES ====================
 
@@ -2074,23 +1665,6 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
     if user and user.get('subscription', {}).get('promo_code_used'):
         raise HTTPException(status_code=400, detail="You have already used a promo code")
     
-    # Check if user has an active Stripe subscription - pause it to avoid double charges
-    stripe_subscription_id = user.get('subscription', {}).get('stripe_subscription_id') if user else None
-    if stripe_subscription_id:
-        try:
-            api_key = os.environ.get('STRIPE_API_KEY')
-            stripe.api_key = api_key
-            
-            # Pause the subscription (won't charge during pause)
-            stripe.Subscription.modify(
-                stripe_subscription_id,
-                pause_collection={'behavior': 'void'}  # Pauses billing
-            )
-            logger.info(f"Paused Stripe subscription {stripe_subscription_id} for user {username} due to promo code")
-        except Exception as e:
-            logger.warning(f"Could not pause Stripe subscription: {e}")
-            # Continue anyway - the promo code benefit takes priority
-    
     # Apply promo code with duration
     tier = promo.get('tier_granted', 'legendary')
     duration_days = promo.get('duration_days', -1)  # Default to lifetime if not specified
@@ -2115,10 +1689,6 @@ async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depen
         # For lifetime, remove any existing expiration
         update_data['subscription.premium_expires_at'] = None
         update_data['subscription.lifetime_access'] = True
-    
-    # Track if they had a paused subscription to resume later
-    if stripe_subscription_id:
-        update_data['subscription.paused_stripe_subscription'] = stripe_subscription_id
     
     await db.users.update_one(
         {'username': username},
@@ -7202,16 +6772,8 @@ async def health_check():
 @app.on_event("startup")
 async def startup_event():
     """Initialize rule systems on startup"""
-    # STRIPE DISABLED - Skip Stripe initialization
-    if STRIPE_ENABLED:
-        try:
-            logger.info("Starting up - initializing Stripe products...")
-            await setup_stripe_products()
-            logger.info("Stripe products initialized")
-        except Exception as e:
-            logger.warning(f"Stripe initialization failed (non-blocking): {e}")
-    else:
-        logger.info("Stripe is DISABLED - skipping initialization")
+    # STRIPE COMPLETELY REMOVED - No Stripe initialization
+    logger.info("Stripe integration REMOVED - paid subscriptions via promo codes only")
     
     # Rule systems - always initialize
     await initialize_rule_systems()

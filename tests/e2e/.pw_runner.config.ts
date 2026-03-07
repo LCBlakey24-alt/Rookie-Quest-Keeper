@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260307_100008/results.json' }],
   ],
   use: {
-    baseURL: 'https://gm-toolkit-preview.preview.emergentagent.com',
+    baseURL: 'https://keeper-campaigns.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,

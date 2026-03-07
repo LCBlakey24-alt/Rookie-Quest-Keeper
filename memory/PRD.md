@@ -10,6 +10,25 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 ## Recent Major Updates (March 2026)
 
+### STRIPE INTEGRATION REMOVED (March 7, 2026)
+- **Issue:** Deployment was blocked due to a cached, expired Stripe API key in production secrets
+- **Solution:** Completely removed all Stripe integration code from the backend
+- **Impact:** 
+  - Paid subscriptions via Stripe are temporarily unavailable
+  - Users can still get premium access via promo codes
+  - Checkout endpoint returns graceful 503 error with helpful message
+  - Webhook endpoint ignores Stripe events
+  - Cancel subscription just reverts user to free tier locally
+- **Backend changes:**
+  - Removed ~70 lines of Stripe-related code
+  - Added `STRIPE_ENABLED = False` flag
+  - Removed `STRIPE_API_KEY` and `STRIPE_WEBHOOK_SECRET` from .env
+  - Kept subscription models for database compatibility
+- **Next Steps:**
+  - Re-integrate Stripe with fresh API key when user can manage production secrets
+  - Use `integration_playbook_expert_v2` to get clean Stripe setup
+  - Add key via deployment secrets manager (not .env file)
+
 ### Rule System & Content Management
 - **Database-driven rule systems**: Support for D&D 5e 2014, 5e 2024, and custom systems
 - **Content storage**: Classes, subclasses, races, spells, items, feats, monsters, class features
@@ -206,7 +225,7 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 ### Integrations
 - OpenAI (GPT-5.2 for ROOK)
 - OpenAI Image Generation (character portraits)
-- Stripe (payments)
+- ~~Stripe (payments)~~ **REMOVED** - To be re-integrated with fresh API key
 - Resend (emails)
 
 ---

@@ -8,7 +8,7 @@ import {
   waitForAppReady
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://gm-toolkit-preview.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://keeper-campaigns.preview.emergentagent.com';
 
 test.describe('Screen Animations, NPC Quick Reference & Mobile Toggle', () => {
   
