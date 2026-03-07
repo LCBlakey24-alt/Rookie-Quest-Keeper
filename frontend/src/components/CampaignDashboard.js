@@ -3,30 +3,25 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight, Package, Dice6, Clock, Network, Compass, Building } from 'lucide-react';
+import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight, Package, Dice6, Clock, Network, Compass, Building, Backpack } from 'lucide-react';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import GodsTab from '@/components/tabs/GodsTab';
-import NPCsTab from '@/components/tabs/NPCsTab';
 import LocationsTab from '@/components/tabs/LocationsTab';
 import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
-import CombatCreatorTab from '@/components/tabs/CombatCreatorTab';
-import CalendarTab from '@/components/tabs/CalendarTab';
-import EncounterGeneratorTab from '@/components/tabs/EncounterGeneratorTab';
-import ItemCreatorTab from '@/components/tabs/ItemCreatorTab';
-import QuickReferenceTab from '@/components/tabs/QuickReferenceTab';
-import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsTab from '@/components/tabs/MapsTab';
-import PartyInventory from '@/components/PartyInventory';
 import SessionRecapAI from '@/components/SessionRecapAI';
 import QuickTips, { TIPS } from '@/components/QuickTips';
-import NPCRelationshipWeb from '@/components/NPCRelationshipWeb';
-import RandomGeneratorTables from '@/components/RandomGeneratorTables';
-import SessionTimeline from '@/components/SessionTimeline';
-import WorldMapTab from '@/components/tabs/WorldMapTab';
-import LocalMapTab from '@/components/tabs/LocalMapTab';
+import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import TronBackground from '@/components/TronBackground';
 import { RookGuide } from '@/components/RookGuide';
+// Consolidated Tabs
+import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
+import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
+import InventoryConsolidatedTab from '@/components/tabs/InventoryConsolidatedTab';
+import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab';
+import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
+import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -107,7 +102,7 @@ function CampaignDashboard({ username, onLogout }) {
 
   if (!campaign) return null;
 
-  // Tab Groups with organized structure
+  // Tab Groups with organized structure - CONSOLIDATED
   const tabGroups = [
     {
       id: 'world',
@@ -116,14 +111,11 @@ function CampaignDashboard({ username, onLogout }) {
       tabs: [
         { id: 'setting', icon: Book, label: 'Setting' },
         { id: 'world', icon: Globe, label: 'World Builder' },
-        { id: 'world-map', icon: Compass, label: 'World Map' },
-        { id: 'local-maps', icon: Building, label: 'Local Maps' },
+        { id: 'maps', icon: Compass, label: 'Maps' },
         { id: 'gods', icon: Church, label: 'Gods' },
         { id: 'locations', icon: MapPin, label: 'Locations' },
         { id: 'npcs', icon: UserCircle, label: 'NPCs' },
-        { id: 'npc-web', icon: Network, label: 'NPC Web' },
-        { id: 'calendar', icon: Calendar, label: 'Calendar' },
-        { id: 'timeline', icon: Clock, label: 'Timeline' },
+        { id: 'chronicle', icon: Clock, label: 'Chronicle' },
       ]
     },
     {
@@ -131,9 +123,8 @@ function CampaignDashboard({ username, onLogout }) {
       label: 'Combat',
       icon: Swords,
       tabs: [
-        { id: 'combat-creator', icon: Swords, label: 'Combat' },
-        { id: 'maps', icon: Map, label: 'Battle Maps' },
-        { id: 'encounter-gen', icon: Sparkles, label: 'Encounter Gen' },
+        { id: 'combat', icon: Swords, label: 'Combat' },
+        { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
       ]
     },
     {
@@ -141,16 +132,14 @@ function CampaignDashboard({ username, onLogout }) {
       label: 'GM Tools',
       icon: Wand2,
       tabs: [
-        { id: 'random-gen', icon: Dice6, label: 'Generators' },
-        { id: 'reference', icon: ScrollText, label: 'References' },
-        { id: 'items', icon: Package, label: 'Inventory' },
+        { id: 'tools', icon: ScrollText, label: 'Tools' },
+        { id: 'inventory', icon: Backpack, label: 'Inventory' },
       ]
     },
   ];
 
   // Standalone tabs (shown individually, not in groups)
   const standaloneTabs = [
-    { id: 'party-loot', icon: Package, label: 'Party Loot' },
     { id: 'session-recap', icon: Sparkles, label: 'AI Recap' },
     { id: 'players', icon: Users, label: 'Players' },
     { id: 'ingame-notes', icon: FileText, label: 'Notes' },
@@ -461,23 +450,17 @@ function CampaignDashboard({ username, onLogout }) {
             
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
-            {activeTab === 'world-map' && <WorldMapTab campaignId={campaignId} />}
-            {activeTab === 'local-maps' && <LocalMapTab campaignId={campaignId} />}
+            {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}
             {activeTab === 'gods' && <GodsTab campaignId={campaignId} />}
-            {activeTab === 'npcs' && <NPCsTab campaignId={campaignId} />}
-            {activeTab === 'npc-web' && <NPCRelationshipWeb campaignId={campaignId} />}
+            {activeTab === 'npcs' && <NPCsConsolidatedTab campaignId={campaignId} />}
             {activeTab === 'locations' && <LocationsTab campaignId={campaignId} />}
-            {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
-            {activeTab === 'combat-creator' && <CombatCreatorTab campaignId={campaignId} />}
-            {activeTab === 'maps' && <MapsTab campaignId={campaignId} />}
-            {activeTab === 'encounter-gen' && <EncounterGeneratorTab campaignId={campaignId} />}
-            {activeTab === 'items' && <ItemCreatorTab campaignId={campaignId} />}
-            {activeTab === 'party-loot' && <PartyInventory campaignId={campaignId} />}
+            {activeTab === 'chronicle' && <ChronicleConsolidatedTab campaignId={campaignId} />}
+            {activeTab === 'combat' && <CombatConsolidatedTab campaignId={campaignId} />}
+            {activeTab === 'battle-maps' && <MapsTab campaignId={campaignId} />}
+            {activeTab === 'tools' && <ToolsConsolidatedTab campaignId={campaignId} />}
+            {activeTab === 'inventory' && <InventoryConsolidatedTab campaignId={campaignId} />}
             {activeTab === 'session-recap' && <SessionRecapAI campaignId={campaignId} />}
-            {activeTab === 'reference' && <QuickReferenceTab campaignId={campaignId} />}
-            {activeTab === 'calendar' && <CalendarTab campaignId={campaignId} />}
-            {activeTab === 'timeline' && <SessionTimeline campaignId={campaignId} />}
-            {activeTab === 'random-gen' && <RandomGeneratorTables campaignId={campaignId} />}
+            {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
             {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
           </div>
         </div>

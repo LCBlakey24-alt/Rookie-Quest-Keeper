@@ -74,6 +74,66 @@ const GUIDE_CONTENT = {
     ],
     color: '#F59E0B'
   },
+  // Consolidated Maps tab
+  'maps': {
+    title: "Maps Hub",
+    icon: '🗺️',
+    tips: [
+      "Switch between World Map and Local Maps using the tabs above.",
+      "World Map: Pin cities, dungeons, and calculate travel times between locations.",
+      "Local Maps: Detail city streets, dungeon rooms, and points of interest.",
+      "Upload custom images or use the pin system to mark important locations."
+    ],
+    color: '#F59E0B'
+  },
+  // Consolidated Chronicle tab
+  'chronicle': {
+    title: "Campaign Chronicle",
+    icon: '📜',
+    tips: [
+      "Track your campaign's history with the Session Timeline.",
+      "Use the In-Game Calendar to manage in-world time and events.",
+      "Add major events, milestones, and story beats to keep everything organized.",
+      "Perfect for session recaps and remembering key moments!"
+    ],
+    color: '#8B5CF6'
+  },
+  // Consolidated Combat tab
+  'combat': {
+    title: "Combat Hub",
+    icon: '⚔️',
+    tips: [
+      "Pre-build encounters in Combat Setup before your session.",
+      "Use the Encounter Generator for quick random encounters.",
+      "Set initiative, add monsters from the database, and run smooth combat.",
+      "Balance encounters for your party's level automatically."
+    ],
+    color: '#F97316'
+  },
+  // Consolidated Tools tab
+  'tools': {
+    title: "GM Tools",
+    icon: '🛠️',
+    tips: [
+      "Quick Reference: Look up spells, items, monsters, and rules instantly.",
+      "Random Generators: Generate names, loot, NPCs, and more on the fly.",
+      "Essential tools for keeping your session running smoothly!",
+      "Search and filter through thousands of 5e items and spells."
+    ],
+    color: '#8B5CF6'
+  },
+  // Consolidated Inventory tab
+  'inventory': {
+    title: "Inventory Hub",
+    icon: '🎒',
+    tips: [
+      "Party Loot: Track all the treasure your party has collected.",
+      "Item Creator: Design custom magic items and equipment.",
+      "Players can see the shared inventory - great for party coordination!",
+      "Mark items as identified, attuned, or carried by specific characters."
+    ],
+    color: '#22C55E'
+  },
   'locations': {
     title: "Location Manager",
     icon: '📍',

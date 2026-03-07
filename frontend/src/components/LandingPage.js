@@ -65,6 +65,22 @@ function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeScreenshot, setActiveScreenshot] = useState('demo');
   const [reviews, setReviews] = useState([]);
+  const [billingCycle, setBillingCycle] = useState('monthly');
+
+  // Pricing data
+  const pricing = {
+    hero: { monthly: 3.99, yearly: 39.99 },
+    questMaster: { monthly: 3.99, yearly: 39.99 },
+    legendary: { monthly: 5.99, yearly: 59.99 }
+  };
+
+  const getPrice = (plan) => {
+    return billingCycle === 'yearly' ? pricing[plan].yearly : pricing[plan].monthly;
+  };
+
+  const getMonthlyEquivalent = (plan) => {
+    return (pricing[plan].yearly / 12).toFixed(2);
+  };
 
   // Fetch featured reviews
   useEffect(() => {
@@ -836,9 +852,61 @@ function LandingPage() {
             }}>
               Simple, Transparent Pricing
             </h2>
-            <p style={{ color: theme.text.secondary, fontSize: '18px' }}>
+            <p style={{ color: theme.text.secondary, fontSize: '18px', marginBottom: '32px' }}>
               Whether you're a <span style={{ color: theme.player.cyan }}>Player</span> or a <span style={{ color: theme.gm.primary }}>Game Master</span>, we've got you covered.
             </p>
+
+            {/* Billing Toggle */}
+            <div style={{ 
+              display: 'inline-flex', 
+              background: theme.bg.panel,
+              border: `1px solid ${theme.border.default}`,
+              padding: '4px',
+              gap: '4px'
+            }}>
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                data-testid="billing-monthly-btn"
+                style={{
+                  padding: '12px 28px',
+                  background: billingCycle === 'monthly' ? theme.gm.primary : 'transparent',
+                  border: 'none',
+                  color: theme.text.white,
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                data-testid="billing-yearly-btn"
+                style={{
+                  padding: '12px 28px',
+                  background: billingCycle === 'yearly' ? theme.gm.primary : 'transparent',
+                  border: 'none',
+                  color: theme.text.white,
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Yearly
+                <span style={{ 
+                  background: '#22c55e', 
+                  color: '#fff', 
+                  padding: '3px 8px', 
+                  fontSize: '10px',
+                  fontWeight: '700'
+                }}>
+                  SAVE ~17%
+                </span>
+              </button>
+            </div>
           </div>
 
           <div style={{ 
@@ -935,8 +1003,13 @@ function LandingPage() {
                 <p style={{ color: theme.text.muted, fontSize: '13px' }}>Serious players</p>
               </div>
               <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£3.99</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£{getPrice('hero')}</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+                {billingCycle === 'yearly' && (
+                  <p style={{ color: theme.player.cyan, fontSize: '12px', marginTop: '4px' }}>
+                    (£{getMonthlyEquivalent('hero')}/month)
+                  </p>
+                )}
               </div>
               <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
                 {['Unlimited Characters', 'Character Journal', 'Party Inventory Access', 'Session Recaps', 'AI Portrait Generation', '50 AI Calls/month'].map((item, i) => (
@@ -1007,8 +1080,13 @@ function LandingPage() {
                 <p style={{ color: theme.text.muted, fontSize: '13px' }}>Game Masters</p>
               </div>
               <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£3.99</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£{getPrice('questMaster')}</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+                {billingCycle === 'yearly' && (
+                  <p style={{ color: theme.gm.primary, fontSize: '12px', marginTop: '4px' }}>
+                    (£{getMonthlyEquivalent('questMaster')}/month)
+                  </p>
+                )}
               </div>
               <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
                 {['Unlimited Campaigns', 'Full World Building', 'ROOK AI Generation', 'Combat Tracker', 'Reference Tools', 'Session Mode', 'Unlimited AI'].map((item, i) => (
@@ -1081,8 +1159,13 @@ function LandingPage() {
                 <p style={{ color: theme.text.muted, fontSize: '13px' }}>GM who also plays</p>
               </div>
               <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£5.99</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/month</span>
+                <span style={{ fontSize: '40px', color: theme.text.white, fontWeight: '700' }}>£{getPrice('legendary')}</span>
+                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+                {billingCycle === 'yearly' && (
+                  <p style={{ color: '#F59E0B', fontSize: '12px', marginTop: '4px' }}>
+                    (£{getMonthlyEquivalent('legendary')}/month)
+                  </p>
+                )}
               </div>
               <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
                 {['Everything in Hero', 'Everything in Quest Master', 'Priority Support', 'Early Access Features', 'Exclusive Content'].map((item, i) => (

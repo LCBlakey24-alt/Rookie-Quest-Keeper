@@ -1,0 +1,123 @@
+{
+  "summary": "Billing Toggle & Consolidated Tabs Testing - All 20 tests PASSED. Frontend tests: 6 billing toggle tests, 8 consolidated tabs tests, 6 Rook's Tips tests.",
+  "mode": "generate",
+  "baseline_commit": "c81834e3ee59bd348bd11d965e611b94ef2deec3",
+  "head_commit": "371d5774fca61298f3e81cb5c75ed964eadc2357",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 20,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "billing-toggle.spec.ts": "6/6 passed - Monthly/Yearly toggle, price updates, monthly equivalents, pricing tiers",
+      "consolidated-tabs.spec.ts": "8/8 passed - Maps, NPCs, Chronicle, Combat, Tools, Inventory consolidated tabs with sub-tabs",
+      "rooks-tips-consolidated.spec.ts": "6/6 passed - Rook's Tips guides for all consolidated tabs, dismiss persistence"
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/billing-toggle.spec.ts",
+    "/app/tests/e2e/consolidated-tabs.spec.ts",
+    "/app/tests/e2e/rooks-tips-consolidated.spec.ts"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/tests/e2e/billing-toggle.spec.ts",
+    "/app/tests/e2e/consolidated-tabs.spec.ts",
+    "/app/tests/e2e/rooks-tips-consolidated.spec.ts"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/e2e/billing-toggle.spec.ts",
+    "/app/tests/e2e/consolidated-tabs.spec.ts",
+    "/app/tests/e2e/rooks-tips-consolidated.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "N/A (no new backend changes, auth API verified working)",
+    "frontend": "100% (20/20 tests passed)"
+  },
+  "seed_data_creation": "Used existing test campaign 747e1590-9418-4be8-93bc-4d76a636e655",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Three new features tested: 1) Billing Toggle - Landing page pricing section has Monthly/Yearly toggle with data-testid='billing-monthly-btn' and 'billing-yearly-btn'. Monthly: Hero/Quest Master £3.99, Legendary £5.99. Yearly: Hero/Quest Master £39.99, Legendary £59.99. 2) Consolidated Tabs - Campaign Dashboard now uses consolidated tabs: Maps (data-testid='maps-consolidated-tab' with subtabs 'maps-subtab-world' and 'maps-subtab-local'), NPCs, Chronicle, Combat, Tools, Inventory. Each has sub-tab navigation. 3) Rook's Tips - Each consolidated tab shows RookGuide with data-testid='rook-guide-{tabId}'. Guide dismissal persists in localStorage under 'rook_guides_dismissed' key.",
+  "features_tested": {
+    "billing_toggle": {
+      "status": "PASS",
+      "features": [
+        "Monthly default billing cycle",
+        "Toggle to Yearly shows yearly prices",
+        "Monthly equivalent shown for yearly (£3.33/month, £5.00/month)",
+        "Toggle back to Monthly restores prices",
+        "SAVE ~17% badge on Yearly button",
+        "All 4 pricing tiers displayed (Free, Hero, Quest Master, Legendary)"
+      ],
+      "prices": {
+        "monthly": {
+          "hero": "£3.99/month",
+          "questMaster": "£3.99/month",
+          "legendary": "£5.99/month"
+        },
+        "yearly": {
+          "hero": "£39.99/year (£3.33/month)",
+          "questMaster": "£39.99/year (£3.33/month)",
+          "legendary": "£59.99/year (£5.00/month)"
+        }
+      }
+    },
+    "consolidated_tabs": {
+      "status": "PASS",
+      "tabs": {
+        "maps": {
+          "subtabs": ["World Map", "Local Maps"],
+          "testids": ["maps-subtab-world", "maps-subtab-local"]
+        },
+        "npcs": {
+          "subtabs": ["NPC List", "Relationship Web"],
+          "testids": ["npcs-subtab-list", "npcs-subtab-web"]
+        },
+        "chronicle": {
+          "subtabs": ["Session Timeline", "In-Game Calendar"],
+          "testids": ["chronicle-subtab-timeline", "chronicle-subtab-calendar"]
+        },
+        "combat": {
+          "subtabs": ["Combat Setup", "Encounter Gen"],
+          "testids": ["combat-subtab-creator", "combat-subtab-generator"]
+        },
+        "tools": {
+          "subtabs": ["Quick Reference", "Random Generators"],
+          "testids": ["tools-subtab-reference", "tools-subtab-generators"]
+        },
+        "inventory": {
+          "subtabs": ["Party Loot", "Item Creator"],
+          "testids": ["inventory-subtab-party-loot", "inventory-subtab-items"]
+        }
+      }
+    },
+    "rooks_tips_consolidated": {
+      "status": "PASS",
+      "guides": [
+        "Maps Hub - rook-guide-maps",
+        "Campaign Chronicle - rook-guide-chronicle",
+        "Combat Hub - rook-guide-combat",
+        "GM Tools - rook-guide-tools",
+        "Inventory Hub - rook-guide-inventory"
+      ],
+      "features": [
+        "Guide appears on tab navigation",
+        "Shows relevant tips for each consolidated tab",
+        "Dismiss button works",
+        "Dismissal persists in localStorage"
+      ]
+    }
+  }
+}
