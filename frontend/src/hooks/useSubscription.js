@@ -78,6 +78,31 @@ const TIER_FEATURES = {
       'priority_support',
       'early_access'
     ]
+  },
+  // Legacy/Promo tier for early testers - full access
+  adventurer: {
+    name: 'Adventurer',
+    color: '#22C55E',
+    characters: -1, // Unlimited
+    campaigns: -1, // Unlimited
+    aiCallsPerMonth: -1, // Unlimited
+    features: [
+      'basic_character_sheet',
+      'dice_roller',
+      'join_campaigns',
+      'unlimited_characters',
+      'character_journal',
+      'party_inventory',
+      'session_recaps',
+      'portrait_ai',
+      'unlimited_campaigns',
+      'world_building',
+      'rook_ai',
+      'combat_tracker',
+      'reference_tools',
+      'session_mode',
+      'early_tester'
+    ]
   }
 };
 

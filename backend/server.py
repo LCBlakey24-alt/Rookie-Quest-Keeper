@@ -1026,6 +1026,18 @@ SUBSCRIPTION_PLANS = {
         'stripe_price_id_monthly': None,
         'stripe_price_id_yearly': None
     },
+    # Legacy/Promo tier - full access for early testers
+    'adventurer': {
+        'name': 'Adventurer', 
+        'price_monthly': 0.0,
+        'price_yearly': 0.0,
+        'characters': -1,  # Unlimited
+        'campaigns': -1,   # Unlimited campaigns
+        'ai_calls_per_month': -1,  # Unlimited
+        'features': ['all_player_features', 'all_gm_features', 'early_tester'],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
 }
 
 # Initialize Stripe products and prices on startup - DISABLED
