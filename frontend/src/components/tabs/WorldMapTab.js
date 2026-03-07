@@ -235,11 +235,22 @@ function WorldMapTab({ campaignId }) {
     
     if (mode === 'view') {
       setSelectedPin(pin);
+      // Populate pin form for editing
+      setPinForm({
+        name: pin.name,
+        pin_type: pin.pin_type || 'city',
+        description: pin.description || '',
+        linked_location_id: pin.linked_location_id || '',
+        x: pin.x,
+        y: pin.y
+      });
     } else if (mode === 'addPath') {
       if (!pathStart) {
         setPathStart(pin);
         toast.info(`Path from: ${pin.name}. Click another location.`);
       } else if (pin.id !== pathStart.id) {
+        // Store the destination pin and show path editor
+        setSelectedPin(pin);
         setShowPathEditor(true);
       }
     } else if (mode === 'travel') {
@@ -305,20 +316,17 @@ function WorldMapTab({ campaignId }) {
   };
 
   const handleSavePath = async () => {
-    if (!pathStart || !pathForm.distance_value) {
+    if (!pathStart || !selectedPin || !pathForm.distance_value) {
       toast.error('Please select two locations and enter distance');
       return;
     }
 
     try {
-      // Find the destination pin (the one we clicked second)
-      const toPinId = selectedPin?.id || (selectedMap.pins?.find(p => p.id !== pathStart.id)?.id);
-      
       await axios.post(
         `${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/paths`,
         {
           from_pin_id: pathStart.id,
-          to_pin_id: toPinId,
+          to_pin_id: selectedPin.id,
           ...pathForm
         }
       );
@@ -327,6 +335,7 @@ function WorldMapTab({ campaignId }) {
       fetchWorldMaps();
       setShowPathEditor(false);
       setPathStart(null);
+      setSelectedPin(null);
       setPathForm({ distance_value: 0, distance_unit: 'miles', terrain_type: 'road', terrain_modifier: 1.0, notes: '' });
       setMode('view');
     } catch (error) {
@@ -596,27 +605,30 @@ function WorldMapTab({ campaignId }) {
               const PinIcon = getPinIcon(pin.pin_type);
               const pinColor = getPinColor(pin.pin_type);
               const isSelected = selectedPin?.id === pin.id || travelFrom?.id === pin.id || travelTo?.id === pin.id;
+              const isPathStart = pathStart?.id === pin.id;
 
               return (
                 <div
                   key={pin.id}
                   onClick={(e) => handlePinClick(pin, e)}
+                  data-testid={`map-pin-${pin.id}`}
                   style={{
                     position: 'absolute',
                     left: `${pin.x}%`,
                     top: `${pin.y}%`,
                     transform: 'translate(-50%, -100%)',
                     cursor: 'pointer',
-                    zIndex: isSelected ? 10 : 1
+                    zIndex: isSelected || isPathStart ? 10 : 1
                   }}
                 >
                   <div style={{
-                    background: pinColor,
+                    background: isPathStart ? theme.warning : pinColor,
                     padding: '6px',
                     borderRadius: '50% 50% 50% 0',
                     transform: 'rotate(-45deg)',
-                    boxShadow: isSelected ? `0 0 10px ${pinColor}` : 'none',
-                    border: isSelected ? '2px solid #fff' : 'none'
+                    boxShadow: (isSelected || isPathStart) ? `0 0 12px ${isPathStart ? theme.warning : pinColor}` : 'none',
+                    border: (isSelected || isPathStart) ? '2px solid #fff' : 'none',
+                    animation: isPathStart ? 'pulse 1.5s ease-in-out infinite' : 'none'
                   }}>
                     <PinIcon size={16} color="#fff" style={{ transform: 'rotate(45deg)' }} />
                   </div>
@@ -625,14 +637,15 @@ function WorldMapTab({ campaignId }) {
                     top: '100%',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'rgba(0,0,0,0.8)',
+                    background: isPathStart ? theme.warning : 'rgba(0,0,0,0.8)',
                     padding: '2px 6px',
                     whiteSpace: 'nowrap',
                     fontSize: '11px',
-                    color: '#fff',
-                    marginTop: '4px'
+                    color: isPathStart ? '#000' : '#fff',
+                    marginTop: '4px',
+                    fontWeight: isPathStart ? '600' : '400'
                   }}>
-                    {pin.name}
+                    {isPathStart ? `FROM: ${pin.name}` : pin.name}
                   </div>
                 </div>
               );
@@ -753,6 +766,137 @@ function WorldMapTab({ campaignId }) {
           >
             Clear Selection
           </Button>
+        </div>
+      )}
+
+      {/* Selected Pin Info Panel (view mode) */}
+      {mode === 'view' && selectedPin && !showPinEditor && (
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '20px',
+          background: theme.panel,
+          border: `1px solid ${theme.primary}`,
+          padding: '16px',
+          maxWidth: '320px',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                background: getPinColor(selectedPin.pin_type),
+                padding: '8px',
+                borderRadius: '50%'
+              }}>
+                {React.createElement(getPinIcon(selectedPin.pin_type), { size: 18, color: '#fff' })}
+              </div>
+              <div>
+                <h4 style={{ color: theme.text, margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                  {selectedPin.name}
+                </h4>
+                <span style={{ color: theme.muted, fontSize: '12px', textTransform: 'capitalize' }}>
+                  {selectedPin.pin_type}
+                </span>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setSelectedPin(null)} 
+              style={{ background: 'transparent', border: 'none', padding: '4px' }}
+            >
+              <X size={18} color={theme.muted} />
+            </Button>
+          </div>
+
+          {selectedPin.description && (
+            <p style={{ 
+              color: theme.textSecondary, 
+              fontSize: '13px', 
+              lineHeight: '1.5',
+              margin: '0 0 12px',
+              padding: '10px',
+              background: theme.bg,
+              border: `1px solid ${theme.border}`
+            }}>
+              {selectedPin.description}
+            </p>
+          )}
+
+          {/* Connected paths info */}
+          {selectedMap.paths?.some(p => p.from_pin_id === selectedPin.id || p.to_pin_id === selectedPin.id) && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ color: theme.muted, fontSize: '11px', display: 'block', marginBottom: '6px' }}>
+                CONNECTED ROUTES
+              </label>
+              <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                {selectedMap.paths
+                  .filter(p => p.from_pin_id === selectedPin.id || p.to_pin_id === selectedPin.id)
+                  .map(path => {
+                    const destId = path.from_pin_id === selectedPin.id ? path.to_pin_id : path.from_pin_id;
+                    const destPin = selectedMap.pins?.find(p => p.id === destId);
+                    return destPin && (
+                      <div key={path.id} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '6px 8px',
+                        background: theme.bg,
+                        marginBottom: '4px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{ color: theme.text }}>{destPin.name}</span>
+                        <span style={{ color: theme.warning }}>
+                          {path.distance_value} {path.distance_unit} ({path.terrain_type})
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button
+              onClick={() => {
+                setShowPinEditor(true);
+              }}
+              style={{
+                flex: 1,
+                background: theme.primary,
+                border: 'none',
+                color: '#fff',
+                padding: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              <Edit2 size={14} />
+              Edit
+            </Button>
+            <Button
+              onClick={() => {
+                setTravelFrom(selectedPin);
+                fetchNearbyLocations(selectedPin.id);
+                setMode('travel');
+                setSelectedPin(null);
+              }}
+              style={{
+                flex: 1,
+                background: theme.cyan,
+                border: 'none',
+                color: '#000',
+                padding: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              <Compass size={14} />
+              Travel From
+            </Button>
+          </div>
         </div>
       )}
 
@@ -1138,6 +1282,11 @@ function WorldMapTab({ campaignId }) {
             <div style={{ background: theme.bg, padding: '12px', marginBottom: '16px' }}>
               <p style={{ color: theme.muted, fontSize: '12px', margin: '0 0 4px' }}>FROM</p>
               <p style={{ color: theme.text, margin: 0, fontWeight: '600' }}>{pathStart.name}</p>
+            </div>
+
+            <div style={{ background: theme.bg, padding: '12px', marginBottom: '16px' }}>
+              <p style={{ color: theme.muted, fontSize: '12px', margin: '0 0 4px' }}>TO</p>
+              <p style={{ color: theme.text, margin: 0, fontWeight: '600' }}>{selectedPin?.name || 'Select destination'}</p>
             </div>
 
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>

@@ -1,0 +1,174 @@
+{
+  "summary": "Interactive Maps and RookGuide Testing - All tests PASSED. Frontend: 28 tests (14 RookGuide + 14 Interactive Maps). Backend: 12 tests (World Maps CRUD, Pins, Paths, Travel Calculator, Local Maps).",
+  "mode": "generate",
+  "baseline_commit": "9970d515fe85374689ba3f00796e5c5fdeaa5e0c",
+  "head_commit": "c81834e3ee59bd348bd11d965e611b94ef2deec3",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 40,
+    "passed": 40,
+    "failed": 0,
+    "skipped": 3,
+    "breakdown": {
+      "rook-guide.spec.ts": "14/14 passed - Dashboard guides, Campaign tab guides, dismiss functionality, localStorage persistence",
+      "interactive-maps.spec.ts": "14/14 passed (3 skipped when no pins exist) - World Map toolbar, modes, pins, paths, travel calculator, Local Map sidebar, pins",
+      "test_interactive_maps.py": "12/12 passed - World Maps CRUD, pins CRUD, paths, travel calculation, Local Maps CRUD"
+    }
+  },
+  "specs_created": [
+    "/app/tests/e2e/rook-guide.spec.ts",
+    "/app/tests/e2e/interactive-maps.spec.ts",
+    "/app/backend/tests/test_interactive_maps.py"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/tests/e2e/rook-guide.spec.ts",
+    "/app/tests/e2e/interactive-maps.spec.ts",
+    "/app/backend/tests/test_interactive_maps.py",
+    "/app/test_reports/pytest/interactive_maps_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/e2e/rook-guide.spec.ts",
+    "/app/tests/e2e/interactive-maps.spec.ts",
+    "/app/backend/tests/test_interactive_maps.py",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (28/28 tests passed, 3 conditionally skipped)"
+  },
+  "seed_data_creation": "Backend tests create and cleanup test maps/pins/paths automatically",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Two new features tested: 1) RookGuide - First-time user tips component that shows on dashboard (Player/GM sections) and all Campaign Dashboard tabs. Guide dismissal persists in localStorage under 'rook_guides_dismissed' key. Uses data-testid='rook-guide-{guideId}' pattern. 2) Interactive Maps - World Map has View/Add Location/Add Path/Travel Calculator modes. Pins have data-testid='map-pin-{id}'. Local Maps have POI pins with data-testid='local-pin-{id}'. Travel Calculator shows formatted travel time based on distance, terrain, and travel mode.",
+  "features_tested": {
+    "rook_guide_dashboard": {
+      "status": "PASS",
+      "features": [
+        "Player section guide visible on dashboard",
+        "GM section guide visible on dashboard",
+        "Guide dismiss persists to localStorage",
+        "Dismissed guides don't reappear",
+        "Independent dismissal of player/gm guides"
+      ],
+      "tests": 5
+    },
+    "rook_guide_campaign_tabs": {
+      "status": "PASS",
+      "features": [
+        "Setting tab guide shows on navigate",
+        "World Map tab guide with map tips",
+        "Local Maps tab guide",
+        "NPCs tab guide",
+        "Locations tab guide",
+        "Tab guides persist dismissal"
+      ],
+      "tests": 6
+    },
+    "rook_guide_ui": {
+      "status": "PASS",
+      "features": [
+        "Rook's Tips header label",
+        "Multiple tip items in list",
+        "Got it thanks dismiss button"
+      ],
+      "tests": 3
+    },
+    "world_map_ui": {
+      "status": "PASS",
+      "features": [
+        "Toolbar with mode buttons (View, Add Location, Add Path, Travel Calculator)",
+        "Zoom controls when map exists",
+        "Upload Map modal with name, scale, unit, image fields",
+        "Mode switching between View/Add Location/Add Path/Travel"
+      ],
+      "tests": 4
+    },
+    "world_map_pins": {
+      "status": "PASS",
+      "features": [
+        "Pin info panel on click with Edit and Travel From buttons",
+        "Connected routes display in panel",
+        "Close button on pin panel"
+      ],
+      "tests": 3
+    },
+    "world_map_travel_calculator": {
+      "status": "PASS",
+      "features": [
+        "Travel mode panel appears on entering travel mode",
+        "Travel modes: walking, horseback, cart, ship, flying",
+        "Nearby destinations list",
+        "Travel time calculation result modal"
+      ],
+      "tests": 2
+    },
+    "local_map_ui": {
+      "status": "PASS",
+      "features": [
+        "Location sidebar with All Maps option",
+        "Upload Local Map modal with location selector",
+        "Map filtering by location"
+      ],
+      "tests": 3
+    },
+    "local_map_pins": {
+      "status": "PASS",
+      "features": [
+        "Pin info panel on click",
+        "Pin type display (Shop, Tavern, Temple, etc)",
+        "Edit Place modal",
+        "Add Place mode toggle",
+        "POI type selector"
+      ],
+      "tests": 5
+    },
+    "backend_world_maps_api": {
+      "status": "PASS",
+      "features": [
+        "GET /campaigns/{id}/world-maps",
+        "POST /campaigns/{id}/world-maps",
+        "GET /campaigns/{id}/world-maps/{mapId}",
+        "PUT /campaigns/{id}/world-maps/{mapId}",
+        "DELETE /campaigns/{id}/world-maps/{mapId}"
+      ],
+      "tests": 4
+    },
+    "backend_pins_api": {
+      "status": "PASS",
+      "features": [
+        "POST /world-maps/{mapId}/pins",
+        "PUT /world-maps/{mapId}/pins/{pinId}",
+        "DELETE /world-maps/{mapId}/pins/{pinId}"
+      ],
+      "tests": 3
+    },
+    "backend_paths_api": {
+      "status": "PASS",
+      "features": [
+        "POST /world-maps/{mapId}/paths",
+        "POST /world-maps/{mapId}/calculate-travel"
+      ],
+      "tests": 2
+    },
+    "backend_local_maps_api": {
+      "status": "PASS",
+      "features": [
+        "GET /campaigns/{id}/local-maps",
+        "POST /campaigns/{id}/local-maps",
+        "POST /local-maps/{mapId}/pins"
+      ],
+      "tests": 3
+    }
+  }
+}

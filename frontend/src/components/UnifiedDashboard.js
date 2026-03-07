@@ -8,6 +8,7 @@ import {
   Users, MapPin, LogOut, Shield, Sword
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
+import { RookGuide } from '@/components/RookGuide';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -416,6 +417,9 @@ function UnifiedDashboard({ username, onLogout }) {
               </Button>
             </div>
 
+            {/* Rook Guide for Player Section */}
+            <RookGuide guideId="dashboard-player" variant="card" />
+
             {/* Character List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {characters.length === 0 ? (
@@ -585,6 +589,9 @@ function UnifiedDashboard({ username, onLogout }) {
                 New Campaign
               </Button>
             </div>
+
+            {/* Rook Guide for GM Section */}
+            <RookGuide guideId="dashboard-gm" variant="card" />
 
             {/* Campaign List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

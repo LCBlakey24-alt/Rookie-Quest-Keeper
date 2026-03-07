@@ -145,7 +145,7 @@ function LocalMapTab({ campaignId }) {
         x: pin.x,
         y: pin.y
       });
-      setShowPinEditor(true);
+      // Don't immediately open editor - show info panel first
     }
   };
 
@@ -426,18 +426,20 @@ function LocalMapTab({ campaignId }) {
               {selectedMap.pins?.map(pin => {
                 const PinIcon = getPinIcon(pin.pin_type);
                 const pinColor = getPinColor(pin.pin_type);
+                const isSelected = selectedPin?.id === pin.id;
 
                 return (
                   <div
                     key={pin.id}
                     onClick={(e) => handlePinClick(pin, e)}
+                    data-testid={`local-pin-${pin.id}`}
                     style={{
                       position: 'absolute',
                       left: `${pin.x}%`,
                       top: `${pin.y}%`,
                       transform: 'translate(-50%, -100%)',
                       cursor: 'pointer',
-                      zIndex: 10
+                      zIndex: isSelected ? 20 : 10
                     }}
                   >
                     <div style={{
@@ -445,7 +447,8 @@ function LocalMapTab({ campaignId }) {
                       padding: '5px',
                       borderRadius: '50% 50% 50% 0',
                       transform: 'rotate(-45deg)',
-                      boxShadow: `0 2px 8px ${pinColor}50`
+                      boxShadow: isSelected ? `0 0 12px ${pinColor}` : `0 2px 8px ${pinColor}50`,
+                      border: isSelected ? '2px solid #fff' : 'none'
                     }}>
                       <PinIcon size={14} color="#fff" style={{ transform: 'rotate(45deg)' }} />
                     </div>
@@ -454,12 +457,13 @@ function LocalMapTab({ campaignId }) {
                       top: '100%',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      background: 'rgba(0,0,0,0.85)',
+                      background: isSelected ? pinColor : 'rgba(0,0,0,0.85)',
                       padding: '2px 6px',
                       whiteSpace: 'nowrap',
                       fontSize: '10px',
                       color: '#fff',
-                      marginTop: '2px'
+                      marginTop: '2px',
+                      fontWeight: isSelected ? '600' : '400'
                     }}>
                       {pin.name}
                     </div>
@@ -496,6 +500,87 @@ function LocalMapTab({ campaignId }) {
           )}
         </div>
       </div>
+
+      {/* Selected Pin Info Panel */}
+      {mode === 'view' && selectedPin && !showPinEditor && (
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '270px',
+          background: theme.panel,
+          border: `1px solid ${getPinColor(selectedPin.pin_type)}`,
+          padding: '16px',
+          maxWidth: '300px',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                background: getPinColor(selectedPin.pin_type),
+                padding: '8px',
+                borderRadius: '50%'
+              }}>
+                {React.createElement(getPinIcon(selectedPin.pin_type), { size: 16, color: '#fff' })}
+              </div>
+              <div>
+                <h4 style={{ color: theme.text, margin: 0, fontSize: '15px', fontWeight: '600' }}>
+                  {selectedPin.name}
+                </h4>
+                <span style={{ color: theme.muted, fontSize: '11px', textTransform: 'capitalize' }}>
+                  {POI_TYPES.find(t => t.id === selectedPin.pin_type)?.label || selectedPin.pin_type}
+                </span>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setSelectedPin(null)} 
+              style={{ background: 'transparent', border: 'none', padding: '4px' }}
+            >
+              <X size={16} color={theme.muted} />
+            </Button>
+          </div>
+
+          {selectedPin.description && (
+            <p style={{ 
+              color: theme.textSecondary, 
+              fontSize: '12px', 
+              lineHeight: '1.5',
+              margin: '0 0 12px',
+              padding: '10px',
+              background: theme.bg,
+              border: `1px solid ${theme.border}`
+            }}>
+              {selectedPin.description}
+            </p>
+          )}
+
+          <Button
+            onClick={() => {
+              setPinForm({
+                name: selectedPin.name,
+                pin_type: selectedPin.pin_type,
+                description: selectedPin.description || '',
+                x: selectedPin.x,
+                y: selectedPin.y
+              });
+              setShowPinEditor(true);
+            }}
+            style={{
+              width: '100%',
+              background: theme.primary,
+              border: 'none',
+              color: '#fff',
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            <Edit2 size={14} />
+            Edit Place
+          </Button>
+        </div>
+      )}
 
       {/* Upload Modal */}
       {showUpload && (

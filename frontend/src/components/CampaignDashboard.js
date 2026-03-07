@@ -26,6 +26,7 @@ import SessionTimeline from '@/components/SessionTimeline';
 import WorldMapTab from '@/components/tabs/WorldMapTab';
 import LocalMapTab from '@/components/tabs/LocalMapTab';
 import TronBackground from '@/components/TronBackground';
+import { RookGuide } from '@/components/RookGuide';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -455,6 +456,9 @@ function CampaignDashboard({ username, onLogout }) {
             padding: '24px',
             minHeight: '500px'
           }}>
+            {/* Rook Guide for Active Tab */}
+            <RookGuide guideId={activeTab} variant="card" />
+            
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
             {activeTab === 'world-map' && <WorldMapTab campaignId={campaignId} />}
