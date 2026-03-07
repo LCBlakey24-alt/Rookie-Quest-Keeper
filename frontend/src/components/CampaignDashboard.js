@@ -245,13 +245,8 @@ function CampaignDashboard({ username, onLogout }) {
       minHeight: '100vh',
       background: theme.bg.black,
       display: 'flex',
-      flexDirection: 'column',
-      position: 'relative',
-      overflow: 'hidden'
+      flexDirection: 'column'
     }}>
-      {/* Tron Light Cycle Effects - GM Red */}
-      <TronBackground variant="red" intensity="subtle" showGrid={true} />
-      
       {/* Header */}
       <div style={{
         background: theme.bg.dark,

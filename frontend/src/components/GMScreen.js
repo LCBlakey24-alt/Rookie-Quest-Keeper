@@ -293,13 +293,8 @@ function GMScreen({ username }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: theme.bg.black,
-      position: 'relative',
-      overflow: 'hidden'
+      background: theme.bg.black
     }}>
-      {/* Tron Light Cycle Effects - Red Theme */}
-      <TronBackground variant="red" intensity="subtle" showGrid={true} />
-      
       {/* Header */}
       <div style={{ 
         position: 'relative',

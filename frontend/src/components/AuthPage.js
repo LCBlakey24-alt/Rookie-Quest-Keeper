@@ -172,22 +172,15 @@ function AuthPage({ onLogin }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px',
-      background: theme.bg.black,
-      position: 'relative',
-      overflow: 'hidden'
+      background: theme.bg.black
     }}>
-      {/* Tron Light Cycle Effects */}
-      <TronBackground variant="both" intensity="subtle" showGrid={true} />
-      
       <div style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
         maxWidth: '420px',
-        gap: '40px',
-        position: 'relative',
-        zIndex: 1
+        gap: '40px'
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center' }}>
@@ -209,18 +202,19 @@ function AuthPage({ onLogin }) {
           }}>
             KEEPER
           </h2>
-          {/* Animated dual color line */}
-          <div style={{ position: 'relative', marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '4px' }}>
-            <div className="tron-border-spin-red" style={{ width: '30px', height: '3px' }} />
-            <div className="tron-border-spin-blue" style={{ width: '30px', height: '3px' }} />
-          </div>
+          <div style={{
+            width: '60px',
+            height: '3px',
+            background: theme.accent.red,
+            margin: '16px auto 0'
+          }} />
         </div>
 
-        {/* Auth Card with Tron Border Effect */}
+        {/* Auth Card */}
         <div 
-          className="tron-border-spin-dual"
           style={{
             background: theme.bg.panel,
+            border: `1px solid ${theme.border}`,
             padding: '32px',
             width: '100%'
           }}

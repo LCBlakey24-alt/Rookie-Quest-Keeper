@@ -341,9 +341,6 @@ function UnifiedDashboard({ username, onLogout }) {
             minHeight: '400px'
           }}
         >
-          {/* Tron Light Trails - Blue */}
-          <TronBackground variant="blue" intensity="subtle" showGrid={false} />
-          
           {/* Glow effect */}
           <div style={{
             position: 'absolute',
@@ -514,9 +511,6 @@ function UnifiedDashboard({ username, onLogout }) {
             minHeight: '400px'
           }}
         >
-          {/* Tron Light Trails - Red */}
-          <TronBackground variant="red" intensity="subtle" showGrid={false} />
-          
           {/* Glow effect */}
           <div style={{
             position: 'absolute',

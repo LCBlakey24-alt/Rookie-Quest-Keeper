@@ -669,13 +669,8 @@ function CharacterSheetFull() {
     <div data-testid="character-sheet-full" style={{
       minHeight: '100vh',
       background: '#0D0D0D',
-      position: 'relative',
-      overflow: 'hidden',
       fontFamily: 'Cityworm, Inter, sans-serif'
     }}>
-      {/* Tron Light Cycle Effects - Player Blue */}
-      <TronBackground variant="blue" intensity="subtle" showGrid={true} />
-      
       {/* Subtle Blue Gradient Background */}
       <div style={{
         position: 'absolute',

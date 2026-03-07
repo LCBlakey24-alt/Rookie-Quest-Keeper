@@ -152,13 +152,8 @@ function LandingPage() {
     <div style={{ 
       minHeight: '100vh', 
       background: theme.bg.black,
-      color: theme.text.white,
-      position: 'relative',
-      overflow: 'hidden'
+      color: theme.text.white
     }}>
-      {/* Tron Light Cycle Effects */}
-      <TronBackground variant="landing" intensity="medium" showGrid={true} />
-      
       {/* Navigation */}
       <nav style={{
         position: 'fixed',
@@ -310,12 +305,11 @@ function LandingPage() {
             <span style={{ color: theme.player.cyan }}>character sheets, journals, party tools</span> for players.
           </p>
 
-          {/* CTA Buttons with Tron Border Effects */}
+          {/* CTA Buttons */}
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '32px' }}>
             <Button 
               onClick={() => navigate('/auth')}
               data-testid="hero-cta-btn"
-              className="tron-border-spin-red tron-border-spin-fast"
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '16px',
@@ -334,7 +328,6 @@ function LandingPage() {
             </Button>
             <Button 
               onClick={() => navigate('/auth')}
-              className="tron-border-spin-blue tron-border-spin-fast"
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '16px',
