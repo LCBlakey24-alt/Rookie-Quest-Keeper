@@ -1,0 +1,148 @@
+{
+  "summary": "World Map & Local Map Feature Testing - 38 tests total (26 backend + 12 frontend). Found and FIXED 1 critical backend bug in create_world_map endpoint. All APIs working correctly.",
+  "mode": "generate",
+  "baseline_commit": "7ad22eee2908eed1a55d3abd838459f952bfee65",
+  "head_commit": "f398067ea1371850c7a10e6a04677c261f031cab",
+  "backend_issues": {
+    "critical": [],
+    "minor": [],
+    "fixed_in_this_iteration": [
+      {
+        "endpoint": "POST /api/campaigns/{campaign_id}/world-maps",
+        "issue": "Line 3572 had `WorldMap().travel_speeds` which failed because WorldMap requires campaign_id and name fields",
+        "fix": "Changed to use a static default_travel_speeds dictionary instead of instantiating an empty WorldMap model",
+        "priority": "CRITICAL",
+        "status": "FIXED"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": [
+      "World Map and Local Maps tabs successfully render and navigate correctly",
+      "Upload modals for both World Map and Local Map display with all expected form fields",
+      "Sidebar navigation between tabs works correctly"
+    ]
+  },
+  "regression_results": {
+    "total_specs": 38,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "test_world_maps.py (backend)": "26/26 passed - World Map CRUD, Pin CRUD, Path CRUD, Travel Calculator, Nearby Locations, Local Map CRUD, Local Map Pins, Auth checks",
+      "world-maps.spec.ts (frontend)": "12/12 passed - Tab display, navigation, modal functionality, upload flows"
+    }
+  },
+  "specs_created": [
+    "/app/backend/tests/test_world_maps.py",
+    "/app/tests/e2e/world-maps.spec.ts"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_world_maps.py",
+    "/app/tests/e2e/world-maps.spec.ts",
+    "/app/test_reports/pytest/world_maps_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/server.py",
+    "/app/backend/tests/test_world_maps.py",
+    "/app/tests/e2e/world-maps.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (26/26 tests passed)",
+    "frontend": "100% (12/12 tests passed)"
+  },
+  "seed_data_creation": "Tests create and clean up their own test data using unique identifiers",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "World Map feature is fully tested and working. Backend API supports: World Map CRUD, pin management (add/update/delete), travel path creation, travel time calculation with different travel modes (walking, horseback, cart, ship, flying), terrain modifiers, and nearby locations. Local Map feature supports: Local Map CRUD linked to campaign locations, and place of interest pins (taverns, shops, temples, etc.). Landing page has the 'Interactive World Maps' feature in the auto-rotating carousel with details about pin cities & landmarks, travel time calculator, and terrain modifiers.",
+  "features_tested": {
+    "world_map_crud": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/world-maps",
+        "GET /api/campaigns/{id}/world-maps",
+        "GET /api/campaigns/{id}/world-maps/{map_id}",
+        "PUT /api/campaigns/{id}/world-maps/{map_id}",
+        "DELETE /api/campaigns/{id}/world-maps/{map_id}"
+      ],
+      "tests": 5
+    },
+    "world_map_pins": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/world-maps/{map_id}/pins",
+        "PUT /api/campaigns/{id}/world-maps/{map_id}/pins/{pin_id}",
+        "DELETE /api/campaigns/{id}/world-maps/{map_id}/pins/{pin_id}"
+      ],
+      "tests": 3
+    },
+    "travel_paths": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/world-maps/{map_id}/paths",
+        "PUT /api/campaigns/{id}/world-maps/{map_id}/paths/{path_id}",
+        "DELETE /api/campaigns/{id}/world-maps/{map_id}/paths/{path_id}"
+      ],
+      "tests": 3
+    },
+    "travel_calculator": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/world-maps/{map_id}/calculate-travel",
+        "GET /api/campaigns/{id}/world-maps/{map_id}/nearby"
+      ],
+      "tests": 4
+    },
+    "local_map_crud": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/local-maps",
+        "GET /api/campaigns/{id}/local-maps",
+        "GET /api/campaigns/{id}/local-maps/{map_id}",
+        "PUT /api/campaigns/{id}/local-maps/{map_id}",
+        "DELETE /api/campaigns/{id}/local-maps/{map_id}"
+      ],
+      "tests": 6
+    },
+    "local_map_pins": {
+      "status": "PASS",
+      "endpoints": [
+        "POST /api/campaigns/{id}/local-maps/{map_id}/pins",
+        "PUT /api/campaigns/{id}/local-maps/{map_id}/pins/{pin_id}",
+        "DELETE /api/campaigns/{id}/local-maps/{map_id}/pins/{pin_id}"
+      ],
+      "tests": 3
+    },
+    "frontend_world_map_tab": {
+      "status": "PASS",
+      "features": [
+        "World Map tab visible in Campaign Dashboard",
+        "Upload World Map modal with form fields",
+        "Tab navigation between World Map and other tabs"
+      ],
+      "tests": 6
+    },
+    "frontend_local_maps_tab": {
+      "status": "PASS",
+      "features": [
+        "Local Maps tab visible in Campaign Dashboard",
+        "Locations sidebar with All Maps option",
+        "Upload Local Map modal with location selector and map type dropdown"
+      ],
+      "tests": 6
+    }
+  },
+  "rca_of_issue": {
+    "issue": "World Map creation endpoint returning 500 Internal Server Error",
+    "root_cause": "In /app/backend/server.py line 3572, the code attempted to use `WorldMap().travel_speeds` to get default travel speeds. However, WorldMap is a Pydantic model that requires `campaign_id` and `name` fields. Instantiating it without these required fields raised a ValidationError.",
+    "reproduction": "1. Call POST /api/campaigns/{id}/world-maps with valid map data but without custom travel_speeds. 2. Backend tries to use `WorldMap().travel_speeds` as fallback. 3. Pydantic raises ValidationError due to missing required fields.",
+    "mitigation": "Replaced `WorldMap().travel_speeds` with a static dictionary `default_travel_speeds` containing the same default values (walking: 24, horseback: 48, cart: 16, ship: 72, flying: 96 miles/day)."
+  }
+}

@@ -94,6 +94,12 @@ function LandingPage() {
       details: ["Nested location hierarchy", "Generate with ROOK AI", "Custom place types"]
     },
     {
+      icon: Map,
+      title: "Interactive World Maps",
+      description: "Upload your world map and pin locations. Calculate travel times between cities with terrain-aware pathing.",
+      details: ["Pin cities & landmarks", "Travel time calculator", "Terrain modifiers", "Link to existing locations"]
+    },
+    {
       icon: Sword,
       title: "Combat Manager",
       description: "Run epic battles with our initiative tracker, monster database, and interactive battle maps.",
