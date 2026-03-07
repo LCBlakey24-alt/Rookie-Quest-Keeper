@@ -39,10 +39,9 @@ RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
 APP_URL = os.environ.get('APP_URL', 'http://localhost:3000')
 
-# STRIPE INTEGRATION COMPLETELY DISABLED
-# Set to False to disable all Stripe functionality
-# Will be re-enabled when new API key is properly configured
-STRIPE_ENABLED = False
+# STRIPE INTEGRATION RE-ENABLED
+STRIPE_ENABLED = True
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 
 if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
     resend.api_key = RESEND_API_KEY
@@ -1570,29 +1569,197 @@ async def get_subscription_status(username: str = Depends(get_current_user)):
 
 @api_router.post("/subscription/checkout")
 async def create_checkout_session(request: CreateCheckoutRequest, http_request: Request, username: str = Depends(get_current_user)):
-    """Create checkout session - STRIPE REMOVED - Will be re-integrated with fresh API key"""
-    raise HTTPException(status_code=503, detail="Paid subscriptions temporarily unavailable. Use promo codes for premium access or contact support.")
+    """Create Stripe checkout session for subscription"""
+    if not STRIPE_ENABLED or not STRIPE_API_KEY:
+        raise HTTPException(status_code=503, detail="Stripe payments not configured. Use promo codes for premium access.")
+    
+    try:
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+        
+        plan = SUBSCRIPTION_PLANS.get(request.plan_id)
+        if not plan:
+            raise HTTPException(status_code=400, detail="Invalid plan")
+        
+        # Get price based on billing cycle (amounts defined on backend for security)
+        if request.billing_cycle == 'yearly':
+            price_amount = plan['price_yearly']
+        else:
+            price_amount = plan['price_monthly']
+        
+        if price_amount == 0:
+            raise HTTPException(status_code=400, detail="Cannot checkout free plan")
+        
+        # Build success/cancel URLs from frontend origin (dynamic, not hardcoded)
+        success_url = f"{request.origin_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{request.origin_url}/subscription/cancel"
+        
+        # Initialize Stripe checkout
+        host_url = str(http_request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+        
+        # Create checkout session with fixed price from backend
+        checkout_request = CheckoutSessionRequest(
+            amount=float(price_amount),  # Keep as float for Stripe
+            currency='gbp',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'username': username,
+                'plan_id': request.plan_id,
+                'billing_cycle': request.billing_cycle
+            }
+        )
+        
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Create payment transaction record BEFORE redirect
+        transaction = {
+            'id': str(uuid.uuid4()),
+            'session_id': session.session_id,
+            'username': username,
+            'amount': float(price_amount),
+            'currency': 'gbp',
+            'plan_id': request.plan_id,
+            'billing_cycle': request.billing_cycle,
+            'payment_status': 'pending',
+            'created_at': datetime.now(timezone.utc).isoformat()
+        }
+        await db.payment_transactions.insert_one(transaction)
+        
+        return {"checkout_url": session.url, "session_id": session.session_id}
+        
+    except ImportError as e:
+        logger.error(f"Stripe integration import error: {e}")
+        raise HTTPException(status_code=500, detail="Stripe integration not available")
+    except Exception as e:
+        logger.error(f"Checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Checkout failed: {str(e)}")
 
 @api_router.get("/subscription/checkout/status/{session_id}")
 async def get_checkout_status(session_id: str, http_request: Request, username: str = Depends(get_current_user)):
-    """Check payment status - STRIPE REMOVED"""
-    raise HTTPException(status_code=503, detail="Payment processing temporarily unavailable.")
+    """Check payment status and activate subscription if paid"""
+    if not STRIPE_ENABLED or not STRIPE_API_KEY:
+        raise HTTPException(status_code=503, detail="Stripe payments not configured.")
+    
+    try:
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+        
+        host_url = str(http_request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+        
+        status = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Get the transaction record
+        transaction = await db.payment_transactions.find_one({'session_id': session_id})
+        
+        # Only process if payment is successful and not already processed
+        if status.payment_status == 'paid' and transaction and transaction.get('payment_status') != 'paid':
+            plan_id = transaction.get('plan_id', 'legendary')
+            billing_cycle = transaction.get('billing_cycle', 'monthly')
+            
+            # Activate subscription
+            await db.users.update_one(
+                {'username': username},
+                {'$set': {
+                    'subscription.tier': plan_id,
+                    'subscription.billing_cycle': billing_cycle,
+                    'subscription.subscription_status': 'active',
+                    'subscription.stripe_session_id': session_id,
+                    'subscription.activated_at': datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Update transaction status
+            await db.payment_transactions.update_one(
+                {'session_id': session_id},
+                {'$set': {
+                    'payment_status': 'paid',
+                    'completed_at': datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            logger.info(f"Subscription activated for {username}: {plan_id}")
+        
+        return {
+            "status": status.status,
+            "payment_status": status.payment_status,
+            "amount": status.amount_total / 100 if status.amount_total else 0,
+            "currency": status.currency
+        }
+        
+    except Exception as e:
+        logger.error(f"Status check error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhooks - STRIPE REMOVED"""
-    logger.info("Stripe webhook received but Stripe is disabled")
-    return {"status": "ignored", "message": "Stripe integration disabled"}
+    """Handle Stripe webhooks for payment events"""
+    if not STRIPE_ENABLED or not STRIPE_API_KEY:
+        return {"status": "ignored", "message": "Stripe not configured"}
+    
+    try:
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+        
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        
+        host_url = str(request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+        
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        logger.info(f"Stripe webhook received: {webhook_response.event_type}")
+        
+        # Handle successful payment
+        if webhook_response.payment_status == 'paid':
+            session_id = webhook_response.session_id
+            metadata = webhook_response.metadata or {}
+            username = metadata.get('username')
+            plan_id = metadata.get('plan_id')
+            
+            if username and plan_id:
+                # Update user subscription
+                await db.users.update_one(
+                    {'username': username},
+                    {'$set': {
+                        'subscription.tier': plan_id,
+                        'subscription.subscription_status': 'active',
+                        'subscription.activated_at': datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Update transaction
+                await db.payment_transactions.update_one(
+                    {'session_id': session_id},
+                    {'$set': {
+                        'payment_status': 'paid',
+                        'completed_at': datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                logger.info(f"Webhook: Subscription activated for {username}: {plan_id}")
+        
+        return {"status": "received", "event_type": webhook_response.event_type}
+        
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
 @api_router.post("/subscription/cancel")
 async def cancel_subscription(username: str = Depends(get_current_user)):
-    """Cancel subscription - STRIPE REMOVED"""
-    # Just update the local status since we can't communicate with Stripe
+    """Cancel the user's subscription"""
     user = await db.users.find_one({'username': username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update to free tier
+    current_tier = user.get('subscription', {}).get('tier', 'free')
+    if current_tier == 'free':
+        raise HTTPException(status_code=400, detail="No active subscription to cancel")
+    
+    # Update subscription to cancelled, revert to free
     await db.users.update_one(
         {'username': username},
         {'$set': {
@@ -6771,9 +6938,12 @@ async def health_check():
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize rule systems on startup"""
-    # STRIPE COMPLETELY REMOVED - No Stripe initialization
-    logger.info("Stripe integration REMOVED - paid subscriptions via promo codes only")
+    """Initialize systems on startup"""
+    # Log Stripe status
+    if STRIPE_ENABLED and STRIPE_API_KEY:
+        logger.info("Stripe integration ENABLED - paid subscriptions available")
+    else:
+        logger.info("Stripe integration DISABLED - using promo codes only")
     
     # Rule systems - always initialize
     await initialize_rule_systems()
