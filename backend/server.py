@@ -1209,6 +1209,32 @@ async def verify_campaign_ownership(campaign_id: str, username: str) -> None:
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found or access denied")
 
+async def verify_campaign_membership(campaign_id: str, username: str) -> dict:
+    """
+    Verify that the user is either the owner OR a player in the campaign.
+    Returns the campaign if found, raises 404 if not found or no access.
+    """
+    # First check if they own it
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+    
+    # Check if owner
+    if campaign.get('dm_user_id') == username:
+        return campaign
+    
+    # Check if player in campaign (has a character linked to this campaign)
+    player_character = await db.player_characters.find_one({
+        'user_id': username,
+        'campaign_id': campaign_id
+    }, {'_id': 1})
+    
+    if player_character:
+        return campaign
+    
+    # Not owner and not a player
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be a member of this campaign to perform this action")
+
 # ==================== AUTH ROUTES ====================
 
 def generate_referral_code(username: str) -> str:
@@ -2581,8 +2607,8 @@ async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSet
 
 @api_router.post("/campaigns/{campaign_id}/custom-rules")
 async def upload_custom_rules(campaign_id: str, data: CustomRulesUpload, username: str = Depends(get_current_user)):
-    """Upload custom rules/rulebook content for AI to reference"""
-    await verify_campaign_ownership(campaign_id, username)
+    """Upload custom rules/rulebook content for AI to reference - any campaign member can upload"""
+    await verify_campaign_membership(campaign_id, username)
     
     # Check content size (limit to ~500KB of text to avoid huge AI context)
     max_chars = 500000
@@ -2610,13 +2636,14 @@ async def upload_custom_rules(campaign_id: str, data: CustomRulesUpload, usernam
         "id": rule_doc['id'],
         "name": data.name,
         "char_count": len(data.content),
-        "source_type": data.source_type
+        "source_type": data.source_type,
+        "uploaded_by": username
     }
 
 @api_router.get("/campaigns/{campaign_id}/custom-rules")
 async def get_custom_rules(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get all custom rules for a campaign"""
-    await verify_campaign_ownership(campaign_id, username)
+    """Get all custom rules for a campaign - any campaign member can view"""
+    await verify_campaign_membership(campaign_id, username)
     
     rules = []
     async for rule in db.campaign_custom_rules.find({'campaign_id': campaign_id}, {'_id': 0, 'content': 0}):
@@ -2629,8 +2656,8 @@ async def get_custom_rules(campaign_id: str, username: str = Depends(get_current
 
 @api_router.get("/campaigns/{campaign_id}/custom-rules/{rule_id}")
 async def get_custom_rule_detail(campaign_id: str, rule_id: str, username: str = Depends(get_current_user)):
-    """Get a specific custom rule with full content"""
-    await verify_campaign_ownership(campaign_id, username)
+    """Get a specific custom rule with full content - any campaign member can view"""
+    await verify_campaign_membership(campaign_id, username)
     
     rule = await db.campaign_custom_rules.find_one({'id': rule_id, 'campaign_id': campaign_id}, {'_id': 0})
     if not rule:
@@ -2640,19 +2667,29 @@ async def get_custom_rule_detail(campaign_id: str, rule_id: str, username: str =
 
 @api_router.delete("/campaigns/{campaign_id}/custom-rules/{rule_id}")
 async def delete_custom_rules(campaign_id: str, rule_id: str, username: str = Depends(get_current_user)):
-    """Delete custom rules"""
-    await verify_campaign_ownership(campaign_id, username)
+    """Delete custom rules - only the uploader or GM can delete"""
+    campaign = await verify_campaign_membership(campaign_id, username)
     
-    result = await db.campaign_custom_rules.delete_one({'id': rule_id, 'campaign_id': campaign_id})
-    if result.deleted_count == 0:
+    # Check if user is the uploader or the GM
+    rule = await db.campaign_custom_rules.find_one({'id': rule_id, 'campaign_id': campaign_id}, {'_id': 0, 'created_by': 1})
+    if not rule:
         raise HTTPException(status_code=404, detail="Rules not found")
+    
+    # Allow deletion if user is GM or the one who uploaded
+    is_gm = campaign.get('dm_user_id') == username
+    is_uploader = rule.get('created_by') == username
+    
+    if not is_gm and not is_uploader:
+        raise HTTPException(status_code=403, detail="Only the uploader or GM can delete these rules")
+    
+    await db.campaign_custom_rules.delete_one({'id': rule_id, 'campaign_id': campaign_id})
     
     return {"message": "Rules deleted successfully"}
 
 @api_router.post("/campaigns/{campaign_id}/custom-rules/upload-file")
 async def upload_rules_file(campaign_id: str, file: UploadFile, username: str = Depends(get_current_user)):
-    """Upload a rules file (TXT, MD, or PDF) - extracts text content"""
-    await verify_campaign_ownership(campaign_id, username)
+    """Upload a rules file (TXT, MD, or PDF) - any campaign member can upload"""
+    await verify_campaign_membership(campaign_id, username)
     
     # Check file type
     allowed_extensions = ['.txt', '.md', '.pdf']
