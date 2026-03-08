@@ -818,137 +818,322 @@ function CharacterSheetFull() {
           </div>
         </div>
 
-        {/* Quick Stats Bar - Compact */}
+        {/* ALWAYS VISIBLE SECTION - Core Stats + Key Skills */}
         <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginBottom: '20px',
-          flexWrap: 'wrap'
+          ...glassPanel,
+          padding: '10px 16px',
+          marginBottom: '12px',
+          background: 'linear-gradient(180deg, #1A1A1A 0%, #141414 100%)',
+          borderBottom: '2px solid rgba(59, 130, 246, 0.3)'
         }}>
-          {/* HP */}
-          <div data-testid="hp-display" style={{
-            ...glassPanel,
-            padding: '8px 14px',
+          {/* Row 1: Core Combat Stats + Key Skills */}
+          <div style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            flexWrap: 'wrap',
+            alignItems: 'center'
           }}>
-            <Heart size={16} color="#ef4444" />
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>HP</span>
-              {editMode ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+            {/* HP */}
+            <div data-testid="hp-display" style={{
+              padding: '6px 12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Heart size={14} color="#ef4444" />
+              <div>
+                <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>HP</span>
+                {editMode ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <Input
+                      type="number"
+                      value={editData.current_hit_points}
+                      onChange={(e) => setEditData({ ...editData, current_hit_points: parseInt(e.target.value) || 0 })}
+                      style={{ width: '35px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
+                    />
+                    <span style={{ color: '#64748b', fontSize: '11px' }}>/</span>
+                    <Input
+                      type="number"
+                      value={editData.max_hit_points}
+                      onChange={(e) => setEditData({ ...editData, max_hit_points: parseInt(e.target.value) || 0 })}
+                      style={{ width: '35px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
+                    />
+                  </div>
+                ) : (
+                  <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '15px' }}>
+                    {data.current_hit_points}/{data.max_hit_points}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* AC */}
+            <div data-testid="ac-display" style={{
+              padding: '6px 12px',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Shield size={14} color="#3b82f6" />
+              <div>
+                <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>AC</span>
+                {editMode ? (
                   <Input
                     type="number"
-                    value={editData.current_hit_points}
-                    onChange={(e) => setEditData({ ...editData, current_hit_points: parseInt(e.target.value) || 0 })}
-                    style={{ width: '40px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
+                    value={editData.armor_class}
+                    onChange={(e) => setEditData({ ...editData, armor_class: parseInt(e.target.value) || 10 })}
+                    style={{ width: '35px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
                   />
-                  <span style={{ color: '#64748b', fontSize: '12px' }}>/</span>
-                  <Input
-                    type="number"
-                    value={editData.max_hit_points}
-                    onChange={(e) => setEditData({ ...editData, max_hit_points: parseInt(e.target.value) || 0 })}
-                    style={{ width: '40px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
+                ) : (
+                  <span style={{ color: '#3b82f6', fontWeight: '700', fontSize: '15px' }}>
+                    {data.armor_class}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Initiative */}
+            <div data-testid="initiative-display" style={{
+              padding: '6px 12px',
+              background: 'rgba(234, 179, 8, 0.1)',
+              border: '1px solid rgba(234, 179, 8, 0.3)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Zap size={14} color="#eab308" />
+              <div>
+                <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>INIT</span>
+                <DiceRollButton 
+                  modifier={getModifier(data.dexterity)}
+                  label="Initiative"
+                  color="#eab308"
+                  size="small"
+                />
+              </div>
+            </div>
+
+            {/* Speed */}
+            <div data-testid="speed-display" style={{
+              padding: '6px 12px',
+              background: 'rgba(6, 182, 212, 0.1)',
+              border: '1px solid rgba(6, 182, 212, 0.3)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Activity size={14} color="#06B6D4" />
+              <div>
+                <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>SPEED</span>
+                <span style={{ color: '#06B6D4', fontWeight: '700', fontSize: '15px' }}>
+                  {data.speed}ft
+                </span>
+              </div>
+            </div>
+
+            {/* Proficiency */}
+            <div data-testid="prof-display" style={{
+              padding: '6px 12px',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Award size={14} color="#8B5CF6" />
+              <div>
+                <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>PROF</span>
+                <span style={{ color: '#8B5CF6', fontWeight: '700', fontSize: '15px' }}>
+                  +{profBonus}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ width: '1px', height: '36px', background: 'rgba(148, 163, 184, 0.2)', margin: '0 4px' }} />
+
+            {/* Key Skills - Always Visible */}
+            <span style={{ color: '#64748b', fontSize: '9px', marginRight: '2px' }}>KEY</span>
+            {['Perception', 'Investigation', 'Insight', 'Stealth', 'Athletics', 'Acrobatics'].map(skillName => {
+              const skill = SKILLS.find(s => s.name === skillName);
+              if (!skill) return null;
+              const abilityMod = calculateModifier(data[skill.ability]);
+              const isProficient = data.skill_proficiencies?.includes(skillName.toLowerCase().replace(/ /g, '_'));
+              const totalMod = abilityMod + (isProficient ? profBonus : 0);
+              const Icon = skill.icon;
+              
+              return (
+                <div
+                  key={skillName}
+                  data-testid={`quick-skill-${skillName.toLowerCase()}`}
+                  style={{
+                    padding: '4px 8px',
+                    background: isProficient ? 'rgba(6, 182, 212, 0.1)' : 'rgba(30, 41, 59, 0.5)',
+                    border: isProficient ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(148, 163, 184, 0.1)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Icon size={11} color={isProficient ? '#06B6D4' : '#64748b'} />
+                  <span style={{ 
+                    color: isProficient ? '#06B6D4' : '#94a3b8', 
+                    fontSize: '10px',
+                    fontWeight: isProficient ? '600' : '400',
+                    textDecoration: isProficient ? 'underline' : 'none'
+                  }}>
+                    {skillName.slice(0, 4)}
+                  </span>
+                  <DiceRollButton 
+                    modifier={totalMod}
+                    label={skillName}
+                    color={isProficient ? '#06B6D4' : '#94a3b8'}
+                    size="small"
+                    showDice={false}
                   />
                 </div>
-              ) : (
-                <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '16px' }}>
-                  {data.current_hit_points}/{data.max_hit_points}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* AC */}
-          <div data-testid="ac-display" style={{
-            ...glassPanel,
-            padding: '8px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Shield size={16} color="#3b82f6" />
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>AC</span>
-              {editMode ? (
-                <Input
-                  type="number"
-                  value={editData.armor_class}
-                  onChange={(e) => setEditData({ ...editData, armor_class: parseInt(e.target.value) || 10 })}
-                  style={{ width: '40px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
-                />
-              ) : (
-                <span style={{ color: '#3b82f6', fontWeight: '800', fontSize: '16px' }}>
-                  {data.armor_class}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Initiative */}
-          <div data-testid="initiative-display" style={{
-            ...glassPanel,
-            padding: '8px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Zap size={16} color="#eab308" />
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>INIT</span>
-              <DiceRollButton 
-                modifier={getModifier(data.dexterity)}
-                label="Initiative"
-                color="#eab308"
-                size="small"
-              />
-            </div>
-          </div>
-
-          {/* Speed */}
-          <div data-testid="speed-display" style={{
-            ...glassPanel,
-            padding: '8px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Activity size={16} color="#06B6D4" />
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>SPEED</span>
-              <span style={{ color: '#06B6D4', fontWeight: '800', fontSize: '16px' }}>
-                {data.speed} ft
-              </span>
-            </div>
-          </div>
-
-          {/* Proficiency */}
-          <div data-testid="prof-display" style={{
-            ...glassPanel,
-            padding: '8px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Award size={16} color="#8B5CF6" />
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', display: 'block' }}>PROF</span>
-              <span style={{ color: '#8B5CF6', fontWeight: '800', fontSize: '16px' }}>
-                +{profBonus}
-              </span>
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Tab Navigation - Compact */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-          marginBottom: '20px',
-          overflowX: 'auto',
-          paddingBottom: '6px'
-        }}>
+        {/* MAIN CONTENT AREA with Left Sidebar */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {/* LEFT SIDEBAR - All Skills + Saving Throws */}
+          <div style={{ 
+            width: '180px', 
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+          }}>
+            {/* Saving Throws Box */}
+            <div style={{ ...glassPanel, padding: '10px' }}>
+              <h4 style={{ color: '#f59e0b', fontSize: '10px', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                SAVING THROWS
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {ABILITIES.map(ability => {
+                  const mod = calculateModifier(data[ability.key]);
+                  const isProficient = data.saving_throw_proficiencies?.includes(ability.key);
+                  const saveMod = isProficient ? mod + profBonus : mod;
+                  return (
+                    <div
+                      key={`save-${ability.key}`}
+                      data-testid={`save-${ability.key}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '4px 6px',
+                        background: isProficient ? `${ability.color}15` : 'transparent',
+                        borderRadius: '4px',
+                        borderLeft: isProficient ? `2px solid ${ability.color}` : '2px solid transparent'
+                      }}
+                    >
+                      <span style={{ 
+                        color: isProficient ? ability.color : '#94a3b8', 
+                        fontSize: '10px',
+                        fontWeight: isProficient ? '600' : '400',
+                        textDecoration: isProficient ? 'underline' : 'none'
+                      }}>
+                        {ability.fullName}
+                      </span>
+                      <DiceRollButton 
+                        modifier={saveMod}
+                        label={`${ability.fullName} Save`}
+                        color={isProficient ? ability.color : '#64748b'}
+                        size="small"
+                        showDice={false}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* All Skills Box */}
+            <div style={{ ...glassPanel, padding: '10px', flex: 1 }}>
+              <h4 style={{ color: '#67e8f9', fontSize: '10px', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                ALL SKILLS
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {SKILLS.map(skill => {
+                  const abilityMod = calculateModifier(data[skill.ability]);
+                  const isProficient = (editMode ? editData : data).skill_proficiencies?.includes(skill.name.toLowerCase().replace(/ /g, '_'));
+                  const totalMod = abilityMod + (isProficient ? profBonus : 0);
+                  const ability = ABILITIES.find(a => a.key === skill.ability);
+                  
+                  return (
+                    <div
+                      key={skill.name}
+                      data-testid={`skill-${skill.name.toLowerCase().replace(/ /g, '-')}`}
+                      onClick={() => {
+                        if (editMode) {
+                          toggleSkillProficiency(skill.name);
+                        }
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '3px 5px',
+                        background: isProficient ? 'rgba(6, 182, 212, 0.08)' : 'transparent',
+                        borderRadius: '3px',
+                        cursor: editMode ? 'pointer' : 'default',
+                        borderLeft: isProficient ? '2px solid #06B6D4' : '2px solid transparent'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                        <span style={{ 
+                          color: isProficient ? '#06B6D4' : '#94a3b8', 
+                          fontSize: '10px',
+                          fontWeight: isProficient ? '600' : '400',
+                          textDecoration: isProficient ? 'underline' : 'none',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {skill.name}
+                        </span>
+                        <span style={{ color: '#4b5563', fontSize: '8px' }}>
+                          ({ability?.label})
+                        </span>
+                      </div>
+                      <DiceRollButton 
+                        modifier={totalMod}
+                        label={skill.name}
+                        color={isProficient ? '#06B6D4' : '#64748b'}
+                        size="small"
+                        showDice={false}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT CONTENT - Tabs and Tab Content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Tab Navigation */}
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              marginBottom: '12px',
+              overflowX: 'auto',
+              paddingBottom: '4px'
+            }}>
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -985,21 +1170,21 @@ function CharacterSheetFull() {
               </button>
             );
           })}
-        </div>
+            </div>
 
-        {/* Tab Content */}
-        <div style={{ minHeight: '400px' }}>
+            {/* Tab Content */}
+            <div style={{ minHeight: '350px' }}>
           {/* Combat Tab - Main Play Screen */}
           {activeTab === 'combat' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-              {/* Left Column: Abilities + Combat Resources */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {/* Left Column: Abilities + Combat Resources + Attacks */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Compact Ability Scores */}
                 <div style={{ ...glassPanel, padding: '12px' }}>
                   <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat' }}>
                     Ability Scores
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
                     {ABILITIES.map(ability => (
                       <AbilityScoreBlock
                         key={ability.key}
@@ -1015,95 +1200,88 @@ function CharacterSheetFull() {
                   </div>
                 </div>
 
-                {/* Combat Resources - Hit Dice, Death Saves, Temp HP */}
-                <div style={{ ...glassPanel, padding: '12px' }}>
-                  <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Heart size={14} /> Combat Resources
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    {/* Hit Dice */}
-                    <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px' }}>
-                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>HIT DICE</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        {editMode ? (
-                          <Input
-                            type="number"
-                            value={editData.hit_dice_remaining || data.level}
-                            onChange={(e) => setEditData({ ...editData, hit_dice_remaining: parseInt(e.target.value) || 0 })}
-                            style={{ width: '40px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
-                          />
-                        ) : (
-                          <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '16px' }}>
-                            {data.hit_dice_remaining ?? data.level}
-                          </span>
-                        )}
-                        <span style={{ color: '#64748b', fontSize: '12px' }}>/ {data.level}d{data.hit_die || 8}</span>
-                      </div>
-                    </div>
-                    {/* Temp HP */}
-                    <div style={{ padding: '8px', background: 'rgba(34, 211, 238, 0.1)', borderRadius: '6px' }}>
-                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>TEMP HP</span>
+                {/* Combat Resources Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                  {/* Hit Dice */}
+                  <div style={{ ...glassPanel, padding: '10px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>HIT DICE</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {editMode ? (
                         <Input
                           type="number"
-                          value={editData.temp_hp || 0}
-                          onChange={(e) => setEditData({ ...editData, temp_hp: parseInt(e.target.value) || 0 })}
-                          style={{ width: '50px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
+                          value={editData.hit_dice_remaining || data.level}
+                          onChange={(e) => setEditData({ ...editData, hit_dice_remaining: parseInt(e.target.value) || 0 })}
+                          style={{ width: '35px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
                         />
                       ) : (
-                        <span style={{ color: '#22d3ee', fontWeight: '700', fontSize: '16px' }}>
-                          {data.temp_hp || 0}
+                        <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '15px' }}>
+                          {data.hit_dice_remaining ?? data.level}
                         </span>
                       )}
+                      <span style={{ color: '#64748b', fontSize: '11px' }}>/{data.level}d{data.hit_die || 8}</span>
                     </div>
-                    {/* Death Saves */}
-                    <div style={{ padding: '8px', background: 'rgba(148, 163, 184, 0.1)', borderRadius: '6px', gridColumn: 'span 2' }}>
-                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>DEATH SAVES</span>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ color: '#22c55e', fontSize: '11px' }}>Success</span>
-                          {[0, 1, 2].map(i => (
-                            <div
-                              key={`success-${i}`}
-                              onClick={() => {
-                                if (editMode) {
-                                  const current = editData.death_save_success || 0;
-                                  setEditData({ ...editData, death_save_success: i < current ? i : i + 1 });
-                                }
-                              }}
-                              style={{
-                                width: '14px',
-                                height: '14px',
-                                borderRadius: '50%',
-                                border: '2px solid #22c55e',
-                                background: i < (data.death_save_success || 0) ? '#22c55e' : 'transparent',
-                                cursor: editMode ? 'pointer' : 'default'
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ color: '#ef4444', fontSize: '11px' }}>Failure</span>
-                          {[0, 1, 2].map(i => (
-                            <div
-                              key={`fail-${i}`}
-                              onClick={() => {
-                                if (editMode) {
-                                  const current = editData.death_save_failure || 0;
-                                  setEditData({ ...editData, death_save_failure: i < current ? i : i + 1 });
-                                }
-                              }}
-                              style={{
-                                width: '14px',
-                                height: '14px',
-                                borderRadius: '50%',
-                                border: '2px solid #ef4444',
-                                background: i < (data.death_save_failure || 0) ? '#ef4444' : 'transparent',
-                                cursor: editMode ? 'pointer' : 'default'
-                              }}
-                            />
-                          ))}
-                        </div>
+                  </div>
+                  {/* Temp HP */}
+                  <div style={{ ...glassPanel, padding: '10px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>TEMP HP</span>
+                    {editMode ? (
+                      <Input
+                        type="number"
+                        value={editData.temp_hp || 0}
+                        onChange={(e) => setEditData({ ...editData, temp_hp: parseInt(e.target.value) || 0 })}
+                        style={{ width: '45px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
+                      />
+                    ) : (
+                      <span style={{ color: '#22d3ee', fontWeight: '700', fontSize: '15px' }}>
+                        {data.temp_hp || 0}
+                      </span>
+                    )}
+                  </div>
+                  {/* Death Saves */}
+                  <div style={{ ...glassPanel, padding: '10px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>DEATH SAVES</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        {[0, 1, 2].map(i => (
+                          <div
+                            key={`success-${i}`}
+                            onClick={() => {
+                              if (editMode) {
+                                const current = editData.death_save_success || 0;
+                                setEditData({ ...editData, death_save_success: i < current ? i : i + 1 });
+                              }
+                            }}
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              border: '2px solid #22c55e',
+                              background: i < (data.death_save_success || 0) ? '#22c55e' : 'transparent',
+                              cursor: editMode ? 'pointer' : 'default'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        {[0, 1, 2].map(i => (
+                          <div
+                            key={`fail-${i}`}
+                            onClick={() => {
+                              if (editMode) {
+                                const current = editData.death_save_failure || 0;
+                                setEditData({ ...editData, death_save_failure: i < current ? i : i + 1 });
+                              }
+                            }}
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              border: '2px solid #ef4444',
+                              background: i < (data.death_save_failure || 0) ? '#ef4444' : 'transparent',
+                              cursor: editMode ? 'pointer' : 'default'
+                            }}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -1184,31 +1362,7 @@ function CharacterSheetFull() {
                 </div>
               </div>
 
-              {/* Middle Column: Skills */}
-              <div style={{ ...glassPanel, padding: '12px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat' }}>
-                  Skills {editMode && <span style={{ color: '#64748b', fontWeight: '400', fontSize: '10px' }}>(click to toggle)</span>}
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '480px', overflowY: 'auto' }}>
-                  {SKILLS.map(skill => {
-                    const abilityMod = calculateModifier(data[skill.ability]);
-                    const isProficient = (editMode ? editData : data).skill_proficiencies?.includes(skill.name.toLowerCase().replace(/ /g, '_'));
-                    return (
-                      <SkillRow
-                        key={skill.name}
-                        skill={skill}
-                        abilityMod={abilityMod}
-                        profBonus={profBonus}
-                        isProficient={isProficient}
-                        isEditing={editMode}
-                        onToggle={toggleSkillProficiency}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Right Column: Quick Spells + Conditions */}
+              {/* Right Column: Spells + Conditions + All Skills */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Quick Spell Slots (if caster) */}
                 {data.spellcasting_ability && (
@@ -1975,7 +2129,9 @@ function CharacterSheetFull() {
               </div>
             </div>
           )}
-        </div>
+            </div>  {/* End of Tab Content */}
+          </div>  {/* End of RIGHT CONTENT */}
+        </div>  {/* End of MAIN CONTENT AREA */}
       </div>
 
       {/* Join Campaign Modal */}
