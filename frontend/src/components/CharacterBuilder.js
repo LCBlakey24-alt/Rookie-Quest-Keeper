@@ -296,8 +296,10 @@ function CharacterBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get('campaignId');
+  const editionParam = searchParams.get('edition');
   
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at step 0 for edition selection
+  const [selectedEdition, setSelectedEdition] = useState(editionParam || null);
   const [creating, setCreating] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeInfo, setUpgradeInfo] = useState(null);
@@ -306,6 +308,9 @@ function CharacterBuilder() {
   const [campaignContent, setCampaignContent] = useState(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [campaignName, setCampaignName] = useState('');
+  
+  // User's personal content state (from My Rulesets)
+  const [userContent, setUserContent] = useState(null);
   
   // AI Generation state
   const [aiPrompt, setAiPrompt] = useState('');
@@ -323,28 +328,65 @@ function CharacterBuilder() {
   const [rolledStats, setRolledStats] = useState({});
   const [diceAnimation, setDiceAnimation] = useState(null);
   
-  // Fetch campaign content if campaignId is provided
-  useEffect(() => {
-    if (campaignId) {
-      fetchCampaignContent();
-      fetchCampaignName();
-    }
-  }, [campaignId]);
+  // Content summary for edition selection screen
+  const [contentSummary, setContentSummary] = useState(null);
   
-  const fetchCampaignContent = async () => {
+  // Fetch content summary on mount (for edition selection screen)
+  useEffect(() => {
+    fetchContentSummary();
+  }, []);
+  
+  const fetchContentSummary = async () => {
+    try {
+      const response = await axios.get(`${API}/user/content/summary`);
+      setContentSummary(response.data);
+    } catch (error) {
+      console.error('Failed to fetch content summary');
+    }
+  };
+  
+  // Skip edition selection if edition is provided in URL
+  useEffect(() => {
+    if (editionParam && ['2014', '2024'].includes(editionParam)) {
+      setSelectedEdition(editionParam);
+      setStep(1);
+    }
+  }, [editionParam]);
+  
+  // Fetch content when edition is selected
+  useEffect(() => {
+    if (selectedEdition) {
+      fetchUserContent();
+      if (campaignId) {
+        fetchCampaignContent();
+        fetchCampaignName();
+      }
+    }
+  }, [selectedEdition, campaignId]);
+  
+  const fetchUserContent = async () => {
     setLoadingContent(true);
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/content`);
-      setCampaignContent(response.data);
+      const response = await axios.get(`${API}/user/content?edition=${selectedEdition}`);
+      setUserContent(response.data);
       if (response.data.has_custom_content) {
-        toast.success('Custom content loaded!', {
-          description: 'Campaign-specific races, classes, and more are available'
+        toast.success(`${selectedEdition} custom content loaded!`, {
+          description: 'Your personal races, classes, and more are available'
         });
       }
     } catch (error) {
-      console.error('Failed to load campaign content:', error);
+      console.error('Failed to load user content:', error);
     } finally {
       setLoadingContent(false);
+    }
+  };
+  
+  const fetchCampaignContent = async () => {
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}/content`);
+      setCampaignContent(response.data);
+    } catch (error) {
+      console.error('Failed to load campaign content:', error);
     }
   };
   
@@ -378,83 +420,199 @@ function CharacterBuilder() {
     return 'Custom race';
   };
   
-  // Merge default options with campaign custom content
+  // Merge default options with user's personal content AND campaign content
   const getMergedRaces = () => {
-    const defaultRaces = RACES.map(r => ({ ...r, isCustom: false }));
-    if (!campaignContent?.races?.length) return defaultRaces;
+    const defaultRaces = RACES.map(r => ({ ...r, isCustom: false, source: 'Standard' }));
+    const customRaces = [];
     
-    const customRaces = campaignContent.races.map(r => ({
-      name: r.name,
-      bonus: formatAbilityBonuses(r.ability_bonuses) || r.description || 'Custom race',
-      source: r.source || 'Custom',
-      isCustom: true,
-      fullData: r
-    }));
+    // Add user's personal content first
+    if (userContent?.races?.length) {
+      userContent.races.forEach(r => {
+        customRaces.push({
+          name: r.name,
+          bonus: formatAbilityBonuses(r.ability_bonuses) || r.description || 'Custom race',
+          source: r.source || 'My Rulesets',
+          isCustom: true,
+          isUserContent: true,
+          fullData: r
+        });
+      });
+    }
+    
+    // Add campaign content (if creating for a campaign)
+    if (campaignContent?.races?.length) {
+      campaignContent.races.forEach(r => {
+        // Skip if already added from user content
+        if (!customRaces.find(cr => cr.name.toLowerCase() === r.name.toLowerCase())) {
+          customRaces.push({
+            name: r.name,
+            bonus: formatAbilityBonuses(r.ability_bonuses) || r.description || 'Custom race',
+            source: r.source || 'Campaign',
+            isCustom: true,
+            isCampaignContent: true,
+            fullData: r
+          });
+        }
+      });
+    }
     
     return [...customRaces, ...defaultRaces];
   };
   
   const getMergedClasses = () => {
-    const defaultClasses = CLASSES.map(c => ({ ...c, isCustom: false }));
-    if (!campaignContent?.classes?.length) return defaultClasses;
+    const defaultClasses = CLASSES.map(c => ({ ...c, isCustom: false, source: 'Standard' }));
+    const customClasses = [];
     
-    const customClasses = campaignContent.classes.map(c => ({
-      name: c.name,
-      color: c.color || '#F59E0B',
-      hitDie: c.hit_die || 'd8',
-      primary: c.primary_ability || 'Varies',
-      isCustom: true,
-      fullData: c
-    }));
+    // Add user's personal content
+    if (userContent?.classes?.length) {
+      userContent.classes.forEach(c => {
+        customClasses.push({
+          name: c.name,
+          color: c.color || '#06B6D4',
+          hitDie: c.hit_die || 'd8',
+          primary: c.primary_ability || 'Varies',
+          source: c.source || 'My Rulesets',
+          isCustom: true,
+          isUserContent: true,
+          fullData: c
+        });
+      });
+    }
+    
+    // Add campaign content
+    if (campaignContent?.classes?.length) {
+      campaignContent.classes.forEach(c => {
+        if (!customClasses.find(cc => cc.name.toLowerCase() === c.name.toLowerCase())) {
+          customClasses.push({
+            name: c.name,
+            color: c.color || '#F59E0B',
+            hitDie: c.hit_die || 'd8',
+            primary: c.primary_ability || 'Varies',
+            source: c.source || 'Campaign',
+            isCustom: true,
+            isCampaignContent: true,
+            fullData: c
+          });
+        }
+      });
+    }
     
     return [...customClasses, ...defaultClasses];
   };
   
   const getMergedBackgrounds = () => {
-    const defaultBackgrounds = BACKGROUNDS.map(b => ({ ...b, isCustom: false }));
-    if (!campaignContent?.backgrounds?.length) return defaultBackgrounds;
+    const defaultBackgrounds = BACKGROUNDS.map(b => ({ ...b, isCustom: false, source: 'Standard' }));
+    const customBackgrounds = [];
     
-    const customBackgrounds = campaignContent.backgrounds.map(b => ({
-      name: b.name,
-      feature: b.feature || 'Custom feature',
-      skills: b.skill_proficiencies || [],
-      tools: b.tool_proficiencies || [],
-      languages: b.languages || 0,
-      isCustom: true,
-      fullData: b
-    }));
+    if (userContent?.backgrounds?.length) {
+      userContent.backgrounds.forEach(b => {
+        customBackgrounds.push({
+          name: b.name,
+          feature: b.feature_name || b.feature || 'Custom feature',
+          skills: b.skill_proficiencies || [],
+          tools: b.tool_proficiencies || [],
+          languages: b.languages || 0,
+          source: b.source || 'My Rulesets',
+          isCustom: true,
+          isUserContent: true,
+          fullData: b
+        });
+      });
+    }
+    
+    if (campaignContent?.backgrounds?.length) {
+      campaignContent.backgrounds.forEach(b => {
+        if (!customBackgrounds.find(cb => cb.name.toLowerCase() === b.name.toLowerCase())) {
+          customBackgrounds.push({
+            name: b.name,
+            feature: b.feature_name || b.feature || 'Custom feature',
+            skills: b.skill_proficiencies || [],
+            tools: b.tool_proficiencies || [],
+            languages: b.languages || 0,
+            source: b.source || 'Campaign',
+            isCustom: true,
+            isCampaignContent: true,
+            fullData: b
+          });
+        }
+      });
+    }
     
     return [...customBackgrounds, ...defaultBackgrounds];
   };
   
   const getMergedSubclasses = (className) => {
     const defaultSubclasses = (SUBCLASSES[className] || []).map(s => ({ ...s, isCustom: false }));
-    if (!campaignContent?.subclasses?.length) return defaultSubclasses;
+    const customSubclasses = [];
     
-    const customSubclasses = campaignContent.subclasses
-      .filter(s => s.parent_class === className)
-      .map(s => ({
-        name: s.name,
-        level: s.subclass_level || 3,
-        description: s.description || 'Custom subclass',
-        isCustom: true,
-        fullData: s
-      }));
+    if (userContent?.subclasses?.length) {
+      userContent.subclasses
+        .filter(s => s.parent_class === className)
+        .forEach(s => {
+          customSubclasses.push({
+            name: s.name,
+            level: s.subclass_level || 3,
+            description: s.description || 'Custom subclass',
+            isCustom: true,
+            isUserContent: true,
+            fullData: s
+          });
+        });
+    }
+    
+    if (campaignContent?.subclasses?.length) {
+      campaignContent.subclasses
+        .filter(s => s.parent_class === className)
+        .forEach(s => {
+          if (!customSubclasses.find(cs => cs.name.toLowerCase() === s.name.toLowerCase())) {
+            customSubclasses.push({
+              name: s.name,
+              level: s.subclass_level || 3,
+              description: s.description || 'Custom subclass',
+              isCustom: true,
+              isCampaignContent: true,
+              fullData: s
+            });
+          }
+        });
+    }
     
     return [...customSubclasses, ...defaultSubclasses];
   };
   
   const getMergedFeats = () => {
-    const defaultFeats = FEATS.map(f => ({ ...f, isCustom: false }));
-    if (!campaignContent?.feats?.length) return defaultFeats;
+    const defaultFeats = FEATS.map(f => ({ ...f, isCustom: false, source: 'Standard' }));
+    const customFeats = [];
     
-    const customFeats = campaignContent.feats.map(f => ({
-      name: f.name,
-      description: f.description || 'Custom feat',
-      prereq: f.prerequisites || 'None',
-      isCustom: true,
-      fullData: f
-    }));
+    if (userContent?.feats?.length) {
+      userContent.feats.forEach(f => {
+        customFeats.push({
+          name: f.name,
+          description: f.description || 'Custom feat',
+          prereq: f.prerequisites || 'None',
+          source: f.source || 'My Rulesets',
+          isCustom: true,
+          isUserContent: true,
+          fullData: f
+        });
+      });
+    }
+    
+    if (campaignContent?.feats?.length) {
+      campaignContent.feats.forEach(f => {
+        if (!customFeats.find(cf => cf.name.toLowerCase() === f.name.toLowerCase())) {
+          customFeats.push({
+            name: f.name,
+            description: f.description || 'Custom feat',
+            prereq: f.prerequisites || 'None',
+            source: f.source || 'Campaign',
+            isCustom: true,
+            isCampaignContent: true,
+            fullData: f
+          });
+        }
+      });
+    }
     
     return [...customFeats, ...defaultFeats];
   };
@@ -730,7 +888,7 @@ function CharacterBuilder() {
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-          <Button onClick={() => navigate('/')} className="btn-icon">
+          <Button onClick={() => step === 0 ? navigate('/') : setStep(0)} className="btn-icon">
             <ArrowLeft size={20} />
           </Button>
           <div style={{ flex: 1 }}>
@@ -742,28 +900,133 @@ function CharacterBuilder() {
             }}>
               Create Character
             </h1>
-            {campaignId && campaignName && (
-              <p style={{ color: '#F59E0B', fontSize: '13px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Star size={14} />
-                For campaign: <strong>{campaignName}</strong>
-                {campaignContent?.has_custom_content && (
+            {selectedEdition && (
+              <p style={{ color: '#06B6D4', fontSize: '13px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Using <strong>{selectedEdition} Rules</strong>
+                {userContent?.has_custom_content && (
                   <span style={{ 
-                    background: 'rgba(245, 158, 11, 0.2)', 
-                    border: '1px solid #F59E0B',
+                    background: 'rgba(6, 182, 212, 0.2)', 
+                    border: '1px solid #06B6D4',
                     padding: '2px 8px',
                     fontSize: '11px',
                     marginLeft: '8px'
                   }}>
-                    Custom Content Available
+                    Custom Content
                   </span>
                 )}
+              </p>
+            )}
+            {campaignId && campaignName && (
+              <p style={{ color: '#F59E0B', fontSize: '13px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Star size={14} />
+                For campaign: <strong>{campaignName}</strong>
               </p>
             )}
           </div>
         </div>
 
+        {/* Step 0: Edition Selection */}
+        {step === 0 && (
+          <div style={{
+            background: '#111827',
+            border: '1px solid #1F2937',
+            borderRadius: '16px',
+            padding: '48px',
+            textAlign: 'center',
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}>
+            <h2 style={{ color: '#fff', fontSize: '24px', marginBottom: '12px' }}>
+              Choose Your Rules Edition
+            </h2>
+            <p style={{ color: '#9CA3AF', marginBottom: '32px' }}>
+              Select which D&D 5e rules you want to use for this character
+            </p>
+            
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <button
+                onClick={() => { setSelectedEdition('2014'); setStep(1); }}
+                style={{
+                  padding: '32px 48px',
+                  background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1))',
+                  border: '2px solid #06B6D4',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 0 30px rgba(6, 182, 212, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ color: '#06B6D4', fontSize: '32px', fontWeight: '700', marginBottom: '8px' }}>
+                  2014
+                </div>
+                <div style={{ color: '#9CA3AF', fontSize: '14px' }}>
+                  Classic 5th Edition
+                </div>
+                {contentSummary?.['2014'] && (contentSummary['2014'].races > 0 || contentSummary['2014'].classes > 0) && (
+                  <div style={{ 
+                    color: '#06B6D4', 
+                    fontSize: '12px', 
+                    marginTop: '12px',
+                    background: 'rgba(6, 182, 212, 0.1)',
+                    padding: '4px 10px',
+                    borderRadius: '20px'
+                  }}>
+                    {contentSummary['2014'].races} races, {contentSummary['2014'].classes} classes
+                  </div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => { setSelectedEdition('2024'); setStep(1); }}
+                style={{
+                  padding: '32px 48px',
+                  background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1))',
+                  border: '2px solid #A855F7',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 0 30px rgba(168, 85, 247, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ color: '#A855F7', fontSize: '32px', fontWeight: '700', marginBottom: '8px' }}>
+                  2024
+                </div>
+                <div style={{ color: '#9CA3AF', fontSize: '14px' }}>
+                  Revised 5th Edition
+                </div>
+                {contentSummary?.['2024'] && (contentSummary['2024'].races > 0 || contentSummary['2024'].classes > 0) && (
+                  <div style={{ 
+                    color: '#A855F7', 
+                    fontSize: '12px', 
+                    marginTop: '12px',
+                    background: 'rgba(168, 85, 247, 0.1)',
+                    padding: '4px 10px',
+                    borderRadius: '20px'
+                  }}>
+                    {contentSummary['2024'].races} races, {contentSummary['2024'].classes} classes
+                  </div>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Loading indicator for campaign content */}
-        {loadingContent && (
+        {loadingContent && step > 0 && (
           <div style={{ 
             background: 'rgba(245, 158, 11, 0.1)', 
             border: '1px solid #F59E0B',
@@ -774,11 +1037,12 @@ function CharacterBuilder() {
             gap: '10px'
           }}>
             <Loader size={16} className="spin" style={{ color: '#F59E0B' }} />
-            <span style={{ color: '#F59E0B', fontSize: '13px' }}>Loading campaign content...</span>
+            <span style={{ color: '#F59E0B', fontSize: '13px' }}>Loading content...</span>
           </div>
         )}
 
-        {/* Progress Steps */}
+        {/* Progress Steps - only show after edition selection */}
+        {step > 0 && (
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -829,6 +1093,7 @@ function CharacterBuilder() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Step 1: Concept with AI */}
         {step === 1 && (

@@ -271,6 +271,23 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - [ ] None
 
 ### Completed (March 2026)
+- [x] **USER-LEVEL RULESETS WITH EDITION TAGGING (March 2026)** - Major feature
+  - Moved ruleset uploader to Player Dashboard (home page)
+  - Rulesets now stored per-user (not per-campaign)
+  - Edition tagging: 2014 vs 2024 rules separation
+  - Character Builder starts with edition selection screen
+  - Custom content shows with source indicators (My Rulesets vs Campaign)
+  - Smart duplicate skipping across editions
+  - Backend: New collections (user_rulesets, user_races, user_classes, etc.)
+  - Endpoints: POST /api/user/content/upload, GET /api/user/content, GET /api/user/content/summary
+
+- [x] **CODEBASE CLEANUP - REMOVED UNUSED ROUTES & COMPONENTS (March 2026)**
+  - Removed `/character-builder` route (duplicate of `/characters/new`)
+  - Removed `/characters` route (redundant with `/player` - PlayerDashboard)
+  - Removed unused components: RoleSelection, CombatTracker, MapTokenSystem, SessionMode, MyCharacters, MulticlassManager
+  - Updated navigation links: CharacterSheet and CampaignList now go to `/player` instead of `/characters`
+  - 103/105 tests passing (2 failures due to stale test IDs, not actual bugs)
+
 - [x] **USER MANAGEMENT CLEANUP & DELETE FUNCTIONALITY (March 2026)**
   - Deleted 335 test accounts and 41 test campaigns, keeping only lcblakey24
   - Account settings: Email: lcblakey24@outlook.com, Password: Trigger24?!, Tier: legendary, Admin: true

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
   User, Crown, Plus, ChevronRight, Star, Link2, Settings,
-  Users, MapPin, LogOut, Shield, Sword, Trash2
+  Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
 import { RookGuide } from '@/components/RookGuide';
@@ -63,9 +63,16 @@ function UnifiedDashboard({ username, onLogout }) {
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Ruleset upload state
+  const [showRulesetPanel, setShowRulesetPanel] = useState(false);
+  const [uploadingRuleset, setUploadingRuleset] = useState(false);
+  const [selectedEdition, setSelectedEdition] = useState('2014');
+  const [contentSummary, setContentSummary] = useState(null);
 
   useEffect(() => {
     fetchAllData();
+    fetchContentSummary();
   }, []);
 
   useEffect(() => {
@@ -149,6 +156,86 @@ function UnifiedDashboard({ username, onLogout }) {
       setCampaigns(prev => prev.filter(c => c.id !== campaignId));
     } catch (error) {
       toast.error('Failed to delete campaign');
+    }
+  };
+
+  // Fetch user's content summary
+  const fetchContentSummary = async () => {
+    try {
+      const response = await axios.get(`${API}/user/content/summary`);
+      setContentSummary(response.data);
+    } catch (error) {
+      console.error('Failed to fetch content summary');
+    }
+  };
+
+  // Handle ruleset upload
+  const handleRulesetUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.json')) {
+      toast.error('Please upload a JSON file');
+      e.target.value = '';
+      return;
+    }
+    
+    setUploadingRuleset(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      if (!data.ruleset_name) {
+        toast.error('JSON must include "ruleset_name" field');
+        return;
+      }
+      
+      // Add edition to the upload
+      data.edition = selectedEdition;
+      
+      const response = await axios.post(`${API}/user/content/upload`, data);
+      
+      // Build detailed success message
+      const { summary, uploaded, skipped, edition } = response.data;
+      const uploadedItems = [];
+      if (uploaded.races?.length) uploadedItems.push(`${uploaded.races.length} races`);
+      if (uploaded.classes?.length) uploadedItems.push(`${uploaded.classes.length} classes`);
+      if (uploaded.subclasses?.length) uploadedItems.push(`${uploaded.subclasses.length} subclasses`);
+      if (uploaded.backgrounds?.length) uploadedItems.push(`${uploaded.backgrounds.length} backgrounds`);
+      if (uploaded.feats?.length) uploadedItems.push(`${uploaded.feats.length} feats`);
+      
+      toast.success(
+        `✅ Uploaded to ${edition} Character Creator!`,
+        { 
+          description: uploadedItems.length > 0 
+            ? `Added: ${uploadedItems.join(', ')}` 
+            : 'Ruleset created (no new items)',
+          duration: 6000 
+        }
+      );
+      
+      // Show skipped items if any
+      if (skipped && Object.values(skipped).some(arr => arr?.length > 0)) {
+        const skippedItems = [];
+        Object.entries(skipped).forEach(([category, items]) => {
+          if (items?.length) skippedItems.push(...items.map(name => `${name}`));
+        });
+        toast.info(
+          `Skipped ${skippedItems.length} duplicate(s)`,
+          { description: skippedItems.slice(0, 5).join(', ') + (skippedItems.length > 5 ? '...' : ''), duration: 5000 }
+        );
+      }
+      
+      fetchContentSummary();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        toast.error('Invalid JSON format');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to upload ruleset');
+      }
+    } finally {
+      setUploadingRuleset(false);
+      e.target.value = '';
     }
   };
 
@@ -444,6 +531,185 @@ function UnifiedDashboard({ username, onLogout }) {
 
             {/* Rook Guide for Player Section */}
             <RookGuide guideId="dashboard-player" variant="card" />
+
+            {/* My Rulesets Panel - Collapsible */}
+            <div style={{
+              background: theme.bg.card,
+              border: `1px solid ${theme.player.border}`,
+              borderRadius: '12px',
+              overflow: 'hidden',
+              marginBottom: '16px'
+            }}>
+              <button
+                onClick={() => setShowRulesetPanel(!showRulesetPanel)}
+                style={{
+                  width: '100%',
+                  padding: '16px 20px',
+                  background: 'transparent',
+                  border: 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  color: theme.text.white
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <BookOpen size={20} style={{ color: theme.player.cyan }} />
+                  <span style={{ fontWeight: '600', fontSize: '15px' }}>My Rulesets</span>
+                  {contentSummary && (
+                    <span style={{ 
+                      fontSize: '12px', 
+                      color: theme.text.muted,
+                      background: theme.bg.panel,
+                      padding: '2px 8px',
+                      borderRadius: '10px'
+                    }}>
+                      {(contentSummary['2014']?.races || 0) + (contentSummary['2024']?.races || 0)} races, {' '}
+                      {(contentSummary['2014']?.classes || 0) + (contentSummary['2024']?.classes || 0)} classes
+                    </span>
+                  )}
+                </div>
+                <ChevronRight 
+                  size={20} 
+                  style={{ 
+                    color: theme.text.muted,
+                    transform: showRulesetPanel ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s'
+                  }} 
+                />
+              </button>
+              
+              {showRulesetPanel && (
+                <div style={{ 
+                  padding: '0 20px 20px',
+                  borderTop: `1px solid ${theme.border}`
+                }}>
+                  <p style={{ 
+                    color: theme.text.muted, 
+                    fontSize: '13px', 
+                    margin: '16px 0',
+                    lineHeight: '1.5'
+                  }}>
+                    Upload custom races, classes, backgrounds, and feats. These will be available when you create characters.
+                  </p>
+                  
+                  {/* Edition Selector */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      color: theme.player.cyan, 
+                      fontSize: '12px', 
+                      fontWeight: '600',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Select Rules Edition
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => setSelectedEdition('2014')}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          background: selectedEdition === '2014' ? theme.player.subtle : 'transparent',
+                          border: `2px solid ${selectedEdition === '2014' ? theme.player.cyan : theme.border}`,
+                          borderRadius: '8px',
+                          color: selectedEdition === '2014' ? theme.player.cyan : theme.text.muted,
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        2014 Rules
+                        {contentSummary?.['2014'] && (
+                          <span style={{ display: 'block', fontSize: '11px', marginTop: '4px', fontWeight: '400' }}>
+                            {contentSummary['2014'].races} races, {contentSummary['2014'].classes} classes
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setSelectedEdition('2024')}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          background: selectedEdition === '2024' ? theme.player.subtle : 'transparent',
+                          border: `2px solid ${selectedEdition === '2024' ? theme.player.cyan : theme.border}`,
+                          borderRadius: '8px',
+                          color: selectedEdition === '2024' ? theme.player.cyan : theme.text.muted,
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        2024 Rules
+                        {contentSummary?.['2024'] && (
+                          <span style={{ display: 'block', fontSize: '11px', marginTop: '4px', fontWeight: '400' }}>
+                            {contentSummary['2024'].races} races, {contentSummary['2024'].classes} classes
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Upload Button */}
+                  <label style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.cyan})`,
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontWeight: '600',
+                    cursor: uploadingRuleset ? 'not-allowed' : 'pointer',
+                    opacity: uploadingRuleset ? 0.6 : 1
+                  }}>
+                    <FileJson size={18} />
+                    {uploadingRuleset ? 'Uploading...' : `Upload to ${selectedEdition} Rules`}
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleRulesetUpload}
+                      disabled={uploadingRuleset}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  
+                  {/* JSON Format Help */}
+                  <details style={{ marginTop: '16px' }}>
+                    <summary style={{ 
+                      color: theme.player.cyan, 
+                      fontSize: '12px', 
+                      cursor: 'pointer',
+                      fontWeight: '500'
+                    }}>
+                      JSON Format Help
+                    </summary>
+                    <pre style={{ 
+                      background: theme.bg.panel, 
+                      padding: '12px', 
+                      borderRadius: '6px',
+                      fontSize: '10px',
+                      color: theme.text.muted,
+                      overflow: 'auto',
+                      marginTop: '8px'
+                    }}>
+{`{
+  "ruleset_name": "My Custom Races",
+  "races": [
+    { "name": "Custom Race", "ability_bonuses": {"strength": 2} }
+  ],
+  "classes": [
+    { "name": "Custom Class", "hit_die": "d10", "primary_ability": "Strength" }
+  ]
+}`}
+                    </pre>
+                  </details>
+                </div>
+              )}
+            </div>
 
             {/* Character List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
