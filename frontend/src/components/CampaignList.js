@@ -417,7 +417,7 @@ function CampaignList({ username, onLogout }) {
               </DialogContent>
             </Dialog>
             <Button 
-              onClick={() => navigate('/characters')} 
+              onClick={() => navigate('/player')} 
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 

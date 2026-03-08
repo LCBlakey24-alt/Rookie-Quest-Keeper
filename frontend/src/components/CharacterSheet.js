@@ -60,7 +60,7 @@ function CharacterSheet() {
       toast.error('Failed to load character', {
         description: error.response?.data?.detail || 'Character not found'
       });
-      navigate('/characters');
+      navigate('/player');
     } finally {
       setLoading(false);
     }
@@ -157,7 +157,7 @@ function CharacterSheet() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Button onClick={() => navigate('/characters')} className="btn-icon">
+            <Button onClick={() => navigate('/player')} className="btn-icon">
               <ArrowLeft size={24} />
             </Button>
             <div>

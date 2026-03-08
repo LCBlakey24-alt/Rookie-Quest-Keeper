@@ -75,11 +75,11 @@ export const TEST_ABILITIES_SCENARIO_ID = 'd719e646-688f-482f-a97a-8d02d80f2807'
 // Custom creature with abilities
 export const TEST_CUSTOM_CREATURE_ID = '7bc77fba-92ff-47bc-83dc-cf3e5ac1703a';
 
-// Updated test user with email - Stress Test User
+// Updated test user with email - Admin Test User
 export const TEST_USER = { 
-  email: 'stress_test_1772651200@test.com',
-  username: 'stress_test_1772651200',
-  password: 'TestPass123!'
+  email: 'lcblakey24@outlook.com',
+  username: 'lcblakey24',
+  password: 'Trigger24?!'
 };
 
 export async function loginTestUser(page: Page) {

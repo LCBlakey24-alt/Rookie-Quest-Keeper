@@ -16,7 +16,6 @@ import AdminPage from '@/components/AdminPage';
 import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import LandingPage from '@/components/LandingPage';
 import AccountSettings from '@/components/AccountSettings';
-import MyCharacters from '@/components/MyCharacters';
 import CharacterBuilder from '@/components/CharacterBuilder';
 import CharacterSheet from '@/components/CharacterSheet';
 import CharacterSheetFull from '@/components/CharacterSheetFull';
@@ -198,23 +197,7 @@ function App() {
               }
             />
             <Route 
-              path="/characters" 
-              element={
-                isAuthenticated ? 
-                  <MyCharacters username={username} onLogout={handleLogout} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
               path="/characters/new" 
-              element={
-                isAuthenticated ? 
-                  <CharacterBuilder /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/character-builder" 
               element={
                 isAuthenticated ? 
                   <CharacterBuilder /> : 
