@@ -10,7 +10,7 @@ import {
   Sparkles, Save, X, Target, Activity, TrendingUp, Award, Link2,
   Star, Flame, Wand2, ScrollText, Crown, Dumbbell, Brain, Eye,
   MessageCircle, Plus, Minus, ChevronDown, ChevronUp, Check, Search,
-  BookOpen, Swords, Package, Coins, Feather, Moon, Sun, CircleDot
+  BookOpen, Swords, Package, Coins, Feather, Moon, Sun, CircleDot, RefreshCw
 } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
@@ -931,49 +931,6 @@ function CharacterSheetFull() {
             {/* Divider */}
             <div style={{ width: '1px', height: '32px', background: 'rgba(148, 163, 184, 0.3)', margin: '0 2px' }} />
 
-            {/* Key Skills */}
-            {['Perception', 'Investigation', 'Insight', 'Stealth', 'Athletics', 'Acrobatics'].map(skillName => {
-              const skill = SKILLS.find(s => s.name === skillName);
-              if (!skill) return null;
-              const abilityMod = calculateModifier(data[skill.ability]);
-              const isProficient = data.skill_proficiencies?.includes(skillName.toLowerCase().replace(/ /g, '_'));
-              const totalMod = abilityMod + (isProficient ? profBonus : 0);
-              const Icon = skill.icon;
-              
-              return (
-                <div
-                  key={skillName}
-                  data-testid={`quick-skill-${skillName.toLowerCase()}`}
-                  style={{
-                    padding: '6px 8px',
-                    background: isProficient ? 'rgba(6, 182, 212, 0.1)' : 'rgba(30, 41, 59, 0.5)',
-                    border: isProficient ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(148, 163, 184, 0.15)',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <Icon size={12} color={isProficient ? '#06B6D4' : '#64748b'} />
-                  <div>
-                    <span style={{ color: '#94a3b8', fontSize: '8px', display: 'block', letterSpacing: '0.5px' }}>
-                      {skillName.slice(0, 4).toUpperCase()}
-                    </span>
-                    <DiceRollButton 
-                      modifier={totalMod}
-                      label={skillName}
-                      color={isProficient ? '#06B6D4' : '#94a3b8'}
-                      size="small"
-                      showDice={false}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Divider */}
-            <div style={{ width: '1px', height: '32px', background: 'rgba(148, 163, 184, 0.3)', margin: '0 2px' }} />
-
             {/* Ability Score + Saving Throw Combined Boxes */}
             {ABILITIES.map(ability => {
               const mod = calculateModifier(data[ability.key]);
@@ -1176,131 +1133,19 @@ function CharacterSheetFull() {
 
             {/* Tab Content */}
             <div style={{ minHeight: '350px' }}>
-          {/* Combat Tab - Main Play Screen */}
+          {/* Combat Tab - Actions, Bonus Actions, Reactions */}
           {activeTab === 'combat' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {/* Left Column: Abilities + Combat Resources + Attacks */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Compact Ability Scores */}
-                <div style={{ ...glassPanel, padding: '12px' }}>
-                  <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat' }}>
-                    Ability Scores
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
-                    {ABILITIES.map(ability => (
-                      <AbilityScoreBlock
-                        key={ability.key}
-                        ability={ability}
-                        score={data[ability.key]}
-                        modifier={calculateModifier(data[ability.key])}
-                        isProficientSave={data.saving_throw_proficiencies?.includes(ability.key)}
-                        profBonus={profBonus}
-                        isEditing={editMode}
-                        onScoreChange={updateAbilityScore}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Combat Resources Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                  {/* Hit Dice */}
-                  <div style={{ ...glassPanel, padding: '10px' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>HIT DICE</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {editMode ? (
-                        <Input
-                          type="number"
-                          value={editData.hit_dice_remaining || data.level}
-                          onChange={(e) => setEditData({ ...editData, hit_dice_remaining: parseInt(e.target.value) || 0 })}
-                          style={{ width: '35px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
-                        />
-                      ) : (
-                        <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '15px' }}>
-                          {data.hit_dice_remaining ?? data.level}
-                        </span>
-                      )}
-                      <span style={{ color: '#64748b', fontSize: '11px' }}>/{data.level}d{data.hit_die || 8}</span>
-                    </div>
-                  </div>
-                  {/* Temp HP */}
-                  <div style={{ ...glassPanel, padding: '10px' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>TEMP HP</span>
-                    {editMode ? (
-                      <Input
-                        type="number"
-                        value={editData.temp_hp || 0}
-                        onChange={(e) => setEditData({ ...editData, temp_hp: parseInt(e.target.value) || 0 })}
-                        style={{ width: '45px', padding: '2px', textAlign: 'center', fontSize: '13px' }}
-                      />
-                    ) : (
-                      <span style={{ color: '#22d3ee', fontWeight: '700', fontSize: '15px' }}>
-                        {data.temp_hp || 0}
-                      </span>
-                    )}
-                  </div>
-                  {/* Death Saves */}
-                  <div style={{ ...glassPanel, padding: '10px' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block', marginBottom: '4px' }}>DEATH SAVES</span>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        {[0, 1, 2].map(i => (
-                          <div
-                            key={`success-${i}`}
-                            onClick={() => {
-                              if (editMode) {
-                                const current = editData.death_save_success || 0;
-                                setEditData({ ...editData, death_save_success: i < current ? i : i + 1 });
-                              }
-                            }}
-                            style={{
-                              width: '12px',
-                              height: '12px',
-                              borderRadius: '50%',
-                              border: '2px solid #22c55e',
-                              background: i < (data.death_save_success || 0) ? '#22c55e' : 'transparent',
-                              cursor: editMode ? 'pointer' : 'default'
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        {[0, 1, 2].map(i => (
-                          <div
-                            key={`fail-${i}`}
-                            onClick={() => {
-                              if (editMode) {
-                                const current = editData.death_save_failure || 0;
-                                setEditData({ ...editData, death_save_failure: i < current ? i : i + 1 });
-                              }
-                            }}
-                            style={{
-                              width: '12px',
-                              height: '12px',
-                              borderRadius: '50%',
-                              border: '2px solid #ef4444',
-                              background: i < (data.death_save_failure || 0) ? '#ef4444' : 'transparent',
-                              cursor: editMode ? 'pointer' : 'default'
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Attacks/Weapons */}
-                <div style={{ ...glassPanel, padding: '12px' }}>
-                  <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Swords size={14} /> Attacks
-                  </h3>
-                  {(!data.attacks?.length && !data.equipment?.filter(e => e.equipped && e.type === 'weapon')?.length) ? (
-                    <div style={{ color: '#64748b', fontSize: '12px', padding: '8px', textAlign: 'center', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '6px' }}>
-                      No attacks. Add weapons in Edit mode.
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {/* Show custom attacks */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              {/* ACTIONS Column */}
+              <div style={{ ...glassPanel, padding: '12px' }}>
+                <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Swords size={16} /> ACTIONS
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Weapon Attacks */}
+                  {(data.attacks || []).length > 0 || (data.equipment || []).filter(e => e.equipped && (e.type === 'weapon' || e.damage)).length > 0 ? (
+                    <>
+                      <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginBottom: '2px' }}>ATTACK</div>
                       {(data.attacks || []).map((attack, i) => {
                         const abilityMod = attack.ability ? calculateModifier(data[attack.ability]) : calculateModifier(data.strength);
                         const attackBonus = abilityMod + (attack.proficient !== false ? profBonus : 0) + (attack.bonus || 0);
@@ -1311,29 +1156,20 @@ function CharacterSheetFull() {
                             justifyContent: 'space-between',
                             padding: '8px 10px',
                             background: 'rgba(239, 68, 68, 0.1)',
-                            borderRadius: '6px'
+                            borderRadius: '6px',
+                            borderLeft: '3px solid #ef4444'
                           }}>
                             <span style={{ color: '#e2e8f0', fontSize: '12px', fontWeight: '500' }}>{attack.name}</span>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <DiceRollButton 
-                                modifier={attackBonus}
-                                label={`${attack.name} Attack`}
-                                color="#ef4444"
-                                size="small"
-                              />
-                              <span style={{ color: '#94a3b8', fontSize: '11px' }}>
-                                {attack.damage || `1d6+${abilityMod}`}
-                              </span>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <DiceRollButton modifier={attackBonus} label={`${attack.name} Attack`} color="#ef4444" size="small" />
+                              <span style={{ color: '#94a3b8', fontSize: '10px' }}>{attack.damage || `1d6+${abilityMod}`}</span>
                             </div>
                           </div>
                         );
                       })}
-                      {/* Show equipped weapons from equipment */}
                       {(data.equipment || []).filter(e => e.equipped && (e.type === 'weapon' || e.damage)).map((weapon, i) => {
                         const isFinesse = weapon.properties?.includes('finesse');
-                        const abilityMod = isFinesse 
-                          ? Math.max(calculateModifier(data.strength), calculateModifier(data.dexterity))
-                          : calculateModifier(data.strength);
+                        const abilityMod = isFinesse ? Math.max(calculateModifier(data.strength), calculateModifier(data.dexterity)) : calculateModifier(data.strength);
                         const attackBonus = abilityMod + profBonus;
                         return (
                           <div key={`eq-${i}`} style={{
@@ -1342,171 +1178,258 @@ function CharacterSheetFull() {
                             justifyContent: 'space-between',
                             padding: '8px 10px',
                             background: 'rgba(239, 68, 68, 0.1)',
-                            borderRadius: '6px'
+                            borderRadius: '6px',
+                            borderLeft: '3px solid #ef4444'
                           }}>
                             <span style={{ color: '#e2e8f0', fontSize: '12px', fontWeight: '500' }}>{weapon.name}</span>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <DiceRollButton 
-                                modifier={attackBonus}
-                                label={`${weapon.name} Attack`}
-                                color="#ef4444"
-                                size="small"
-                              />
-                              <span style={{ color: '#94a3b8', fontSize: '11px' }}>
-                                {weapon.damage || '1d6'}{abilityMod >= 0 ? '+' : ''}{abilityMod}
-                              </span>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <DiceRollButton modifier={attackBonus} label={`${weapon.name} Attack`} color="#ef4444" size="small" />
+                              <span style={{ color: '#94a3b8', fontSize: '10px' }}>{weapon.damage || '1d6'}{abilityMod >= 0 ? '+' : ''}{abilityMod}</span>
                             </div>
                           </div>
                         );
                       })}
+                    </>
+                  ) : null}
+
+                  {/* Cast a Spell (if caster) */}
+                  {data.spellcasting_ability && (
+                    <>
+                      <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '8px', marginBottom: '2px' }}>CAST A SPELL</div>
+                      <div style={{
+                        padding: '8px 10px',
+                        background: 'rgba(168, 85, 247, 0.1)',
+                        borderRadius: '6px',
+                        borderLeft: '3px solid #a855f7'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ color: '#a855f7', fontSize: '11px', fontWeight: '500' }}>Spell Attack</span>
+                          <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '13px' }}>+{profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#a855f7', fontSize: '11px', fontWeight: '500' }}>Save DC</span>
+                          <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '13px' }}>{8 + profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Standard Actions */}
+                  <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '8px', marginBottom: '2px' }}>OTHER ACTIONS</div>
+                  {[
+                    { name: 'Dash', desc: 'Double movement' },
+                    { name: 'Disengage', desc: 'No opportunity attacks' },
+                    { name: 'Dodge', desc: 'Attacks have disadvantage' },
+                    { name: 'Help', desc: 'Give ally advantage' },
+                    { name: 'Hide', desc: 'Stealth check' },
+                    { name: 'Ready', desc: 'Prepare a reaction' },
+                  ].map(action => (
+                    <div key={action.name} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 10px',
+                      background: 'rgba(148, 163, 184, 0.05)',
+                      borderRadius: '4px'
+                    }}>
+                      <span style={{ color: '#e2e8f0', fontSize: '11px' }}>{action.name}</span>
+                      <span style={{ color: '#64748b', fontSize: '9px' }}>{action.desc}</span>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* BONUS ACTIONS Column */}
+              <div style={{ ...glassPanel, padding: '12px' }}>
+                <h3 style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Zap size={16} /> BONUS ACTIONS
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Class-specific bonus actions */}
+                  {data.bonus_actions?.length > 0 ? (
+                    data.bonus_actions.map((action, i) => (
+                      <div key={i} style={{
+                        padding: '8px 10px',
+                        background: 'rgba(245, 158, 11, 0.1)',
+                        borderRadius: '6px',
+                        borderLeft: '3px solid #f59e0b'
+                      }}>
+                        <span style={{ color: '#fbbf24', fontSize: '12px', fontWeight: '500', display: 'block' }}>{action.name}</span>
+                        {action.description && <span style={{ color: '#94a3b8', fontSize: '10px' }}>{action.description}</span>}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: '#64748b', fontSize: '11px', padding: '12px', textAlign: 'center', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '6px' }}>
+                      No class bonus actions.
+                      <br/><span style={{ fontSize: '9px' }}>Add in Edit mode or via class features.</span>
+                    </div>
+                  )}
+
+                  {/* Two-Weapon Fighting (if has offhand) */}
+                  {(data.equipment || []).filter(e => e.equipped && e.offhand).length > 0 && (
+                    <>
+                      <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '8px', marginBottom: '2px' }}>OFFHAND ATTACK</div>
+                      {(data.equipment || []).filter(e => e.equipped && e.offhand).map((weapon, i) => {
+                        const abilityMod = calculateModifier(data.dexterity);
+                        return (
+                          <div key={`off-${i}`} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            background: 'rgba(245, 158, 11, 0.1)',
+                            borderRadius: '6px',
+                            borderLeft: '3px solid #f59e0b'
+                          }}>
+                            <span style={{ color: '#fbbf24', fontSize: '12px', fontWeight: '500' }}>{weapon.name}</span>
+                            <span style={{ color: '#94a3b8', fontSize: '10px' }}>{weapon.damage || '1d6'}</span>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+
+                  {/* Spell slots for bonus action spells */}
+                  {data.spellcasting_ability && (
+                    <>
+                      <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '8px', marginBottom: '2px' }}>SPELL SLOTS</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                        {[1, 2, 3, 4, 5].map(level => {
+                          const maxSlots = data[`spell_slots_${level}`] || 0;
+                          const usedSlots = data[`spell_slots_${level}_used`] || 0;
+                          if (maxSlots === 0) return null;
+                          return (
+                            <div key={level} style={{ textAlign: 'center', padding: '4px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px' }}>
+                              <div style={{ color: '#a855f7', fontSize: '9px' }}>L{level}</div>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
+                                {Array.from({ length: maxSlots }).map((_, idx) => (
+                                  <div key={idx} style={{
+                                    width: '8px', height: '8px', borderRadius: '2px',
+                                    border: '1px solid #a855f7',
+                                    background: idx < usedSlots ? 'transparent' : '#a855f7'
+                                  }} />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
 
-              {/* Right Column: Spells + Conditions + All Skills */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Quick Spell Slots (if caster) */}
-                {data.spellcasting_ability && (
-                  <div style={{ ...glassPanel, padding: '12px' }}>
-                    <h3 style={{ color: '#a855f7', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Wand2 size={14} /> Spell Slots
-                    </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
-                        const slotKey = `spell_slots_${level}`;
-                        const usedKey = `spell_slots_${level}_used`;
-                        const maxSlots = data[slotKey] || 0;
-                        const usedSlots = data[usedKey] || 0;
-                        if (maxSlots === 0) return null;
-                        return (
-                          <div key={level} style={{ textAlign: 'center', padding: '4px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px' }}>
-                            <div style={{ color: '#a855f7', fontSize: '10px', marginBottom: '2px' }}>Lvl {level}</div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
-                              {Array.from({ length: maxSlots }).map((_, idx) => (
-                                <div
-                                  key={idx}
-                                  onClick={() => {
-                                    if (editMode) {
-                                      const newUsed = idx < usedSlots ? idx : idx + 1;
-                                      setEditData({ ...editData, [usedKey]: newUsed });
-                                    }
-                                  }}
-                                  style={{
-                                    width: '10px',
-                                    height: '10px',
-                                    borderRadius: '2px',
-                                    border: '1px solid #a855f7',
-                                    background: idx < usedSlots ? 'transparent' : '#a855f7',
-                                    cursor: editMode ? 'pointer' : 'default'
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      <div style={{ padding: '6px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
-                        <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block' }}>SAVE DC</span>
-                        <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '14px' }}>
-                          {8 + profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}
-                        </span>
+              {/* REACTIONS Column */}
+              <div style={{ ...glassPanel, padding: '12px' }}>
+                <h3 style={{ color: '#3b82f6', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <RefreshCw size={16} /> REACTIONS
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Opportunity Attack - Everyone has this */}
+                  <div style={{
+                    padding: '8px 10px',
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    borderRadius: '6px',
+                    borderLeft: '3px solid #3b82f6'
+                  }}>
+                    <span style={{ color: '#60a5fa', fontSize: '12px', fontWeight: '500', display: 'block' }}>Opportunity Attack</span>
+                    <span style={{ color: '#94a3b8', fontSize: '10px' }}>When enemy leaves your reach</span>
+                  </div>
+
+                  {/* Class-specific reactions */}
+                  {data.reactions?.length > 0 ? (
+                    data.reactions.map((reaction, i) => (
+                      <div key={i} style={{
+                        padding: '8px 10px',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: '6px',
+                        borderLeft: '3px solid #3b82f6'
+                      }}>
+                        <span style={{ color: '#60a5fa', fontSize: '12px', fontWeight: '500', display: 'block' }}>{reaction.name}</span>
+                        {reaction.description && <span style={{ color: '#94a3b8', fontSize: '10px' }}>{reaction.description}</span>}
                       </div>
-                      <div style={{ padding: '6px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
-                        <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block' }}>ATTACK</span>
-                        <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '14px' }}>
-                          +{profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}
-                        </span>
+                    ))
+                  ) : null}
+
+                  {/* Combat Resources */}
+                  <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '12px', marginBottom: '4px' }}>COMBAT RESOURCES</div>
+                  
+                  {/* Hit Dice */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    background: 'rgba(239, 68, 68, 0.05)',
+                    borderRadius: '6px'
+                  }}>
+                    <span style={{ color: '#94a3b8', fontSize: '11px' }}>Hit Dice</span>
+                    <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '13px' }}>
+                      {data.hit_dice_remaining ?? data.level}/{data.level}d{data.hit_die || 8}
+                    </span>
+                  </div>
+
+                  {/* Temp HP */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    background: 'rgba(34, 211, 238, 0.05)',
+                    borderRadius: '6px'
+                  }}>
+                    <span style={{ color: '#94a3b8', fontSize: '11px' }}>Temp HP</span>
+                    <span style={{ color: '#22d3ee', fontWeight: '700', fontSize: '13px' }}>{data.temp_hp || 0}</span>
+                  </div>
+
+                  {/* Death Saves */}
+                  <div style={{
+                    padding: '8px 10px',
+                    background: 'rgba(148, 163, 184, 0.05)',
+                    borderRadius: '6px'
+                  }}>
+                    <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>Death Saves</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ color: '#22c55e', fontSize: '9px' }}>Pass</span>
+                        {[0, 1, 2].map(i => (
+                          <div key={`s-${i}`} style={{
+                            width: '10px', height: '10px', borderRadius: '50%',
+                            border: '2px solid #22c55e',
+                            background: i < (data.death_save_success || 0) ? '#22c55e' : 'transparent'
+                          }} />
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ color: '#ef4444', fontSize: '9px' }}>Fail</span>
+                        {[0, 1, 2].map(i => (
+                          <div key={`f-${i}`} style={{
+                            width: '10px', height: '10px', borderRadius: '50%',
+                            border: '2px solid #ef4444',
+                            background: i < (data.death_save_failure || 0) ? '#ef4444' : 'transparent'
+                          }} />
+                        ))}
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* Prepared Spells Quick List */}
-                {data.spells_prepared?.length > 0 && (
-                  <div style={{ ...glassPanel, padding: '12px' }}>
-                    <h3 style={{ color: '#3b82f6', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Sparkles size={14} /> Prepared Spells
-                      </span>
-                      <span style={{ color: '#64748b', fontSize: '11px', fontWeight: '400' }}>{data.spells_prepared?.length || 0}</span>
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
-                      {data.spells_prepared.slice(0, 10).map((spell, i) => (
-                        <div key={i} style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          background: spell.level === 0 ? 'rgba(148, 163, 184, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                          borderRadius: '4px',
-                          fontSize: '11px'
-                        }}>
-                          <span style={{ color: '#e2e8f0' }}>{spell.name}</span>
-                          <span style={{ color: spell.level === 0 ? '#94a3b8' : '#3b82f6', fontSize: '10px' }}>
-                            {spell.level === 0 ? 'C' : spell.level}
-                          </span>
-                        </div>
-                      ))}
-                      {data.spells_prepared.length > 10 && (
-                        <button 
-                          onClick={() => setActiveTab('spells')}
-                          style={{ color: '#3b82f6', fontSize: '11px', textAlign: 'center', padding: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}
-                        >
-                          + {data.spells_prepared.length - 10} more...
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Conditions */}
-                <div style={{ ...glassPanel, padding: '12px' }}>
-                  <h3 style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CircleDot size={14} /> Conditions
-                  </h3>
+                  {/* Conditions */}
+                  <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: '600', marginTop: '8px', marginBottom: '4px' }}>CONDITIONS</div>
                   {(!data.conditions?.length) ? (
-                    <div style={{ color: '#22c55e', fontSize: '12px', padding: '8px', textAlign: 'center' }}>
-                      No active conditions
-                    </div>
+                    <div style={{ color: '#22c55e', fontSize: '11px', padding: '6px', textAlign: 'center' }}>None</div>
                   ) : (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {data.conditions.map((condition, i) => (
                         <span key={i} style={{
-                          padding: '4px 8px',
+                          padding: '3px 6px',
                           background: 'rgba(245, 158, 11, 0.2)',
-                          border: '1px solid rgba(245, 158, 11, 0.4)',
                           borderRadius: '4px',
                           color: '#fbbf24',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
-                          {condition}
-                        </span>
+                          fontSize: '10px'
+                        }}>{condition}</span>
                       ))}
                     </div>
                   )}
-                </div>
-
-                {/* Currency Quick View */}
-                <div style={{ ...glassPanel, padding: '12px' }}>
-                  <h3 style={{ color: '#eab308', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Coins size={14} /> Currency
-                  </h3>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    {['gp', 'sp', 'cp'].map(coin => {
-                      const fullName = coin === 'gp' ? 'gold' : coin === 'sp' ? 'silver' : 'copper';
-                      const color = coin === 'gp' ? '#eab308' : coin === 'sp' ? '#9ca3af' : '#b45309';
-                      return (
-                        <div key={coin} style={{ textAlign: 'center' }}>
-                          <span style={{ color, fontSize: '10px', display: 'block' }}>{coin.toUpperCase()}</span>
-                          <span style={{ color: '#fff', fontWeight: '700', fontSize: '14px' }}>{data.currency?.[fullName] || 0}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
             </div>
