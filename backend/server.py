@@ -36,8 +36,9 @@ JWT_EXPIRATION_HOURS = 24
 
 # Resend Email Configuration
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
-APP_URL = os.environ.get('APP_URL', 'http://localhost:3000')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@rookiequestkeeper.com')
+# Production URL - hardcoded to ensure password reset emails always use correct domain
+APP_URL = os.environ.get('APP_URL', 'https://rookiequestkeeper.com')
 
 # STRIPE INTEGRATION RE-ENABLED
 STRIPE_ENABLED = True
