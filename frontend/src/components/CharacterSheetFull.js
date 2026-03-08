@@ -974,39 +974,76 @@ function CharacterSheetFull() {
             {/* Divider */}
             <div style={{ width: '1px', height: '32px', background: 'rgba(148, 163, 184, 0.3)', margin: '0 2px' }} />
 
-            {/* Saving Throws */}
+            {/* Ability Score + Saving Throw Combined Boxes */}
             {ABILITIES.map(ability => {
               const mod = calculateModifier(data[ability.key]);
-              const isProficient = data.saving_throw_proficiencies?.includes(ability.key);
-              const saveMod = isProficient ? mod + profBonus : mod;
+              const isProficientSave = data.saving_throw_proficiencies?.includes(ability.key);
+              const saveMod = isProficientSave ? mod + profBonus : mod;
+              const Icon = ability.icon;
+              
               return (
                 <div
-                  key={`save-${ability.key}`}
-                  data-testid={`save-${ability.key}`}
+                  key={`ability-save-${ability.key}`}
+                  data-testid={`ability-save-${ability.key}`}
                   style={{
-                    padding: '6px 8px',
-                    background: isProficient ? `${ability.color}15` : 'rgba(30, 41, 59, 0.5)',
-                    border: isProficient ? `1px solid ${ability.color}40` : '1px solid rgba(148, 163, 184, 0.15)',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    border: '1px solid rgba(148, 163, 184, 0.15)',
                     borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
+                    overflow: 'hidden',
+                    minWidth: '52px'
                   }}
                 >
-                  <ability.icon size={12} color={isProficient ? ability.color : '#64748b'} />
-                  <div>
+                  {/* Top: Ability Modifier */}
+                  <div style={{
+                    padding: '6px 10px',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Icon size={12} color={ability.color} />
+                      <span style={{ color: ability.color, fontSize: '9px', fontWeight: '700' }}>
+                        {ability.label}
+                      </span>
+                    </div>
+                    <DiceRollButton 
+                      modifier={mod}
+                      label={`${ability.fullName} Check`}
+                      color={ability.color}
+                      size="small"
+                      showDice={false}
+                    />
+                  </div>
+                  
+                  {/* Divider line */}
+                  <div style={{ 
+                    height: '1px', 
+                    background: 'rgba(148, 163, 184, 0.3)',
+                    margin: '0'
+                  }} />
+                  
+                  {/* Bottom: Saving Throw - highlighted if proficient */}
+                  <div style={{
+                    padding: '4px 10px',
+                    textAlign: 'center',
+                    background: isProficientSave ? `${ability.color}20` : 'transparent',
+                    borderTop: isProficientSave ? `1px solid ${ability.color}40` : 'none'
+                  }}>
                     <span style={{ 
-                      color: '#94a3b8', 
+                      color: isProficientSave ? ability.color : '#64748b', 
                       fontSize: '8px', 
-                      display: 'block', 
-                      letterSpacing: '0.5px'
+                      display: 'block',
+                      fontWeight: isProficientSave ? '600' : '400',
+                      textDecoration: isProficientSave ? 'underline' : 'none'
                     }}>
-                      {ability.label}
+                      SAVE
                     </span>
                     <DiceRollButton 
                       modifier={saveMod}
                       label={`${ability.fullName} Save`}
-                      color={isProficient ? ability.color : '#64748b'}
+                      color={isProficientSave ? ability.color : '#64748b'}
                       size="small"
                       showDice={false}
                     />
