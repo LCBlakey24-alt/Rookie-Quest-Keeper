@@ -145,6 +145,8 @@ function App() {
     localStorage.setItem('dm_username', username);
     setIsAuthenticated(true);
     setUsername(username);
+    // Force redirect to home after login
+    window.location.href = '/home';
   };
 
   const handleLogout = () => {

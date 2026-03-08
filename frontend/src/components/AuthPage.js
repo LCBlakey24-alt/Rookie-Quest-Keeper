@@ -40,11 +40,16 @@ const theme = {
 
 function AuthPage({ onLogin }) {
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState('login');
+  
+  // Check for reset token immediately on component mount
+  const initialToken = searchParams.get('token');
+  const initialMode = initialToken ? 'reset' : 'login';
+  
+  const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ email: '', username: '', password: '', referral_code: '' });
   const [forgotEmail, setForgotEmail] = useState('');
-  const [resetData, setResetData] = useState({ token: '', new_password: '', confirm_password: '' });
+  const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '', confirm_password: '' });
   const [loading, setLoading] = useState(false);
   const [referralFromUrl, setReferralFromUrl] = useState(null);
 
