@@ -212,7 +212,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           marginBottom: '32px'
         }}>
           <Button
-            onClick={() => navigate('/campaigns')}
+            onClick={() => navigate('/home')}
             className="btn-outline"
             style={{ padding: '8px 16px' }}
             data-testid="back-btn"
