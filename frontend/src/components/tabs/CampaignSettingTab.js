@@ -128,6 +128,77 @@ function CampaignSettingTab({ campaignId }) {
     }
   };
 
+  // Campaign Content (Structured Rulesets) state
+  const [campaignContent, setCampaignContent] = useState({ races: [], classes: [], subclasses: [], backgrounds: [], feats: [], rulesets: [] });
+  const [uploadingRuleset, setUploadingRuleset] = useState(false);
+
+  const fetchCampaignContent = async () => {
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}/content`);
+      setCampaignContent(response.data || { races: [], classes: [], subclasses: [], backgrounds: [], feats: [], rulesets: [] });
+    } catch (error) {
+      console.error('Failed to load campaign content');
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaignContent();
+  }, [campaignId]);
+
+  const handleRulesetJsonUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.endsWith('.json')) {
+      toast.error('Please upload a JSON file');
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingRuleset(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Validate required fields
+      if (!data.ruleset_name) {
+        toast.error('JSON must include "ruleset_name" field');
+        return;
+      }
+
+      // Upload to API
+      await axios.post(`${API}/campaigns/${campaignId}/content/bulk-upload`, data);
+      
+      toast.success(`Ruleset "${data.ruleset_name}" uploaded! ${
+        (data.races?.length || 0) + (data.classes?.length || 0) + (data.subclasses?.length || 0) + (data.backgrounds?.length || 0) + (data.feats?.length || 0)
+      } items added.`);
+      
+      fetchCampaignContent();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        toast.error('Invalid JSON format. Please check your file.');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to upload ruleset');
+      }
+    } finally {
+      setUploadingRuleset(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteRuleset = async (rulesetId, rulesetName) => {
+    if (!window.confirm(`Delete ruleset "${rulesetName}" and ALL its content (races, classes, etc.)? This cannot be undone.`)) return;
+    
+    try {
+      await axios.delete(`${API}/campaigns/${campaignId}/content/rulesets/${rulesetId}`);
+      toast.success('Ruleset deleted');
+      fetchCampaignContent();
+    } catch (error) {
+      toast.error('Failed to delete ruleset');
+    }
+  };
+
   const handleSaveWorldSetting = async () => {
     setSavingWorldSetting(true);
     try {
@@ -486,6 +557,160 @@ function CampaignSettingTab({ campaignId }) {
                 ))}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Character Creation Content (JSON Rulesets) */}
+        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#F59E0B' }}>
+          <h3 style={{ 
+            fontSize: '16px', 
+            color: '#ffffff', 
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <BookOpen size={18} style={{ color: '#F59E0B' }} />
+            Character Creation Content
+          </h3>
+          <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px' }}>
+            Upload JSON rulesets with races, classes, subclasses, backgrounds, and feats. 
+            Players in your campaign can use these options when creating characters.
+            <br/><br/>
+            <strong style={{ color: '#F59E0B' }}>Tip:</strong> Ask ChatGPT to create a JSON file with your ruleset! 
+            Example prompt: "Create a JSON file with D&D 5e 2014 PHB races and classes in this format: {'{'}ruleset_name, races: [{'{'}name, ability_bonuses, traits...{'}'}], classes: [...]{'}'}".
+          </p>
+          
+          {/* Upload JSON button */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              padding: '12px 20px',
+              background: '#F59E0B',
+              color: 'black',
+              borderRadius: '8px',
+              cursor: uploadingRuleset ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              opacity: uploadingRuleset ? 0.5 : 1
+            }}>
+              <Upload size={18} />
+              {uploadingRuleset ? 'Uploading...' : 'Upload Ruleset JSON'}
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleRulesetJsonUpload}
+                disabled={uploadingRuleset}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+          
+          {/* Display uploaded rulesets and content counts */}
+          {campaignContent.rulesets?.length > 0 && (
+            <div>
+              <h4 style={{ fontSize: '13px', color: '#808080', marginBottom: '10px' }}>
+                Uploaded Rulesets
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {campaignContent.rulesets.map(rs => (
+                  <div 
+                    key={rs.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px',
+                      background: '#1A1A1A',
+                      borderRadius: '8px',
+                      border: '1px solid #F59E0B33'
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: '#F59E0B', fontSize: '14px', fontWeight: '600' }}>{rs.name}</span>
+                      {rs.description && (
+                        <p style={{ color: '#666', fontSize: '12px', margin: '4px 0 0 0' }}>{rs.description}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDeleteRuleset(rs.id, rs.name)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#666',
+                        cursor: 'pointer',
+                        padding: '4px'
+                      }}
+                      title="Delete ruleset and all its content"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Content summary */}
+          {campaignContent.has_custom_content && (
+            <div style={{ 
+              background: '#1A1A1A', 
+              padding: '12px', 
+              borderRadius: '8px',
+              border: '1px solid #333'
+            }}>
+              <h4 style={{ fontSize: '13px', color: '#808080', marginBottom: '8px' }}>
+                Available for Character Creation
+              </h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px' }}>
+                {campaignContent.races?.length > 0 && (
+                  <span style={{ color: '#E0E0E0' }}>
+                    <strong style={{ color: '#F59E0B' }}>{campaignContent.races.length}</strong> Races
+                  </span>
+                )}
+                {campaignContent.classes?.length > 0 && (
+                  <span style={{ color: '#E0E0E0' }}>
+                    <strong style={{ color: '#F59E0B' }}>{campaignContent.classes.length}</strong> Classes
+                  </span>
+                )}
+                {campaignContent.subclasses?.length > 0 && (
+                  <span style={{ color: '#E0E0E0' }}>
+                    <strong style={{ color: '#F59E0B' }}>{campaignContent.subclasses.length}</strong> Subclasses
+                  </span>
+                )}
+                {campaignContent.backgrounds?.length > 0 && (
+                  <span style={{ color: '#E0E0E0' }}>
+                    <strong style={{ color: '#F59E0B' }}>{campaignContent.backgrounds.length}</strong> Backgrounds
+                  </span>
+                )}
+                {campaignContent.feats?.length > 0 && (
+                  <span style={{ color: '#E0E0E0' }}>
+                    <strong style={{ color: '#F59E0B' }}>{campaignContent.feats.length}</strong> Feats
+                  </span>
+                )}
+              </div>
+              <div style={{ marginTop: '12px' }}>
+                <a 
+                  href={`/characters/new?campaignId=${campaignId}`}
+                  style={{
+                    color: '#F59E0B',
+                    fontSize: '13px',
+                    textDecoration: 'underline',
+                    cursor: 'pointer'
+                  }}
+                >
+                  → Create a character using this content
+                </a>
+              </div>
+            </div>
+          )}
+          
+          {!campaignContent.has_custom_content && (
+            <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
+              No custom content uploaded yet. Upload a JSON ruleset to give your players custom character options.
+            </p>
           )}
         </div>
 

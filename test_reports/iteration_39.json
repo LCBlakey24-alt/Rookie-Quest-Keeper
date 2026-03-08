@@ -1,0 +1,88 @@
+{
+  "summary": "Structured Ruleset Integration for Character Builder - All 16 tests PASSED. Backend API: 11/11 passed. Frontend E2E: 5/5 passed. Feature allows GMs to upload custom races, classes, subclasses, backgrounds, and feats that players can use when creating characters.",
+  "mode": "generate",
+  "baseline_commit": "371d5774fca61298f3e81cb5c75ed964eadc2357",
+  "head_commit": "b5e71a5c8ac83107cfd5b78842dae5f30913af07",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_results": {
+    "total_specs": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "backend_campaign_content": "11/11 passed - Campaign content API tests",
+      "frontend_campaign_builder": "5/5 passed - Character Builder with campaign content"
+    }
+  },
+  "specs_created": [
+    "/app/backend/tests/test_campaign_content.py",
+    "/app/tests/e2e/campaign-character-builder.spec.ts"
+  ],
+  "specs_updated": [],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_campaign_content.py",
+    "/app/test_reports/pytest/campaign_content_results.xml",
+    "/app/tests/e2e/campaign-character-builder.spec.ts"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_campaign_content.py",
+    "/app/tests/e2e/campaign-character-builder.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100% (5/5 tests passed)"
+  },
+  "seed_data_creation": "Used existing test campaign eabd4ae0-d1d8-40a5-858e-f7772af1d2ce with custom races and classes",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Structured Ruleset Integration tested successfully. Key findings: 1) Character Builder uses route /characters/new (NOT /create-character). 2) Campaign content loaded via ?campaignId=xxx query param. 3) Custom content displays with star (★) indicators in orange/gold styling. 4) Custom races, classes appear BEFORE standard content in lists. 5) ability_bonuses object is correctly formatted to string (e.g., {strength: 2, charisma: 1} becomes '+2 STR, +1 CHA'). 6) Toast notification shows when custom content loads. 7) Campaign name displays in header with 'For Campaign:' prefix.",
+  "features_tested": {
+    "backend_api": {
+      "status": "PASS",
+      "endpoints": [
+        "GET /api/campaigns/{id}/content - Returns all custom content",
+        "GET /api/campaigns/{id}/content/races - Returns custom races",
+        "GET /api/campaigns/{id}/content/classes - Returns custom classes",
+        "GET /api/campaigns/{id}/content/subclasses - Returns custom subclasses",
+        "GET /api/campaigns/{id}/content/backgrounds - Returns custom backgrounds",
+        "GET /api/campaigns/{id}/content/feats - Returns custom feats",
+        "GET /api/campaigns/{id} - Returns campaign info including name"
+      ],
+      "data_format": {
+        "ability_bonuses": "Object format {strength: 2, charisma: 1}",
+        "has_custom_content": "Boolean flag indicating if custom content exists",
+        "rulesets": "Array of uploaded ruleset metadata"
+      }
+    },
+    "frontend_character_builder": {
+      "status": "PASS",
+      "features": [
+        "Campaign name in header with star icon",
+        "CUSTOM CONTENT AVAILABLE badge",
+        "Star (★) indicators on custom races/classes",
+        "Campaign Custom section at top of race list",
+        "Ability bonuses formatted as +X STR, +Y CHA",
+        "Toast notification on content load",
+        "Custom content positioned before standard content"
+      ],
+      "route": "/characters/new?campaignId={uuid}",
+      "data_testids": [
+        "ai-prompt",
+        "ai-generate-btn", 
+        "character-name",
+        "create-character-btn"
+      ]
+    }
+  }
+}

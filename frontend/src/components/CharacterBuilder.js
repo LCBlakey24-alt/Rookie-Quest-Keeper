@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 import { 
   ArrowLeft, ArrowRight, User, Sparkles, Loader, Wand2, 
-  Check, Shield, Heart, Swords, BookOpen, Image, Dices
+  Check, Shield, Heart, Swords, BookOpen, Image, Dices, Star
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -294,10 +294,18 @@ const ALIGNMENTS = [
 
 function CharacterBuilder() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const campaignId = searchParams.get('campaignId');
+  
   const [step, setStep] = useState(1);
   const [creating, setCreating] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeInfo, setUpgradeInfo] = useState(null);
+  
+  // Campaign content state (custom races, classes, etc. from GM's uploaded rulesets)
+  const [campaignContent, setCampaignContent] = useState(null);
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [campaignName, setCampaignName] = useState('');
   
   // AI Generation state
   const [aiPrompt, setAiPrompt] = useState('');
@@ -314,6 +322,142 @@ function CharacterBuilder() {
   const [isRolling, setIsRolling] = useState(false);
   const [rolledStats, setRolledStats] = useState({});
   const [diceAnimation, setDiceAnimation] = useState(null);
+  
+  // Fetch campaign content if campaignId is provided
+  useEffect(() => {
+    if (campaignId) {
+      fetchCampaignContent();
+      fetchCampaignName();
+    }
+  }, [campaignId]);
+  
+  const fetchCampaignContent = async () => {
+    setLoadingContent(true);
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}/content`);
+      setCampaignContent(response.data);
+      if (response.data.has_custom_content) {
+        toast.success('Custom content loaded!', {
+          description: 'Campaign-specific races, classes, and more are available'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load campaign content:', error);
+    } finally {
+      setLoadingContent(false);
+    }
+  };
+  
+  const fetchCampaignName = async () => {
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}`);
+      setCampaignName(response.data.name || '');
+    } catch (error) {
+      console.error('Failed to load campaign name');
+    }
+  };
+  
+  // Helper to format ability bonuses from object to string
+  const formatAbilityBonuses = (bonuses) => {
+    if (!bonuses) return 'Custom race';
+    if (typeof bonuses === 'string') return bonuses;
+    if (typeof bonuses === 'object') {
+      const parts = [];
+      const statMap = {
+        strength: 'STR', dexterity: 'DEX', constitution: 'CON',
+        intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA'
+      };
+      for (const [stat, value] of Object.entries(bonuses)) {
+        if (value) {
+          const abbrev = statMap[stat.toLowerCase()] || stat.toUpperCase();
+          parts.push(`+${value} ${abbrev}`);
+        }
+      }
+      return parts.join(', ') || 'Custom race';
+    }
+    return 'Custom race';
+  };
+  
+  // Merge default options with campaign custom content
+  const getMergedRaces = () => {
+    const defaultRaces = RACES.map(r => ({ ...r, isCustom: false }));
+    if (!campaignContent?.races?.length) return defaultRaces;
+    
+    const customRaces = campaignContent.races.map(r => ({
+      name: r.name,
+      bonus: formatAbilityBonuses(r.ability_bonuses) || r.description || 'Custom race',
+      source: r.source || 'Custom',
+      isCustom: true,
+      fullData: r
+    }));
+    
+    return [...customRaces, ...defaultRaces];
+  };
+  
+  const getMergedClasses = () => {
+    const defaultClasses = CLASSES.map(c => ({ ...c, isCustom: false }));
+    if (!campaignContent?.classes?.length) return defaultClasses;
+    
+    const customClasses = campaignContent.classes.map(c => ({
+      name: c.name,
+      color: c.color || '#F59E0B',
+      hitDie: c.hit_die || 'd8',
+      primary: c.primary_ability || 'Varies',
+      isCustom: true,
+      fullData: c
+    }));
+    
+    return [...customClasses, ...defaultClasses];
+  };
+  
+  const getMergedBackgrounds = () => {
+    const defaultBackgrounds = BACKGROUNDS.map(b => ({ ...b, isCustom: false }));
+    if (!campaignContent?.backgrounds?.length) return defaultBackgrounds;
+    
+    const customBackgrounds = campaignContent.backgrounds.map(b => ({
+      name: b.name,
+      feature: b.feature || 'Custom feature',
+      skills: b.skill_proficiencies || [],
+      tools: b.tool_proficiencies || [],
+      languages: b.languages || 0,
+      isCustom: true,
+      fullData: b
+    }));
+    
+    return [...customBackgrounds, ...defaultBackgrounds];
+  };
+  
+  const getMergedSubclasses = (className) => {
+    const defaultSubclasses = (SUBCLASSES[className] || []).map(s => ({ ...s, isCustom: false }));
+    if (!campaignContent?.subclasses?.length) return defaultSubclasses;
+    
+    const customSubclasses = campaignContent.subclasses
+      .filter(s => s.parent_class === className)
+      .map(s => ({
+        name: s.name,
+        level: s.subclass_level || 3,
+        description: s.description || 'Custom subclass',
+        isCustom: true,
+        fullData: s
+      }));
+    
+    return [...customSubclasses, ...defaultSubclasses];
+  };
+  
+  const getMergedFeats = () => {
+    const defaultFeats = FEATS.map(f => ({ ...f, isCustom: false }));
+    if (!campaignContent?.feats?.length) return defaultFeats;
+    
+    const customFeats = campaignContent.feats.map(f => ({
+      name: f.name,
+      description: f.description || 'Custom feat',
+      prereq: f.prerequisites || 'None',
+      isCustom: true,
+      fullData: f
+    }));
+    
+    return [...customFeats, ...defaultFeats];
+  };
   
   const [characterData, setCharacterData] = useState({
     name: '',
@@ -343,11 +487,18 @@ function CharacterBuilder() {
 
   // Check if class is a spellcaster
   const isCaster = ['Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'].includes(characterData.character_class);
-  const availableSubclasses = SUBCLASSES[characterData.character_class] || [];
+  
+  // Use merged content (custom + defaults)
+  const mergedRaces = getMergedRaces();
+  const mergedClasses = getMergedClasses();
+  const mergedBackgrounds = getMergedBackgrounds();
+  const availableSubclasses = getMergedSubclasses(characterData.character_class);
+  const mergedFeats = getMergedFeats();
+  
   const availableCantrips = CANTRIPS[characterData.character_class] || [];
   const availableSpells = LEVEL_1_SPELLS[characterData.character_class] || [];
   const startingEquipment = STARTING_EQUIPMENT[characterData.character_class] || [];
-  const selectedBackground = BACKGROUNDS.find(b => b.name === characterData.background) || BACKGROUNDS[0];
+  const selectedBackground = mergedBackgrounds.find(b => b.name === characterData.background) || BACKGROUNDS[0];
 
   const handleChange = (field, value) => {
     setCharacterData(prev => ({ ...prev, [field]: value }));
@@ -531,7 +682,8 @@ function CharacterBuilder() {
         max_hp: parseInt(CLASSES.find(c => c.name === characterData.character_class)?.hitDie?.slice(1) || 8) + 
                 Math.floor((characterData.constitution - 10) / 2),
         armor_class: 10 + Math.floor((characterData.dexterity - 10) / 2),
-        portrait_url: portraitImage || null
+        portrait_url: portraitImage || null,
+        campaign_id: campaignId || null  // Link to campaign if creating for a specific campaign
       };
 
       await axios.post(`${API}/characters`, payload);
@@ -590,8 +742,41 @@ function CharacterBuilder() {
             }}>
               Create Character
             </h1>
+            {campaignId && campaignName && (
+              <p style={{ color: '#F59E0B', fontSize: '13px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Star size={14} />
+                For campaign: <strong>{campaignName}</strong>
+                {campaignContent?.has_custom_content && (
+                  <span style={{ 
+                    background: 'rgba(245, 158, 11, 0.2)', 
+                    border: '1px solid #F59E0B',
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    marginLeft: '8px'
+                  }}>
+                    Custom Content Available
+                  </span>
+                )}
+              </p>
+            )}
           </div>
         </div>
+
+        {/* Loading indicator for campaign content */}
+        {loadingContent && (
+          <div style={{ 
+            background: 'rgba(245, 158, 11, 0.1)', 
+            border: '1px solid #F59E0B',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <Loader size={16} className="spin" style={{ color: '#F59E0B' }} />
+            <span style={{ color: '#F59E0B', fontSize: '13px' }}>Loading campaign content...</span>
+          </div>
+        )}
 
         {/* Progress Steps */}
         <div style={{ 
@@ -792,7 +977,7 @@ function CharacterBuilder() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', color: '#22D3EE', fontSize: '13px', fontWeight: '600' }}>
-                      Race
+                      Race {campaignContent?.races?.length > 0 && <span style={{ color: '#F59E0B', fontSize: '10px' }}>★ Custom available</span>}
                     </label>
                     <select
                       value={characterData.race}
@@ -800,14 +985,23 @@ function CharacterBuilder() {
                       className="input"
                       style={{ width: '100%' }}
                     >
-                      {RACES.map(r => (
-                        <option key={r.name} value={r.name}>{r.name}</option>
-                      ))}
+                      {campaignContent?.races?.length > 0 && (
+                        <optgroup label="★ Campaign Custom">
+                          {campaignContent.races.map(r => (
+                            <option key={`custom-${r.name}`} value={r.name}>★ {r.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Standard Races">
+                        {RACES.map(r => (
+                          <option key={r.name} value={r.name}>{r.name}</option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', color: '#22D3EE', fontSize: '13px', fontWeight: '600' }}>
-                      Class
+                      Class {campaignContent?.classes?.length > 0 && <span style={{ color: '#F59E0B', fontSize: '10px' }}>★ Custom available</span>}
                     </label>
                     <select
                       value={characterData.character_class}
@@ -815,9 +1009,18 @@ function CharacterBuilder() {
                       className="input"
                       style={{ width: '100%' }}
                     >
-                      {CLASSES.map(c => (
-                        <option key={c.name} value={c.name}>{c.name}</option>
-                      ))}
+                      {campaignContent?.classes?.length > 0 && (
+                        <optgroup label="★ Campaign Custom">
+                          {campaignContent.classes.map(c => (
+                            <option key={`custom-${c.name}`} value={c.name}>★ {c.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Standard Classes">
+                        {CLASSES.map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                 </div>
@@ -825,7 +1028,7 @@ function CharacterBuilder() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', color: '#22D3EE', fontSize: '13px', fontWeight: '600' }}>
-                      Background
+                      Background {campaignContent?.backgrounds?.length > 0 && <span style={{ color: '#F59E0B', fontSize: '10px' }}>★ Custom available</span>}
                     </label>
                     <select
                       value={characterData.background}
@@ -833,9 +1036,18 @@ function CharacterBuilder() {
                       className="input"
                       style={{ width: '100%' }}
                     >
-                      {BACKGROUNDS.map(b => (
-                        <option key={b.name} value={b.name}>{b.name}</option>
-                      ))}
+                      {campaignContent?.backgrounds?.length > 0 && (
+                        <optgroup label="★ Campaign Custom">
+                          {campaignContent.backgrounds.map(b => (
+                            <option key={`custom-${b.name}`} value={b.name}>★ {b.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Standard Backgrounds">
+                        {BACKGROUNDS.map(b => (
+                          <option key={b.name} value={b.name}>{b.name}</option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   <div>
@@ -867,8 +1079,38 @@ function CharacterBuilder() {
                   <User size={20} style={{ marginRight: '8px', verticalAlign: 'middle', color: '#22D3EE' }} />
                   Choose Race
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {RACES.map(race => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
+                  {/* Custom races first */}
+                  {mergedRaces.filter(r => r.isCustom).length > 0 && (
+                    <>
+                      <div style={{ color: '#F59E0B', fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Star size={14} /> Campaign Custom
+                      </div>
+                      {mergedRaces.filter(r => r.isCustom).map(race => (
+                        <button
+                          key={`custom-${race.name}`}
+                          onClick={() => handleChange('race', race.name)}
+                          style={{
+                            padding: '14px 16px',
+                            background: characterData.race === race.name ? 'rgba(245, 158, 11, 0.15)' : '#1F2937',
+                            border: characterData.race === race.name ? '2px solid #F59E0B' : '1px solid #F59E0B50',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <span style={{ color: '#F59E0B', fontWeight: '600', fontSize: '14px' }}>★ {race.name}</span>
+                          <span style={{ color: '#9CA3AF', fontSize: '12px' }}>{race.bonus}</span>
+                        </button>
+                      ))}
+                      <div style={{ borderBottom: '1px solid #374151', margin: '8px 0' }} />
+                    </>
+                  )}
+                  {/* Standard races */}
+                  {mergedRaces.filter(r => !r.isCustom).map(race => (
                     <button
                       key={race.name}
                       onClick={() => handleChange('race', race.name)}
@@ -899,8 +1141,33 @@ function CharacterBuilder() {
                   <Swords size={20} style={{ marginRight: '8px', verticalAlign: 'middle', color: getClassColor() }} />
                   Choose Class
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {CLASSES.map(cls => (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
+                  {/* Custom classes first */}
+                  {mergedClasses.filter(c => c.isCustom).length > 0 && (
+                    <>
+                      {mergedClasses.filter(c => c.isCustom).map(cls => (
+                        <button
+                          key={`custom-${cls.name}`}
+                          onClick={() => handleChange('character_class', cls.name)}
+                          style={{
+                            padding: '12px',
+                            background: characterData.character_class === cls.name ? 'rgba(245, 158, 11, 0.25)' : '#1F2937',
+                            border: characterData.character_class === cls.name ? '2px solid #F59E0B' : '1px solid #F59E0B50',
+                            borderRadius: '10px',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            gridColumn: 'span 2'
+                          }}
+                        >
+                          <div style={{ color: '#F59E0B', fontWeight: '600', fontSize: '13px' }}>★ {cls.name}</div>
+                          <div style={{ color: '#9CA3AF', fontSize: '11px' }}>{cls.hitDie} • {cls.primary}</div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {/* Standard classes */}
+                  {mergedClasses.filter(c => !c.isCustom).map(cls => (
                     <button
                       key={cls.name}
                       onClick={() => handleChange('character_class', cls.name)}
@@ -1215,9 +1482,32 @@ function CharacterBuilder() {
                   <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Shield size={20} style={{ color: playerBlue }} />
                     Choose Your Subclass
+                    {availableSubclasses.some(s => s.isCustom) && (
+                      <span style={{ color: '#F59E0B', fontSize: '11px', fontWeight: '500' }}>★ Custom available</span>
+                    )}
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
-                    {availableSubclasses.map(sub => (
+                    {/* Custom subclasses first */}
+                    {availableSubclasses.filter(s => s.isCustom).map(sub => (
+                      <button
+                        key={`custom-${sub.name}`}
+                        onClick={() => handleChange('subclass', sub.name)}
+                        style={{
+                          padding: '16px',
+                          background: characterData.subclass === sub.name ? 'rgba(245, 158, 11, 0.15)' : '#1F1F1F',
+                          border: characterData.subclass === sub.name ? '2px solid #F59E0B' : '1px solid #F59E0B50',
+                          color: characterData.subclass === sub.name ? '#F59E0B' : '#fff',
+                          textAlign: 'left',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ fontWeight: '600', marginBottom: '4px', color: '#F59E0B' }}>★ {sub.name}</div>
+                        <div style={{ fontSize: '12px', color: '#808080' }}>{sub.description}</div>
+                        <div style={{ fontSize: '11px', color: '#F59E0B', marginTop: '8px' }}>Unlocks at Level {sub.level}</div>
+                      </button>
+                    ))}
+                    {/* Standard subclasses */}
+                    {availableSubclasses.filter(s => !s.isCustom).map(sub => (
                       <button
                         key={sub.name}
                         onClick={() => handleChange('subclass', sub.name)}
@@ -1356,12 +1646,35 @@ function CharacterBuilder() {
                   <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Sparkles size={20} style={{ color: playerBlue }} />
                     Optional Starting Feat
+                    {mergedFeats.some(f => f.isCustom) && (
+                      <span style={{ color: '#F59E0B', fontSize: '11px', fontWeight: '500' }}>★ Custom available</span>
+                    )}
                   </h3>
                   <p style={{ color: '#808080', fontSize: '13px', marginBottom: '12px' }}>
                     If your DM allows variant human or a free feat at level 1
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
-                    {FEATS.map(feat => (
+                    {/* Custom feats first */}
+                    {mergedFeats.filter(f => f.isCustom).map(feat => (
+                      <button
+                        key={`custom-${feat.name}`}
+                        onClick={() => handleChange('selectedFeat', feat.name === characterData.selectedFeat ? '' : feat.name)}
+                        style={{
+                          padding: '12px',
+                          background: characterData.selectedFeat === feat.name ? 'rgba(245, 158, 11, 0.15)' : '#1F1F1F',
+                          border: characterData.selectedFeat === feat.name ? '1px solid #F59E0B' : '1px solid #F59E0B50',
+                          color: characterData.selectedFeat === feat.name ? '#F59E0B' : '#fff',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <div style={{ fontWeight: '600', marginBottom: '2px', color: '#F59E0B' }}>★ {feat.name}</div>
+                        <div style={{ color: '#808080', fontSize: '11px' }}>{feat.description}</div>
+                      </button>
+                    ))}
+                    {/* Standard feats */}
+                    {mergedFeats.filter(f => !f.isCustom).map(feat => (
                       <button
                         key={feat.name}
                         onClick={() => handleChange('selectedFeat', feat.name === characterData.selectedFeat ? '' : feat.name)}

@@ -8,7 +8,7 @@ import requests
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://keeper-campaigns.preview.emergentagent.com"
+BASE_URL = "https://rook-gm-tools.preview.emergentagent.com"
 
 # Test credentials
 GM_TEST_EMAIL = "gmtest@test.com"
