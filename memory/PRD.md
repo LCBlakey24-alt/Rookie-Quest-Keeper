@@ -271,6 +271,17 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - [ ] None
 
 ### Completed (March 2026)
+- [x] **STRUCTURED RULESET INTEGRATION FOR CHARACTER CREATOR (March 2026)** - Full custom content system
+  - GMs can upload JSON rulesets with custom races, classes, subclasses, backgrounds, and feats
+  - Backend API: POST /api/campaigns/{id}/content/bulk-upload, GET /api/campaigns/{id}/content
+  - Character Builder accepts ?campaignId=xxx query parameter to load campaign-specific content
+  - Custom content displays with orange/gold styling and star (★) indicators
+  - Custom races, classes, etc. appear BEFORE standard content in selection lists
+  - Ability bonuses object (e.g., {strength: 2, charisma: 1}) automatically formatted to "+2 STR, +1 CHA"
+  - Campaign name and "Custom Content Available" badge shown in Character Builder header
+  - Toast notification when custom content loads successfully
+  - Link in Campaign Settings to create character using campaign content
+  - 16/16 tests passed (11 backend, 5 frontend E2E)
 - [x] **Context-Aware ROOK AI** - AI now pulls campaign setting, NPCs, locations, gods, and notes to generate tailored content
 - [x] **Sidebar Tab Grouping** - Organized tabs into World/Combat groups + standalone tabs (References, Inventory, Players, Notes)
 - [x] **Maps renamed to Battle Maps**
@@ -569,14 +580,24 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 ---
 
 ## Next Steps
-1. Complete frontend UI for the Level-Up Wizard using the new progression API
-2. Party Inventory (Hero Tier Feature) - shared loot tracking
-3. Landing Page Enhancements - social proof, player invites, quick start templates
-4. Session Recap AI (Quest Master Tier) - AI-powered session summaries
-5. Smart Entity Linking - auto-link NPC names, locations in notes
-6. Mobile Responsiveness Audit - GM Screen for tablets, Character Sheet for mobile
+1. Implement "Session Mode" - One-click focused GM view for live play (P1)
+2. Quick Start Tutorial for new GMs (P2)
+3. Backend refactoring - Split server.py into domain-specific routers
+4. Mobile Responsiveness Audit - GM Screen for tablets, Character Sheet for mobile
 
 ---
+
+## API Endpoints - Campaign Content
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/campaigns/{id}/content/bulk-upload` | Upload JSON ruleset with races, classes, subclasses, backgrounds, feats |
+| `GET /api/campaigns/{id}/content` | Get all custom content for a campaign |
+| `GET /api/campaigns/{id}/content/races` | Get custom races |
+| `GET /api/campaigns/{id}/content/classes` | Get custom classes |
+| `GET /api/campaigns/{id}/content/subclasses` | Get custom subclasses |
+| `GET /api/campaigns/{id}/content/backgrounds` | Get custom backgrounds |
+| `GET /api/campaigns/{id}/content/feats` | Get custom feats |
 
 ## API Endpoints - SRD Reference Data
 
