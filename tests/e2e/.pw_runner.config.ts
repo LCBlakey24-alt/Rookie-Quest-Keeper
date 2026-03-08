@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260308_092516/results.json' }],
   ],
   use: {
-    baseURL: 'https://rook-gm-tools.preview.emergentagent.com',
+    baseURL: 'https://rook-sheet-staging.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,

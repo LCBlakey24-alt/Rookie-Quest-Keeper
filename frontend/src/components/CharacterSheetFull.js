@@ -55,14 +55,12 @@ const ABILITIES = [
   { key: 'charisma', label: 'CHA', fullName: 'Charisma', color: '#A855F7', icon: Star }
 ];
 
-// Tab configuration
+// Tab configuration - Consolidated for less clicking
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: User },
-  { id: 'abilities', label: 'Abilities & Skills', icon: Dumbbell },
+  { id: 'combat', label: 'Combat', icon: Sword },
+  { id: 'character', label: 'Character', icon: User },
   { id: 'spells', label: 'Spells', icon: Wand2 },
-  { id: 'features', label: 'Features & Feats', icon: Crown },
-  { id: 'equipment', label: 'Equipment', icon: Swords },
-  { id: 'notes', label: 'Notes & Bio', icon: ScrollText }
+  { id: 'inventory', label: 'Inventory', icon: Package }
 ];
 
 // Spell level labels
@@ -482,7 +480,7 @@ function CharacterSheetFull() {
   const navigate = useNavigate();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('combat');
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
@@ -990,115 +988,208 @@ function CharacterSheetFull() {
         </div>
 
         {/* Tab Content */}
-        <div style={{ minHeight: '500px' }}>
-          {/* Overview Tab */}
-          {activeTab === 'overview' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {/* Ability Scores */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Ability Scores
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  {ABILITIES.map(ability => (
-                    <AbilityScoreBlock
-                      key={ability.key}
-                      ability={ability}
-                      score={data[ability.key]}
-                      modifier={calculateModifier(data[ability.key])}
-                      isProficientSave={data.saving_throw_proficiencies?.includes(ability.key)}
-                      profBonus={profBonus}
-                      isEditing={editMode}
-                      onScoreChange={updateAbilityScore}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Character Info */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Character Info
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {[
-                    { label: 'Race', value: data.race },
-                    { label: 'Class', value: data.character_class },
-                    { label: 'Subclass', value: data.subclass || 'None' },
-                    { label: 'Background', value: data.background || 'None' },
-                    { label: 'Alignment', value: data.alignment },
-                    { label: 'Experience', value: `${data.experience_points || 0} XP` }
-                  ].map(item => (
-                    <div key={item.label} style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      padding: '8px 12px',
-                      background: 'rgba(30, 41, 59, 0.4)',
-                      borderRadius: '8px'
-                    }}>
-                      <span style={{ color: '#64748b', fontSize: '13px' }}>{item.label}</span>
-                      <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Skills */}
-              <div style={{ ...glassPanel, padding: '20px', gridColumn: 'span 2' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Skills
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '4px' }}>
-                  {SKILLS.map(skill => {
-                    const abilityMod = calculateModifier(data[skill.ability]);
-                    const isProficient = data.skill_proficiencies?.includes(skill.name.toLowerCase().replace(/ /g, '_'));
-                    return (
-                      <SkillRow
-                        key={skill.name}
-                        skill={skill}
-                        abilityMod={abilityMod}
+        <div style={{ minHeight: '400px' }}>
+          {/* Combat Tab - Main Play Screen */}
+          {activeTab === 'combat' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              {/* Left Column: Abilities + Combat Resources */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Compact Ability Scores */}
+                <div style={{ ...glassPanel, padding: '12px' }}>
+                  <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat' }}>
+                    Ability Scores
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {ABILITIES.map(ability => (
+                      <AbilityScoreBlock
+                        key={ability.key}
+                        ability={ability}
+                        score={data[ability.key]}
+                        modifier={calculateModifier(data[ability.key])}
+                        isProficientSave={data.saving_throw_proficiencies?.includes(ability.key)}
                         profBonus={profBonus}
-                        isProficient={isProficient}
                         isEditing={editMode}
-                        onToggle={toggleSkillProficiency}
+                        onScoreChange={updateAbilityScore}
                       />
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Combat Resources - Hit Dice, Death Saves, Temp HP */}
+                <div style={{ ...glassPanel, padding: '12px' }}>
+                  <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Heart size={14} /> Combat Resources
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {/* Hit Dice */}
+                    <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>HIT DICE</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {editMode ? (
+                          <Input
+                            type="number"
+                            value={editData.hit_dice_remaining || data.level}
+                            onChange={(e) => setEditData({ ...editData, hit_dice_remaining: parseInt(e.target.value) || 0 })}
+                            style={{ width: '40px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
+                          />
+                        ) : (
+                          <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '16px' }}>
+                            {data.hit_dice_remaining ?? data.level}
+                          </span>
+                        )}
+                        <span style={{ color: '#64748b', fontSize: '12px' }}>/ {data.level}d{data.hit_die || 8}</span>
+                      </div>
+                    </div>
+                    {/* Temp HP */}
+                    <div style={{ padding: '8px', background: 'rgba(34, 211, 238, 0.1)', borderRadius: '6px' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>TEMP HP</span>
+                      {editMode ? (
+                        <Input
+                          type="number"
+                          value={editData.temp_hp || 0}
+                          onChange={(e) => setEditData({ ...editData, temp_hp: parseInt(e.target.value) || 0 })}
+                          style={{ width: '50px', padding: '2px', textAlign: 'center', fontSize: '14px' }}
+                        />
+                      ) : (
+                        <span style={{ color: '#22d3ee', fontWeight: '700', fontSize: '16px' }}>
+                          {data.temp_hp || 0}
+                        </span>
+                      )}
+                    </div>
+                    {/* Death Saves */}
+                    <div style={{ padding: '8px', background: 'rgba(148, 163, 184, 0.1)', borderRadius: '6px', gridColumn: 'span 2' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>DEATH SAVES</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ color: '#22c55e', fontSize: '11px' }}>Success</span>
+                          {[0, 1, 2].map(i => (
+                            <div
+                              key={`success-${i}`}
+                              onClick={() => {
+                                if (editMode) {
+                                  const current = editData.death_save_success || 0;
+                                  setEditData({ ...editData, death_save_success: i < current ? i : i + 1 });
+                                }
+                              }}
+                              style={{
+                                width: '14px',
+                                height: '14px',
+                                borderRadius: '50%',
+                                border: '2px solid #22c55e',
+                                background: i < (data.death_save_success || 0) ? '#22c55e' : 'transparent',
+                                cursor: editMode ? 'pointer' : 'default'
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ color: '#ef4444', fontSize: '11px' }}>Failure</span>
+                          {[0, 1, 2].map(i => (
+                            <div
+                              key={`fail-${i}`}
+                              onClick={() => {
+                                if (editMode) {
+                                  const current = editData.death_save_failure || 0;
+                                  setEditData({ ...editData, death_save_failure: i < current ? i : i + 1 });
+                                }
+                              }}
+                              style={{
+                                width: '14px',
+                                height: '14px',
+                                borderRadius: '50%',
+                                border: '2px solid #ef4444',
+                                background: i < (data.death_save_failure || 0) ? '#ef4444' : 'transparent',
+                                cursor: editMode ? 'pointer' : 'default'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attacks/Weapons */}
+                <div style={{ ...glassPanel, padding: '12px' }}>
+                  <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Swords size={14} /> Attacks
+                  </h3>
+                  {(!data.attacks?.length && !data.equipment?.filter(e => e.equipped && e.type === 'weapon')?.length) ? (
+                    <div style={{ color: '#64748b', fontSize: '12px', padding: '8px', textAlign: 'center', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '6px' }}>
+                      No attacks. Add weapons in Edit mode.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {/* Show custom attacks */}
+                      {(data.attacks || []).map((attack, i) => {
+                        const abilityMod = attack.ability ? calculateModifier(data[attack.ability]) : calculateModifier(data.strength);
+                        const attackBonus = abilityMod + (attack.proficient !== false ? profBonus : 0) + (attack.bonus || 0);
+                        return (
+                          <div key={i} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            borderRadius: '6px'
+                          }}>
+                            <span style={{ color: '#e2e8f0', fontSize: '12px', fontWeight: '500' }}>{attack.name}</span>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <DiceRollButton 
+                                modifier={attackBonus}
+                                label={`${attack.name} Attack`}
+                                color="#ef4444"
+                                size="small"
+                              />
+                              <span style={{ color: '#94a3b8', fontSize: '11px' }}>
+                                {attack.damage || `1d6+${abilityMod}`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Show equipped weapons from equipment */}
+                      {(data.equipment || []).filter(e => e.equipped && (e.type === 'weapon' || e.damage)).map((weapon, i) => {
+                        const isFinesse = weapon.properties?.includes('finesse');
+                        const abilityMod = isFinesse 
+                          ? Math.max(calculateModifier(data.strength), calculateModifier(data.dexterity))
+                          : calculateModifier(data.strength);
+                        const attackBonus = abilityMod + profBonus;
+                        return (
+                          <div key={`eq-${i}`} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            borderRadius: '6px'
+                          }}>
+                            <span style={{ color: '#e2e8f0', fontSize: '12px', fontWeight: '500' }}>{weapon.name}</span>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <DiceRollButton 
+                                modifier={attackBonus}
+                                label={`${weapon.name} Attack`}
+                                color="#ef4444"
+                                size="small"
+                              />
+                              <span style={{ color: '#94a3b8', fontSize: '11px' }}>
+                                {weapon.damage || '1d6'}{abilityMod >= 0 ? '+' : ''}{abilityMod}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Abilities & Skills Tab */}
-          {activeTab === 'abilities' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px' }}>
-              {/* Ability Scores - Large */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Ability Scores
+              {/* Middle Column: Skills */}
+              <div style={{ ...glassPanel, padding: '12px' }}>
+                <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat' }}>
+                  Skills {editMode && <span style={{ color: '#64748b', fontWeight: '400', fontSize: '10px' }}>(click to toggle)</span>}
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {ABILITIES.map(ability => (
-                    <AbilityScoreBlock
-                      key={ability.key}
-                      ability={ability}
-                      score={data[ability.key]}
-                      modifier={calculateModifier(data[ability.key])}
-                      isProficientSave={data.saving_throw_proficiencies?.includes(ability.key)}
-                      profBonus={profBonus}
-                      isEditing={editMode}
-                      onScoreChange={updateAbilityScore}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Skills - Full */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#67e8f9', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Skills {editMode && <span style={{ color: '#64748b', fontWeight: '400', fontSize: '12px' }}>(click to toggle proficiency)</span>}
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '480px', overflowY: 'auto' }}>
                   {SKILLS.map(skill => {
                     const abilityMod = calculateModifier(data[skill.ability]);
                     const isProficient = (editMode ? editData : data).skill_proficiencies?.includes(skill.name.toLowerCase().replace(/ /g, '_'));
@@ -1114,6 +1205,363 @@ function CharacterSheetFull() {
                       />
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Right Column: Quick Spells + Conditions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Quick Spell Slots (if caster) */}
+                {data.spellcasting_ability && (
+                  <div style={{ ...glassPanel, padding: '12px' }}>
+                    <h3 style={{ color: '#a855f7', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Wand2 size={14} /> Spell Slots
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
+                        const slotKey = `spell_slots_${level}`;
+                        const usedKey = `spell_slots_${level}_used`;
+                        const maxSlots = data[slotKey] || 0;
+                        const usedSlots = data[usedKey] || 0;
+                        if (maxSlots === 0) return null;
+                        return (
+                          <div key={level} style={{ textAlign: 'center', padding: '4px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px' }}>
+                            <div style={{ color: '#a855f7', fontSize: '10px', marginBottom: '2px' }}>Lvl {level}</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
+                              {Array.from({ length: maxSlots }).map((_, idx) => (
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    if (editMode) {
+                                      const newUsed = idx < usedSlots ? idx : idx + 1;
+                                      setEditData({ ...editData, [usedKey]: newUsed });
+                                    }
+                                  }}
+                                  style={{
+                                    width: '10px',
+                                    height: '10px',
+                                    borderRadius: '2px',
+                                    border: '1px solid #a855f7',
+                                    background: idx < usedSlots ? 'transparent' : '#a855f7',
+                                    cursor: editMode ? 'pointer' : 'default'
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ padding: '6px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
+                        <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block' }}>SAVE DC</span>
+                        <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '14px' }}>
+                          {8 + profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}
+                        </span>
+                      </div>
+                      <div style={{ padding: '6px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
+                        <span style={{ color: '#94a3b8', fontSize: '9px', display: 'block' }}>ATTACK</span>
+                        <span style={{ color: '#a855f7', fontWeight: '700', fontSize: '14px' }}>
+                          +{profBonus + calculateModifier(data[data.spellcasting_ability] || 10)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Prepared Spells Quick List */}
+                {data.spells_prepared?.length > 0 && (
+                  <div style={{ ...glassPanel, padding: '12px' }}>
+                    <h3 style={{ color: '#3b82f6', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Sparkles size={14} /> Prepared Spells
+                      </span>
+                      <span style={{ color: '#64748b', fontSize: '11px', fontWeight: '400' }}>{data.spells_prepared?.length || 0}</span>
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
+                      {data.spells_prepared.slice(0, 10).map((spell, i) => (
+                        <div key={i} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 8px',
+                          background: spell.level === 0 ? 'rgba(148, 163, 184, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                          borderRadius: '4px',
+                          fontSize: '11px'
+                        }}>
+                          <span style={{ color: '#e2e8f0' }}>{spell.name}</span>
+                          <span style={{ color: spell.level === 0 ? '#94a3b8' : '#3b82f6', fontSize: '10px' }}>
+                            {spell.level === 0 ? 'C' : spell.level}
+                          </span>
+                        </div>
+                      ))}
+                      {data.spells_prepared.length > 10 && (
+                        <button 
+                          onClick={() => setActiveTab('spells')}
+                          style={{ color: '#3b82f6', fontSize: '11px', textAlign: 'center', padding: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        >
+                          + {data.spells_prepared.length - 10} more...
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Conditions */}
+                <div style={{ ...glassPanel, padding: '12px' }}>
+                  <h3 style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CircleDot size={14} /> Conditions
+                  </h3>
+                  {(!data.conditions?.length) ? (
+                    <div style={{ color: '#22c55e', fontSize: '12px', padding: '8px', textAlign: 'center' }}>
+                      No active conditions
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {data.conditions.map((condition, i) => (
+                        <span key={i} style={{
+                          padding: '4px 8px',
+                          background: 'rgba(245, 158, 11, 0.2)',
+                          border: '1px solid rgba(245, 158, 11, 0.4)',
+                          borderRadius: '4px',
+                          color: '#fbbf24',
+                          fontSize: '11px',
+                          fontWeight: '500'
+                        }}>
+                          {condition}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Currency Quick View */}
+                <div style={{ ...glassPanel, padding: '12px' }}>
+                  <h3 style={{ color: '#eab308', fontSize: '13px', fontWeight: '700', marginBottom: '10px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Coins size={14} /> Currency
+                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    {['gp', 'sp', 'cp'].map(coin => {
+                      const fullName = coin === 'gp' ? 'gold' : coin === 'sp' ? 'silver' : 'copper';
+                      const color = coin === 'gp' ? '#eab308' : coin === 'sp' ? '#9ca3af' : '#b45309';
+                      return (
+                        <div key={coin} style={{ textAlign: 'center' }}>
+                          <span style={{ color, fontSize: '10px', display: 'block' }}>{coin.toUpperCase()}</span>
+                          <span style={{ color: '#fff', fontWeight: '700', fontSize: '14px' }}>{data.currency?.[fullName] || 0}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Character Tab - Info, Features, Feats, Personality */}
+          {activeTab === 'character' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '12px' }}>
+              {/* Left Column: Character Info + Personality */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Character Info */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#67e8f9', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Character Info
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                      { label: 'Race', value: data.race },
+                      { label: 'Class', value: data.character_class },
+                      { label: 'Subclass', value: data.subclass || 'None' },
+                      { label: 'Background', value: data.background || 'None' },
+                      { label: 'Alignment', value: data.alignment },
+                      { label: 'Experience', value: `${data.experience_points || 0} XP` }
+                    ].map(item => (
+                      <div key={item.label} style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        padding: '6px 10px',
+                        background: 'rgba(30, 41, 59, 0.4)',
+                        borderRadius: '6px'
+                      }}>
+                        <span style={{ color: '#64748b', fontSize: '12px' }}>{item.label}</span>
+                        <span style={{ color: '#e2e8f0', fontSize: '12px', fontWeight: '500' }}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Personality */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#ec4899', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Personality
+                  </h3>
+                  {['personality_traits', 'ideals', 'bonds', 'flaws'].map(field => (
+                    <div key={field} style={{ marginBottom: '10px' }}>
+                      <label style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                        {field.replace('_', ' ')}
+                      </label>
+                      {editMode ? (
+                        <textarea
+                          value={editData[field] || ''}
+                          onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
+                          style={{
+                            width: '100%',
+                            minHeight: '40px',
+                            padding: '8px',
+                            background: 'rgba(30, 41, 59, 0.6)',
+                            border: '1px solid rgba(148, 163, 184, 0.2)',
+                            borderRadius: '6px',
+                            color: '#e2e8f0',
+                            fontSize: '12px',
+                            resize: 'vertical'
+                          }}
+                        />
+                      ) : (
+                        <p style={{ color: '#e2e8f0', fontSize: '12px', lineHeight: '1.5' }}>
+                          {data[field] || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Features & Feats */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignContent: 'start' }}>
+                {/* Class Features */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#60a5fa', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Class Features ({data.character_class})
+                  </h3>
+                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                    {classFeatures.length === 0 ? (
+                      <p style={{ color: '#64748b', fontSize: '12px' }}>No class features loaded.</p>
+                    ) : (
+                      classFeatures.map((feature, i) => (
+                        <FeatureCard key={i} feature={feature} source="class" />
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Racial Traits */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#22d3ee', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Racial Traits ({data.race})
+                  </h3>
+                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                    {!data.racial_traits?.length ? (
+                      <p style={{ color: '#64748b', fontSize: '12px' }}>No racial traits recorded.</p>
+                    ) : (
+                      data.racial_traits.map((trait, i) => (
+                        <FeatureCard key={i} feature={trait} source="race" />
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Feats */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#fb923c', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Feats
+                  </h3>
+                  <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                    {!data.feats?.length ? (
+                      <p style={{ color: '#64748b', fontSize: '12px' }}>No feats selected.</p>
+                    ) : (
+                      data.feats.map((feat, i) => (
+                        <FeatureCard key={i} feature={feat} source="feat" />
+                      ))
+                    )}
+                    
+                    {/* Available Feats from SRD */}
+                    {editMode && srdFeats.length > 0 && (
+                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(148, 163, 184, 0.1)' }}>
+                        <h4 style={{ color: '#94a3b8', fontSize: '11px', marginBottom: '8px' }}>AVAILABLE FEATS</h4>
+                        {srdFeats.filter(f => !data.feats?.some(df => df.name === f.name)).slice(0, 5).map((feat, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setEditData({
+                                ...editData,
+                                feats: [...(editData.feats || []), { name: feat.name, description: feat.description }]
+                              });
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 10px',
+                              background: 'rgba(249, 115, 22, 0.1)',
+                              border: '1px solid rgba(249, 115, 22, 0.3)',
+                              borderRadius: '6px',
+                              marginBottom: '6px',
+                              width: '100%',
+                              cursor: 'pointer',
+                              textAlign: 'left'
+                            }}
+                          >
+                            <Plus size={12} color="#fb923c" />
+                            <span style={{ color: '#fb923c', fontSize: '11px' }}>{feat.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Backstory & Notes */}
+                <div style={{ ...glassPanel, padding: '14px' }}>
+                  <h3 style={{ color: '#a855f7', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat' }}>
+                    Backstory & Notes
+                  </h3>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>BACKSTORY</label>
+                    {editMode ? (
+                      <textarea
+                        value={editData.backstory || ''}
+                        onChange={(e) => setEditData({ ...editData, backstory: e.target.value })}
+                        style={{
+                          width: '100%',
+                          minHeight: '80px',
+                          padding: '8px',
+                          background: 'rgba(30, 41, 59, 0.6)',
+                          border: '1px solid rgba(148, 163, 184, 0.2)',
+                          borderRadius: '6px',
+                          color: '#e2e8f0',
+                          fontSize: '12px',
+                          resize: 'vertical'
+                        }}
+                      />
+                    ) : (
+                      <p style={{ color: '#e2e8f0', fontSize: '12px', lineHeight: '1.5', maxHeight: '80px', overflowY: 'auto' }}>
+                        {data.backstory || 'No backstory written yet.'}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label style={{ color: '#94a3b8', fontSize: '10px', display: 'block', marginBottom: '4px' }}>NOTES</label>
+                    {editMode ? (
+                      <textarea
+                        value={editData.notes || ''}
+                        onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                        style={{
+                          width: '100%',
+                          minHeight: '80px',
+                          padding: '8px',
+                          background: 'rgba(30, 41, 59, 0.6)',
+                          border: '1px solid rgba(148, 163, 184, 0.2)',
+                          borderRadius: '6px',
+                          color: '#e2e8f0',
+                          fontSize: '12px',
+                          resize: 'vertical'
+                        }}
+                      />
+                    ) : (
+                      <p style={{ color: '#e2e8f0', fontSize: '12px', lineHeight: '1.5', maxHeight: '80px', overflowY: 'auto' }}>
+                        {data.notes || 'No notes yet.'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1408,99 +1856,18 @@ function CharacterSheetFull() {
             </div>
           )}
 
-          {/* Features & Feats Tab */}
-          {activeTab === 'features' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '20px' }}>
-              {/* Class Features */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#60a5fa', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Class Features ({data.character_class})
-                </h3>
-                {classFeatures.length === 0 ? (
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>No class features loaded.</p>
-                ) : (
-                  classFeatures.map((feature, i) => (
-                    <FeatureCard key={i} feature={feature} source="class" />
-                  ))
-                )}
-              </div>
-
-              {/* Racial Traits */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#4ade80', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Racial Traits ({data.race})
-                </h3>
-                {!data.racial_traits?.length ? (
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>No racial traits recorded.</p>
-                ) : (
-                  data.racial_traits.map((trait, i) => (
-                    <FeatureCard key={i} feature={trait} source="race" />
-                  ))
-                )}
-              </div>
-
-              {/* Feats */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#fb923c', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Feats
-                </h3>
-                {!data.feats?.length ? (
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>No feats selected.</p>
-                ) : (
-                  data.feats.map((feat, i) => (
-                    <FeatureCard key={i} feature={feat} source="feat" />
-                  ))
-                )}
-                
-                {/* Available Feats from SRD */}
-                {editMode && srdFeats.length > 0 && (
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(148, 163, 184, 0.1)' }}>
-                    <h4 style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '12px' }}>AVAILABLE FEATS (SRD)</h4>
-                    {srdFeats.filter(f => !data.feats?.some(df => df.name === f.name)).map((feat, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setEditData({
-                            ...editData,
-                            feats: [...(editData.feats || []), { name: feat.name, description: feat.description }]
-                          });
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '8px 12px',
-                          background: 'rgba(249, 115, 22, 0.1)',
-                          border: '1px solid rgba(249, 115, 22, 0.3)',
-                          borderRadius: '8px',
-                          marginBottom: '8px',
-                          width: '100%',
-                          cursor: 'pointer',
-                          textAlign: 'left'
-                        }}
-                      >
-                        <Plus size={14} color="#fb923c" />
-                        <span style={{ color: '#fb923c', fontSize: '13px' }}>{feat.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Equipment Tab */}
-          {activeTab === 'equipment' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {/* Currency */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#eab308', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Coins size={18} color="#eab308" />
+          {/* Inventory Tab - Equipment, Items, Currency */}
+          {activeTab === 'inventory' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              {/* Currency - Full */}
+              <div style={{ ...glassPanel, padding: '14px' }}>
+                <h3 style={{ color: '#eab308', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Coins size={14} color="#eab308" />
                   Currency
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
                   {['copper', 'silver', 'electrum', 'gold', 'platinum'].map(coin => (
-                    <div key={coin} style={{ textAlign: 'center', padding: '12px 8px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '8px' }}>
+                    <div key={coin} style={{ textAlign: 'center', padding: '10px 6px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '6px' }}>
                       <span style={{ 
                         color: coin === 'gold' ? '#eab308' : coin === 'platinum' ? '#94a3b8' : coin === 'copper' ? '#b45309' : coin === 'silver' ? '#9ca3af' : '#a855f7',
                         fontSize: '10px',
@@ -1518,7 +1885,7 @@ function CharacterSheetFull() {
                             ...editData,
                             currency: { ...editData.currency, [coin]: parseInt(e.target.value) || 0 }
                           })}
-                          style={{ width: '100%', textAlign: 'center', padding: '4px' }}
+                          style={{ width: '100%', textAlign: 'center', padding: '4px', fontSize: '14px' }}
                         />
                       ) : (
                         <span style={{ color: '#fff', fontWeight: '700', fontSize: '16px' }}>
@@ -1528,160 +1895,83 @@ function CharacterSheetFull() {
                     </div>
                   ))}
                 </div>
+                {/* Total in GP */}
+                <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(234, 179, 8, 0.05)', borderRadius: '6px', textAlign: 'center' }}>
+                  <span style={{ color: '#94a3b8', fontSize: '10px' }}>TOTAL (in GP): </span>
+                  <span style={{ color: '#eab308', fontWeight: '700', fontSize: '14px' }}>
+                    {(
+                      (data.currency?.platinum || 0) * 10 +
+                      (data.currency?.gold || 0) +
+                      (data.currency?.electrum || 0) * 0.5 +
+                      (data.currency?.silver || 0) * 0.1 +
+                      (data.currency?.copper || 0) * 0.01
+                    ).toFixed(2)}
+                  </span>
+                </div>
               </div>
 
               {/* Equipment */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#ef4444', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Swords size={18} color="#ef4444" />
+              <div style={{ ...glassPanel, padding: '14px' }}>
+                <h3 style={{ color: '#ef4444', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Swords size={14} color="#ef4444" />
                   Equipment
                 </h3>
-                {!data.equipment?.length ? (
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>No equipment recorded.</p>
-                ) : (
-                  data.equipment.map((item, i) => (
-                    <div key={i} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      background: item.equipped ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
-                      borderRadius: '8px',
-                      marginBottom: '4px'
-                    }}>
-                      <span style={{ color: item.equipped ? '#22c55e' : '#e2e8f0', fontSize: '13px' }}>
-                        {item.name}
-                      </span>
-                      {item.equipped && (
-                        <span style={{ color: '#22c55e', fontSize: '10px', fontWeight: '600' }}>EQUIPPED</span>
-                      )}
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {!data.equipment?.length ? (
+                    <div style={{ color: '#64748b', fontSize: '12px', padding: '20px', textAlign: 'center', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '6px' }}>
+                      No equipment recorded.
                     </div>
-                  ))
-                )}
+                  ) : (
+                    data.equipment.map((item, i) => (
+                      <div key={i} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        background: item.equipped ? 'rgba(34, 197, 94, 0.1)' : 'rgba(30, 41, 59, 0.3)',
+                        borderRadius: '6px',
+                        marginBottom: '4px'
+                      }}>
+                        <span style={{ color: item.equipped ? '#22c55e' : '#e2e8f0', fontSize: '12px' }}>
+                          {item.name}
+                        </span>
+                        {item.equipped && (
+                          <span style={{ color: '#22c55e', fontSize: '9px', fontWeight: '600', padding: '2px 6px', background: 'rgba(34, 197, 94, 0.2)', borderRadius: '4px' }}>EQUIPPED</span>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* Inventory */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#3b82f6', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Package size={18} color="#3b82f6" />
+              <div style={{ ...glassPanel, padding: '14px' }}>
+                <h3 style={{ color: '#3b82f6', fontSize: '13px', fontWeight: '700', marginBottom: '12px', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Package size={14} color="#3b82f6" />
                   Inventory
                 </h3>
-                {!data.inventory?.length ? (
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>No items in inventory.</p>
-                ) : (
-                  data.inventory.map((item, i) => (
-                    <div key={i} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 12px',
-                      background: 'rgba(59, 130, 246, 0.05)',
-                      borderRadius: '8px',
-                      marginBottom: '4px'
-                    }}>
-                      <span style={{ color: '#e2e8f0', fontSize: '13px' }}>{item.name}</span>
-                      <span style={{ color: '#64748b', fontSize: '12px' }}>x{item.quantity || 1}</span>
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {!data.inventory?.length ? (
+                    <div style={{ color: '#64748b', fontSize: '12px', padding: '20px', textAlign: 'center', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '6px' }}>
+                      No items in inventory.
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Notes & Bio Tab */}
-          {activeTab === 'notes' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
-              {/* Personality */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#ec4899', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Personality
-                </h3>
-                {['personality_traits', 'ideals', 'bonds', 'flaws'].map(field => (
-                  <div key={field} style={{ marginBottom: '16px' }}>
-                    <label style={{ color: '#94a3b8', fontSize: '11px', display: 'block', marginBottom: '6px', textTransform: 'uppercase' }}>
-                      {field.replace('_', ' ')}
-                    </label>
-                    {editMode ? (
-                      <textarea
-                        value={editData[field] || ''}
-                        onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-                        style={{
-                          width: '100%',
-                          minHeight: '60px',
-                          padding: '10px',
-                          background: 'rgba(30, 41, 59, 0.6)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '8px',
-                          color: '#e2e8f0',
-                          fontSize: '13px',
-                          resize: 'vertical'
-                        }}
-                      />
-                    ) : (
-                      <p style={{ color: '#e2e8f0', fontSize: '13px', lineHeight: '1.6' }}>
-                        {data[field] || 'Not specified'}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Backstory */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#a855f7', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Backstory
-                </h3>
-                {editMode ? (
-                  <textarea
-                    value={editData.backstory || ''}
-                    onChange={(e) => setEditData({ ...editData, backstory: e.target.value })}
-                    style={{
-                      width: '100%',
-                      minHeight: '200px',
-                      padding: '12px',
-                      background: 'rgba(30, 41, 59, 0.6)',
-                      border: '1px solid rgba(148, 163, 184, 0.2)',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                      resize: 'vertical'
-                    }}
-                  />
-                ) : (
-                  <p style={{ color: '#e2e8f0', fontSize: '13px', lineHeight: '1.8' }}>
-                    {data.backstory || 'No backstory written yet.'}
-                  </p>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div style={{ ...glassPanel, padding: '20px' }}>
-                <h3 style={{ color: '#22d3ee', fontSize: '16px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Montserrat' }}>
-                  Notes
-                </h3>
-                {editMode ? (
-                  <textarea
-                    value={editData.notes || ''}
-                    onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                    style={{
-                      width: '100%',
-                      minHeight: '200px',
-                      padding: '12px',
-                      background: 'rgba(30, 41, 59, 0.6)',
-                      border: '1px solid rgba(148, 163, 184, 0.2)',
-                      borderRadius: '8px',
-                      color: '#e2e8f0',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                      resize: 'vertical'
-                    }}
-                  />
-                ) : (
-                  <p style={{ color: '#e2e8f0', fontSize: '13px', lineHeight: '1.8' }}>
-                    {data.notes || 'No notes yet.'}
-                  </p>
-                )}
+                  ) : (
+                    data.inventory.map((item, i) => (
+                      <div key={i} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        background: 'rgba(59, 130, 246, 0.05)',
+                        borderRadius: '6px',
+                        marginBottom: '4px'
+                      }}>
+                        <span style={{ color: '#e2e8f0', fontSize: '12px' }}>{item.name}</span>
+                        <span style={{ color: '#64748b', fontSize: '11px' }}>x{item.quantity || 1}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}

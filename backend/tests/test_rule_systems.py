@@ -7,7 +7,7 @@ import json
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rook-gm-tools.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rook-sheet-staging.preview.emergentagent.com').rstrip('/')
 
 # Test credentials - admin user
 ADMIN_EMAIL = 'gmtest@test.com'

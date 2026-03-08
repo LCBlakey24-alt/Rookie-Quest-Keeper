@@ -15,7 +15,7 @@ import aiohttp
 import uuid
 
 # Backend URL configuration
-BACKEND_URL = "https://rook-gm-tools.preview.emergentagent.com/api"
+BACKEND_URL = "https://rook-sheet-staging.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

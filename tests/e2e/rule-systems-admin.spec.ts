@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rook-gm-tools.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rook-sheet-staging.preview.emergentagent.com';
 
 // Admin credentials
 const ADMIN_EMAIL = 'gmtest@test.com';
