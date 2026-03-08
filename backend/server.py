@@ -3006,9 +3006,21 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
     # Check existing class names
     existing_classes = await db.campaign_classes.find({'campaign_id': campaign_id}, {'name': 1, '_id': 0}).to_list(1000)
     existing_class_names = {c['name'].lower() for c in existing_classes}
-    for class_data in data.classes:
-        if class_data.name.lower() in existing_class_names:
-            warnings.append(f"Class '{class_data.name}' already exists - will create duplicate")
+    
+    # Check existing subclasses
+    existing_subclasses = await db.campaign_subclasses.find({'campaign_id': campaign_id}, {'name': 1, '_id': 0}).to_list(1000)
+    existing_subclass_names = {s['name'].lower() for s in existing_subclasses}
+    
+    # Check existing backgrounds  
+    existing_backgrounds = await db.campaign_backgrounds.find({'campaign_id': campaign_id}, {'name': 1, '_id': 0}).to_list(1000)
+    existing_background_names = {b['name'].lower() for b in existing_backgrounds}
+    
+    # Check existing feats
+    existing_feats = await db.campaign_feats.find({'campaign_id': campaign_id}, {'name': 1, '_id': 0}).to_list(1000)
+    existing_feat_names = {f['name'].lower() for f in existing_feats}
+    
+    # Track skipped items
+    skipped = {"races": [], "classes": [], "subclasses": [], "backgrounds": [], "feats": []}
     
     # Create the ruleset
     ruleset = CampaignRuleset(
@@ -3022,10 +3034,13 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
     
     counts = {"races": 0, "classes": 0, "subclasses": 0, "backgrounds": 0, "feats": 0}
     
-    # Add races
+    # Add races (skip duplicates)
     for race_data in data.races:
+        if race_data.name.lower() in existing_race_names:
+            skipped["races"].append(race_data.name)
+            continue
         race_dict = race_data.model_dump()
-        race_dict.pop('ruleset_id', None)  # Remove if present in data
+        race_dict.pop('ruleset_id', None)
         race = CampaignRace(
             campaign_id=campaign_id,
             ruleset_id=ruleset_id,
@@ -3035,8 +3050,11 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
         await db.campaign_races.insert_one(race.model_dump())
         counts["races"] += 1
     
-    # Add classes
+    # Add classes (skip duplicates)
     for class_data in data.classes:
+        if class_data.name.lower() in existing_class_names:
+            skipped["classes"].append(class_data.name)
+            continue
         class_dict = class_data.model_dump()
         class_dict.pop('ruleset_id', None)
         cls = CampaignClass(
@@ -3048,8 +3066,11 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
         await db.campaign_classes.insert_one(cls.model_dump())
         counts["classes"] += 1
     
-    # Add subclasses
+    # Add subclasses (skip duplicates)
     for subclass_data in data.subclasses:
+        if subclass_data.name.lower() in existing_subclass_names:
+            skipped["subclasses"].append(subclass_data.name)
+            continue
         subclass_dict = subclass_data.model_dump()
         subclass_dict.pop('ruleset_id', None)
         subclass = CampaignSubclass(
@@ -3061,8 +3082,11 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
         await db.campaign_subclasses.insert_one(subclass.model_dump())
         counts["subclasses"] += 1
     
-    # Add backgrounds
+    # Add backgrounds (skip duplicates)
     for bg_data in data.backgrounds:
+        if bg_data.name.lower() in existing_background_names:
+            skipped["backgrounds"].append(bg_data.name)
+            continue
         bg_dict = bg_data.model_dump()
         bg_dict.pop('ruleset_id', None)
         background = CampaignBackground(
@@ -3074,8 +3098,11 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
         await db.campaign_backgrounds.insert_one(background.model_dump())
         counts["backgrounds"] += 1
     
-    # Add feats
+    # Add feats (skip duplicates)
     for feat_data in data.feats:
+        if feat_data.name.lower() in existing_feat_names:
+            skipped["feats"].append(feat_data.name)
+            continue
         feat_dict = feat_data.model_dump()
         feat_dict.pop('ruleset_id', None)
         feat = CampaignFeat(
@@ -3087,11 +3114,23 @@ async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload
         await db.campaign_feats.insert_one(feat.model_dump())
         counts["feats"] += 1
     
+    # Build skipped message
+    skipped_items = []
+    category_singular = {"races": "race", "classes": "class", "subclasses": "subclass", "backgrounds": "background", "feats": "feat"}
+    for category, items in skipped.items():
+        if items:
+            skipped_items.extend([f"{name} ({category_singular[category]})" for name in items])
+    
+    # Calculate total uploaded vs skipped
+    total_uploaded = sum(counts.values())
+    total_skipped = len(skipped_items)
+    
     return {
-        "message": f"Ruleset '{data.ruleset_name}' uploaded successfully!",
+        "message": f"Ruleset '{data.ruleset_name}' uploaded! {total_uploaded} items added" + (f", {total_skipped} duplicates skipped" if total_skipped > 0 else ""),
         "ruleset_id": ruleset_id,
         "counts": counts,
-        "warnings": warnings if warnings else None
+        "skipped": skipped if total_skipped > 0 else None,
+        "skipped_summary": skipped_items if total_skipped > 0 else None
     }
 
 @api_router.get("/campaigns/{campaign_id}/content")

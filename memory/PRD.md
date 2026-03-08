@@ -271,6 +271,20 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - [ ] None
 
 ### Completed (March 2026)
+- [x] **USER MANAGEMENT CLEANUP & DELETE FUNCTIONALITY (March 2026)**
+  - Deleted 335 test accounts and 41 test campaigns, keeping only lcblakey24
+  - Account settings: Email: lcblakey24@outlook.com, Password: Trigger24?!, Tier: legendary, Admin: true
+  - Added delete buttons for characters on home page (Player Side)
+  - Added delete buttons for campaigns on home page (GM Side)
+  - Both show red hover state and require confirmation before deletion
+
+- [x] **SMART DUPLICATE SKIPPING FOR RULESETS (March 2026)**
+  - Backend now automatically SKIPS duplicate races, classes, subclasses, backgrounds, and feats
+  - Only new content is uploaded, duplicates are not created
+  - Response includes detailed breakdown: what was added vs what was skipped
+  - Frontend shows toast notification with skipped items
+  - Example: "Ruleset uploaded! 2 items added, 2 duplicates skipped" + info toast with skipped names
+
 - [x] **COMPREHENSIVE STRESS TEST (March 2026)** - 72/72 tests passed
   - Backend API: 49/49 tests passed - All CRUD endpoints for NPCs, Locations, Gods, Timeline, Combat, Notes, Characters
   - Frontend E2E: 23/23 tests passed - All dashboards, tabs, navigation, forms working correctly

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
   User, Crown, Plus, ChevronRight, Star, Link2, Settings,
-  Users, MapPin, LogOut, Shield, Sword
+  Users, MapPin, LogOut, Shield, Sword, Trash2
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
 import { RookGuide } from '@/components/RookGuide';
@@ -69,7 +69,7 @@ function UnifiedDashboard({ username, onLogout }) {
   }, []);
 
   useEffect(() => {
-    const adminUsers = ['rookiequestadmin', 'criticalfusion', 'admin'];
+    const adminUsers = ['rookiequestadmin', 'criticalfusion', 'admin', 'lcblakey24'];
     setIsAdmin(adminUsers.some(admin => username?.toLowerCase().includes(admin)));
   }, [username]);
 
@@ -122,6 +122,34 @@ function UnifiedDashboard({ username, onLogout }) {
     const url = `${window.location.origin}?ref=${referralCode}`;
     navigator.clipboard.writeText(url);
     toast.success('Referral link copied!');
+  };
+
+  // Delete character handler
+  const handleDeleteCharacter = async (e, charId, charName) => {
+    e.stopPropagation(); // Prevent navigation
+    if (!window.confirm(`Delete character "${charName}"? This cannot be undone.`)) return;
+    
+    try {
+      await axios.delete(`${API}/characters/${charId}`);
+      toast.success(`Character "${charName}" deleted`);
+      setCharacters(prev => prev.filter(c => c.id !== charId));
+    } catch (error) {
+      toast.error('Failed to delete character');
+    }
+  };
+
+  // Delete campaign handler
+  const handleDeleteCampaign = async (e, campaignId, campaignName) => {
+    e.stopPropagation(); // Prevent navigation
+    if (!window.confirm(`Delete campaign "${campaignName}" and ALL its data (NPCs, locations, notes, etc.)? This cannot be undone.`)) return;
+    
+    try {
+      await axios.delete(`${API}/campaigns/${campaignId}`);
+      toast.success(`Campaign "${campaignName}" deleted`);
+      setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+    } catch (error) {
+      toast.error('Failed to delete campaign');
+    }
   };
 
   if (loading) {
@@ -491,7 +519,33 @@ function UnifiedDashboard({ username, onLogout }) {
                         Level {char.level} {char.race} {char.character_class}
                       </p>
                     </div>
-                    <ChevronRight size={24} style={{ color: theme.player.cyan }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <button
+                        onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
+                        data-testid={`delete-character-${char.id}`}
+                        title="Delete character"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: theme.text.muted,
+                          cursor: 'pointer',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#EF4444';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = theme.text.muted;
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      <ChevronRight size={24} style={{ color: theme.player.cyan }} />
+                    </div>
                   </div>
                 ))
               )}
@@ -665,7 +719,33 @@ function UnifiedDashboard({ username, onLogout }) {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={24} style={{ color: theme.gm.primary }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <button
+                        onClick={(e) => handleDeleteCampaign(e, campaign.id, campaign.name)}
+                        data-testid={`delete-campaign-${campaign.id}`}
+                        title="Delete campaign"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: theme.text.muted,
+                          cursor: 'pointer',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#EF4444';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = theme.text.muted;
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      <ChevronRight size={24} style={{ color: theme.gm.primary }} />
+                    </div>
                   </div>
                 ))
               )}

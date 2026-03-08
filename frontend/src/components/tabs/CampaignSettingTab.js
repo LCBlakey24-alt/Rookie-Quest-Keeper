@@ -170,13 +170,13 @@ function CampaignSettingTab({ campaignId }) {
       // Upload to API
       const response = await axios.post(`${API}/campaigns/${campaignId}/content/bulk-upload`, data);
       
-      const itemCount = (data.races?.length || 0) + (data.classes?.length || 0) + (data.subclasses?.length || 0) + (data.backgrounds?.length || 0) + (data.feats?.length || 0);
-      toast.success(`Ruleset "${data.ruleset_name}" uploaded! ${itemCount} items added.`);
+      // Show success message
+      toast.success(response.data.message);
       
-      // Show warnings about duplicates if any
-      if (response.data.warnings?.length > 0) {
-        toast.warning(
-          `Duplicate content detected:\n${response.data.warnings.join('\n')}`,
+      // Show what was skipped (if any)
+      if (response.data.skipped_summary?.length > 0) {
+        toast.info(
+          `Skipped ${response.data.skipped_summary.length} duplicate(s): ${response.data.skipped_summary.slice(0, 5).join(', ')}${response.data.skipped_summary.length > 5 ? '...' : ''}`,
           { duration: 8000 }
         );
       }
