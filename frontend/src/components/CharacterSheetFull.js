@@ -162,36 +162,6 @@ function AbilityScoreBlock({ ability, score, modifier, isProficientSave, profBon
           />
         </>
       )}
-      
-      <div style={{
-        marginTop: '4px',
-        paddingTop: '4px',
-        borderTop: `1px solid ${ability.color}30`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '2px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          {isProficientSave && (
-            <div style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#06B6D4'
-            }} />
-          )}
-          <span style={{ color: '#94a3b8', fontSize: '9px' }}>SAVE</span>
-        </div>
-        {/* Clickable saving throw dice roll */}
-        <DiceRollButton 
-          modifier={saveModifier}
-          label={`${ability.fullName} Save`}
-          color={isProficientSave ? '#06B6D4' : '#e2e8f0'}
-          size="small"
-          showDice={false}
-        />
-      </div>
     </div>
   );
 }
@@ -1005,11 +975,58 @@ function CharacterSheetFull() {
               );
             })}
           </div>
+
+          {/* Row 2: Saving Throws - directly under core stats */}
+          <div style={{
+            display: 'flex',
+            gap: '6px',
+            marginTop: '10px',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            <span style={{ color: '#f59e0b', fontSize: '9px', fontWeight: '600', marginRight: '4px' }}>SAVES</span>
+            {ABILITIES.map(ability => {
+              const mod = calculateModifier(data[ability.key]);
+              const isProficient = data.saving_throw_proficiencies?.includes(ability.key);
+              const saveMod = isProficient ? mod + profBonus : mod;
+              return (
+                <div
+                  key={`save-${ability.key}`}
+                  data-testid={`save-${ability.key}`}
+                  style={{
+                    padding: '4px 10px',
+                    background: isProficient ? `${ability.color}15` : 'rgba(30, 41, 59, 0.5)',
+                    border: isProficient ? `1px solid ${ability.color}40` : '1px solid rgba(148, 163, 184, 0.1)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span style={{ 
+                    color: isProficient ? ability.color : '#94a3b8', 
+                    fontSize: '10px',
+                    fontWeight: isProficient ? '600' : '400',
+                    textDecoration: isProficient ? 'underline' : 'none'
+                  }}>
+                    {ability.label}
+                  </span>
+                  <DiceRollButton 
+                    modifier={saveMod}
+                    label={`${ability.fullName} Save`}
+                    color={isProficient ? ability.color : '#64748b'}
+                    size="small"
+                    showDice={false}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* MAIN CONTENT AREA with Left Sidebar */}
         <div style={{ display: 'flex', gap: '12px' }}>
-          {/* LEFT SIDEBAR - All Skills + Saving Throws */}
+          {/* LEFT SIDEBAR - All Skills Only */}
           <div style={{ 
             width: '180px', 
             flexShrink: 0,
@@ -1017,51 +1034,6 @@ function CharacterSheetFull() {
             flexDirection: 'column',
             gap: '10px'
           }}>
-            {/* Saving Throws Box */}
-            <div style={{ ...glassPanel, padding: '10px' }}>
-              <h4 style={{ color: '#f59e0b', fontSize: '10px', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
-                SAVING THROWS
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {ABILITIES.map(ability => {
-                  const mod = calculateModifier(data[ability.key]);
-                  const isProficient = data.saving_throw_proficiencies?.includes(ability.key);
-                  const saveMod = isProficient ? mod + profBonus : mod;
-                  return (
-                    <div
-                      key={`save-${ability.key}`}
-                      data-testid={`save-${ability.key}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '4px 6px',
-                        background: isProficient ? `${ability.color}15` : 'transparent',
-                        borderRadius: '4px',
-                        borderLeft: isProficient ? `2px solid ${ability.color}` : '2px solid transparent'
-                      }}
-                    >
-                      <span style={{ 
-                        color: isProficient ? ability.color : '#94a3b8', 
-                        fontSize: '10px',
-                        fontWeight: isProficient ? '600' : '400',
-                        textDecoration: isProficient ? 'underline' : 'none'
-                      }}>
-                        {ability.fullName}
-                      </span>
-                      <DiceRollButton 
-                        modifier={saveMod}
-                        label={`${ability.fullName} Save`}
-                        color={isProficient ? ability.color : '#64748b'}
-                        size="small"
-                        showDice={false}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* All Skills Box */}
             <div style={{ ...glassPanel, padding: '10px', flex: 1 }}>
               <h4 style={{ color: '#67e8f9', fontSize: '10px', fontWeight: '700', marginBottom: '8px', letterSpacing: '0.5px' }}>
