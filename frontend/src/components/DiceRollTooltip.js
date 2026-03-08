@@ -57,7 +57,7 @@ export function DiceRollTooltip() {
           left: position.x,
           top: position.y,
           transform: 'translateX(-50%)',
-          background: 'linear-gradient(135deg, #4A1F1F, #6A2020)',
+          background: 'linear-gradient(135deg, #1F1F1F, #262626)',
           border: '2px solid #F2A541',
           padding: '20px 24px',
           maxWidth: '320px',

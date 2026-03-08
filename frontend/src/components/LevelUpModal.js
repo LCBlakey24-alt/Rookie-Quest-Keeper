@@ -332,7 +332,7 @@ function LevelUpModal({ character, open, onClose, onLevelUp }) {
     >
       <div 
         style={{
-          background: '#4A1F1F',
+          background: '#1F1F1F',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           maxWidth: '700px',
           width: '100%',

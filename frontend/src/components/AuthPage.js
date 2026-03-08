@@ -22,7 +22,7 @@ const theme = {
   accent: {
     primary: '#C54B2C',      // Burnt orange
     secondary: '#A03D24',    // Medium orange-red
-    tertiary: '#7A1F1F',     // Dark burgundy
+    tertiary: '#333333',     // Dark grey
     hover: '#E05C3D',
     subtle: 'rgba(197, 75, 44, 0.15)',
     red: '#C54B2C',
@@ -170,9 +170,9 @@ function AuthPage({ onLogin }) {
     background: theme.bg.dark,
     border: `1px solid ${theme.border}`,
     color: theme.text.white,
-    padding: '12px 16px',
+    padding: '14px 16px',
     width: '100%',
-    fontSize: '14px'
+    fontSize: '15px'
   };
 
   return (
@@ -188,6 +188,20 @@ function AuthPage({ onLogin }) {
     }}>
       {/* Smokey Background Effect */}
       <div className="smokey-bg" />
+      
+      {/* Floating Ember Particles */}
+      <div className="ember-particles">
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+      </div>
       
       <div style={{
         display: 'flex',
@@ -240,7 +254,7 @@ function AuthPage({ onLogin }) {
           {mode === 'login' && (
             <>
               <h3 style={{
-                fontSize: '20px',
+                fontSize: '22px',
                 fontWeight: '400',
                 color: theme.text.white,
                 textAlign: 'center',
@@ -248,13 +262,13 @@ function AuthPage({ onLogin }) {
               }}>
                 Welcome Back
               </h3>
-              <p style={{ color: theme.text.muted, textAlign: 'center', marginBottom: '24px', fontSize: '14px' }}>
+              <p style={{ color: theme.text.muted, textAlign: 'center', marginBottom: '24px', fontSize: '15px' }}>
                 Sign in to continue your adventure
               </p>
 
               <form onSubmit={handleLogin}>
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ color: theme.text.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+                  <label style={{ color: theme.text.muted, fontSize: '13px', display: 'block', marginBottom: '6px' }}>
                     <Mail size={14} style={{ display: 'inline', marginRight: '6px' }} />
                     Email
                   </label>
@@ -269,7 +283,7 @@ function AuthPage({ onLogin }) {
                 </div>
 
                 <div style={{ marginBottom: '8px' }}>
-                  <label style={{ color: theme.text.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+                  <label style={{ color: theme.text.muted, fontSize: '13px', display: 'block', marginBottom: '6px' }}>
                     <Lock size={14} style={{ display: 'inline', marginRight: '6px' }} />
                     Password
                   </label>

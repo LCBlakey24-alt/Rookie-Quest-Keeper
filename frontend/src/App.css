@@ -376,10 +376,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Brand Font - Cityworm is now primary */
+/* Brand Font - Eros Book is now primary */
 .brand-font, .logo-title, h1.brand, h2.brand {
-  font-family: 'Cityworm', sans-serif;
-  font-weight: 700;
+  font-family: 'Eros Book', sans-serif;
+  font-weight: 400;
 }
 
 /* Main App Container */
@@ -439,13 +439,13 @@ body {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cityworm', sans-serif;
-  font-weight: 700;
+  font-family: 'Eros Book', sans-serif;
+  font-weight: 400;
   color: var(--text-primary);
 }
 
 p, span, div, label, a, button {
-  font-family: 'Cityworm', 'Inter', sans-serif;
+  font-family: 'Eros Book', 'Inter', sans-serif;
 }
 
 /* ===== PANELS & CARDS ===== */
@@ -823,7 +823,7 @@ select option {
 
 .stat-value {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-primary);
 }
 
@@ -1061,8 +1061,8 @@ select option {
 .gradient-text { color: var(--accent-red); }
 .rainbow-text { color: var(--accent-red); }
 .text-glow { color: var(--text-primary); }
-.logo-title { font-family: 'Cityworm', sans-serif; font-size: 42px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-.logo-subtitle { font-family: 'Cityworm', sans-serif; font-size: 24px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 3px; font-weight: 600; }
+.logo-title { font-family: 'Eros Book', sans-serif; font-size: 42px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 400; }
+.logo-subtitle { font-family: 'Eros Book', sans-serif; font-size: 24px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 3px; font-weight: 400; }
 .stat-box { background: var(--bg-card); border: 1px solid var(--border-default); padding: 16px; text-align: center; }
 .stat-box-green { background: var(--bg-card); border: 1px solid var(--border-default); }
 .stat-box-gold { background: var(--bg-card); border: 1px solid var(--border-default); }

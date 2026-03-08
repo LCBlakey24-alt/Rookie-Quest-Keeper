@@ -3,9 +3,9 @@ import { X } from 'lucide-react';
 
 const theme = {
   accent: '#C54B2C',
-  bg: { dark: '#141414', card: '#5A2020', panel: '#4A1F1F' },
-  text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },
-  border: 'rgba(255, 255, 255, 0.1)'
+  bg: { dark: '#1A1A1A', card: '#262626', panel: '#1F1F1F' },
+  text: { white: '#FFFFFF', secondary: '#B0B0B0', muted: '#707070' },
+  border: 'rgba(255, 255, 255, 0.15)'
 };
 
 const shortcuts = [

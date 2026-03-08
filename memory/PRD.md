@@ -18,6 +18,20 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - Updated card/panel backgrounds to dark grey (#1F1F1F, #262626)
 - Added smokey embers CSS effect with animated orange/red gradients and floating particles
 
+**Floating Ember Particles (Added):**
+- 10 animated ember particles that float upward continuously
+- CSS-only implementation using `@keyframes ember-rise`
+- Added to LandingPage.js and AuthPage.js hero sections
+- Creates immersive campfire atmosphere
+
+**Font Size Improvements:**
+- Base body font size increased to 16px
+- Subheadlines increased from 14px to 15-17px
+- Button text increased from 16px to 17px
+- Feature card descriptions increased from 15px to 16px
+- Auth form labels increased from 12px to 13px
+- Input fields increased from 14px to 15px
+
 **Color Scheme Updates:**
 - `bg.black`: #0D0D0D (near black)
 - `bg.dark`: #1A1A1A (dark grey)
@@ -28,13 +42,19 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - `text.muted`: #707070 (muted grey)
 - Orange/gold accent colors preserved (#C54B2C, #F2A541)
 
-**Files Updated (23 components):**
-- index.css (CSS variables + smokey-bg animation)
+**Consistency Fixes:**
+- Fixed DiceRollTooltip.js, LevelUpModal.js, KeyboardShortcuts.js to use new dark grey colors
+- Removed all remaining burgundy colors (#2B0F0F, #4A1F1F, #7A1F1F)
+- Updated App.css to use Eros Book font with font-weight: 400 (no bold)
+
+**Files Updated (25+ components):**
+- index.css (CSS variables + smokey-bg + ember-rise animations)
 - LandingPage.js, AuthPage.js, UnifiedDashboard.js
 - AdminPage.js, CampaignDashboard.js, CampaignList.js
 - CharacterBuilder.js, CharacterSheet.js, CharacterSheetFull.js
 - FloatingDiceRoller.js, GMScreen.js, NPCQuickReference.js
-- And 10 more component files
+- DiceRollTooltip.js, LevelUpModal.js, KeyboardShortcuts.js
+- And more component files
 
 ### RULES CONSISTENCY PASS - EDITION-AWARE SYSTEM (March 8, 2026)
 **Full rules-consistency pass for character creation + level-up with strict 5e 2014/2024 support**

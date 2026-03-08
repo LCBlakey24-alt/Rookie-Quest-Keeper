@@ -38,7 +38,7 @@ const theme = {
   gm: {
     primary: '#C54B2C',    // Burnt orange
     secondary: '#A03D24',  // Medium orange-red
-    tertiary: '#7A1F1F',   // Dark burgundy
+    tertiary: '#333333',   // Dark grey
     hover: '#E05C3D',
     subtle: 'rgba(197, 75, 44, 0.12)',
     border: 'rgba(197, 75, 44, 0.35)',

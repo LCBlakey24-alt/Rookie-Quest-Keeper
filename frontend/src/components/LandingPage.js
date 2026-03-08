@@ -158,6 +158,20 @@ function LandingPage() {
       {/* Smokey Background Effect */}
       <div className="smokey-bg" />
       
+      {/* Floating Ember Particles */}
+      <div className="ember-particles">
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+        <div className="ember"></div>
+      </div>
+      
       {/* Navigation */}
       <nav style={{
         position: 'fixed',
@@ -298,7 +312,7 @@ function LandingPage() {
           {/* Subheadline */}
           <p style={{
             fontFamily: "Eros Book, sans-serif",
-            fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
+            fontSize: 'clamp(1.1rem, 2vw, 1.4rem)',
             color: theme.text.secondary,
             maxWidth: '800px',
             margin: '0 auto 40px',
@@ -316,7 +330,7 @@ function LandingPage() {
               data-testid="hero-cta-btn"
               style={{ 
                 padding: '16px 32px', 
-                fontSize: '16px',
+                fontSize: '17px',
                 fontFamily: "Eros Book, sans-serif",
                 display: 'flex',
                 alignItems: 'center',
@@ -334,7 +348,7 @@ function LandingPage() {
               onClick={() => navigate('/auth')}
               style={{ 
                 padding: '16px 32px', 
-                fontSize: '16px',
+                fontSize: '17px',
                 fontFamily: "Eros Book, sans-serif",
                 display: 'flex',
                 alignItems: 'center',
@@ -369,8 +383,8 @@ function LandingPage() {
                 alignItems: 'center', 
                 gap: '8px', 
                 color: theme.text.secondary, 
-                fontSize: '15px', 
-                fontWeight: '500' 
+                fontSize: '16px', 
+                fontWeight: '400' 
               }}>
                 <item.icon size={18} color={theme.accent.red} /> {item.text}
               </div>
@@ -427,7 +441,7 @@ function LandingPage() {
             <p style={{
               fontFamily: "Eros Book, sans-serif",
               color: theme.text.secondary,
-              fontSize: '16px',
+              fontSize: '17px',
               lineHeight: '1.8',
               maxWidth: '800px',
               margin: '0 auto'
@@ -462,7 +476,7 @@ function LandingPage() {
                   minWidth: '180px'
                 }}>
                   <step.icon size={28} color={theme.accent.red} />
-                  <span style={{ color: theme.text.white, fontWeight: '400', fontSize: '16px' }}>
+                  <span style={{ color: theme.text.white, fontWeight: '400', fontSize: '17px' }}>
                     {step.label}
                   </span>
                 </div>
@@ -648,7 +662,7 @@ function LandingPage() {
                 </h3>
                 <p style={{
                   color: theme.text.secondary,
-                  fontSize: '15px',
+                  fontSize: '16px',
                   lineHeight: '1.6',
                   marginBottom: '16px'
                 }}>
@@ -661,7 +675,7 @@ function LandingPage() {
                       alignItems: 'center', 
                       gap: '8px',
                       color: theme.accent.red,
-                      fontSize: '13px',
+                      fontSize: '14px',
                       marginBottom: '6px'
                     }}>
                       <Check size={14} /> {detail}

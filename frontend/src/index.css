@@ -6,6 +6,7 @@ body {
     margin: 0;
     font-family: 'Eros Book', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
     font-weight: 400;
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: #0D0D0D;
@@ -85,6 +86,7 @@ code {
     overflow: hidden;
 }
 
+/* Smoke layer */
 .smokey-bg::before {
     content: '';
     position: absolute;
@@ -93,12 +95,13 @@ code {
     right: 0;
     bottom: 0;
     background: 
-        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(197, 75, 44, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(242, 165, 65, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse 100% 80% at 50% 100%, rgba(197, 75, 44, 0.05) 0%, transparent 40%);
+        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(197, 75, 44, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(242, 165, 65, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 100% 80% at 50% 100%, rgba(197, 75, 44, 0.06) 0%, transparent 40%);
     animation: smoke-drift 20s ease-in-out infinite;
 }
 
+/* Static ember dots */
 .smokey-bg::after {
     content: '';
     position: absolute;
@@ -107,17 +110,73 @@ code {
     right: 0;
     bottom: 0;
     background-image: 
-        radial-gradient(2px 2px at 10% 20%, rgba(255, 120, 50, 0.6) 0%, transparent 100%),
-        radial-gradient(2px 2px at 25% 45%, rgba(255, 180, 80, 0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 40% 15%, rgba(255, 100, 30, 0.7) 0%, transparent 100%),
-        radial-gradient(2px 2px at 55% 70%, rgba(255, 150, 60, 0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 30%, rgba(255, 200, 100, 0.6) 0%, transparent 100%),
-        radial-gradient(2px 2px at 85% 55%, rgba(255, 130, 40, 0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 95% 80%, rgba(255, 160, 70, 0.4) 0%, transparent 100%),
-        radial-gradient(2px 2px at 15% 75%, rgba(255, 110, 35, 0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 60% 90%, rgba(255, 190, 90, 0.3) 0%, transparent 100%),
-        radial-gradient(2px 2px at 30% 60%, rgba(255, 140, 50, 0.4) 0%, transparent 100%);
+        radial-gradient(3px 3px at 10% 20%, rgba(255, 120, 50, 0.8) 0%, transparent 100%),
+        radial-gradient(2px 2px at 25% 45%, rgba(255, 180, 80, 0.6) 0%, transparent 100%),
+        radial-gradient(2px 2px at 40% 15%, rgba(255, 100, 30, 0.7) 0%, transparent 100%),
+        radial-gradient(3px 3px at 55% 70%, rgba(255, 150, 60, 0.5) 0%, transparent 100%),
+        radial-gradient(2px 2px at 70% 30%, rgba(255, 200, 100, 0.7) 0%, transparent 100%),
+        radial-gradient(3px 3px at 85% 55%, rgba(255, 130, 40, 0.6) 0%, transparent 100%),
+        radial-gradient(2px 2px at 95% 80%, rgba(255, 160, 70, 0.5) 0%, transparent 100%),
+        radial-gradient(3px 3px at 15% 75%, rgba(255, 110, 35, 0.6) 0%, transparent 100%),
+        radial-gradient(2px 2px at 60% 90%, rgba(255, 190, 90, 0.4) 0%, transparent 100%),
+        radial-gradient(3px 3px at 30% 60%, rgba(255, 140, 50, 0.5) 0%, transparent 100%);
     animation: ember-float 15s ease-in-out infinite;
+}
+
+/* Floating ember particles container */
+.ember-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.ember-particles .ember {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(255, 150, 50, 1) 0%, rgba(255, 100, 30, 0.8) 50%, transparent 100%);
+    border-radius: 50%;
+    animation: ember-rise linear infinite;
+    opacity: 0;
+}
+
+.ember-particles .ember:nth-child(1) { left: 5%; animation-duration: 8s; animation-delay: 0s; }
+.ember-particles .ember:nth-child(2) { left: 15%; animation-duration: 10s; animation-delay: 1s; }
+.ember-particles .ember:nth-child(3) { left: 25%; animation-duration: 7s; animation-delay: 2s; }
+.ember-particles .ember:nth-child(4) { left: 35%; animation-duration: 9s; animation-delay: 0.5s; }
+.ember-particles .ember:nth-child(5) { left: 45%; animation-duration: 11s; animation-delay: 3s; }
+.ember-particles .ember:nth-child(6) { left: 55%; animation-duration: 8s; animation-delay: 1.5s; }
+.ember-particles .ember:nth-child(7) { left: 65%; animation-duration: 10s; animation-delay: 2.5s; }
+.ember-particles .ember:nth-child(8) { left: 75%; animation-duration: 9s; animation-delay: 0.8s; }
+.ember-particles .ember:nth-child(9) { left: 85%; animation-duration: 7s; animation-delay: 1.8s; }
+.ember-particles .ember:nth-child(10) { left: 95%; animation-duration: 12s; animation-delay: 3.5s; }
+
+@keyframes ember-rise {
+    0% {
+        bottom: -10px;
+        opacity: 0;
+        transform: translateX(0) scale(0.5);
+    }
+    10% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(20px) scale(1);
+    }
+    90% {
+        opacity: 0.3;
+    }
+    100% {
+        bottom: 110%;
+        opacity: 0;
+        transform: translateX(-10px) scale(0.3);
+    }
 }
 
 @keyframes smoke-drift {
