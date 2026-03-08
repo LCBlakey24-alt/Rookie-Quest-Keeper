@@ -259,6 +259,190 @@ class CalendarEventUpdate(BaseModel):
     is_recurring: Optional[bool] = None
     recurrence_type: Optional[str] = None
 
+# ==================== CAMPAIGN CONTENT MODELS (Structured Rules) ====================
+# These allow GMs to define custom races, classes, subclasses, backgrounds, feats
+# Players in the campaign can then use these in character creation
+
+class CampaignRace(BaseModel):
+    """Custom race for a campaign's ruleset"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    ruleset_id: Optional[str] = None  # Links to a ruleset (e.g., "2014_phb", "2024_phb", "homebrew")
+    name: str
+    description: str = ""
+    size: str = "Medium"  # Small, Medium, Large
+    speed: int = 30
+    ability_bonuses: Dict[str, int] = {}  # {"strength": 2, "constitution": 1}
+    traits: List[Dict[str, str]] = []  # [{"name": "Darkvision", "description": "You can see in dim light..."}]
+    languages: List[str] = ["Common"]
+    subraces: List[Dict[str, Any]] = []  # For races with subraces
+    source: str = "Homebrew"  # "2014 PHB", "2024 PHB", "Homebrew", etc.
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+class CampaignClass(BaseModel):
+    """Custom class for a campaign's ruleset"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    ruleset_id: Optional[str] = None
+    name: str
+    description: str = ""
+    hit_die: str = "d8"  # d6, d8, d10, d12
+    primary_ability: str = ""  # "Strength", "Dexterity and Wisdom", etc.
+    saving_throw_proficiencies: List[str] = []  # ["Strength", "Constitution"]
+    armor_proficiencies: List[str] = []  # ["Light armor", "Medium armor", "Shields"]
+    weapon_proficiencies: List[str] = []  # ["Simple weapons", "Martial weapons"]
+    tool_proficiencies: List[str] = []
+    skill_choices: Dict[str, Any] = {}  # {"choose": 2, "from": ["Athletics", "Intimidation", ...]}
+    starting_equipment: List[str] = []
+    features: List[Dict[str, Any]] = []  # [{"level": 1, "name": "Fighting Style", "description": "..."}]
+    spellcasting: Optional[Dict[str, Any]] = None  # Spellcasting details if applicable
+    source: str = "Homebrew"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+class CampaignSubclass(BaseModel):
+    """Custom subclass for a campaign's ruleset"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    ruleset_id: Optional[str] = None
+    parent_class: str  # The class this subclass belongs to (e.g., "Fighter")
+    name: str
+    description: str = ""
+    subclass_level: int = 3  # Level when you choose this subclass
+    features: List[Dict[str, Any]] = []  # [{"level": 3, "name": "Battle Master Maneuvers", "description": "..."}]
+    source: str = "Homebrew"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+class CampaignBackground(BaseModel):
+    """Custom background for a campaign's ruleset"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    ruleset_id: Optional[str] = None
+    name: str
+    description: str = ""
+    skill_proficiencies: List[str] = []  # ["Athletics", "Survival"]
+    tool_proficiencies: List[str] = []
+    languages: int = 0  # Number of additional languages
+    equipment: List[str] = []
+    feature_name: str = ""  # Background feature name
+    feature_description: str = ""  # Background feature description
+    personality_traits: List[str] = []
+    ideals: List[str] = []
+    bonds: List[str] = []
+    flaws: List[str] = []
+    source: str = "Homebrew"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+class CampaignFeat(BaseModel):
+    """Custom feat for a campaign's ruleset"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    ruleset_id: Optional[str] = None
+    name: str
+    description: str = ""
+    prerequisites: str = ""  # "Strength 13 or higher", "Spellcasting ability", etc.
+    benefits: List[str] = []  # List of benefits the feat provides
+    source: str = "Homebrew"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+class CampaignRuleset(BaseModel):
+    """A collection of rules (races, classes, etc.) that can be shared"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    campaign_id: str
+    name: str  # "D&D 5e 2014", "D&D 5e 2024", "My Homebrew", etc.
+    description: str = ""
+    version: str = "1.0"
+    is_active: bool = True  # Whether this ruleset is enabled for the campaign
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: str = ""
+
+# Create models for adding content
+class CampaignRaceCreate(BaseModel):
+    name: str
+    description: str = ""
+    size: str = "Medium"
+    speed: int = 30
+    ability_bonuses: Dict[str, int] = {}
+    traits: List[Dict[str, str]] = []
+    languages: List[str] = ["Common"]
+    subraces: List[Dict[str, Any]] = []
+    source: str = "Homebrew"
+    ruleset_id: Optional[str] = None
+
+class CampaignClassCreate(BaseModel):
+    name: str
+    description: str = ""
+    hit_die: str = "d8"
+    primary_ability: str = ""
+    saving_throw_proficiencies: List[str] = []
+    armor_proficiencies: List[str] = []
+    weapon_proficiencies: List[str] = []
+    tool_proficiencies: List[str] = []
+    skill_choices: Dict[str, Any] = {}
+    starting_equipment: List[str] = []
+    features: List[Dict[str, Any]] = []
+    spellcasting: Optional[Dict[str, Any]] = None
+    source: str = "Homebrew"
+    ruleset_id: Optional[str] = None
+
+class CampaignSubclassCreate(BaseModel):
+    parent_class: str
+    name: str
+    description: str = ""
+    subclass_level: int = 3
+    features: List[Dict[str, Any]] = []
+    source: str = "Homebrew"
+    ruleset_id: Optional[str] = None
+
+class CampaignBackgroundCreate(BaseModel):
+    name: str
+    description: str = ""
+    skill_proficiencies: List[str] = []
+    tool_proficiencies: List[str] = []
+    languages: int = 0
+    equipment: List[str] = []
+    feature_name: str = ""
+    feature_description: str = ""
+    personality_traits: List[str] = []
+    ideals: List[str] = []
+    bonds: List[str] = []
+    flaws: List[str] = []
+    source: str = "Homebrew"
+    ruleset_id: Optional[str] = None
+
+class CampaignFeatCreate(BaseModel):
+    name: str
+    description: str = ""
+    prerequisites: str = ""
+    benefits: List[str] = []
+    source: str = "Homebrew"
+    ruleset_id: Optional[str] = None
+
+class CampaignRulesetCreate(BaseModel):
+    name: str
+    description: str = ""
+    version: str = "1.0"
+
+class BulkContentUpload(BaseModel):
+    """For uploading a complete ruleset with all content at once"""
+    ruleset_name: str
+    ruleset_description: str = ""
+    races: List[CampaignRaceCreate] = []
+    classes: List[CampaignClassCreate] = []
+    subclasses: List[CampaignSubclassCreate] = []
+    backgrounds: List[CampaignBackgroundCreate] = []
+    feats: List[CampaignFeatCreate] = []
+
 # ==================== PLAYER CHARACTER MODELS ====================
 
 class PlayerCharacter(BaseModel):
@@ -2800,6 +2984,316 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
             {"id": "custom", "name": "Custom Setting", "description": "Your own homebrew world"}
         ]
     }
+
+# ==================== CAMPAIGN CONTENT (Structured Rules) ====================
+# GM uploads structured content (races, classes, etc.) that players can use in character creation
+
+@api_router.post("/campaigns/{campaign_id}/content/bulk-upload")
+async def bulk_upload_campaign_content(campaign_id: str, data: BulkContentUpload, username: str = Depends(get_current_user)):
+    """Upload a complete ruleset with races, classes, subclasses, backgrounds, and feats"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    # Create the ruleset first
+    ruleset = CampaignRuleset(
+        campaign_id=campaign_id,
+        name=data.ruleset_name,
+        description=data.ruleset_description,
+        created_by=username
+    )
+    await db.campaign_rulesets.insert_one(ruleset.model_dump())
+    ruleset_id = ruleset.id
+    
+    counts = {"races": 0, "classes": 0, "subclasses": 0, "backgrounds": 0, "feats": 0}
+    
+    # Add races
+    for race_data in data.races:
+        race_dict = race_data.model_dump()
+        race_dict.pop('ruleset_id', None)  # Remove if present in data
+        race = CampaignRace(
+            campaign_id=campaign_id,
+            ruleset_id=ruleset_id,
+            created_by=username,
+            **race_dict
+        )
+        await db.campaign_races.insert_one(race.model_dump())
+        counts["races"] += 1
+    
+    # Add classes
+    for class_data in data.classes:
+        class_dict = class_data.model_dump()
+        class_dict.pop('ruleset_id', None)
+        cls = CampaignClass(
+            campaign_id=campaign_id,
+            ruleset_id=ruleset_id,
+            created_by=username,
+            **class_dict
+        )
+        await db.campaign_classes.insert_one(cls.model_dump())
+        counts["classes"] += 1
+    
+    # Add subclasses
+    for subclass_data in data.subclasses:
+        subclass_dict = subclass_data.model_dump()
+        subclass_dict.pop('ruleset_id', None)
+        subclass = CampaignSubclass(
+            campaign_id=campaign_id,
+            ruleset_id=ruleset_id,
+            created_by=username,
+            **subclass_dict
+        )
+        await db.campaign_subclasses.insert_one(subclass.model_dump())
+        counts["subclasses"] += 1
+    
+    # Add backgrounds
+    for bg_data in data.backgrounds:
+        bg_dict = bg_data.model_dump()
+        bg_dict.pop('ruleset_id', None)
+        background = CampaignBackground(
+            campaign_id=campaign_id,
+            ruleset_id=ruleset_id,
+            created_by=username,
+            **bg_dict
+        )
+        await db.campaign_backgrounds.insert_one(background.model_dump())
+        counts["backgrounds"] += 1
+    
+    # Add feats
+    for feat_data in data.feats:
+        feat_dict = feat_data.model_dump()
+        feat_dict.pop('ruleset_id', None)
+        feat = CampaignFeat(
+            campaign_id=campaign_id,
+            ruleset_id=ruleset_id,
+            created_by=username,
+            **feat_dict
+        )
+        await db.campaign_feats.insert_one(feat.model_dump())
+        counts["feats"] += 1
+    
+    return {
+        "message": f"Ruleset '{data.ruleset_name}' uploaded successfully!",
+        "ruleset_id": ruleset_id,
+        "counts": counts
+    }
+
+@api_router.get("/campaigns/{campaign_id}/content")
+async def get_campaign_content(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all available character creation content for a campaign (for players and GMs)"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    # Get all rulesets
+    rulesets = []
+    async for rs in db.campaign_rulesets.find({'campaign_id': campaign_id, 'is_active': True}, {'_id': 0}):
+        rulesets.append(rs)
+    
+    # Get all races
+    races = []
+    async for race in db.campaign_races.find({'campaign_id': campaign_id}, {'_id': 0}):
+        races.append(race)
+    
+    # Get all classes
+    classes = []
+    async for cls in db.campaign_classes.find({'campaign_id': campaign_id}, {'_id': 0}):
+        classes.append(cls)
+    
+    # Get all subclasses
+    subclasses = []
+    async for sub in db.campaign_subclasses.find({'campaign_id': campaign_id}, {'_id': 0}):
+        subclasses.append(sub)
+    
+    # Get all backgrounds
+    backgrounds = []
+    async for bg in db.campaign_backgrounds.find({'campaign_id': campaign_id}, {'_id': 0}):
+        backgrounds.append(bg)
+    
+    # Get all feats
+    feats = []
+    async for feat in db.campaign_feats.find({'campaign_id': campaign_id}, {'_id': 0}):
+        feats.append(feat)
+    
+    return {
+        "rulesets": rulesets,
+        "races": races,
+        "classes": classes,
+        "subclasses": subclasses,
+        "backgrounds": backgrounds,
+        "feats": feats,
+        "has_custom_content": len(races) > 0 or len(classes) > 0
+    }
+
+@api_router.get("/campaigns/{campaign_id}/content/races")
+async def get_campaign_races(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all races available in a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    races = []
+    async for race in db.campaign_races.find({'campaign_id': campaign_id}, {'_id': 0}):
+        races.append(race)
+    
+    return {"races": races, "count": len(races)}
+
+@api_router.get("/campaigns/{campaign_id}/content/classes")
+async def get_campaign_classes(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all classes available in a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    classes = []
+    async for cls in db.campaign_classes.find({'campaign_id': campaign_id}, {'_id': 0}):
+        classes.append(cls)
+    
+    return {"classes": classes, "count": len(classes)}
+
+@api_router.get("/campaigns/{campaign_id}/content/subclasses")
+async def get_campaign_subclasses(campaign_id: str, parent_class: Optional[str] = None, username: str = Depends(get_current_user)):
+    """Get all subclasses available in a campaign, optionally filtered by parent class"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    query = {'campaign_id': campaign_id}
+    if parent_class:
+        query['parent_class'] = parent_class
+    
+    subclasses = []
+    async for sub in db.campaign_subclasses.find(query, {'_id': 0}):
+        subclasses.append(sub)
+    
+    return {"subclasses": subclasses, "count": len(subclasses)}
+
+@api_router.get("/campaigns/{campaign_id}/content/backgrounds")
+async def get_campaign_backgrounds(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all backgrounds available in a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    backgrounds = []
+    async for bg in db.campaign_backgrounds.find({'campaign_id': campaign_id}, {'_id': 0}):
+        backgrounds.append(bg)
+    
+    return {"backgrounds": backgrounds, "count": len(backgrounds)}
+
+@api_router.get("/campaigns/{campaign_id}/content/feats")
+async def get_campaign_feats(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all feats available in a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    feats = []
+    async for feat in db.campaign_feats.find({'campaign_id': campaign_id}, {'_id': 0}):
+        feats.append(feat)
+    
+    return {"feats": feats, "count": len(feats)}
+
+# Individual content addition endpoints (for adding one at a time)
+@api_router.post("/campaigns/{campaign_id}/content/races")
+async def add_campaign_race(campaign_id: str, data: CampaignRaceCreate, username: str = Depends(get_current_user)):
+    """Add a custom race to a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    race = CampaignRace(
+        campaign_id=campaign_id,
+        created_by=username,
+        **data.model_dump()
+    )
+    await db.campaign_races.insert_one(race.model_dump())
+    
+    return {"message": f"Race '{data.name}' added", "id": race.id}
+
+@api_router.post("/campaigns/{campaign_id}/content/classes")
+async def add_campaign_class(campaign_id: str, data: CampaignClassCreate, username: str = Depends(get_current_user)):
+    """Add a custom class to a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    cls = CampaignClass(
+        campaign_id=campaign_id,
+        created_by=username,
+        **data.model_dump()
+    )
+    await db.campaign_classes.insert_one(cls.model_dump())
+    
+    return {"message": f"Class '{data.name}' added", "id": cls.id}
+
+@api_router.post("/campaigns/{campaign_id}/content/subclasses")
+async def add_campaign_subclass(campaign_id: str, data: CampaignSubclassCreate, username: str = Depends(get_current_user)):
+    """Add a custom subclass to a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    subclass = CampaignSubclass(
+        campaign_id=campaign_id,
+        created_by=username,
+        **data.model_dump()
+    )
+    await db.campaign_subclasses.insert_one(subclass.model_dump())
+    
+    return {"message": f"Subclass '{data.name}' added for {data.parent_class}", "id": subclass.id}
+
+@api_router.post("/campaigns/{campaign_id}/content/backgrounds")
+async def add_campaign_background(campaign_id: str, data: CampaignBackgroundCreate, username: str = Depends(get_current_user)):
+    """Add a custom background to a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    background = CampaignBackground(
+        campaign_id=campaign_id,
+        created_by=username,
+        **data.model_dump()
+    )
+    await db.campaign_backgrounds.insert_one(background.model_dump())
+    
+    return {"message": f"Background '{data.name}' added", "id": background.id}
+
+@api_router.post("/campaigns/{campaign_id}/content/feats")
+async def add_campaign_feat(campaign_id: str, data: CampaignFeatCreate, username: str = Depends(get_current_user)):
+    """Add a custom feat to a campaign"""
+    await verify_campaign_membership(campaign_id, username)
+    
+    feat = CampaignFeat(
+        campaign_id=campaign_id,
+        created_by=username,
+        **data.model_dump()
+    )
+    await db.campaign_feats.insert_one(feat.model_dump())
+    
+    return {"message": f"Feat '{data.name}' added", "id": feat.id}
+
+# Delete content (GM or creator only)
+@api_router.delete("/campaigns/{campaign_id}/content/{content_type}/{content_id}")
+async def delete_campaign_content(campaign_id: str, content_type: str, content_id: str, username: str = Depends(get_current_user)):
+    """Delete campaign content (races, classes, subclasses, backgrounds, feats, or rulesets)"""
+    campaign = await verify_campaign_membership(campaign_id, username)
+    
+    collection_map = {
+        'races': db.campaign_races,
+        'classes': db.campaign_classes,
+        'subclasses': db.campaign_subclasses,
+        'backgrounds': db.campaign_backgrounds,
+        'feats': db.campaign_feats,
+        'rulesets': db.campaign_rulesets
+    }
+    
+    if content_type not in collection_map:
+        raise HTTPException(status_code=400, detail=f"Invalid content type. Must be one of: {', '.join(collection_map.keys())}")
+    
+    collection = collection_map[content_type]
+    
+    # Check if user is GM or creator
+    content = await collection.find_one({'id': content_id, 'campaign_id': campaign_id})
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    is_gm = campaign.get('dm_user_id') == username
+    is_creator = content.get('created_by') == username
+    
+    if not is_gm and not is_creator:
+        raise HTTPException(status_code=403, detail="Only the GM or creator can delete this content")
+    
+    # If deleting a ruleset, also delete all associated content
+    if content_type == 'rulesets':
+        ruleset_id = content_id
+        await db.campaign_races.delete_many({'campaign_id': campaign_id, 'ruleset_id': ruleset_id})
+        await db.campaign_classes.delete_many({'campaign_id': campaign_id, 'ruleset_id': ruleset_id})
+        await db.campaign_subclasses.delete_many({'campaign_id': campaign_id, 'ruleset_id': ruleset_id})
+        await db.campaign_backgrounds.delete_many({'campaign_id': campaign_id, 'ruleset_id': ruleset_id})
+        await db.campaign_feats.delete_many({'campaign_id': campaign_id, 'ruleset_id': ruleset_id})
+    
+    await collection.delete_one({'id': content_id, 'campaign_id': campaign_id})
+    
+    return {"message": f"{content_type[:-1].title()} deleted successfully"}
 
 # ==================== GODS ROUTES ====================
 
