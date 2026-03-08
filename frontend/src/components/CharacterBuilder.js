@@ -10,6 +10,16 @@ import {
   ArrowLeft, ArrowRight, User, Sparkles, Loader, Wand2, 
   Check, Shield, Heart, Swords, BookOpen, Image, Dices, Star
 } from 'lucide-react';
+import { 
+  getSubclassUnlockLevel, 
+  canSelectSubclass, 
+  getCantripsKnown, 
+  getSpellsKnown,
+  isSpellcaster,
+  HIT_DICE,
+  SUBCLASS_LEVELS_2014,
+  SUBCLASS_LEVELS_2024
+} from '../data/editionRules';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -542,7 +552,15 @@ function CharacterBuilder() {
   };
   
   const getMergedSubclasses = (className) => {
-    const defaultSubclasses = (SUBCLASSES[className] || []).map(s => ({ ...s, isCustom: false }));
+    // Get the correct unlock level based on edition
+    const editionUnlockLevel = getSubclassUnlockLevel(className, selectedEdition || '2014');
+    
+    // Apply edition-specific unlock levels to default subclasses
+    const defaultSubclasses = (SUBCLASSES[className] || []).map(s => ({ 
+      ...s, 
+      level: selectedEdition === '2024' ? 3 : s.level, // 2024 rules: all subclasses at level 3
+      isCustom: false 
+    }));
     const customSubclasses = [];
     
     if (userContent?.subclasses?.length) {
@@ -551,7 +569,7 @@ function CharacterBuilder() {
         .forEach(s => {
           customSubclasses.push({
             name: s.name,
-            level: s.subclass_level || 3,
+            level: s.subclass_level || editionUnlockLevel,
             description: s.description || 'Custom subclass',
             isCustom: true,
             isUserContent: true,
@@ -567,7 +585,7 @@ function CharacterBuilder() {
           if (!customSubclasses.find(cs => cs.name.toLowerCase() === s.name.toLowerCase())) {
             customSubclasses.push({
               name: s.name,
-              level: s.subclass_level || 3,
+              level: s.subclass_level || editionUnlockLevel,
               description: s.description || 'Custom subclass',
               isCustom: true,
               isCampaignContent: true,
@@ -835,13 +853,22 @@ function CharacterBuilder() {
 
     setCreating(true);
     try {
+      // Calculate max HP based on class hit die + constitution modifier
+      const hitDie = parseInt(CLASSES.find(c => c.name === characterData.character_class)?.hitDie?.slice(1) || 8);
+      const conMod = Math.floor((characterData.constitution - 10) / 2);
+      const maxHP = hitDie + conMod;
+      
       const payload = {
         ...characterData,
-        max_hp: parseInt(CLASSES.find(c => c.name === characterData.character_class)?.hitDie?.slice(1) || 8) + 
-                Math.floor((characterData.constitution - 10) / 2),
+        max_hit_points: maxHP,  // Use correct field name for backend
         armor_class: 10 + Math.floor((characterData.dexterity - 10) / 2),
         portrait_url: portraitImage || null,
-        campaign_id: campaignId || null  // Link to campaign if creating for a specific campaign
+        campaign_id: campaignId || null,  // Link to campaign if creating for a specific campaign
+        edition: selectedEdition || '2014',  // Include edition for rule system
+        // Include spell selections if spellcaster
+        spells_known: selectedSpells || [],
+        cantrips_known: selectedCantrips || [],
+        feats: selectedFeat ? [{ name: selectedFeat }] : []
       };
 
       await axios.post(`${API}/characters`, payload);

@@ -54,6 +54,31 @@ security = HTTPBearer()
 # Admin usernames - these users can access admin features and get auto-upgraded to legendary tier
 ADMIN_USERNAMES = ["lcblakey24"]
 
+# D&D 5e Edition Rules - Subclass unlock levels
+SUBCLASS_LEVELS_2014 = {
+    'Barbarian': 3, 'Bard': 3, 'Cleric': 1, 'Druid': 2, 'Fighter': 3, 
+    'Monk': 3, 'Paladin': 3, 'Ranger': 3, 'Rogue': 3, 'Sorcerer': 1, 
+    'Warlock': 1, 'Wizard': 2
+}
+SUBCLASS_LEVELS_2024 = {
+    'Barbarian': 3, 'Bard': 3, 'Cleric': 3, 'Druid': 3, 'Fighter': 3, 
+    'Monk': 3, 'Paladin': 3, 'Ranger': 3, 'Rogue': 3, 'Sorcerer': 3, 
+    'Warlock': 3, 'Wizard': 3
+}
+
+# Hit dice by class
+HIT_DICE = {
+    'Barbarian': 12, 'Fighter': 10, 'Paladin': 10, 'Ranger': 10,
+    'Bard': 8, 'Cleric': 8, 'Druid': 8, 'Monk': 8, 'Rogue': 8, 'Warlock': 8,
+    'Sorcerer': 6, 'Wizard': 6
+}
+
+def get_subclass_unlock_level(class_name: str, edition: str = "2014") -> int:
+    """Get the level at which a class gets their subclass"""
+    if edition == "2024":
+        return SUBCLASS_LEVELS_2024.get(class_name, 3)
+    return SUBCLASS_LEVELS_2014.get(class_name, 3)
+
 # Create the main app without a prefix
 app = FastAPI()
 
@@ -565,6 +590,7 @@ class PlayerCharacter(BaseModel):
     background: str = ""
     level: int = 1
     experience_points: int = 0
+    edition: str = "2014"  # D&D edition: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -639,6 +665,7 @@ class PlayerCharacterCreate(BaseModel):
     subclass: str = ""
     background: str = ""
     level: int = 1
+    edition: str = "2014"  # D&D edition: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -654,6 +681,11 @@ class PlayerCharacterCreate(BaseModel):
     max_hit_points: Optional[int] = None  # Auto-calculate if not provided
     alignment: str = "Neutral"
     backstory: str = ""
+    
+    # Spell and feat selections from character creation
+    spells_known: Optional[List[str]] = []
+    cantrips_known: Optional[List[str]] = []
+    feats: Optional[List[Dict[str, str]]] = []
 
 class PlayerCharacterUpdate(BaseModel):
     name: Optional[str] = None
@@ -6065,13 +6097,24 @@ async def create_character(
             }
         )
     
+    # Validate subclass selection based on edition and level
+    edition = getattr(character, 'edition', '2014')
+    if character.subclass:
+        subclass_unlock_level = get_subclass_unlock_level(character.character_class, edition)
+        if character.level < subclass_unlock_level:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{character.character_class}s cannot select a subclass until level {subclass_unlock_level} in {edition} rules"
+            )
+    
+    # Get proper hit die for class
+    hit_die = HIT_DICE.get(character.character_class, 8)
+    
     # Calculate max HP if not provided
     max_hp = character.max_hit_points
     if max_hp is None:
-        # Simple calculation: Base HP based on class
         constitution_modifier = (character.constitution - 10) // 2
-        # Default to d8 hit die
-        max_hp = 8 + constitution_modifier
+        max_hp = hit_die + constitution_modifier
     
     # Calculate proficiency bonus based on level
     proficiency_bonus = 2 + ((character.level - 1) // 4)
@@ -6082,13 +6125,23 @@ async def create_character(
         dexterity_modifier = (character.dexterity - 10) // 2
         armor_class = 10 + dexterity_modifier
     
+    # Prepare character data, excluding fields that will be calculated
+    char_data = character.model_dump()
+    excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class', 'spells_known', 'cantrips_known', 'feats']
+    char_data = {k: v for k, v in char_data.items() if k not in excluded_fields}
+    
     new_character = PlayerCharacter(
         user_id=username,
-        **{k: v for k, v in character.model_dump().items() if k not in ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class']},
+        **char_data,
         max_hit_points=max_hp,
         current_hit_points=max_hp,
         proficiency_bonus=proficiency_bonus,
-        armor_class=armor_class
+        armor_class=armor_class,
+        hit_dice=f"1d{hit_die}",
+        hit_dice_remaining=1,
+        spells_known=[{"name": s} for s in (character.spells_known or [])],
+        feats=character.feats or [],
+        edition=edition
     )
     
     await db.player_characters.insert_one(new_character.model_dump())

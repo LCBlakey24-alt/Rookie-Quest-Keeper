@@ -214,74 +214,118 @@ function RuleSystemManager() {
     const samples = {
       classes: [
         {
-          name: "Fighter",
-          description: "A master of martial combat",
+          name: "Blood Hunter",
+          description: "Warriors who use forbidden blood magic to hunt monsters",
           hit_die: 10,
           primary_ability: "Strength or Dexterity",
-          saving_throw_proficiencies: ["Strength", "Constitution"],
-          armor_proficiencies: ["Light", "Medium", "Heavy", "Shields"],
+          saving_throw_proficiencies: ["Dexterity", "Intelligence"],
+          armor_proficiencies: ["Light", "Medium", "Shields"],
           weapon_proficiencies: ["Simple", "Martial"],
           spellcasting_ability: null,
           subclass_level: 3,
-          multiclass_requirements: { "Strength": 13 }
+          multiclass_requirements: { "Strength": 13, "Intelligence": 13 },
+          features: [
+            { "name": "Hunter's Bane", "level": 1, "description": "Advantage on tracking and identifying creatures" },
+            { "name": "Blood Maledict", "level": 1, "description": "Curse enemies using your own blood" }
+          ]
+        }
+      ],
+      subclasses: [
+        {
+          name: "Order of the Ghostslayer",
+          parent_class: "Blood Hunter",
+          unlock_level: 3,
+          description: "Blood hunters specialized in fighting undead",
+          features: [
+            { "name": "Rite of the Dawn", "level": 3, "description": "Your rite damage becomes radiant against undead" },
+            { "name": "Curse Specialist", "level": 7, "description": "Extra uses of Blood Maledict" }
+          ]
         }
       ],
       races: [
         {
-          name: "Elf",
-          description: "Graceful and long-lived",
+          name: "Dhampir",
+          description: "Half-vampires with a thirst for blood",
           size: "Medium",
-          speed: 30,
-          ability_score_increases: { "Dexterity": 2 },
-          traits: [{ "name": "Darkvision", "description": "60 feet of darkvision" }],
-          languages: ["Common", "Elvish"],
+          speed: 35,
+          ability_score_increases: { "Choose": "+2 to one, +1 to another" },
+          traits: [
+            { "name": "Ancestral Legacy", "description": "Gain skills based on origin" },
+            { "name": "Darkvision", "description": "60 feet of darkvision" },
+            { "name": "Deathless Nature", "description": "You don't need to breathe" },
+            { "name": "Spider Climb", "description": "Climb at your walking speed" },
+            { "name": "Vampiric Bite", "description": "Constitution-based bite attack that heals you" }
+          ],
+          languages: ["Common", "One of your choice"],
           darkvision: 60
         }
       ],
       spells: [
         {
-          name: "Fireball",
-          level: 3,
-          school: "Evocation",
-          casting_time: "1 action",
-          range: "150 feet",
-          components: "V, S, M (a tiny ball of bat guano)",
-          duration: "Instantaneous",
-          description: "A bright streak flashes...",
-          classes: ["Wizard", "Sorcerer"],
-          concentration: false
+          name: "Blood Curse of Binding",
+          level: 2,
+          school: "Necromancy",
+          casting_time: "1 bonus action",
+          range: "30 feet",
+          components: "V, S",
+          duration: "Concentration, up to 1 minute",
+          description: "You curse a creature's blood to hold them in place. The target must make a Strength saving throw or be restrained.",
+          classes: ["Blood Hunter"],
+          concentration: true
         }
       ],
       items: [
         {
-          name: "Longsword",
-          type: "weapon",
-          rarity: "common",
-          damage: "1d8",
-          damage_type: "slashing",
-          properties: ["versatile"],
-          weight: 3,
-          cost: "15 gp"
+          name: "Blood Vial",
+          type: "Wondrous Item",
+          rarity: "Uncommon",
+          attunement: false,
+          description: "A specially crafted vial that can preserve blood for ritual use. Blood stored in this vial remains fresh for 7 days.",
+          properties: ["Can store up to 3 blood samples"],
+          weight: 0.5,
+          cost: "50 gp"
         }
       ],
       feats: [
         {
-          name: "Alert",
-          description: "Always on the lookout for danger",
-          prerequisites: "",
-          benefits: ["+5 to initiative", "Can't be surprised while conscious"]
+          name: "Grim Harvest",
+          description: "You have learned to draw power from the death of your enemies",
+          prerequisites: "Constitution 13 or higher",
+          benefits: [
+            "When you reduce a creature to 0 hit points, you gain temporary hit points equal to your Constitution modifier",
+            "You have advantage on death saving throws"
+          ]
         }
       ],
       monsters: [
         {
-          name: "Goblin",
-          size: "Small",
-          type: "humanoid",
-          armor_class: 15,
-          hit_points: 7,
-          challenge_rating: "1/4",
-          xp: 50,
-          actions: [{ "name": "Scimitar", "description": "Melee Weapon Attack: +4 to hit, 1d6+2 slashing" }]
+          name: "Blood Elemental",
+          size: "Large",
+          type: "Elemental",
+          armor_class: 14,
+          hit_points: "102 (12d10 + 36)",
+          speed: "30 ft.",
+          challenge_rating: 5,
+          xp: 1800,
+          abilities: { "STR": 18, "DEX": 14, "CON": 16, "INT": 6, "WIS": 10, "CHA": 6 },
+          damage_resistances: ["bludgeoning", "piercing", "slashing"],
+          damage_immunities: ["poison"],
+          condition_immunities: ["exhaustion", "paralyzed", "poisoned"],
+          senses: "darkvision 60 ft., passive Perception 10",
+          actions: [
+            { "name": "Multiattack", "description": "The elemental makes two slam attacks" },
+            { "name": "Slam", "description": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 14 (2d8 + 5) bludgeoning damage plus 7 (2d6) necrotic damage." },
+            { "name": "Blood Drain (Recharge 5-6)", "description": "The elemental targets one creature within 5 feet. The target must make a DC 14 Constitution saving throw, taking 21 (6d6) necrotic damage on a failed save." }
+          ]
+        }
+      ],
+      features: [
+        {
+          name: "Blood Maledict",
+          class_name: "Blood Hunter",
+          level: 1,
+          description: "You can invoke a blood curse on a creature you can see within 30 feet. You have a number of uses equal to your Intelligence modifier.",
+          subclass_name: null
         }
       ]
     };
@@ -554,6 +598,75 @@ function RuleSystemManager() {
                     {type.label}
                   </Button>
                 ))}
+              </div>
+            </div>
+
+            {/* Upload Instructions */}
+            <div style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '8px',
+              padding: '16px',
+              marginBottom: '16px'
+            }}>
+              <h4 style={{ color: '#60a5fa', margin: '0 0 12px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={16} /> How to Upload Your Content
+              </h4>
+              <div style={{ color: theme.textSecondary, fontSize: '13px', lineHeight: '1.6' }}>
+                <p style={{ margin: '0 0 8px' }}><strong>JSON Format:</strong> Upload an array of objects or a single object.</p>
+                
+                {uploadType === 'classes' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>hit_die</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: description, primary_ability, saving_throws, features</p>
+                  </div>
+                )}
+                {uploadType === 'subclasses' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>parent_class</code>, <code>unlock_level</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: description, features, spells</p>
+                  </div>
+                )}
+                {uploadType === 'races' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: ability_bonuses, size, speed, traits, languages</p>
+                  </div>
+                )}
+                {uploadType === 'spells' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>level</code>, <code>school</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: casting_time, range, components, duration, description, classes</p>
+                  </div>
+                )}
+                {uploadType === 'feats' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: description, prerequisite, benefits</p>
+                  </div>
+                )}
+                {uploadType === 'items' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>type</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: description, rarity, attunement, properties, damage, cost</p>
+                  </div>
+                )}
+                {uploadType === 'monsters' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>type</code>, <code>challenge_rating</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: size, alignment, armor_class, hit_points, abilities, actions</p>
+                  </div>
+                )}
+                {uploadType === 'features' && (
+                  <div style={{ background: theme.bg, padding: '10px', borderRadius: '4px', marginTop: '8px' }}>
+                    <p style={{ margin: '0 0 4px', color: '#f59e0b' }}>Required: <code>name</code>, <code>class_name</code>, <code>level</code></p>
+                    <p style={{ margin: 0, color: theme.muted }}>Optional: description, subclass_name</p>
+                  </div>
+                )}
+                
+                <p style={{ margin: '12px 0 0', fontSize: '12px', color: theme.muted }}>
+                  Tip: Click "Load Sample" below to see an example JSON format for {uploadType}.
+                </p>
               </div>
             </div>
 
