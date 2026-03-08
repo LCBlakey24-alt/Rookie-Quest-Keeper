@@ -121,8 +121,13 @@ class CampaignSettingUpdate(BaseModel):
     dm_rules: Optional[str] = None
 
 class CampaignWorldSettingUpdate(BaseModel):
-    world_setting: str = "custom"  # forgotten_realms, eberron, greyhawk, dragonlance, ravenloft, spelljammer, planescape, custom
+    world_setting: str = "custom"  # high_fantasy, magipunk_noir, classic_fantasy, epic_fantasy, gothic_horror, fantasy_space, planar_adventure, custom
     world_setting_notes: str = ""  # Additional context for the AI
+
+class CustomRulesUpload(BaseModel):
+    name: str = Field(..., description="Name for this ruleset (e.g., 'PHB 2014', 'Homebrew Rules')")
+    content: str = Field(..., description="The rules content (text)")
+    source_type: str = Field(default="manual", description="How rules were added: manual, pdf_extract, file_upload")
 
 class God(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -2539,7 +2544,7 @@ async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSet
     """Update campaign's world setting for AI context"""
     await verify_campaign_ownership(campaign_id, username)
     
-    valid_settings = ['forgotten_realms', 'eberron', 'greyhawk', 'dragonlance', 'ravenloft', 'spelljammer', 'planescape', 'custom']
+    valid_settings = ['high_fantasy', 'magipunk_noir', 'classic_fantasy', 'epic_fantasy', 'gothic_horror', 'fantasy_space', 'planar_adventure', 'custom']
     if data.world_setting not in valid_settings:
         raise HTTPException(status_code=400, detail=f"Invalid world setting. Must be one of: {', '.join(valid_settings)}")
     
@@ -2555,13 +2560,13 @@ async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSet
     
     # Human-readable names for settings
     setting_names = {
-        'forgotten_realms': 'Forgotten Realms',
-        'eberron': 'Eberron',
-        'greyhawk': 'Greyhawk',
-        'dragonlance': 'Dragonlance',
-        'ravenloft': 'Ravenloft',
-        'spelljammer': 'Spelljammer',
-        'planescape': 'Planescape',
+        'high_fantasy': 'High Fantasy',
+        'magipunk_noir': 'Magipunk/Noir',
+        'classic_fantasy': 'Classic Sword & Sorcery',
+        'epic_fantasy': 'Epic Fantasy',
+        'gothic_horror': 'Gothic Horror',
+        'fantasy_space': 'Fantasy Space',
+        'planar_adventure': 'Planar Adventures',
         'custom': 'Custom Setting'
     }
     
@@ -2570,6 +2575,155 @@ async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSet
         "world_setting": data.world_setting,
         "world_setting_name": setting_names.get(data.world_setting, data.world_setting),
         "world_setting_notes": data.world_setting_notes
+    }
+
+# ==================== CUSTOM RULES UPLOAD ====================
+
+@api_router.post("/campaigns/{campaign_id}/custom-rules")
+async def upload_custom_rules(campaign_id: str, data: CustomRulesUpload, username: str = Depends(get_current_user)):
+    """Upload custom rules/rulebook content for AI to reference"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    # Check content size (limit to ~500KB of text to avoid huge AI context)
+    max_chars = 500000
+    if len(data.content) > max_chars:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Rules content too large. Maximum {max_chars} characters (~500KB). Consider uploading key sections only."
+        )
+    
+    rule_doc = {
+        'id': str(uuid.uuid4()),
+        'campaign_id': campaign_id,
+        'name': data.name,
+        'content': data.content,
+        'source_type': data.source_type,
+        'char_count': len(data.content),
+        'created_at': datetime.now(timezone.utc).isoformat(),
+        'created_by': username
+    }
+    
+    await db.campaign_custom_rules.insert_one(rule_doc)
+    
+    return {
+        "message": f"Rules '{data.name}' uploaded successfully",
+        "id": rule_doc['id'],
+        "name": data.name,
+        "char_count": len(data.content),
+        "source_type": data.source_type
+    }
+
+@api_router.get("/campaigns/{campaign_id}/custom-rules")
+async def get_custom_rules(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all custom rules for a campaign"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    rules = []
+    async for rule in db.campaign_custom_rules.find({'campaign_id': campaign_id}, {'_id': 0, 'content': 0}):
+        rules.append(rule)
+    
+    return {
+        "rules": rules,
+        "total_count": len(rules)
+    }
+
+@api_router.get("/campaigns/{campaign_id}/custom-rules/{rule_id}")
+async def get_custom_rule_detail(campaign_id: str, rule_id: str, username: str = Depends(get_current_user)):
+    """Get a specific custom rule with full content"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    rule = await db.campaign_custom_rules.find_one({'id': rule_id, 'campaign_id': campaign_id}, {'_id': 0})
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rules not found")
+    
+    return rule
+
+@api_router.delete("/campaigns/{campaign_id}/custom-rules/{rule_id}")
+async def delete_custom_rules(campaign_id: str, rule_id: str, username: str = Depends(get_current_user)):
+    """Delete custom rules"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    result = await db.campaign_custom_rules.delete_one({'id': rule_id, 'campaign_id': campaign_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Rules not found")
+    
+    return {"message": "Rules deleted successfully"}
+
+@api_router.post("/campaigns/{campaign_id}/custom-rules/upload-file")
+async def upload_rules_file(campaign_id: str, file: UploadFile, username: str = Depends(get_current_user)):
+    """Upload a rules file (TXT, MD, or PDF) - extracts text content"""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    # Check file type
+    allowed_extensions = ['.txt', '.md', '.pdf']
+    file_ext = '.' + file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Read file content
+    content = await file.read()
+    
+    # Check file size (max 10MB)
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum 10MB.")
+    
+    # Extract text based on file type
+    if file_ext == '.pdf':
+        try:
+            import io
+            # Try to extract text from PDF
+            try:
+                import fitz  # PyMuPDF
+                pdf_doc = fitz.open(stream=content, filetype="pdf")
+                text_content = ""
+                for page in pdf_doc:
+                    text_content += page.get_text()
+                pdf_doc.close()
+            except ImportError:
+                # Fallback: store as base64 with note
+                raise HTTPException(
+                    status_code=400, 
+                    detail="PDF extraction not available. Please copy/paste the text content manually, or upload a .txt file."
+                )
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to extract PDF text: {str(e)}")
+    else:
+        # TXT or MD file
+        try:
+            text_content = content.decode('utf-8')
+        except UnicodeDecodeError:
+            text_content = content.decode('latin-1')
+    
+    # Check extracted content size
+    max_chars = 500000
+    if len(text_content) > max_chars:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Extracted content too large ({len(text_content)} chars). Maximum {max_chars} characters. Consider uploading key sections only."
+        )
+    
+    # Save to database
+    rule_doc = {
+        'id': str(uuid.uuid4()),
+        'campaign_id': campaign_id,
+        'name': file.filename,
+        'content': text_content,
+        'source_type': 'file_upload',
+        'original_filename': file.filename,
+        'char_count': len(text_content),
+        'created_at': datetime.now(timezone.utc).isoformat(),
+        'created_by': username
+    }
+    
+    await db.campaign_custom_rules.insert_one(rule_doc)
+    
+    return {
+        "message": f"Rules from '{file.filename}' uploaded successfully",
+        "id": rule_doc['id'],
+        "name": file.filename,
+        "char_count": len(text_content),
+        "source_type": "file_upload"
     }
 
 @api_router.get("/campaigns/{campaign_id}/world-setting")
@@ -2582,13 +2736,13 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
         raise HTTPException(status_code=404, detail="Campaign not found")
     
     setting_names = {
-        'forgotten_realms': 'Forgotten Realms',
-        'eberron': 'Eberron',
-        'greyhawk': 'Greyhawk',
-        'dragonlance': 'Dragonlance',
-        'ravenloft': 'Ravenloft',
-        'spelljammer': 'Spelljammer',
-        'planescape': 'Planescape',
+        'high_fantasy': 'High Fantasy',
+        'magipunk_noir': 'Magipunk/Noir',
+        'classic_fantasy': 'Classic Sword & Sorcery',
+        'epic_fantasy': 'Epic Fantasy',
+        'gothic_horror': 'Gothic Horror',
+        'fantasy_space': 'Fantasy Space',
+        'planar_adventure': 'Planar Adventures',
         'custom': 'Custom Setting'
     }
     
@@ -2599,13 +2753,13 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
         "world_setting_name": setting_names.get(world_setting, 'Custom Setting'),
         "world_setting_notes": campaign.get('world_setting_notes', ''),
         "available_settings": [
-            {"id": "forgotten_realms", "name": "Forgotten Realms", "description": "The classic D&D setting - Sword Coast, Waterdeep, Baldur's Gate"},
-            {"id": "eberron", "name": "Eberron", "description": "Magipunk noir - Dragonmarks, warforged, the Last War"},
-            {"id": "greyhawk", "name": "Greyhawk", "description": "Original D&D setting - Flanaess, City of Greyhawk"},
-            {"id": "dragonlance", "name": "Dragonlance", "description": "Epic fantasy - Krynn, Dragon Highlords, War of the Lance"},
-            {"id": "ravenloft", "name": "Ravenloft", "description": "Gothic horror - Domains of Dread, Darklords, the Mists"},
-            {"id": "spelljammer", "name": "Spelljammer", "description": "Fantasy space - Wildspace, spelljamming ships"},
-            {"id": "planescape", "name": "Planescape", "description": "Planar adventures - Sigil, the Outer Planes, factions"},
+            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic D&D style - kingdoms, dragons, epic quests"},
+            {"id": "magipunk_noir", "name": "Magipunk/Noir", "description": "Magic meets industry - airships, intrigue, corporations"},
+            {"id": "classic_fantasy", "name": "Classic Sword & Sorcery", "description": "Gritty old-school - ruins, treasure, morally grey"},
+            {"id": "epic_fantasy", "name": "Epic Fantasy", "description": "Grand narratives - prophecies, dragon riders, dark lords"},
+            {"id": "gothic_horror", "name": "Gothic Horror", "description": "Dark and dread - cursed lands, tragic villains, monsters"},
+            {"id": "fantasy_space", "name": "Fantasy Space", "description": "Magical ships between worlds - crystal spheres, alien creatures"},
+            {"id": "planar_adventure", "name": "Planar Adventures", "description": "Multiple planes - extraplanar cities, portals, philosophy"},
             {"id": "custom", "name": "Custom Setting", "description": "Your own homebrew world"}
         ]
     }
@@ -4339,23 +4493,23 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
                 world_setting = campaign.get('world_setting', 'custom')
                 world_notes = campaign.get('world_setting_notes', '')
                 
-                # Pre-defined world setting descriptions
+                # Pre-defined world setting descriptions (generic, no trademarks)
                 world_settings_lore = {
-                    'forgotten_realms': """This campaign is set in the Forgotten Realms (Faerûn). Use established lore, locations, deities, and factions from this setting. Reference places like Waterdeep, Baldur's Gate, Neverwinter, the Sword Coast, Icewind Dale, etc. Use Forgotten Realms deities like Mystra, Torm, Lathander, Kelemvor, Bane, etc. Reference factions like the Harpers, Zhentarim, Lords' Alliance, Emerald Enclave, and Order of the Gauntlet.""",
+                    'high_fantasy': """This campaign is set in a classic high fantasy world. Use typical fantasy tropes: medieval kingdoms, ancient magic, dragons, elves, dwarves, and epic quests. Include diverse regions, powerful wizards, noble knights, and dark forces threatening the realm. Reference generic fantasy elements like guilds, temples, taverns, and dungeons.""",
                     
-                    'eberron': """This campaign is set in Eberron. Use established lore including the Five Nations, Dragonmarked Houses, the Last War, and manifest zones. Reference places like Sharn, Khorvaire, Xen'drik, and the Mournland. Use Eberron's unique elements like warforged, artificers, lightning rail, and the Draconic Prophecy. Include the Sovereign Host and the Dark Six pantheon.""",
+                    'magipunk_noir': """This campaign blends magic with industrial/noir elements. Include magical technology, airships, trains, and urban intrigue. Feature powerful corporations or houses, political conspiracies, and a world recovering from a great war. Magic is integrated into daily life and industry.""",
                     
-                    'greyhawk': """This campaign is set in Greyhawk (Oerth). Use established lore from this classic setting including the Free City of Greyhawk, the Flanaess, and its history. Reference deities like Pelor, St. Cuthbert, Heironeous, and Vecna. Include the Circle of Eight and other classic Greyhawk elements.""",
+                    'classic_fantasy': """This is a classic sword & sorcery setting with a gritty, old-school feel. Include powerful wizards, ancient ruins, warring nations, and morally grey characters. Magic is powerful but dangerous. Focus on exploration, treasure hunting, and political intrigue.""",
                     
-                    'dragonlance': """This campaign is set in Dragonlance (Krynn). Use the established lore including the War of the Lance, Dragon Highlords, and the Cataclysm. Reference locations like Ansalon, Solace, and Palanthas. Use Krynn's unique elements like kender, draconians, and the gods of Krynn.""",
+                    'epic_fantasy': """This campaign features epic, sweeping narratives with clear good vs evil conflicts. Include dragon riders, fallen kingdoms, prophecies, and world-changing events. Heroes are destined for greatness and face dark lords threatening all civilization.""",
                     
-                    'ravenloft': """This campaign is set in Ravenloft, the Domains of Dread. Create dark, gothic horror content appropriate for this setting. Reference the Mists, Darklords, and the nature of the Demiplane of Dread. Maintain an atmosphere of horror, tragedy, and moral ambiguity.""",
+                    'gothic_horror': """This campaign is set in a dark, gothic horror world. Create content with atmosphere of dread, tragedy, and moral ambiguity. Include cursed lands, tragic villains, monsters born of fear, and domains ruled by powerful evil. Maintain themes of horror, isolation, and the corruption of good.""",
                     
-                    'spelljammer': """This campaign uses Spelljammer elements - fantasy space travel between worlds. Include wildspace, spelljamming ships, the Astral Sea, and creatures appropriate for space-faring adventures. Reference various crystal spheres and the phlogiston.""",
+                    'fantasy_space': """This campaign involves fantasy space travel between worlds. Include magical ships that sail between crystal spheres, bizarre alien creatures, and adventures across multiple worlds. Blend fantasy magic with the wonder of space exploration.""",
                     
-                    'planescape': """This campaign is set in Planescape, dealing with the planes of existence. Reference Sigil, the City of Doors, and the various Outer Planes. Include factions like the Harmonium, Sensates, and Athar. Use planar philosophy and factional conflicts.""",
+                    'planar_adventure': """This campaign deals with multiple planes of existence. Include extraplanar cities, philosophical factions, portals to other realms, and beings of pure elemental or conceptual nature. Explore themes of belief, reality, and the nature of existence.""",
                     
-                    'custom': """This is a custom/homebrew setting. Generate original content that fits a fantasy TTRPG world without referencing specific copyrighted settings."""
+                    'custom': """This is a custom/homebrew setting. Generate original content that fits a fantasy TTRPG world. Use the additional context provided by the GM to inform your creations."""
                 }
                 
                 base_world_context = world_settings_lore.get(world_setting, world_settings_lore['custom'])
@@ -4365,6 +4519,28 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
                     world_context = f"\n\nWORLD SETTING CONTEXT:\n{base_world_context}\n\nADDITIONAL CAMPAIGN NOTES:\n{world_notes}"
                 else:
                     world_context = f"\n\nWORLD SETTING CONTEXT:\n{base_world_context}"
+                
+                # Add custom rules if available (limit context size)
+                custom_rules = []
+                async for rule in db.campaign_custom_rules.find({'campaign_id': request.campaign_id}, {'_id': 0, 'content': 1, 'name': 1}).limit(3):
+                    custom_rules.append(rule)
+                
+                if custom_rules:
+                    # Limit total rules context to ~50K chars to avoid overwhelming the AI
+                    rules_context = "\n\nCUSTOM RULES REFERENCE (use these rules when applicable):\n"
+                    total_chars = 0
+                    for rule in custom_rules:
+                        rule_content = rule.get('content', '')
+                        if total_chars + len(rule_content) < 50000:
+                            rules_context += f"\n--- {rule.get('name', 'Custom Rules')} ---\n{rule_content}\n"
+                            total_chars += len(rule_content)
+                        else:
+                            # Truncate if too long
+                            remaining = 50000 - total_chars
+                            if remaining > 1000:
+                                rules_context += f"\n--- {rule.get('name', 'Custom Rules')} (truncated) ---\n{rule_content[:remaining]}...\n"
+                            break
+                    world_context += rules_context
         
         # Create system message based on generation type
         system_messages = {

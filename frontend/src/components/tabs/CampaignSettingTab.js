@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Save, Wand2, Copy, Loader, ArrowDown, Key, Users } from 'lucide-react';
+import { Save, Wand2, Copy, Loader, ArrowDown, Key, Users, Upload, FileText, Trash2, BookOpen } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -22,10 +22,18 @@ function CampaignSettingTab({ campaignId }) {
   const [worldSettingNotes, setWorldSettingNotes] = useState('');
   const [availableSettings, setAvailableSettings] = useState([]);
   const [savingWorldSetting, setSavingWorldSetting] = useState(false);
+  
+  // Custom rules state
+  const [customRules, setCustomRules] = useState([]);
+  const [uploadingRules, setUploadingRules] = useState(false);
+  const [manualRulesName, setManualRulesName] = useState('');
+  const [manualRulesContent, setManualRulesContent] = useState('');
+  const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
     fetchSetting();
     fetchWorldSetting();
+    fetchCustomRules();
   }, [campaignId]);
 
   const fetchSetting = async () => {
@@ -47,6 +55,76 @@ function CampaignSettingTab({ campaignId }) {
       setAvailableSettings(response.data?.available_settings || []);
     } catch (error) {
       console.error('Failed to load world setting');
+    }
+  };
+
+  const fetchCustomRules = async () => {
+    try {
+      const response = await axios.get(`${API}/campaigns/${campaignId}/custom-rules`);
+      setCustomRules(response.data?.rules || []);
+    } catch (error) {
+      console.error('Failed to load custom rules');
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadingRules(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await axios.post(`${API}/campaigns/${campaignId}/custom-rules/upload-file`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success(`Rules from "${file.name}" uploaded! ROOK will now reference these rules.`);
+      fetchCustomRules();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload rules');
+    } finally {
+      setUploadingRules(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleManualRulesSubmit = async () => {
+    if (!manualRulesName.trim() || !manualRulesContent.trim()) {
+      toast.error('Please provide a name and content for the rules');
+      return;
+    }
+    
+    setUploadingRules(true);
+    try {
+      await axios.post(`${API}/campaigns/${campaignId}/custom-rules`, {
+        name: manualRulesName,
+        content: manualRulesContent,
+        source_type: 'manual'
+      });
+      
+      toast.success('Custom rules saved!');
+      setManualRulesName('');
+      setManualRulesContent('');
+      setShowManualInput(false);
+      fetchCustomRules();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save rules');
+    } finally {
+      setUploadingRules(false);
+    }
+  };
+
+  const handleDeleteRules = async (ruleId, ruleName) => {
+    if (!window.confirm(`Delete "${ruleName}"? This cannot be undone.`)) return;
+    
+    try {
+      await axios.delete(`${API}/campaigns/${campaignId}/custom-rules/${ruleId}`);
+      toast.success('Rules deleted');
+      fetchCustomRules();
+    } catch (error) {
+      toast.error('Failed to delete rules');
     }
   };
 
@@ -185,13 +263,13 @@ function CampaignSettingTab({ campaignId }) {
               ))}
               {availableSettings.length === 0 && (
                 <>
-                  <option value="forgotten_realms">Forgotten Realms - Sword Coast, Waterdeep, Baldur's Gate</option>
-                  <option value="eberron">Eberron - Dragonmarks, warforged, the Last War</option>
-                  <option value="greyhawk">Greyhawk - Classic D&D, Flanaess</option>
-                  <option value="dragonlance">Dragonlance - Krynn, War of the Lance</option>
-                  <option value="ravenloft">Ravenloft - Gothic horror, Domains of Dread</option>
-                  <option value="spelljammer">Spelljammer - Fantasy space, spelljamming ships</option>
-                  <option value="planescape">Planescape - Sigil, planar adventures</option>
+                  <option value="high_fantasy">High Fantasy - Classic D&D style, kingdoms, dragons</option>
+                  <option value="magipunk_noir">Magipunk/Noir - Magic meets industry, intrigue</option>
+                  <option value="classic_fantasy">Classic Sword & Sorcery - Gritty, old-school</option>
+                  <option value="epic_fantasy">Epic Fantasy - Grand narratives, prophecies</option>
+                  <option value="gothic_horror">Gothic Horror - Dark and dread, cursed lands</option>
+                  <option value="fantasy_space">Fantasy Space - Magical ships between worlds</option>
+                  <option value="planar_adventure">Planar Adventures - Multiple planes, portals</option>
                   <option value="custom">Custom Setting - Your own homebrew world</option>
                 </>
               )}
@@ -243,6 +321,172 @@ function CampaignSettingTab({ campaignId }) {
             <Save size={16} />
             {savingWorldSetting ? 'Saving...' : 'Save AI Context'}
           </Button>
+        </div>
+
+        {/* Custom Rules Upload Section */}
+        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#22C55E' }}>
+          <h3 style={{ 
+            fontSize: '16px', 
+            color: '#ffffff', 
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <BookOpen size={18} style={{ color: '#22C55E' }} />
+            Custom Rules
+          </h3>
+          <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px' }}>
+            Upload your own rulebooks (PDF, TXT, MD). ROOK will reference these when generating content. 
+            <strong style={{ color: '#22C55E' }}> You're responsible for ensuring you have rights to use uploaded content.</strong>
+          </p>
+          
+          {/* Upload buttons */}
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <label style={{
+              padding: '10px 16px',
+              background: '#22C55E',
+              color: 'white',
+              borderRadius: '8px',
+              cursor: uploadingRules ? 'not-allowed' : 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              opacity: uploadingRules ? 0.5 : 1
+            }}>
+              <Upload size={16} />
+              {uploadingRules ? 'Uploading...' : 'Upload File'}
+              <input
+                type="file"
+                accept=".pdf,.txt,.md"
+                onChange={handleFileUpload}
+                disabled={uploadingRules}
+                style={{ display: 'none' }}
+              />
+            </label>
+            
+            <button
+              onClick={() => setShowManualInput(!showManualInput)}
+              style={{
+                padding: '10px 16px',
+                background: 'transparent',
+                border: '1px solid #22C55E',
+                color: '#22C55E',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <FileText size={16} />
+              Paste Text
+            </button>
+          </div>
+          
+          {/* Manual text input */}
+          {showManualInput && (
+            <div style={{ 
+              background: '#1A1A1A', 
+              padding: '16px', 
+              borderRadius: '8px', 
+              marginBottom: '16px',
+              border: '1px solid #333'
+            }}>
+              <input
+                type="text"
+                placeholder="Rule name (e.g., 'PHB 2014 - Chapter 9')"
+                value={manualRulesName}
+                onChange={(e) => setManualRulesName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#262626',
+                  border: '1px solid #404040',
+                  borderRadius: '6px',
+                  color: '#E0E0E0',
+                  marginBottom: '10px',
+                  fontSize: '14px'
+                }}
+              />
+              <textarea
+                placeholder="Paste your rules content here..."
+                value={manualRulesContent}
+                onChange={(e) => setManualRulesContent(e.target.value)}
+                style={{
+                  width: '100%',
+                  minHeight: '150px',
+                  padding: '10px',
+                  background: '#262626',
+                  border: '1px solid #404040',
+                  borderRadius: '6px',
+                  color: '#E0E0E0',
+                  marginBottom: '10px',
+                  fontSize: '14px',
+                  resize: 'vertical'
+                }}
+              />
+              <Button
+                onClick={handleManualRulesSubmit}
+                disabled={uploadingRules}
+                style={{
+                  width: '100%',
+                  background: '#22C55E',
+                  border: 'none'
+                }}
+              >
+                {uploadingRules ? 'Saving...' : 'Save Rules'}
+              </Button>
+            </div>
+          )}
+          
+          {/* List of uploaded rules */}
+          {customRules.length > 0 && (
+            <div>
+              <h4 style={{ fontSize: '13px', color: '#808080', marginBottom: '10px' }}>
+                Uploaded Rules ({customRules.length})
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {customRules.map(rule => (
+                  <div 
+                    key={rule.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      background: '#1A1A1A',
+                      borderRadius: '6px',
+                      border: '1px solid #333'
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: '#E0E0E0', fontSize: '14px' }}>{rule.name}</span>
+                      <span style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
+                        ({Math.round(rule.char_count / 1000)}K chars)
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteRules(rule.id, rule.name)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#666',
+                        cursor: 'pointer',
+                        padding: '4px'
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="glow-panel">
