@@ -511,10 +511,15 @@ class TestSpellPersistence:
             "intelligence": 16,
             "wisdom": 12,
             "charisma": 10,
-            "spells_known": ["Magic Missile", "Shield", "Mage Armor"]
+            # Spells must be in object format {name, level}
+            "spells_known": [
+                {"name": "Magic Missile", "level": 1},
+                {"name": "Shield", "level": 1},
+                {"name": "Mage Armor", "level": 1}
+            ]
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200, f"Failed to create character: {response.text}"
         data = response.json()
         character = data.get("character", {})
         character_id = data.get("character_id")
@@ -531,6 +536,49 @@ class TestSpellPersistence:
         fetched_char = get_response.json()
         fetched_spells = fetched_char.get("spells_known", [])
         assert len(fetched_spells) > 0
+        
+        # Cleanup
+        cleanup_character(authenticated_client, character_id)
+
+    def test_cantrips_persisted(self, authenticated_client):
+        """Cantrips should be saved to the character record"""
+        unique_name = f"TEST_cantrips_{uuid.uuid4().hex[:8]}"
+        response = authenticated_client.post(f"{BASE_URL}/api/characters", json={
+            "name": unique_name,
+            "race": "Elf",
+            "character_class": "Wizard",
+            "level": 1,
+            "edition": "2014",
+            "strength": 8,
+            "dexterity": 14,
+            "constitution": 13,
+            "intelligence": 16,
+            "wisdom": 12,
+            "charisma": 10,
+            "cantrips_known": [
+                {"name": "Fire Bolt", "level": 0},
+                {"name": "Prestidigitation", "level": 0},
+                {"name": "Mage Hand", "level": 0}
+            ]
+        })
+        
+        assert response.status_code == 200, f"Failed to create character: {response.text}"
+        data = response.json()
+        character = data.get("character", {})
+        character_id = data.get("character_id")
+        
+        # Check cantrips were saved
+        cantrips = character.get("cantrips_known", [])
+        assert len(cantrips) > 0, "Expected cantrips to be saved"
+        cantrip_names = [c.get("name") if isinstance(c, dict) else c for c in cantrips]
+        assert "Fire Bolt" in cantrip_names, f"Expected Fire Bolt in {cantrip_names}"
+        
+        # Verify by fetching the character again
+        get_response = authenticated_client.get(f"{BASE_URL}/api/characters/{character_id}")
+        assert get_response.status_code == 200
+        fetched_char = get_response.json()
+        fetched_cantrips = fetched_char.get("cantrips_known", [])
+        assert len(fetched_cantrips) > 0, "Expected cantrips to persist on fetch"
         
         # Cleanup
         cleanup_character(authenticated_client, character_id)
@@ -655,3 +703,106 @@ class TestInvalidSubclassErrorMessages:
         error_detail = response.json().get("detail", "")
         # In 2024 rules, all subclasses unlock at level 3
         assert "3" in error_detail, f"Expected level 3 in error message: {error_detail}"
+
+
+
+class TestLevelUpInfoEndpoint:
+    """Test the level-up-info endpoint returns edition-aware information"""
+    
+    def test_level_up_info_2014_cleric(self, authenticated_client):
+        """Level-up info for 2014 Cleric should show subclass at level 1"""
+        unique_name = f"TEST_levelup_2014_cleric_{uuid.uuid4().hex[:8]}"
+        # Create a level 1 Cleric in 2014 edition
+        create_response = authenticated_client.post(f"{BASE_URL}/api/characters", json={
+            "name": unique_name,
+            "race": "Human",
+            "character_class": "Cleric",
+            "level": 1,
+            "edition": "2014",
+            "strength": 14,
+            "dexterity": 10,
+            "constitution": 14,
+            "intelligence": 10,
+            "wisdom": 16,
+            "charisma": 12
+        })
+        
+        assert create_response.status_code == 200
+        character_id = create_response.json().get("character_id")
+        
+        # Get level-up info
+        info_response = authenticated_client.get(f"{BASE_URL}/api/characters/{character_id}/level-up-info")
+        assert info_response.status_code == 200
+        
+        info = info_response.json()
+        assert info["edition"] == "2014"
+        assert info["subclass_info"]["unlock_level"] == 1, "2014 Cleric should unlock subclass at level 1"
+        assert info["subclass_info"]["can_choose_now"] == True, "Level 1+ Cleric should be able to choose subclass"
+        
+        # Cleanup
+        cleanup_character(authenticated_client, character_id)
+    
+    def test_level_up_info_2024_cleric(self, authenticated_client):
+        """Level-up info for 2024 Cleric should show subclass at level 3"""
+        unique_name = f"TEST_levelup_2024_cleric_{uuid.uuid4().hex[:8]}"
+        # Create a level 1 Cleric in 2024 edition
+        create_response = authenticated_client.post(f"{BASE_URL}/api/characters", json={
+            "name": unique_name,
+            "race": "Human",
+            "character_class": "Cleric",
+            "level": 1,
+            "edition": "2024",
+            "strength": 14,
+            "dexterity": 10,
+            "constitution": 14,
+            "intelligence": 10,
+            "wisdom": 16,
+            "charisma": 12
+        })
+        
+        assert create_response.status_code == 200
+        character_id = create_response.json().get("character_id")
+        
+        # Get level-up info
+        info_response = authenticated_client.get(f"{BASE_URL}/api/characters/{character_id}/level-up-info")
+        assert info_response.status_code == 200
+        
+        info = info_response.json()
+        assert info["edition"] == "2024"
+        assert info["subclass_info"]["unlock_level"] == 3, "2024 Cleric should unlock subclass at level 3"
+        assert info["subclass_info"]["can_choose_now"] == False, "Level 1 Cleric in 2024 should not be able to choose subclass yet"
+        
+        # Cleanup
+        cleanup_character(authenticated_client, character_id)
+    
+    def test_level_up_info_hit_die(self, authenticated_client):
+        """Level-up info should return correct hit die for class"""
+        unique_name = f"TEST_levelup_hitdie_{uuid.uuid4().hex[:8]}"
+        # Create a Barbarian (d12 hit die)
+        create_response = authenticated_client.post(f"{BASE_URL}/api/characters", json={
+            "name": unique_name,
+            "race": "Human",
+            "character_class": "Barbarian",
+            "level": 1,
+            "edition": "2014",
+            "strength": 16,
+            "dexterity": 14,
+            "constitution": 16,
+            "intelligence": 8,
+            "wisdom": 12,
+            "charisma": 10
+        })
+        
+        assert create_response.status_code == 200
+        character_id = create_response.json().get("character_id")
+        
+        # Get level-up info
+        info_response = authenticated_client.get(f"{BASE_URL}/api/characters/{character_id}/level-up-info")
+        assert info_response.status_code == 200
+        
+        info = info_response.json()
+        assert info["hp_info"]["hit_die"] == "d12", "Barbarian should have d12 hit die"
+        assert info["hp_info"]["constitution_modifier"] == 3, "CON 16 should give +3 modifier"
+        
+        # Cleanup
+        cleanup_character(authenticated_client, character_id)

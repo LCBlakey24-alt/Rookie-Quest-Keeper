@@ -10,6 +10,35 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 ## Recent Major Updates (March 2026)
 
+### RULES CONSISTENCY PASS - EDITION-AWARE SYSTEM (March 8, 2026)
+**Full rules-consistency pass for character creation + level-up with strict 5e 2014/2024 support**
+
+**Runtime Bug Fixes:**
+- Fixed undefined variable errors in character creation payload (`selectedSpells`, `selectedCantrips`, `selectedFeat`)
+- All spell/cantrip/feat selections now properly reference `characterData.*` properties
+- Added proper error handling for 400 validation errors from backend
+
+**Data Model Consistency:**
+- Added `cantrips_known` field to `PlayerCharacter` model
+- Normalized spell inputs to object format `{name, level}` for consistency
+- Separate fields: `spells_known` (for known-spell casters), `spells_prepared` (for prepared casters), `cantrips_known`
+- Backend normalizes any format to `{name, level}` objects before storage
+
+**Edition-Aware Rule Enforcement:**
+- Subclass options disabled in UI when character level < unlock level
+- Clear messaging shows why subclass is locked ("Subclass Locked - Clerics choose at level 1 in 2014 rules")
+- Backend validates subclass on both CREATE and UPDATE endpoints
+- New endpoint `GET /characters/{id}/level-up-info` returns edition-aware subclass timing
+- Level-up info includes: unlock level, can_choose_now, needs_selection, ASI levels, HP info
+
+**Test Coverage (25 tests):**
+- Subclass validation for 2014 edition (Cleric L1, Wizard L2, Sorcerer L1, etc.)
+- Subclass validation for 2024 edition (all classes L3)
+- Hit dice calculation per class (Barbarian d12, Wizard d6, Fighter d10)
+- max_hit_points auto-calculation with CON modifier
+- Spell and cantrip persistence in object format
+- Level-up-info endpoint returns correct edition-aware data
+
 ### EDITION-AWARE CHARACTER CREATION (March 8, 2026)
 - **Edition selection**: Players choose 2014 or 2024 rules at the start of character creation
 - **Edition-specific subclass levels**:
