@@ -1,141 +1,239 @@
 {
-  "project_name": "Quest Keeper",
+  "project_name": "Rookie Quest Keeper (ROOK)",
+  "version": "2.0.0",
   "design_philosophy": {
-    "theme": "Dark Fantasy Immersion",
-    "core_concept": "The Digital Grimoire",
-    "emotional_tone": "Mysterious, Powerful, Organized, Arcane",
-    "visual_style": "High-Contrast Dark Mode with Magical Glows",
-    "texture_strategy": "Subtle noise overlays + Glassmorphism to simulate crystal/obsidian surfaces"
-  },
-  "typography": {
-    "font_family": {
-      "headings": "Cinzel, serif",
-      "body": "Manrope, sans-serif",
-      "mono": "JetBrains Mono, monospace"
-    },
-    "installation": "import '@fontsource/cinzel/400.css'; import '@fontsource/cinzel/700.css'; import '@fontsource/manrope/400.css'; import '@fontsource/manrope/600.css';",
-    "scale": {
-      "h1": "text-5xl md:text-7xl font-bold tracking-tight",
-      "h2": "text-4xl md:text-5xl font-bold tracking-tight",
-      "h3": "text-2xl md:text-3xl font-semibold",
-      "p": "text-base md:text-lg leading-relaxed text-muted-foreground",
-      "small": "text-sm font-medium tracking-wide uppercase opacity-70"
-    }
-  },
-  "colors": {
-    "palette": {
-      "background": "#030014",
-      "foreground": "#e2e8f0",
-      "card": "rgba(10, 10, 35, 0.6)",
-      "card_foreground": "#f8fafc",
-      "popover": "#0a0a2e",
-      "popover_foreground": "#f8fafc",
-      "primary": "#7c3aed",
-      "primary_foreground": "#ffffff",
-      "secondary": "#1e293b",
-      "secondary_foreground": "#f8fafc",
-      "muted": "rgba(30, 41, 59, 0.5)",
-      "muted_foreground": "#94a3b8",
-      "accent": "#4a7dff",
-      "accent_foreground": "#ffffff",
-      "destructive": "#7f1d1d",
-      "destructive_foreground": "#fef2f2",
-      "border": "rgba(74, 125, 255, 0.2)",
-      "input": "rgba(15, 23, 42, 0.6)",
-      "ring": "#7c3aed"
-    },
-    "special_tokens": {
-      "mana_blue": "#4a7dff",
-      "blood_red": "#ef4444",
-      "necrotic_green": "#22c55e",
-      "divine_gold": "#fbbf24",
-      "void_black": "#020617"
-    }
-  },
-  "layout_strategies": {
-    "marketing_page": {
-      "grid_system": "The Tetris Grid",
-      "alignment": "Asymmetrical",
-      "spacing": "p-12 md:p-24",
-      "features": [
-        "Parallax scrolling hero",
-        "Overlapping jagged sections",
-        "Floating arcane symbols in background"
-      ]
-    },
-    "gm_screen": {
-      "grid_system": "Bento Grid (High Density)",
-      "alignment": "Strict Alignment",
-      "spacing": "p-2 gap-2",
-      "features": [
-        "Collapsible sidebars",
-        "Draggable widgets",
-        "Tabbed interface with < 100ms switch time"
-      ]
-    }
-  },
-  "component_styling": {
-    "cards": {
-      "default": "bg-card/40 backdrop-blur-md border border-border shadow-lg rounded-xl transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.2)]",
-      "interactive": "cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-    },
-    "buttons": {
-      "primary": "bg-primary hover:bg-primary/90 text-white shadow-[0_0_15px_rgba(124,58,237,0.5)] transition-all hover:shadow-[0_0_25px_rgba(124,58,237,0.7)] font-cinzel tracking-wider uppercase",
-      "secondary": "bg-secondary/50 hover:bg-secondary/80 border border-border text-foreground backdrop-blur-sm",
-      "ghost": "hover:bg-accent/10 hover:text-accent"
-    },
-    "inputs": {
-      "default": "bg-black/20 border-border focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all font-mono"
-    },
-    "modals": {
-      "overlay": "bg-black/80 backdrop-blur-sm",
-      "content": "bg-[#0a0a2e] border border-primary/30 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 rounded-2xl"
-    }
-  },
-  "visual_enhancers": {
-    "glows": {
-      "strategy": "Use box-shadow and drop-shadow utilities",
-      "class": "shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-    },
-    "borders": {
-      "strategy": "Subtle 1px borders with low opacity",
-      "class": "border border-white/10"
-    },
-    "glassmorphism": {
-      "strategy": "Used for floating panels",
-      "class": "backdrop-blur-xl bg-black/40"
-    }
-  },
-  "media_assets": {
-    "images": [
-      {
-        "category": "Hero Background",
-        "url": "https://images.unsplash.com/photo-1417436183232-5748bd9f144e?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "description": "Ruins near trees with fog - Use for Landing Page Hero Background with heavy dark overlay"
-      },
-      {
-        "category": "Dice Roller",
-        "url": "https://images.unsplash.com/photo-1696197819145-dbcf7e97cbdc?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "description": "Close up metal dice - Use for Dice Roller section background"
-      },
-      {
-        "category": "Combat Texture",
-        "url": "https://images.unsplash.com/photo-1712518145481-8948886bcc23?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "description": "Foggy forest - Use for Combat Tracker subtle background"
-      }
+    "core_pillar": "The Magical Console",
+    "mantra": "Immersion through Clarity",
+    "description": "A tool that feels like a magical artifact but functions with the precision of a modern dashboard. It prioritizes the user's cognitive load during gameplay over decorative excess.",
+    "anti_patterns": [
+      "No heavy parchment textures that reduce text contrast.",
+      "No complex 'Art Deco' borders that eat up screen real estate.",
+      "No low-contrast color combinations (e.g., dark blue on black).",
+      "No generic 'Bootstrap' layouts.",
+      "No distractions during 'Combat Mode'."
     ]
   },
-  "universal_guidelines": [
-    "FORCE DARK MODE: The app must effectively be in dark mode at all times.",
-    "NO DEFAULT SCROLLBARS: Use the custom 'thin' scrollbar style.",
-    "TEXT CONTRAST: Ensure generic gray text is at least slate-400 for readability against dark backgrounds.",
-    "MICRO-INTERACTIONS: Every button press must have a scale down effect (active:scale-95).",
-    "DATA-TESTID: All interactive elements must have data-testid attributes."
+  "themes": [
+    {
+      "id": "theme-aether-iron",
+      "name": "Aether & Iron",
+      "description": "A high-contrast, modern magical terminal. Forged in iron, powered by aether. Best for clarity and long sessions.",
+      "is_default": true,
+      "colors": {
+        "background": "#0B0F19",
+        "surface": "#111827",
+        "surface_highlight": "#1F2937",
+        "border": "#374151",
+        "text": {
+          "primary": "#F9FAFB",
+          "secondary": "#9CA3AF",
+          "muted": "#6B7280"
+        },
+        "roles": {
+          "gm": {
+            "primary": "#F59E0B",
+            "secondary": "#B45309",
+            "glow": "rgba(245, 158, 11, 0.4)"
+          },
+          "player": {
+            "primary": "#06B6D4",
+            "secondary": "#0E7490",
+            "glow": "rgba(6, 182, 212, 0.4)"
+          }
+        },
+        "status": {
+          "success": "#10B981",
+          "danger": "#EF4444",
+          "warning": "#F59E0B",
+          "info": "#3B82F6"
+        }
+      },
+      "typography": {
+        "headings": {
+          "family": "Cinzel, serif",
+          "weight": "600",
+          "tracking": "0.05em"
+        },
+        "body": {
+          "family": "Inter, sans-serif",
+          "weight": "400"
+        }
+      },
+      "radius": "0.5rem",
+      "shadows": "0 4px 20px -2px rgba(0, 0, 0, 0.5)"
+    },
+    {
+      "id": "theme-midnight-forest",
+      "name": "Midnight Forest",
+      "description": "Deep, organic, and soothing. Like playing D&D in a bioluminescent forest clearing at night.",
+      "is_default": false,
+      "colors": {
+        "background": "#022C22",
+        "surface": "#064E3B",
+        "surface_highlight": "#065F46",
+        "border": "#047857",
+        "text": {
+          "primary": "#ECFDF5",
+          "secondary": "#A7F3D0",
+          "muted": "#6EE7B7"
+        },
+        "roles": {
+          "gm": {
+            "primary": "#F43F5E",
+            "secondary": "#9F1239",
+            "glow": "rgba(244, 63, 94, 0.4)"
+          },
+          "player": {
+            "primary": "#34D399",
+            "secondary": "#059669",
+            "glow": "rgba(52, 211, 153, 0.4)"
+          }
+        },
+        "status": {
+          "success": "#34D399",
+          "danger": "#F43F5E",
+          "warning": "#FBBF24",
+          "info": "#60A5FA"
+        }
+      },
+      "typography": {
+        "headings": {
+          "family": "Crimson Text, serif",
+          "weight": "600",
+          "tracking": "0.02em"
+        },
+        "body": {
+          "family": "Lato, sans-serif",
+          "weight": "400"
+        }
+      },
+      "radius": "0.75rem",
+      "shadows": "0 10px 30px -5px rgba(2, 44, 34, 0.7)"
+    },
+    {
+      "id": "theme-royal-parchment",
+      "name": "Royal Parchment (Dark)",
+      "description": "A classic fantasy feel modernized for digital screens. Warm dark greys and browns instead of blinding white paper.",
+      "is_default": false,
+      "colors": {
+        "background": "#1C1917",
+        "surface": "#292524",
+        "surface_highlight": "#44403C",
+        "border": "#57534E",
+        "text": {
+          "primary": "#E7E5E4",
+          "secondary": "#A8A29E",
+          "muted": "#78716C"
+        },
+        "roles": {
+          "gm": {
+            "primary": "#9333EA",
+            "secondary": "#6B21A8",
+            "glow": "rgba(147, 51, 234, 0.4)"
+          },
+          "player": {
+            "primary": "#D97706",
+            "secondary": "#92400E",
+            "glow": "rgba(217, 119, 6, 0.4)"
+          }
+        },
+        "status": {
+          "success": "#22C55E",
+          "danger": "#DC2626",
+          "warning": "#D97706",
+          "info": "#2563EB"
+        }
+      },
+      "typography": {
+        "headings": {
+          "family": "Playfair Display, serif",
+          "weight": "700",
+          "tracking": "0.03em"
+        },
+        "body": {
+          "family": "Source Sans Pro, sans-serif",
+          "weight": "400"
+        }
+      },
+      "radius": "0.25rem",
+      "shadows": "0 2px 10px rgba(0,0,0,0.3)"
+    }
   ],
+  "typography": {
+    "imports": [
+      "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap",
+      "https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Lato:wght@300;400;700&display=swap",
+      "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@300;400;600&display=swap"
+    ],
+    "rules": [
+      "Headings (h1-h3) must use the Theme Heading Font.",
+      "Body text, UI labels, and inputs must use the Theme Body Font.",
+      "All text size 14px or smaller must have line-height 1.5 or greater.",
+      "Never use pure white (#FFFFFF) text on pure black (#000000). Use the theme tokens."
+    ]
+  },
+  "layout_strategies": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-12 gap-6 p-6",
+    "gm_screen": {
+      "left_panel": "col-span-3 hidden md:block",
+      "main_stage": "col-span-12 md:col-span-6",
+      "right_panel": "col-span-3 hidden md:block",
+      "mobile_view": "col-span-12 flex flex-col gap-4"
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-8",
+      "card_padding": "p-5",
+      "section_gap": "gap-8"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[var(--role-primary)] text-white hover:brightness-110 shadow-lg transition-all active:scale-95",
+      "secondary": "bg-[var(--surface-highlight)] text-[var(--text-primary)] border border-[var(--border)] hover:border-[var(--role-primary)] transition-all",
+      "ghost": "bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-highlight)]"
+    },
+    "cards": {
+      "base": "bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-md overflow-hidden",
+      "interactive": "hover:border-[var(--role-primary)] hover:shadow-[var(--role-glow)] transition-all cursor-pointer",
+      "glass": "bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)]/50"
+    },
+    "inputs": {
+      "base": "bg-[var(--background)] border border-[var(--border)] rounded-[var(--radius)] px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--role-primary)] focus:border-transparent outline-none transition-all"
+    }
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px or 2px depending on size.",
+      "usage": "Use icons to save space. Always include aria-labels."
+    },
+    "images": {
+      "portraits": [
+        "https://images.unsplash.com/photo-1718057948468-7f4e421be52e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwyfHxmYW50YXN5JTIwY2hhcmFjdGVyJTIwcG9ydHJhaXQlMjBkbmR8ZW58MHx8fHwxNzczMjE3NTc3fDA&ixlib=rb-4.1.0&q=85",
+        "https://images.unsplash.com/photo-1718056514261-bb037cfe6ddd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwxfHxmYW50YXN5JTIwY2hhcmFjdGVyJTIwcG9ydHJhaXQlMjBkbmR8ZW58MHx8fHwxNzczMjE3NTc3fDA&ixlib=rb-4.1.0&q=85",
+        "https://images.unsplash.com/photo-1643922573848-962e042bb2e1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHw0fHxmYW50YXN5JTIwY2hhcmFjdGVyJTIwcG9ydHJhaXQlMjBkbmR8ZW58MHx8fHwxNzczMjE3NTc3fDA&ixlib=rb-4.1.0&q=85"
+      ],
+      "maps": [
+        "https://images.unsplash.com/photo-1665077713402-ad959854d778?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxmYW50YXN5JTIwbWFwJTIwcGFyY2htZW50JTIwdGV4dHVyZSUyMHRvcCUyMGRvd258ZW58MHx8fHwxNzczMjE3NTc4fDA&ixlib=rb-4.1.0&q=85"
+      ]
+    }
+  },
   "instructions_to_main_agent": [
-    "REFACTOR: The 'App.css' file contains legacy custom CSS. Migrate these styles to Tailwind utility classes in the components themselves.",
-    "INSTALL FONTS: Install '@fontsource/cinzel' and '@fontsource/manrope' via npm/yarn.",
-    "CONFIG UPDATE: Update 'tailwind.config.js' to include the new colors and font families.",
-    "CLEANUP: Remove the 'glow-panel', 'medieval-heading', and other custom classes from App.css after migrating them to Tailwind."
+    "1. IMPLEMENT THE THEME SWITCHER: Create a ThemeContext that manages the 'currentTheme' state.",
+    "2. USE CSS VARIABLES: Define the variables in 'index.css' based on the selected theme. Do not hardcode colors in Tailwind classes (e.g., use 'bg-surface' not 'bg-slate-800').",
+    "3. GM VS PLAYER MODE: This is a critical feature. Create a toggle or state 'userMode' (GM | PLAYER). When in GM mode, use the GM accent colors. When in Player mode, use Player accents.",
+    "4. CLEANUP: Remove the old 'Art Deco' borders and 'Tron' animations that are too distracting. Replace them with subtle CSS glows/shadows defined in the theme.",
+    "5. START with the 'Aether & Iron' theme as default.",
+    "6. KEEP IT RESPONSIVE: The GM screen must stack nicely on mobile."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) sparingly.",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN"
   ]
 }
