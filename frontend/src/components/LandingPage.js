@@ -179,7 +179,7 @@ function LandingPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ 
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: '20px',
               fontWeight: '600',
               color: theme.gm.primary,
@@ -237,7 +237,7 @@ function LandingPage() {
           {/* Logo and Text */}
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: 'clamp(2.5rem, 8vw, 5rem)',
               fontWeight: '600',
               color: theme.gm.primary,
@@ -251,7 +251,7 @@ function LandingPage() {
             </h1>
             
             <h1 style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: 'clamp(3rem, 10vw, 6rem)',
               fontWeight: '600',
               color: theme.text.primary,
@@ -264,7 +264,7 @@ function LandingPage() {
             </h1>
             
             <p style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
               background: `linear-gradient(90deg, ${theme.gm.primary}, ${theme.player.primary})`,
               WebkitBackgroundClip: 'text',
@@ -288,7 +288,7 @@ function LandingPage() {
 
           {/* Headline */}
           <h2 style={{
-            fontFamily: "'Cinzel', Georgia, serif",
+            fontFamily: "'Montserrat', sans-serif",
             fontSize: 'clamp(2rem, 4vw, 3.5rem)',
             fontWeight: '500',
             color: theme.text.primary,
@@ -303,7 +303,7 @@ function LandingPage() {
 
           {/* Subheadline */}
           <p style={{
-            fontFamily: "'Crimson Text', Georgia, serif",
+            fontFamily: "'Montserrat', sans-serif",
             fontSize: 'clamp(1.1rem, 2vw, 1.4rem)',
             color: theme.text.secondary,
             maxWidth: '800px',
@@ -323,7 +323,7 @@ function LandingPage() {
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '17px',
-                fontFamily: "'Crimson Text', Georgia, serif",
+                fontFamily: "'Montserrat', sans-serif",
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
@@ -342,7 +342,7 @@ function LandingPage() {
               style={{ 
                 padding: '16px 32px', 
                 fontSize: '17px',
-                fontFamily: "'Crimson Text', Georgia, serif",
+                fontFamily: "'Montserrat', sans-serif",
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
@@ -426,7 +426,7 @@ function LandingPage() {
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
               fontWeight: '500',
               color: theme.text.primary,
@@ -435,7 +435,7 @@ function LandingPage() {
               Your Entire Campaign. <span style={{ color: theme.gm.primary }}>One System.</span>
             </h2>
             <p style={{
-              fontFamily: "'Crimson Text', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               color: theme.text.secondary,
               fontSize: '18px',
               lineHeight: '1.8',
@@ -490,7 +490,7 @@ function LandingPage() {
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
               fontWeight: '500',
               color: theme.text.primary,
@@ -499,7 +499,7 @@ function LandingPage() {
               Try <span style={{ color: theme.gm.primary }}>ROOK</span> Right Now
             </h2>
             <p style={{ 
-              fontFamily: "'Crimson Text', Georgia, serif",
+              fontFamily: "'Montserrat', sans-serif",
               color: theme.text.secondary, 
               fontSize: '17px', 
               maxWidth: '600px', 
@@ -525,7 +525,7 @@ function LandingPage() {
               style={{
                 padding: '16px 40px',
                 fontSize: '17px',
-                fontFamily: "'Crimson Text', Georgia, serif",
+                fontFamily: "'Montserrat', sans-serif",
                 fontWeight: '600',
                 background: theme.gm.primary,
                 border: 'none',
@@ -1340,7 +1340,7 @@ function LandingPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ 
-                fontFamily: "'Cinzel', Georgia, serif",
+                fontFamily: "'Montserrat', sans-serif",
                 fontSize: '16px',
                 fontWeight: '500',
                 color: theme.text.primary,
