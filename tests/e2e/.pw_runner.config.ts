@@ -2,13 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: '/app/tests/e2e',
-  outputDir: '/root/.emergent/automation_output/20260311_090254/test-results',
+  outputDir: '/root/.emergent/automation_output/20260311_091004/test-results',
   timeout: 60000,
   retries: 0,
   workers: 1,
   reporter: [
     ['line'],
-    ['json', { outputFile: '/root/.emergent/automation_output/20260311_090254/results.json' }],
+    ['json', { outputFile: '/root/.emergent/automation_output/20260311_091004/results.json' }],
   ],
   use: {
     baseURL: 'https://rookie-quest-keeper.preview.emergentagent.com',

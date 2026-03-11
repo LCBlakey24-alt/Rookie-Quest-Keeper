@@ -194,7 +194,7 @@ function AuthPage({ onLogin }) {
       justifyContent: 'center',
       padding: '20px',
       background: theme.bg.primary,
-      fontFamily: "'Nunito', sans-serif",
+      fontFamily: "'Crimson Text', Georgia, serif",
       position: 'relative'
     }}>
       {/* Ember Background Effect */}
@@ -221,7 +221,7 @@ function AuthPage({ onLogin }) {
             color: theme.gm.primary,
             letterSpacing: '0.1em',
             margin: '0 0 8px',
-            fontFamily: "'Philosopher', Georgia, serif"
+            fontFamily: "'Cinzel', Georgia, serif"
           }}>
             ROOKIE QUEST
           </h1>
@@ -231,7 +231,7 @@ function AuthPage({ onLogin }) {
             color: theme.text.primary,
             letterSpacing: '0.15em',
             margin: 0,
-            fontFamily: "'Philosopher', Georgia, serif"
+            fontFamily: "'Cinzel', Georgia, serif"
           }}>
             KEEPER
           </h2>
@@ -264,7 +264,7 @@ function AuthPage({ onLogin }) {
                 color: theme.text.primary,
                 textAlign: 'center',
                 marginBottom: '8px',
-                fontFamily: "'Philosopher', Georgia, serif"
+                fontFamily: "'Cinzel', Georgia, serif"
               }}>
                 Welcome Back
               </h3>

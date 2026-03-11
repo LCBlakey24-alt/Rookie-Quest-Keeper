@@ -286,7 +286,7 @@ function UnifiedDashboard({ username, onLogout }) {
             fontSize: '20px',
             color: theme.gm.primary,
             margin: 0,
-            fontFamily: "'Philosopher', Georgia, serif",
+            fontFamily: "'Cinzel', Georgia, serif",
             letterSpacing: '0.1em'
           }}>
             ROOKIE QUEST KEEPER
@@ -533,7 +533,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Philosopher', Georgia, serif",
+                  fontFamily: "'Cinzel', Georgia, serif",
                   letterSpacing: '0.1em'
                 }}>
                   <User size={18} />
@@ -544,7 +544,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   fontSize: '24px',
                   color: theme.text.primary,
                   margin: 0,
-                  fontFamily: "'Philosopher', Georgia, serif",
+                  fontFamily: "'Cinzel', Georgia, serif",
                   letterSpacing: '0.03em'
                 }}>
                   My Characters
@@ -627,7 +627,7 @@ function UnifiedDashboard({ username, onLogout }) {
                         margin: '0 0 6px', 
                         fontSize: '18px',
                         fontWeight: '600',
-                        fontFamily: "'Philosopher', Georgia, serif"
+                        fontFamily: "'Cinzel', Georgia, serif"
                       }}>
                         {char.name}
                       </h3>
@@ -725,7 +725,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Philosopher', Georgia, serif",
+                  fontFamily: "'Cinzel', Georgia, serif",
                   letterSpacing: '0.1em'
                 }}>
                   <Sword size={18} />
@@ -736,7 +736,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   fontSize: '24px',
                   color: theme.text.primary,
                   margin: 0,
-                  fontFamily: "'Philosopher', Georgia, serif",
+                  fontFamily: "'Cinzel', Georgia, serif",
                   letterSpacing: '0.03em'
                 }}>
                   My Campaigns
@@ -775,7 +775,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   textAlign: 'center'
                 }}>
                   <Crown size={56} style={{ color: theme.gm.primary, marginBottom: '20px', opacity: 0.5 }} />
-                  <h3 style={{ color: theme.text.primary, margin: '0 0 8px', fontSize: '18px', fontFamily: "'Philosopher', Georgia, serif" }}>
+                  <h3 style={{ color: theme.text.primary, margin: '0 0 8px', fontSize: '18px', fontFamily: "'Cinzel', Georgia, serif" }}>
                     No Campaigns Yet
                   </h3>
                   <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
@@ -820,7 +820,7 @@ function UnifiedDashboard({ username, onLogout }) {
                         margin: '0 0 6px', 
                         fontSize: '18px',
                         fontWeight: '600',
-                        fontFamily: "'Philosopher', Georgia, serif"
+                        fontFamily: "'Cinzel', Georgia, serif"
                       }}>
                         {campaign.name}
                       </h3>

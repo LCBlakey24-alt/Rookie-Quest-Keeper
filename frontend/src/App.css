@@ -13,14 +13,11 @@
 /* Inter as fallback only */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap');
 
-/* Global font weight override - ensure no bold */
+/* Global base reset - REMOVED font override to allow index.css Cinzel/Crimson Text fonts */
 * {
-  font-weight: 400 !important;
-  font-family: 'Eros Book', 'Inter', sans-serif !important;
-}
-
-h1, h2, h3, h4, h5, h6, strong, b {
-  font-weight: 400 !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ==================== SMOKEY BACKGROUND EFFECT ==================== */

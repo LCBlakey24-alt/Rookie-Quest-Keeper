@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, loginTestUser, TEST_USER } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, TEST_USER } from '../fixtures/helpers';
 
 /**
  * Font & Styling Theme Tests - Cinzel/Crimson Text Fantasy Fonts
@@ -10,10 +10,9 @@ import { waitForAppReady, dismissToasts, hideEmergentBadge, loginTestUser, TEST_
  * - Ember particles animation
  * - z-index layering for content above background
  * 
- * NOTE: Font tests are skipped due to BUG - App.css has global override:
- *   * { font-family: 'Eros Book', 'Inter', sans-serif !important; }
- * This overrides the Cinzel/Crimson Text fonts in index.css.
- * Main agent needs to fix App.css to remove the !important override.
+ * KNOWN ISSUE: App.css still has typography rules (lines 438-446) that override 
+ * the fonts with 'Eros Book' and 'Inter'. These need to be updated to use
+ * Cinzel/Crimson Text to fully fix the font issue.
  */
 
 test.describe('Font & Styling Theme', () => {
@@ -22,7 +21,7 @@ test.describe('Font & Styling Theme', () => {
     await dismissToasts(page);
   });
 
-  test('Landing page loads with header text visible', async ({ page }) => {
+  test('Landing page loads with header text visible and Cinzel font', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
     
@@ -30,23 +29,38 @@ test.describe('Font & Styling Theme', () => {
     const rookieQuestTitle = page.locator('h1').filter({ hasText: 'ROOKIE QUEST' }).first();
     await expect(rookieQuestTitle).toBeVisible({ timeout: 10000 });
     
+    // Verify Cinzel font is applied to headers (inline style takes precedence)
+    const fontFamily = await rookieQuestTitle.evaluate((el) => {
+      return window.getComputedStyle(el).fontFamily;
+    });
+    expect(fontFamily.toLowerCase()).toContain('cinzel');
+    
     // Also check the KEEPER title
     const keeperTitle = page.locator('h1').filter({ hasText: 'KEEPER' }).first();
     await expect(keeperTitle).toBeVisible();
     
-    // Note: Font test is skipped - App.css overrides index.css fonts with !important
-    // The Cinzel font IS imported in index.css but App.css forces "Eros Book" globally
+    // Verify KEEPER title also has Cinzel font
+    const keeperFontFamily = await keeperTitle.evaluate((el) => {
+      return window.getComputedStyle(el).fontFamily;
+    });
+    expect(keeperFontFamily.toLowerCase()).toContain('cinzel');
   });
 
-  test('Landing page renders body text visible', async ({ page }) => {
+  test('Landing page renders body text visible with Crimson Text', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
     
-    // Check a paragraph element is visible
-    const bodyText = page.locator('p').filter({ hasText: /campaign operating system/i }).first();
+    // Check the full body text paragraph is visible (not the header "Campaign Operating System")
+    // The body text starts with "The all-in-one campaign operating system..."
+    const bodyText = page.locator('p').filter({ hasText: /The all-in-one/i }).first();
     await expect(bodyText).toBeVisible({ timeout: 10000 });
     
-    // Note: Font test is skipped - App.css overrides index.css fonts with !important
+    // Body text with Crimson Text inline style should work
+    const fontFamily = await bodyText.evaluate((el) => {
+      return window.getComputedStyle(el).fontFamily;
+    });
+    // This element has explicit inline fontFamily: "'Crimson Text'"
+    expect(fontFamily.toLowerCase()).toContain('crimson');
   });
 
   test('Landing page has ember background effect', async ({ page }) => {
@@ -105,13 +119,19 @@ test.describe('Font & Styling Theme', () => {
     await expect(getStartedBtn).toBeEnabled();
   });
 
-  test('Auth page displays with correct fonts', async ({ page }) => {
+  test('Auth page displays headers with Cinzel font', async ({ page }) => {
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
     
     // Check logo headers
     const rookieQuestLogo = page.locator('h1').filter({ hasText: 'ROOKIE QUEST' }).first();
     await expect(rookieQuestLogo).toBeVisible({ timeout: 10000 });
+    
+    // Verify Cinzel font is applied (inline style)
+    const fontFamily = await rookieQuestLogo.evaluate((el) => {
+      return window.getComputedStyle(el).fontFamily;
+    });
+    expect(fontFamily.toLowerCase()).toContain('cinzel');
     
     // Login form should be visible
     await expect(page.getByTestId('login-email')).toBeVisible();
@@ -218,5 +238,23 @@ test.describe('Font & Styling Theme', () => {
     const newCampaignBtn = page.getByTestId('new-campaign-btn');
     await expect(newCampaignBtn).toBeVisible();
     await expect(newCampaignBtn).toBeEnabled();
+  });
+
+  test('Verify global !important font override is removed from App.css', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await waitForAppReady(page);
+    
+    // Verify that header elements with inline Cinzel font work properly
+    const headerElement = page.locator('h1').first();
+    await expect(headerElement).toBeVisible({ timeout: 10000 });
+    
+    const fontFamily = await headerElement.evaluate((el) => {
+      return window.getComputedStyle(el).fontFamily;
+    });
+    
+    // Should contain 'cinzel' font (inline style takes precedence)
+    expect(fontFamily.toLowerCase()).toContain('cinzel');
+    
+    // This proves the !important override was removed since inline styles now work
   });
 });
