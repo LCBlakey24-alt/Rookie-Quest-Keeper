@@ -25,13 +25,13 @@ code {
     :root {
         /* Arcane Navy Theme */
         --background: 222 60% 12%;  /* Deep navy #0B1530 */
-        --foreground: 45 50% 95%;   /* Warm white */
+        --foreground: 30 30% 92%;   /* Warm cream #E68EF0 */
         --card: 222 52% 16%;        /* Panel navy #121F3D */
-        --card-foreground: 45 50% 95%;
+        --card-foreground: 30 30% 92%;
         --popover: 222 52% 16%;
-        --popover-foreground: 45 50% 95%;
+        --popover-foreground: 30 30% 92%;
         --primary: 43 56% 52%;      /* Metallic gold #D4AF37 */
-        --primary-foreground: 222 60% 12%;
+        --primary-foreground: 222 60% 12%; /* Dark text on gold */
         --secondary: 255 91% 66%;   /* Arcane purple #7A5AF8 */
         --secondary-foreground: 0 0% 100%;
         --muted: 222 45% 20%;       /* Muted navy #172756 */
@@ -63,6 +63,8 @@ code {
         --navy-panel: #121F3D;
         --navy-hover: #172756;
         --navy-elevated: #1C2C5A;
+        --text-primary: #E8E6E3;
+        --text-warm: #E8DFD0;
         --success: #2ECC71;
         --danger: #E74C3C;
         --info: #3DA9FC;
@@ -70,11 +72,11 @@ code {
 
     .dark {
         --background: 222 60% 12%;
-        --foreground: 45 50% 95%;
+        --foreground: 30 30% 92%;
         --card: 222 52% 16%;
-        --card-foreground: 45 50% 95%;
+        --card-foreground: 30 30% 92%;
         --popover: 222 52% 16%;
-        --popover-foreground: 45 50% 95%;
+        --popover-foreground: 30 30% 92%;
         --primary: 43 56% 52%;
         --primary-foreground: 222 60% 12%;
         --secondary: 255 91% 66%;
@@ -123,8 +125,52 @@ code {
     50% { opacity: 0.7; }
 }
 
+/* ===== ART-DECO CORNER FRAMES ===== */
+.arcane-frame {
+    position: relative;
+}
+
+.arcane-frame::before,
+.arcane-frame::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: #D4AF37;
+    border-style: solid;
+    pointer-events: none;
+}
+
+.arcane-frame::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+    border-top-left-radius: 4px;
+}
+
+.arcane-frame::after {
+    top: -1px;
+    right: -1px;
+    border-width: 2px 2px 0 0;
+    border-top-right-radius: 4px;
+}
+
+.arcane-frame-full::before,
+.arcane-frame-full::after,
+.arcane-frame-full .frame-bottom-left,
+.arcane-frame-full .frame-bottom-right {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: #D4AF37;
+    border-style: solid;
+    pointer-events: none;
+}
+
 /* ===== ARCANE PANEL STYLES ===== */
 .arcane-panel {
+    position: relative;
     background: #121F3D;
     border: 1px solid rgba(212, 175, 55, 0.25);
     border-radius: 14px;
@@ -134,12 +180,84 @@ code {
     transition: all 0.2s ease;
 }
 
+.arcane-panel::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 16px;
+    height: 16px;
+    border-left: 2px solid #D4AF37;
+    border-top: 2px solid #D4AF37;
+    border-top-left-radius: 2px;
+    pointer-events: none;
+}
+
+.arcane-panel::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    border-right: 2px solid #D4AF37;
+    border-top: 2px solid #D4AF37;
+    border-top-right-radius: 2px;
+    pointer-events: none;
+}
+
 .arcane-panel:hover {
     background: #172756;
     transform: translateY(-2px);
     box-shadow: 
         0 8px 30px rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(212, 175, 55, 0.15);
+}
+
+/* Panel with all 4 corners */
+.arcane-panel-framed {
+    position: relative;
+    background: #121F3D;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    overflow: visible;
+}
+
+.arcane-panel-framed .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+.arcane-panel-framed .corner-tl {
+    top: 6px;
+    left: 6px;
+    border-left: 2px solid #D4AF37;
+    border-top: 2px solid #D4AF37;
+}
+
+.arcane-panel-framed .corner-tr {
+    top: 6px;
+    right: 6px;
+    border-right: 2px solid #D4AF37;
+    border-top: 2px solid #D4AF37;
+}
+
+.arcane-panel-framed .corner-bl {
+    bottom: 6px;
+    left: 6px;
+    border-left: 2px solid #D4AF37;
+    border-bottom: 2px solid #D4AF37;
+}
+
+.arcane-panel-framed .corner-br {
+    bottom: 6px;
+    right: 6px;
+    border-right: 2px solid #D4AF37;
+    border-bottom: 2px solid #D4AF37;
 }
 
 /* ===== ARCANE BUTTON STYLES ===== */
@@ -178,7 +296,7 @@ code {
 
 .arcane-btn-gold {
     background: linear-gradient(135deg, #D4AF37 0%, #F2D675 100%);
-    color: #0B1530;
+    color: #0B1530;  /* Dark text on gold */
     border: none;
     border-radius: 10px;
     padding: 12px 24px;
@@ -222,6 +340,7 @@ code {
     position: relative;
     padding-bottom: 8px;
     transition: all 0.2s ease;
+    font-family: 'Cinzel', serif;
 }
 
 .arcane-tab::after {

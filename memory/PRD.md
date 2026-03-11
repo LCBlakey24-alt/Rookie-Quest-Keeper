@@ -39,10 +39,15 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - Gold borders using rgba(212, 175, 55, 0.25)
 - Border radius ~14px for panels
 
-**Button Hierarchy:**
-- Primary (Purple): linear-gradient(135deg, #7A5AF8, #9B6BFF) - Player actions
-- Secondary (Navy): #1C2C5A with gold border - Back/Cancel
-- Gold: linear-gradient(135deg, #D4AF37, #F2D675) - GM/Major actions
+**Button Hierarchy (with correct text colors):**
+- Gold buttons: Dark navy text (#0B1530) on gold gradient - GM/Major actions
+- Purple buttons: White text on purple gradient - Player actions
+- Secondary (Navy): #1C2C5A with gold border, light text - Back/Cancel
+
+**Art-Deco Corner Frames:**
+- Gold corner accents added to panels (login card, main cards)
+- 16px x 16px L-shaped frames at all 4 corners
+- 2px solid gold (#D4AF37) borders
 
 **Visual Effects:**
 - Subtle radial gradients for magical depth
@@ -51,7 +56,7 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 - Smooth 0.2s transitions on all interactions
 
 **Files Updated (25+ components):**
-- index.css (Complete Arcane CSS variables and utilities)
+- index.css (Complete Arcane CSS variables, panel/button classes, corner frames)
 - LandingPage.js, AuthPage.js, UnifiedDashboard.js
 - All dashboard and feature components
 - CharacterBuilder.js with user's score pool system integrated

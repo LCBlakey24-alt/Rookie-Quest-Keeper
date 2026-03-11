@@ -281,12 +281,12 @@ function UnifiedDashboard({ username, onLogout }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <h1 style={{
-            fontWeight: '400',
+            fontWeight: '500',
             fontSize: '20px',
-            color: theme.text.white,
+            color: theme.text.gold,
             margin: 0,
-            fontFamily: "Eros Book, sans-serif",
-            letterSpacing: '2px'
+            fontFamily: "'Cinzel', serif",
+            letterSpacing: '0.1em'
           }}>
             ROOKIE QUEST KEEPER
           </h1>
@@ -306,9 +306,8 @@ function UnifiedDashboard({ username, onLogout }) {
               onClick={() => navigate('/admin')}
               data-testid="admin-btn"
               style={{
-                background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(6, 182, 212, 0.2))',
-                border: '1px solid',
-                borderImage: 'linear-gradient(135deg, #C54B2C, #F2A541) 1',
+                background: 'linear-gradient(135deg, rgba(122, 90, 248, 0.2), rgba(212, 175, 55, 0.2))',
+                border: `1px solid ${theme.border}`,
                 color: theme.text.white,
                 padding: '8px 16px',
                 display: 'flex',
@@ -533,17 +532,19 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "Eros Book, sans-serif",
-                  letterSpacing: '2px'
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.1em'
                 }}>
                   <User size={18} />
                   PLAYER SIDE
                 </h2>
                 <h3 style={{
-                  fontWeight: '400',
+                  fontWeight: '500',
                   fontSize: '24px',
                   color: theme.text.white,
-                  margin: 0
+                  margin: 0,
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.03em'
                 }}>
                   My Characters
                 </h3>
@@ -556,7 +557,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   border: 'none',
                   color: '#fff',
                   padding: '12px 24px',
-                  fontWeight: '400',
+                  fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -729,17 +730,19 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "Eros Book, sans-serif",
-                  letterSpacing: '2px'
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.1em'
                 }}>
                   <Sword size={18} />
                   GM SIDE
                 </h2>
                 <h3 style={{
-                  fontWeight: '400',
+                  fontWeight: '500',
                   fontSize: '24px',
                   color: theme.text.white,
-                  margin: 0
+                  margin: 0,
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.03em'
                 }}>
                   My Campaigns
                 </h3>
@@ -748,15 +751,15 @@ function UnifiedDashboard({ username, onLogout }) {
                 onClick={() => navigate('/campaigns?create=true')}
                 data-testid="new-campaign-btn"
                 style={{
-                  background: theme.gm.primary,
+                  background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                   border: 'none',
-                  color: '#fff',
+                  color: '#0B1530',
                   padding: '12px 24px',
-                  fontWeight: '400',
+                  fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: theme.gm.glow
+                  boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
                 }}
               >
                 <Plus size={18} />
@@ -777,7 +780,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   textAlign: 'center'
                 }}>
                   <Crown size={56} style={{ color: theme.gm.primary, marginBottom: '20px', opacity: 0.5 }} />
-                  <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '18px' }}>
+                  <h3 style={{ color: theme.text.white, margin: '0 0 8px', fontSize: '18px', fontFamily: "'Cinzel', serif" }}>
                     No Campaigns Yet
                   </h3>
                   <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
@@ -786,11 +789,12 @@ function UnifiedDashboard({ username, onLogout }) {
                   <Button
                     onClick={() => navigate('/campaigns/new')}
                     style={{
-                      background: theme.gm.primary,
+                      background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                       border: 'none',
                       padding: '14px 28px',
-                      color: '#fff',
-                      fontWeight: '400'
+                      color: '#0B1530',
+                      fontWeight: '500',
+                      boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
                     }}
                   >
                     Create Campaign

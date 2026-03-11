@@ -343,11 +343,12 @@ function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                background: theme.gm.primary,
+                background: `linear-gradient(135deg, ${theme.gm.primary} 0%, ${theme.gm.hover} 100%)`,
                 border: 'none',
-                color: theme.text.white,
-                fontWeight: '400',
-                letterSpacing: '1px'
+                color: '#0B1530',
+                fontWeight: '500',
+                letterSpacing: '1px',
+                boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
               }}
             >
               <Sword size={20} /> I'm a Game Master
@@ -361,11 +362,12 @@ function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                background: theme.player.primary,
+                background: `linear-gradient(135deg, ${theme.player.primary} 0%, ${theme.player.cyan} 100%)`,
                 border: 'none',
-                color: theme.text.white,
-                fontWeight: '400',
-                letterSpacing: '1px'
+                color: '#FFFFFF',
+                fontWeight: '500',
+                letterSpacing: '1px',
+                boxShadow: '0 4px 15px rgba(122, 90, 248, 0.3)'
               }}
             >
               <Users size={20} /> I'm a Player

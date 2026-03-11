@@ -218,48 +218,60 @@ function AuthPage({ onLogin }) {
         <div style={{ textAlign: 'center' }}>
           <h1 style={{
             fontSize: '32px',
-            fontWeight: '400',
-            color: theme.text.white,
-            letterSpacing: '4px',
-            margin: '0 0 8px'
+            fontWeight: '500',
+            color: theme.accent.gold,
+            letterSpacing: '0.1em',
+            margin: '0 0 8px',
+            fontFamily: "'Cinzel', serif"
           }}>
             ROOKIE QUEST
           </h1>
           <h2 style={{
             fontSize: '40px',
-            fontWeight: '400',
+            fontWeight: '500',
             color: theme.text.white,
-            letterSpacing: '8px',
-            margin: 0
+            letterSpacing: '0.15em',
+            margin: 0,
+            fontFamily: "'Cinzel', serif"
           }}>
             KEEPER
           </h2>
           <div style={{
             width: '60px',
             height: '3px',
-            background: theme.accent.red,
+            background: `linear-gradient(90deg, ${theme.accent.gold}, ${theme.accent.primary})`,
             margin: '16px auto 0'
           }} />
         </div>
 
         {/* Auth Card */}
         <div 
+          className="arcane-panel"
           style={{
             background: theme.bg.panel,
             border: `1px solid ${theme.border}`,
+            borderRadius: '14px',
             padding: '32px',
-            width: '100%'
+            width: '100%',
+            position: 'relative'
           }}
         >
+          {/* Art-Deco Corner Frames */}
+          <div style={{ position: 'absolute', top: '8px', left: '8px', width: '16px', height: '16px', borderLeft: '2px solid #D4AF37', borderTop: '2px solid #D4AF37' }} />
+          <div style={{ position: 'absolute', top: '8px', right: '8px', width: '16px', height: '16px', borderRight: '2px solid #D4AF37', borderTop: '2px solid #D4AF37' }} />
+          <div style={{ position: 'absolute', bottom: '8px', left: '8px', width: '16px', height: '16px', borderLeft: '2px solid #D4AF37', borderBottom: '2px solid #D4AF37' }} />
+          <div style={{ position: 'absolute', bottom: '8px', right: '8px', width: '16px', height: '16px', borderRight: '2px solid #D4AF37', borderBottom: '2px solid #D4AF37' }} />
+          
           {/* Login Form */}
           {mode === 'login' && (
             <>
               <h3 style={{
                 fontSize: '22px',
-                fontWeight: '400',
+                fontWeight: '500',
                 color: theme.text.white,
                 textAlign: 'center',
-                marginBottom: '8px'
+                marginBottom: '8px',
+                fontFamily: "'Cinzel', serif"
               }}>
                 Welcome Back
               </h3>
@@ -304,7 +316,7 @@ function AuthPage({ onLogin }) {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: theme.accent.red,
+                    color: theme.accent.gold,
                     fontSize: '13px',
                     cursor: 'pointer',
                     marginBottom: '20px',
@@ -321,11 +333,12 @@ function AuthPage({ onLogin }) {
                   style={{ 
                     width: '100%', 
                     marginBottom: '12px',
-                    background: theme.accent.red,
+                    background: `linear-gradient(135deg, ${theme.accent.gold}, ${theme.accent.goldHover})`,
                     border: 'none',
-                    color: theme.text.white,
-                    padding: '12px',
-                    fontWeight: '400'
+                    color: '#0B1530',
+                    padding: '14px',
+                    fontWeight: '500',
+                    boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
                   }}
                 >
                   {loading ? 'Signing in...' : 'LOG IN'}
@@ -336,10 +349,10 @@ function AuthPage({ onLogin }) {
                   onClick={() => setMode('register')}
                   style={{ 
                     width: '100%',
-                    background: 'transparent',
+                    background: '#1C2C5A',
                     border: `1px solid ${theme.border}`,
                     color: theme.text.secondary,
-                    padding: '12px'
+                    padding: '14px'
                   }}
                 >
                   CREATE ACCOUNT
