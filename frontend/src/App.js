@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE } from '@/lib/api';
 import '@/App.css';
 import '@/styles/designSystem.css';
 import { Toaster } from '@/components/ui/sonner';
@@ -24,8 +25,7 @@ import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShor
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Setup axios interceptor for auth
 axios.interceptors.request.use((config) => {
