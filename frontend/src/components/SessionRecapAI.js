@@ -6,9 +6,9 @@ import {
   Sparkles, FileText, Clock, Users, Swords, MapPin, 
   RefreshCw, Copy, Download, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // GM Theme - Red (Tron Aries)
 const theme = {

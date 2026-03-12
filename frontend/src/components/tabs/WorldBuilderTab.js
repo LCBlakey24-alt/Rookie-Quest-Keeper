@@ -11,9 +11,9 @@ import {
   Trees, Mountain, Waves, Wand2, Check, X
 } from 'lucide-react';
 import QuickTips, { TIPS } from '@/components/QuickTips';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Hierarchy: Continent -> Country/Region -> Settlement -> Place of Interest
 const CONTINENT_TYPES = [

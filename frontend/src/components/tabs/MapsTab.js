@@ -4,9 +4,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Map, PlusCircle, Trash2, Edit, Grid } from 'lucide-react';
 import { MapBuilder } from '@/components/MapBuilder';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function MapsTab({ campaignId }) {
   const [maps, setMaps] = useState([]);

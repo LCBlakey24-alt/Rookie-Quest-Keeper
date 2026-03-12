@@ -9,9 +9,9 @@ import {
   ChevronLeft, ChevronRight, Users, Search, Plus, Trash2, Copy,
   Layers, Settings, X, Check, ArrowLeft
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Create empty map
 function createEmptyMap(width = DEFAULT_MAP_WIDTH, height = DEFAULT_MAP_HEIGHT) {

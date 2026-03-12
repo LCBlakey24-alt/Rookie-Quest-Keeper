@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Plus, Trash2, Copy, Users, Gift, Shield, Key, Star, Check, X, Sword, User, BookOpen } from 'lucide-react';
 import RuleSystemManager from './RuleSystemManager';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Dual Tron Theme - Aries (Red) + Legacy (Blue)
 const theme = {

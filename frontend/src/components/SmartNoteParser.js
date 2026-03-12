@@ -4,9 +4,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Sparkles, Loader, Check, X, Clock, MapPin, User, AlertCircle, Calendar } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function SmartNoteParser({ campaignId, noteText, onUpdateApplied }) {
   const [parsing, setParsing] = useState(false);

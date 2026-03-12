@@ -7,9 +7,9 @@ import {
   ChevronDown, ChevronUp, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] }) {
   const [npcs, setNpcs] = useState([]);

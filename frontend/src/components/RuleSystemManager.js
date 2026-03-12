@@ -8,9 +8,9 @@ import {
   FileJson, FileText, Download, Settings, Wand2, Users, Swords,
   Shield, Sparkles, Package, Eye, Edit2, Save, X, Search
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // GM Theme - Red (Tron Aries)
 const theme = {

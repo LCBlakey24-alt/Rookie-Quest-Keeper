@@ -54,7 +54,7 @@ security = HTTPBearer()
 # Admin usernames - these users can access admin features and get auto-upgraded to legendary tier
 ADMIN_USERNAMES = ["lcblakey24"]
 
-# D&D 5e Edition Rules - Subclass unlock levels
+# 5e-compatible edition rules - Subclass unlock levels
 SUBCLASS_LEVELS_2014 = {
     'Barbarian': 3, 'Bard': 3, 'Cleric': 1, 'Druid': 2, 'Fighter': 3, 
     'Monk': 3, 'Paladin': 3, 'Ranger': 3, 'Rogue': 3, 'Sorcerer': 1, 
@@ -386,7 +386,7 @@ class CampaignRuleset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
-    name: str  # "D&D 5e 2014", "D&D 5e 2024", "My Homebrew", etc.
+    name: str  # "5e-compatible 2014", "5e-compatible 2024", "My Homebrew", etc.
     description: str = ""
     version: str = "1.0"
     is_active: bool = True  # Whether this ruleset is enabled for the campaign
@@ -478,7 +478,7 @@ class UserRuleset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    name: str  # "D&D 5e 2014 PHB", "My Custom Classes", etc.
+    name: str  # "5e-compatible 2014 PHB", "My Custom Classes", etc.
     description: str = ""
     edition: str = "2014"  # "2014" or "2024" - the rule edition this content belongs to
     version: str = "1.0"
@@ -590,7 +590,7 @@ class PlayerCharacter(BaseModel):
     background: str = ""
     level: int = 1
     experience_points: int = 0
-    edition: str = "2014"  # D&D edition: "2014" or "2024"
+    edition: str = "2014"  # edition profile: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -666,7 +666,7 @@ class PlayerCharacterCreate(BaseModel):
     subclass: str = ""
     background: str = ""
     level: int = 1
-    edition: str = "2014"  # D&D edition: "2014" or "2024"
+    edition: str = "2014"  # edition profile: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -3119,7 +3119,7 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
         "world_setting_name": setting_names.get(world_setting, 'Custom Setting'),
         "world_setting_notes": campaign.get('world_setting_notes', ''),
         "available_settings": [
-            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic D&D style - kingdoms, dragons, epic quests"},
+            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic high-fantasy style - kingdoms, dragons, epic quests"},
             {"id": "magipunk_noir", "name": "Magipunk/Noir", "description": "Magic meets industry - airships, intrigue, corporations"},
             {"id": "classic_fantasy", "name": "Classic Sword & Sorcery", "description": "Gritty old-school - ruins, treasure, morally grey"},
             {"id": "epic_fantasy", "name": "Epic Fantasy", "description": "Grand narratives - prophecies, dragon riders, dark lords"},
@@ -5065,7 +5065,9 @@ IMPORTANT RULES:
 1. Generate content in strict JSON format only - no markdown, no explanations
 2. Make your creations fit naturally with the existing world context provided
 3. Reference existing NPCs, locations, or deities when appropriate
-4. Maintain consistency with the established setting and tone"""
+4. Maintain consistency with the established setting and tone
+5. Avoid proprietary or trademarked franchise names, characters, places, logos, and direct references to specific published settings
+6. Generate original, non-infringing content suitable for a generic fantasy TTRPG"""
 
         # Build prompt with context
         context_section = ""

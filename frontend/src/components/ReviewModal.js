@@ -3,8 +3,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { X, Star, Send, Edit } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 function ReviewModal({ isOpen, onClose }) {
   const [rating, setRating] = useState(0);
@@ -23,7 +24,7 @@ function ReviewModal({ isOpen, onClose }) {
   const fetchMyReview = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/api/reviews/mine`);
+      const response = await axios.get(`${API}/reviews/mine`);
       if (response.data) {
         setExistingReview(response.data);
         setRating(response.data.rating);
@@ -53,10 +54,10 @@ function ReviewModal({ isOpen, onClose }) {
     setSubmitting(true);
     try {
       if (existingReview) {
-        await axios.put(`${API}/api/reviews`, { rating, comment });
+        await axios.put(`${API}/reviews`, { rating, comment });
         toast.success('Review updated!');
       } else {
-        await axios.post(`${API}/api/reviews`, { rating, comment });
+        await axios.post(`${API}/reviews`, { rating, comment });
         toast.success('Thank you for your review!');
       }
       onClose();

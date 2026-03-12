@@ -23,9 +23,9 @@ import CampaignList from '@/components/CampaignList';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Setup axios interceptor for auth
 axios.interceptors.request.use((config) => {

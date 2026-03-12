@@ -1,5 +1,5 @@
 /**
- * D&D 5e Edition Rules - 2014 vs 2024
+ * 5e-compatible edition rules - 2014 vs 2024
  * This file contains edition-specific data for character creation and level-up
  * Based on SRD (System Reference Document) - copyright-safe content
  */

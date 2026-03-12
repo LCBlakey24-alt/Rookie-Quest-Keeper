@@ -9,9 +9,9 @@ import {
   Plus, Trash2, Edit3, Save, X, FileText, BookOpen, 
   Scroll, Calendar, User, ChevronDown, ChevronUp, Loader
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function PlayerNotesTab({ campaigns = [] }) {
   const [sessionRecaps, setSessionRecaps] = useState([]);
