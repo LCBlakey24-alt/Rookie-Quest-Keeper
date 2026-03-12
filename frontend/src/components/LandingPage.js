@@ -94,7 +94,7 @@ export default function LandingPage() {
               flexWrap: "wrap",
             }}
           >
-            <Link to="/dashboard" style={{ textDecoration: "none" }}>
+            <Link to="/auth" style={{ textDecoration: "none" }}>
               <button className="rq-button-primary" style={{ minWidth: "180px" }}>
                 Enter App
               </button>
@@ -191,7 +191,7 @@ export default function LandingPage() {
             </div>
 
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "18px" }}>
-              <Link to="/signup" style={{ textDecoration: "none" }}>
+              <Link to="/auth" style={{ textDecoration: "none" }}>
                 <button className="rq-button-primary">Create Account</button>
               </Link>
               <Link to="/pricing" style={{ textDecoration: "none" }}>
