@@ -7,9 +7,9 @@ import {
   Package, Plus, Trash2, Edit2, Save, X, Sparkles, Loader,
   Sword, Shield, FlaskConical, ScrollText, Gem, Wand2, Search
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },

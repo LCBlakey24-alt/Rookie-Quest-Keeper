@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Shield, Swords, Scroll, Coins, Target, ChevronDown, ChevronUp, Zap, Heart, Dices, BookOpen, Users, Wand2, X, Loader2 } from 'lucide-react';
 import { ITEMS_DATABASE, ITEM_TYPES, RARITY_OPTIONS } from '@/data/itemsDatabase';
+import { API_BASE } from '@/lib/api';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = API_BASE;
 
 // Theme colors
 const theme = {
@@ -95,7 +96,7 @@ function QuickReferenceTab({ campaignId }) {
     if (spells.length > 0) return;
     setLoading(prev => ({ ...prev, spells: true }));
     try {
-      const response = await fetch(`${API_URL}/api/srd/spells`);
+      const response = await fetch(`${API_URL}/srd/spells`);
       const data = await response.json();
       setSpells(data.spells || []);
     } catch (error) {
@@ -110,7 +111,7 @@ function QuickReferenceTab({ campaignId }) {
     if (classes.length > 0) return;
     setLoading(prev => ({ ...prev, classes: true }));
     try {
-      const response = await fetch(`${API_URL}/api/srd/classes`);
+      const response = await fetch(`${API_URL}/srd/classes`);
       const data = await response.json();
       setClasses(data.classes || []);
     } catch (error) {
@@ -125,7 +126,7 @@ function QuickReferenceTab({ campaignId }) {
     if (races.length > 0) return;
     setLoading(prev => ({ ...prev, races: true }));
     try {
-      const response = await fetch(`${API_URL}/api/srd/races`);
+      const response = await fetch(`${API_URL}/srd/races`);
       const data = await response.json();
       setRaces(data.races || []);
     } catch (error) {

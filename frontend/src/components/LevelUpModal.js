@@ -7,9 +7,9 @@ import {
   Zap, Check, X, Sparkles, Award, ChevronRight, Dice6,
   Plus, AlertCircle, Users, Swords, BookOpen
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Tron Legacy Blue theme for player section
 const playerBlue = '#06B6D4';

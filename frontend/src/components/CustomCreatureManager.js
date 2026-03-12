@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Plus, Edit, Trash2, Upload, Download, Skull, Save, Wand2, Loader, Sparkles } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const CREATURE_TYPES = [
   'aberration', 'beast', 'celestial', 'construct', 'dragon', 'elemental',
@@ -49,7 +50,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
 
   const fetchCreatures = async () => {
     try {
-      const response = await axios.get(`${API}/api/campaigns/${campaignId}/custom-creatures`);
+      const response = await axios.get(`${API}/campaigns/${campaignId}/custom-creatures`);
       setCreatures(response.data);
     } catch (error) {
       console.error('Failed to fetch creatures:', error);
@@ -67,10 +68,10 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
 
     try {
       if (editingCreature) {
-        await axios.put(`${API}/api/campaigns/${campaignId}/custom-creatures/${editingCreature.id}`, formData);
+        await axios.put(`${API}/campaigns/${campaignId}/custom-creatures/${editingCreature.id}`, formData);
         toast.success('Creature updated!');
       } else {
-        await axios.post(`${API}/api/campaigns/${campaignId}/custom-creatures`, formData);
+        await axios.post(`${API}/campaigns/${campaignId}/custom-creatures`, formData);
         toast.success('Custom creature created!');
       }
       resetForm();
@@ -83,7 +84,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
   const handleDelete = async (creatureId) => {
     if (!window.confirm('Delete this creature?')) return;
     try {
-      await axios.delete(`${API}/api/campaigns/${campaignId}/custom-creatures/${creatureId}`);
+      await axios.delete(`${API}/campaigns/${campaignId}/custom-creatures/${creatureId}`);
       toast.success('Creature deleted');
       fetchCreatures();
     } catch (error) {
@@ -116,7 +117,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
 
     setGenerating(true);
     try {
-      const response = await axios.post(`${API}/api/rook/generate`, {
+      const response = await axios.post(`${API}/rook/generate`, {
         prompt: aiPrompt,
         entity_type: 'creature',
         campaign_id: campaignId
@@ -168,7 +169,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
         }
 
         if (creatures.length > 0) {
-          await axios.post(`${API}/api/campaigns/${campaignId}/custom-creatures/import`, creatures);
+          await axios.post(`${API}/campaigns/${campaignId}/custom-creatures/import`, creatures);
           toast.success(`Imported ${creatures.length} creatures!`);
           fetchCreatures();
         }

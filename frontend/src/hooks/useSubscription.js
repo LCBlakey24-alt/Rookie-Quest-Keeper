@@ -1,8 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Feature definitions by tier
 const TIER_FEATURES = {

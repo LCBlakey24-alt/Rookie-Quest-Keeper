@@ -7,9 +7,9 @@ import {
   Sparkles, Users, Skull, Shield, Swords, Loader, Save, Plus, 
   RefreshCw, Zap, AlertTriangle, CheckCircle, Coins
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 const DIFFICULTY_LEVELS = [
   { id: 'easy', label: 'Easy', color: '#22c55e', description: 'Low risk, good for new players or warm-up' },

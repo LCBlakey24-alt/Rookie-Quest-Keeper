@@ -8,9 +8,9 @@ import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield, 
   AlertTriangle, CheckCircle, Eye, EyeOff, Share2, Edit3, Copy, Check
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
