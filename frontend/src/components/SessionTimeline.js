@@ -8,9 +8,9 @@ import {
   Swords, Users, MapPin, Crown, Skull, Heart, Star, Flag,
   Calendar, Milestone
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // GM Theme - Red (Tron Aries)
 const theme = {

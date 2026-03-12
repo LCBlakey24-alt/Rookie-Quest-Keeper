@@ -7,9 +7,9 @@ import {
   Package, Search, Coins, ChevronDown, ChevronRight, User,
   Sparkles, Shield, Swords, Wand2, Heart, Gem
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Player Theme - Blue (Tron Legacy)
 const theme = {

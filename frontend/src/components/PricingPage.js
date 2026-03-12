@@ -4,9 +4,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, Crown, Sparkles, Loader2, Copy, Users, Gift, Swords, User, Star } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Theme
 const theme = {

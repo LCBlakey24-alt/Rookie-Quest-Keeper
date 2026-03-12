@@ -3,9 +3,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Save, Wand2, Copy, Loader, ArrowDown, Key, Users, Upload, FileText, Trash2, BookOpen } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function CampaignSettingTab({ campaignId }) {
   const [content, setContent] = useState('');
@@ -341,7 +341,7 @@ function CampaignSettingTab({ campaignId }) {
               ))}
               {availableSettings.length === 0 && (
                 <>
-                  <option value="high_fantasy">High Fantasy - Classic D&D style, kingdoms, dragons</option>
+                  <option value="high_fantasy">High Fantasy - Classic fantasy style, kingdoms, dragons</option>
                   <option value="magipunk_noir">Magipunk/Noir - Magic meets industry, intrigue</option>
                   <option value="classic_fantasy">Classic Sword & Sorcery - Gritty, old-school</option>
                   <option value="epic_fantasy">Epic Fantasy - Grand narratives, prophecies</option>

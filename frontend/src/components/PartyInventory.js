@@ -1,3 +1,4 @@
+import { API_BASE } from '@/lib/api';
 
 // PartyInventory.js
 // (Full file regenerated for download)
@@ -30,8 +31,7 @@ import {
 import '../App.css';
 import '../styles/designSystem.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 /* NOTE
 This is the same PartyInventory component I generated earlier,

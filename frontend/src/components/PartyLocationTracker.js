@@ -8,9 +8,9 @@ import {
   Castle, Mountain, Waves, Trees, Compass, Route,
   Ship, Truck, Plane, ChevronDown, ChevronUp, Map
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // GM Theme - Red
 const theme = {

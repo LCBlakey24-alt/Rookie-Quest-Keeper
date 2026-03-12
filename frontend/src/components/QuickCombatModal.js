@@ -7,8 +7,9 @@ import {
   X, Search, Plus, Minus, Sword, Users, Shield, Heart, 
   Skull, Play, Trash2, Sparkles 
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreatures, onStartCombat }) {
   const [monsters, setMonsters] = useState([]);
@@ -59,7 +60,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
 
   const fetchMonsters = async () => {
     try {
-      const response = await axios.get(`${API}/api/monsters`);
+      const response = await axios.get(`${API}/monsters`);
       setMonsters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch monsters:', error);

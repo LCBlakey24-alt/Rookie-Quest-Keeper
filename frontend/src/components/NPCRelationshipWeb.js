@@ -8,9 +8,9 @@ import {
   ZoomIn, ZoomOut, Move, RefreshCw, Heart, Swords,
   AlertCircle, HandshakeIcon, HelpCircle, Crown, Shield
 } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // GM Theme - Red (Tron Aries)
 const theme = {

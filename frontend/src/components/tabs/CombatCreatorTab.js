@@ -8,9 +8,9 @@ import { Search, Plus, X, RotateCcw, Trash2, Swords, Save, Map, Upload, Grid, Im
 import { MONSTER_DATABASE, MONSTER_TYPES, CR_OPTIONS, getCRValue, getXPFromCR } from '@/data/monsterDatabase';
 import EncounterDifficultyCalculator from '@/components/EncounterDifficultyCalculator';
 import QuickTips, { TIPS } from '@/components/QuickTips';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 const TOKEN_COLORS = [
   { id: 'blue', color: '#4a7dff', label: 'Blue (Players)' },

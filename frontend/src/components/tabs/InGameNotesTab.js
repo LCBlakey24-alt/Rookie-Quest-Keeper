@@ -6,9 +6,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Trash2, Sparkles, CheckCircle, AlertCircle, Loader, FileText, Copy, Download } from 'lucide-react';
 import SmartNoteParser from '@/components/SmartNoteParser';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function InGameNotesTab({ campaignId }) {
   const [notes, setNotes] = useState([]);

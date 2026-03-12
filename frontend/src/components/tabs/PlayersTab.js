@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, ChevronRight, ChevronLeft, Check, User, Dices, RotateCcw } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
+import { ABILITIES as STAT_NAMES, STANDARD_ARRAY } from '@/lib/characterRules';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Fantasy TTRPG 5e 2024 Data
 const DND_DATA = {
@@ -103,8 +104,6 @@ const DND_DATA = {
   ]
 };
 
-const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
-const STAT_NAMES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const STAT_LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
 
 function PlayersTab({ campaignId }) {

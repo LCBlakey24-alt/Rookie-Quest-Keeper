@@ -8,7 +8,7 @@ import logging
 import json
 import re
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -54,7 +54,7 @@ security = HTTPBearer()
 # Admin usernames - these users can access admin features and get auto-upgraded to legendary tier
 ADMIN_USERNAMES = ["lcblakey24"]
 
-# D&D 5e Edition Rules - Subclass unlock levels
+# 5e-compatible edition rules - Subclass unlock levels
 SUBCLASS_LEVELS_2014 = {
     'Barbarian': 3, 'Bard': 3, 'Cleric': 1, 'Druid': 2, 'Fighter': 3, 
     'Monk': 3, 'Paladin': 3, 'Ranger': 3, 'Rogue': 3, 'Sorcerer': 1, 
@@ -72,6 +72,47 @@ HIT_DICE = {
     'Bard': 8, 'Cleric': 8, 'Druid': 8, 'Monk': 8, 'Rogue': 8, 'Warlock': 8,
     'Sorcerer': 6, 'Wizard': 6
 }
+
+CHARACTER_ABILITY_MIN = 3
+CHARACTER_ABILITY_MAX = 20
+CHARACTER_BUILD_METHODS = {"standard", "point-buy", "rolled", "manual", "custom", "suggested"}
+SUPPORTED_RACES = {
+    'Human', 'Elf', 'Dwarf', 'Halfling', 'Gnome', 'Half-Orc', 'Half-Elf', 'Tiefling', 'Dragonborn'
+}
+SUPPORTED_BACKGROUNDS = {
+    'Acolyte', 'Criminal', 'Entertainer', 'Folk Hero', 'Guild Artisan', 'Hermit', 'Noble', 'Outlander',
+    'Sage', 'Sailor', 'Soldier', 'Urchin', 'Charlatan'
+}
+
+
+def validate_ability_score_range(score: int, ability_name: str):
+    if score < CHARACTER_ABILITY_MIN or score > CHARACTER_ABILITY_MAX:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{ability_name} must be between {CHARACTER_ABILITY_MIN} and {CHARACTER_ABILITY_MAX}"
+        )
+
+
+def validate_character_profile_fields(
+    race: Optional[str] = None,
+    background: Optional[str] = None,
+    build_method: Optional[str] = None
+):
+    if race and race not in SUPPORTED_RACES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported race/species selection"
+        )
+    if background and background not in SUPPORTED_BACKGROUNDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported background selection"
+        )
+    if build_method and build_method not in CHARACTER_BUILD_METHODS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported ability generation method"
+        )
 
 def get_subclass_unlock_level(class_name: str, edition: str = "2014") -> int:
     """Get the level at which a class gets their subclass"""
@@ -386,7 +427,7 @@ class CampaignRuleset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
-    name: str  # "D&D 5e 2014", "D&D 5e 2024", "My Homebrew", etc.
+    name: str  # "5e-compatible 2014", "5e-compatible 2024", "My Homebrew", etc.
     description: str = ""
     version: str = "1.0"
     is_active: bool = True  # Whether this ruleset is enabled for the campaign
@@ -478,7 +519,7 @@ class UserRuleset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    name: str  # "D&D 5e 2014 PHB", "My Custom Classes", etc.
+    name: str  # "5e-compatible 2014 PHB", "My Custom Classes", etc.
     description: str = ""
     edition: str = "2014"  # "2014" or "2024" - the rule edition this content belongs to
     version: str = "1.0"
@@ -588,9 +629,10 @@ class PlayerCharacter(BaseModel):
     character_class: str  # Fighter, Wizard, etc.
     subclass: str = ""
     background: str = ""
+    ability_method: str = "standard"
     level: int = 1
     experience_points: int = 0
-    edition: str = "2014"  # D&D edition: "2014" or "2024"
+    edition: str = "2014"  # edition profile: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -665,8 +707,9 @@ class PlayerCharacterCreate(BaseModel):
     character_class: str
     subclass: str = ""
     background: str = ""
+    ability_method: str = "standard"
     level: int = 1
-    edition: str = "2014"  # D&D edition: "2014" or "2024"
+    edition: str = "2014"  # edition profile: "2014" or "2024"
     
     # Ability Scores
     strength: int = 10
@@ -694,12 +737,20 @@ class PlayerCharacterCreate(BaseModel):
     cantrips_known: Optional[List[Dict[str, Any]]] = []
     feats: Optional[List[Dict[str, Any]]] = []
 
+    @field_validator('strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma')
+    @classmethod
+    def validate_ability_scores(cls, value, info):
+        if value < CHARACTER_ABILITY_MIN or value > CHARACTER_ABILITY_MAX:
+            raise ValueError(f"{info.field_name} must be between {CHARACTER_ABILITY_MIN} and {CHARACTER_ABILITY_MAX}")
+        return value
+
 class PlayerCharacterUpdate(BaseModel):
     name: Optional[str] = None
     race: Optional[str] = None
     character_class: Optional[str] = None
     subclass: Optional[str] = None
     background: Optional[str] = None
+    ability_method: Optional[str] = None
     level: Optional[int] = None
     experience_points: Optional[int] = None
     
@@ -3119,7 +3170,7 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
         "world_setting_name": setting_names.get(world_setting, 'Custom Setting'),
         "world_setting_notes": campaign.get('world_setting_notes', ''),
         "available_settings": [
-            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic D&D style - kingdoms, dragons, epic quests"},
+            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic high-fantasy style - kingdoms, dragons, epic quests"},
             {"id": "magipunk_noir", "name": "Magipunk/Noir", "description": "Magic meets industry - airships, intrigue, corporations"},
             {"id": "classic_fantasy", "name": "Classic Sword & Sorcery", "description": "Gritty old-school - ruins, treasure, morally grey"},
             {"id": "epic_fantasy", "name": "Epic Fantasy", "description": "Grand narratives - prophecies, dragon riders, dark lords"},
@@ -5065,7 +5116,9 @@ IMPORTANT RULES:
 1. Generate content in strict JSON format only - no markdown, no explanations
 2. Make your creations fit naturally with the existing world context provided
 3. Reference existing NPCs, locations, or deities when appropriate
-4. Maintain consistency with the established setting and tone"""
+4. Maintain consistency with the established setting and tone
+5. Avoid proprietary or trademarked franchise names, characters, places, logos, and direct references to specific published settings
+6. Generate original, non-infringing content suitable for a generic fantasy TTRPG"""
 
         # Build prompt with context
         context_section = ""
@@ -6081,6 +6134,18 @@ async def create_character(
     username: str = Depends(get_current_user)
 ):
     """Create a new player character"""
+    validate_character_profile_fields(
+        race=character.race,
+        background=character.background,
+        build_method=character.ability_method
+    )
+    validate_ability_score_range(character.strength, 'strength')
+    validate_ability_score_range(character.dexterity, 'dexterity')
+    validate_ability_score_range(character.constitution, 'constitution')
+    validate_ability_score_range(character.intelligence, 'intelligence')
+    validate_ability_score_range(character.wisdom, 'wisdom')
+    validate_ability_score_range(character.charisma, 'charisma')
+
     # Check subscription tier limits
     subscription = await get_user_subscription(username)
     tier = subscription.get('tier', 'free') if subscription else 'free'
@@ -6227,6 +6292,16 @@ async def update_character(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No fields to update"
         )
+
+    validate_character_profile_fields(
+        race=update_data.get('race'),
+        background=update_data.get('background'),
+        build_method=update_data.get('ability_method')
+    )
+
+    for ability_name in ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']:
+        if ability_name in update_data:
+            validate_ability_score_range(update_data[ability_name], ability_name)
     
     # Validate subclass selection based on edition and level
     if 'subclass' in update_data and update_data['subclass']:

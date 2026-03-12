@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
 import { RookGuide } from '@/components/RookGuide';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Aether & Iron Theme
 const theme = {

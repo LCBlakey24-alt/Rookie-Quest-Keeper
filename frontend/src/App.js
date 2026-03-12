@@ -23,9 +23,9 @@ import CampaignList from '@/components/CampaignList';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 // Setup axios interceptor for auth
 axios.interceptors.request.use((config) => {
@@ -35,6 +35,17 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('dm_token');
+      localStorage.removeItem('dm_username');
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Conditional Dice Roller - only shows on gameplay pages, with correct theme
 function ConditionalDiceRoller({ isAuthenticated, forceShow, onToggle }) {
@@ -118,9 +129,24 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
+  const [backendHealthy, setBackendHealthy] = useState(true);
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    const checkBackendHealth = async () => {
+      try {
+        await axios.get(`${API}/health`);
+        setBackendHealthy(true);
+      } catch (error) {
+        setBackendHealthy(false);
+        toast.error('Backend is currently unreachable. Some features may be unavailable.');
+      }
+    };
+
+    checkBackendHealth();
   }, []);
 
   const checkAuth = async () => {
@@ -167,6 +193,18 @@ function App() {
 
   return (
     <div className="App">
+      {!backendHealthy && (
+        <div style={{
+          background: 'rgba(220, 38, 38, 0.15)',
+          borderBottom: '1px solid rgba(220, 38, 38, 0.4)',
+          color: '#fecaca',
+          padding: '8px 12px',
+          textAlign: 'center',
+          fontSize: '14px'
+        }}>
+          Backend connection issue detected. Please verify API server and environment configuration.
+        </div>
+      )}
       <BrowserRouter>
         <SubscriptionProvider>
           <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
