@@ -297,8 +297,8 @@ function App() {
               } 
             />
           </Routes>
-          {/* Floating Dice Roller - Only on gameplay pages */}
-          <ConditionalDiceRoller isAuthenticated={isAuthenticated} />
+          {/* Floating Dice Roller - Disabled to reduce UI clutter */}
+          {/* <ConditionalDiceRoller isAuthenticated={isAuthenticated} /> */}
         </KeyboardShortcutsProvider>
         </SubscriptionProvider>
       </BrowserRouter>

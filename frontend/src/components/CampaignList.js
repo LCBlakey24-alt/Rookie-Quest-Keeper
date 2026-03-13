@@ -190,7 +190,14 @@ export default function CampaignList({ username, onLogout }) {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--rq-bg-main)", padding: "20px" }}>
+    <div style={{ 
+      minHeight: "100vh", 
+      background: `linear-gradient(180deg, rgba(15, 10, 30, 0.9) 0%, rgba(15, 10, 30, 0.95) 100%), url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      padding: "20px" 
+    }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
