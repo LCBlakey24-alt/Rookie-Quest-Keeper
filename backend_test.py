@@ -15,7 +15,7 @@ import aiohttp
 import uuid
 
 # Backend URL configuration
-BACKEND_URL = "https://rookie-quest-keeper.preview.emergentagent.com/api"
+BACKEND_URL = "https://rook-quest-keeper-1.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

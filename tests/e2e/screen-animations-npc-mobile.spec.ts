@@ -8,7 +8,7 @@ import {
   waitForAppReady
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rookie-quest-keeper.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rook-quest-keeper-1.preview.emergentagent.com';
 
 test.describe('Screen Animations, NPC Quick Reference & Mobile Toggle', () => {
   

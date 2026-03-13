@@ -276,36 +276,47 @@ function GMScreen({ username }) {
     { id: 'notes', icon: FileText, label: 'Notes' },
   ];
 
-  // GM Theme - Three shades of Red
+  // GM Theme - Fantasy Sunset (matching the rest of the app)
   const theme = {
-    bg: { black: '#0B0F19', dark: '#141414', panel: '#111827', card: '#111827', hover: '#1F2937' },
-    accent: { 
-      primary: '#F59E0B',      // Main red
-      secondary: '#D97706',    // Light red
-      tertiary: '#991B1B',     // Dark red
-      hover: '#F87171',
-      subtle: 'rgba(220, 38, 38, 0.15)',
-      glow: '0 0 20px rgba(220, 38, 38, 0.4)',
-      // Legacy compatibility
-      red: '#F59E0B', 
-      redHover: '#F87171', 
-      redSubtle: 'rgba(220, 38, 38, 0.15)',
-      orange: '#F97316'
+    bg: { 
+      primary: '#0F0A1E', 
+      surface: '#1A112E', 
+      elevated: '#2E1F45',
+      panel: 'rgba(26, 17, 46, 0.85)',
+      card: 'rgba(15, 10, 30, 0.6)',
+      hover: 'rgba(139, 92, 246, 0.15)'
     },
-    text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },
-    border: 'rgba(212, 175, 55, 0.15)'
+    accent: { 
+      primary: '#8B5CF6',      // Purple
+      secondary: '#EC4899',    // Pink
+      gold: '#F59E0B',         // Gold
+      orange: '#F97316',
+      hover: '#A78BFA',
+      subtle: 'rgba(139, 92, 246, 0.15)',
+      glow: '0 0 20px rgba(139, 92, 246, 0.4)',
+      // GM-specific accent (gold for GM tools)
+      gm: '#F59E0B',
+      gmSubtle: 'rgba(245, 158, 11, 0.15)'
+    },
+    text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
+    border: 'rgba(139, 92, 246, 0.3)',
+    gradient: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)'
   };
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: theme.bg.black
+      background: `linear-gradient(180deg, rgba(15, 10, 30, 0.9) 0%, rgba(15, 10, 30, 0.95) 100%), url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
     }}>
       {/* Header */}
       <div style={{ 
         position: 'relative',
         zIndex: 10,
-        background: theme.bg.dark,
+        background: theme.bg.panel,
+        backdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${theme.border}`,
         padding: '12px 24px'
       }}>
@@ -313,23 +324,23 @@ function GMScreen({ username }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '1px', height: '30px', background: theme.border }} />
             <div>
-              <h1 style={{ fontSize: '20px', color: theme.text.white, fontWeight: '400', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Sword size={20} style={{ color: theme.accent.red }} />
+              <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Sword size={22} style={{ color: theme.accent.gm }} />
                 {campaign?.name}
               </h1>
               {calendar && (
-                <p style={{ fontSize: '11px', color: theme.accent.red, marginTop: '2px' }}>
+                <p style={{ fontSize: '13px', color: theme.accent.gm, marginTop: '2px' }}>
                   {calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}
                 </p>
               )}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Button onClick={() => setShowQuickRef(true)} style={{ display: 'flex', gap: '6px', padding: '8px 14px', fontSize: '13px', background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.secondary }}>
-              <BookOpen size={14} /> Reference
+            <Button onClick={() => setShowQuickRef(true)} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(139, 92, 246, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary }}>
+              <BookOpen size={16} /> Reference
             </Button>
-            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '8px 14px', fontSize: '13px', background: theme.accent.red, border: 'none', color: theme.text.white }}>
-              <LogOut size={14} /> End Session
+            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: '10px', color: theme.text.primary }}>
+              <LogOut size={16} /> End Session
             </Button>
           </div>
         </div>
@@ -344,17 +355,19 @@ function GMScreen({ username }) {
       }}>
         {/* LEFT SIDEBAR - Tab Navigation */}
         <div style={{
-          width: '200px',
-          minWidth: '200px',
-          background: theme.bg.dark,
+          width: '210px',
+          minWidth: '210px',
+          background: theme.bg.panel,
+          backdropFilter: 'blur(16px)',
           borderRight: `1px solid ${theme.border}`,
           padding: '16px 0',
           overflowY: 'auto'
         }}>
           <h3 style={{
-            color: theme.text.muted,
-            fontSize: '11px',
-            fontWeight: '400',
+            fontFamily: "'Cinzel', serif",
+            color: theme.accent.gm,
+            fontSize: '13px',
+            fontWeight: '600',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             marginBottom: '12px',
@@ -363,7 +376,7 @@ function GMScreen({ username }) {
             GM Tools
           </h3>
           
-          {/* Sidebar Tabs with Red Bar Hover Effect */}
+          {/* Sidebar Tabs with Sunset Hover Effect */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {tabs.map(tab => {
               const isActive = activeTab === tab.id;
@@ -380,10 +393,10 @@ function GMScreen({ username }) {
                     position: 'relative',
                     padding: '12px 16px',
                     border: 'none',
-                    background: isActive ? theme.accent.red : (isHovered ? theme.bg.hover : 'transparent'),
-                    color: isActive ? theme.text.white : (isHovered ? theme.text.white : theme.text.secondary),
+                    background: isActive ? theme.gradient : (isHovered ? theme.bg.hover : 'transparent'),
+                    color: isActive ? theme.text.primary : (isHovered ? theme.text.primary : theme.text.secondary),
                     fontWeight: '500',
-                    fontSize: '14px',
+                    fontSize: '15px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -391,21 +404,22 @@ function GMScreen({ username }) {
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     textAlign: 'left',
                     width: '100%',
-                    minHeight: '44px',
-                    overflow: 'hidden'
+                    minHeight: '46px',
+                    overflow: 'hidden',
+                    borderRadius: isActive ? '0' : '0'
                   }}
                 >
                   <tab.icon size={18} />
                   <span style={{ flex: 1 }}>{tab.label}</span>
                   
-                  {/* Red bar on right side - slides in on hover */}
+                  {/* Purple/gold bar on right side - slides in on hover */}
                   <div style={{
                     position: 'absolute',
                     right: 0,
                     top: 0,
                     bottom: 0,
                     width: isHovered && !isActive ? '3px' : '0px',
-                    background: theme.accent.red,
+                    background: theme.accent.gm,
                     transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
                   }} />
                 </button>
@@ -428,26 +442,26 @@ function GMScreen({ username }) {
           flex: 1, 
           overflowY: 'auto',
           padding: '24px',
-          background: theme.bg.black
+          background: 'transparent'
         }}>
           {/* Tab Content */}
-          <div style={{ background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '24px', minHeight: '500px' }}>
+          <div style={{ background: theme.bg.panel, backdropFilter: 'blur(16px)', border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '24px', minHeight: '500px' }}>
             {/* COMBAT TAB */}
             {activeTab === 'combat' && (
               <div>
-                <h2 style={{ fontSize: '20px', color: theme.text.white, fontWeight: '400', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Swords size={24} style={{ color: theme.accent.red }} /> Combat Control
+                <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Swords size={24} style={{ color: '#EF4444' }} /> Combat Control
                 </h2>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
                   {/* Encounter Selector */}
                   <div>
-                    <h3 style={{ fontSize: '14px', color: theme.accent.red, fontWeight: '400', marginBottom: '12px' }}>Select Encounter</h3>
+                    <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px' }}>Select Encounter</h3>
                     {scenarios.length === 0 ? (
-                      <div style={{ background: theme.bg.card, border: `1px dashed ${theme.border}`, padding: '30px', textAlign: 'center' }}>
+                      <div style={{ background: theme.bg.card, border: `1px dashed ${theme.border}`, borderRadius: '10px', padding: '30px', textAlign: 'center' }}>
                         <Swords size={32} style={{ color: theme.text.muted, margin: '0 auto 12px' }} />
-                        <p style={{ color: theme.text.secondary, fontSize: '13px', marginBottom: '8px' }}>No encounters created</p>
-                        <p style={{ color: theme.text.muted, fontSize: '11px' }}>Create encounters in the Combat Creator tab of your campaign dashboard</p>
+                        <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '8px' }}>No encounters created</p>
+                        <p style={{ color: theme.text.muted, fontSize: '13px' }}>Create encounters in the Combat Creator tab of your campaign dashboard</p>
                       </div>
                     ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
@@ -458,17 +472,18 @@ function GMScreen({ username }) {
                           onClick={() => setSelectedScenario(s)}
                           style={{
                             padding: '14px 16px',
-                            background: selectedScenario?.id === s.id ? theme.accent.redSubtle : theme.bg.card,
-                            border: `1px solid ${selectedScenario?.id === s.id ? theme.accent.red : theme.border}`,
-                            borderLeft: selectedScenario?.id === s.id ? `3px solid ${theme.accent.red}` : `1px solid ${theme.border}`,
-                            color: theme.text.white,
+                            background: selectedScenario?.id === s.id ? theme.accent.gmSubtle : theme.bg.card,
+                            border: `1px solid ${selectedScenario?.id === s.id ? theme.accent.gm : theme.border}`,
+                            borderLeft: selectedScenario?.id === s.id ? `3px solid ${theme.accent.gm}` : `1px solid ${theme.border}`,
+                            borderRadius: '10px',
+                            color: theme.text.primary,
                             textAlign: 'left',
                             cursor: 'pointer',
                             transition: 'all 0.15s'
                           }}
                         >
-                          <div style={{ fontWeight: '400', marginBottom: '4px', fontSize: '14px' }}>{s.name}</div>
-                          <div style={{ fontSize: '11px', color: theme.text.secondary, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <div style={{ fontWeight: '500', marginBottom: '4px', fontSize: '15px' }}>{s.name}</div>
+                          <div style={{ fontSize: '13px', color: theme.text.secondary, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                             <span>{s.combatants?.length || 0} combatants</span>
                             {s.map_url && <span style={{ color: '#22c55e' }}>Has Map</span>}
                             {s.combatants?.some(c => c.loot?.length > 0) && <span style={{ color: '#F59E0B' }}>Has Loot</span>}
@@ -481,7 +496,7 @@ function GMScreen({ username }) {
 
                 {/* Combat Actions */}
                 <div>
-                  <h3 style={{ fontSize: '14px', color: theme.accent.red, fontWeight: '400', marginBottom: '12px' }}>Launch Combat</h3>
+                  <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px' }}>Launch Combat</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <Button 
                       onClick={launchCombat} 
@@ -494,10 +509,11 @@ function GMScreen({ username }) {
                         justifyContent: 'center', 
                         gap: '10px',
                         padding: '16px',
-                        fontSize: '15px',
-                        background: selectedScenario ? theme.accent.red : theme.bg.card,
+                        fontSize: '16px',
+                        background: selectedScenario ? theme.gradient : theme.bg.card,
                         border: 'none',
-                        color: theme.text.white,
+                        borderRadius: '10px',
+                        color: theme.text.primary,
                         opacity: selectedScenario ? 1 : 0.5
                       }}
                     >
@@ -508,7 +524,7 @@ function GMScreen({ username }) {
                       onClick={quickStartCombat} 
                       data-testid="quick-combat-btn"
                       disabled={players.length === 0}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.secondary }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', background: 'rgba(139, 92, 246, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary, fontSize: '15px' }}
                     >
                       <Users size={16} /> Quick Start with Players ({players.length})
                     </Button>
@@ -524,38 +540,41 @@ function GMScreen({ username }) {
                         justifyContent: 'center', 
                         gap: '8px', 
                         padding: '14px',
-                        background: theme.accent.red,
+                        background: 'rgba(239, 68, 68, 0.8)',
                         border: 'none',
-                        color: theme.text.white
+                        borderRadius: '10px',
+                        color: theme.text.primary,
+                        fontSize: '15px'
                       }}
                     >
                       <Zap size={16} /> Spontaneous Combat
                     </Button>
                     
-                    <p style={{ fontSize: '11px', color: theme.text.muted, textAlign: 'center', fontStyle: 'italic', marginTop: '8px' }}>
+                    <p style={{ fontSize: '13px', color: theme.text.muted, textAlign: 'center', fontStyle: 'italic', marginTop: '8px' }}>
                       Combat opens in a dedicated full-screen view with initiative tracker and battle map
                     </p>
                   </div>
                   
                   {/* Selected Encounter Preview */}
                   {selectedScenario && (
-                    <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, padding: '14px' }}>
-                      <h4 style={{ fontSize: '13px', color: theme.text.white, fontWeight: '400', marginBottom: '10px' }}>{selectedScenario.name}</h4>
+                    <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '14px' }}>
+                      <h4 style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '500', marginBottom: '10px' }}>{selectedScenario.name}</h4>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                         {selectedScenario.combatants?.slice(0, 6).map(c => (
                           <div key={c.id} style={{ 
-                            background: c.type === 'player' ? 'rgba(74, 125, 255, 0.2)' : theme.accent.redSubtle, 
-                            border: `1px solid ${c.type === 'player' ? '#4a7dff' : theme.accent.red}`,
+                            background: c.type === 'player' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)', 
+                            border: `1px solid ${c.type === 'player' ? theme.accent.primary : '#EF4444'}`,
                             padding: '6px 10px',
-                            fontSize: '11px',
-                            color: theme.text.white
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            color: theme.text.primary
                           }}>
                             {c.name}
                             {c.loot?.length > 0 && <Coins size={10} style={{ marginLeft: '4px', color: '#F59E0B' }} />}
                           </div>
                         ))}
                         {selectedScenario.combatants?.length > 6 && (
-                          <div style={{ padding: '6px 10px', fontSize: '11px', color: '#64748b' }}>
+                          <div style={{ padding: '6px 10px', fontSize: '13px', color: theme.text.muted }}>
                             +{selectedScenario.combatants.length - 6} more
                           </div>
                         )}
@@ -580,8 +599,8 @@ function GMScreen({ username }) {
           {/* DICE TAB */}
           {activeTab === 'dice' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Dices size={24} style={{ color: '#a855f7' }} /> Dice Roller
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Dices size={24} style={{ color: theme.accent.primary }} /> Dice Roller
               </h2>
               <DiceRoller />
             </div>
@@ -590,8 +609,8 @@ function GMScreen({ username }) {
           {/* MONSTER LOOKUP TAB */}
           {activeTab === 'monsters' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Skull size={24} style={{ color: '#dc2626' }} /> Monster Lookup
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Skull size={24} style={{ color: '#EF4444' }} /> Monster Lookup
               </h2>
               <MonsterLookup />
             </div>
@@ -600,10 +619,10 @@ function GMScreen({ username }) {
           {/* CUSTOM CREATURES TAB */}
           {activeTab === 'creatures' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <PlusCircle size={24} style={{ color: '#10b981' }} /> Custom Creatures
               </h2>
-              <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>
+              <p style={{ color: theme.text.secondary, fontSize: '15px', marginBottom: '20px' }}>
                 Create your own homebrew monsters or import creatures from CSV files. Custom creatures can be used in any encounter.
               </p>
               <CustomCreatureManager 
@@ -621,30 +640,30 @@ function GMScreen({ username }) {
           {/* NAMES GENERATOR TAB */}
           {activeTab === 'names' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <UserPlus size={24} style={{ color: '#f97316' }} /> NPC Name Generator
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <UserPlus size={24} style={{ color: theme.accent.orange }} /> NPC Name Generator
               </h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
                 {/* Generator Controls */}
                 <div>
-                  <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #f97316', borderRadius: '16px', padding: '24px' }}>
-                    <h3 style={{ fontSize: '16px', color: '#f97316', fontWeight: '400', marginBottom: '20px' }}>Generate a Name</h3>
+                  <div style={{ background: theme.bg.card, border: `1px solid ${theme.accent.orange}`, borderRadius: '12px', padding: '24px' }}>
+                    <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent.orange, fontWeight: '600', marginBottom: '20px' }}>Generate a Name</h3>
                     
                     {/* Race Selection */}
                     <div style={{ marginBottom: '16px' }}>
-                      <label style={{ display: 'block', color: '#94a3b8', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Race</label>
+                      <label style={{ display: 'block', color: theme.text.secondary, fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Race</label>
                       <select
                         value={nameRace}
                         onChange={(e) => setNameRace(e.target.value)}
                         style={{
                           width: '100%',
                           padding: '12px 16px',
-                          background: 'rgba(0, 0, 0, 0.4)',
-                          border: '2px solid #374151',
+                          background: 'rgba(15, 10, 30, 0.6)',
+                          border: `1px solid ${theme.border}`,
                           borderRadius: '10px',
-                          color: '#fff',
-                          fontSize: '14px',
+                          color: theme.text.primary,
+                          fontSize: '15px',
                           cursor: 'pointer'
                         }}
                       >
@@ -659,7 +678,7 @@ function GMScreen({ username }) {
                     
                     {/* Gender Selection */}
                     <div style={{ marginBottom: '24px' }}>
-                      <label style={{ display: 'block', color: '#94a3b8', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Gender</label>
+                      <label style={{ display: 'block', color: theme.text.secondary, fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Gender</label>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         {['any', 'male', 'female'].map(g => (
                           <button
@@ -667,13 +686,13 @@ function GMScreen({ username }) {
                             onClick={() => setNameGender(g)}
                             style={{
                               flex: 1,
-                              padding: '10px',
-                              background: nameGender === g ? 'rgba(249, 115, 22, 0.2)' : 'rgba(0, 0, 0, 0.3)',
-                              border: `2px solid ${nameGender === g ? '#f97316' : '#374151'}`,
+                              padding: '12px',
+                              background: nameGender === g ? 'rgba(249, 115, 22, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                              border: `1px solid ${nameGender === g ? theme.accent.orange : theme.border}`,
                               borderRadius: '8px',
-                              color: nameGender === g ? '#f97316' : '#94a3b8',
-                              fontSize: '13px',
-                              fontWeight: '400',
+                              color: nameGender === g ? theme.accent.orange : theme.text.secondary,
+                              fontSize: '14px',
+                              fontWeight: '500',
                               cursor: 'pointer',
                               textTransform: 'capitalize',
                               transition: 'all 0.2s'
@@ -694,7 +713,8 @@ function GMScreen({ username }) {
                         width: '100%',
                         padding: '16px',
                         fontSize: '16px',
-                        background: 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)',
+                        background: theme.gradient,
+                        borderRadius: '10px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -710,25 +730,26 @@ function GMScreen({ username }) {
                   {generatedName && (
                     <div style={{ 
                       marginTop: '20px',
-                      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%)',
-                      border: '3px solid #f97316',
-                      borderRadius: '16px',
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      border: `1px solid ${theme.accent.primary}`,
+                      borderRadius: '12px',
                       padding: '24px',
-                      textAlign: 'center',
-                      animation: 'glow 2s ease-in-out'
+                      textAlign: 'center'
                     }}>
-                      <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Generated Name</p>
+                      <p style={{ color: theme.text.secondary, fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Generated Name</p>
                       <h3 style={{ 
+                        fontFamily: "'Cinzel', serif",
                         fontSize: '28px', 
-                        color: '#fff', 
-                        fontFamily: 'Montserrat', 
-                        fontWeight: '800',
+                        color: theme.text.primary, 
+                        fontWeight: '600',
                         marginBottom: '8px',
-                        textShadow: '0 0 20px rgba(249, 115, 22, 0.5)'
+                        background: theme.gradient,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
                       }}>
                         {generatedName.fullName}
                       </h3>
-                      <p style={{ color: '#67e8f9', fontSize: '14px', marginBottom: '20px' }}>
+                      <p style={{ color: theme.accent.secondary, fontSize: '15px', marginBottom: '20px' }}>
                         {generatedName.gender} {generatedName.race.charAt(0).toUpperCase() + generatedName.race.slice(1)}
                       </p>
                       
@@ -736,7 +757,7 @@ function GMScreen({ username }) {
                         <Button
                           onClick={generateRandomName}
                           className="btn-secondary"
-                          style={{ flex: 1 }}
+                          style={{ flex: 1, borderRadius: '10px', padding: '12px', fontSize: '14px' }}
                         >
                           <Shuffle size={16} style={{ marginRight: '6px' }} />
                           Reroll
@@ -748,7 +769,10 @@ function GMScreen({ username }) {
                           data-testid="save-as-npc-btn"
                           style={{ 
                             flex: 1,
-                            background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)'
+                            borderRadius: '10px',
+                            padding: '12px',
+                            fontSize: '14px',
+                            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
                           }}
                         >
                           {savingNPC ? (
@@ -767,17 +791,17 @@ function GMScreen({ username }) {
                 
                 {/* Saved Names This Session */}
                 <div>
-                  <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '16px', padding: '24px' }}>
-                    <h3 style={{ fontSize: '16px', color: '#22c55e', fontWeight: '400', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ background: theme.bg.card, border: `1px solid ${theme.accent.primary}`, borderRadius: '12px', padding: '24px' }}>
+                    <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: '#22c55e', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <UserPlus size={18} />
                       Saved This Session ({savedNames.length})
                     </h3>
                     
                     {savedNames.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                      <div style={{ textAlign: 'center', padding: '30px', color: theme.text.muted }}>
                         <UserPlus size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-                        <p style={{ fontSize: '14px' }}>Names you save will appear here</p>
-                        <p style={{ fontSize: '12px', marginTop: '4px' }}>They'll also be added to your campaign's NPC list</p>
+                        <p style={{ fontSize: '15px' }}>Names you save will appear here</p>
+                        <p style={{ fontSize: '14px', marginTop: '4px' }}>They'll also be added to your campaign's NPC list</p>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '350px', overflowY: 'auto' }}>
@@ -787,7 +811,7 @@ function GMScreen({ username }) {
                             style={{
                               padding: '12px 16px',
                               background: 'rgba(34, 197, 94, 0.1)',
-                              border: '2px solid #22c55e',
+                              border: '1px solid #22c55e',
                               borderRadius: '10px',
                               display: 'flex',
                               justifyContent: 'space-between',
@@ -795,18 +819,18 @@ function GMScreen({ username }) {
                             }}
                           >
                             <div>
-                              <span style={{ color: '#fff', fontWeight: '400', fontSize: '15px' }}>{name.fullName}</span>
-                              <span style={{ color: '#94a3b8', fontSize: '12px', marginLeft: '10px' }}>
+                              <span style={{ color: theme.text.primary, fontWeight: '500', fontSize: '15px' }}>{name.fullName}</span>
+                              <span style={{ color: theme.text.secondary, fontSize: '13px', marginLeft: '10px' }}>
                                 {name.race.charAt(0).toUpperCase() + name.race.slice(1)}
                               </span>
                             </div>
                             <span style={{ 
                               background: '#22c55e', 
                               color: '#000', 
-                              padding: '2px 8px', 
+                              padding: '4px 10px', 
                               borderRadius: '6px', 
-                              fontSize: '10px', 
-                              fontWeight: '400' 
+                              fontSize: '11px', 
+                              fontWeight: '600' 
                             }}>
                               SAVED
                             </span>
@@ -819,13 +843,13 @@ function GMScreen({ username }) {
                   {/* Quick Tips */}
                   <div style={{ 
                     marginTop: '16px',
-                    background: 'rgba(74, 125, 255, 0.1)',
-                    border: '1px solid #4a7dff',
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    border: `1px solid ${theme.accent.primary}`,
                     borderRadius: '12px',
                     padding: '16px'
                   }}>
-                    <p style={{ color: '#4a7dff', fontSize: '12px', fontWeight: '400', marginBottom: '8px' }}>💡 Quick Tip</p>
-                    <p style={{ color: '#94a3b8', fontSize: '12px', lineHeight: '1.5' }}>
+                    <p style={{ color: theme.accent.primary, fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>Quick Tip</p>
+                    <p style={{ color: theme.text.secondary, fontSize: '14px', lineHeight: '1.5' }}>
                       Saved NPCs appear in your campaign's NPC tab where you can add more details like occupation, personality, and backstory!
                     </p>
                   </div>
@@ -837,7 +861,7 @@ function GMScreen({ username }) {
           {/* RANDOM TABLES TAB */}
           {activeTab === 'tables' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Wand2 size={24} style={{ color: '#22c55e' }} /> Random Tables
               </h2>
               <RandomTables onSaveAsNote={(text) => {
@@ -856,8 +880,8 @@ function GMScreen({ username }) {
           {/* LOOT GENERATOR TAB */}
           {activeTab === 'loot' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Coins size={24} style={{ color: '#eab308' }} /> Loot Generator
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Coins size={24} style={{ color: theme.accent.gm }} /> Loot Generator
               </h2>
               <LootGenerator />
             </div>
@@ -866,8 +890,8 @@ function GMScreen({ username }) {
           {/* INVENTORY TAB */}
           {activeTab === 'inventory' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Package size={24} style={{ color: '#67e8f9' }} /> Party Inventory
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Package size={24} style={{ color: theme.accent.secondary }} /> Party Inventory
               </h2>
               <PartyInventory campaignId={campaignId} players={players} />
             </div>
@@ -876,53 +900,52 @@ function GMScreen({ username }) {
           {/* PARTY TAB */}
           {activeTab === 'party' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Users size={24} style={{ color: '#4a7dff' }} /> Party Overview
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Users size={24} style={{ color: theme.accent.primary }} /> Party Overview
               </h2>
               
               {players.length === 0 ? (
-                <div style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px dashed #1e40af', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
-                  <Users size={40} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-                  <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '8px' }}>No players in campaign</p>
-                  <p style={{ color: '#64748b', fontSize: '12px' }}>Add players in the Players tab of your campaign dashboard</p>
+                <div style={{ background: theme.bg.card, border: `1px dashed ${theme.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
+                  <Users size={40} style={{ color: theme.accent.primary, margin: '0 auto 16px' }} />
+                  <p style={{ color: theme.text.secondary, fontSize: '15px', marginBottom: '8px' }}>No players in campaign</p>
+                  <p style={{ color: theme.text.muted, fontSize: '14px' }}>Add players in the Players tab of your campaign dashboard</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                   {players.map(player => (
                     <div
                       key={player.id}
-                      className="card-glow"
-                      style={{ padding: '16px' }}
+                      style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '18px' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                         <div style={{ 
-                          width: '48px', height: '48px', borderRadius: '50%', 
-                          background: 'linear-gradient(135deg, #4a7dff 0%, #22c55e 100%)', 
+                          width: '50px', height: '50px', borderRadius: '50%', 
+                          background: theme.gradient, 
                           display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                          fontWeight: '800', color: '#fff', fontSize: '18px', fontFamily: 'Montserrat'
+                          fontWeight: '700', color: theme.text.primary, fontSize: '20px', fontFamily: "'Cinzel', serif"
                         }}>
                           {player.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ color: '#ffffff', fontWeight: '400', fontSize: '16px', fontFamily: 'Montserrat' }}>{player.name}</div>
-                          <div style={{ color: '#67e8f9', fontSize: '12px' }}>
+                          <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '17px', fontFamily: "'Cinzel', serif" }}>{player.name}</div>
+                          <div style={{ color: theme.accent.secondary, fontSize: '14px' }}>
                             {player.race || 'Unknown'} {player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}
                           </div>
                         </div>
                       </div>
                       
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                        <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: '400' }}>HP</div>
-                          <div style={{ fontSize: '16px', color: '#fff', fontWeight: '400' }}>{player.hp || player.max_hp || '?'}/{player.max_hp || '?'}</div>
+                        <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '12px', color: '#ef4444', fontWeight: '500' }}>HP</div>
+                          <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{player.hp || player.max_hp || '?'}/{player.max_hp || '?'}</div>
                         </div>
-                        <div style={{ background: 'rgba(74, 125, 255, 0.15)', border: '1px solid #4a7dff', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '10px', color: '#4a7dff', fontWeight: '400' }}>AC</div>
-                          <div style={{ fontSize: '16px', color: '#fff', fontWeight: '400' }}>{player.ac || '?'}</div>
+                        <div style={{ background: 'rgba(139, 92, 246, 0.15)', border: `1px solid ${theme.accent.primary}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '12px', color: theme.accent.primary, fontWeight: '500' }}>AC</div>
+                          <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>{player.ac || '?'}</div>
                         </div>
-                        <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '10px', color: '#22c55e', fontWeight: '400' }}>INIT</div>
-                          <div style={{ fontSize: '16px', color: '#fff', fontWeight: '400' }}>
+                        <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '12px', color: '#22c55e', fontWeight: '500' }}>INIT</div>
+                          <div style={{ fontSize: '18px', color: theme.text.primary, fontWeight: '600' }}>
                             {player.stats?.dexterity ? (() => {
                               const mod = Math.floor((player.stats.dexterity - 10) / 2);
                               return mod >= 0 ? `+${mod}` : `${mod}`;
@@ -932,16 +955,16 @@ function GMScreen({ username }) {
                       </div>
                       
                       {player.stats && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px', marginTop: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px', marginTop: '14px' }}>
                           {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((stat, i) => {
                             const statKey = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'][i];
                             const val = player.stats[statKey] || 10;
                             const mod = Math.floor((val - 10) / 2);
                             return (
-                              <div key={stat} style={{ textAlign: 'center', background: 'rgba(10, 10, 40, 0.5)', borderRadius: '6px', padding: '4px' }}>
-                                <div style={{ fontSize: '9px', color: '#64748b' }}>{stat}</div>
-                                <div style={{ fontSize: '12px', color: '#fff', fontWeight: '400' }}>{val}</div>
-                                <div style={{ fontSize: '9px', color: mod >= 0 ? '#22c55e' : '#ef4444' }}>{mod >= 0 ? '+' : ''}{mod}</div>
+                              <div key={stat} style={{ textAlign: 'center', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '6px', padding: '6px' }}>
+                                <div style={{ fontSize: '11px', color: theme.text.muted }}>{stat}</div>
+                                <div style={{ fontSize: '14px', color: theme.text.primary, fontWeight: '500' }}>{val}</div>
+                                <div style={{ fontSize: '11px', color: mod >= 0 ? '#22c55e' : '#ef4444' }}>{mod >= 0 ? '+' : ''}{mod}</div>
                               </div>
                             );
                           })}
@@ -957,33 +980,43 @@ function GMScreen({ username }) {
           {/* NOTES TAB */}
           {activeTab === 'notes' && (
             <div>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <FileText size={24} style={{ color: '#67e8f9' }} /> Session Notes
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FileText size={24} style={{ color: theme.accent.secondary }} /> Session Notes
               </h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {/* Add Note */}
                 <div>
-                  <h3 style={{ fontSize: '14px', color: theme.accent.red, fontWeight: '400', marginBottom: '12px' }}>Quick Note</h3>
+                  <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px' }}>Quick Note</h3>
                   <textarea
                     value={quickNote}
                     onChange={(e) => setQuickNote(e.target.value)}
-                    className="textarea-glow"
-                    style={{ minHeight: '150px', marginBottom: '12px', fontSize: '13px', width: '100%' }}
+                    style={{ 
+                      minHeight: '150px', 
+                      marginBottom: '12px', 
+                      fontSize: '15px', 
+                      width: '100%',
+                      background: 'rgba(15, 10, 30, 0.6)',
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: '10px',
+                      padding: '14px',
+                      color: theme.text.primary,
+                      resize: 'vertical'
+                    }}
                     placeholder="Write a quick note about the session... NPCs met, events, plot points, etc."
                   />
                   <Button 
                     onClick={handleSubmitNote} 
                     disabled={processingNote || !quickNote.trim()} 
-                    style={{ width: '100%', display: 'flex', gap: '8px', justifyContent: 'center', background: theme.accent.red, color: theme.text.white, border: 'none' }}
+                    style={{ width: '100%', display: 'flex', gap: '8px', justifyContent: 'center', background: theme.gradient, color: theme.text.primary, border: 'none', borderRadius: '10px', padding: '14px', fontSize: '15px' }}
                   >
-                    {processingNote ? <Loader size={14} className="animate-spin" /> : <Send size={14} />} Save Note
+                    {processingNote ? <Loader size={16} className="animate-spin" /> : <Send size={16} />} Save Note
                   </Button>
                 </div>
 
                 {/* Notes List */}
                 <div>
-                  <h3 style={{ fontSize: '14px', color: theme.accent.red, fontWeight: '400', marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
+                  <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
                   <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {sessionNotes.length === 0 ? (
                       <div style={{ background: theme.bg.card, border: `2px dashed ${theme.border}`, padding: '30px', textAlign: 'center' }}>

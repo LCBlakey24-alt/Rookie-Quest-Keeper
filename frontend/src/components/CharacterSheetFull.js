@@ -45,11 +45,59 @@ const SKILLS = [
 const SAVING_THROWS = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const ABILITY_SHORT = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
 
-// Class features data
+// Class features data - expanded
 const CLASS_ACTIONS = {
+  Barbarian: {
+    actions: [
+      { name: 'Reckless Attack', desc: 'Advantage on STR attacks, enemies have advantage on you', type: 'attack', dice: '1d20' }
+    ],
+    bonusActions: [
+      { name: 'Rage', desc: '+2 damage, resistance to physical damage', type: 'ability', level: 1 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
+    ]
+  },
+  Bard: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' }
+    ],
+    bonusActions: [
+      { name: 'Bardic Inspiration', desc: 'Give ally 1d6 inspiration die', type: 'support', dice: '1d6', level: 1 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
+      { name: 'Cutting Words', desc: 'Subtract 1d6 from enemy roll', type: 'support', dice: '1d6', level: 3 }
+    ]
+  },
+  Cleric: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
+      { name: 'Turn Undead', desc: 'Channel Divinity: undead must flee', type: 'ability', level: 2 }
+    ],
+    bonusActions: [
+      { name: 'Spiritual Weapon', desc: 'Attack with spiritual weapon', type: 'spell', dice: '1d8', level: 3 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
+      { name: 'Warding Flare', desc: 'Impose disadvantage on attack (Light)', type: 'ability', level: 1 }
+    ]
+  },
+  Druid: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
+      { name: 'Wild Shape', desc: 'Transform into beast form', type: 'ability', level: 2 }
+    ],
+    bonusActions: [
+      { name: 'Wild Shape', desc: 'Transform into beast (bonus at lvl 2)', type: 'ability', level: 2 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
+    ]
+  },
   Fighter: {
     actions: [
-      { name: 'Second Wind', desc: 'Regain 1d10 + level HP', type: 'heal', dice: '1d10' },
+      { name: 'Second Wind', desc: 'Regain 1d10 + level HP', type: 'heal', dice: '1d10', level: 1 },
       { name: 'Action Surge', desc: 'Take an additional action (1/rest)', type: 'ability', level: 2 }
     ],
     bonusActions: [],
@@ -57,39 +105,93 @@ const CLASS_ACTIONS = {
       { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
     ]
   },
-  Wizard: {
+  Monk: {
     actions: [
-      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
-      { name: 'Arcane Recovery', desc: 'Recover spell slots (1/day)', type: 'ability' }
+      { name: 'Flurry of Blows', desc: 'Two unarmed strikes (1 ki)', type: 'attack', dice: '1d20', level: 2 },
+      { name: 'Stunning Strike', desc: 'Stun target on hit (1 ki)', type: 'ability', level: 5 }
     ],
-    bonusActions: [],
+    bonusActions: [
+      { name: 'Martial Arts', desc: 'Unarmed strike or monk weapon', type: 'attack', dice: '1d20', level: 1 },
+      { name: 'Patient Defense', desc: 'Dodge as bonus action (1 ki)', type: 'defense', level: 2 },
+      { name: 'Step of the Wind', desc: 'Dash/Disengage + jump (1 ki)', type: 'move', level: 2 }
+    ],
     reactions: [
       { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
-      { name: 'Shield (Spell)', desc: '+5 AC until next turn', type: 'spell', level: 1 }
+      { name: 'Deflect Missiles', desc: 'Reduce ranged damage by 1d10+DEX+lvl', type: 'defense', dice: '1d10', level: 3 },
+      { name: 'Slow Fall', desc: 'Reduce fall damage by 5x level', type: 'defense', level: 4 }
+    ]
+  },
+  Paladin: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
+      { name: 'Lay on Hands', desc: 'Heal up to 5x level HP', type: 'heal', level: 1 },
+      { name: 'Channel Divinity', desc: 'Sacred Weapon or Turn Unholy', type: 'ability', level: 3 }
+    ],
+    bonusActions: [
+      { name: 'Divine Smite', desc: 'Add 2d8+ radiant to hit (spell slot)', type: 'attack', dice: '2d8', level: 2 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
+    ]
+  },
+  Ranger: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
+      { name: "Hunter's Mark", desc: '+1d6 damage to marked target', type: 'spell', dice: '1d6', level: 2 }
+    ],
+    bonusActions: [
+      { name: "Hunter's Mark", desc: 'Mark a creature (bonus action)', type: 'spell', level: 2 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
     ]
   },
   Rogue: {
     actions: [
-      { name: 'Sneak Attack', desc: 'Extra damage when advantage', type: 'attack', dice: '1d6', level: 1 }
+      { name: 'Sneak Attack', desc: 'Extra 1d6 damage with advantage', type: 'attack', dice: '1d6', level: 1 }
     ],
     bonusActions: [
       { name: 'Cunning Action', desc: 'Dash, Disengage, or Hide', type: 'ability', level: 2 }
     ],
     reactions: [
       { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
-      { name: 'Uncanny Dodge', desc: 'Halve attack damage', type: 'ability', level: 5 }
+      { name: 'Uncanny Dodge', desc: 'Halve attack damage', type: 'defense', level: 5 }
     ]
   },
-  Cleric: {
+  Sorcerer: {
     actions: [
-      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
-      { name: 'Turn Undead', desc: 'Channel Divinity', type: 'ability', level: 2 }
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' }
     ],
     bonusActions: [
-      { name: 'Spiritual Weapon', desc: 'Attack with spiritual weapon', type: 'spell', dice: '1d8', level: 3 }
+      { name: 'Quickened Spell', desc: 'Cast spell as bonus (2 SP)', type: 'spell', level: 3 },
+      { name: 'Font of Magic', desc: 'Convert spell slots to SP or vice versa', type: 'ability', level: 2 }
     ],
     reactions: [
       { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' }
+    ]
+  },
+  Warlock: {
+    actions: [
+      { name: 'Eldritch Blast', desc: '1d10 force, +CHA if Agonizing', type: 'spell', dice: '1d10', level: 1 },
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' }
+    ],
+    bonusActions: [
+      { name: "Hexblade's Curse", desc: '+prof damage, crit on 19-20', type: 'ability', level: 1 }
+    ],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
+      { name: 'Armor of Hexes', desc: '50% miss chance vs cursed', type: 'defense', level: 10 }
+    ]
+  },
+  Wizard: {
+    actions: [
+      { name: 'Spell Attack', desc: 'Cast a spell', type: 'spell', dice: '1d20' },
+      { name: 'Arcane Recovery', desc: 'Recover spell slots (1/day)', type: 'ability', level: 1 }
+    ],
+    bonusActions: [],
+    reactions: [
+      { name: 'Opportunity Attack', desc: 'Melee attack when enemy leaves reach', type: 'attack', dice: '1d20' },
+      { name: 'Shield', desc: '+5 AC until next turn (spell)', type: 'spell', level: 1 }
     ]
   }
 };
@@ -254,7 +356,7 @@ export default function CharacterSheetFull() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '10px 14px',
+    padding: '12px 16px',
     background: type === 'attack' ? 'rgba(239, 68, 68, 0.15)' : 
                 type === 'spell' ? 'rgba(139, 92, 246, 0.15)' :
                 type === 'heal' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
@@ -316,7 +418,7 @@ export default function CharacterSheetFull() {
         
         {/* LEFT COLUMN: Abilities + Saving Throws */}
         <div style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px', fontSize: '0.9rem', flexShrink: 0 }}>Ability Scores</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Ability Scores</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SAVING_THROWS.map((ability) => {
@@ -326,22 +428,22 @@ export default function CharacterSheetFull() {
               const isProficient = character.saving_throw_proficiencies?.includes(ability);
               
               return (
-                <div key={ability} style={{ marginBottom: '12px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '10px', padding: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', color: theme.text.muted, letterSpacing: '1px' }}>{ABILITY_SHORT[ability]}</span>
-                    <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: theme.sunset.gold }}>{formatModifier(mod)}</span>
+                <div key={ability} style={{ marginBottom: '12px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: theme.text.muted, letterSpacing: '1px', fontWeight: '600' }}>{ABILITY_SHORT[ability]}</span>
+                    <span style={{ fontSize: '22px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
+                    <span style={{ fontSize: '16px', fontWeight: '600', color: theme.sunset.gold }}>{formatModifier(mod)}</span>
                   </div>
                   <button
                     onClick={() => rollDice('1d20', saveMod, `${ABILITY_SHORT[ability]} Save`)}
                     style={{
                       width: '100%',
-                      padding: '6px',
+                      padding: '8px',
                       background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(139, 92, 246, 0.1)',
                       border: `1px solid ${isProficient ? 'rgba(245, 158, 11, 0.4)' : theme.border}`,
                       borderRadius: '6px',
                       color: isProficient ? theme.sunset.gold : theme.text.secondary,
-                      fontSize: '11px',
+                      fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -357,15 +459,15 @@ export default function CharacterSheetFull() {
           </div>
           
           {/* Proficiency Bonus */}
-          <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '8px', marginTop: '8px', flexShrink: 0 }}>
-            <div style={{ fontSize: '10px', color: theme.text.muted }}>PROFICIENCY</div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: theme.sunset.pink }}>+{profBonus}</div>
+          <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '8px', marginTop: '8px', flexShrink: 0 }}>
+            <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>PROFICIENCY</div>
+            <div style={{ fontSize: '26px', fontWeight: 'bold', color: theme.sunset.pink }}>+{profBonus}</div>
           </div>
         </div>
 
         {/* MIDDLE COLUMN: Skills */}
         <div style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.pink, marginBottom: '12px', fontSize: '0.9rem', flexShrink: 0 }}>Skills</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.pink, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Skills</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SKILLS.map(skill => {
@@ -382,13 +484,13 @@ export default function CharacterSheetFull() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '8px 10px',
+                    padding: '10px 12px',
                     marginBottom: '4px',
                     background: isProficient ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
                     border: 'none',
                     borderRadius: '6px',
                     color: isProficient ? theme.sunset.gold : theme.text.secondary,
-                    fontSize: '12px',
+                    fontSize: '14px',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'background 0.2s'
@@ -397,7 +499,7 @@ export default function CharacterSheetFull() {
                   onMouseLeave={(e) => e.target.style.background = isProficient ? 'rgba(245, 158, 11, 0.1)' : 'transparent'}
                 >
                   <span>{isProficient && '● '}{skill.name}</span>
-                  <span style={{ fontWeight: '600', color: theme.text.primary }}>{formatModifier(bonus)}</span>
+                  <span style={{ fontWeight: '600', color: theme.text.primary, fontSize: '15px' }}>{formatModifier(bonus)}</span>
                 </button>
               );
             })}
@@ -409,64 +511,64 @@ export default function CharacterSheetFull() {
           {/* Combat Stats Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', flexShrink: 0 }}>
             {/* HP */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: theme.text.muted, fontSize: '10px', marginBottom: '4px' }}>
-                <Heart size={12} /> HP
+            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
+                <Heart size={14} /> HP
               </div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '8px' }}>
+              <div style={{ fontSize: '26px', fontWeight: 'bold', marginBottom: '10px' }}>
                 <span style={{ color: currentHp < maxHp / 2 ? '#EF4444' : theme.text.primary }}>{currentHp}</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{maxHp}</span>
+                <span style={{ color: theme.text.muted, fontSize: '18px' }}>/{maxHp}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                <button onClick={() => handleHpChange(-1)} style={{ padding: '4px 12px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', borderRadius: '6px', color: '#EF4444', cursor: 'pointer' }}><Minus size={14} /></button>
-                <button onClick={() => handleHpChange(1)} style={{ padding: '4px 12px', background: 'rgba(16, 185, 129, 0.2)', border: 'none', borderRadius: '6px', color: '#10B981', cursor: 'pointer' }}><Plus size={14} /></button>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                <button onClick={() => handleHpChange(-1)} style={{ padding: '6px 14px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', borderRadius: '6px', color: '#EF4444', cursor: 'pointer' }}><Minus size={16} /></button>
+                <button onClick={() => handleHpChange(1)} style={{ padding: '6px 14px', background: 'rgba(16, 185, 129, 0.2)', border: 'none', borderRadius: '6px', color: '#10B981', cursor: 'pointer' }}><Plus size={16} /></button>
               </div>
             </div>
 
             {/* AC */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: theme.text.muted, fontSize: '10px', marginBottom: '4px' }}>
-                <Shield size={12} /> AC
+            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
+                <Shield size={14} /> AC
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: theme.sunset.purple }}>{ac}</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: theme.sunset.purple }}>{ac}</div>
             </div>
 
             {/* Initiative */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: theme.text.muted, fontSize: '10px', marginBottom: '4px' }}>
-                <Zap size={12} /> INIT
+            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
+                <Zap size={14} /> INIT
               </div>
               <button
                 onClick={() => rollDice('1d20', initiative, 'Initiative')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '28px', fontWeight: 'bold', color: theme.sunset.pink }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '32px', fontWeight: 'bold', color: theme.sunset.pink }}
               >
                 {formatModifier(initiative)}
               </button>
             </div>
 
             {/* Speed */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: theme.text.muted, fontSize: '10px', marginBottom: '4px' }}>
-                <Wind size={12} /> SPEED
+            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
+                <Wind size={14} /> SPEED
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: theme.sunset.gold }}>{speed}<span style={{ fontSize: '12px' }}>ft</span></div>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: theme.sunset.gold }}>{speed}<span style={{ fontSize: '14px' }}>ft</span></div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
             {['combat', 'spells', 'inventory', 'notes'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 style={{
                   flex: 1,
-                  padding: '10px',
+                  padding: '12px',
                   background: activeTab === tab ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(139, 92, 246, 0.1)',
                   border: activeTab === tab ? 'none' : `1px solid ${theme.border}`,
                   borderRadius: '8px',
                   color: theme.text.primary,
-                  fontSize: '13px',
+                  fontSize: '15px',
                   fontWeight: activeTab === tab ? '600' : '400',
                   cursor: 'pointer',
                   textTransform: 'capitalize'
@@ -479,136 +581,187 @@ export default function CharacterSheetFull() {
 
           {/* Tab Content - Scrollable */}
           <div style={{ ...panelStyle, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ ...scrollBoxStyle, flex: 1 }}>
-              {activeTab === 'combat' && (
-                <div>
-                  {/* Actions */}
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.pink, marginBottom: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Swords size={16} /> Actions
+            {activeTab === 'combat' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', height: '100%', overflow: 'hidden' }}>
+                {/* Actions Box */}
+                <div style={{ 
+                  background: 'rgba(239, 68, 68, 0.05)', 
+                  border: '1px solid rgba(239, 68, 68, 0.2)', 
+                  borderRadius: '12px', 
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <h4 style={{ fontFamily: "'Cinzel', serif", color: '#EF4444', marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <Swords size={18} /> Actions
                   </h4>
-                  <div style={{ display: 'grid', gap: '8px', marginBottom: '20px' }}>
+                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {/* Unarmed Strike */}
                     <div
                       style={actionBtnStyle('attack')}
                       onClick={() => rollDice('1d20', profBonus + getModifier(abilities.strength), 'Unarmed Strike')}
                     >
                       <div>
-                        <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '13px' }}>Unarmed Strike</div>
-                        <div style={{ color: theme.text.muted, fontSize: '11px' }}>+{profBonus + getModifier(abilities.strength)} to hit • 1+{getModifier(abilities.strength)} bludgeoning</div>
+                        <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>Unarmed Strike</div>
+                        <div style={{ color: theme.text.muted, fontSize: '12px' }}>+{profBonus + getModifier(abilities.strength)} • 1+{getModifier(abilities.strength)} bludg</div>
                       </div>
-                      <Dices size={18} style={{ color: '#EF4444' }} />
+                      <Dices size={18} style={{ color: '#EF4444', flexShrink: 0 }} />
                     </div>
                     
                     {classActions.actions.filter(a => a.name !== 'Attack').map((action, i) => (
                       <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
                         <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '13px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '11px' }}>{action.desc}</div>
+                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
+                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: action.type === 'spell' ? theme.sunset.purple : action.type === 'heal' ? '#10B981' : '#EF4444' }} />}
+                        {action.dice && <Dices size={18} style={{ color: action.type === 'spell' ? theme.sunset.purple : action.type === 'heal' ? '#10B981' : '#EF4444', flexShrink: 0 }} />}
                       </div>
                     ))}
+                    
+                    {/* Basic Actions */}
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '6px' }}>
+                      <div style={{ fontSize: '12px', color: theme.text.muted, marginBottom: '8px', fontWeight: '500' }}>BASIC</div>
+                      {[
+                        { name: 'Dash', desc: 'Double movement' },
+                        { name: 'Dodge', desc: 'Attacks have disadvantage' },
+                        { name: 'Help', desc: 'Give ally advantage' },
+                        { name: 'Hide', desc: 'Stealth check', dice: '1d20' },
+                        { name: 'Ready', desc: 'Prepare action' }
+                      ].map((action, i) => (
+                        <div 
+                          key={i} 
+                          style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', marginBottom: '6px', cursor: 'pointer', fontSize: '13px' }}
+                          onClick={() => action.dice ? rollDice(action.dice, 0, action.name) : toast.info(action.desc)}
+                        >
+                          <span style={{ color: theme.text.primary }}>{action.name}</span>
+                          <span style={{ color: theme.text.muted, marginLeft: '8px' }}>- {action.desc}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                </div>
 
-                  {/* Bonus Actions */}
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={16} /> Bonus Actions
+                {/* Bonus Actions Box */}
+                <div style={{ 
+                  background: 'rgba(245, 158, 11, 0.05)', 
+                  border: '1px solid rgba(245, 158, 11, 0.2)', 
+                  borderRadius: '12px', 
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <Sparkles size={18} /> Bonus Actions
                   </h4>
-                  <div style={{ display: 'grid', gap: '8px', marginBottom: '20px' }}>
+                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {classActions.bonusActions.length > 0 ? classActions.bonusActions.map((action, i) => (
                       <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
                         <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '13px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '11px' }}>{action.desc}</div>
+                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
+                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.sunset.gold }} />}
+                        {action.dice && <Dices size={18} style={{ color: theme.sunset.gold, flexShrink: 0 }} />}
                       </div>
                     )) : (
-                      <div style={{ color: theme.text.muted, fontSize: '12px', fontStyle: 'italic' }}>No bonus actions available at this level</div>
+                      <div style={{ color: theme.text.muted, fontSize: '14px', fontStyle: 'italic', textAlign: 'center', padding: '24px' }}>
+                        No bonus actions available at this level
+                      </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Reactions */}
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Target size={16} /> Reactions
+                {/* Reactions Box */}
+                <div style={{ 
+                  background: 'rgba(139, 92, 246, 0.05)', 
+                  border: '1px solid rgba(139, 92, 246, 0.2)', 
+                  borderRadius: '12px', 
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <Target size={18} /> Reactions
                   </h4>
-                  <div style={{ display: 'grid', gap: '8px' }}>
+                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {classActions.reactions.map((action, i) => (
                       <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
                         <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '13px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '11px' }}>{action.desc}</div>
+                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
+                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.sunset.purple }} />}
+                        {action.dice && <Dices size={18} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {activeTab === 'spells' && (
-                <div>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px' }}>Spellcasting</h4>
-                  {['Wizard', 'Cleric', 'Bard', 'Druid', 'Sorcerer', 'Warlock', 'Paladin', 'Ranger'].includes(character.character_class) && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
-                      <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '10px', color: theme.text.muted }}>SPELL DC</div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: theme.sunset.purple }}>{8 + profBonus + getModifier(abilities.intelligence)}</div>
-                      </div>
-                      <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '10px', color: theme.text.muted }}>SPELL ATK</div>
-                        <button onClick={() => rollDice('1d20', profBonus + getModifier(abilities.intelligence), 'Spell Attack')} style={{ background: 'none', border: 'none', fontSize: '20px', fontWeight: 'bold', color: theme.sunset.pink, cursor: 'pointer' }}>
-                          +{profBonus + getModifier(abilities.intelligence)}
-                        </button>
-                      </div>
-                      <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '10px', color: theme.text.muted }}>ABILITY</div>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: theme.sunset.gold }}>INT</div>
-                      </div>
+            {activeTab === 'spells' && (
+              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+                <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '16px', fontSize: '1.1rem' }}>Spellcasting</h4>
+                {['Wizard', 'Cleric', 'Bard', 'Druid', 'Sorcerer', 'Warlock', 'Paladin', 'Ranger'].includes(character.character_class) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>SPELL DC</div>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: theme.sunset.purple }}>{8 + profBonus + getModifier(abilities.intelligence)}</div>
                     </div>
-                  )}
-                  {character.spells?.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {character.spells.map((spell, i) => (
-                        <div key={i} style={{ padding: '10px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px' }}>
-                          <div style={{ fontWeight: '600', color: theme.text.primary }}>{spell.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{spell.level ? `Level ${spell.level}` : 'Cantrip'} • {spell.school}</div>
-                        </div>
-                      ))}
+                    <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>SPELL ATK</div>
+                      <button onClick={() => rollDice('1d20', profBonus + getModifier(abilities.intelligence), 'Spell Attack')} style={{ background: 'none', border: 'none', fontSize: '24px', fontWeight: 'bold', color: theme.sunset.pink, cursor: 'pointer' }}>
+                        +{profBonus + getModifier(abilities.intelligence)}
+                      </button>
                     </div>
-                  ) : (
-                    <div style={{ color: theme.text.muted, textAlign: 'center', padding: '20px' }}>No spells known</div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'inventory' && (
-                <div>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '12px' }}>Inventory</h4>
-                  {character.equipment?.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {character.equipment.map((item, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px' }}>
-                          <span style={{ color: theme.text.primary }}>{item.name || item}</span>
-                          {item.quantity && <span style={{ color: theme.text.muted }}>x{item.quantity}</span>}
-                        </div>
-                      ))}
+                    <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>ABILITY</div>
+                      <div style={{ fontSize: '18px', fontWeight: '600', color: theme.sunset.gold }}>INT</div>
                     </div>
-                  ) : (
-                    <div style={{ color: theme.text.muted, textAlign: 'center', padding: '20px' }}>No items</div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'notes' && (
-                <div>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '12px' }}>Character Notes</h4>
-                  <div style={{ whiteSpace: 'pre-wrap', color: theme.text.secondary, lineHeight: '1.6' }}>
-                    {character.notes || 'No notes yet.'}
                   </div>
+                )}
+                {character.spells?.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {character.spells.map((spell, i) => (
+                      <div key={i} style={{ padding: '14px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '15px' }}>{spell.name}</div>
+                        <div style={{ color: theme.text.muted, fontSize: '14px' }}>{spell.level ? `Level ${spell.level}` : 'Cantrip'} • {spell.school}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: theme.text.muted, textAlign: 'center', padding: '24px', fontSize: '15px' }}>No spells known</div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'inventory' && (
+              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+                <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '16px', fontSize: '1.1rem' }}>Inventory</h4>
+                {character.equipment?.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {character.equipment.map((item, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px' }}>
+                        <span style={{ color: theme.text.primary, fontSize: '15px' }}>{item.name || item}</span>
+                        {item.quantity && <span style={{ color: theme.text.muted, fontSize: '15px' }}>x{item.quantity}</span>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: theme.text.muted, textAlign: 'center', padding: '24px', fontSize: '15px' }}>No items</div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'notes' && (
+              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+                <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '16px', fontSize: '1.1rem' }}>Character Notes</h4>
+                <div style={{ whiteSpace: 'pre-wrap', color: theme.text.secondary, lineHeight: '1.7', fontSize: '15px' }}>
+                  {character.notes || 'No notes yet.'}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
