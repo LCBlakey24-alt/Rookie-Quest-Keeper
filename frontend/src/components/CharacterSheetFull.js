@@ -225,6 +225,9 @@ export default function CharacterSheetFull() {
   const [currentHp, setCurrentHp] = useState(0);
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
   
+  // Spell slot tracking - { 1: 0, 2: 0, ... } = used slots per level
+  const [usedSlots, setUsedSlots] = useState({});
+  
   // 3D Dice Roller
   const { rollState, rollDice, closeRoller, DiceRoller3D } = useDiceRoller();
 
@@ -763,23 +766,101 @@ export default function CharacterSheetFull() {
                         </div>
                       </div>
                       
-                      {/* Spell Slots */}
+                      {/* Spell Slots - Clickable to track usage */}
                       {Object.keys(slots).length > 0 && (
                         <div style={{ marginBottom: '20px' }}>
-                          <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500', marginBottom: '10px' }}>
-                            {classInfo.pactMagic ? 'PACT MAGIC SLOTS' : 'SPELL SLOTS'}
+                          <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>{classInfo.pactMagic ? 'PACT MAGIC SLOTS' : 'SPELL SLOTS'} (Click to use/recover)</span>
+                            <button 
+                              onClick={() => setUsedSlots({})}
+                              style={{
+                                background: 'rgba(139, 92, 246, 0.2)',
+                                border: '1px solid rgba(139, 92, 246, 0.3)',
+                                borderRadius: '4px',
+                                padding: '4px 8px',
+                                fontSize: '10px',
+                                color: theme.sunset.purple,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Long Rest
+                            </button>
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {classInfo.pactMagic ? (
-                              <div style={{ padding: '10px 16px', background: 'rgba(236, 72, 153, 0.15)', borderRadius: '8px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '11px', color: theme.text.muted }}>Lvl {slots.level}</div>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: theme.sunset.pink }}>{slots.slots}</div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                {Array.from({ length: slots.slots }).map((_, i) => {
+                                  const isUsed = (usedSlots['pact'] || 0) > i;
+                                  return (
+                                    <button
+                                      key={i}
+                                      onClick={() => setUsedSlots(prev => ({
+                                        ...prev,
+                                        pact: isUsed ? (prev.pact || 0) - 1 : (prev.pact || 0) + 1
+                                      }))}
+                                      className="press-scale"
+                                      style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '8px',
+                                        border: `2px solid ${theme.sunset.pink}`,
+                                        background: isUsed ? 'rgba(100, 100, 100, 0.3)' : 'rgba(236, 72, 153, 0.3)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '14px',
+                                        color: isUsed ? theme.text.muted : theme.sunset.pink,
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      {isUsed ? '○' : '●'}
+                                    </button>
+                                  );
+                                })}
+                                <span style={{ alignSelf: 'center', marginLeft: '8px', fontSize: '12px', color: theme.text.muted }}>
+                                  Lvl {slots.level}
+                                </span>
                               </div>
                             ) : (
                               Object.entries(slots).map(([lvl, count]) => (
-                                <div key={lvl} style={{ padding: '10px 16px', background: 'rgba(236, 72, 153, 0.15)', borderRadius: '8px', textAlign: 'center', minWidth: '55px' }}>
-                                  <div style={{ fontSize: '11px', color: theme.text.muted }}>Lvl {lvl}</div>
-                                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: theme.sunset.pink }}>{count}</div>
+                                <div key={lvl} style={{ 
+                                  padding: '10px', 
+                                  background: 'rgba(236, 72, 153, 0.1)', 
+                                  borderRadius: '10px', 
+                                  minWidth: '70px'
+                                }}>
+                                  <div style={{ fontSize: '11px', color: theme.text.muted, marginBottom: '6px', textAlign: 'center' }}>Level {lvl}</div>
+                                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                    {Array.from({ length: count }).map((_, i) => {
+                                      const used = usedSlots[lvl] || 0;
+                                      const isUsed = used > i;
+                                      return (
+                                        <button
+                                          key={i}
+                                          onClick={() => setUsedSlots(prev => ({
+                                            ...prev,
+                                            [lvl]: isUsed ? (prev[lvl] || 0) - 1 : (prev[lvl] || 0) + 1
+                                          }))}
+                                          className="press-scale"
+                                          style={{
+                                            width: '24px',
+                                            height: '24px',
+                                            borderRadius: '50%',
+                                            border: `2px solid ${theme.sunset.pink}`,
+                                            background: isUsed ? 'rgba(100, 100, 100, 0.3)' : 'rgba(236, 72, 153, 0.4)',
+                                            cursor: 'pointer',
+                                            padding: 0,
+                                            transition: 'all 0.2s'
+                                          }}
+                                          title={isUsed ? 'Click to recover' : 'Click to use'}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                  <div style={{ fontSize: '10px', color: theme.text.muted, marginTop: '4px', textAlign: 'center' }}>
+                                    {count - (usedSlots[lvl] || 0)}/{count}
+                                  </div>
                                 </div>
                               ))
                             )}
