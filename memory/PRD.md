@@ -22,18 +22,26 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 **Key Visual Features:**
 - Fantasy sunset landscape background (blurred) on landing/auth pages
-- Glassmorphism panels with `backdrop-filter: blur(20px)`
+- Glassmorphism panels with `backdrop-filter: blur(16-20px)`
 - Purple gradient borders with glow effect
 - Cinzel font for headings, Montserrat for body
 
-**Files Updated:**
-- index.css - New CSS variables and glass panel styles
+**Pages Updated:**
 - LandingPage.js - Complete redesign with sunset background
 - AuthPage.js - Glassmorphism login/register cards
 - UnifiedDashboard.js - Updated theme colors (purple player, gold GM)
+- CharacterBuilder.js - Full redesign with sunset theme
+- CharacterSheetFull.js - Full redesign with sunset theme
 
 **Background Image:**
 - URL: `https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png`
+
+**Stress Test Results (March 13, 2026):**
+- **31/31 frontend tests passed**
+- Character Builder: All 3 stat methods working (Standard Array, Point Buy, Roll Stats)
+- Character Sheet: HP adjustment, tabs, ability modifiers all functional
+- GM Screen: Combat Control, GM Tools all accessible
+- Theme consistency verified across all screens
 
 ### FRONTEND-BACKEND RECONNECTION (March 13, 2026)
 **Repaired disconnected components to restore full functionality**
