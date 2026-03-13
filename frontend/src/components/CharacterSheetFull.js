@@ -4,8 +4,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Heart, Shield, Zap, Swords, BookOpen, Backpack, ChevronLeft,
-  Plus, Minus, Skull, Wind, Edit3, Dices, Target, Sparkles
+  Plus, Minus, Skull, Wind, Edit3, Dices, Target, Sparkles, ArrowUp
 } from 'lucide-react';
+import LevelUpWizard from './LevelUpWizard';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -244,6 +245,7 @@ export default function CharacterSheetFull() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('combat');
   const [currentHp, setCurrentHp] = useState(0);
+  const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
 
   useEffect(() => {
     if (characterId) fetchCharacter();
@@ -408,10 +410,44 @@ export default function CharacterSheetFull() {
           </div>
         </div>
 
-        <button onClick={() => navigate(`/characters/${characterId}/edit`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(139, 92, 246, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
-          <Edit3 size={16} /> Edit
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {(character.level || 1) < 20 && (
+            <button 
+              onClick={() => setShowLevelUpWizard(true)} 
+              data-testid="level-up-btn"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                background: 'linear-gradient(135deg, #10B981, #059669)', 
+                border: 'none', 
+                borderRadius: '10px', 
+                padding: '8px 16px', 
+                color: '#fff', 
+                cursor: 'pointer',
+                fontWeight: '500',
+                fontSize: '14px'
+              }}
+            >
+              <ArrowUp size={16} /> Level Up
+            </button>
+          )}
+          <button onClick={() => navigate(`/characters/${characterId}/edit`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(139, 92, 246, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
+            <Edit3 size={16} /> Edit
+          </button>
+        </div>
       </div>
+
+      {/* Level Up Wizard Modal */}
+      <LevelUpWizard 
+        character={character}
+        isOpen={showLevelUpWizard}
+        onClose={() => setShowLevelUpWizard(false)}
+        onLevelUp={() => {
+          fetchCharacter(); // Refresh character data
+          setShowLevelUpWizard(false);
+        }}
+      />
 
       {/* Main Content - Fills remaining space */}
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '220px 200px 1fr', gap: '16px', overflow: 'hidden', minHeight: 0 }}>

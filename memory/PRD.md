@@ -33,6 +33,11 @@ Build a TTRPG application called "Rookie Quest Keeper" (ROOK) with a "Fantasy Su
 - [x] Clickable dice rolls with toast notifications
 - [x] Spells, Inventory, Notes tabs
 - [x] Improved text readability (larger font sizes)
+- [x] **NEW: Level Up Wizard** - Multi-step guided level up with:
+  - HP method selection (average vs roll)
+  - Interactive dice rolling
+  - ASI/Feat selection at appropriate levels
+  - Full 5e feat list with descriptions
 
 ### Campaign Management
 - [x] Campaign CRUD operations
@@ -58,18 +63,24 @@ Build a TTRPG application called "Rookie Quest Keeper" (ROOK) with a "Fantasy Su
 - [x] Emergent LLM Key (ROOK AI features)
 - [x] PyMuPDF (PDF extraction)
 
+## Removed/Deprecated Components
+- PlayerDashboard.js (functionality moved to UnifiedDashboard)
+- CampaignList.js (functionality moved to UnifiedDashboard)
+- CharacterSheet.js (replaced by CharacterSheetFull)
+- FloatingDiceRoller.js (removed per user request)
+- LevelUpModal.js (replaced by LevelUpWizard)
+
 ## Known Issues
 - **Production Deployment Risk** - Previous "blank screen" issue after deployment; root cause unknown
 - **Password Reset URL** - Fix pending user verification on production
 - **Admin Account on Production** - May not work due to database differences
 
 ## Upcoming Tasks (P1)
-1. Combat Tracker Enhancements - Initiative roller, HP tracking, turn order display
-2. Test Stripe checkout flow
+1. Test Stripe checkout flow
+2. Combat Tracker Enhancements - Initiative roller, HP tracking, turn order display
 
 ## Future Tasks (P2+)
 - Real-time Campaign Sync (WebSockets)
-- Character Level Up Wizard
 - Backend refactoring (split server.py into modular routers)
 - Quick Start Tutorial for GMs
 - AI-powered travel time estimation
@@ -90,6 +101,7 @@ Build a TTRPG application called "Rookie Quest Keeper" (ROOK) with a "Fantasy Su
     │   │   ├── CharacterSheetFull.js
     │   │   ├── GMScreen.js
     │   │   ├── LandingPage.js
+    │   │   ├── LevelUpWizard.js  # NEW
     │   │   └── UnifiedDashboard.js
     │   └── index.css (global styles)
 ```
