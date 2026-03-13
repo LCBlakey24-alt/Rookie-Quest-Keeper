@@ -1,1383 +1,362 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { 
-  Sword, Users, Map, Sparkles, Dices, BookOpen, Crown, 
-  ChevronRight, Star, Shield, Wand2, Globe, Scroll,
-  ArrowRight, Check, Play, Zap, Clock, Target, TrendingUp,
-  Brain
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import RookDemo from '@/components/RookDemo';
-import TronBackground from '@/components/TronBackground';
+import { Sword, Users, Sparkles, Map, Scroll, Shield, ChevronRight } from 'lucide-react';
 
-const API = process.env.REACT_APP_BACKEND_URL;
-
-// Aether & Iron Theme with Ember Accents
-const theme = {
-  bg: {
-    primary: '#0B0F19',      // Deep dark
-    surface: '#111827',      // Card/panel background
-    surfaceHover: '#1F2937', // Hover state
-    elevated: '#1F2937'      // Elevated elements
-  },
-  gm: {
-    primary: '#F59E0B',      // Amber
-    secondary: '#D97706',    // Darker amber
-    glow: 'rgba(245, 158, 11, 0.4)',
-    subtle: 'rgba(245, 158, 11, 0.1)'
-  },
-  player: {
-    primary: '#06B6D4',      // Cyan
-    secondary: '#0891B2',    // Darker cyan
-    glow: 'rgba(6, 182, 212, 0.4)',
-    subtle: 'rgba(6, 182, 212, 0.1)'
-  },
-  text: {
-    primary: '#F9FAFB',      // Almost white
-    secondary: '#9CA3AF',    // Muted
-    muted: '#6B7280'         // Dim
-  },
-  border: '#374151',
-  success: '#10B981',
-  danger: '#EF4444',
-  warning: '#F59E0B',
-  info: '#3B82F6'
-};
-
-// Ember Particles Component
-const EmberParticles = () => (
-  <div className="ember-particles">
-    {[...Array(15)].map((_, i) => (
-      <div 
-        key={i} 
-        className={`ember ${i % 3 === 0 ? 'large' : i % 2 === 0 ? 'medium' : 'small'}`}
-      />
-    ))}
-  </div>
-);
-
-function LandingPage() {
+export default function LandingPage() {
   const navigate = useNavigate();
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [activeScreenshot, setActiveScreenshot] = useState('demo');
-  const [reviews, setReviews] = useState([]);
-  const [billingCycle, setBillingCycle] = useState('monthly');
-
-  // Pricing data
-  const pricing = {
-    hero: { monthly: 3.99, yearly: 39.99 },
-    questMaster: { monthly: 3.99, yearly: 39.99 },
-    legendary: { monthly: 5.99, yearly: 59.99 }
-  };
-
-  const getPrice = (plan) => {
-    return billingCycle === 'yearly' ? pricing[plan].yearly : pricing[plan].monthly;
-  };
-
-  const getMonthlyEquivalent = (plan) => {
-    return (pricing[plan].yearly / 12).toFixed(2);
-  };
-
-  // Fetch featured reviews
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(`${API}/api/reviews/featured`);
-        setReviews(response.data);
-      } catch (error) {
-        console.log('No reviews yet');
-      }
-    };
-    fetchReviews();
-  }, []);
-
-  // Auto-rotate features
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 4);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
   const features = [
     {
-      icon: Globe,
-      title: "World Builder",
-      description: "Build immersive worlds with a hierarchical system: Continents, Countries, Cities, and Places of Interest.",
-      details: ["Nested location hierarchy", "Generate with ROOK AI", "Custom place types"]
+      icon: <Users size={28} />,
+      title: "Party Management",
+      description: "Track characters, share loot, and keep your party organized in one place."
     },
     {
-      icon: Map,
-      title: "Interactive World Maps",
-      description: "Upload your world map and pin locations. Calculate travel times between cities with terrain-aware pathing.",
-      details: ["Pin cities & landmarks", "Travel time calculator", "Terrain modifiers", "Link to existing locations"]
+      icon: <Sword size={28} />,
+      title: "Combat Tracker",
+      description: "Initiative rolls, HP tracking, and turn management made simple."
     },
     {
-      icon: Sword,
-      title: "Combat Manager",
-      description: "Run epic battles with our initiative tracker, monster database, and interactive battle maps.",
-      details: ["2687+ monster statblocks", "Attack & damage roller", "Encounter difficulty calculator"]
+      icon: <Sparkles size={28} />,
+      title: "AI-Powered Tools",
+      description: "Generate NPCs, encounters, and story hooks with ROOK AI."
     },
     {
-      icon: Sparkles,
-      title: "ROOK AI Assistant",
-      description: "Your intelligent Game Master companion. ROOK handles the heavy lifting so you can focus on storytelling.",
-      details: ["Generate NPCs & Locations", "Session recap writing", "Smart note parsing", "Encounter creation"]
-    },
-    {
-      icon: Dices,
-      title: "GM Screen",
-      description: "Everything you need during live sessions: dice roller, quick reference, session notes, and party tracker.",
-      details: ["Floating dice roller", "Random tables", "Name generator with NPC save"]
+      icon: <Map size={28} />,
+      title: "World Building",
+      description: "Create locations, factions, and lore for your campaign setting."
     }
   ];
 
-  // Helper to render stars
-  const renderStars = (rating) => {
-    return [...Array(5)].map((_, i) => (
-      <Star 
-        key={i} 
-        size={16} 
-        fill={i < rating ? "#F59E0B" : "transparent"} 
-        color={i < rating ? "#F59E0B" : theme.text.muted} 
-      />
-    ));
-  };
-
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: theme.bg.primary,
-      color: theme.text.primary,
-      position: 'relative'
-    }}>
-      {/* Ember Background Effect */}
-      <div className="ember-bg" />
+    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* Fantasy Sunset Background */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(3px)',
+          transform: 'scale(1.1)',
+          zIndex: 0
+        }}
+      />
       
-      {/* Floating Ember Particles */}
-      <EmberParticles />
-      
-      {/* Navigation */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        padding: '16px 24px',
-        background: 'rgba(11, 15, 25, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: `1px solid ${theme.border}`
-      }}>
-        <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ 
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '20px',
-              fontWeight: '600',
-              color: theme.gm.primary,
-              letterSpacing: '0.1em'
-            }}>
-              RQK
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Button 
-              onClick={() => navigate('/auth')}
-              style={{ 
-                padding: '10px 20px',
-                background: 'transparent',
-                border: `1px solid ${theme.player.border}`,
-                color: theme.player.primary
-              }}
-            >
-              Log In
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth')}
-              data-testid="get-started-btn"
-              style={{ 
-                padding: '10px 24px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.secondary})`,
-                border: 'none',
-                color: '#0B0F19',
-                fontWeight: '500',
-                boxShadow: `0 4px 15px ${theme.gm.glow}`
-              }}
-            >
-              Get Started Free <ArrowRight size={16} />
-            </Button>
-          </div>
-        </div>
-      </nav>
+      {/* Overlay for readability */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(180deg, rgba(15, 10, 30, 0.4) 0%, rgba(15, 10, 30, 0.6) 50%, rgba(15, 10, 30, 0.8) 100%)',
+          zIndex: 1
+        }}
+      />
 
-      {/* Hero Section */}
-      <section style={{ 
-        paddingTop: '140px', 
-        paddingBottom: '80px',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto', 
-          padding: '0 24px', 
-          textAlign: 'center'
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        {/* Navigation */}
+        <nav style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px 40px',
+          maxWidth: '1400px',
+          margin: '0 auto'
         }}>
-          {/* Logo and Text */}
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: '24px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            ROOK
+          </div>
+          
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <button
+              onClick={() => navigate('/auth')}
+              style={{
+                padding: '10px 24px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '10px',
+                color: '#F8FAFC',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => navigate('/auth')}
+              style={{
+                padding: '10px 24px',
+                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 20px rgba(236, 72, 153, 0.3)'
+              }}
+            >
+              Get Started
+            </button>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <section style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '80px 24px 120px',
+          minHeight: '70vh'
+        }}>
+          {/* Glass Panel Hero */}
+          <div style={{
+            background: 'rgba(15, 10, 30, 0.7)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '24px',
+            padding: '60px 80px',
+            maxWidth: '800px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 60px rgba(139, 92, 246, 0.2)'
+          }}>
             <h1 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-              fontWeight: '600',
-              color: theme.gm.primary,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              margin: 0,
-              lineHeight: '1.1',
-              textShadow: `0 0 40px ${theme.gm.glow}`
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+              fontWeight: '700',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
             }}>
               ROOKIE QUEST
             </h1>
-            
-            <h1 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(3rem, 10vw, 6rem)',
+            <h2 style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
               fontWeight: '600',
-              color: theme.text.primary,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              margin: '0',
-              lineHeight: '1'
+              color: '#F8FAFC',
+              marginBottom: '24px',
+              letterSpacing: '0.1em'
             }}>
               KEEPER
-            </h1>
+            </h2>
             
             <p style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
-              background: `linear-gradient(90deg, ${theme.gm.primary}, ${theme.player.primary})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              marginTop: '24px',
-              fontWeight: '400'
-            }}>
-              Campaign Operating System
-            </p>
-          </div>
-
-          {/* Divider - Gradient */}
-          <div style={{
-            width: '120px',
-            height: '2px',
-            background: `linear-gradient(90deg, ${theme.gm.primary}, ${theme.player.primary})`,
-            margin: '32px auto'
-          }} />
-
-          {/* Headline */}
-          <h2 style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-            fontWeight: '500',
-            color: theme.text.primary,
-            marginBottom: '24px',
-            lineHeight: '1.2',
-            letterSpacing: '0.03em'
-          }}>
-            <span style={{ color: theme.gm.primary }}>Game Masters</span> &{' '}
-            <span style={{ color: theme.player.primary }}>Players</span>{' '}
-            United
-          </h2>
-
-          {/* Subheadline */}
-          <p style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: 'clamp(1.1rem, 2vw, 1.4rem)',
-            color: theme.text.secondary,
-            maxWidth: '800px',
-            margin: '0 auto 40px',
-            lineHeight: '1.7'
-          }}>
-            The all-in-one <strong style={{ color: theme.text.primary }}>campaign operating system</strong> for 5e — 
-            combining <span style={{ color: theme.gm.primary }}>worldbuilding, AI generation, combat</span> for GMs and{' '}
-            <span style={{ color: theme.player.primary }}>character sheets, journals, party tools</span> for players.
-          </p>
-
-          {/* CTA Buttons */}
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '32px' }}>
-            <Button 
-              onClick={() => navigate('/auth')}
-              data-testid="hero-cta-btn"
-              style={{ 
-                padding: '16px 32px', 
-                fontSize: '17px',
-                fontFamily: "'Montserrat', sans-serif",
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.secondary})`,
-                border: 'none',
-                color: '#0B0F19',
-                fontWeight: '600',
-                letterSpacing: '1px',
-                boxShadow: `0 4px 20px ${theme.gm.glow}`
-              }}
-            >
-              <Sword size={20} /> I'm a Game Master
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth')}
-              style={{ 
-                padding: '16px 32px', 
-                fontSize: '17px',
-                fontFamily: "'Montserrat', sans-serif",
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.secondary})`,
-                border: 'none',
-                color: '#0B0F19',
-                fontWeight: '600',
-                letterSpacing: '1px',
-                boxShadow: `0 4px 20px ${theme.player.glow}`
-              }}
-            >
-              <Users size={20} /> I'm a Player
-            </Button>
-          </div>
-
-          {/* Benefit Bullets */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            gap: '32px',
-            flexWrap: 'wrap',
-            marginBottom: '24px'
-          }}>
-            {[
-              { icon: Zap, text: 'Stop juggling tabs' },
-              { icon: Brain, text: 'Prep faster with AI' },
-              { icon: Target, text: 'Run smoother combat' }
-            ].map((item, i) => (
-              <div key={i} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px', 
-                color: theme.text.secondary, 
-                fontSize: '16px', 
-                fontWeight: '400' 
-              }}>
-                <item.icon size={18} color={theme.gm.primary} /> {item.text}
-              </div>
-            ))}
-          </div>
-
-          {/* Social proof */}
-          <div style={{ 
-            marginTop: '32px', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            gap: '32px',
-            flexWrap: 'wrap'
-          }}>
-            {reviews.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'flex' }}>
-                  {[1,2,3,4,5].map(i => (
-                    <Star key={i} size={18} fill="#F59E0B" color="#F59E0B" />
-                  ))}
-                </div>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>Loved by GMs</span>
-              </div>
-            )}
-            <div style={{ color: theme.text.muted, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Shield size={16} color={theme.gm.primary} /> Free Forever Tier
-            </div>
-            <div style={{ color: theme.text.muted, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={16} color={theme.gm.primary} /> AI-Powered
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Value Section */}
-      <section style={{ 
-        padding: '80px 24px', 
-        background: theme.bg.surface,
-        borderTop: `1px solid ${theme.border}`,
-        borderBottom: `1px solid ${theme.border}`,
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
-              fontWeight: '500',
-              color: theme.text.primary,
-              marginBottom: '20px'
-            }}>
-              Your Entire Campaign. <span style={{ color: theme.gm.primary }}>One System.</span>
-            </h2>
-            <p style={{
-              fontFamily: "'Montserrat', sans-serif",
-              color: theme.text.secondary,
               fontSize: '18px',
-              lineHeight: '1.8',
-              maxWidth: '800px',
-              margin: '0 auto'
+              color: '#94A3B8',
+              marginBottom: '40px',
+              lineHeight: '1.7',
+              maxWidth: '500px',
+              margin: '0 auto 40px'
             }}>
-              Most GMs juggle notes, PDFs, initiative trackers, spreadsheets, and AI chats across multiple tools. 
-              Rookie Quest Keeper connects <strong style={{ color: theme.text.primary }}>prep and play</strong> into one seamless workflow.
+              Your all-in-one campaign operating system for D&D 5e. 
+              Build worlds, track combat, and create legendary adventures.
             </p>
-          </div>
 
-          {/* Flow Steps */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            gap: '16px',
-            flexWrap: 'wrap'
-          }}>
-            {[
-              { icon: Globe, label: 'Build World' },
-              { icon: Sparkles, label: 'Generate Content' },
-              { icon: Sword, label: 'Run Combat' },
-              { icon: BookOpen, label: 'Capture & Recap' }
-            ].map((step, idx, arr) => (
-              <React.Fragment key={idx}>
-                <div style={{
-                  padding: '24px 32px',
-                  background: theme.bg.surface,
-                  border: `1px solid ${theme.border}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  minWidth: '180px'
-                }}>
-                  <step.icon size={28} color={theme.gm.primary} />
-                  <span style={{ color: theme.text.primary, fontWeight: '400', fontSize: '17px' }}>
-                    {step.label}
-                  </span>
-                </div>
-                {idx < arr.length - 1 && (
-                  <ChevronRight size={24} color={theme.text.muted} style={{ flexShrink: 0 }} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* App Preview Section - Live Demo Only */}
-      <section style={{ padding: '80px 24px', background: theme.bg.surface, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
-              fontWeight: '500',
-              color: theme.text.primary,
-              marginBottom: '16px'
-            }}>
-              Try <span style={{ color: theme.gm.primary }}>ROOK</span> Right Now
-            </h2>
-            <p style={{ 
-              fontFamily: "'Montserrat', sans-serif",
-              color: theme.text.secondary, 
-              fontSize: '17px', 
-              maxWidth: '600px', 
-              margin: '0 auto' 
-            }}>
-              Our AI assistant can generate NPCs, locations, and more - no signup required
-            </p>
-          </div>
-
-          {/* Live Demo */}
-          <div style={{
-            border: `1px solid ${theme.border}`,
-            background: theme.bg.primary,
-            padding: '40px'
-          }}>
-            <RookDemo />
-          </div>
-
-          {/* CTA */}
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <Button
-              onClick={() => navigate('/auth')}
-              style={{
-                padding: '16px 40px',
-                fontSize: '17px',
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: '600',
-                background: theme.gm.primary,
-                border: 'none',
-                color: theme.text.primary,
-                cursor: 'pointer',
-                letterSpacing: '1px'
-              }}
-            >
-              Try It Free <ArrowRight size={20} style={{ marginLeft: '8px', display: 'inline' }} />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Who It's For */}
-      <section style={{ padding: '80px 24px', background: theme.bg.primary, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <h2 style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: '400',
-              color: theme.text.primary,
-              marginBottom: '16px'
-            }}>
-              Built for <span style={{ color: theme.gm.primary }}>Real Game Masters</span>
-            </h2>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '24px' 
-          }}>
-            {[
-              { icon: BookOpen, title: 'New DMs', desc: 'Overwhelmed by prep? Use structured tools that guide your campaign from session zero to finale.' },
-              { icon: Crown, title: 'Forever DMs', desc: 'Running long campaigns? Keep NPCs, locations, combat, and notes connected across months of play.' },
-              { icon: Globe, title: 'Online DMs', desc: 'Stop switching between Discord, VTTs, PDFs, and scattered notes. Centralize everything in one command center.' }
-            ].map((item, i) => (
-              <div key={i} style={{
-                padding: '40px',
-                background: theme.bg.surface,
-                border: `1px solid ${theme.border}`,
-                textAlign: 'center'
-              }}>
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  background: theme.bg.surfaceHover,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 24px'
-                }}>
-                  <item.icon size={40} color={theme.gm.primary} />
-                </div>
-                <h3 style={{
-                  fontSize: '24px',
-                  fontWeight: '400',
-                  color: theme.text.primary,
-                  marginBottom: '16px'
-                }}>
-                  {item.title}
-                </h3>
-                <p style={{
-                  color: theme.text.secondary,
-                  fontSize: '16px',
-                  lineHeight: '1.7'
-                }}>
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" style={{ padding: '80px 24px', background: theme.bg.surface, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <h2 style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: '400',
-              color: theme.text.primary,
-              marginBottom: '16px'
-            }}>
-              Everything You Need to Run Epic Campaigns
-            </h2>
-            <p style={{ color: theme.text.secondary, fontSize: '18px', maxWidth: '600px', margin: '0 auto' }}>
-              From world-building to combat, Rookie Quest Keeper has you covered.
-            </p>
-          </div>
-
-          {/* Feature Cards */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-            gap: '24px' 
-          }}>
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                onClick={() => setActiveFeature(index)}
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => navigate('/auth')}
+                data-testid="hero-gm-btn"
                 style={{
-                  padding: '32px',
-                  background: activeFeature === index ? theme.gm.primarySubtle : theme.bg.surface,
-                  border: `1px solid ${activeFeature === index ? theme.gm.primary : theme.border}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '16px 32px',
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                  border: 'none',
+                  borderRadius: '14px',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 24px rgba(236, 72, 153, 0.4)'
                 }}
               >
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  background: theme.bg.surfaceHover,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px'
-                }}>
-                  <feature.icon size={30} color={theme.gm.primary} />
-                </div>
-                <h3 style={{
-                  fontSize: '22px',
-                  fontWeight: '400',
-                  color: theme.text.primary,
-                  marginBottom: '12px'
-                }}>
-                  {feature.title}
-                </h3>
-                <p style={{
-                  color: theme.text.secondary,
-                  fontSize: '16px',
-                  lineHeight: '1.6',
-                  marginBottom: '16px'
-                }}>
-                  {feature.description}
-                </p>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                  {feature.details.map((detail, i) => (
-                    <li key={i} style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      color: theme.gm.primary,
-                      fontSize: '14px',
-                      marginBottom: '6px'
-                    }}>
-                      <Check size={14} /> {detail}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+                <Sword size={20} /> Start Your Quest
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Meet ROOK */}
-      <section style={{ padding: '100px 24px', background: theme.bg.surface, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr', 
-            gap: '40px', 
-            alignItems: 'center',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            {/* ROOK Info */}
-            <div style={{ textAlign: 'center' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                background: theme.gm.primarySubtle,
-                color: theme.gm.primary,
-                fontSize: '14px',
-                fontWeight: '400',
-                marginBottom: '16px'
-              }}>
-                <Sparkles size={16} />
-                AI ASSISTANT
-              </span>
-              
-              <h2 style={{
-                fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
-                fontWeight: '400',
-                color: theme.text.primary,
-                marginBottom: '16px',
-                lineHeight: '1.2'
-              }}>
-                Meet <span style={{ color: theme.gm.primary }}>ROOK</span>
-              </h2>
-              
-              <p style={{
-                color: theme.gm.primary,
-                fontSize: '20px',
-                fontWeight: '400',
-                marginBottom: '24px'
-              }}>
-                Your AI Game Master Assistant
-              </p>
-              
-              {/* R.O.O.K Acronym */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '12px',
-                marginBottom: '32px'
-              }}>
-                {[
-                  { letter: 'R', word: 'Roleplaying' },
-                  { letter: 'O', word: 'Organization' },
-                  { letter: 'O', word: 'Operations' },
-                  { letter: 'K', word: 'Keeper' }
-                ].map((item, i) => (
-                  <div key={i} style={{
-                    textAlign: 'center',
-                    padding: '16px 8px',
-                    background: theme.bg.surface,
-                    border: `1px solid ${theme.border}`
-                  }}>
-                    <div style={{
-                      fontSize: '28px',
-                      fontWeight: '400',
-                      color: theme.gm.primary
-                    }}>
-                      {item.letter}
-                    </div>
-                    <div style={{
-                      fontSize: '11px',
-                      color: theme.text.secondary,
-                      marginTop: '4px'
-                    }}>
-                      {item.word}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <p style={{
-                color: theme.text.secondary,
-                fontSize: '17px',
-                lineHeight: '1.8',
-                marginBottom: '32px'
-              }}>
-                ROOK is the intelligent assistant built into Rookie Quest Keeper. 
-                It helps Game Masters <strong style={{ color: theme.text.primary }}>generate worlds</strong>, 
-                <strong style={{ color: theme.text.primary }}> build NPCs</strong>, 
-                <strong style={{ color: theme.text.primary }}> summarize sessions</strong>, and 
-                <strong style={{ color: theme.text.primary }}> manage campaigns</strong> with ease.
-              </p>
-              
-              {/* ROOK Features */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                {['Generate with ROOK', 'ROOK Worldbuilder', 'ROOK Recap', 'Ask ROOK'].map((feature, i) => (
-                  <span key={i} style={{
+        {/* Features Section */}
+        <section style={{
+          padding: '80px 24px',
+          background: 'rgba(15, 10, 30, 0.9)',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: '2.5rem',
+              textAlign: 'center',
+              marginBottom: '16px',
+              color: '#F8FAFC'
+            }}>
+              Everything You Need
+            </h2>
+            <p style={{
+              textAlign: 'center',
+              color: '#94A3B8',
+              marginBottom: '60px',
+              fontSize: '18px'
+            }}>
+              Powerful tools for Game Masters and Players alike
+            </p>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '24px'
+            }}>
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: 'rgba(26, 17, 46, 0.6)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(139, 92, 246, 0.2)',
+                    borderRadius: '16px',
+                    padding: '32px',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.border = '1px solid rgba(236, 72, 153, 0.4)';
+                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.border = '1px solid rgba(139, 92, 246, 0.2)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '10px 16px',
-                    background: theme.bg.surface,
-                    color: theme.gm.primary,
-                    fontSize: '13px',
-                    fontWeight: '400',
-                    border: `1px solid ${theme.border}`
-                  }}>
-                    <Sparkles size={14} />
-                    {feature}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pre-Pricing Statement */}
-      <section style={{ 
-        padding: '80px 24px', 
-        background: theme.bg.primary,
-        borderTop: `1px solid ${theme.gm.primaryBorder}`,
-        borderBottom: `1px solid ${theme.gm.primaryBorder}`,
-        textAlign: 'center',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 4vw, 3rem)',
-            fontWeight: '400',
-            color: theme.text.primary,
-            marginBottom: '24px',
-            lineHeight: '1.3'
-          }}>
-            Stop Managing Tools. <br />
-            <span style={{ color: theme.gm.primary }}>Start Managing Your Campaign.</span>
-          </h2>
-          <p style={{
-            color: theme.text.secondary,
-            fontSize: '20px',
-            lineHeight: '1.8',
-            maxWidth: '700px',
-            margin: '0 auto'
-          }}>
-            Rookie Quest Keeper replaces fragmented GM workflows with one connected campaign hub — 
-            built specifically for <strong style={{ color: theme.text.primary }}>5e 2014 and 2024</strong>.
-          </p>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section style={{ padding: '80px 24px', background: theme.bg.surface, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <p style={{
-              background: 'linear-gradient(90deg, #C54B2C, #F2A541)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontSize: '16px',
-              fontWeight: '400',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              marginBottom: '12px'
-            }}>
-              Choose Your Path
-            </p>
-            <h2 style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: '400',
-              color: theme.text.primary,
-              marginBottom: '16px'
-            }}>
-              Simple, Transparent Pricing
-            </h2>
-            <p style={{ color: theme.text.secondary, fontSize: '18px', marginBottom: '32px' }}>
-              Whether you're a <span style={{ color: theme.player.primary }}>Player</span> or a <span style={{ color: theme.gm.primary }}>Game Master</span>, we've got you covered.
-            </p>
-
-            {/* Billing Toggle */}
-            <div style={{ 
-              display: 'inline-flex', 
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              padding: '4px',
-              gap: '4px'
-            }}>
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                data-testid="billing-monthly-btn"
-                style={{
-                  padding: '12px 28px',
-                  background: billingCycle === 'monthly' ? theme.gm.primary : 'transparent',
-                  border: 'none',
-                  color: theme.text.primary,
-                  fontWeight: '400',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                data-testid="billing-yearly-btn"
-                style={{
-                  padding: '12px 28px',
-                  background: billingCycle === 'yearly' ? theme.gm.primary : 'transparent',
-                  border: 'none',
-                  color: theme.text.primary,
-                  fontWeight: '400',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Yearly
-                <span style={{ 
-                  background: '#22c55e', 
-                  color: '#fff', 
-                  padding: '3px 8px', 
-                  fontSize: '10px',
-                  fontWeight: '400'
-                }}>
-                  SAVE ~17%
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '20px',
-            '@media (max-width: 1200px)': {
-              gridTemplateColumns: 'repeat(2, 1fr)'
-            }
-          }}>
-            {/* Free Tier */}
-            <div style={{
-              padding: '32px',
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '20px', color: theme.text.primary, fontWeight: '400', marginBottom: '4px' }}>
-                  Free
-                </h3>
-                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Get started</p>
-              </div>
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.primary, fontWeight: '400' }}>£0</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/forever</span>
-              </div>
-              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
-                {['1 Character', '1 Campaign (join only)', 'Basic Character Sheet', 'Dice Roller', '3 AI Generations/month'].map((item, i) => (
-                  <li key={i} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    color: theme.text.secondary,
-                    fontSize: '13px',
-                    marginBottom: '10px'
-                  }}>
-                    <Check size={14} color={theme.text.muted} /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                onClick={() => navigate('/auth')}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px',
-                  background: 'transparent',
-                  border: `1px solid ${theme.border}`,
-                  color: theme.text.secondary,
-                  marginTop: '20px'
-                }}
-              >
-                Get Started
-              </Button>
-            </div>
-
-            {/* Hero Tier - Player (Blue) */}
-            <div style={{
-              padding: '32px',
-              background: theme.player.subtle,
-              border: `2px solid ${theme.player.primary}`,
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: theme.player.glow
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: theme.player.primary,
-                color: '#000',
-                padding: '4px 16px',
-                fontSize: '11px',
-                fontWeight: '400',
-                letterSpacing: '1px'
-              }}>
-                FOR PLAYERS
-              </div>
-              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
-                <h3 style={{ 
-                  fontSize: '20px', 
-                  color: theme.player.primary, 
-                  fontWeight: '400', 
-                  marginBottom: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Users size={20} /> Hero
-                </h3>
-                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Serious players</p>
-              </div>
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.primary, fontWeight: '400' }}>£{getPrice('hero')}</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
-                {billingCycle === 'yearly' && (
-                  <p style={{ color: theme.player.primary, fontSize: '12px', marginTop: '4px' }}>
-                    (£{getMonthlyEquivalent('hero')}/month)
-                  </p>
-                )}
-              </div>
-              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
-                {['Unlimited Characters', 'Character Journal', 'Party Inventory Access', 'Session Recaps', 'AI Portrait Generation', '50 AI Calls/month'].map((item, i) => (
-                  <li key={i} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    color: theme.text.secondary,
-                    fontSize: '13px',
-                    marginBottom: '10px'
-                  }}>
-                    <Check size={14} color={theme.player.primary} /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                onClick={() => navigate('/auth')}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px',
-                  background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.primary})`,
-                  border: 'none',
-                  color: '#fff',
-                  fontWeight: '400',
-                  marginTop: '20px'
-                }}
-              >
-                Start Hero Trial
-              </Button>
-            </div>
-
-            {/* Quest Master Tier - GM (Red) */}
-            <div style={{
-              padding: '32px',
-              background: theme.gm.subtle,
-              border: `2px solid ${theme.gm.primary}`,
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: theme.gm.glow
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: theme.gm.primary,
-                color: '#fff',
-                padding: '4px 16px',
-                fontSize: '11px',
-                fontWeight: '400',
-                letterSpacing: '1px'
-              }}>
-                FOR GMs
-              </div>
-              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
-                <h3 style={{ 
-                  fontSize: '20px', 
-                  color: theme.gm.primary, 
-                  fontWeight: '400', 
-                  marginBottom: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Sword size={20} /> Quest Master
-                </h3>
-                <p style={{ color: theme.text.muted, fontSize: '13px' }}>Game Masters</p>
-              </div>
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.primary, fontWeight: '400' }}>£{getPrice('questMaster')}</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
-                {billingCycle === 'yearly' && (
-                  <p style={{ color: theme.gm.primary, fontSize: '12px', marginTop: '4px' }}>
-                    (£{getMonthlyEquivalent('questMaster')}/month)
-                  </p>
-                )}
-              </div>
-              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
-                {['Unlimited Campaigns', 'Full World Building', 'ROOK AI Generation', 'Combat Tracker', 'Reference Tools', 'Session Mode', 'Unlimited AI'].map((item, i) => (
-                  <li key={i} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    color: theme.text.secondary,
-                    fontSize: '13px',
-                    marginBottom: '10px'
-                  }}>
-                    <Check size={14} color={theme.gm.primary} /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                onClick={() => navigate('/auth')}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px',
-                  background: theme.gm.primary,
-                  border: 'none',
-                  color: '#fff',
-                  fontWeight: '400',
-                  marginTop: '20px'
-                }}
-              >
-                Start GM Trial
-              </Button>
-            </div>
-
-            {/* Legendary Tier - Both (Gradient) */}
-            <div style={{
-              padding: '32px',
-              background: `linear-gradient(135deg, ${theme.gm.subtle}, ${theme.player.subtle})`,
-              border: '2px solid transparent',
-              borderImage: 'linear-gradient(135deg, #C54B2C, #F2A541) 1',
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'linear-gradient(90deg, #C54B2C, #F2A541)',
-                color: '#fff',
-                padding: '4px 16px',
-                fontSize: '11px',
-                fontWeight: '400',
-                letterSpacing: '1px'
-              }}>
-                BEST VALUE
-              </div>
-              <div style={{ marginBottom: '20px', marginTop: '8px' }}>
-                <h3 style={{ 
-                  fontSize: '20px', 
-                  background: 'linear-gradient(90deg, #C54B2C, #F2A541)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontWeight: '400', 
-                  marginBottom: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Crown size={20} color="#F59E0B" /> Legendary
-                </h3>
-                <p style={{ color: theme.text.muted, fontSize: '13px' }}>GM who also plays</p>
-              </div>
-              <div style={{ marginBottom: '24px' }}>
-                <span style={{ fontSize: '40px', color: theme.text.primary, fontWeight: '400' }}>£{getPrice('legendary')}</span>
-                <span style={{ color: theme.text.muted, fontSize: '14px' }}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
-                {billingCycle === 'yearly' && (
-                  <p style={{ color: '#F59E0B', fontSize: '12px', marginTop: '4px' }}>
-                    (£{getMonthlyEquivalent('legendary')}/month)
-                  </p>
-                )}
-              </div>
-              <ul style={{ margin: '0 0 auto', padding: 0, listStyle: 'none', flex: 1 }}>
-                {['Everything in Hero', 'Everything in Quest Master', 'Priority Support', 'Early Access Features', 'Exclusive Content'].map((item, i) => (
-                  <li key={i} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    color: theme.text.secondary,
-                    fontSize: '13px',
-                    marginBottom: '10px'
-                  }}>
-                    <Check size={14} color="#F59E0B" /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Button 
-                onClick={() => navigate('/auth')}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px',
-                  background: 'linear-gradient(135deg, #C54B2C, #F2A541)',
-                  border: 'none',
-                  color: '#fff',
-                  fontWeight: '400',
-                  marginTop: '20px'
-                }}
-              >
-                Go Legendary
-              </Button>
-            </div>
-          </div>
-
-          {/* Yearly Savings Note */}
-          <div style={{ 
-            textAlign: 'center', 
-            marginTop: '32px',
-            padding: '16px',
-            background: theme.bg.surface,
-            border: `1px solid ${theme.border}`
-          }}>
-            <p style={{ color: theme.text.secondary, fontSize: '14px' }}>
-              <strong style={{ color: theme.text.primary }}>Save ~17% with yearly billing</strong> — Cancel anytime. No contracts.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Reviews */}
-      {reviews.length > 0 && (
-        <section style={{ padding: '80px 24px', background: theme.bg.primary, position: 'relative', zIndex: 2 }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h2 style={{
-                fontSize: 'clamp(2rem, 4vw, 3rem)',
-                fontWeight: '400',
-                color: theme.text.primary,
-                marginBottom: '16px'
-              }}>
-                What GMs Are Saying
-              </h2>
-              <p style={{ color: theme.text.secondary, fontSize: '18px' }}>
-                Real reviews from real Game Masters
-              </p>
-            </div>
-
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-              gap: '24px' 
-            }}>
-              {reviews.map((review, index) => (
-                <div key={index} style={{
-                  padding: '32px',
-                  background: theme.bg.surface,
-                  border: `1px solid ${theme.border}`
-                }}>
-                  <div style={{ display: 'flex', marginBottom: '16px' }}>
-                    {renderStars(review.rating)}
-                  </div>
-                  <p style={{
-                    color: theme.text.secondary,
-                    fontSize: '16px',
-                    lineHeight: '1.7',
+                    justifyContent: 'center',
                     marginBottom: '20px',
-                    fontStyle: 'italic'
+                    color: '#EC4899'
                   }}>
-                    "{review.comment}"
-                  </p>
-                  <div>
-                    <p style={{ color: theme.text.primary, fontWeight: '400', marginBottom: '4px' }}>
-                      {review.username}
-                    </p>
-                    <p style={{ color: theme.gm.primary, fontSize: '13px' }}>
-                      Rookie Quest Keeper User
-                    </p>
+                    {feature.icon}
                   </div>
+                  <h3 style={{
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: '1.25rem',
+                    marginBottom: '12px',
+                    color: '#F8FAFC'
+                  }}>
+                    {feature.title}
+                  </h3>
+                  <p style={{
+                    color: '#94A3B8',
+                    lineHeight: '1.6'
+                  }}>
+                    {feature.description}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </section>
-      )}
 
-      {/* Final CTA */}
-      <section style={{ padding: '80px 24px', textAlign: 'center', background: theme.bg.surface, position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 4vw, 3rem)',
-            fontWeight: '400',
-            color: theme.text.primary,
-            marginBottom: '24px'
-          }}>
-            Ready to Level Up Your GMing?
-          </h2>
-          <p style={{
-            color: theme.text.secondary,
-            fontSize: '18px',
-            marginBottom: '40px'
-          }}>
-            Join thousands of GMs who are running better campaigns with Rookie Quest Keeper.
-          </p>
-          <Button 
-            onClick={() => navigate('/auth')}
-            data-testid="final-cta-btn"
-            style={{ 
-              padding: '20px 48px', 
-              fontSize: '20px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '12px',
-              background: theme.gm.primary,
-              border: 'none',
-              color: theme.text.primary,
-              fontWeight: '400'
-            }}
-          >
-            <Scroll size={24} /> Create Your First Campaign
-          </Button>
-          <p style={{ color: theme.text.muted, fontSize: '14px', marginTop: '20px' }}>
-            No credit card required. Free forever tier available.
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{ 
-        padding: '40px 24px', 
-        borderTop: `1px solid ${theme.border}`,
-        background: theme.bg.primary,
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* CTA Section */}
+        <section style={{
+          padding: '100px 24px',
+          textAlign: 'center',
+          background: 'rgba(15, 10, 30, 0.95)'
+        }}>
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '20px',
-            marginBottom: '24px'
+            background: 'rgba(26, 17, 46, 0.6)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '24px',
+            padding: '60px',
+            maxWidth: '700px',
+            margin: '0 auto',
+            boxShadow: '0 0 60px rgba(139, 92, 246, 0.15)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ 
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '16px',
-                fontWeight: '500',
-                color: theme.text.primary,
-                letterSpacing: '2px'
-              }}>
-                RQK
-              </span>
-              <span style={{ color: theme.text.muted, fontSize: '14px' }}>
-                A product of Rookie Quest
-              </span>
-            </div>
-            <div style={{ color: theme.text.muted, fontSize: '14px' }}>
-              2026 Rookie Quest. All rights reserved.
-            </div>
-          </div>
-          
-          <div style={{
-            borderTop: `1px solid ${theme.border}`,
-            paddingTop: '20px',
-            textAlign: 'center'
-          }}>
-            <p style={{ 
-              color: theme.text.muted, 
-              fontSize: '12px', 
-              lineHeight: '1.6',
-              maxWidth: '800px',
-              margin: '0 auto'
+            <h2 style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: '2rem',
+              marginBottom: '16px',
+              color: '#F8FAFC'
             }}>
-              Rookie Quest Keeper is an independent product published by Rookie Quest. 
-              This tool is designed to be compatible with multiple tabletop roleplaying game systems. 
-              Content may be used in accordance with applicable open gaming licenses and system reference documents.
+              Ready to Begin?
+            </h2>
+            <p style={{
+              color: '#94A3B8',
+              marginBottom: '32px',
+              fontSize: '16px'
+            }}>
+              Join thousands of Game Masters running better campaigns with ROOK.
             </p>
+            <button
+              onClick={() => navigate('/auth')}
+              style={{
+                padding: '16px 40px',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                border: 'none',
+                borderRadius: '14px',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 24px rgba(236, 72, 153, 0.4)'
+              }}
+            >
+              Create Free Account
+            </button>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        {/* Footer */}
+        <footer style={{
+          padding: '40px 24px',
+          background: 'rgba(10, 5, 20, 0.95)',
+          borderTop: '1px solid rgba(139, 92, 246, 0.2)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: '18px',
+            background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '12px'
+          }}>
+            ROOK
+          </div>
+          <p style={{ color: '#64748B', fontSize: '14px' }}>
+            © 2026 Rookie Quest Keeper. All rights reserved.
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }
-
-export default LandingPage;

@@ -13,12 +13,12 @@ import { RookGuide } from '@/components/RookGuide';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Aether & Iron Theme
+// Fantasy Sunset Theme
 const theme = {
   bg: {
-    primary: '#0B0F19',
-    surface: '#111827',
-    surfaceHover: '#1F2937'
+    primary: '#0F0A1E',
+    surface: '#1A112E',
+    surfaceHover: '#2E1F45'
   },
   gm: {
     primary: '#F59E0B',
@@ -27,17 +27,22 @@ const theme = {
     subtle: 'rgba(245, 158, 11, 0.1)'
   },
   player: {
-    primary: '#06B6D4',
-    secondary: '#0891B2',
-    glow: 'rgba(6, 182, 212, 0.4)',
-    subtle: 'rgba(6, 182, 212, 0.1)'
+    primary: '#8B5CF6',
+    secondary: '#7C3AED',
+    glow: 'rgba(139, 92, 246, 0.4)',
+    subtle: 'rgba(139, 92, 246, 0.1)'
+  },
+  accent: {
+    pink: '#EC4899',
+    pinkGlow: 'rgba(236, 72, 153, 0.4)'
   },
   text: {
-    primary: '#F9FAFB',
-    secondary: '#9CA3AF',
-    muted: '#6B7280'
+    primary: '#F8FAFC',
+    secondary: '#94A3B8',
+    muted: '#64748B'
   },
-  border: '#374151'
+  border: 'rgba(139, 92, 246, 0.2)',
+  gradient: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)'
 };
 
 // Ember Particles Component

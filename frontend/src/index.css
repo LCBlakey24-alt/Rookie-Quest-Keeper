@@ -2,49 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== CLEAN SAAS THEME FONTS ===== */
-/* Montserrat: Clean, modern sans-serif for professional SaaS feel */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+/* ===== FANTASY SUNSET THEME FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-/* ===== CSS VARIABLES - AETHER & IRON THEME ===== */
+/* ===== CSS VARIABLES - FANTASY SUNSET THEME ===== */
 :root {
-  /* Core Colors */
-  --background: #0B0F19;
-  --surface: #111827;
-  --surface-highlight: #1F2937;
-  --border: #374151;
+  /* Core Colors - Deep Purple Void */
+  --background: #0F0A1E;
+  --surface: #1A112E;
+  --surface-highlight: #2E1F45;
+  --border: rgba(139, 92, 246, 0.2);
   
   /* Text Colors */
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
   
-  /* GM Accent (Amber/Fire) */
+  /* Sunset Palette */
+  --sunset-purple: #8B5CF6;
+  --sunset-pink: #EC4899;
+  --sunset-gold: #F59E0B;
+  --sunset-orange: #F97316;
+  
+  /* GM Accent (Gold/Orange) */
   --gm-primary: #F59E0B;
   --gm-secondary: #D97706;
   --gm-glow: rgba(245, 158, 11, 0.4);
   --gm-subtle: rgba(245, 158, 11, 0.1);
   
-  /* Player Accent (Cyan) */
-  --player-primary: #06B6D4;
-  --player-secondary: #0891B2;
-  --player-glow: rgba(6, 182, 212, 0.4);
-  --player-subtle: rgba(6, 182, 212, 0.1);
+  /* Player Accent (Purple) */
+  --player-primary: #8B5CF6;
+  --player-secondary: #7C3AED;
+  --player-glow: rgba(139, 92, 246, 0.4);
+  --player-subtle: rgba(139, 92, 246, 0.1);
   
   /* Status Colors */
   --success: #10B981;
   --danger: #EF4444;
   --warning: #F59E0B;
-  --info: #3B82F6;
+  --info: #8B5CF6;
   
-  /* Ember Colors */
-  --ember-bright: #FF6B35;
-  --ember-orange: #F59E0B;
-  --ember-gold: #FCD34D;
+  /* Glass Panel */
+  --glass-bg: rgba(15, 10, 30, 0.7);
+  --glass-border: rgba(139, 92, 246, 0.3);
+  --glass-blur: 16px;
+  
+  /* Gradients */
+  --gradient-sunset: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%);
+  --gradient-button: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
   
   /* Radius & Shadows */
-  --radius: 0.5rem;
-  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --radius: 1rem;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glow-purple: 0 0 40px rgba(139, 92, 246, 0.3);
+  --glow-pink: 0 0 40px rgba(236, 72, 153, 0.3);
 }
 
 /* ===== BASE STYLES ===== */
@@ -67,15 +78,84 @@ code {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Cinzel', serif;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
   margin: 0;
 }
 
 p, span, div, label, button, input, textarea, select {
   font-family: 'Montserrat', sans-serif;
+}
+
+/* ===== FANTASY SUNSET BACKGROUND ===== */
+.sunset-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png');
+  background-size: cover;
+  background-position: center;
+  filter: blur(2px);
+  z-index: 0;
+}
+
+.sunset-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(15, 10, 30, 0.3) 0%, rgba(15, 10, 30, 0.5) 100%);
+}
+
+/* ===== GLASSMORPHISM PANELS ===== */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), var(--glow-purple);
+}
+
+.glass-panel-strong {
+  background: rgba(15, 10, 30, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), var(--glow-purple);
+}
+
+/* ===== SUNSET GRADIENT BUTTON ===== */
+.btn-sunset {
+  background: var(--gradient-sunset);
+  color: white;
+  font-weight: 600;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+}
+
+.btn-sunset:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.text-gradient-sunset {
+  background: var(--gradient-sunset);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ===== SHADCN/TAILWIND OVERRIDES ===== */

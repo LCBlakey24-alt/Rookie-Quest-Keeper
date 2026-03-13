@@ -10,6 +10,31 @@ An all-in-one campaign operating system for 5e combining worldbuilding, AI conte
 
 ## Recent Major Updates (March 2026)
 
+### FANTASY SUNSET REBRAND (March 13, 2026)
+**Complete visual rebrand with sunset purple/pink/gold theme**
+
+**Color Palette:**
+- **Void Purple** (`#0F0A1E`) - Main background
+- **Deep Purple** (`#1A112E`) - Card surfaces
+- **Ethereal Purple** (`#8B5CF6`) - Player accent
+- **Mystic Pink** (`#EC4899`) - Secondary accent
+- **Sunset Gold** (`#F59E0B`) - GM accent, highlights
+
+**Key Visual Features:**
+- Fantasy sunset landscape background (blurred) on landing/auth pages
+- Glassmorphism panels with `backdrop-filter: blur(20px)`
+- Purple gradient borders with glow effect
+- Cinzel font for headings, Montserrat for body
+
+**Files Updated:**
+- index.css - New CSS variables and glass panel styles
+- LandingPage.js - Complete redesign with sunset background
+- AuthPage.js - Glassmorphism login/register cards
+- UnifiedDashboard.js - Updated theme colors (purple player, gold GM)
+
+**Background Image:**
+- URL: `https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png`
+
 ### FRONTEND-BACKEND RECONNECTION (March 13, 2026)
 **Repaired disconnected components to restore full functionality**
 
