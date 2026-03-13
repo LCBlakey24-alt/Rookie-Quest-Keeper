@@ -149,18 +149,18 @@ export default function LandingPage() {
             {/* Grand Logo */}
             <div style={{
               position: 'relative',
-              marginBottom: '32px'
+              marginBottom: '24px'
             }}>
               <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '350px',
-                height: '350px',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.2) 40%, transparent 70%)',
+                width: '400px',
+                height: '400px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, rgba(236, 72, 153, 0.3) 40%, transparent 70%)',
                 borderRadius: '50%',
-                filter: 'blur(40px)',
+                filter: 'blur(50px)',
                 animation: 'pulse 4s ease-in-out infinite'
               }} />
               <img 
@@ -168,23 +168,31 @@ export default function LandingPage() {
                 alt="Rookie Quest Keeper"
                 style={{
                   position: 'relative',
-                  width: '300px',
-                  maxWidth: '80%',
+                  width: '380px',
+                  maxWidth: '90%',
                   height: 'auto',
-                  filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 60px rgba(236, 72, 153, 0.4))',
+                  filter: 'drop-shadow(0 0 40px rgba(139, 92, 246, 0.7)) drop-shadow(0 0 80px rgba(236, 72, 153, 0.5))',
                   margin: '0 auto',
-                  display: 'block'
+                  display: 'block',
+                  animation: 'float 6s ease-in-out infinite'
                 }}
               />
             </div>
             
+            {/* KEEPER Title - Big and Eye-catching */}
             <h1 style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-              fontWeight: '500',
-              marginBottom: '16px',
-              letterSpacing: '0.15em',
-              color: '#94A3B8'
+              fontSize: 'clamp(3rem, 8vw, 5rem)',
+              fontWeight: '700',
+              marginBottom: '24px',
+              letterSpacing: '0.2em',
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B, #EC4899, #8B5CF6)',
+              backgroundSize: '200% 200%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'shimmer 3s ease-in-out infinite',
+              textShadow: '0 0 60px rgba(139, 92, 246, 0.5)',
+              filter: 'drop-shadow(0 0 30px rgba(236, 72, 153, 0.4))'
             }}>
               KEEPER
             </h1>

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import LevelUpWizard from './LevelUpWizard';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, SPELL_DATABASE } from '../data/spellDatabase';
+import { useDiceRoller } from './ui/DiceRoller3D';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -214,30 +215,6 @@ const DEFAULT_ACTIONS = {
   ]
 };
 
-// Dice roller function
-const rollDice = (diceStr, modifier = 0, label = '') => {
-  const match = diceStr.match(/(\d+)d(\d+)/);
-  if (!match) return null;
-  
-  const [, numDice, dieSize] = match;
-  const rolls = [];
-  for (let i = 0; i < parseInt(numDice); i++) {
-    rolls.push(Math.floor(Math.random() * parseInt(dieSize)) + 1);
-  }
-  const total = rolls.reduce((a, b) => a + b, 0) + modifier;
-  
-  toast.success(
-    <div>
-      <strong>{label || diceStr}</strong>
-      <div style={{ fontSize: '12px', opacity: 0.8 }}>
-        Rolls: [{rolls.join(', ')}] {modifier !== 0 ? `${modifier >= 0 ? '+' : ''}${modifier}` : ''} = <strong>{total}</strong>
-      </div>
-    </div>,
-    { duration: 5000 }
-  );
-  return total;
-};
-
 export default function CharacterSheetFull() {
   const { characterId } = useParams();
   const navigate = useNavigate();
@@ -247,6 +224,9 @@ export default function CharacterSheetFull() {
   const [activeTab, setActiveTab] = useState('combat');
   const [currentHp, setCurrentHp] = useState(0);
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
+  
+  // 3D Dice Roller
+  const { rollState, rollDice, closeRoller, DiceRoller3D } = useDiceRoller();
 
   useEffect(() => {
     if (characterId) fetchCharacter();
@@ -881,6 +861,18 @@ export default function CharacterSheetFull() {
           </div>
         </div>
       </div>
+      
+      {/* 3D Dice Roller Overlay */}
+      <DiceRoller3D 
+        isOpen={rollState.isOpen}
+        onClose={closeRoller}
+        rolls={rollState.rolls}
+        label={rollState.label}
+        modifier={rollState.modifier}
+        total={rollState.total}
+        isCrit={rollState.isCrit}
+        isFumble={rollState.isFumble}
+      />
     </div>
   );
 }

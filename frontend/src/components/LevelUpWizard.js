@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, ChevronLeft, Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -79,7 +80,7 @@ const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wis
 const ABILITY_SHORT = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
 
 export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp }) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at 0 for multiclass choice
   const [hpMethod, setHpMethod] = useState('average'); // 'average' or 'roll'
   const [hpRoll, setHpRoll] = useState(null);
   const [hasRolled, setHasRolled] = useState(false);
@@ -87,16 +88,40 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [asiChoices, setAsiChoices] = useState({ ability1: '', ability2: '' });
   const [selectedFeat, setSelectedFeat] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // Multiclass state
+  const [isMulticlassing, setIsMulticlassing] = useState(false);
+  const [multiclassClass, setMulticlassClass] = useState(null);
 
   const currentLevel = character?.level || 1;
   const newLevel = currentLevel + 1;
-  const characterClass = character?.character_class || 'Fighter';
+  const characterClass = isMulticlassing && multiclassClass ? multiclassClass : (character?.character_class || 'Fighter');
   const hitDie = HIT_DICE[characterClass] || 8;
   const conMod = Math.floor(((character?.constitution || 10) - 10) / 2);
   
-  // Check if this level grants ASI/Feat
+  // Get character stats for multiclass requirements
+  const characterStats = {
+    strength: character?.strength || 10,
+    dexterity: character?.dexterity || 10,
+    constitution: character?.constitution || 10,
+    intelligence: character?.intelligence || 10,
+    wisdom: character?.wisdom || 10,
+    charisma: character?.charisma || 10
+  };
+  
+  // Check multiclass eligibility
+  const canMulticlass = canMulticlassFrom(characterStats, character?.character_class || 'Fighter');
+  const availableMulticlasses = canMulticlass ? 
+    Object.keys(CLASSES || {}).filter(cls => 
+      cls !== character?.character_class && canMulticlassInto(characterStats, cls)
+    ) : [];
+  
+  // Check if this level grants ASI/Feat (based on class being leveled)
   const classAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default;
-  const isAsiLevel = classAsiLevels.includes(newLevel);
+  // For multiclassing, ASI is based on class level, not total level
+  const classLevel = isMulticlassing ? 1 : (character?.class_levels?.[characterClass] || currentLevel);
+  const newClassLevel = classLevel + (isMulticlassing ? 0 : 1);
+  const isAsiLevel = !isMulticlassing && classAsiLevels.includes(newClassLevel);
   
   // Calculate HP values
   const averageHp = Math.floor(hitDie / 2) + 1 + conMod;
@@ -110,13 +135,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   useEffect(() => {
     // Reset state when modal opens
     if (isOpen) {
-      setStep(1);
+      setStep(0); // Start at multiclass choice step
       setHpMethod('average');
       setHpRoll(null);
       setHasRolled(false);
       setChoiceType(null);
       setAsiChoices({ ability1: '', ability2: '' });
       setSelectedFeat(null);
+      setIsMulticlassing(false);
+      setMulticlassClass(null);
     }
   }, [isOpen]);
 
@@ -136,6 +163,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   };
 
   const canProceed = () => {
+    if (step === 0) return !isMulticlassing || multiclassClass; // Multiclass choice
     if (step === 1) return true; // HP method selection always valid
     if (step === 2 && hpMethod === 'roll') return hasRolled;
     if (step === 2 && hpMethod === 'average') return true;
@@ -152,7 +180,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   };
 
   const getTotalSteps = () => {
-    return isAsiLevel ? 4 : 3; // HP method -> HP result -> (ASI/Feat if applicable) -> Confirm
+    // Step 0: Class choice (continue or multiclass)
+    // Step 1: HP method
+    // Step 2: HP result
+    // Step 3: ASI/Feat (if applicable)
+    // Step 4: Confirm
+    return isAsiLevel ? 5 : 4;
   };
 
   const handleLevelUp = async () => {
@@ -164,6 +197,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         hp_roll: hpMethod === 'roll' ? hpRoll : null
       };
 
+      // Add multiclass info if multiclassing
+      if (isMulticlassing && multiclassClass) {
+        requestData.multiclass = true;
+        requestData.new_class = multiclassClass;
+      }
+
       if (isAsiLevel) {
         if (choiceType === 'asi') {
           requestData.choice_type = 'asi';
@@ -174,9 +213,18 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         }
       }
 
-      await axios.post(`${API}/api/characters/${character.id}/level-up`, requestData);
+      // Use different endpoint for multiclassing
+      const endpoint = isMulticlassing && multiclassClass 
+        ? `${API}/api/characters/${character.id}/multiclass`
+        : `${API}/api/characters/${character.id}/level-up`;
+        
+      await axios.post(endpoint, requestData);
       
-      toast.success(`${character.name} is now Level ${newLevel}!`, {
+      const levelUpMessage = isMulticlassing 
+        ? `${character.name} multiclassed into ${multiclassClass}!`
+        : `${character.name} is now Level ${newLevel}!`;
+      
+      toast.success(levelUpMessage, {
         description: `HP increased by ${hpMethod === 'roll' ? rolledHp : averageHp}`
       });
       
@@ -287,6 +335,139 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
         {/* Content */}
         <div style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(90vh - 200px)' }}>
+          {/* Step 0: Class Choice (Continue or Multiclass) */}
+          {step === 0 && (
+            <div>
+              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
+                Level Up: Choose Your Path
+              </h3>
+              <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '14px' }}>
+                Continue as a {character?.character_class} or take a level in a new class.
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Continue current class */}
+                <button
+                  onClick={() => { setIsMulticlassing(false); setMulticlassClass(null); }}
+                  style={{
+                    padding: '20px',
+                    background: !isMulticlassing ? 'rgba(139, 92, 246, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                    border: `2px solid ${!isMulticlassing ? theme.sunset.purple : theme.border}`,
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Swords size={24} style={{ color: theme.sunset.purple }} />
+                    <div>
+                      <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
+                        Continue as {character?.character_class} (Level {(character?.class_levels?.[character?.character_class] || currentLevel) + 1})
+                      </div>
+                      <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
+                        Gain {character?.character_class} features and d{HIT_DICE[character?.character_class] || 8} Hit Die
+                      </div>
+                    </div>
+                    {!isMulticlassing && <Check size={20} style={{ color: theme.sunset.purple, marginLeft: 'auto' }} />}
+                  </div>
+                </button>
+                
+                {/* Multiclass option */}
+                {canMulticlass && availableMulticlasses.length > 0 ? (
+                  <div>
+                    <button
+                      onClick={() => setIsMulticlassing(true)}
+                      style={{
+                        width: '100%',
+                        padding: '20px',
+                        background: isMulticlassing ? 'rgba(236, 72, 153, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                        border: `2px solid ${isMulticlassing ? theme.sunset.pink : theme.border}`,
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Users size={24} style={{ color: theme.sunset.pink }} />
+                        <div>
+                          <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
+                            Multiclass into a New Class
+                          </div>
+                          <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
+                            {availableMulticlasses.length} classes available based on your stats
+                          </div>
+                        </div>
+                        {isMulticlassing && <Check size={20} style={{ color: theme.sunset.pink, marginLeft: 'auto' }} />}
+                      </div>
+                    </button>
+                    
+                    {/* Class selection grid */}
+                    {isMulticlassing && (
+                      <div style={{ 
+                        marginTop: '16px', 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '10px',
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                        padding: '4px'
+                      }}>
+                        {availableMulticlasses.map(cls => {
+                          const reqs = MULTICLASS_REQUIREMENTS[cls];
+                          const reqText = Object.entries(reqs || {})
+                            .filter(([k]) => k !== 'or')
+                            .map(([k, v]) => `${k.substring(0, 3).toUpperCase()} ${v}+`)
+                            .join(reqs?.or ? ' or ' : ', ');
+                          
+                          return (
+                            <button
+                              key={cls}
+                              onClick={() => setMulticlassClass(cls)}
+                              style={{
+                                padding: '14px',
+                                background: multiclassClass === cls ? 'rgba(245, 158, 11, 0.2)' : 'rgba(15, 10, 30, 0.6)',
+                                border: `1px solid ${multiclassClass === cls ? theme.sunset.gold : theme.border}`,
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '14px' }}>{cls}</div>
+                              <div style={{ color: theme.text.muted, fontSize: '11px', marginTop: '4px' }}>
+                                d{HIT_DICE[cls]} HD • {reqText}
+                              </div>
+                              {multiclassClass === cls && (
+                                <div style={{ color: theme.sunset.gold, fontSize: '11px', marginTop: '6px' }}>
+                                  Gains: {MULTICLASS_PROFICIENCIES[cls]?.armor?.join(', ') || 'No armor'} armor
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ 
+                    padding: '16px', 
+                    background: 'rgba(239, 68, 68, 0.1)', 
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    color: theme.text.muted,
+                    fontSize: '13px'
+                  }}>
+                    <strong style={{ color: '#EF4444' }}>Multiclassing Unavailable:</strong>
+                    <br />
+                    You don't meet the stat requirements to multiclass. Most classes require 13+ in specific abilities.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Step 1: HP Method Selection */}
           {step === 1 && (
             <div>
