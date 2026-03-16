@@ -1,26 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Skull, Shield, Heart, Zap, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import { MONSTER_DATABASE, getCRValue } from '@/data/monsterDatabase';
 
 function MonsterLookup({ onAddToCombat }) {
-  const [monsters, setMonsters] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMonsters, setFilteredMonsters] = useState([]);
   const [selectedMonster, setSelectedMonster] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchMonsters();
-  }, []);
 
   useEffect(() => {
     if (searchTerm.trim()) {
-      const filtered = monsters.filter(m => 
+      const filtered = MONSTER_DATABASE.filter(m => 
         m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.type?.toLowerCase().includes(searchTerm.toLowerCase())
       ).slice(0, 20);
@@ -28,30 +19,7 @@ function MonsterLookup({ onAddToCombat }) {
     } else {
       setFilteredMonsters([]);
     }
-  }, [searchTerm, monsters]);
-
-  const fetchMonsters = async () => {
-    try {
-      const response = await axios.get(`${API}/monsters`);
-      setMonsters(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch monsters:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatCR = (cr) => {
-    if (cr === 0.125) return '1/8';
-    if (cr === 0.25) return '1/4';
-    if (cr === 0.5) return '1/2';
-    return cr?.toString() || '?';
-  };
-
-  const getStatModifier = (stat) => {
-    const mod = Math.floor((stat - 10) / 2);
-    return mod >= 0 ? `+${mod}` : mod.toString();
-  };
+  }, [searchTerm]);
 
   return (
     <div>
@@ -112,7 +80,7 @@ function MonsterLookup({ onAddToCombat }) {
                 fontSize: '12px',
                 fontWeight: '400'
               }}>
-                CR {formatCR(monster.challenge_rating)}
+                CR {monster.cr}
               </span>
             </div>
           ))}
@@ -120,7 +88,7 @@ function MonsterLookup({ onAddToCombat }) {
       )}
 
       {/* No Results */}
-      {searchTerm && filteredMonsters.length === 0 && !loading && (
+      {searchTerm && filteredMonsters.length === 0 && (
         <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
           <Skull size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <p>No monsters found for "{searchTerm}"</p>
@@ -182,15 +150,12 @@ function MonsterLookup({ onAddToCombat }) {
             <div style={{ textAlign: 'center' }}>
               <Shield size={20} color="#4a7dff" style={{ margin: '0 auto 4px' }} />
               <p style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase' }}>AC</p>
-              <p style={{ color: '#fff', fontSize: '18px', fontWeight: '800' }}>{selectedMonster.armor_class}</p>
+              <p style={{ color: '#fff', fontSize: '18px', fontWeight: '800' }}>{selectedMonster.ac}</p>
             </div>
             <div style={{ textAlign: 'center' }}>
               <Heart size={20} color="#ef4444" style={{ margin: '0 auto 4px' }} />
               <p style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase' }}>HP</p>
-              <p style={{ color: '#fff', fontSize: '18px', fontWeight: '800' }}>{selectedMonster.hit_points}</p>
-              {selectedMonster.hit_dice && (
-                <p style={{ color: '#64748b', fontSize: '10px' }}>({selectedMonster.hit_dice})</p>
-              )}
+              <p style={{ color: '#fff', fontSize: '18px', fontWeight: '800' }}>{selectedMonster.hp}</p>
             </div>
             <div style={{ textAlign: 'center' }}>
               <Zap size={20} color="#eab308" style={{ margin: '0 auto 4px' }} />
@@ -199,34 +164,21 @@ function MonsterLookup({ onAddToCombat }) {
             </div>
           </div>
 
-          {/* Ability Scores */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(6, 1fr)', 
-            gap: '8px',
-            marginBottom: '16px'
-          }}>
-            {[
-              { name: 'STR', value: selectedMonster.strength },
-              { name: 'DEX', value: selectedMonster.dexterity },
-              { name: 'CON', value: selectedMonster.constitution },
-              { name: 'INT', value: selectedMonster.intelligence },
-              { name: 'WIS', value: selectedMonster.wisdom },
-              { name: 'CHA', value: selectedMonster.charisma }
-            ].map(stat => (
-              <div key={stat.name} style={{ 
-                textAlign: 'center',
-                padding: '8px 4px',
-                background: 'rgba(74, 125, 255, 0.1)',
-                borderRadius: '8px',
-                border: '1px solid #1e40af'
-              }}>
-                <p style={{ color: '#4a7dff', fontSize: '10px', fontWeight: '400' }}>{stat.name}</p>
-                <p style={{ color: '#fff', fontSize: '16px', fontWeight: '800' }}>{stat.value || 10}</p>
-                <p style={{ color: '#94a3b8', fontSize: '11px' }}>{getStatModifier(stat.value || 10)}</p>
-              </div>
-            ))}
-          </div>
+          {/* Special Abilities */}
+          {selectedMonster.abilities && selectedMonster.abilities !== 'None' && (
+            <div style={{ 
+              marginBottom: '16px',
+              padding: '12px',
+              background: 'rgba(74, 125, 255, 0.1)',
+              borderRadius: '10px',
+              border: '1px solid #1e40af'
+            }}>
+              <h4 style={{ color: '#4a7dff', fontSize: '12px', fontWeight: '600', marginBottom: '8px', textTransform: 'uppercase' }}>
+                Special Abilities
+              </h4>
+              <p style={{ color: '#fff', fontSize: '13px' }}>{selectedMonster.abilities}</p>
+            </div>
+          )}
 
           {/* Challenge Rating */}
           <div style={{ 
@@ -240,29 +192,9 @@ function MonsterLookup({ onAddToCombat }) {
           }}>
             <span style={{ color: '#ef4444', fontWeight: '400' }}>Challenge Rating</span>
             <span style={{ color: '#fff', fontSize: '20px', fontWeight: '800' }}>
-              {formatCR(selectedMonster.challenge_rating)}
-              <span style={{ color: '#64748b', fontSize: '12px', marginLeft: '8px' }}>
-                ({selectedMonster.xp?.toLocaleString() || '?'} XP)
-              </span>
+              {selectedMonster.cr}
             </span>
           </div>
-
-          {/* Actions Preview */}
-          {selectedMonster.actions && selectedMonster.actions.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <h4 style={{ color: '#ef4444', fontSize: '14px', fontWeight: '400', marginBottom: '8px', borderBottom: '2px solid #ef4444', paddingBottom: '4px' }}>
-                Actions
-              </h4>
-              {selectedMonster.actions.slice(0, 3).map((action, idx) => (
-                <div key={idx} style={{ marginBottom: '8px' }}>
-                  <span style={{ color: '#fff', fontWeight: '400', fontSize: '13px' }}>{action.name}. </span>
-                  <span style={{ color: '#94a3b8', fontSize: '12px' }}>
-                    {action.desc?.substring(0, 150)}{action.desc?.length > 150 ? '...' : ''}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Add to Combat Button */}
           {onAddToCombat && (

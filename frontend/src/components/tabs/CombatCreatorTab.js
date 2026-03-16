@@ -676,7 +676,7 @@ function CombatCreatorTab({ campaignId }) {
                   <p style={{ padding: '8px 12px', fontSize: '11px', color: '#64748b', background: 'rgba(10, 10, 40, 0.8)', borderBottom: '1px solid #1e40af', position: 'sticky', top: 0, zIndex: 1 }}>
                     Showing {filteredMonsters.length} of {MONSTER_DATABASE.length} monsters
                   </p>
-                  {filteredMonsters.slice(0, 100).map(monster => (
+                  {filteredMonsters.map(monster => (
                     <div
                       key={`${monster.name}-${monster.cr}`}
                       onClick={() => addMonsterFromDB(monster)}
@@ -716,11 +716,6 @@ function CombatCreatorTab({ campaignId }) {
                       </div>
                     </div>
                   ))}
-                  {filteredMonsters.length > 100 && (
-                    <p style={{ padding: '12px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
-                      Showing first 100 results. Refine your search to see more.
-                    </p>
-                  )}
                 </div>
               </>
             )}

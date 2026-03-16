@@ -8,9 +8,9 @@ const colors = {
   secondary: '#ee006b',
   tertiary: '#ff3600',
   text: '#ffffff',
-  textMuted: '#E0B0FF',
-  glass: 'rgba(57, 2, 146, 0.2)',
-  glassBorder: 'rgba(238, 0, 107, 0.3)'
+  textMuted: '#ffffff',  // Changed to white for better visibility
+  glass: 'rgba(15, 10, 30, 0.85)',  // Much darker/foggier glass
+  glassBorder: 'rgba(238, 0, 107, 0.4)'
 };
 
 export default function LandingPage() {
@@ -26,8 +26,8 @@ export default function LandingPage() {
   const tiers = [
     {
       name: 'Player',
-      price: '0',
-      period: '',
+      price: '3.99',
+      period: '/mo',
       icon: <Sword size={20} />,
       features: ['Join campaigns', '3 characters', 'Character sheet', 'Dice roller'],
       color: colors.main,
@@ -44,7 +44,7 @@ export default function LandingPage() {
     },
     {
       name: 'Quest Master',
-      price: '5.99',
+      price: '3.99',
       period: '/mo',
       icon: <Crown size={20} />,
       features: ['Unlimited characters', '3 campaigns', 'GM tools', 'AI assistance'],
@@ -53,7 +53,7 @@ export default function LandingPage() {
     },
     {
       name: 'Legendary',
-      price: '7.99',
+      price: '5.99',
       period: '/mo',
       icon: <Zap size={20} />,
       features: ['Everything unlimited', 'Custom rulesets', 'Priority AI', 'Early access'],
@@ -76,7 +76,7 @@ export default function LandingPage() {
         alignItems: 'center',
         padding: '12px 30px',
         background: colors.glass,
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(20px)',
         borderBottom: `1px solid ${colors.glassBorder}`
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -124,7 +124,7 @@ export default function LandingPage() {
       }}>
         <div style={{
           background: colors.glass,
-          backdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(24px)',
           border: `1px solid ${colors.glassBorder}`,
           borderRadius: '20px',
           padding: '30px 40px'
@@ -198,7 +198,7 @@ export default function LandingPage() {
           {features.map((f, i) => (
             <div key={i} style={{
               background: colors.glass,
-              backdropFilter: 'blur(12px)',
+              backdropFilter: 'blur(20px)',
               border: `1px solid ${colors.glassBorder}`,
               borderRadius: '12px',
               padding: '16px',
@@ -243,7 +243,7 @@ export default function LandingPage() {
           {tiers.map((tier, i) => (
             <div key={i} style={{
               background: colors.glass,
-              backdropFilter: 'blur(12px)',
+              backdropFilter: 'blur(20px)',
               border: tier.popular ? `2px solid ${colors.tertiary}` : `1px solid ${colors.glassBorder}`,
               borderRadius: '14px',
               padding: '20px 16px',
@@ -357,7 +357,7 @@ export default function LandingPage() {
                   fontFamily: "'Montserrat', sans-serif"
                 }}
               >
-                {tier.comingSoon ? 'Coming Soon' : tier.price === '0' ? 'Join Free' : 'Start Trial'}
+                {tier.comingSoon ? 'Coming Soon' : 'Start Trial'}
               </button>
             </div>
           ))}
@@ -369,7 +369,7 @@ export default function LandingPage() {
         padding: '16px 30px',
         textAlign: 'center',
         background: colors.glass,
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(20px)',
         borderTop: `1px solid ${colors.glassBorder}`
       }}>
         <p style={{ 
