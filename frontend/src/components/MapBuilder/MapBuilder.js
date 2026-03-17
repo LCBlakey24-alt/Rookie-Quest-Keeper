@@ -303,7 +303,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
             color: '#fff',
             fontSize: '20px',
             fontWeight: '800',
-            fontFamily: 'Cityworm, sans-serif'
+            fontFamily: "'Cinzel', serif"
           }}>
             Map Builder
           </h1>
@@ -507,7 +507,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
                           width: '32px',
                           height: '32px',
                           borderRadius: '50%',
-                          background: token.isEnemy ? '#ef4444' : token.isAlly ? '#22c55e' : '#3b82f6',
+                          background: token.isEnemy ? '#ef4444' : token.isAlly ? '#F59E0B' : '#3b82f6',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',

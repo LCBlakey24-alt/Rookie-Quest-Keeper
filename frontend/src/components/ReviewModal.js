@@ -99,7 +99,7 @@ function ReviewModal({ isOpen, onClose }) {
             <h2 style={{ 
               color: '#fff', 
               fontSize: '24px', 
-              fontFamily: "Eros Book, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontWeight: '400',
               marginBottom: '4px'
             }}>
@@ -166,7 +166,7 @@ function ReviewModal({ isOpen, onClose }) {
               </div>
               <p style={{ 
                 textAlign: 'center', 
-                color: rating >= 4 ? '#22c55e' : rating >= 2 ? '#f59e0b' : '#94a3b8',
+                color: rating >= 4 ? '#F59E0B' : rating >= 2 ? '#f59e0b' : '#94a3b8',
                 fontSize: '14px',
                 marginTop: '8px',
                 fontWeight: '400'
@@ -224,7 +224,7 @@ function ReviewModal({ isOpen, onClose }) {
                 padding: '12px 16px',
                 marginBottom: '24px'
               }}>
-                <p style={{ color: '#22c55e', fontSize: '13px' }}>
+                <p style={{ color: '#F59E0B', fontSize: '13px' }}>
                   ⭐ Your review may be featured on our landing page to help other GMs discover Rookie Quest Keeper!
                 </p>
               </div>

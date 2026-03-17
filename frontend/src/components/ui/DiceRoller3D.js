@@ -60,7 +60,7 @@ const DiceRoller3D = ({ isOpen, onClose, rolls, label, modifier = 0, total, isCr
   if (!isOpen) return null;
 
   const getCritColor = () => {
-    if (isCrit) return '#22c55e'; // Green for nat 20
+    if (isCrit) return '#F59E0B'; // Green for nat 20
     if (isFumble) return '#ef4444'; // Red for nat 1
     return '#ee006b'; // Pink default (new theme)
   };
@@ -138,7 +138,7 @@ const DiceRoller3D = ({ isOpen, onClose, rolls, label, modifier = 0, total, isCr
               fontFamily: "'Cinzel', serif",
               fontSize: die.display >= 10 ? '42px' : '52px',
               fontWeight: '700',
-              color: die.result === die.sides ? '#22c55e' : die.result === 1 ? '#ef4444' : '#F8FAFC',
+              color: die.result === die.sides ? '#F59E0B' : die.result === 1 ? '#ef4444' : '#F8FAFC',
               transform: die.sides === 4 ? 'rotate(-45deg)' : 'none',
               textShadow: `0 0 20px ${getDiceColor(die.sides)}`
             }}>
@@ -204,7 +204,7 @@ const DiceRoller3D = ({ isOpen, onClose, rolls, label, modifier = 0, total, isCr
             <div style={{
               fontFamily: "'Cinzel', serif",
               fontSize: '24px',
-              color: '#22c55e',
+              color: '#F59E0B',
               textTransform: 'uppercase',
               letterSpacing: '0.3em',
               marginTop: '10px',

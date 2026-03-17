@@ -201,7 +201,7 @@ function MapCanvas({
       ctx.fill();
 
       // Token background
-      const tokenColor = token.isEnemy ? '#ef4444' : token.isAlly ? '#22c55e' : '#3b82f6';
+      const tokenColor = token.isEnemy ? '#ef4444' : token.isAlly ? '#F59E0B' : '#3b82f6';
       ctx.fillStyle = tokenColor;
       ctx.beginPath();
       ctx.arc(tx, ty, radius, 0, Math.PI * 2);
@@ -235,7 +235,7 @@ function MapCanvas({
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
         ctx.fillRect(barX, barY, barWidth, barHeight);
         
-        ctx.fillStyle = hpPercent > 0.5 ? '#22c55e' : hpPercent > 0.25 ? '#eab308' : '#ef4444';
+        ctx.fillStyle = hpPercent > 0.5 ? '#F59E0B' : hpPercent > 0.25 ? '#eab308' : '#ef4444';
         ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
       }
     });

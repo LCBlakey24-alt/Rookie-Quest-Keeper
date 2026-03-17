@@ -316,7 +316,7 @@ function RookSuggestionPopup({
               color: '#fff', 
               fontSize: '15px', 
               fontWeight: '400',
-              fontFamily: "Eros Book, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               margin: 0
             }}>
               {suggestion.title}

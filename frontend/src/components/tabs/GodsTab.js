@@ -579,12 +579,12 @@ function GodsTab({ campaignId }) {
                 marginTop: '16px',
                 padding: '12px',
                 background: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid #22c55e',
+                border: '1px solid #F59E0B',
                 borderRadius: '8px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Check size={16} color="#22c55e" />
-                  <span style={{ color: '#22c55e', fontSize: '13px', fontWeight: '700' }}>
+                  <Check size={16} color="#F59E0B" />
+                  <span style={{ color: '#F59E0B', fontSize: '13px', fontWeight: '700' }}>
                     Successfully Created!
                   </span>
                 </div>

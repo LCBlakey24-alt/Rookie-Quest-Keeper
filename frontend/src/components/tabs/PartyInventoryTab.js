@@ -11,7 +11,7 @@ const API = `${BACKEND_URL}/api`;
 const ITEM_CATEGORIES = [
   { id: 'weapon', label: 'Weapons', icon: Sword, color: '#ef4444' },
   { id: 'armor', label: 'Armor', icon: Package, color: '#4a7dff' },
-  { id: 'potion', label: 'Potions', icon: Sparkles, color: '#22c55e' },
+  { id: 'potion', label: 'Potions', icon: Sparkles, color: '#F59E0B' },
   { id: 'scroll', label: 'Scrolls', icon: ScrollText, color: '#a855f7' },
   { id: 'gem', label: 'Gems & Valuables', icon: Gem, color: '#eab308' },
   { id: 'misc', label: 'Miscellaneous', icon: Package, color: '#64748b' },
@@ -152,7 +152,7 @@ function PartyInventoryTab({ campaignId }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '800' }}>
+          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800' }}>
             Party Inventory
           </h2>
           <p style={{ fontSize: '14px', color: '#67e8f9', marginTop: '4px' }}>
@@ -186,8 +186,8 @@ function PartyInventoryTab({ campaignId }) {
               <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                 <button onClick={() => updateCurrency(coin.type, -10)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>-10</button>
                 <button onClick={() => updateCurrency(coin.type, -1)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>-1</button>
-                <button onClick={() => updateCurrency(coin.type, 1)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #22c55e', borderRadius: '6px', color: '#22c55e', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+1</button>
-                <button onClick={() => updateCurrency(coin.type, 10)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #22c55e', borderRadius: '6px', color: '#22c55e', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+10</button>
+                <button onClick={() => updateCurrency(coin.type, 1)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+1</button>
+                <button onClick={() => updateCurrency(coin.type, 10)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+10</button>
               </div>
             </div>
           ))}
@@ -219,8 +219,8 @@ function PartyInventoryTab({ campaignId }) {
 
       {/* Add Item Form */}
       {showAddItem && (
-        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#22c55e' }}>
-          <h3 style={{ fontSize: '16px', color: '#22c55e', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px' }}>Add New Item</h3>
+        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#F59E0B' }}>
+          <h3 style={{ fontSize: '16px', color: '#F59E0B', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px' }}>Add New Item</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Item Name *</label>
@@ -345,7 +345,7 @@ function PartyInventoryTab({ campaignId }) {
                           style={{ fontSize: '13px' }}
                         />
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          <Button onClick={updateItem} className="btn-icon" style={{ padding: '6px', color: '#22c55e' }}><Save size={14} /></Button>
+                          <Button onClick={updateItem} className="btn-icon" style={{ padding: '6px', color: '#F59E0B' }}><Save size={14} /></Button>
                           <Button onClick={() => { setEditingId(null); setEditItem(null); }} className="btn-icon" style={{ padding: '6px' }}><X size={14} /></Button>
                         </div>
                       </div>

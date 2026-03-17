@@ -223,7 +223,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
             fontSize: '28px',
             fontWeight: '800',
             color: '#ffffff',
-            fontFamily: "Eros Book, sans-serif"
+            fontFamily: "'Montserrat', sans-serif"
           }}>
             Account Settings
           </h1>
@@ -242,7 +242,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '400',
               color: '#ffffff',
-              fontFamily: "Eros Book, sans-serif"
+              fontFamily: "'Montserrat', sans-serif"
             }}>
               Profile Information
             </h2>
@@ -319,7 +319,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '400',
               color: '#ffffff',
-              fontFamily: "Eros Book, sans-serif"
+              fontFamily: "'Montserrat', sans-serif"
             }}>
               Change Password
             </h2>
@@ -467,7 +467,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '400',
               color: '#ef4444',
-              fontFamily: "Eros Book, sans-serif"
+              fontFamily: "'Montserrat', sans-serif"
             }}>
               Danger Zone
             </h2>
@@ -542,7 +542,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               fontSize: '20px',
               fontWeight: '400',
               color: '#ffffff',
-              fontFamily: "Eros Book, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               marginBottom: '16px'
             }}>
               Subscription

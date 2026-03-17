@@ -242,8 +242,8 @@ function InGameNotesTab({ campaignId }) {
                     </p>
                     {note.ai_processed && (
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: 'rgba(34, 197, 94, 0.2)', borderRadius: '12px', border: '1px solid rgba(34, 197, 94, 0.4)' }}>
-                        <CheckCircle size={14} style={{ color: '#22c55e' }} />
-                        <span style={{ fontSize: '12px', color: '#22c55e', fontWeight: '600' }}>AI Processed</span>
+                        <CheckCircle size={14} style={{ color: '#F59E0B' }} />
+                        <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: '600' }}>AI Processed</span>
                       </div>
                     )}
                   </div>

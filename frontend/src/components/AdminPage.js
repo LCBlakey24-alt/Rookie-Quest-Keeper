@@ -237,7 +237,7 @@ function AdminPage({ username }) {
             <h1 style={{ 
               fontSize: '28px', 
               color: theme.text.white,
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontWeight: '400',
               display: 'flex',
               alignItems: 'center',
@@ -345,7 +345,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               letterSpacing: '1px'
             }}
           >
@@ -368,7 +368,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               letterSpacing: '1px'
             }}
           >
@@ -391,7 +391,7 @@ function AdminPage({ username }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               letterSpacing: '1px'
             }}
           >
@@ -416,7 +416,7 @@ function AdminPage({ username }) {
               <h2 style={{ 
                 color: theme.gm.primary, 
                 fontSize: '18px',
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "'Montserrat', sans-serif",
                 fontWeight: '400',
                 display: 'flex',
                 alignItems: 'center',
@@ -457,7 +457,7 @@ function AdminPage({ username }) {
                   fontSize: '14px', 
                   fontWeight: '400', 
                   marginBottom: '20px',
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "'Montserrat', sans-serif",
                   letterSpacing: '1px'
                 }}>
                   CREATE NEW PROMO CODE
@@ -668,7 +668,7 @@ function AdminPage({ username }) {
             <h2 style={{ 
               color: theme.player.cyan, 
               fontSize: '18px',
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontWeight: '400',
               marginBottom: '20px',
               display: 'flex',
@@ -774,7 +774,7 @@ function AdminPage({ username }) {
           <h2 style={{ 
             color: theme.legendary.primary, 
             fontSize: '18px',
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "'Montserrat', sans-serif",
             fontWeight: '400',
             marginBottom: '20px',
             display: 'flex',

@@ -221,7 +221,7 @@ function WorldBuilderTab({ campaignId }) {
           marginLeft: '48px',
           padding: '12px 16px',
           background: isNew ? 'rgba(34, 197, 94, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-          borderLeft: `3px solid ${isNew ? '#22c55e' : '#6366f1'}`,
+          borderLeft: `3px solid ${isNew ? '#F59E0B' : '#6366f1'}`,
           borderRadius: '0 8px 8px 0',
           marginBottom: '4px',
           display: 'flex',
@@ -235,7 +235,7 @@ function WorldBuilderTab({ campaignId }) {
           <span style={{ color: '#e2e8f0', fontSize: '14px' }}>{place.name}</span>
           {isNew && (
             <span style={{ 
-              background: '#22c55e', 
+              background: '#F59E0B', 
               color: '#000', 
               padding: '2px 8px', 
               borderRadius: '10px', 
@@ -270,7 +270,7 @@ function WorldBuilderTab({ campaignId }) {
           style={{
             padding: '14px 18px',
             background: isNew ? 'rgba(34, 197, 94, 0.15)' : 'rgba(30, 30, 60, 0.6)',
-            border: `2px solid ${isNew ? '#22c55e' : '#4a7dff'}`,
+            border: `2px solid ${isNew ? '#F59E0B' : '#4a7dff'}`,
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
@@ -290,7 +290,7 @@ function WorldBuilderTab({ campaignId }) {
               </span>
             </div>
             {isNew && (
-              <span style={{ background: '#22c55e', color: '#000', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' }}>
+              <span style={{ background: '#F59E0B', color: '#000', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' }}>
                 JUST CREATED
               </span>
             )}
@@ -335,7 +335,7 @@ function WorldBuilderTab({ campaignId }) {
           style={{
             padding: '16px 20px',
             background: isNew ? 'rgba(34, 197, 94, 0.15)' : 'rgba(30, 30, 60, 0.7)',
-            border: `2px solid ${isNew ? '#22c55e' : '#a855f7'}`,
+            border: `2px solid ${isNew ? '#F59E0B' : '#a855f7'}`,
             borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
@@ -355,7 +355,7 @@ function WorldBuilderTab({ campaignId }) {
               </span>
             </div>
             {isNew && (
-              <span style={{ background: '#22c55e', color: '#000', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700' }}>
+              <span style={{ background: '#F59E0B', color: '#000', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700' }}>
                 JUST CREATED
               </span>
             )}
@@ -400,7 +400,7 @@ function WorldBuilderTab({ campaignId }) {
           style={{
             padding: '20px 24px',
             background: isNew ? 'rgba(34, 197, 94, 0.2)' : 'linear-gradient(135deg, rgba(30, 30, 60, 0.8) 0%, rgba(45, 45, 80, 0.8) 100%)',
-            border: `3px solid ${isNew ? '#22c55e' : '#22c55e'}`,
+            border: `3px solid ${isNew ? '#F59E0B' : '#F59E0B'}`,
             borderRadius: '16px',
             display: 'flex',
             alignItems: 'center',
@@ -412,8 +412,8 @@ function WorldBuilderTab({ campaignId }) {
           onClick={() => toggleExpand(continent.id)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {isExpanded ? <ChevronDown size={24} color="#22c55e" /> : <ChevronRight size={24} color="#22c55e" />}
-            <ContinentIcon size={32} color="#22c55e" />
+            {isExpanded ? <ChevronDown size={24} color="#F59E0B" /> : <ChevronRight size={24} color="#F59E0B" />}
+            <ContinentIcon size={32} color="#F59E0B" />
             <div>
               <h3 style={{ color: '#fff', fontWeight: '800', fontSize: '20px', margin: 0 }}>{continent.name}</h3>
               <span style={{ color: '#94a3b8', fontSize: '14px' }}>
@@ -421,7 +421,7 @@ function WorldBuilderTab({ campaignId }) {
               </span>
             </div>
             {isNew && (
-              <span style={{ background: '#22c55e', color: '#000', padding: '4px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: '700' }}>
+              <span style={{ background: '#F59E0B', color: '#000', padding: '4px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: '700' }}>
                 JUST CREATED
               </span>
             )}
@@ -457,7 +457,7 @@ function WorldBuilderTab({ campaignId }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-        <Loader className="animate-spin" size={32} color="#22c55e" />
+        <Loader className="animate-spin" size={32} color="#F59E0B" />
       </div>
     );
   }
@@ -509,7 +509,7 @@ function WorldBuilderTab({ campaignId }) {
         marginBottom: '24px',
         flexWrap: 'wrap'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', fontSize: '13px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#F59E0B', fontSize: '13px' }}>
           <Globe size={16} /> Continents
         </div>
         <span style={{ color: '#374151' }}>→</span>
@@ -530,7 +530,7 @@ function WorldBuilderTab({ campaignId }) {
       {worldData.continents?.length === 0 ? (
         <Card style={{ background: 'rgba(30, 30, 60, 0.5)', border: '2px dashed #374151' }}>
           <CardContent style={{ padding: '60px', textAlign: 'center' }}>
-            <Globe size={64} color="#22c55e" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
+            <Globe size={64} color="#F59E0B" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
             <h3 style={{ color: '#fff', marginBottom: '8px' }}>Your world awaits</h3>
             <p style={{ color: '#94a3b8', marginBottom: '20px' }}>
               Start by adding a continent, then build out countries, cities, and places of interest.
@@ -551,7 +551,7 @@ function WorldBuilderTab({ campaignId }) {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent style={{
           background: 'linear-gradient(180deg, #1a1a3e 0%, #0f0f23 100%)',
-          border: '2px solid #22c55e',
+          border: '2px solid #F59E0B',
           maxWidth: '500px'
         }}>
           <DialogHeader>
@@ -563,14 +563,14 @@ function WorldBuilderTab({ campaignId }) {
           {/* AI Generation */}
           <div style={{
             background: 'rgba(34, 197, 94, 0.1)',
-            border: '2px solid #22c55e',
+            border: '2px solid #F59E0B',
             borderRadius: '10px',
             padding: '16px',
             marginBottom: '20px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <Wand2 size={18} color="#22c55e" />
-              <span style={{ color: '#22c55e', fontWeight: '600' }}>ROOK</span>
+              <Wand2 size={18} color="#F59E0B" />
+              <span style={{ color: '#F59E0B', fontWeight: '600' }}>ROOK</span>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <Input

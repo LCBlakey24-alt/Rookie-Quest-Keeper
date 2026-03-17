@@ -404,7 +404,7 @@ function NPCsTab({ campaignId }) {
               className="card"
               style={{
                 animation: lastGenerated?.entity_id === npc.id ? 'glow-pulse 2s ease-out' : 'none',
-                border: lastGenerated?.entity_id === npc.id ? '2px solid #22c55e' : undefined
+                border: lastGenerated?.entity_id === npc.id ? '2px solid #F59E0B' : undefined
               }}
             >
               <CardHeader>
@@ -424,13 +424,13 @@ function NPCsTab({ campaignId }) {
                     <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {npc.name}
                       {lastGenerated?.entity_id === npc.id && (
-                        <span style={{ fontSize: '12px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Check size={14} /> Just created
                         </span>
                       )}
                     </CardTitle>
                     {npc.location && (
-                      <p style={{ fontSize: '14px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <p style={{ fontSize: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={14} /> {npc.location}
                       </p>
                     )}
@@ -559,12 +559,12 @@ function NPCsTab({ campaignId }) {
                 marginTop: '16px', 
                 padding: '12px', 
                 background: 'rgba(34, 197, 94, 0.15)', 
-                border: '1px solid #22c55e',
+                border: '1px solid #F59E0B',
                 borderRadius: '8px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Check size={16} style={{ color: '#22c55e' }} />
-                  <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '13px' }}>NPC Created!</span>
+                  <Check size={16} style={{ color: '#F59E0B' }} />
+                  <span style={{ color: '#F59E0B', fontWeight: '600', fontSize: '13px' }}>NPC Created!</span>
                 </div>
                 <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{lastGenerated.entity_name}</p>
                 <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>

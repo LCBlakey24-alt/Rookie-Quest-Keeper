@@ -244,7 +244,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
             <h2 style={{ 
               color: '#fff', 
               fontSize: '24px', 
-              fontFamily: "Eros Book, sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               fontWeight: '400',
               display: 'flex',
               alignItems: 'center',
@@ -337,7 +337,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
           <Wand2 size={24} color="#a855f7" />
-          <h3 style={{ color: '#a855f7', fontSize: '18px', fontWeight: '400', fontFamily: "Eros Book, sans-serif" }}>
+          <h3 style={{ color: '#a855f7', fontSize: '18px', fontWeight: '400', fontFamily: "'Montserrat', sans-serif" }}>
             ROOK
           </h3>
           <Sparkles size={16} color="#a855f7" style={{ opacity: 0.7 }} />

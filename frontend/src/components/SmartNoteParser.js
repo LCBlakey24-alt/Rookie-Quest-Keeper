@@ -241,7 +241,7 @@ function SmartNoteParser({ campaignId, noteText, onUpdateApplied }) {
                         style={{
                           padding: '12px',
                           background: 'rgba(30, 41, 59, 0.5)',
-                          border: `2px solid ${entity.existing_id ? '#22c55e' : '#4a7dff'}`,
+                          border: `2px solid ${entity.existing_id ? '#F59E0B' : '#4a7dff'}`,
                           borderRadius: '12px'
                         }}
                       >
@@ -249,16 +249,16 @@ function SmartNoteParser({ campaignId, noteText, onUpdateApplied }) {
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                               {entity.entity_type === 'npc' ? (
-                                <User size={16} color={entity.existing_id ? '#22c55e' : '#4a7dff'} />
+                                <User size={16} color={entity.existing_id ? '#F59E0B' : '#4a7dff'} />
                               ) : (
-                                <MapPin size={16} color={entity.existing_id ? '#22c55e' : '#4a7dff'} />
+                                <MapPin size={16} color={entity.existing_id ? '#F59E0B' : '#4a7dff'} />
                               )}
                               <span style={{ color: '#ffffff', fontWeight: '400', fontSize: '14px' }}>
                                 {entity.name}
                               </span>
                               <span style={{ 
                                 fontSize: '11px', 
-                                color: entity.existing_id ? '#22c55e' : '#4a7dff',
+                                color: entity.existing_id ? '#F59E0B' : '#4a7dff',
                                 padding: '2px 6px',
                                 background: entity.existing_id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(74, 125, 255, 0.1)',
                                 borderRadius: '4px'
@@ -333,14 +333,14 @@ function SmartNoteParser({ campaignId, noteText, onUpdateApplied }) {
                       marginTop: '12px',
                       padding: '12px',
                       background: 'rgba(34, 197, 94, 0.1)',
-                      border: '2px solid #22c55e',
+                      border: '2px solid #F59E0B',
                       borderRadius: '12px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Calendar size={18} color="#22c55e" />
+                        <Calendar size={18} color="#F59E0B" />
                         <div>
                           <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '400' }}>
                             Update Campaign Calendar

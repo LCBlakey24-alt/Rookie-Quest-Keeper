@@ -232,7 +232,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
             color: '#eab308',
             textShadow: '0 0 40px #eab308, 0 0 80px #eab308',
             animation: 'critPulse 1s ease-out',
-            fontFamily: "Eros Book, sans-serif"
+            fontFamily: "'Montserrat', sans-serif"
           }}>
             CRITICAL!
           </div>

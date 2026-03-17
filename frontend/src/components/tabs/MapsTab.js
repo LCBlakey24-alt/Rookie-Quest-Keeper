@@ -84,7 +84,7 @@ function MapsTab({ campaignId }) {
           <h2 style={{ 
             fontSize: '24px', 
             color: '#ffffff', 
-            fontFamily: 'Cityworm, sans-serif', 
+            fontFamily: "'Cinzel', serif", 
             fontWeight: '800',
             display: 'flex',
             alignItems: 'center',

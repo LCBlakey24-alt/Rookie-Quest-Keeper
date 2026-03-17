@@ -273,12 +273,12 @@ export function QuickReferencePopup({ type, id, children, position = 'top' }) {
             borderBottom: '1px solid #1e40af',
             paddingBottom: '8px'
           }}>
-            <BookOpen size={16} style={{ color: '#22c55e' }} />
+            <BookOpen size={16} style={{ color: '#F59E0B' }} />
             <span style={{ 
-              color: '#22c55e', 
+              color: '#F59E0B', 
               fontWeight: '400', 
               fontSize: '14px',
-              fontFamily: "Eros Book, sans-serif"
+              fontFamily: "'Montserrat', sans-serif"
             }}>
               {ref.name}
             </span>
@@ -392,13 +392,13 @@ export function QuickReferenceModal({ isOpen, onClose }) {
           <h2 style={{ 
             fontSize: '24px', 
             color: '#ffffff',
-            fontFamily: "Eros Book, sans-serif",
+            fontFamily: "'Montserrat', sans-serif",
             fontWeight: '800',
             display: 'flex',
             alignItems: 'center',
             gap: '12px'
           }}>
-            <BookOpen size={28} style={{ color: '#22c55e' }} />
+            <BookOpen size={28} style={{ color: '#F59E0B' }} />
             Quick Reference
           </h2>
           <button
@@ -430,9 +430,9 @@ export function QuickReferenceModal({ isOpen, onClose }) {
               style={{
                 padding: '10px 20px',
                 borderRadius: '8px',
-                border: activeTab === tab.id ? '2px solid #22c55e' : '2px solid transparent',
+                border: activeTab === tab.id ? '2px solid #F59E0B' : '2px solid transparent',
                 background: activeTab === tab.id ? 'rgba(34, 197, 94, 0.2)' : 'rgba(10, 10, 40, 0.6)',
-                color: activeTab === tab.id ? '#22c55e' : '#94a3b8',
+                color: activeTab === tab.id ? '#F59E0B' : '#94a3b8',
                 fontWeight: '400',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
@@ -462,11 +462,11 @@ export function QuickReferenceModal({ isOpen, onClose }) {
               }}
             >
               <h3 style={{ 
-                color: '#22c55e', 
+                color: '#F59E0B', 
                 fontSize: '16px', 
                 fontWeight: '400',
                 marginBottom: '8px',
-                fontFamily: "Eros Book, sans-serif"
+                fontFamily: "'Montserrat', sans-serif"
               }}>
                 {item.name}
               </h3>

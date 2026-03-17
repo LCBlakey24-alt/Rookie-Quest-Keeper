@@ -199,7 +199,7 @@ function QuickReferenceTab({ campaignId }) {
   const spellClassOptions = [...new Set(spells.flatMap(s => s.classes || []))].sort();
 
   return (
-    <div style={{ fontFamily: 'Cityworm, sans-serif' }} data-testid="quick-reference-tab">
+    <div style={{ fontFamily: "'Cinzel', serif" }} data-testid="quick-reference-tab">
       {/* Section Tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {sections.map(section => (

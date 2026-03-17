@@ -273,9 +273,9 @@ function MapToolbar({
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            border: `2px solid ${showGrid ? '#22c55e' : 'transparent'}`,
+            border: `2px solid ${showGrid ? '#F59E0B' : 'transparent'}`,
             background: showGrid ? 'rgba(34, 197, 94, 0.2)' : 'rgba(0,0,0,0.3)',
-            color: showGrid ? '#22c55e' : '#94a3b8',
+            color: showGrid ? '#F59E0B' : '#94a3b8',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -385,7 +385,7 @@ function MapToolbar({
           style={{
             padding: '8px 16px',
             fontSize: '12px',
-            background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+            background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px'

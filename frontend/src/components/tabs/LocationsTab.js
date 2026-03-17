@@ -278,15 +278,15 @@ function LocationsTab({ campaignId }) {
           description="Build your world by adding locations. Create cities, dungeons, forests, and more. Use the ROOK AI to generate them instantly."
           actionLabel="Create Your First Location"
           onAction={() => setShowDialog(true)}
-          color="#22c55e"
+          color="#F59E0B"
         />
         
         {/* ROOK Panel - still show for empty state */}
         <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-          <Card className="parchment-dark" style={{ border: '2px solid #22c55e' }}>
+          <Card className="parchment-dark" style={{ border: '2px solid #F59E0B' }}>
             <CardHeader>
               <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Wand2 size={20} style={{ color: '#22c55e' }} />
+                <Wand2 size={20} style={{ color: '#F59E0B' }} />
                 ROOK
               </CardTitle>
             </CardHeader>
@@ -300,7 +300,7 @@ function LocationsTab({ campaignId }) {
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   className="textarea"
-                  style={{ minHeight: '100px', fontSize: '13px', borderColor: '#22c55e' }}
+                  style={{ minHeight: '100px', fontSize: '13px', borderColor: '#F59E0B' }}
                   placeholder="Example: A haunted castle on a cliff overlooking a dark forest"
                 />
               </div>
@@ -315,7 +315,7 @@ function LocationsTab({ campaignId }) {
                   alignItems: 'center', 
                   justifyContent: 'center', 
                   gap: '8px',
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                   border: 'none'
                 }}
               >
@@ -499,7 +499,7 @@ function LocationsTab({ campaignId }) {
           <DialogContent className="modal" style={{ maxWidth: '550px' }}>
             <DialogHeader>
               <DialogTitle className="medieval-heading" style={{ fontSize: '22px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Store size={22} style={{ color: '#22c55e' }} />
+                <Store size={22} style={{ color: '#F59E0B' }} />
                 {editingPlace ? 'Edit Place' : 'Add Place of Interest'}
               </DialogTitle>
             </DialogHeader>
@@ -600,17 +600,17 @@ function LocationsTab({ campaignId }) {
                   style={{ 
                     overflow: 'visible',
                     animation: isNewlyCreated ? 'glow-pulse 2s ease-out' : 'none',
-                    border: isNewlyCreated ? '2px solid #22c55e' : undefined
+                    border: isNewlyCreated ? '2px solid #F59E0B' : undefined
                   }}
                 >
                   <CardHeader>
                     <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-                      <MapPin size={24} style={{ color: '#22c55e', marginTop: '4px' }} />
+                      <MapPin size={24} style={{ color: '#F59E0B', marginTop: '4px' }} />
                       <div style={{ flex: 1 }}>
                         <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {location.name}
                           {isNewlyCreated && (
-                            <span style={{ fontSize: '12px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <Check size={14} /> Just created
                             </span>
                           )}
@@ -690,11 +690,11 @@ function LocationsTab({ campaignId }) {
                             padding: 0
                           }}
                         >
-                          <Store size={16} style={{ color: '#22c55e' }} />
-                          <span style={{ color: '#22c55e', fontSize: '13px', fontWeight: '600' }}>
+                          <Store size={16} style={{ color: '#F59E0B' }} />
+                          <span style={{ color: '#F59E0B', fontSize: '13px', fontWeight: '600' }}>
                             PLACES OF INTEREST ({places.length})
                           </span>
-                          {isExpanded ? <ChevronUp size={16} style={{ color: '#22c55e' }} /> : <ChevronDown size={16} style={{ color: '#22c55e' }} />}
+                          {isExpanded ? <ChevronUp size={16} style={{ color: '#F59E0B' }} /> : <ChevronDown size={16} style={{ color: '#F59E0B' }} />}
                         </button>
                         <Button
                           data-testid={`add-place-btn-${location.id}`}
@@ -703,8 +703,8 @@ function LocationsTab({ campaignId }) {
                           style={{ 
                             padding: '4px 10px', 
                             fontSize: '11px',
-                            borderColor: '#22c55e',
-                            color: '#22c55e',
+                            borderColor: '#F59E0B',
+                            color: '#F59E0B',
                             display: 'flex',
                             gap: '4px',
                             alignItems: 'center'
@@ -728,7 +728,7 @@ function LocationsTab({ campaignId }) {
                                 data-testid={`place-card-${place.id}`}
                                 style={{
                                   background: 'rgba(34, 197, 94, 0.08)',
-                                  border: isNewPlace ? '2px solid #22c55e' : '1px solid rgba(34, 197, 94, 0.3)',
+                                  border: isNewPlace ? '2px solid #F59E0B' : '1px solid rgba(34, 197, 94, 0.3)',
                                   borderRadius: '10px',
                                   padding: '12px 14px',
                                   animation: isNewPlace ? 'glow-pulse 2s ease-out' : 'none'
@@ -736,15 +736,15 @@ function LocationsTab({ campaignId }) {
                               >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <TypeIcon size={18} style={{ color: '#22c55e' }} />
+                                    <TypeIcon size={18} style={{ color: '#F59E0B' }} />
                                     <div>
                                       <h5 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {place.name}
-                                        {isNewPlace && <Check size={12} style={{ color: '#22c55e' }} />}
+                                        {isNewPlace && <Check size={12} style={{ color: '#F59E0B' }} />}
                                       </h5>
                                       <span style={{ 
                                         fontSize: '10px', 
-                                        color: '#22c55e', 
+                                        color: '#F59E0B', 
                                         background: 'rgba(34, 197, 94, 0.2)',
                                         padding: '2px 8px',
                                         borderRadius: '10px',
@@ -838,10 +838,10 @@ function LocationsTab({ campaignId }) {
 
       {/* ROOK Panel */}
       <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-        <Card className="parchment-dark" style={{ border: '2px solid #22c55e' }}>
+        <Card className="parchment-dark" style={{ border: '2px solid #F59E0B' }}>
           <CardHeader>
             <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Wand2 size={20} style={{ color: '#22c55e' }} />
+              <Wand2 size={20} style={{ color: '#F59E0B' }} />
               ROOK
             </CardTitle>
           </CardHeader>
@@ -852,7 +852,7 @@ function LocationsTab({ campaignId }) {
             
             {/* Generation Type Toggle */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#22c55e', fontWeight: '600' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#F59E0B', fontWeight: '600' }}>
                 What to create?
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -862,9 +862,9 @@ function LocationsTab({ campaignId }) {
                     flex: 1,
                     padding: '8px 12px',
                     borderRadius: '8px',
-                    border: generationType === 'location' ? '2px solid #22c55e' : '1px solid #374151',
+                    border: generationType === 'location' ? '2px solid #F59E0B' : '1px solid #374151',
                     background: generationType === 'location' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
-                    color: generationType === 'location' ? '#22c55e' : '#94a3b8',
+                    color: generationType === 'location' ? '#F59E0B' : '#94a3b8',
                     fontSize: '12px',
                     fontWeight: '600',
                     cursor: 'pointer',
@@ -883,9 +883,9 @@ function LocationsTab({ campaignId }) {
                     flex: 1,
                     padding: '8px 12px',
                     borderRadius: '8px',
-                    border: generationType === 'place' ? '2px solid #22c55e' : '1px solid #374151',
+                    border: generationType === 'place' ? '2px solid #F59E0B' : '1px solid #374151',
                     background: generationType === 'place' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
-                    color: generationType === 'place' ? '#22c55e' : '#94a3b8',
+                    color: generationType === 'place' ? '#F59E0B' : '#94a3b8',
                     fontSize: '12px',
                     fontWeight: '600',
                     cursor: 'pointer',
@@ -904,14 +904,14 @@ function LocationsTab({ campaignId }) {
             {/* Location selector for places */}
             {generationType === 'place' && (
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#22c55e', fontWeight: '600' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#F59E0B', fontWeight: '600' }}>
                   Add to which location?
                 </label>
                 <select
                   value={selectedLocationForPlace}
                   onChange={(e) => setSelectedLocationForPlace(e.target.value)}
                   className="input"
-                  style={{ width: '100%', borderColor: '#22c55e' }}
+                  style={{ width: '100%', borderColor: '#F59E0B' }}
                 >
                   <option value="">Select a location...</option>
                   {locations.map(loc => (
@@ -922,7 +922,7 @@ function LocationsTab({ campaignId }) {
             )}
             
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#22c55e', fontWeight: '600' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#F59E0B', fontWeight: '600' }}>
                 {generationType === 'place' ? 'Describe the place' : 'Describe the location'}
               </label>
               <textarea
@@ -930,7 +930,7 @@ function LocationsTab({ campaignId }) {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 className="textarea"
-                style={{ minHeight: '100px', fontSize: '13px', borderColor: '#22c55e' }}
+                style={{ minHeight: '100px', fontSize: '13px', borderColor: '#F59E0B' }}
                 placeholder={generationType === 'place' 
                   ? "Example: A seedy tavern where criminals meet to plan heists"
                   : "Example: A bustling port city with secret underground markets"
@@ -948,7 +948,7 @@ function LocationsTab({ campaignId }) {
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 gap: '8px',
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                 border: 'none'
               }}
             >
@@ -970,12 +970,12 @@ function LocationsTab({ campaignId }) {
                 marginTop: '16px', 
                 padding: '12px', 
                 background: 'rgba(34, 197, 94, 0.15)', 
-                border: '1px solid #22c55e',
+                border: '1px solid #F59E0B',
                 borderRadius: '8px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Check size={16} style={{ color: '#22c55e' }} />
-                  <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '13px' }}>Created!</span>
+                  <Check size={16} style={{ color: '#F59E0B' }} />
+                  <span style={{ color: '#F59E0B', fontWeight: '600', fontSize: '13px' }}>Created!</span>
                 </div>
                 <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>{lastGenerated.entity_name}</p>
                 <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>

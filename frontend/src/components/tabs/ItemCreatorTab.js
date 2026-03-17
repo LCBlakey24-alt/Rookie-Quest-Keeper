@@ -14,7 +14,7 @@ const API = `${BACKEND_URL}/api`;
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },
   { id: 'armor', label: 'Armor', icon: Shield, color: '#4a7dff' },
-  { id: 'potion', label: 'Potion', icon: FlaskConical, color: '#22c55e' },
+  { id: 'potion', label: 'Potion', icon: FlaskConical, color: '#F59E0B' },
   { id: 'scroll', label: 'Scroll', icon: ScrollText, color: '#a855f7' },
   { id: 'wondrous', label: 'Wondrous Item', icon: Wand2, color: '#eab308' },
   { id: 'ring', label: 'Ring', icon: Gem, color: '#67e8f9' },
@@ -23,7 +23,7 @@ const ITEM_TYPES = [
 
 const RARITIES = [
   { id: 'common', label: 'Common', color: '#94a3b8' },
-  { id: 'uncommon', label: 'Uncommon', color: '#22c55e' },
+  { id: 'uncommon', label: 'Uncommon', color: '#F59E0B' },
   { id: 'rare', label: 'Rare', color: '#4a7dff' },
   { id: 'very_rare', label: 'Very Rare', color: '#a855f7' },
   { id: 'legendary', label: 'Legendary', color: '#f97316' },
@@ -282,7 +282,7 @@ Respond with JSON only:
           <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search items..." className="input-glow" style={{ paddingLeft: '40px' }} />
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <button onClick={() => setFilterType('all')} style={{ padding: '8px 14px', borderRadius: '8px', border: `2px solid ${filterType === 'all' ? '#22c55e' : '#1e40af'}`, background: filterType === 'all' ? 'rgba(34, 197, 94, 0.2)' : 'transparent', color: filterType === 'all' ? '#22c55e' : '#94a3b8', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>All</button>
+          <button onClick={() => setFilterType('all')} style={{ padding: '8px 14px', borderRadius: '8px', border: `2px solid ${filterType === 'all' ? '#F59E0B' : '#1e40af'}`, background: filterType === 'all' ? 'rgba(34, 197, 94, 0.2)' : 'transparent', color: filterType === 'all' ? '#F59E0B' : '#94a3b8', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>All</button>
           {ITEM_TYPES.map(type => (
             <button key={type.id} onClick={() => setFilterType(type.id)} style={{ padding: '8px 12px', borderRadius: '8px', border: `2px solid ${filterType === type.id ? type.color : '#1e40af'}`, background: filterType === type.id ? `${type.color}30` : 'transparent', color: filterType === type.id ? type.color : '#94a3b8', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <type.icon size={14} />

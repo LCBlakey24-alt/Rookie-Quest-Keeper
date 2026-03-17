@@ -202,7 +202,7 @@ function PricingPage({ username, onLogout }) {
                   <span style={{ 
                     marginLeft: '12px',
                     background: 'rgba(34, 197, 94, 0.2)',
-                    color: '#22c55e',
+                    color: '#F59E0B',
                     padding: '4px 10px',
                     fontSize: '11px',
                     fontWeight: '400'
@@ -251,7 +251,7 @@ function PricingPage({ username, onLogout }) {
           >
             Yearly
             <span style={{ 
-              background: '#22c55e', 
+              background: '#F59E0B', 
               color: '#fff', 
               padding: '2px 8px', 
               fontSize: '10px',
@@ -354,7 +354,7 @@ function PricingPage({ username, onLogout }) {
                         (£{(price / 12).toFixed(2)}/month)
                       </p>
                       <p style={{ 
-                        color: '#22c55e', 
+                        color: '#F59E0B', 
                         fontSize: '12px', 
                         marginTop: '6px',
                         fontWeight: '600' 
@@ -559,7 +559,7 @@ function PricingPage({ username, onLogout }) {
               fontSize: '13px'
             }}>
               <span>Referrals: <strong style={{ color: theme.text.white }}>{referralInfo.referral_count}</strong></span>
-              <span>Free months earned: <strong style={{ color: '#22c55e' }}>{referralInfo.free_months_earned}</strong></span>
+              <span>Free months earned: <strong style={{ color: '#F59E0B' }}>{referralInfo.free_months_earned}</strong></span>
             </div>
           </div>
         )}

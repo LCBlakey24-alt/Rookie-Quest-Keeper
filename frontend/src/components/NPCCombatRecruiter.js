@@ -92,7 +92,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
         style={{
           width: '100%',
           padding: '12px',
-          background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+          background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -110,7 +110,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
   return (
     <div style={{
       background: 'rgba(10, 10, 46, 0.95)',
-      border: '2px solid #22c55e',
+      border: '2px solid #F59E0B',
       borderRadius: '14px',
       padding: '16px',
       marginTop: '12px'
@@ -122,7 +122,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
         marginBottom: '12px'
       }}>
         <h3 style={{ 
-          color: '#22c55e', 
+          color: '#F59E0B', 
           fontSize: '15px', 
           fontWeight: '400',
           display: 'flex',
@@ -156,9 +156,9 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
             flex: 1,
             padding: '10px',
             background: selectedTab === 'npcs' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(30, 30, 60, 0.5)',
-            border: `2px solid ${selectedTab === 'npcs' ? '#22c55e' : '#374151'}`,
+            border: `2px solid ${selectedTab === 'npcs' ? '#F59E0B' : '#374151'}`,
             borderRadius: '10px',
-            color: selectedTab === 'npcs' ? '#22c55e' : '#94a3b8',
+            color: selectedTab === 'npcs' ? '#F59E0B' : '#94a3b8',
             fontSize: '13px',
             fontWeight: '400',
             cursor: 'pointer',
@@ -289,7 +289,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
                   data-testid={`add-npc-${npc.id}`}
                   style={{
                     padding: '8px 12px',
-                    background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+                    background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
