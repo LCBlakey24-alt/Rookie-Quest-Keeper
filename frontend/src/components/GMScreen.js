@@ -53,6 +53,7 @@ function GMScreen({ username }) {
   
   // Tab state - single tab for everything
   const [activeTab, setActiveTab] = useState('combat');
+  const [showDicePanel, setShowDicePanel] = useState(true);
 
   useEffect(() => {
     fetchAllData();
@@ -438,12 +439,23 @@ function GMScreen({ username }) {
         {/* MAIN CONTENT AREA */}
         <div style={{ 
           flex: 1, 
+          display: 'flex',
+          gap: '16px',
           overflowY: 'auto',
           padding: '24px',
           background: 'transparent'
         }}>
           {/* Tab Content */}
-          <div style={{ background: theme.bg.panel, backdropFilter: 'blur(16px)', border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '24px', minHeight: '500px' }}>
+          <div style={{ 
+            flex: 1,
+            background: theme.bg.panel, 
+            backdropFilter: 'blur(16px)', 
+            border: `1px solid ${theme.border}`, 
+            borderRadius: '12px', 
+            padding: '24px', 
+            minHeight: '500px',
+            overflowY: 'auto'
+          }}>
             {/* COMBAT TAB */}
             {activeTab === 'combat' && (
               <div>
@@ -1050,7 +1062,178 @@ function GMScreen({ username }) {
               </div>
             </div>
           )}
-        </div>
+          </div>
+          
+          {/* PERSISTENT DICE ROLLER PANEL */}
+          <div style={{
+            width: showDicePanel ? '320px' : '48px',
+            minWidth: showDicePanel ? '320px' : '48px',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Toggle Button */}
+            <button
+              onClick={() => setShowDicePanel(!showDicePanel)}
+              style={{
+                background: theme.gradient,
+                border: 'none',
+                borderRadius: showDicePanel ? '12px 12px 0 0' : '12px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: showDicePanel ? 'space-between' : 'center',
+                gap: '8px',
+                color: '#fff',
+                fontWeight: '600',
+                fontSize: '14px',
+                fontFamily: "'Cinzel', serif"
+              }}
+            >
+              <Dices size={20} />
+              {showDicePanel && <span>Quick Dice</span>}
+              {showDicePanel && (
+                <span style={{ fontSize: '18px', transform: 'rotate(90deg)' }}>›</span>
+              )}
+            </button>
+            
+            {/* Dice Panel Content */}
+            {showDicePanel && (
+              <div style={{
+                background: theme.bg.panel,
+                backdropFilter: 'blur(16px)',
+                border: `1px solid ${theme.border}`,
+                borderTop: 'none',
+                borderRadius: '0 0 12px 12px',
+                padding: '16px',
+                flex: 1,
+                overflowY: 'auto'
+              }}>
+                {/* Quick Roll Buttons */}
+                <div style={{ marginBottom: '16px' }}>
+                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Quick Roll</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                    {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
+                      <button
+                        key={die}
+                        onClick={() => {
+                          const roll = Math.floor(Math.random() * parseInt(die.substring(1))) + 1;
+                          toast.success(`${die}: ${roll}`, { duration: 3000 });
+                        }}
+                        style={{
+                          padding: '10px 8px',
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          border: `1px solid ${theme.accent.primary}`,
+                          borderRadius: '8px',
+                          color: theme.accent.primary,
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.4)';
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        {die}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Common Rolls */}
+                <div style={{ marginBottom: '16px' }}>
+                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Common Rolls</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {[
+                      { label: 'Attack (d20)', dice: '1d20' },
+                      { label: 'Advantage (2d20 high)', dice: '2d20kh1' },
+                      { label: 'Disadvantage (2d20 low)', dice: '2d20kl1' },
+                      { label: 'Damage (2d6)', dice: '2d6' },
+                      { label: 'Fireball (8d6)', dice: '8d6' },
+                    ].map(({ label, dice }) => (
+                      <button
+                        key={dice}
+                        onClick={() => {
+                          // Simple dice roller
+                          const match = dice.match(/(\d+)d(\d+)/);
+                          if (match) {
+                            const numDice = parseInt(match[1]);
+                            const dieSize = parseInt(match[2]);
+                            let rolls = [];
+                            for (let i = 0; i < numDice; i++) {
+                              rolls.push(Math.floor(Math.random() * dieSize) + 1);
+                            }
+                            let result = rolls.reduce((a, b) => a + b, 0);
+                            if (dice.includes('kh1')) result = Math.max(...rolls);
+                            if (dice.includes('kl1')) result = Math.min(...rolls);
+                            toast.success(`${label}: ${result} (${rolls.join(', ')})`, { duration: 4000 });
+                          }
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          background: 'rgba(245, 158, 11, 0.15)',
+                          border: `1px solid ${theme.accent.gm}`,
+                          borderRadius: '8px',
+                          color: theme.text.primary,
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(245, 158, 11, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(245, 158, 11, 0.15)';
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* d100 / Percentile */}
+                <div>
+                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Percentile</p>
+                  <button
+                    onClick={() => {
+                      const roll = Math.floor(Math.random() * 100) + 1;
+                      toast.success(`d100: ${roll}%`, { duration: 3000 });
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'rgba(236, 72, 153, 0.2)',
+                      border: `1px solid ${theme.accent.secondary}`,
+                      borderRadius: '8px',
+                      color: theme.accent.secondary,
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(236, 72, 153, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(236, 72, 153, 0.2)';
+                    }}
+                  >
+                    Roll d100
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

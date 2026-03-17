@@ -46,7 +46,7 @@ function SimpleToken({ name, size = 40, color, type = 'enemy', hp, maxHp }) {
       height: size,
       borderRadius: '50%',
       background: `linear-gradient(135deg, ${tokenColor} 0%, ${tokenColor}99 100%)`,
-      border: `3px solid ${type === 'enemy' ? '#ef4444' : type === 'player' ? '#3b82f6' : '#22c55e'}`,
+      border: `3px solid ${type === 'enemy' ? '#ef4444' : type === 'player' ? '#3b82f6' : '#F59E0B'}`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -83,7 +83,7 @@ function SimpleToken({ name, size = 40, color, type = 'enemy', hp, maxHp }) {
           cy={size / 2}
           r={(size / 2) - 4}
           fill="none"
-          stroke={hpPercent > 50 ? '#22c55e' : hpPercent > 25 ? '#eab308' : '#ef4444'}
+          stroke={hpPercent > 50 ? '#F59E0B' : hpPercent > 25 ? '#eab308' : '#ef4444'}
           strokeWidth="3"
           strokeDasharray={`${(hpPercent / 100) * 2 * Math.PI * ((size / 2) - 4)} ${2 * Math.PI * ((size / 2) - 4)}`}
           style={{ transition: 'stroke-dasharray 0.3s' }}
@@ -97,7 +97,7 @@ function SimpleToken({ name, size = 40, color, type = 'enemy', hp, maxHp }) {
 // Token with AI-generated portrait
 function AIToken({ name, imageUrl, size = 60, type = 'enemy', hp, maxHp, isLoading }) {
   const hpPercent = maxHp ? (hp / maxHp) * 100 : 100;
-  const borderColor = type === 'enemy' ? '#ef4444' : type === 'player' ? '#3b82f6' : '#22c55e';
+  const borderColor = type === 'enemy' ? '#ef4444' : type === 'player' ? '#3b82f6' : '#F59E0B';
   
   return (
     <div style={{
@@ -146,7 +146,7 @@ function AIToken({ name, imageUrl, size = 60, type = 'enemy', hp, maxHp, isLoadi
           cy={size / 2}
           r={(size / 2) - 2}
           fill="none"
-          stroke={hpPercent > 50 ? '#22c55e' : hpPercent > 25 ? '#eab308' : '#ef4444'}
+          stroke={hpPercent > 50 ? '#F59E0B' : hpPercent > 25 ? '#eab308' : '#ef4444'}
           strokeWidth="3"
           strokeDasharray={`${(hpPercent / 100) * 2 * Math.PI * ((size / 2) - 2)} ${2 * Math.PI * ((size / 2) - 2)}`}
           style={{ transition: 'stroke-dasharray 0.3s' }}

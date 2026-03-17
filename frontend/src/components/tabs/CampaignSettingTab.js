@@ -899,7 +899,7 @@ function CampaignSettingTab({ campaignId }) {
                       toast.success('Inserted into setting!');
                     }}
                     className="btn-outline"
-                    style={{ padding: '6px 10px', fontSize: '11px', display: 'flex', gap: '4px', borderColor: '#22c55e', color: '#22c55e' }}
+                    style={{ padding: '6px 10px', fontSize: '11px', display: 'flex', gap: '4px', borderColor: '#F59E0B', color: '#F59E0B' }}
                   >
                     <ArrowDown size={12} />
                     Insert
@@ -932,7 +932,7 @@ function CampaignSettingTab({ campaignId }) {
         </div>
 
         {/* Player Join Code Panel */}
-        <div className="glow-panel" style={{ borderColor: '#22c55e', marginTop: '20px' }}>
+        <div className="glow-panel" style={{ borderColor: '#F59E0B', marginTop: '20px' }}>
           <h3 style={{ 
             fontSize: '18px', 
             color: '#ffffff', 
@@ -943,7 +943,7 @@ function CampaignSettingTab({ campaignId }) {
             fontFamily: 'Cityworm, sans-serif',
             fontWeight: '700'
           }}>
-            <Users size={20} style={{ color: '#22c55e' }} />
+            <Users size={20} style={{ color: '#F59E0B' }} />
             Player Join Code
           </h3>
           <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px', lineHeight: '1.5' }}>
@@ -955,18 +955,18 @@ function CampaignSettingTab({ campaignId }) {
               <div style={{
                 padding: '20px',
                 background: 'rgba(34, 197, 94, 0.1)',
-                border: '3px solid #22c55e',
+                border: '3px solid #F59E0B',
                 borderRadius: '16px',
                 textAlign: 'center',
                 marginBottom: '12px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-                  <Key size={24} color="#22c55e" />
+                  <Key size={24} color="#F59E0B" />
                 </div>
                 <div style={{
                   fontSize: '36px',
                   fontWeight: '800',
-                  color: '#22c55e',
+                  color: '#F59E0B',
                   letterSpacing: '8px',
                   fontFamily: 'monospace'
                 }}>
@@ -987,7 +987,7 @@ function CampaignSettingTab({ campaignId }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
                 }}
               >
                 <Copy size={16} />
@@ -1005,7 +1005,7 @@ function CampaignSettingTab({ campaignId }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
               }}
             >
               {loadingJoinCode ? (

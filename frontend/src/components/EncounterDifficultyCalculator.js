@@ -81,7 +81,7 @@ function EncounterDifficultyCalculator({ monsters = [], partySize = 4, partyLeve
 
     // Determine difficulty
     let difficultyLevel = 'trivial';
-    let color = '#22c55e';
+    let color = '#F59E0B';
     let icon = CheckCircle;
     
     if (adjustedXP >= partyDeadly) {
@@ -98,7 +98,7 @@ function EncounterDifficultyCalculator({ monsters = [], partySize = 4, partyLeve
       icon = Info;
     } else if (adjustedXP >= partyEasy) {
       difficultyLevel = 'easy';
-      color = '#22c55e';
+      color = '#F59E0B';
       icon = CheckCircle;
     }
 
@@ -232,7 +232,7 @@ function EncounterDifficultyCalculator({ monsters = [], partySize = 4, partyLeve
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
               {[
-                { label: 'Easy', value: difficulty.thresholds.easy, color: '#22c55e' },
+                { label: 'Easy', value: difficulty.thresholds.easy, color: '#F59E0B' },
                 { label: 'Medium', value: difficulty.thresholds.medium, color: '#eab308' },
                 { label: 'Hard', value: difficulty.thresholds.hard, color: '#f97316' },
                 { label: 'Deadly', value: difficulty.thresholds.deadly, color: '#ef4444' }

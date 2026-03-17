@@ -527,7 +527,7 @@ function CalendarTab({ campaignId }) {
                     data-testid={`event-${event.id}`}
                     className="initiative-entry"
                     style={{
-                      borderLeftColor: isToday ? '#22c55e' : isPast ? '#6b7280' : '#ff1f8f',
+                      borderLeftColor: isToday ? '#F59E0B' : isPast ? '#6b7280' : '#ff1f8f',
                       opacity: isPast ? 0.6 : 1
                     }}
                   >
@@ -541,7 +541,7 @@ function CalendarTab({ campaignId }) {
                         {!isPast && daysUntil <= 30 && (
                           <p style={{ 
                             fontSize: '12px', 
-                            color: isToday ? '#22c55e' : '#ff1f8f',
+                            color: isToday ? '#F59E0B' : '#ff1f8f',
                             fontWeight: '600'
                           }}>
                             {isToday ? 'TODAY!' : `In ${daysUntil} day(s)`}
@@ -601,7 +601,7 @@ function CalendarTab({ campaignId }) {
                         padding: '12px',
                         background: event.daysUntil === 0 ? 'rgba(34, 197, 94, 0.2)' : '#0a1628',
                         border: '2px solid',
-                        borderColor: event.daysUntil === 0 ? '#22c55e' : '#ff1f8f',
+                        borderColor: event.daysUntil === 0 ? '#F59E0B' : '#ff1f8f',
                         borderRadius: '8px'
                       }}
                     >
@@ -612,7 +612,7 @@ function CalendarTab({ campaignId }) {
                       <p style={{ 
                         fontSize: '13px', 
                         fontWeight: '700',
-                        color: event.daysUntil === 0 ? '#22c55e' : '#ff1f8f'
+                        color: event.daysUntil === 0 ? '#F59E0B' : '#ff1f8f'
                       }}>
                         {event.daysUntil === 0 ? 'TODAY!' : `${event.daysUntil} day(s)`}
                       </p>

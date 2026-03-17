@@ -589,7 +589,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', fontSize: '13px', color: '#94a3b8' }}>
-                <span>HP: <span style={{ color: '#22c55e' }}>{creature.hp}</span></span>
+                <span>HP: <span style={{ color: '#F59E0B' }}>{creature.hp}</span></span>
                 <span>AC: <span style={{ color: '#4a7dff' }}>{creature.ac}</span></span>
                 <span>{creature.size} {creature.type}</span>
               </div>

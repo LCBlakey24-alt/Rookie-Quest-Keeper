@@ -27,7 +27,7 @@ const CONDITIONS = [
   { id: 'incapacitated', label: 'Incap', color: '#78716c' },
   { id: 'invisible', label: 'Invis', color: '#06b6d4' },
   { id: 'paralyzed', label: 'Para', color: '#eab308' },
-  { id: 'poisoned', label: 'Pois', color: '#22c55e' },
+  { id: 'poisoned', label: 'Pois', color: '#F59E0B' },
   { id: 'prone', label: 'Prone', color: '#92400e' },
   { id: 'restrained', label: 'Rest', color: '#dc2626' },
   { id: 'stunned', label: 'Stun', color: '#fbbf24' },
@@ -346,7 +346,7 @@ function CombatPage() {
       x: tokenX,
       y: tokenY,
       size: 50,
-      color: newCombatant.isEnemy ? '#ef4444' : '#22c55e',
+      color: newCombatant.isEnemy ? '#ef4444' : '#F59E0B',
       isEnemy: newCombatant.isEnemy
     }]);
   };
@@ -451,7 +451,7 @@ function CombatPage() {
       ctx.arc(token.x, token.y, token.size / 2, 0, Math.PI * 2);
       ctx.fillStyle = token.color || '#4a7dff';
       ctx.fill();
-      ctx.strokeStyle = isSelected ? '#fff' : isCurrent ? '#22c55e' : 'rgba(0,0,0,0.5)';
+      ctx.strokeStyle = isSelected ? '#fff' : isCurrent ? '#F59E0B' : 'rgba(0,0,0,0.5)';
       ctx.lineWidth = (isSelected || isCurrent ? 3 : 2) / zoom;
       ctx.stroke();
       
@@ -477,7 +477,7 @@ function CombatPage() {
         const barH = 6 / zoom;
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(token.x - barW / 2, token.y + token.size / 2 + 18, barW, barH);
-        ctx.fillStyle = pct > 0.5 ? '#22c55e' : pct > 0.25 ? '#eab308' : '#ef4444';
+        ctx.fillStyle = pct > 0.5 ? '#F59E0B' : pct > 0.25 ? '#eab308' : '#ef4444';
         ctx.fillRect(token.x - barW / 2, token.y + token.size / 2 + 18, barW * pct, barH);
       }
     });
@@ -788,7 +788,7 @@ function CombatPage() {
                   
                   {/* Loot collected indicator */}
                   {c.lootCollected && (
-                    <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', borderRadius: '8px', textAlign: 'center', fontSize: '11px', color: '#22c55e', fontWeight: '400' }}>
+                    <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #F59E0B', borderRadius: '8px', textAlign: 'center', fontSize: '11px', color: '#F59E0B', fontWeight: '400' }}>
                       <Package size={12} style={{ marginRight: '4px', display: 'inline' }} /> Loot Collected
                     </div>
                   )}
@@ -814,7 +814,7 @@ function CombatPage() {
             <Button onClick={() => setZoom(z => Math.min(2, z + 0.2))} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><ZoomIn size={18} /></Button>
             <Button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><ZoomOut size={18} /></Button>
             <Button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><RotateCcw size={18} /></Button>
-            <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)', color: showGrid ? '#22c55e' : '#64748b' }}><Grid size={18} /></Button>
+            <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)', color: showGrid ? '#F59E0B' : '#64748b' }}><Grid size={18} /></Button>
           </div>
           
           <div

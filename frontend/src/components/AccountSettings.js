@@ -428,7 +428,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                   <div style={{
                     marginTop: '8px',
                     fontSize: '12px',
-                    color: newPassword === confirmPassword ? '#22c55e' : '#ef4444'
+                    color: newPassword === confirmPassword ? '#F59E0B' : '#ef4444'
                   }}>
                     {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
                   </div>
@@ -572,8 +572,8 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                   gap: '8px',
                   marginBottom: '12px'
                 }}>
-                  <Share2 size={18} style={{ color: '#22c55e' }} />
-                  <span style={{ color: '#22c55e', fontWeight: '400', fontSize: '14px' }}>
+                  <Share2 size={18} style={{ color: '#F59E0B' }} />
+                  <span style={{ color: '#F59E0B', fontWeight: '400', fontSize: '14px' }}>
                     Your Referral Code
                   </span>
                 </div>
@@ -589,7 +589,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                       style={{
                         flex: 1,
                         background: 'rgba(0, 0, 0, 0.3)',
-                        border: '2px solid #22c55e',
+                        border: '2px solid #F59E0B',
                         textTransform: 'uppercase',
                         fontFamily: 'monospace',
                         letterSpacing: '1px'
@@ -600,7 +600,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                       disabled={savingReferral || !newReferralCode.trim()}
                       data-testid="save-referral-btn"
                       style={{
-                        background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+                        background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
                         padding: '8px 16px'
                       }}
                     >
@@ -620,7 +620,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ 
-                      color: '#22c55e', 
+                      color: '#F59E0B', 
                       fontFamily: 'monospace',
                       fontSize: '18px',
                       fontWeight: '400',
@@ -634,10 +634,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                       data-testid="copy-referral-btn"
                       style={{
                         background: 'rgba(34, 197, 94, 0.2)',
-                        border: '1px solid #22c55e',
+                        border: '1px solid #F59E0B',
                         borderRadius: '8px',
                         padding: '8px 12px',
-                        color: '#22c55e',
+                        color: '#F59E0B',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -695,7 +695,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                     justifyContent: 'space-between'
                   }}>
                     <span style={{ color: '#94a3b8', fontSize: '12px' }}>Friends referred:</span>
-                    <span style={{ color: '#22c55e', fontWeight: '400' }}>
+                    <span style={{ color: '#F59E0B', fontWeight: '400' }}>
                       {profile.subscription.referral_count}
                     </span>
                   </div>

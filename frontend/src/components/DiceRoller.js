@@ -6,7 +6,7 @@ const DICE_TYPES = [
   { sides: 4, label: 'D4', color: '#ef4444' },
   { sides: 6, label: 'D6', color: '#f97316' },
   { sides: 8, label: 'D8', color: '#eab308' },
-  { sides: 10, label: 'D10', color: '#22c55e' },
+  { sides: 10, label: 'D10', color: '#F59E0B' },
   { sides: 12, label: 'D12', color: '#06b6d4' },
   { sides: 20, label: 'D20', color: '#4a7dff' },
   { sides: 100, label: 'D100', color: '#a855f7' },
@@ -84,7 +84,7 @@ function DiceRoller() {
           alignItems: 'center',
           gap: '10px'
         }}>
-          <Dices size={22} style={{ color: '#22c55e' }} />
+          <Dices size={22} style={{ color: '#F59E0B' }} />
           Dice Roller
         </h3>
         <Button
@@ -149,9 +149,9 @@ function DiceRoller() {
                 style={{
                   padding: '8px 10px',
                   borderRadius: '6px',
-                  border: diceCount === num ? '2px solid #22c55e' : '2px solid #1e40af',
+                  border: diceCount === num ? '2px solid #F59E0B' : '2px solid #1e40af',
                   background: diceCount === num ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
-                  color: diceCount === num ? '#22c55e' : '#94a3b8',
+                  color: diceCount === num ? '#F59E0B' : '#94a3b8',
                   fontWeight: '400',
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -243,7 +243,7 @@ function DiceRoller() {
           background: currentResult.isCrit ? 'rgba(34, 197, 94, 0.2)' : 
                       currentResult.isFail ? 'rgba(239, 68, 68, 0.2)' : 
                       'rgba(10, 10, 40, 0.6)',
-          border: `2px solid ${currentResult.isCrit ? '#22c55e' : 
+          border: `2px solid ${currentResult.isCrit ? '#F59E0B' : 
                                currentResult.isFail ? '#ef4444' : 
                                currentResult.dice.color}`,
           borderRadius: '12px',
@@ -255,7 +255,7 @@ function DiceRoller() {
           {currentResult.isCrit && (
             <div style={{ 
               fontSize: '14px', 
-              color: '#22c55e', 
+              color: '#F59E0B', 
               fontWeight: '800',
               fontFamily: "Eros Book, sans-serif",
               marginBottom: '8px',
@@ -281,7 +281,7 @@ function DiceRoller() {
           <div style={{ 
             fontSize: '48px', 
             fontWeight: '800', 
-            color: currentResult.isCrit ? '#22c55e' : 
+            color: currentResult.isCrit ? '#F59E0B' : 
                    currentResult.isFail ? '#ef4444' : 
                    '#ffffff',
             fontFamily: "Eros Book, sans-serif",
@@ -307,7 +307,7 @@ function DiceRoller() {
                   {' = '}
                   <span style={{ color: '#ffffff' }}>{currentResult.rolls.reduce((a, b) => a + b, 0)}</span>
                   {currentResult.modifier !== 0 && (
-                    <span style={{ color: currentResult.modifier > 0 ? '#22c55e' : '#ef4444' }}>
+                    <span style={{ color: currentResult.modifier > 0 ? '#F59E0B' : '#ef4444' }}>
                       {currentResult.modifier > 0 ? ` + ${currentResult.modifier}` : ` - ${Math.abs(currentResult.modifier)}`}
                     </span>
                   )}
@@ -328,7 +328,7 @@ function DiceRoller() {
                         background: roll === currentResult.dice.sides ? 'rgba(34, 197, 94, 0.3)' :
                                    roll === 1 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)',
                         borderRadius: '4px',
-                        color: roll === currentResult.dice.sides ? '#22c55e' :
+                        color: roll === currentResult.dice.sides ? '#F59E0B' :
                                roll === 1 ? '#ef4444' : '#94a3b8'
                       }}
                     >
@@ -341,7 +341,7 @@ function DiceRoller() {
               <>
                 {currentResult.rolls.join(' + ')}
                 {currentResult.modifier !== 0 && (
-                  <span style={{ color: currentResult.modifier > 0 ? '#22c55e' : '#ef4444' }}>
+                  <span style={{ color: currentResult.modifier > 0 ? '#F59E0B' : '#ef4444' }}>
                     {currentResult.modifier > 0 ? ` + ${currentResult.modifier}` : ` - ${Math.abs(currentResult.modifier)}`}
                   </span>
                 )}
@@ -394,7 +394,7 @@ function DiceRoller() {
                   padding: '8px 12px',
                   background: 'rgba(10, 10, 40, 0.4)',
                   borderRadius: '6px',
-                  border: `1px solid ${roll.isCrit ? '#22c55e' : roll.isFail ? '#ef4444' : '#1e40af'}`,
+                  border: `1px solid ${roll.isCrit ? '#F59E0B' : roll.isFail ? '#ef4444' : '#1e40af'}`,
                   fontSize: '13px'
                 }}
               >
@@ -404,7 +404,7 @@ function DiceRoller() {
                 </span>
                 <span style={{ 
                   fontWeight: '400', 
-                  color: roll.isCrit ? '#22c55e' : roll.isFail ? '#ef4444' : '#ffffff',
+                  color: roll.isCrit ? '#F59E0B' : roll.isFail ? '#ef4444' : '#ffffff',
                   fontFamily: "Eros Book, sans-serif"
                 }}>
                   {roll.total}

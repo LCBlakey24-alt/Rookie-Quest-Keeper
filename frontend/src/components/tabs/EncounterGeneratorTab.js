@@ -12,7 +12,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const DIFFICULTY_LEVELS = [
-  { id: 'easy', label: 'Easy', color: '#22c55e', description: 'Low risk, good for new players or warm-up' },
+  { id: 'easy', label: 'Easy', color: '#F59E0B', description: 'Low risk, good for new players or warm-up' },
   { id: 'medium', label: 'Medium', color: '#eab308', description: 'Moderate challenge, resource drain' },
   { id: 'hard', label: 'Hard', color: '#f97316', description: 'Dangerous, may need tactics and teamwork' },
   { id: 'deadly', label: 'Deadly', color: '#ef4444', description: 'High mortality risk, retreat may be wise' },
@@ -309,9 +309,9 @@ Please provide a JSON response with this exact structure:
                   style={{
                     padding: '12px 8px',
                     borderRadius: '10px',
-                    border: `2px solid ${encounterType === type.id ? '#22c55e' : '#1e40af'}`,
+                    border: `2px solid ${encounterType === type.id ? '#F59E0B' : '#1e40af'}`,
                     background: encounterType === type.id ? 'rgba(34, 197, 94, 0.15)' : 'rgba(10, 10, 40, 0.5)',
-                    color: encounterType === type.id ? '#22c55e' : '#94a3b8',
+                    color: encounterType === type.id ? '#F59E0B' : '#94a3b8',
                     fontWeight: '700',
                     fontSize: '11px',
                     cursor: 'pointer',
@@ -420,7 +420,7 @@ Please provide a JSON response with this exact structure:
                       fontSize: '11px',
                       fontWeight: '600',
                       background: 'rgba(34, 197, 94, 0.2)',
-                      color: '#22c55e'
+                      color: '#F59E0B'
                     }}>
                       ~{generatedEncounter.estimated_xp || 0} XP
                     </span>
@@ -493,10 +493,10 @@ Please provide a JSON response with this exact structure:
               {/* Terrain */}
               {generatedEncounter.terrain_features?.length > 0 && (
                 <div>
-                  <h4 style={{ fontSize: '13px', color: '#22c55e', fontWeight: '700', marginBottom: '8px' }}>Terrain Features</h4>
+                  <h4 style={{ fontSize: '13px', color: '#F59E0B', fontWeight: '700', marginBottom: '8px' }}>Terrain Features</h4>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {generatedEncounter.terrain_features.map((feature, idx) => (
-                      <span key={idx} style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', color: '#22c55e' }}>
+                      <span key={idx} style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #F59E0B', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', color: '#F59E0B' }}>
                         {feature}
                       </span>
                     ))}

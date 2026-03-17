@@ -364,7 +364,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                     style={{
                       padding: '10px 14px',
                       background: result.isCrit ? 'rgba(234, 179, 8, 0.2)' : result.hits ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      border: `2px solid ${result.isCrit ? '#eab308' : result.hits ? '#22c55e' : '#ef4444'}`,
+                      border: `2px solid ${result.isCrit ? '#eab308' : result.hits ? '#F59E0B' : '#ef4444'}`,
                       borderRadius: '10px',
                       textAlign: 'center',
                       minWidth: '80px',
@@ -386,7 +386,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                     <div style={{ 
                       fontSize: '20px', 
                       fontWeight: '800', 
-                      color: result.isCrit ? '#eab308' : result.hits ? '#22c55e' : '#ef4444',
+                      color: result.isCrit ? '#eab308' : result.hits ? '#F59E0B' : '#ef4444',
                       fontFamily: 'Montserrat'
                     }}>
                       {result.total}
@@ -398,7 +398,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                       fontSize: '11px', 
                       fontWeight: '400',
                       marginTop: '4px',
-                      color: result.isCrit ? '#eab308' : result.hits ? '#22c55e' : '#ef4444'
+                      color: result.isCrit ? '#eab308' : result.hits ? '#F59E0B' : '#ef4444'
                     }}>
                       {result.isCrit ? 'CRIT!' : result.isFumble ? 'FUMBLE!' : result.hits ? 'HIT' : 'MISS'}
                     </div>
@@ -509,7 +509,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
                     width: '100%',
                     marginTop: '12px',
                     padding: '12px',
-                    background: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)',
+                    background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

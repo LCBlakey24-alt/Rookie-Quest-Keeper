@@ -50,7 +50,7 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
       <DialogContent className="modal" style={{ maxWidth: '500px' }}>
         <DialogHeader>
           <DialogTitle className="medieval-heading" style={{ fontSize: '24px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link2 size={24} color="#22c55e" />
+            <Link2 size={24} color="#F59E0B" />
             Join Campaign
           </DialogTitle>
         </DialogHeader>

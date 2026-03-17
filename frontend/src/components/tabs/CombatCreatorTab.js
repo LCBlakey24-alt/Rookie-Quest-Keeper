@@ -14,7 +14,7 @@ const API = `${BACKEND_URL}/api`;
 
 const TOKEN_COLORS = [
   { id: 'blue', color: '#4a7dff', label: 'Blue (Players)' },
-  { id: 'green', color: '#22c55e', label: 'Green (Allies)' },
+  { id: 'green', color: '#F59E0B', label: 'Green (Allies)' },
   { id: 'red', color: '#ef4444', label: 'Red (Enemies)' },
   { id: 'yellow', color: '#eab308', label: 'Yellow' },
   { id: 'purple', color: '#a855f7', label: 'Purple' },
@@ -434,7 +434,7 @@ function CombatCreatorTab({ campaignId }) {
                 style={{
                   cursor: 'pointer',
                   padding: '14px',
-                  border: selectedScenario?.id === scenario.id ? '2px solid #22c55e' : '2px solid #1e40af',
+                  border: selectedScenario?.id === scenario.id ? '2px solid #F59E0B' : '2px solid #1e40af',
                   background: selectedScenario?.id === scenario.id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(10, 10, 60, 0.7)'
                 }}
               >
@@ -514,11 +514,11 @@ function CombatCreatorTab({ campaignId }) {
         <div className="glow-panel" style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Cityworm, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Map size={20} style={{ color: '#22c55e' }} />
+              <Map size={20} style={{ color: '#F59E0B' }} />
               Battle Map
             </h3>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ color: showGrid ? '#22c55e' : '#64748b' }}>
+              <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ color: showGrid ? '#F59E0B' : '#64748b' }}>
                 <Grid size={16} />
               </Button>
               {mapImage && (
@@ -700,7 +700,7 @@ function CombatCreatorTab({ campaignId }) {
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ 
                             background: getCRValue(monster.cr) >= 10 ? 'rgba(239, 68, 68, 0.3)' : getCRValue(monster.cr) >= 5 ? 'rgba(234, 179, 8, 0.3)' : 'rgba(34, 197, 94, 0.3)',
-                            color: getCRValue(monster.cr) >= 10 ? '#ef4444' : getCRValue(monster.cr) >= 5 ? '#eab308' : '#22c55e',
+                            color: getCRValue(monster.cr) >= 10 ? '#ef4444' : getCRValue(monster.cr) >= 5 ? '#eab308' : '#F59E0B',
                             padding: '2px 8px',
                             borderRadius: '10px',
                             fontSize: '11px',

@@ -437,7 +437,7 @@ export default function CharacterSheetFull() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '6px', 
-                background: 'linear-gradient(135deg, #10B981, #059669)', 
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
                 border: 'none', 
                 borderRadius: '10px', 
                 padding: '8px 16px', 

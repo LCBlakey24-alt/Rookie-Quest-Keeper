@@ -180,7 +180,7 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
       case 'multiattack': return '#a855f7';
       case 'spell': return '#3b82f6';
       case 'breath': return '#f97316';
-      case 'special': return '#22c55e';
+      case 'special': return '#F59E0B';
       case 'ranged': return '#06b6d4';
       default: return '#ef4444';
     }
@@ -260,7 +260,7 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
             {lastRoll.results.map((r, i) => (
               <div key={i} style={{ color: '#94a3b8' }}>
                 {r.type === 'attack' && (
-                  <span style={{ color: r.isCrit ? '#eab308' : r.total >= 15 ? '#22c55e' : '#fff' }}>
+                  <span style={{ color: r.isCrit ? '#eab308' : r.total >= 15 ? '#F59E0B' : '#fff' }}>
                     Attack: {r.roll}+{r.bonus}={r.total} {r.isCrit && '(CRIT!)'}
                   </span>
                 )}

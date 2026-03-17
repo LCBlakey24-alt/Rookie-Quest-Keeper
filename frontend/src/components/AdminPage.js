@@ -313,8 +313,8 @@ function AdminPage({ username }) {
             padding: '20px',
             textAlign: 'center'
           }}>
-            <Star size={24} color="#22c55e" style={{ marginBottom: '8px' }} />
-            <div style={{ color: '#22c55e', fontSize: '28px', fontWeight: '800' }}>
+            <Star size={24} color="#F59E0B" style={{ marginBottom: '8px' }} />
+            <div style={{ color: '#F59E0B', fontSize: '28px', fontWeight: '800' }}>
               {reviews.filter(r => r.is_approved).length}
             </div>
             <div style={{ color: theme.text.muted, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -579,7 +579,7 @@ function AdminPage({ username }) {
                     'player': { bg: theme.player.subtle, color: theme.player.cyan, label: 'Hero', border: theme.player.border },
                     'gm': { bg: theme.gm.subtle, color: theme.gm.primary, label: 'Quest Master', border: theme.gm.border },
                     'legendary': { bg: theme.legendary.subtle, color: theme.legendary.primary, label: 'Legendary', border: theme.legendary.border },
-                    'adventurer': { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', label: 'Legacy', border: 'rgba(34, 197, 94, 0.4)' }
+                    'adventurer': { bg: 'rgba(34, 197, 94, 0.15)', color: '#F59E0B', label: 'Legacy', border: 'rgba(34, 197, 94, 0.4)' }
                   };
                   const style = tierStyles[code.tier_granted] || tierStyles['legendary'];
                   
@@ -622,7 +622,7 @@ function AdminPage({ username }) {
                             Uses: {code.uses_remaining === -1 ? '∞' : code.uses_remaining}
                           </span>
                           <span style={{ 
-                            color: code.duration_days === -1 ? '#22c55e' : theme.legendary.primary, 
+                            color: code.duration_days === -1 ? '#F59E0B' : theme.legendary.primary, 
                             fontSize: '11px',
                             background: code.duration_days === -1 ? 'rgba(34, 197, 94, 0.15)' : theme.legendary.subtle,
                             padding: '4px 10px'
@@ -820,7 +820,7 @@ function AdminPage({ username }) {
                     </span>
                     <span style={{ color: theme.text.white, fontWeight: '400' }}>{user.username}</span>
                   </div>
-                  <span style={{ color: '#22c55e', fontWeight: '400' }}>
+                  <span style={{ color: '#F59E0B', fontWeight: '400' }}>
                     {user.referrals} referrals
                   </span>
                 </div>
