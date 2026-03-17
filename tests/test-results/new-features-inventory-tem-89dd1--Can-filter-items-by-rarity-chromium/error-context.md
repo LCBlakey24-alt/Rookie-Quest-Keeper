@@ -1,0 +1,195 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - banner [ref=e9]:
+          - generic [ref=e10]:
+            - img "ROOK" [ref=e11]
+            - heading "ROOKIE QUEST KEEPER" [level=1] [ref=e12]
+            - generic [ref=e13]: Welcome, LCBlakey24
+          - generic [ref=e14]:
+            - button "Admin" [ref=e17] [cursor=pointer]:
+              - generic [ref=e18]:
+                - img
+              - text: Admin
+            - button "Review" [ref=e21] [cursor=pointer]:
+              - generic [ref=e22]:
+                - img
+              - text: Review
+            - generic [ref=e23] [cursor=pointer]:
+              - img [ref=e25]
+              - text: Upload JSON
+            - button "Referral" [ref=e30] [cursor=pointer]:
+              - generic [ref=e31]:
+                - img
+              - text: Referral
+            - button [ref=e34] [cursor=pointer]:
+              - img
+            - button [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]:
+                - img
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]: Coming Soon
+              - generic [ref=e43]:
+                - img [ref=e44]
+                - heading "Player Features" [level=3] [ref=e47]
+                - paragraph [ref=e48]: Character creation, inventory management, and player tools are currently under development.
+                - paragraph [ref=e49]: Subscribe to Legendary tier to get early access when available!
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - generic [ref=e53]:
+                  - heading "PLAYER SIDE" [level=2] [ref=e54]:
+                    - img [ref=e55]
+                    - text: PLAYER SIDE
+                  - heading "My Characters" [level=3] [ref=e58]
+                - button "New Character" [ref=e61] [cursor=pointer]:
+                  - img
+                  - text: New Character
+              - generic [ref=e63]:
+                - generic [ref=e65]:
+                  - generic [ref=e66]:
+                    - img [ref=e69]
+                    - generic [ref=e71]:
+                      - heading "🎮 Welcome to Your Player Hub!" [level=4] [ref=e72]:
+                        - generic [ref=e73]: 🎮
+                        - text: Welcome to Your Player Hub!
+                      - text: Rook's Tips
+                  - button [ref=e76] [cursor=pointer]:
+                    - img
+                - list [ref=e77]:
+                  - listitem [ref=e78]:
+                    - img [ref=e79]
+                    - generic [ref=e81]: This is where all your characters live. Click on any character to view their full sheet.
+                  - listitem [ref=e82]:
+                    - img [ref=e83]
+                    - generic [ref=e85]: Use the '+ New Character' button to create a new hero with Rook's AI-powered character builder.
+                  - listitem [ref=e86]:
+                    - img [ref=e87]
+                    - generic [ref=e89]: Characters can join campaigns when your GM invites you!
+                - button "Got it, thanks!" [ref=e93] [cursor=pointer]
+              - generic [ref=e94]:
+                - generic [ref=e95] [cursor=pointer]:
+                  - generic [ref=e96]:
+                    - heading "TEST_Hero_1773389545537" [level=3] [ref=e97]
+                    - paragraph [ref=e98]: Level 1 Human Fighter
+                  - generic [ref=e99]:
+                    - button "Delete character" [ref=e100]:
+                      - img [ref=e102]
+                    - img [ref=e105]
+                - generic [ref=e107] [cursor=pointer]:
+                  - generic [ref=e108]:
+                    - heading "TEST_Hero_1773389435344" [level=3] [ref=e109]
+                    - paragraph [ref=e110]: Level 1 Human Fighter
+                  - generic [ref=e111]:
+                    - button "Delete character" [ref=e112]:
+                      - img [ref=e114]
+                    - img [ref=e117]
+                - generic [ref=e119] [cursor=pointer]:
+                  - generic [ref=e120]:
+                    - heading "TEST_spells_obj_format" [level=3] [ref=e121]
+                    - paragraph [ref=e122]: Level 1 Elf Wizard
+                  - generic [ref=e123]:
+                    - button "Delete character" [ref=e124]:
+                      - img [ref=e126]
+                    - img [ref=e129]
+                - generic [ref=e131] [cursor=pointer]:
+                  - generic [ref=e132]:
+                    - heading "TEST_char_fix_123" [level=3] [ref=e133]
+                    - paragraph [ref=e134]: Level 1 Human Fighter
+                  - generic [ref=e135]:
+                    - button "Delete character" [ref=e136]:
+                      - img [ref=e138]
+                    - img [ref=e141]
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - heading "GM SIDE" [level=2] [ref=e148]:
+                  - img [ref=e150]
+                  - text: GM SIDE
+                - heading "My Campaigns" [level=3] [ref=e155]
+                - text: Legendary · Unlimited
+              - button "New Campaign" [ref=e158] [cursor=pointer]:
+                - img
+                - text: New Campaign
+            - generic [ref=e160]:
+              - generic [ref=e162]:
+                - generic [ref=e163]:
+                  - img [ref=e166]
+                  - generic [ref=e168]:
+                    - heading "👑 Welcome to the GM Command Center!" [level=4] [ref=e169]:
+                      - generic [ref=e170]: 👑
+                      - text: Welcome to the GM Command Center!
+                    - text: Rook's Tips
+                - button [ref=e173] [cursor=pointer]:
+                  - img
+              - list [ref=e174]:
+                - listitem [ref=e175]:
+                  - img [ref=e176]
+                  - generic [ref=e178]: Your campaigns are listed here. Click any campaign to manage it.
+                - listitem [ref=e179]:
+                  - img [ref=e180]
+                  - generic [ref=e182]: Hit '+ New Campaign' to start a fresh adventure.
+                - listitem [ref=e183]:
+                  - img [ref=e184]
+                  - generic [ref=e186]: Each campaign has its own world, NPCs, locations, and maps!
+              - button "Got it, thanks!" [ref=e190] [cursor=pointer]
+            - generic [ref=e191]:
+              - generic [ref=e192] [cursor=pointer]:
+                - generic [ref=e193]:
+                  - heading "TEST_Campaign_1773389199863" [level=3] [ref=e194]
+                  - generic [ref=e195]:
+                    - generic [ref=e196]:
+                      - img [ref=e198]
+                      - text: 0 players
+                    - generic [ref=e203]:
+                      - img [ref=e205]
+                      - text: Fantasy
+                - generic [ref=e208]:
+                  - button "Delete campaign" [ref=e209]:
+                    - img [ref=e211]
+                  - img [ref=e214]
+              - generic [ref=e216] [cursor=pointer]:
+                - generic [ref=e217]:
+                  - heading "TEST_Campaign_1773389484100" [level=3] [ref=e218]
+                  - generic [ref=e219]:
+                    - generic [ref=e220]:
+                      - img [ref=e222]
+                      - text: 0 players
+                    - generic [ref=e227]:
+                      - img [ref=e229]
+                      - text: Fantasy
+                - generic [ref=e232]:
+                  - button "Delete campaign" [ref=e233]:
+                    - img [ref=e235]
+                  - img [ref=e238]
+              - generic [ref=e240] [cursor=pointer]:
+                - generic [ref=e241]:
+                  - heading "TEST_Campaign_1773389581297" [level=3] [ref=e242]
+                  - generic [ref=e243]:
+                    - generic [ref=e244]:
+                      - img [ref=e246]
+                      - text: 0 players
+                    - generic [ref=e251]:
+                      - img [ref=e253]
+                      - text: Fantasy
+                - generic [ref=e256]:
+                  - button "Delete campaign" [ref=e257]:
+                    - img [ref=e259]
+                  - img [ref=e262]
+      - button "? Shortcuts" [ref=e265] [cursor=pointer]:
+        - generic [ref=e266]: "?"
+        - generic [ref=e267]: Shortcuts
+    - generic:
+      - generic:
+        - region "Notifications alt+T"
+  - link "Made with Emergent" [ref=e268] [cursor=pointer]:
+    - /url: https://app.emergent.sh/?utm_source=emergent-badge
+    - generic [ref=e269]:
+      - img [ref=e270]
+      - paragraph [ref=e271]: Made with Emergent
+```

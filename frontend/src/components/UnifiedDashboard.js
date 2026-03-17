@@ -579,6 +579,67 @@ function UnifiedDashboard({ username, onLogout }) {
             minHeight: '400px'
           }}
         >
+          {/* COMING SOON OVERLAY */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 10, 30, 0.85)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px'
+          }}>
+            {/* Coming Soon Banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              padding: '12px 40px',
+              borderRadius: '8px',
+              marginBottom: '24px',
+              transform: 'rotate(-3deg)',
+              boxShadow: '0 10px 40px rgba(139, 92, 246, 0.4)'
+            }}>
+              <span style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#fff',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase'
+              }}>Coming Soon</span>
+            </div>
+            
+            <div style={{ textAlign: 'center', maxWidth: '300px' }}>
+              <User size={48} style={{ color: '#8B5CF6', margin: '0 auto 16px', opacity: 0.6 }} />
+              <h3 style={{
+                fontFamily: "'Cinzel', serif",
+                color: '#fff',
+                fontSize: '18px',
+                marginBottom: '12px'
+              }}>Player Features</h3>
+              <p style={{
+                color: '#94a3b8',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                marginBottom: '20px'
+              }}>
+                Character creation, inventory management, and player tools are currently under development.
+              </p>
+              <p style={{
+                color: '#8B5CF6',
+                fontSize: '12px',
+                fontStyle: 'italic'
+              }}>
+                Subscribe to Legendary tier to get early access when available!
+              </p>
+            </div>
+          </div>
+          
           {/* Glow effect at top */}
           <div style={{
             position: 'absolute',

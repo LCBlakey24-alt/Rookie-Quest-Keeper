@@ -29,7 +29,7 @@ test.describe('P2 Bug Fixes Verification', () => {
       await page.screenshot({ path: 'p2-landing-text-visibility.jpeg', quality: 20, fullPage: false });
     });
 
-    test('Landing page pricing shows correct tiers (£3.99 x 3, £5.99)', async ({ page }) => {
+    test('Landing page pricing shows correct tiers (Free, Player Coming Soon, Game Master £3.99, Legendary £5.99)', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       await waitForAppReady(page);
       
@@ -44,10 +44,10 @@ test.describe('P2 Bug Fixes Verification', () => {
       const pricingTitle = page.locator('text=Choose Your Path');
       await expect(pricingTitle).toBeVisible();
       
-      // Verify tier names are visible
+      // Verify 4 tier names are visible (updated tiers)
+      await expect(page.locator('h3:has-text("Free")').first()).toBeVisible();
       await expect(page.locator('h3:has-text("Player")').first()).toBeVisible();
-      await expect(page.locator('h3:has-text("Hero")').first()).toBeVisible();
-      await expect(page.locator('h3:has-text("Quest Master")').first()).toBeVisible();
+      await expect(page.locator('h3:has-text("Game Master")').first()).toBeVisible();
       await expect(page.locator('h3:has-text("Legendary")').first()).toBeVisible();
     });
   });

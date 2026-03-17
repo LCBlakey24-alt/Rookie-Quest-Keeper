@@ -25,29 +25,29 @@ export default function LandingPage() {
 
   const tiers = [
     {
-      name: 'Player',
-      price: '3.99',
-      period: '/mo',
+      name: 'Free',
+      price: '0',
+      period: '',
       icon: <Sword size={20} />,
-      features: ['Join campaigns', '3 characters', 'Character sheet', 'Dice roller'],
+      features: ['View campaigns (read-only)', 'Basic dice roller', 'Limited access'],
       color: colors.main,
+      isFree: true
+    },
+    {
+      name: 'Player',
+      price: 'TBD',
+      period: '',
+      icon: <Star size={20} />,
+      features: ['Create characters', 'Join campaigns', 'Full character sheets', 'Inventory management'],
+      color: colors.secondary,
       comingSoon: true
     },
     {
-      name: 'Hero',
-      price: '3.99',
-      period: '/mo',
-      icon: <Star size={20} />,
-      features: ['10 characters', 'Join unlimited campaigns', 'Advanced sheets', 'Priority support'],
-      color: colors.secondary,
-      popular: false
-    },
-    {
-      name: 'Quest Master',
+      name: 'Game Master',
       price: '3.99',
       period: '/mo',
       icon: <Crown size={20} />,
-      features: ['Unlimited characters', '3 campaigns', 'GM tools', 'AI assistance'],
+      features: ['Create campaigns', 'GM tools & AI', 'Combat tracker', 'World building'],
       color: colors.tertiary,
       popular: true
     },
@@ -56,8 +56,10 @@ export default function LandingPage() {
       price: '5.99',
       period: '/mo',
       icon: <Zap size={20} />,
-      features: ['Everything unlimited', 'Custom rulesets', 'Priority AI', 'Early access'],
-      color: colors.tertiary
+      features: ['Full GM access', 'Player tier included*', 'Priority AI', 'Early access to features'],
+      color: colors.tertiary,
+      isLegendary: true,
+      legendaryNote: '*Player benefits included when Player tier launches'
     }
   ];
 
@@ -296,12 +298,12 @@ export default function LandingPage() {
               
               <div style={{ marginBottom: '12px' }}>
                 <span style={{ 
-                  fontSize: '28px', 
+                  fontSize: tier.price === 'TBD' ? '20px' : '28px', 
                   fontWeight: '700', 
-                  color: tier.color,
+                  color: tier.price === 'TBD' ? colors.textMuted : tier.color,
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
-                  {tier.price === '0' ? 'Free' : `£${tier.price}`}
+                  {tier.price === '0' ? 'Free' : tier.price === 'TBD' ? 'Coming Soon' : `£${tier.price}`}
                 </span>
                 {tier.period && <span style={{ fontSize: '12px', color: colors.textMuted }}>{tier.period}</span>}
               </div>
@@ -341,14 +343,29 @@ export default function LandingPage() {
                 ))}
               </ul>
               
+              {/* Legendary Note */}
+              {tier.legendaryNote && (
+                <div style={{
+                  fontSize: '9px',
+                  color: colors.textMuted,
+                  fontStyle: 'italic',
+                  marginBottom: '12px',
+                  padding: '8px',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderRadius: '4px'
+                }}>
+                  {tier.legendaryNote}
+                </div>
+              )}
+              
               <button 
                 onClick={() => !tier.comingSoon && navigate('/login')}
                 disabled={tier.comingSoon}
                 style={{
                   width: '100%',
                   padding: '10px',
-                  background: tier.comingSoon ? '#555' : `linear-gradient(135deg, ${tier.color}, ${colors.secondary})`,
-                  border: 'none',
+                  background: tier.comingSoon ? '#555' : tier.isFree ? 'rgba(139, 92, 246, 0.3)' : `linear-gradient(135deg, ${tier.color}, ${colors.secondary})`,
+                  border: tier.isFree ? `1px solid ${colors.main}` : 'none',
                   borderRadius: '6px',
                   color: colors.text,
                   fontSize: '12px',
@@ -357,7 +374,7 @@ export default function LandingPage() {
                   fontFamily: "'Montserrat', sans-serif"
                 }}
               >
-                {tier.comingSoon ? 'Coming Soon' : 'Start Trial'}
+                {tier.comingSoon ? 'Coming Soon' : tier.isFree ? 'Get Started Free' : 'Start Trial'}
               </button>
             </div>
           ))}

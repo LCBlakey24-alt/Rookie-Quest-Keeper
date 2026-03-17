@@ -1,0 +1,82 @@
+{
+  "summary": "Update mode testing complete. All landing page pricing updates verified: 4 tiers (Free, Player Coming Soon, Game Master £3.99, Legendary £5.99). Legendary tier shows 'Player tier included*' with note about benefits when Player tier launches. Home page Player section locked with 'Coming Soon' overlay blocking character creation. GM section fully functional - campaigns visible and accessible. Previous features verified working: level up flow, edit character, HP clamping.",
+  "mode": "update",
+  "baseline_commit": "c29866c995a922defe3711c3134addceaf7d3a56",
+  "head_commit": "2399761155cef31f25c3a24d9bcb9cd7018b7cc4",
+  "specs_created": [
+    "/app/tests/e2e/p3-landing-player-updates.spec.ts"
+  ],
+  "specs_updated": [
+    "/app/tests/e2e/p2-bug-fixes.spec.ts"
+  ],
+  "quarantined_tests": [],
+  "test_report_links": [
+    "/app/tests/e2e/p3-landing-player-updates.spec.ts",
+    "/app/tests/e2e/p2-bug-fixes.spec.ts",
+    "/app/tests/e2e/bug-fixes-verification.spec.ts"
+  ],
+  "regression_results": {
+    "total_specs": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "p3_landing_player_updates_spec": {
+        "total": 10,
+        "passed": 10,
+        "failed": 0
+      },
+      "p2_bug_fixes_spec": {
+        "total": 5,
+        "passed": 5,
+        "failed": 0
+      },
+      "bug_fixes_verification_spec": {
+        "total": 6,
+        "passed": 6,
+        "failed": 0
+      }
+    }
+  },
+  "issues": [],
+  "features_verified": {
+    "landing_page_4_tiers": {
+      "title": "Landing page shows 4 pricing tiers",
+      "status": "VERIFIED",
+      "details": "Free (limited access), Player (Coming Soon with disabled button), Game Master £3.99 (Most Popular), Legendary £5.99"
+    },
+    "legendary_tier_note": {
+      "title": "Legendary tier shows Player tier included note",
+      "status": "VERIFIED", 
+      "details": "'Player tier included*' feature visible with note '*Player benefits included when Player tier launches'"
+    },
+    "player_section_locked": {
+      "title": "Home page Player section locked with Coming Soon overlay",
+      "status": "VERIFIED",
+      "details": "Coming Soon banner covers Player section, explanatory text visible, Legendary tier suggestion shown"
+    },
+    "gm_section_functional": {
+      "title": "GM section still fully functional",
+      "status": "VERIFIED",
+      "details": "My Campaigns visible, New Campaign button enabled, campaign navigation works, Campaign Tools sidebar accessible"
+    },
+    "previous_features": {
+      "title": "Previous features still work",
+      "status": "VERIFIED",
+      "details": "Level up flow, edit character navigation, HP clamping all verified working via bug-fixes-verification.spec.ts"
+    }
+  },
+  "action_items": [],
+  "updated_files": [
+    "/app/tests/e2e/p3-landing-player-updates.spec.ts",
+    "/app/tests/e2e/p2-bug-fixes.spec.ts",
+    "/app/.emergent/testing_baseline_commit"
+  ],
+  "test_results": {
+    "frontend": "100% (21/21 tests passed)"
+  },
+  "seed_data_creation": "Used existing test user and campaigns",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All P3 updates verified. Landing page now shows 4 pricing tiers: Free (limited access), Player (Coming Soon with disabled button), Game Master £3.99 (Most Popular), Legendary £5.99 with 'Player tier included*' note. Home page Player section has Coming Soon overlay blocking character creation. GM section remains fully functional. Test credentials: lcblakey24@outlook.com / LCBlakey24?!"
+}
