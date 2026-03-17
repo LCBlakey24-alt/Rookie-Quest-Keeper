@@ -23,28 +23,34 @@ All pages share a consistent visual theme:
 | Game Master | £3.99/mo | Active | Create campaigns, GM tools & AI, Combat tracker, World building |
 | Legendary | £5.99/mo | Active | Full GM access, Player tier included*, Priority AI, Early access |
 
-*Player benefits included when Player tier launches
-
 ## Recent Updates (March 2026)
 
-### GM Side Improvements
-- [x] **Campaign Settings Modal** - New "Settings" button in Campaign Dashboard header
-  - Upload Custom Rulesets (PDFs, JSON)
-  - Upload Custom Races & Classes
-  - Upload Custom Items & Spells
-  - Upload Custom Monsters & NPCs
-- [x] **Color Scheme Fixed** - Replaced all green colors with gold/purple across GM tools
-  - GM Screen Names tab: Gold accent colors
-  - GM Screen Tables tab: Shop Name uses gold
-  - GM Screen Party tab: Pink/purple colors
-  - Random Tables: Gold "Save to Notes" button
+### GM Screen Tab Consolidation
+Reduced from **12 tabs to 9 tabs** for cleaner navigation:
 
-### Previous Bug Fixes (Still Working)
-- [x] Level Up Flow - Fixed API URL
-- [x] Edit Character - Added missing route
-- [x] HP Display - Clamps HP to maxHp
-- [x] Combat tracker - Shows all 303 monsters
-- [x] Monster Lookup - Uses local database
+**Current Tabs (9):**
+1. **Combat** - Combat control, saved encounters, spontaneous combat
+2. **Location** - Location management
+3. **NPCs** - Merged with Name Generator (Saved NPCs left, Generator right)
+4. **Monsters** - Merged with Custom Creatures (SRD lookup left, Custom right)
+5. **Tables** - Random tables (tavern names, weather, plot hooks, etc.)
+6. **Loot** - Loot generator
+7. **Dice** - Dice roller
+8. **Party** - Party overview
+9. **Notes** - GM notes
+
+**Removed Tabs:**
+- Names → Merged into NPCs tab
+- Creatures → Merged into Monsters tab
+- Inventory → Removed (redundant with Party)
+
+### Campaign Settings Modal
+- **Settings button** in Campaign Dashboard header
+- Upload sections for: Custom Rulesets, Races/Classes, Items/Spells, Monsters/NPCs
+
+### Color Theme Updates
+- Replaced all green (#22c55e) with gold (#F59E0B)
+- Consistent Fantasy Sunset colors throughout GM tools
 
 ## Implemented Features
 
@@ -58,20 +64,22 @@ All pages share a consistent visual theme:
 - [x] **GM Section**: Fully functional with campaigns visible
 
 ### Campaign Dashboard
-- [x] **Settings button** in header (purple) - Opens upload modal
-- [x] **GM Screen button** (orange/red) - Opens GM tools
-- [x] **ROOK assistant** panel on right side
+- [x] **Settings button** - Opens upload modal
+- [x] **GM Screen button** - Opens GM tools
+- [x] **ROOK assistant** panel
 - [x] **World Setting** with style selector (Fantasy, Sci-Fi, Dark Medieval, etc.)
-- [x] Sidebar navigation: World, Maps, Gods, Locations, NPCs, Chronicle, Combat, GM Tools
+- [x] Sidebar: World, Maps, Gods, Locations, NPCs, Chronicle, Combat, GM Tools
 
-### GM Screen
-- [x] **12 tabs**: Combat, Location, NPCs, Dice, Monsters, Creatures, Names, Tables, Loot Gen, Inventory, Party, Notes
-- [x] **Fantasy Sunset colors** throughout
-- [x] **Gold accents** for GM-specific features
-- [x] NPC Name Generator with save functionality
-- [x] Random Tables (Tavern Name, Shop Name, NPC Quirk, Weather, Plot Hook, Mundane Loot)
-- [x] Monster Lookup (303 SRD creatures)
-- [x] Party Overview with stats
+### GM Screen (9 Tabs)
+- [x] **Combat** - Saved encounters + spontaneous combat
+- [x] **Location** - Location management
+- [x] **NPCs** - Two-column layout: Saved NPCs + Name Generator
+- [x] **Monsters** - Two-column layout: SRD Lookup + Custom Creatures with AI
+- [x] **Tables** - Tavern Name, Shop Name, NPC Quirk, Weather, Plot Hook, Mundane Loot
+- [x] **Loot** - Loot generator
+- [x] **Dice** - Dice roller
+- [x] **Party** - Party overview with stats
+- [x] **Notes** - GM notes with sync to players
 
 ### Character System (Locked but Ready)
 - [x] Character Builder with edit mode
@@ -107,8 +115,17 @@ All pages share a consistent visual theme:
 ├── LandingPage.js        - 4-tier pricing, centered logo
 ├── UnifiedDashboard.js   - Player section locked, GM functional
 ├── CampaignDashboard.js  - Settings modal, GM Screen button, ROOK helper
-├── GMScreen.js           - 12 tabs, gold accent colors
-├── RandomTables.js       - Gold "Save to Notes" button
+├── GMScreen.js           - 9 tabs (consolidated from 12)
+│   ├── Combat tab
+│   ├── Location tab
+│   ├── NPCs tab (+ Name Generator)
+│   ├── Monsters tab (+ Custom Creatures)
+│   ├── Tables tab
+│   ├── Loot tab
+│   ├── Dice tab
+│   ├── Party tab
+│   └── Notes tab
+├── RandomTables.js       - Gold accent colors
 ├── CharacterBuilder.js   - Edit mode support
 ├── CharacterSheetFull.js - Temp HP, inventory, proficient skills
 ├── CharacterInventory.js - Equipment slots, 3000+ items
