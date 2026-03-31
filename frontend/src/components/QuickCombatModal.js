@@ -466,7 +466,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
                           style={{
                             width: '24px', height: '24px',
                             background: 'rgba(34, 197, 94, 0.3)',
-                            border: '1px solid #F59E0B',
+                            border: '1px solid #8A2BE2',
                             borderRadius: '6px',
                             color: '#fff',
                             cursor: 'pointer',

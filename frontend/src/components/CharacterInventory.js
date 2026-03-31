@@ -9,12 +9,12 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Theme colors consistent with Fantasy Sunset
+// Theme colors - Electric Tundra (Player)
 const theme = {
   panel: 'rgba(15, 10, 30, 0.85)',
-  border: 'rgba(238, 0, 107, 0.4)',
-  accent: '#ee006b',
-  purple: '#8A2BE2',
+  border: 'rgba(77, 208, 225, 0.3)',
+  accent: '#4DD0E1',
+  purple: '#0066FF',
   gold: '#F59E0B',
   text: '#ffffff',
   muted: '#94a3b8'
@@ -106,15 +106,14 @@ export default function CharacterInventory({ characterId, character, onUpdate })
   // Equip item
   const equipItem = (item, slot) => {
     const newEquipped = { ...equippedItems };
-    
-    // Unequip current item in slot
     if (newEquipped[slot]) {
       toast.info(`Unequipped ${newEquipped[slot].name}`);
     }
-    
     newEquipped[slot] = item;
     setEquippedItems(newEquipped);
     toast.success(`Equipped ${item.name}`);
+    // Auto-save with stat propagation
+    autoSave(inventory, newEquipped, gold);
   };
 
   // Unequip item
@@ -124,6 +123,7 @@ export default function CharacterInventory({ characterId, character, onUpdate })
       const newEquipped = { ...equippedItems, [slot]: null };
       setEquippedItems(newEquipped);
       toast.info(`Unequipped ${item.name}`);
+      autoSave(inventory, newEquipped, gold);
     }
   };
 
@@ -167,22 +167,37 @@ export default function CharacterInventory({ characterId, character, onUpdate })
     return ac;
   };
 
-  // Save inventory to backend
-  const saveInventory = async () => {
+  // Auto-save inventory and propagate stats to character
+  const autoSave = async (inv, eq, gp) => {
     try {
       setSaving(true);
+      // Calculate AC from equipped gear
+      let ac = 10;
+      const dexMod = Math.floor(((character?.dexterity || 10) - 10) / 2);
+      if (eq.armor) {
+        const armorMatch = eq.armor.description?.match(/AC\s*(\d+)/i);
+        if (armorMatch) {
+          ac = parseInt(armorMatch[1]);
+          const maxDexMatch = eq.armor.description?.match(/max\s*\+?(\d+)/i);
+          if (maxDexMatch) ac += Math.min(dexMod, parseInt(maxDexMatch[1]));
+          else if (!eq.armor.type?.toLowerCase().includes('heavy')) ac += dexMod;
+        } else ac += dexMod;
+      } else ac += dexMod;
+      if (eq.shield) ac += 2;
+
       await axios.patch(`${API}/characters/${characterId}`, {
-        inventory,
-        equipped: equippedItems,
-        gold
+        inventory: inv, equipped: eq, gold: gp, armor_class: ac
       });
-      toast.success('Inventory saved!');
       onUpdate?.();
     } catch (error) {
-      toast.error('Failed to save inventory');
-    } finally {
-      setSaving(false);
-    }
+      console.error('Auto-save failed:', error);
+    } finally { setSaving(false); }
+  };
+
+  // Save inventory to backend
+  const saveInventory = async () => {
+    await autoSave(inventory, equippedItems, gold);
+    toast.success('Inventory saved!');
   };
 
   // Panel style
@@ -330,7 +345,7 @@ export default function CharacterInventory({ characterId, character, onUpdate })
             onClick={() => setShowItemBrowser(!showItemBrowser)}
             size="sm"
             style={{ 
-              background: `linear-gradient(135deg, ${theme.purple}, ${theme.accent})`,
+              background: `linear-gradient(135deg, #0066FF, ${theme.accent})`,
               fontSize: '12px'
             }}
           >
@@ -552,7 +567,7 @@ export default function CharacterInventory({ characterId, character, onUpdate })
           style={{ 
             marginTop: '12px',
             width: '100%',
-            background: `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`
+            background: `linear-gradient(135deg, #0066FF, ${theme.accent})`
           }}
         >
           {saving ? 'Saving...' : 'Save Inventory'}

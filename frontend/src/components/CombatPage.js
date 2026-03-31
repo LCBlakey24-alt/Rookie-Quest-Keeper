@@ -20,19 +20,22 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const CONDITIONS = [
-  { id: 'blinded', label: 'Blind', color: '#64748b' },
-  { id: 'charmed', label: 'Charm', color: '#ec4899' },
-  { id: 'frightened', label: 'Fear', color: '#a855f7' },
-  { id: 'grappled', label: 'Grap', color: '#f97316' },
-  { id: 'incapacitated', label: 'Incap', color: '#78716c' },
-  { id: 'invisible', label: 'Invis', color: '#06b6d4' },
-  { id: 'paralyzed', label: 'Para', color: '#eab308' },
-  { id: 'poisoned', label: 'Pois', color: '#F59E0B' },
-  { id: 'prone', label: 'Prone', color: '#92400e' },
-  { id: 'restrained', label: 'Rest', color: '#dc2626' },
-  { id: 'stunned', label: 'Stun', color: '#fbbf24' },
-  { id: 'unconscious', label: 'Uncon', color: '#1e293b' },
-  { id: 'concentrating', label: 'Conc', color: '#4a7dff' },
+  { id: 'blinded', label: 'Blind', color: '#64748b', desc: 'Can\'t see. Auto-fail sight checks. Attacks have disadvantage, attackers have advantage.' },
+  { id: 'charmed', label: 'Charm', color: '#ec4899', desc: 'Can\'t attack the charmer. Charmer has advantage on social checks.' },
+  { id: 'frightened', label: 'Fear', color: '#a855f7', desc: 'Disadvantage on ability checks & attacks while source is in line of sight.' },
+  { id: 'grappled', label: 'Grap', color: '#f97316', desc: 'Speed becomes 0. Ends if grappler is incapacitated or forced apart.' },
+  { id: 'incapacitated', label: 'Incap', color: '#78716c', desc: 'Can\'t take actions or reactions.' },
+  { id: 'invisible', label: 'Invis', color: '#06b6d4', desc: 'Impossible to see without magic. Advantage on attacks, attackers have disadvantage.' },
+  { id: 'paralyzed', label: 'Para', color: '#eab308', desc: 'Incapacitated, can\'t move or speak. Auto-fail STR/DEX saves. Melee hits are crits.' },
+  { id: 'poisoned', label: 'Pois', color: '#22C55E', desc: 'Disadvantage on attack rolls and ability checks.' },
+  { id: 'prone', label: 'Prone', color: '#92400e', desc: 'Disadvantage on attacks. Melee attacks have advantage, ranged have disadvantage.' },
+  { id: 'restrained', label: 'Rest', color: '#dc2626', desc: 'Speed 0. Attacks have disadvantage. Attackers have advantage. Disadvantage on DEX saves.' },
+  { id: 'stunned', label: 'Stun', color: '#fbbf24', desc: 'Incapacitated, can\'t move. Auto-fail STR/DEX saves. Attackers have advantage.' },
+  { id: 'unconscious', label: 'Uncon', color: '#1e293b', desc: 'Incapacitated, can\'t move/speak, drops items. Auto-fail STR/DEX saves. Melee crits.' },
+  { id: 'concentrating', label: 'Conc', color: '#4a7dff', desc: 'Maintaining a spell. CON save on damage (DC 10 or half damage, whichever is higher).' },
+  { id: 'hasted', label: 'Haste', color: '#22d3ee', desc: '+2 AC, advantage on DEX saves, doubled speed, extra action. Lethargy when spell ends.' },
+  { id: 'raging', label: 'Rage', color: '#EF4444', desc: 'Advantage on STR checks/saves. Bonus melee damage. Resistance to B/P/S damage.' },
+  { id: 'hexed', label: 'Hex', color: '#9333ea', desc: 'Extra 1d6 necrotic damage from caster. Disadvantage on one chosen ability check.' },
 ];
 
 function CombatPage() {
@@ -487,13 +490,13 @@ function CombatPage() {
 
   if (!scenarioData) return null;
 
-  // Fantasy Sunset theme
+  // Midnight Neon theme (GM)
   const theme = {
     bg: { primary: '#0F0A1E', surface: '#1A112E', panel: 'rgba(26, 17, 46, 0.95)' },
     text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
     border: 'rgba(138, 43, 226, 0.3)',
-    sunset: { purple: '#8A2BE2', pink: '#4DD0E1', gold: '#F59E0B' },
-    gradient: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 50%, #F59E0B 100%)'
+    sunset: { purple: '#8A2BE2', pink: '#4DD0E1' },
+    gradient: 'linear-gradient(135deg, #4B0082, #8A2BE2)'
   };
 
   return (
@@ -523,7 +526,7 @@ function CombatPage() {
               <Sword size={22} style={{ color: '#EF4444' }} />
               {scenarioData.name}
             </h1>
-            <p style={{ fontSize: '13px', color: theme.sunset.gold }}>{campaignName}</p>
+            <p style={{ fontSize: '13px', color: theme.sunset.purple }}>{campaignName}</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -690,6 +693,7 @@ function CombatPage() {
                         <QuickReferencePopup key={cond.id} type="condition" id={cond.id} position="bottom">
                           <button
                             onClick={() => toggleCondition(c.id, cond.id)}
+                            title={cond.desc}
                             style={{
                               background: active ? `${cond.color}30` : 'transparent',
                               border: `1px solid ${active ? cond.color : theme.border}`,

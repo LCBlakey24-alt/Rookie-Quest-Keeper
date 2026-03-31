@@ -5915,6 +5915,42 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         logger.error(f"AI generation error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI generation failed: {str(e)}")
 
+class RookChatRequest(BaseModel):
+    message: str
+    campaign_id: str = ""
+    context: str = ""
+
+@api_router.post("/rook/chat")
+async def rook_chat(request: RookChatRequest, username: str = Depends(get_current_user)):
+    """ROOK AI Co-GM: Context-aware chat assistant for the GM Screen."""
+    can_use_ai = await check_premium_feature(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
+    
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
+    
+    campaign_context = ""
+    if request.campaign_id:
+        campaign_context = await get_campaign_context(request.campaign_id)
+    
+    system_msg = request.context or "You are ROOK, an AI co-GM assistant for D&D 5e. Help the Game Master with encounters, NPCs, world building, and story development. Use only SRD/OGL content. Be creative, concise, and dramatic."
+    if campaign_context:
+        system_msg += f"\n\nCAMPAIGN CONTEXT:\n{campaign_context}"
+    
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"{username}-cogm-{datetime.now(timezone.utc).timestamp()}",
+        system_message=system_msg
+    )
+    chat.with_model('openai', 'gpt-4o')
+    
+    response = await chat.send_message(UserMessage(text=request.message))
+    await increment_ai_usage(username)
+    
+    return {"response": response}
+
 @api_router.post("/campaigns/{campaign_id}/ingame-notes/{note_id}/process-ai")
 async def process_note_with_ai(campaign_id: str, note_id: str, username: str = Depends(get_current_user)):
     try:

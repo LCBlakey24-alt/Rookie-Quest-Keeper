@@ -27,6 +27,7 @@ import LiveSessionMode from '@/components/gm/LiveSessionMode';
 import SmartSessionLog from '@/components/gm/SmartSessionLog';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import NPCRelationshipMap from '@/components/gm/NPCRelationshipMap';
+import AICoGM from '@/components/gm/AICoGM';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -1346,6 +1347,9 @@ function GMScreen({ username }) {
         isFumble={diceFumble}
         theme="gm"
       />
+      
+      {/* AI Co-GM Assistant */}
+      <AICoGM theme={theme} campaignId={campaignId} activeTab={activeTab} />
     </div>
   );
 }
