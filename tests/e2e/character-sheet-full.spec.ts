@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * Tabs: Overview, Abilities & Skills, Spells, Features & Feats, Equipment, Notes & Bio
  */
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://dice-history-1.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://midnight-neon-gm.preview.emergentagent.com';
 const TEST_USER = {
   email: 'stress_test_1772651200@test.com',
   password: 'TestPass123!'

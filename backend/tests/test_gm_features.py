@@ -8,7 +8,7 @@ import requests
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://dice-history-1.preview.emergentagent.com"
+BASE_URL = "https://midnight-neon-gm.preview.emergentagent.com"
 
 # Test credentials
 GM_TEST_EMAIL = "gmtest@test.com"

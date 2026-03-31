@@ -516,8 +516,8 @@ export default function CharacterSheetFull() {
     background: 'rgba(10, 17, 64, 0.85)',
     backdropFilter: 'blur(16px)',
     border: `1px solid ${theme.border}`,
-    borderRadius: '12px',
-    padding: '16px',
+    borderRadius: '10px',
+    padding: '10px',
     position: 'relative',
     zIndex: 1
   };
@@ -631,11 +631,11 @@ export default function CharacterSheetFull() {
       />
 
       {/* Main Content - Fills remaining space */}
-      <div className="character-sheet-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '220px 200px 1fr', gap: '16px', overflow: 'hidden', minHeight: 0 }}>
+      <div className="character-sheet-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '190px 180px 1fr', gap: '10px', overflow: 'hidden', minHeight: 0 }}>
         
         {/* LEFT COLUMN: Abilities + Saving Throws */}
         <div className="card-hover" style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Ability Scores</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '6px', fontSize: '0.85rem', flexShrink: 0 }}>Ability Scores</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SAVING_THROWS.map((ability) => {
@@ -648,11 +648,11 @@ export default function CharacterSheetFull() {
               const condEffect = getConditionRollEffect(character?.conditions || [], saveContext);
               
               return (
-                <div key={ability} style={{ marginBottom: '12px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '10px', padding: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: theme.text.muted, letterSpacing: '1px', fontWeight: '600' }}>{ABILITY_SHORT[ability]}</span>
-                    <span style={{ fontSize: '22px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
-                    <span style={{ fontSize: '16px', fontWeight: '600', color: theme.accent.highlight }}>{formatModifier(mod)}</span>
+                <div key={ability} style={{ marginBottom: '4px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px', padding: '6px 8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                    <span style={{ fontSize: '11px', color: theme.text.muted, letterSpacing: '1px', fontWeight: '600' }}>{ABILITY_SHORT[ability]}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: theme.accent.highlight }}>{formatModifier(mod)}</span>
                   </div>
                   <button
                     onClick={() => {
@@ -663,27 +663,17 @@ export default function CharacterSheetFull() {
                       rollDice('1d20', saveMod, `${ABILITY_SHORT[ability]} Save`, condEffect.mode);
                     }}
                     style={{
-                      width: '100%',
-                      padding: '8px',
+                      width: '100%', padding: '4px 6px',
                       background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(77, 208, 225, 0.1)',
                       border: `1px solid ${isProficient ? 'rgba(245, 158, 11, 0.4)' : theme.border}`,
-                      borderRadius: '6px',
-                      color: isProficient ? theme.accent.highlight : theme.text.secondary,
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      position: 'relative',
+                      borderRadius: '5px', color: isProficient ? theme.accent.highlight : theme.text.secondary,
+                      fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     }}
                   >
                     <span>{isProficient && '● '}Save</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                       {condIndicator && (
-                        <span title={condIndicator.tooltip} style={{
-                          fontSize: '11px', fontWeight: 800, color: condIndicator.color,
-                          animation: condEffect.autoFail ? 'pulse 1s infinite' : 'none',
-                        }}>{condIndicator.symbol}</span>
+                        <span title={condIndicator.tooltip} style={{ fontSize: '10px', fontWeight: 800, color: condIndicator.color }}>{condIndicator.symbol}</span>
                       )}
                       <span style={{ fontWeight: '600' }}>{formatModifier(saveMod)}</span>
                     </div>
@@ -693,16 +683,16 @@ export default function CharacterSheetFull() {
             })}
           </div>
           
-          {/* Proficiency Bonus */}
-          <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '8px', marginTop: '8px', flexShrink: 0 }}>
-            <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>PROFICIENCY</div>
-            <div style={{ fontSize: '26px', fontWeight: 'bold', color: theme.accent.secondary }}>+{profBonus}</div>
+          {/* Proficiency Bonus - inline */}
+          <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '6px', marginTop: '4px', flexShrink: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: theme.text.muted, fontWeight: '500' }}>PROF</span>
+            <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.accent.secondary }}>+{profBonus}</span>
           </div>
         </div>
 
         {/* MIDDLE COLUMN: Skills */}
         <div style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.secondary, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Skills</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.secondary, marginBottom: '4px', fontSize: '0.85rem', flexShrink: 0 }}>Skills</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SKILLS.map(skill => {
@@ -719,39 +709,20 @@ export default function CharacterSheetFull() {
                   onClick={() => rollDice('1d20', bonus, skill.name, condEffect.mode)}
                   data-testid={`skill-${skill.name.toLowerCase().replace(' ', '-')}`}
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '10px 12px',
-                    marginBottom: '4px',
+                    width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '5px 8px', marginBottom: '1px',
                     background: isProficient ? 'rgba(138, 43, 226, 0.15)' : condIndicator ? `${condIndicator.color}08` : 'transparent',
-                    border: isProficient ? '1px solid rgba(138, 43, 226, 0.4)' : condIndicator ? `1px solid ${condIndicator.color}30` : '1px solid transparent',
-                    borderRadius: '6px',
-                    color: isProficient ? '#a78bfa' : theme.text.secondary,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s',
-                    boxShadow: isProficient ? '0 0 10px rgba(138, 43, 226, 0.3)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(138, 43, 226, 0.25)';
-                    e.currentTarget.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isProficient ? 'rgba(138, 43, 226, 0.15)' : condIndicator ? `${condIndicator.color}08` : 'transparent';
-                    e.currentTarget.style.boxShadow = isProficient ? '0 0 10px rgba(138, 43, 226, 0.3)' : 'none';
+                    border: isProficient ? '1px solid rgba(138, 43, 226, 0.4)' : '1px solid transparent',
+                    borderRadius: '4px', color: isProficient ? '#a78bfa' : theme.text.secondary,
+                    fontSize: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isProficient && <span style={{ color: theme.accent.primary, fontSize: '8px' }}>●</span>}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    {isProficient && <span style={{ color: theme.accent.primary, fontSize: '6px' }}>●</span>}
                     {skill.name}
-                    {condIndicator && (
-                      <span title={condIndicator.tooltip} style={{ fontSize: '10px', fontWeight: 800, color: condIndicator.color, marginLeft: '2px' }}>{condIndicator.symbol}</span>
-                    )}
+                    {condIndicator && <span title={condIndicator.tooltip} style={{ fontSize: '9px', fontWeight: 800, color: condIndicator.color }}>{condIndicator.symbol}</span>}
                   </span>
-                  <span style={{ fontWeight: '600', color: isProficient ? '#a78bfa' : theme.text.primary, fontSize: '15px' }}>{formatModifier(bonus)}</span>
+                  <span style={{ fontWeight: '600', color: isProficient ? '#a78bfa' : theme.text.primary, fontSize: '13px' }}>{formatModifier(bonus)}</span>
                 </button>
               );
             })}
@@ -759,10 +730,10 @@ export default function CharacterSheetFull() {
         </div>
 
         {/* RIGHT COLUMN: Combat Stats + Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
             {['overview', 'combat', 'spells', 'inventory', 'journal', 'notes'].map(tab => (
               <button
                 key={tab}

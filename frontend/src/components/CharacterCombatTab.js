@@ -35,8 +35,12 @@ export default function CharacterCombatTab({
   const [concentratingOn, setConcentratingOn] = useState(character?.concentrating_on || '');
   const [inspiration, setInspiration] = useState(character?.inspiration || false);
   const [hpInput, setHpInput] = useState('');
-  const [rollMode, setRollMode] = useState('normal'); // 'normal', 'advantage', 'disadvantage'
+  const [rollMode, setRollMode] = useState('normal');
   const [deathSkullAnim, setDeathSkullAnim] = useState(null);
+  const [exhaustionLevel, setExhaustionLevel] = useState(character?.exhaustion_level || 0);
+  const [concSpell, setConcSpell] = useState(character?.concentrating_on || '');
+  const [showConcPrompt, setShowConcPrompt] = useState(false);
+  const [concDC, setConcDC] = useState(10);
 
   const charClass = character?.character_class || '';
   const level = character?.level || 1;
@@ -260,10 +264,17 @@ export default function CharacterCombatTab({
     }
   };
 
-  // HP management
+  // HP management - triggers concentration save on damage
   const handleHpChange = (delta) => {
     const newHp = Math.max(0, Math.min(character?.max_hit_points || 1, (character?.current_hit_points || 0) + delta));
     onUpdateCharacter?.({ current_hit_points: newHp });
+    // Trigger concentration save if taking damage while concentrating
+    if (delta < 0 && concSpell) {
+      const dmg = Math.abs(delta);
+      const dc = Math.max(10, Math.floor(dmg / 2));
+      setConcDC(dc);
+      setShowConcPrompt(true);
+    }
   };
   const handleHpInput = (type) => {
     const val = parseInt(hpInput) || 0;
@@ -274,6 +285,12 @@ export default function CharacterCombatTab({
   const handleTempHp = (delta) => {
     const newTemp = Math.max(0, (character?.temp_hit_points || 0) + delta);
     onUpdateCharacter?.({ temp_hit_points: newTemp });
+  };
+  // Exhaustion management
+  const handleExhaustion = (newLevel) => {
+    const clamped = Math.max(0, Math.min(6, newLevel));
+    setExhaustionLevel(clamped);
+    onUpdateCharacter?.({ exhaustion_level: clamped });
   };
 
   return (
@@ -353,6 +370,102 @@ export default function CharacterCombatTab({
           <span style={{ fontSize: 14, fontWeight: 700, color: (character?.temp_hit_points || 0) > 0 ? '#3B82F6' : '#6B7280', minWidth: 20, textAlign: 'center' }}>{character?.temp_hit_points || 0}</span>
           <button onClick={() => handleTempHp(1)} style={{ padding: '1px 6px', background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>+</button>
         </div>
+      </div>
+
+      {/* ── Concentration Tracker ── */}
+      <div data-testid="concentration-tracker" style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 8,
+        background: concSpell ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${concSpell ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.05)'}`,
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: concSpell ? '#3B82F6' : '#6B7280', letterSpacing: 1 }}>CONC</span>
+        <input
+          data-testid="conc-spell-input"
+          type="text" value={concSpell}
+          onChange={e => { setConcSpell(e.target.value); onUpdateCharacter?.({ concentrating_on: e.target.value }); }}
+          placeholder="Spell name..."
+          style={{
+            flex: 1, background: 'rgba(0,0,0,0.2)', border: 'none', borderRadius: 4,
+            padding: '3px 6px', color: '#93C5FD', fontSize: 11, outline: 'none',
+          }}
+        />
+        {concSpell && (
+          <button data-testid="drop-concentration" onClick={() => { setConcSpell(''); onUpdateCharacter?.({ concentrating_on: '' }); }} style={{
+            padding: '2px 6px', borderRadius: 4, fontSize: 9, fontWeight: 700,
+            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+            color: '#EF4444', cursor: 'pointer',
+          }}>DROP</button>
+        )}
+      </div>
+      {/* Concentration Save Prompt */}
+      {showConcPrompt && concSpell && (
+        <div data-testid="conc-save-prompt" style={{
+          padding: '8px 10px', borderRadius: 8, background: 'rgba(245,158,11,0.1)',
+          border: '1px solid rgba(245,158,11,0.4)', display: 'flex', flexDirection: 'column', gap: 4,
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#F59E0B' }}>CONCENTRATION CHECK — DC {concDC}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button data-testid="conc-save-roll" onClick={() => {
+              rollDice?.('1d20', conMod + (character?.saving_throw_proficiencies?.includes('constitution') ? profBonus : 0), `Concentration (DC ${concDC})`, 'normal');
+              setShowConcPrompt(false);
+            }} style={{
+              flex: 1, padding: '5px', borderRadius: 5, fontSize: 11, fontWeight: 700,
+              background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)',
+              color: '#3B82F6', cursor: 'pointer',
+            }}>Roll CON Save</button>
+            <button onClick={() => { setConcSpell(''); onUpdateCharacter?.({ concentrating_on: '' }); setShowConcPrompt(false); }} style={{
+              padding: '5px 10px', borderRadius: 5, fontSize: 11, fontWeight: 700,
+              background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
+              color: '#EF4444', cursor: 'pointer',
+            }}>Lose Conc.</button>
+            <button onClick={() => setShowConcPrompt(false)} style={{
+              padding: '5px 10px', borderRadius: 5, fontSize: 11, fontWeight: 700,
+              background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)',
+              color: '#22C55E', cursor: 'pointer',
+            }}>Maintained</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Exhaustion Tracker ── */}
+      <div data-testid="exhaustion-tracker" style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 8,
+        background: exhaustionLevel > 0 ? 'rgba(146,64,14,0.1)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${exhaustionLevel > 0 ? 'rgba(146,64,14,0.3)' : 'rgba(255,255,255,0.05)'}`,
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: exhaustionLevel > 0 ? '#D97706' : '#6B7280', letterSpacing: 1 }}>EXHAUST</span>
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[1,2,3,4,5,6].map(lvl => (
+            <button key={lvl} data-testid={`exhaust-${lvl}`}
+              onClick={() => handleExhaustion(exhaustionLevel === lvl ? lvl - 1 : lvl)}
+              title={[
+                '', '1: Disadvantage on checks', '2: Speed halved', '3: Disadvantage on attacks & saves',
+                '4: HP max halved', '5: Speed 0', '6: DEATH'
+              ][lvl]}
+              style={{
+                width: 20, height: 20, borderRadius: '50%', cursor: 'pointer', fontSize: 10, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: lvl <= exhaustionLevel
+                  ? lvl >= 5 ? '#991B1B' : lvl >= 3 ? '#D97706' : '#92400E'
+                  : 'rgba(255,255,255,0.05)',
+                border: `1.5px solid ${lvl <= exhaustionLevel ? (lvl >= 5 ? '#EF4444' : '#D97706') : 'rgba(255,255,255,0.1)'}`,
+                color: lvl <= exhaustionLevel ? '#fff' : '#6B7280',
+                transition: 'all 0.15s',
+              }}
+            >{lvl}</button>
+          ))}
+        </div>
+        {exhaustionLevel > 0 && (
+          <span style={{ fontSize: 9, color: '#D97706', flex: 1, textAlign: 'right' }}>
+            {[
+              '', 'Disadv. checks', 'Speed halved', 'Disadv. attacks/saves',
+              'HP max halved', 'Speed 0', 'DEATH'
+            ][exhaustionLevel]}
+          </span>
+        )}
       </div>
 
       {/* ── Roll Mode Toggle (Advantage / Normal / Disadvantage) ── */}
