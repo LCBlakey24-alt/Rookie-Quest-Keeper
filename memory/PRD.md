@@ -32,106 +32,159 @@ The app uses a **dual-theme system** with three distinct color schemes:
 - **Body Text**: Manrope (sans-serif)
 - **Logo Only**: Cinzel (serif) - ROOK branding only
 
-## Current Access Model (March 2026)
+## GM Screen Features (Updated March 31, 2026)
+
+### 12 Tabs in GM Screen
+1. **Combat** - Combat control, encounters, quick combat
+2. **Location** - Party location tracker
+3. **NPCs** - Name generator + saved NPCs
+4. **Monsters** - Creature lookup + custom creatures
+5. **Tables** - Random encounter tables
+6. **Loot** - Treasure generator
+7. **Dice** - Dice roller
+8. **Party** - Party inventory, loot distribution
+9. **Notes** - Session notes
+10. **Story Arcs** (NEW) - Quest/plot tracking with milestones
+11. **Soundboard** (NEW) - Ambient audio with built-in + custom sounds
+12. **Uploads** (NEW) - Consolidated file uploads for all campaign assets
+
+### New GM Screen Features
+
+#### 3D Animated Dice Roller
+- Full-screen animated dice overlay (matching player page style)
+- Purple gradient background for GM theme
+- Critical hit/miss visual feedback
+- Triggered from Quick Dice panel on right side
+
+#### Soundboard
+- **Built-in sounds**: Tavern, Forest, Campfire, Ocean, Battle, Wind, Rain, Storm, Night, Dungeon, Temple, Tension
+- **Category filters**: All, Nature, Locations, Weather, Action, Mood, Custom
+- **Custom uploads**: Upload your own audio files
+- **Master volume control** with mute toggle
+- **Individual volume sliders** per sound
+- **Stop All** button for quick silence
+
+#### Story Arc Tracker
+- Create and manage story arcs/quests
+- **Priority levels**: Main Quest, Side Quest, Character Arc, Background
+- **Status tracking**: Planning, Active, Paused, Completed, Abandoned
+- **Plot points**: Add milestones with completion checkboxes
+- **Progress tracking**: Visual progress indicator
+
+#### Uploads Tab
+- **5 upload categories**:
+  - Campaign Maps (cyan) - world maps, dungeon maps
+  - Character Portraits (green) - NPC/PC art
+  - Documents & PDFs (gold) - rulebooks, handouts
+  - Audio & Music (pink) - sound effects, music
+  - Other Files (purple) - misc assets
+- **Progress tracking** during uploads
+- **Recent uploads** history
+
+#### Live Session Mode
+- Floating button (lightning bolt) in bottom right
+- Slide-out panel with quick access tools
+- **Quick Actions**: d20, 2d6 damage, Combat, Generate NPC
+- **Party quick view**: HP status at a glance
+- **Quick note** input
+- **Quick navigation** to key tabs
+
+### Persistent Quick Dice Panel
+- Always visible on right side of GM Screen
+- **Quick Roll buttons**: d4, d6, d8, d10, d12, d20
+- **Common Rolls**: Attack (d20), Advantage (2d20), Damage (2d6), Fireball (8d6)
+- **Percentile**: Roll d100
+- All rolls now trigger 3D animated dice overlay
+
+## Current Access Model
 - **Player Features**: LOCKED - "Coming Soon" overlay on home page
 - **GM Features**: FULLY ACCESSIBLE - Create campaigns, GM tools, AI, etc.
 
 ## Subscription Tiers
 | Tier | Price | Status | Features |
 |------|-------|--------|----------|
-| Free | £0 | Active | View campaigns (read-only), Basic dice roller, Limited access |
+| Free | £0 | Active | View campaigns (read-only), Basic dice roller |
 | Player | TBD | Coming Soon | Create characters, Join campaigns, Full character sheets |
-| Game Master | £3.99/mo | Active | Create campaigns, GM tools & AI, Combat tracker, World building |
-| Legendary | £5.99/mo | Active | Full GM access, Player tier included*, Priority AI, Early access |
-
-## Recent Updates (March 2026)
-
-### Complete UI Redesign (NEW - March 31, 2026)
-- **Replaced** old "Fantasy Sunset" theme (pink/orange/purple Instagram-like gradients)
-- **Implemented** dual-theme system: Midnight Neon (GM) and Electric Tundra (Player)
-- **Created** ThemeContext.js for automatic theme switching based on routes
-- **Updated** all major components: LandingPage, AuthPage, UnifiedDashboard, CampaignDashboard, GMScreen, CharacterSheetFull
-- **Changed** fonts from Cinzel/Montserrat to Outfit/Manrope (Cinzel reserved for logo)
-
-### Copyright Cleanup (March 17, 2026)
-- **Removed** all copyrighted D&D items from itemsDatabase.js (3,059 items)
-- **Replaced** with SRD-only items (92 items) under Creative Commons
-- **Removed** copyrighted items_database.json from backend
-- **Removed** "Death Tyrant" (Beholder-related) from monsterDatabase.js
-- **Retained** SRD spells and classes (Open Gaming License)
-
-### Persistent Quick Dice Panel
-- Always visible on right side of GM Screen across all tabs
-- Quick Roll buttons: d4, d6, d8, d10, d12, d20
-- Common Rolls: Attack (d20), Advantage (2d20 high), Disadvantage (2d20 low), Damage (2d6), Fireball (8d6)
-- Percentile: Roll d100
-- Collapsible: Can minimize to icon-only mode
-
-### GM Screen Tab Consolidation (9 Tabs)
-1. Combat - Combat control, encounters, quick combat
-2. Location - Party location tracker
-3. NPCs - Name generator + saved NPCs (merged)
-4. Monsters - Creature lookup + custom creatures (merged)
-5. Tables - Random encounter tables
-6. Loot - Treasure generator
-7. Dice - Dice roller
-8. Party - Party inventory, loot distribution
-9. Notes - Session notes
+| Game Master | £3.99/mo | Active | Create campaigns, GM tools & AI, Combat tracker |
+| Legendary | £5.99/mo | Active | Full GM access, Player tier included*, Priority AI |
 
 ## Implementation Files
 
 ### Theme System
 - `/app/frontend/src/index.css` - CSS variables and dual-theme definitions
 - `/app/frontend/src/contexts/ThemeContext.js` - Theme switching context
-- `/app/frontend/src/App.js` - ThemeRouter component
 
-### Key Components (Updated for new theme)
-- `/app/frontend/src/components/LandingPage.js` - Neutral bridging theme
-- `/app/frontend/src/components/AuthPage.js` - Neutral theme
-- `/app/frontend/src/components/UnifiedDashboard.js` - GM/Player split view
-- `/app/frontend/src/components/CampaignDashboard.js` - Midnight Neon theme
-- `/app/frontend/src/components/GMScreen.js` - Midnight Neon theme
-- `/app/frontend/src/components/CharacterSheetFull.js` - Electric Tundra theme
+### GM Screen Components
+- `/app/frontend/src/components/GMScreen.js` - Main GM Screen with 12 tabs
+- `/app/frontend/src/components/gm/Soundboard.js` - Ambient audio system
+- `/app/frontend/src/components/gm/StoryArcTracker.js` - Quest/arc tracking
+- `/app/frontend/src/components/gm/UploadTab.js` - Consolidated uploads
+- `/app/frontend/src/components/gm/LiveSessionMode.js` - Quick access panel
+- `/app/frontend/src/components/gm/SmartSessionLog.js` - Enhanced notes (ready for integration)
+- `/app/frontend/src/components/ui/DiceRoller3D.js` - 3D animated dice
 
 ### Data Files (Copyright Clean)
 - `/app/frontend/src/data/itemsDatabase.js` - SRD-only items (92 items)
 - `/app/frontend/src/data/monsterDatabase.js` - SRD monsters only
 - `/app/frontend/src/data/spellDatabase.js` - SRD spells (OGL)
-- `/app/backend/data/srd/classes.json` - SRD classes (OGL)
+
+## Recent Updates (March 31, 2026)
+
+### GM Screen Major Enhancements
+- Added 3 new tabs: Story Arcs, Soundboard, Uploads
+- Implemented 3D animated dice roller (purple theme)
+- Created Soundboard with 12 built-in sounds + custom upload
+- Created Story Arc Tracker with priorities and milestones
+- Created Uploads tab with 5 categorized upload zones
+- Added Live Session Mode floating panel
+- Updated Quick Dice panel to use 3D animations
+
+### Complete UI Redesign
+- Replaced "Fantasy Sunset" theme with dual-theme system
+- GM pages: Midnight Neon (purple/violet)
+- Player pages: Electric Tundra (blue/cyan)
+- New fonts: Outfit/Manrope (Cinzel for logo only)
+
+### Copyright Cleanup
+- Removed all copyrighted D&D items
+- Replaced with SRD-only content (Creative Commons)
 
 ## Upcoming Tasks (Priority Order)
 
 ### P0 - Critical
-1. **Finalize Equipment & Inventory System** - Implement equip/unequip functionality that modifies character stats (AC, attack bonuses)
+1. **Finalize Equipment & Inventory System** - Equip/unequip with stat modifications
 
 ### P1 - High Priority
-2. **Character Sheet UI/UX Overhaul** - Condense layout to fit all major sections on one screen without scrolling
-3. **Real-time GM Loot System** - Enable drag-and-drop loot assignment with WebSocket push to players
-4. **Map Creator Enhancements** - Textured drawing tools, wall/door tools, smooth pan/zoom
+2. **Character Sheet UI/UX Overhaul** - Condense to single screen
+3. **Real-time GM Loot System** - Drag-and-drop with WebSockets
+4. **Map Creator Enhancements** - Pins, routes, fog of war
+5. **NPC Relationship Mapping** - Visual connections between NPCs
+6. **Context-Aware AI Co-GM** - AI suggestions based on current tab
 
 ### P2 - Medium Priority
-5. **Player Timeline & Note Sync UI** - Backend endpoints exist, build frontend components
+7. **Combat Flow Improvements** - Status effect library, AI tactical suggestions
+8. **Economy System** - City wealth, trade routes
+9. **Event System** - Festivals, tournaments, markets
+10. **Mini-Game Engine** - Horse racing, gambling, card games
+11. **Session Replay Generator** - Narrative recaps
 
 ### Future Tasks
-- Soundboard with ambient noises
-- Map sharing to second screen
+- Player sync for shared views
 - PDF export/print for character sheets
 - Live audio transcription ("ROOK listener")
 - Virtual Tabletop (VTT) functionality
 - AI-powered travel encounter generator
 
 ## Known Issues
-- **Production Login/Password Reset Broken** - External environment configuration issue (database credentials, Resend API key, domain verification). Cannot be fixed from preview environment.
+- **Production Login/Password Reset Broken** - External environment configuration issue
 
 ## Test Credentials
 - Email: lcblakey24@outlook.com
 - Password: LCBlakey24?!
 
-## Third-Party Integrations
-- **Stripe**: Subscriptions (User API Key required)
-- **Resend**: Email sending (User API Key required)
-- **Emergent LLM Key**: AI features via emergentintegrations
-- **PyMuPDF**: PDF text extraction
+## Test Results
+- **Latest test run**: 29/29 tests passed (100%)
+- **Test file**: `/app/test_reports/iteration_57.json`
 
 ---
 *Last Updated: March 31, 2026*
