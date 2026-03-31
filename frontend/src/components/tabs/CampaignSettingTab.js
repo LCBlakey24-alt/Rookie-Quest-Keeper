@@ -568,7 +568,7 @@ function CampaignSettingTab({ campaignId }) {
         </div>
 
         {/* Character Creation Content (JSON Rulesets) */}
-        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#F59E0B' }}>
+        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#8A2BE2' }}>
           <h3 style={{ 
             fontSize: '16px', 
             color: '#ffffff', 
@@ -577,7 +577,7 @@ function CampaignSettingTab({ campaignId }) {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <BookOpen size={18} style={{ color: '#F59E0B' }} />
+            <BookOpen size={18} style={{ color: '#8A2BE2' }} />
             Character Creation Content
           </h3>
           
@@ -590,13 +590,13 @@ function CampaignSettingTab({ campaignId }) {
             marginBottom: '16px'
           }}>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              <strong style={{ color: '#F59E0B' }}>How it works:</strong> Upload JSON rulesets containing custom races, classes, subclasses, backgrounds, and feats. 
+              <strong style={{ color: '#8A2BE2' }}>How it works:</strong> Upload JSON rulesets containing custom races, classes, subclasses, backgrounds, and feats. 
               Players in your campaign will see these options when creating characters.
             </p>
             
             <details style={{ marginTop: '12px' }}>
               <summary style={{ 
-                color: '#F59E0B', 
+                color: '#8A2BE2', 
                 fontSize: '13px', 
                 cursor: 'pointer',
                 fontWeight: '600'
@@ -660,7 +660,7 @@ function CampaignSettingTab({ campaignId }) {
           <div style={{ marginBottom: '16px' }}>
             <label style={{
               padding: '12px 20px',
-              background: '#F59E0B',
+              background: '#8A2BE2',
               color: 'black',
               borderRadius: '8px',
               cursor: uploadingRuleset ? 'not-allowed' : 'pointer',
@@ -711,7 +711,7 @@ function CampaignSettingTab({ campaignId }) {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div style={{ flex: 1 }}>
-                          <span style={{ color: '#F59E0B', fontSize: '14px', fontWeight: '600' }}>{rs.name}</span>
+                          <span style={{ color: '#8A2BE2', fontSize: '14px', fontWeight: '600' }}>{rs.name}</span>
                           {rs.description && (
                             <p style={{ color: '#666', fontSize: '12px', margin: '4px 0 0 0' }}>{rs.description}</p>
                           )}
@@ -721,7 +721,7 @@ function CampaignSettingTab({ campaignId }) {
                             {subclassCount > 0 && <span>{subclassCount} subclass{subclassCount !== 1 ? 'es' : ''}</span>}
                             {bgCount > 0 && <span>{bgCount} background{bgCount !== 1 ? 's' : ''}</span>}
                             {featCount > 0 && <span>{featCount} feat{featCount !== 1 ? 's' : ''}</span>}
-                            {totalItems === 0 && <span style={{ color: '#F59E0B' }}>Empty ruleset</span>}
+                            {totalItems === 0 && <span style={{ color: '#8A2BE2' }}>Empty ruleset</span>}
                           </div>
                         </div>
                         <button
@@ -759,27 +759,27 @@ function CampaignSettingTab({ campaignId }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px' }}>
                 {campaignContent.races?.length > 0 && (
                   <span style={{ color: '#E0E0E0' }}>
-                    <strong style={{ color: '#F59E0B' }}>{campaignContent.races.length}</strong> Races
+                    <strong style={{ color: '#8A2BE2' }}>{campaignContent.races.length}</strong> Races
                   </span>
                 )}
                 {campaignContent.classes?.length > 0 && (
                   <span style={{ color: '#E0E0E0' }}>
-                    <strong style={{ color: '#F59E0B' }}>{campaignContent.classes.length}</strong> Classes
+                    <strong style={{ color: '#8A2BE2' }}>{campaignContent.classes.length}</strong> Classes
                   </span>
                 )}
                 {campaignContent.subclasses?.length > 0 && (
                   <span style={{ color: '#E0E0E0' }}>
-                    <strong style={{ color: '#F59E0B' }}>{campaignContent.subclasses.length}</strong> Subclasses
+                    <strong style={{ color: '#8A2BE2' }}>{campaignContent.subclasses.length}</strong> Subclasses
                   </span>
                 )}
                 {campaignContent.backgrounds?.length > 0 && (
                   <span style={{ color: '#E0E0E0' }}>
-                    <strong style={{ color: '#F59E0B' }}>{campaignContent.backgrounds.length}</strong> Backgrounds
+                    <strong style={{ color: '#8A2BE2' }}>{campaignContent.backgrounds.length}</strong> Backgrounds
                   </span>
                 )}
                 {campaignContent.feats?.length > 0 && (
                   <span style={{ color: '#E0E0E0' }}>
-                    <strong style={{ color: '#F59E0B' }}>{campaignContent.feats.length}</strong> Feats
+                    <strong style={{ color: '#8A2BE2' }}>{campaignContent.feats.length}</strong> Feats
                   </span>
                 )}
               </div>
@@ -823,7 +823,7 @@ function CampaignSettingTab({ campaignId }) {
 
       {/* ROOK Panel */}
       <div style={{ position: 'sticky', top: '120px', height: 'fit-content' }}>
-        <div className="glow-panel" style={{ borderColor: '#E11D48' }}>
+        <div className="glow-panel" style={{ borderColor: '#8A2BE2' }}>
           <h3 style={{ 
             fontSize: '18px', 
             color: '#ffffff', 
@@ -834,7 +834,7 @@ function CampaignSettingTab({ campaignId }) {
             fontFamily: 'Inter, sans-serif',
             fontWeight: '700'
           }}>
-            <Wand2 size={20} style={{ color: '#E11D48' }} />
+            <Wand2 size={20} style={{ color: '#8A2BE2' }} />
             ROOK
           </h3>
           <p style={{ fontSize: '13px', color: '#B3B3B3', marginBottom: '16px', lineHeight: '1.5' }}>
@@ -845,7 +845,7 @@ function CampaignSettingTab({ campaignId }) {
               display: 'block', 
               marginBottom: '8px', 
               fontSize: '13px',
-              color: '#E11D48',
+              color: '#8A2BE2',
               fontWeight: '600'
             }}>
               What do you need?
@@ -855,7 +855,7 @@ function CampaignSettingTab({ campaignId }) {
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
               className="textarea-glow"
-              style={{ minHeight: '100px', fontSize: '13px', borderColor: '#E11D48' }}
+              style={{ minHeight: '100px', fontSize: '13px', borderColor: '#8A2BE2' }}
               placeholder="Example: Create a high-fantasy world where magic is fading and ancient technologies are being rediscovered"
             />
           </div>
@@ -871,7 +871,7 @@ function CampaignSettingTab({ campaignId }) {
               alignItems: 'center', 
               justifyContent: 'center', 
               gap: '8px',
-              background: '#E11D48',
+              background: '#8A2BE2',
               border: 'none'
             }}
           >
@@ -890,7 +890,7 @@ function CampaignSettingTab({ campaignId }) {
           {aiResult && (
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ fontSize: '13px', color: '#E11D48', fontWeight: '600' }}>Result</label>
+                <label style={{ fontSize: '13px', color: '#8A2BE2', fontWeight: '600' }}>Result</label>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <Button
                     data-testid="insert-setting-result-btn"
@@ -987,7 +987,7 @@ function CampaignSettingTab({ campaignId }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                  background: 'linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%)'
                 }}
               >
                 <Copy size={16} />
@@ -1005,7 +1005,7 @@ function CampaignSettingTab({ campaignId }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                background: 'linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%)'
               }}
             >
               {loadingJoinCode ? (

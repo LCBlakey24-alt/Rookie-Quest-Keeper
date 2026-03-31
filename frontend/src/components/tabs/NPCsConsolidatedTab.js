@@ -10,7 +10,7 @@ const theme = {
   card: '#1F1F1F',
   text: '#FFFFFF',
   muted: '#808080',
-  primary: '#E11D48',
+  primary: '#8A2BE2',
   border: 'rgba(255, 255, 255, 0.1)'
 };
 

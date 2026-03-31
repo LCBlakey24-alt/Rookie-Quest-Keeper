@@ -315,7 +315,7 @@ function LocationsTab({ campaignId }) {
                   alignItems: 'center', 
                   justifyContent: 'center', 
                   gap: '8px',
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  background: 'linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%)',
                   border: 'none'
                 }}
               >
@@ -948,7 +948,7 @@ function LocationsTab({ campaignId }) {
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 gap: '8px',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                background: 'linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%)',
                 border: 'none'
               }}
             >

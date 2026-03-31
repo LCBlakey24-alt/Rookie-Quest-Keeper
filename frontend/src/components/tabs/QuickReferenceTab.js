@@ -8,7 +8,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Theme colors
 const theme = {
-  accent: '#E11D48',
+  accent: '#8A2BE2',
   accentSubtle: 'rgba(225, 29, 72, 0.15)',
   bg: { card: '#1F1F1F', dark: '#141414', hover: '#2A2A2A', panel: '#1A1A1A' },
   text: { white: '#FFFFFF', secondary: '#B3B3B3', muted: '#808080' },

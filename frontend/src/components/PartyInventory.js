@@ -268,7 +268,7 @@ function PartyInventory({ campaignId, players = [] }) {
 
           {/* Add Item Form */}
           {showAddForm && (
-            <div className="glow-panel" style={{ marginBottom: '12px', borderColor: '#F59E0B', padding: '12px' }}>
+            <div className="glow-panel" style={{ marginBottom: '12px', borderColor: '#8A2BE2', padding: '12px' }}>
               <h4 style={{ color: '#F59E0B', fontSize: '13px', fontWeight: '400', marginBottom: '12px' }}>Add New Item</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
                 <div>

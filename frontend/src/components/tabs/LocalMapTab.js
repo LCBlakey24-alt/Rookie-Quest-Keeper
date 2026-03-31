@@ -12,18 +12,18 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// GM Theme
+// GM Theme - Midnight Neon
 const theme = {
-  primary: '#E11D48',
-  hover: '#F43F5E',
-  subtle: 'rgba(225, 29, 72, 0.15)',
-  bg: '#0D0D0D',
-  card: '#1F1F1F',
-  panel: '#1A1A1A',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(255, 255, 255, 0.1)',
+  primary: '#8A2BE2',
+  hover: '#9932CC',
+  subtle: 'rgba(138, 43, 226, 0.15)',
+  bg: '#0B0B0D',
+  card: 'rgba(15, 10, 30, 0.9)',
+  panel: 'rgba(15, 10, 30, 0.95)',
+  text: '#F8F8FF',
+  textSecondary: '#9EB0D0',
+  muted: '#6B7B9B',
+  border: 'rgba(138, 43, 226, 0.2)',
   success: '#22C55E'
 };
 
@@ -35,7 +35,7 @@ const POI_TYPES = [
   { id: 'guild', label: 'Guild Hall', icon: Building, color: '#3B82F6' },
   { id: 'library', label: 'Library', icon: BookOpen, color: '#06B6D4' },
   { id: 'residence', label: 'Residence', icon: Home, color: '#22C55E' },
-  { id: 'other', label: 'Other', icon: MapPin, color: '#E11D48' }
+  { id: 'other', label: 'Other', icon: MapPin, color: '#8A2BE2' }
 ];
 
 function LocalMapTab({ campaignId }) {
@@ -159,7 +159,7 @@ function LocalMapTab({ campaignId }) {
       const poiType = POI_TYPES.find(t => t.id === pinForm.pin_type);
       const pinData = {
         ...pinForm,
-        color: poiType?.color || '#E11D48',
+        color: poiType?.color || '#8A2BE2',
         icon: poiType?.icon?.name || 'MapPin'
       };
 
@@ -228,7 +228,7 @@ function LocalMapTab({ campaignId }) {
 
   const getPinColor = (pinType) => {
     const type = POI_TYPES.find(t => t.id === pinType);
-    return type?.color || '#E11D48';
+    return type?.color || '#8A2BE2';
   };
 
   // Get maps for selected location

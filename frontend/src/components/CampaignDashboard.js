@@ -39,8 +39,7 @@ const theme = {
   },
   sunset: {
     purple: '#8A2BE2',
-    pink: '#BA55D3',
-    gold: '#F59E0B'
+    pink: '#BA55D3'
   },
   accent: {
     primary: '#8A2BE2',      // Blue Violet

@@ -28,7 +28,7 @@ const GUIDE_CONTENT = {
       "Hit '+ New Campaign' to start a fresh adventure.",
       "Each campaign has its own world, NPCs, locations, and maps!"
     ],
-    color: '#F59E0B' // Red for GM
+    color: '#8A2BE2' // Red for GM
   },
   
   // Campaign Dashboard Tabs
@@ -40,7 +40,7 @@ const GUIDE_CONTENT = {
       "This is the first thing players see when they join your campaign.",
       "You can update these anytime as your world evolves."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'world': {
     title: "World Builder",
@@ -50,7 +50,7 @@ const GUIDE_CONTENT = {
       "Use the AI to help generate descriptions and history.",
       "Link locations together to create an interconnected world."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'world-map': {
     title: "World Map",
@@ -61,7 +61,7 @@ const GUIDE_CONTENT = {
       "Create paths between locations to calculate travel times!",
       "Use 'Travel Mode' to plan party journeys with different travel speeds."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'local-maps': {
     title: "Local Maps",
@@ -72,7 +72,7 @@ const GUIDE_CONTENT = {
       "Perfect for when the party arrives in a new location!",
       "Link local maps to world map locations for easy navigation."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   // Consolidated Maps tab
   'maps': {
@@ -84,7 +84,7 @@ const GUIDE_CONTENT = {
       "Local Maps: Detail city streets, dungeon rooms, and points of interest.",
       "Upload custom images or use the pin system to mark important locations."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   // Consolidated Chronicle tab
   'chronicle': {
@@ -142,7 +142,7 @@ const GUIDE_CONTENT = {
       "Add NPCs, shops, and secrets to each location.",
       "Locations can be linked to map pins for visual navigation."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'npcs': {
     title: "NPC Manager",
@@ -152,7 +152,7 @@ const GUIDE_CONTENT = {
       "Use the AI to generate NPC backstories and motivations.",
       "Assign NPCs to locations so you always know who's where."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'npc-web': {
     title: "NPC Relationship Web",
@@ -192,7 +192,7 @@ const GUIDE_CONTENT = {
       "Define domains, holy symbols, and commandments.",
       "Link clerics and paladins to their patron deities."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'players': {
     title: "Player Management",
@@ -202,7 +202,7 @@ const GUIDE_CONTENT = {
       "See which characters are in your campaign.",
       "Manage player access and permissions."
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'combat-creator': {
     title: "Combat Setup",
@@ -262,7 +262,7 @@ const GUIDE_CONTENT = {
       "Schedule festivals, holidays, and important dates.",
       "Never lose track of how many days have passed!"
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   },
   'ingame-notes': {
     title: "Session Notes",
@@ -318,7 +318,7 @@ const GUIDE_CONTENT = {
       "Use the dice roller for any rolls you need.",
       "Everything updates in real-time!"
     ],
-    color: '#F59E0B'
+    color: '#8A2BE2'
   }
 };
 

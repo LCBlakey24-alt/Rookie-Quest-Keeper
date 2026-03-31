@@ -3,15 +3,16 @@ import { Globe, Building } from 'lucide-react';
 import WorldMapTab from './WorldMapTab';
 import LocalMapTab from './LocalMapTab';
 
-// Theme
+// GM Theme - Midnight Neon
 const theme = {
-  bg: '#0D0D0D',
-  panel: '#1A1A1A',
-  card: '#1F1F1F',
-  text: '#FFFFFF',
-  muted: '#808080',
-  primary: '#E11D48',
-  border: 'rgba(255, 255, 255, 0.1)'
+  bg: '#0B0B0D',
+  panel: 'rgba(15, 10, 30, 0.95)',
+  card: 'rgba(15, 10, 30, 0.9)',
+  text: '#F8F8FF',
+  muted: '#6B7B9B',
+  primary: '#8A2BE2',
+  border: 'rgba(138, 43, 226, 0.2)',
+  gradient: 'linear-gradient(135deg, #4B0082, #8A2BE2)'
 };
 
 // Consolidated Maps Tab - World Maps + Local Maps in one view
@@ -47,8 +48,9 @@ function MapsConsolidatedTab({ campaignId }) {
                 alignItems: 'center',
                 gap: '10px',
                 padding: '12px 20px',
-                background: isActive ? theme.primary : 'transparent',
+                background: isActive ? theme.gradient : 'transparent',
                 border: isActive ? 'none' : `1px solid ${theme.border}`,
+                borderRadius: '8px',
                 color: isActive ? '#fff' : theme.muted,
                 cursor: 'pointer',
                 transition: 'all 0.2s'

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 // Logo import removed for minimalist design
 import { 
   Sword, Users, BookOpen, Send, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Upload, Music, Target, Volume2, Link2
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import DiceRoller3D from '@/components/ui/DiceRoller3D';
@@ -328,7 +328,6 @@ function GMScreen({ username }) {
     { id: 'notes', icon: FileText, label: 'Notes' },
     { id: 'story', icon: Target, label: 'Story Arcs' },
     { id: 'sound', icon: Volume2, label: 'Soundboard' },
-    { id: 'uploads', icon: Upload, label: 'Uploads' },
   ];
 
   // GM Theme - Midnight Neon (Dark Purple/Violet)

@@ -12,20 +12,20 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// GM Theme - Red
+// GM Theme - Midnight Neon
 const theme = {
-  primary: '#F59E0B',
-  hover: '#D97706',
-  subtle: 'rgba(225, 29, 72, 0.15)',
-  bg: '#0B0F19',
-  card: '#111827',
-  panel: '#111827',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(212, 175, 55, 0.15)',
+  primary: '#8A2BE2',
+  hover: '#9932CC',
+  subtle: 'rgba(138, 43, 226, 0.15)',
+  bg: '#0B0B0D',
+  card: 'rgba(15, 10, 30, 0.9)',
+  panel: 'rgba(15, 10, 30, 0.95)',
+  text: '#F8F8FF',
+  textSecondary: '#9EB0D0',
+  muted: '#6B7B9B',
+  border: 'rgba(138, 43, 226, 0.2)',
   success: '#22C55E',
-  cyan: '#06B6D4',
+  cyan: '#4DD0E1',
   warning: '#F59E0B'
 };
 

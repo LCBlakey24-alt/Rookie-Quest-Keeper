@@ -284,13 +284,13 @@ function CalendarTab({ campaignId }) {
                         alignItems: 'center', 
                         marginBottom: '12px',
                         background: '#0a1628',
-                        border: '2px solid #ff1f8f',
+                        border: '2px solid #8A2BE2',
                         borderRadius: '8px',
                         padding: '12px'
                       }}
                     >
                       <span style={{ 
-                        color: '#ff1f8f', 
+                        color: '#8A2BE2', 
                         fontWeight: '700', 
                         minWidth: '30px',
                         fontSize: '14px'
@@ -341,10 +341,10 @@ function CalendarTab({ campaignId }) {
               }}>
                 <p style={{ color: '#ffffff', fontWeight: '600', marginBottom: '8px' }}>Calendar Summary</p>
                 <p style={{ color: '#bae6fd', fontSize: '14px' }}>
-                  Total months: <span style={{ color: '#ff1f8f', fontWeight: '600' }}>{customMonths.length}</span>
+                  Total months: <span style={{ color: '#8A2BE2', fontWeight: '600' }}>{customMonths.length}</span>
                 </p>
                 <p style={{ color: '#bae6fd', fontSize: '14px' }}>
-                  Total days per year: <span style={{ color: '#ff1f8f', fontWeight: '600' }}>{customMonths.reduce((sum, m) => sum + m.days, 0)}</span>
+                  Total days per year: <span style={{ color: '#8A2BE2', fontWeight: '600' }}>{customMonths.reduce((sum, m) => sum + m.days, 0)}</span>
                 </p>
               </div>
 
@@ -373,7 +373,7 @@ function CalendarTab({ campaignId }) {
 
         {/* Current Date Display */}
         <Card className="parchment-dark" style={{ marginBottom: '24px', padding: '32px', textAlign: 'center' }}>
-          <h3 className="medieval-heading" style={{ fontSize: '48px', color: '#ff1f8f', marginBottom: '8px' }}>
+          <h3 className="medieval-heading" style={{ fontSize: '48px', color: '#8A2BE2', marginBottom: '8px' }}>
             {currentMonth?.name || 'Month'} {calendar.current_day}, {calendar.current_year}
           </h3>
           <p style={{ fontSize: '18px', color: '#ffffff' }}>Current In-Game Date</p>
@@ -480,7 +480,7 @@ function CalendarTab({ campaignId }) {
                         type="checkbox"
                         checked={eventForm.is_recurring}
                         onChange={(e) => setEventForm({ ...eventForm, is_recurring: e.target.checked })}
-                        style={{ width: '18px', height: '18px', accentColor: '#ff1f8f' }}
+                        style={{ width: '18px', height: '18px', accentColor: '#8A2BE2' }}
                       />
                       Recurring Event
                     </label>
@@ -527,7 +527,7 @@ function CalendarTab({ campaignId }) {
                     data-testid={`event-${event.id}`}
                     className="initiative-entry"
                     style={{
-                      borderLeftColor: isToday ? '#F59E0B' : isPast ? '#6b7280' : '#ff1f8f',
+                      borderLeftColor: isToday ? '#8A2BE2' : isPast ? '#6b7280' : '#4DD0E1',
                       opacity: isPast ? 0.6 : 1
                     }}
                   >
@@ -536,12 +536,12 @@ function CalendarTab({ campaignId }) {
                         <h4 style={{ fontSize: '16px', marginBottom: '4px', color: '#ffffff' }}>{event.name}</h4>
                         <p style={{ fontSize: '13px', color: '#bae6fd', marginBottom: '4px' }}>
                           {monthName} {event.day}, {event.year}
-                          {event.is_recurring && <span style={{ marginLeft: '8px', color: '#ff1f8f' }}>(Recurring)</span>}
+                          {event.is_recurring && <span style={{ marginLeft: '8px', color: '#8A2BE2' }}>(Recurring)</span>}
                         </p>
                         {!isPast && daysUntil <= 30 && (
                           <p style={{ 
                             fontSize: '12px', 
-                            color: isToday ? '#F59E0B' : '#ff1f8f',
+                            color: isToday ? '#8A2BE2' : '#4DD0E1',
                             fontWeight: '600'
                           }}>
                             {isToday ? 'TODAY!' : `In ${daysUntil} day(s)`}
@@ -579,7 +579,7 @@ function CalendarTab({ campaignId }) {
 
       {/* Upcoming Events Sidebar */}
       <div style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-        <Card className="parchment-dark" style={{ border: '2px solid #ff1f8f' }}>
+        <Card className="parchment-dark" style={{ border: '2px solid #8A2BE2' }}>
           <CardHeader>
             <CardTitle className="medieval-heading" style={{ fontSize: '20px', color: '#ffffff' }}>
               Upcoming (30 days)
@@ -601,7 +601,7 @@ function CalendarTab({ campaignId }) {
                         padding: '12px',
                         background: event.daysUntil === 0 ? 'rgba(34, 197, 94, 0.2)' : '#0a1628',
                         border: '2px solid',
-                        borderColor: event.daysUntil === 0 ? '#F59E0B' : '#ff1f8f',
+                        borderColor: event.daysUntil === 0 ? '#8A2BE2' : '#4DD0E1',
                         borderRadius: '8px'
                       }}
                     >
@@ -612,7 +612,7 @@ function CalendarTab({ campaignId }) {
                       <p style={{ 
                         fontSize: '13px', 
                         fontWeight: '700',
-                        color: event.daysUntil === 0 ? '#F59E0B' : '#ff1f8f'
+                        color: event.daysUntil === 0 ? '#8A2BE2' : '#4DD0E1'
                       }}>
                         {event.daysUntil === 0 ? 'TODAY!' : `${event.daysUntil} day(s)`}
                       </p>
@@ -629,13 +629,13 @@ function CalendarTab({ campaignId }) {
           <CardContent style={{ padding: '16px' }}>
             <h4 style={{ color: '#ffffff', marginBottom: '12px', fontWeight: '600' }}>Calendar Info</h4>
             <p style={{ color: '#bae6fd', fontSize: '13px', marginBottom: '8px' }}>
-              Type: <span style={{ color: '#ff1f8f' }}>{calendar.calendar_type === 'custom' ? 'Custom' : PRESET_CALENDARS[calendar.calendar_type]?.name || calendar.calendar_type}</span>
+              Type: <span style={{ color: '#8A2BE2' }}>{calendar.calendar_type === 'custom' ? 'Custom' : PRESET_CALENDARS[calendar.calendar_type]?.name || calendar.calendar_type}</span>
             </p>
             <p style={{ color: '#bae6fd', fontSize: '13px', marginBottom: '8px' }}>
-              Months: <span style={{ color: '#ff1f8f' }}>{calendar.custom_months.length}</span>
+              Months: <span style={{ color: '#8A2BE2' }}>{calendar.custom_months.length}</span>
             </p>
             <p style={{ color: '#bae6fd', fontSize: '13px' }}>
-              Days/Year: <span style={{ color: '#ff1f8f' }}>{calendar.custom_months.reduce((sum, m) => sum + m.days, 0)}</span>
+              Days/Year: <span style={{ color: '#8A2BE2' }}>{calendar.custom_months.reduce((sum, m) => sum + m.days, 0)}</span>
             </p>
           </CardContent>
         </Card>

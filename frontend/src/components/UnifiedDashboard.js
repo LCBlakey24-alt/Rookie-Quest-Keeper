@@ -24,8 +24,7 @@ const theme = {
   },
   sunset: {
     purple: '#8A2BE2',
-    pink: '#4DD0E1',
-    gold: '#F59E0B'
+    pink: '#4DD0E1'
   },
   gm: {
     primary: '#8A2BE2',
@@ -785,7 +784,7 @@ function UnifiedDashboard({ username, onLogout }) {
             left: 0,
             right: 0,
             height: '150px',
-            background: 'linear-gradient(180deg, rgba(245, 158, 11, 0.15) 0%, transparent 100%)',
+            background: 'linear-gradient(180deg, rgba(138, 43, 226, 0.15) 0%, transparent 100%)',
             pointerEvents: 'none'
           }} />
           
@@ -839,12 +838,8 @@ function UnifiedDashboard({ username, onLogout }) {
                     fontSize: '11px',
                     padding: '4px 10px',
                     borderRadius: '4px',
-                    background: subscriptionInfo.campaigns_limit === -1 
-                      ? 'rgba(245, 158, 11, 0.2)'
-                      : 'rgba(138, 43, 226, 0.2)',
-                    color: subscriptionInfo.campaigns_limit === -1 
-                      ? theme.gm.primary 
-                      : theme.player.primary,
+                    background: 'rgba(138, 43, 226, 0.2)',
+                    color: theme.gm.primary,
                     fontWeight: '500',
                     marginTop: '4px'
                   }}>
@@ -873,13 +868,13 @@ function UnifiedDashboard({ username, onLogout }) {
                 style={{
                   background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                   border: 'none',
-                  color: '#0B1530',
+                  color: '#fff',
                   padding: '12px 24px',
                   fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                  boxShadow: `0 4px 15px ${theme.gm.glow}`
                 }}
               >
                 <Plus size={18} />
@@ -914,9 +909,9 @@ function UnifiedDashboard({ username, onLogout }) {
                           background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                           border: 'none',
                           padding: '14px 28px',
-                          color: '#0B1530',
+                          color: '#fff',
                           fontWeight: '500',
-                          boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                          boxShadow: `0 4px 15px ${theme.gm.glow}`
                         }}
                       >
                         Upgrade to GM
@@ -933,9 +928,9 @@ function UnifiedDashboard({ username, onLogout }) {
                           background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                           border: 'none',
                           padding: '14px 28px',
-                          color: '#0B1530',
+                          color: '#fff',
                           fontWeight: '500',
-                          boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                          boxShadow: `0 4px 15px ${theme.gm.glow}`
                         }}
                       >
                         Create Campaign
@@ -1073,8 +1068,8 @@ function UnifiedDashboard({ username, onLogout }) {
                 >
                   <Star 
                     size={36} 
-                    fill={star <= reviewRating ? '#F59E0B' : 'transparent'}
-                    color={star <= reviewRating ? '#F59E0B' : theme.text.muted}
+                    fill={star <= reviewRating ? theme.gm.primary : 'transparent'}
+                    color={star <= reviewRating ? theme.gm.primary : theme.text.muted}
                   />
                 </button>
               ))}
@@ -1115,7 +1110,7 @@ function UnifiedDashboard({ username, onLogout }) {
                 disabled={submittingReview}
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(135deg, #C54B2C, #F2A541)',
+                  background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                   border: 'none',
                   color: '#fff',
                   padding: '12px',
@@ -1172,7 +1167,7 @@ function UnifiedDashboard({ username, onLogout }) {
               textAlign: 'center'
             }}>
               <code style={{ 
-                background: 'linear-gradient(90deg, #C54B2C, #F2A541)',
+                background: `linear-gradient(90deg, ${theme.gm.primary}, ${theme.player.primary})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 fontSize: '18px',
@@ -1187,7 +1182,7 @@ function UnifiedDashboard({ username, onLogout }) {
               onClick={copyReferralCode}
               style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #C54B2C, #F2A541)',
+                background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                 border: 'none',
                 color: '#fff',
                 padding: '14px',

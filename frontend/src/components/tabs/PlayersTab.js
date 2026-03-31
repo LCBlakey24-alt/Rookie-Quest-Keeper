@@ -379,7 +379,7 @@ function PlayersTab({ campaignId }) {
                     textAlign: 'center',
                     padding: '10px 8px',
                     cursor: idx + 1 <= wizardStep ? 'pointer' : 'default',
-                    background: wizardStep === idx + 1 ? 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)' : 
+                    background: wizardStep === idx + 1 ? 'linear-gradient(180deg, #8A2BE2 0%, #4B0082 100%)' : 
                                idx + 1 < wizardStep ? 'rgba(34, 197, 94, 0.3)' : 'rgba(10, 10, 40, 0.6)',
                     border: `2px solid ${wizardStep === idx + 1 ? '#F59E0B' : idx + 1 < wizardStep ? '#F59E0B' : '#1e40af'}`,
                     borderRadius: '10px',
