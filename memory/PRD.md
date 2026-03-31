@@ -1,100 +1,112 @@
 # Rookie Quest Keeper (ROOK) - Product Requirements Document
 
 ## Original Problem Statement
-Build a TTRPG application called "Rookie Quest Keeper" (ROOK) for Players (character management) and Game Masters (campaign management, GM tools).
+Build an immersive, context-aware TTRPG (Tabletop RPG) application with strict SRD 5.1 compliance. Features include dual-theme design (Midnight Neon for GM, Electric Tundra for Players), advanced GM tools, and a combat-ready player dashboard that surpasses D&D Beyond.
 
-## Visual Theme: Cyber-Fantasy Dual Theme
+## Core Requirements
+1. **Strict Copyright Compliance**: No WotC copyrighted material; SRD 5.1/Public Domain only.
+2. **Dual-Theme Design**: Midnight Neon (GM) + Electric Tundra (Player)
+3. **Advanced GM Tools**: 3D dice roller, Soundboard, Story Arc Tracker, NPC Relationship Mapping
+4. **Player Dashboard**: Smarter than D&D Beyond with automatic resource tracking, improved Level-Up Wizard, easy custom inventory management
 
-### GM Mode - "Midnight Neon" (Purple/Violet)
-- Background: Black (#0B0B0D) to purple glow at bottom
-- Primary: #8A2BE2, Secondary: #4B0082
-
-### Player Mode - "Electric Tundra" (Blue/Cyan)
-- Background: Dark blue (#050A30) to cyan glow at bottom
-- Primary: #4DD0E1, Secondary: #0066FF
-
-## Code Architecture (Modular Backend)
+## Architecture
 ```
-/app/backend/
-├── server.py              # Thin orchestrator (~147 lines)
-├── config.py              # Shared config, DB, constants
-├── models/__init__.py     # All Pydantic models (~1850 lines)
-├── utils/
-│   ├── auth.py            # JWT, passwords, subscription, campaign access, rest/resource helpers
-│   ├── helpers.py         # Campaign context, SRD data loading
-│   └── ws_manager.py      # WebSocket connection manager
-├── routes/                # 18 domain-specific route files
-│   ├── auth.py, subscriptions.py, admin.py, campaigns.py
-│   ├── campaign_content.py, world.py, notes.py, npcs.py
-│   ├── combat.py, players.py, maps.py, ai.py
-│   ├── inventory.py, user_content.py, characters.py
-│   ├── srd.py, progression.py, rule_systems.py
-└── data/srd/              # SRD-safe JSON data files
-
-/app/frontend/src/
-├── components/
-│   ├── CharacterSheetFull.js     # Player character sheet with 5 tabs
-│   ├── CharacterCombatTab.js     # NEW: Resource-aware combat dashboard
-│   ├── CharacterInventory.js     # Equipment + custom item creation
-│   ├── LevelUpWizard.js          # Enhanced with features-gained display
-│   ├── GMScreen.js               # 12 tabs for GM tools
-│   ├── gm/AICoGM.js              # Floating AI assistant
-│   └── gm/NPCRelationshipMap.js  # NPC network graph
-├── data/
-│   ├── classResources.js         # NEW: Ki Points, Rage, etc. definitions
-│   ├── classFeatures.js          # Per-level class features with types
-│   ├── equipmentDatabase.js      # Weapons, armor, gear
-│   ├── spellDatabase.js          # Spell data
-│   └── itemsDatabase.js          # Clean SRD items
+/app
+├── backend/
+│   ├── server.py              # Thin orchestrator (~150 lines)
+│   ├── config.py              
+│   ├── models/                # Pydantic models (~1900 lines)
+│   ├── routes/                # 18 modular route files
+│   ├── utils/                 # auth.py, helpers.py, ws_manager.py
+│   └── data/srd/              
+└── frontend/
+    └── src/
+        ├── components/
+        │   ├── CharacterSheetFull.js 
+        │   ├── CharacterCombatTab.js     # Combat dashboard
+        │   ├── CharacterSpellbook.js     # Smart Spellbook (NEW)
+        │   ├── CharacterInventory.js     # Quick-Action Inventory
+        │   └── LevelUpWizard.js          # Spellcasting-aware Level Up
+        └── data/
+            ├── classFeatures.js
+            ├── classResources.js
+            └── spellDatabase.js
 ```
 
-## Completed Features
+## What's Been Implemented
 
-### Player Experience Overhaul (March 31, 2026) - LATEST
-- **Combat Tab redesign**: Weapon attacks derived from equipped items with calculated to-hit and damage
-- **Class Resource Tracking**: Clickable dot trackers for Ki Points, Rage, Sorcery Points, Channel Divinity, etc. with short/long rest indicators
-- **Compact Feature List**: Features shown as single-line entries with type badges (A=Action, BA=Bonus, R=Reaction, P=Passive) and expand-on-click for full description
-- **Resource-linked abilities**: "Use" button on features that cost resources (e.g., Flurry of Blows spends 1 Ki Point)
-- **Rest System**: Short Rest (spend hit dice to heal, restore short-rest resources) and Long Rest (full HP, half hit dice, all resources)
-- **Level Up Wizard**: Shows features gained at new level (e.g., "Action Surge" at Fighter 2)
-- **Custom Item Creation**: Add homebrew weapons/armor/gear with damage/AC values
-- **Backend REST endpoints**: PUT /characters/{id}/resources, POST /characters/{id}/short-rest, POST /characters/{id}/long-rest
+### Phase 1: Core TTRPG Platform (Complete)
+- Full auth system (JWT + Stripe subscriptions)
+- Character creation, editing, management
+- GM tools: Campaign management, combat tracker, NPC generator
+- World map with interactive pins
+- AI integration (Co-GM, NPC generation)
+- 3D dice roller
+- Soundboard
+- Story Arc Tracker
+- NPC Relationship Network
 
-### Backend Refactoring (March 31, 2026)
-- 9,717-line monolith → 18 modular route files + models + utils
-- 40/40 backend tests passed, zero regressions (iteration_62)
+### Phase 2: Backend Monolith Refactoring (Complete - March 2026)
+- Split 9700-line server.py into 18 modular route files
+- Extracted all Pydantic models to /models/__init__.py
+- 100% test pass rate (iteration_62)
 
-### Previous Completions
-- NPC Network with full stat blocks and AI generation
-- World Map with draggable pins, grid overlay, custom freehand paths
-- AI Co-GM floating panel with 9 context-aware modes
-- Combat flow with 16 status conditions
-- Equipment auto-save with AC calculation
-- Copyright cleanup (SRD-safe only), Dual-theme system
+### Phase 3: Player Page Improvements (Complete - March 31, 2026)
 
-## Upcoming Tasks (Priority Order)
+**Batch A - Combat Dashboard:**
+- CharacterCombatTab.js: Spell slots, Death Saves, Hit Dice, Conditions, Concentration, Inspiration tracking
+- PATCH endpoint for character partial updates (HP, conditions, death saves, spell slots, etc.)
+- Short Rest / Long Rest endpoints with proper hit dice spending
+- Level Up Wizard spellcasting step: spell slot progression display, cantrip selection, spell selection for known casters, Wizard spellbook additions
+- 100% test pass rate (iteration_64)
 
-### P1 - High Priority
-1. **Smart Session Log** - Auto-tagging NPCs/locations in notes, AI recaps
-2. **Location Detail Cards** - Hover previews on World Map pins
-3. **AI Session Outline Auto-generator** - From story arcs/NPCs/party location
-4. **NPC Encounter Builder** - Drag NPCs from network graph into Combat tracker
+**Batch B - Quick-Action Inventory:**
+- Multi-currency system (CP/SP/EP/GP/PP) with total GP value display
+- Currency converter with quick-convert buttons
+- Quick equip/unequip toggle buttons on each item row
+- EQUIPPED badge visual indicator
+- Attunement tracking (max 3 magic items)
+- Auto-save with AC calculation from equipped gear
 
-### P2 - Medium Priority
-5. **Loot & Economy System** - Shared party loot, regional wealth tracking
-6. **Event System** - Festivals, tournaments with configurable risks
-7. **Mini-Game Engine** - Gambling, racing with dice
-8. **Session Replay Generator** - Narrative recaps
+**Batch C - Smart Spellbook:**
+- Dedicated CharacterSpellbook.js component
+- Spell DC / Spell ATK / Ability stat display
+- Clickable spell slot tracking (use/recover/reset)
+- Prepared vs Known spell toggle for prepared casters
+- Spell search filter
+- Cantrip damage rolls
+- Cast button with upcast level selector and damage scaling
+- Spell school color coding
+- 100% test pass rate (iteration_65)
 
-## Known Issues
-- Production Login/Password Reset: External server config issue (BLOCKED)
+## Prioritized Backlog
 
-## Test Results
-- iteration_63: Backend 100% (16/16), Frontend 100% - Player experience features
-- iteration_62: Backend 100% (40/40), Frontend 100% - Post-refactoring regression
-- iteration_61: Backend 90%, Frontend 100% - AI Co-GM + Combat + Equipment
-- iteration_60: Frontend 100% - Theme + Map
-- iteration_59: Backend+Frontend 100% - NPC Network
+### P1 - Upcoming Tasks
+- Smart Session Log: Auto-tagging notes
+- Location Detail Cards: Hover previews on World Map pins
+- AI Session Outline Auto-generator: AI Co-GM session outlines
+- NPC Encounter Builder: Drag NPCs from network into Combat tracker
+- Loot and Economy System: Shared party loot, dynamic economy
+
+### P2 - Future Tasks
+- Event System: Custom activities with configurable costs/risks
+- Mini-game Engine: Gambling/racing with dice outcomes
+- Session Replay Generator: Narrative-style recaps
+
+### Known Issues
+- Production Login & Password Reset: BLOCKED (External host config)
+- Production Deployment Risk: Root cause of blank site unknown (BLOCKED)
+
+## Key API Endpoints
+- `PATCH /api/characters/{id}` - Partial character update (HP, conditions, spell slots, currency, etc.)
+- `PUT /api/characters/{id}/resources` - Sync class resources
+- `POST /api/characters/{id}/rest` - Short/Long rest
+- `POST /api/characters/{id}/level-up` - Level up with spell selections
+
+## 3rd Party Integrations
+- Stripe: Subscriptions (requires user API key)
+- Resend: Emails (requires user API key)
+- Emergent LLM Key: AI features via emergentintegrations
 
 ## Test Credentials
 - Email: lcblakey24@outlook.com
