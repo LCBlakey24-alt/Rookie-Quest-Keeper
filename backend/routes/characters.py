@@ -428,6 +428,28 @@ async def level_up_character(
                 existing_cantrips.append(cantrip)
         update_data['cantrips_known'] = existing_cantrips
 
+    # Handle Fighter-specific level-up fields
+    if hasattr(level_up, 'fighting_style') and level_up.fighting_style:
+        update_data['fighting_style'] = level_up.fighting_style
+    if hasattr(level_up, 'subclass') and level_up.subclass:
+        update_data['subclass'] = level_up.subclass
+    if hasattr(level_up, 'maneuvers') and level_up.maneuvers:
+        existing_maneuvers = existing.get('maneuvers', [])
+        for m in level_up.maneuvers:
+            if m not in existing_maneuvers:
+                existing_maneuvers.append(m)
+        update_data['maneuvers'] = existing_maneuvers
+
+    # Auto-scale Fighter resources based on level
+    if char_class == 'fighter':
+        # Extra Attack scaling
+        if level_up.new_level >= 20:
+            update_data['extra_attacks'] = 3
+        elif level_up.new_level >= 11:
+            update_data['extra_attacks'] = 2
+        elif level_up.new_level >= 5:
+            update_data['extra_attacks'] = 1
+
     # Update character
     await db.player_characters.update_one(
         {'id': character_id, 'user_id': username},

@@ -1605,9 +1605,17 @@ class LevelUpRequest(BaseModel):
     feat_choice: Optional[Dict[str, str]] = None
     # Optional HP roll result (if not using average)
     hp_roll: Optional[int] = None
+    hp_method: Optional[str] = None
     # Spellcasting: new spells learned at this level
     new_spells: Optional[List[Dict[str, Any]]] = None
     new_cantrips: Optional[List[Dict[str, Any]]] = None
+    # Fighter-specific
+    fighting_style: Optional[str] = None
+    subclass: Optional[str] = None
+    maneuvers: Optional[List[str]] = None
+    # Multiclass
+    multiclass: Optional[bool] = None
+    new_class: Optional[str] = None
 
 
 class JournalEntry(BaseModel):

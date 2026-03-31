@@ -109,22 +109,34 @@ function GMScreen({ username }) {
   };
 
   // 3D Dice Roll Function - supports compound notation like "2d6+1d4+5"
-  const roll3DDice = (notation, label = '') => {
+  // rollType: 'normal', 'advantage', 'disadvantage'
+  const roll3DDice = (notation, label = '', rollType = 'normal') => {
     const diceGroups = notation.match(/(\d+)?d(\d+)/gi) || [];
     if (diceGroups.length === 0) return;
     
     const rolls = [];
     let total = 0;
     
-    for (const group of diceGroups) {
-      const match = group.match(/(\d+)?d(\d+)/i);
-      if (!match) continue;
-      const count = parseInt(match[1]) || 1;
-      const sides = parseInt(match[2]);
-      for (let i = 0; i < count; i++) {
-        const result = Math.floor(Math.random() * sides) + 1;
-        rolls.push({ sides, result });
-        total += result;
+    const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && notation.match(/^(\d+)?d20$/i);
+    
+    if (isAdvRoll) {
+      const r1 = Math.floor(Math.random() * 20) + 1;
+      const r2 = Math.floor(Math.random() * 20) + 1;
+      const kept = rollType === 'advantage' ? Math.max(r1, r2) : Math.min(r1, r2);
+      rolls.push({ sides: 20, result: r1, dropped: r1 !== kept });
+      rolls.push({ sides: 20, result: r2, dropped: r2 !== kept });
+      total = kept;
+    } else {
+      for (const group of diceGroups) {
+        const match = group.match(/(\d+)?d(\d+)/i);
+        if (!match) continue;
+        const count = parseInt(match[1]) || 1;
+        const sides = parseInt(match[2]);
+        for (let i = 0; i < count; i++) {
+          const result = Math.floor(Math.random() * sides) + 1;
+          rolls.push({ sides, result });
+          total += result;
+        }
       }
     }
     
@@ -134,10 +146,11 @@ function GMScreen({ username }) {
     if (inlineMod) inlineMod.forEach(m => { modifier += parseInt(m); });
     total += modifier;
     
-    const isCrit = rolls.length >= 1 && rolls[0].sides === 20 && rolls[0].result === 20;
-    const isFumble = rolls.length >= 1 && rolls[0].sides === 20 && rolls[0].result === 1;
+    const keptRoll = isAdvRoll ? rolls.find(r => !r.dropped) : rolls[0];
+    const isCrit = keptRoll && keptRoll.sides === 20 && keptRoll.result === 20;
+    const isFumble = keptRoll && keptRoll.sides === 20 && keptRoll.result === 1;
     
-    setDiceRolls(rolls);
+    setDiceRolls(isAdvRoll ? rolls.filter(r => !r.dropped) : rolls);
     setDiceLabel(label || notation);
     setDiceModifier(modifier);
     setDiceTotal(total);
@@ -147,7 +160,10 @@ function GMScreen({ username }) {
 
     setDiceHistory(prev => [{
       label: label || notation, total, modifier,
-      rolls, isCrit, isFumble,
+      rolls: isAdvRoll ? rolls.filter(r => !r.dropped) : rolls,
+      allRolls: isAdvRoll ? rolls : undefined,
+      rollType: rollType !== 'normal' ? rollType : undefined,
+      isCrit, isFumble,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     }, ...prev].slice(0, 50));
   };

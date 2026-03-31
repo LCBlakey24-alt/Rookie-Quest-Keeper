@@ -60,7 +60,7 @@ const ABILITY_SHORT = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', 
 const CLASS_ACTIONS = {
   Barbarian: {
     actions: [
-      { name: 'Reckless Attack', desc: 'Advantage on STR attacks, enemies have advantage on you', type: 'attack', dice: '1d20' }
+      { name: 'Reckless Attack', desc: 'Advantage on STR attacks, enemies have advantage on you', type: 'attack', dice: '1d20', rollType: 'advantage' }
     ],
     bonusActions: [
       { name: 'Rage', desc: '+2 damage, resistance to physical damage', type: 'ability', level: 1 }
@@ -248,7 +248,8 @@ export default function CharacterSheetFull() {
   const [diceHistory, setDiceHistory] = useState([]);
 
   // 3D Dice Roll Function - supports compound notation like "2d6+1d4" or "1d20+1d4"
-  const rollDice = (notation, modifier = 0, label = '') => {
+  // rollType: 'normal', 'advantage', 'disadvantage'
+  const rollDice = (notation, modifier = 0, label = '', rollType = 'normal') => {
     // Parse compound dice: "2d6+1d4+3" or simple "1d20"
     const diceGroups = notation.match(/(\d+)?d(\d+)/gi) || [];
     if (diceGroups.length === 0) return;
@@ -259,15 +260,27 @@ export default function CharacterSheetFull() {
     const rolls = [];
     let total = 0;
     
-    for (const group of diceGroups) {
-      const match = group.match(/(\d+)?d(\d+)/i);
-      if (!match) continue;
-      const count = parseInt(match[1]) || 1;
-      const sides = parseInt(match[2]);
-      for (let i = 0; i < count; i++) {
-        const result = Math.floor(Math.random() * sides) + 1;
-        rolls.push({ sides, result });
-        total += result;
+    // Advantage/Disadvantage: roll 2d20 and pick highest/lowest
+    const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && notation.match(/^(\d+)?d20$/i);
+    
+    if (isAdvRoll) {
+      const r1 = Math.floor(Math.random() * 20) + 1;
+      const r2 = Math.floor(Math.random() * 20) + 1;
+      const kept = rollType === 'advantage' ? Math.max(r1, r2) : Math.min(r1, r2);
+      rolls.push({ sides: 20, result: r1, dropped: r1 !== kept });
+      rolls.push({ sides: 20, result: r2, dropped: r2 !== kept });
+      total = kept;
+    } else {
+      for (const group of diceGroups) {
+        const match = group.match(/(\d+)?d(\d+)/i);
+        if (!match) continue;
+        const count = parseInt(match[1]) || 1;
+        const sides = parseInt(match[2]);
+        for (let i = 0; i < count; i++) {
+          const result = Math.floor(Math.random() * sides) + 1;
+          rolls.push({ sides, result });
+          total += result;
+        }
       }
     }
     
@@ -279,10 +292,11 @@ export default function CharacterSheetFull() {
     }
     total += totalMod;
     
-    const isCrit = rolls.length >= 1 && rolls[0].sides === 20 && rolls[0].result === 20;
-    const isFumble = rolls.length >= 1 && rolls[0].sides === 20 && rolls[0].result === 1;
+    const keptRoll = isAdvRoll ? rolls.find(r => !r.dropped) : rolls[0];
+    const isCrit = keptRoll && keptRoll.sides === 20 && keptRoll.result === 20;
+    const isFumble = keptRoll && keptRoll.sides === 20 && keptRoll.result === 1;
     
-    setDiceRolls(rolls);
+    setDiceRolls(isAdvRoll ? rolls.filter(r => !r.dropped) : rolls);
     setDiceLabel(strLabel || notation);
     setDiceModifier(totalMod);
     setDiceTotal(total);
@@ -292,7 +306,10 @@ export default function CharacterSheetFull() {
 
     setDiceHistory(prev => [{
       label: strLabel || notation, total, modifier: totalMod,
-      rolls, isCrit, isFumble,
+      rolls: isAdvRoll ? rolls.filter(r => !r.dropped) : rolls,
+      allRolls: isAdvRoll ? rolls : undefined,
+      rollType: rollType !== 'normal' ? rollType : undefined,
+      isCrit, isFumble,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     }, ...prev].slice(0, 50));
   };
@@ -404,7 +421,7 @@ export default function CharacterSheetFull() {
       modifier = ability ? getModifier(abilities[ability]) : 0;
     }
     
-    rollDice(action.dice, modifier, action.name);
+    rollDice(action.dice, modifier, action.name, action.rollType || 'normal');
   };
 
   // Resource & Rest handlers
@@ -718,75 +735,6 @@ export default function CharacterSheetFull() {
 
         {/* RIGHT COLUMN: Combat Stats + Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflow: 'hidden' }}>
-          {/* Combat Stats Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', flexShrink: 0 }}>
-            {/* HP */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
-                <Heart size={14} /> HP
-              </div>
-              <div style={{ fontSize: '26px', fontWeight: 'bold', marginBottom: '4px' }}>
-                <span style={{ color: currentHp < maxHp / 2 ? '#EF4444' : theme.text.primary }}>{currentHp}</span>
-                <span style={{ color: theme.text.muted, fontSize: '18px' }}>/{maxHp}</span>
-              </div>
-              {/* Temp HP */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '4px', 
-                marginBottom: '8px',
-                padding: '4px 8px',
-                background: tempHp > 0 ? 'rgba(59, 130, 246, 0.2)' : 'rgba(0,0,0,0.2)',
-                borderRadius: '4px',
-                border: tempHp > 0 ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid transparent'
-              }}>
-                <span style={{ color: '#3b82f6', fontSize: '11px', fontWeight: '500' }}>TEMP</span>
-                <button 
-                  onClick={() => handleTempHpChange(-1)} 
-                  style={{ padding: '2px 6px', background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '12px' }}
-                >-</button>
-                <span style={{ color: tempHp > 0 ? '#3b82f6' : theme.text.muted, fontSize: '14px', fontWeight: '600', minWidth: '20px', textAlign: 'center' }}>{tempHp}</span>
-                <button 
-                  onClick={() => handleTempHpChange(1)} 
-                  style={{ padding: '2px 6px', background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '12px' }}
-                >+</button>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                <button onClick={() => handleHpChange(-1)} style={{ padding: '6px 14px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', borderRadius: '6px', color: '#EF4444', cursor: 'pointer' }}><Minus size={16} /></button>
-                <button onClick={() => handleHpChange(1)} style={{ padding: '6px 14px', background: 'rgba(16, 185, 129, 0.2)', border: 'none', borderRadius: '6px', color: '#10B981', cursor: 'pointer' }}><Plus size={16} /></button>
-              </div>
-            </div>
-
-            {/* AC */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
-                <Shield size={14} /> AC
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', color: theme.accent.primary }}>{ac}</div>
-            </div>
-
-            {/* Initiative */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
-                <Zap size={14} /> INIT
-              </div>
-              <button
-                onClick={() => rollDice('1d20', initiative, 'Initiative')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '32px', fontWeight: 'bold', color: theme.accent.secondary }}
-              >
-                {formatModifier(initiative)}
-              </button>
-            </div>
-
-            {/* Speed */}
-            <div style={{ ...panelStyle, textAlign: 'center', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
-                <Wind size={14} /> SPEED
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: theme.accent.highlight }}>{speed}<span style={{ fontSize: '14px' }}>ft</span></div>
-            </div>
-          </div>
 
           {/* Tabs */}
           <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>

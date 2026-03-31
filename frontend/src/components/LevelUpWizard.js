@@ -100,6 +100,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   // Spell selection state
   const [selectedNewSpells, setSelectedNewSpells] = useState([]);
   const [selectedNewCantrips, setSelectedNewCantrips] = useState([]);
+  
+  // Fighter-specific state
+  const [selectedFightingStyle, setSelectedFightingStyle] = useState(null);
+  const [selectedSubclass, setSelectedSubclass] = useState(null);
+  const [selectedManeuvers, setSelectedManeuvers] = useState([]);
 
   const currentLevel = character?.level || 1;
   const newLevel = currentLevel + 1;
@@ -189,10 +194,26 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const existingSpellNames = (character?.spells_known || []).map(s => (s.name || s));
   const existingCantripNames = (character?.cantrips_known || []).map(s => (s.name || s));
   
+  // ─── Fighter-specific detection ───────────────────────────────
+  const classKey = characterClass?.toLowerCase();
+  const classData = CLASS_FEATURES[classKey];
+  const hasFightingStyleChoice = classData?.fighting_style_level === newClassLevel && classData?.fighting_styles;
+  const hasSubclassChoice = classData?.subclass_level === newClassLevel && classData?.subclasses;
+  const hasSubclassFeature = selectedSubclass && classData?.subclasses?.[selectedSubclass]?.features?.some(f => f.level === newClassLevel);
+  const isBattleMaster = selectedSubclass === 'battle_master' || character?.subclass === 'battle_master';
+  const bmNeedsManeuvers = isBattleMaster && classData?.subclasses?.battle_master?.features?.some(
+    f => f.level === newClassLevel && f.name.includes('Combat Superiority')
+  );
+  const hasClassChoiceStep = hasFightingStyleChoice || hasSubclassChoice || bmNeedsManeuvers;
+  
+  // Load existing subclass from character data
+  const effectiveSubclass = selectedSubclass || character?.subclass;
+
   // Determine step positions dynamically
-  const spellcastingStep = isSpellcaster ? 3 : -1;
-  const asiStepPos = isAsiLevel ? (isSpellcaster ? 4 : 3) : -1;
-  const confirmStepPos = 3 + (isSpellcaster ? 1 : 0) + (isAsiLevel ? 1 : 0);
+  const classChoiceStep = hasClassChoiceStep ? 3 : -1;
+  const spellcastingStep = isSpellcaster ? (hasClassChoiceStep ? 4 : 3) : -1;
+  const asiStepPos = isAsiLevel ? (3 + (hasClassChoiceStep ? 1 : 0) + (isSpellcaster ? 1 : 0)) : -1;
+  const confirmStepPos = 3 + (hasClassChoiceStep ? 1 : 0) + (isSpellcaster ? 1 : 0) + (isAsiLevel ? 1 : 0);
   
   // Calculate HP values
   const averageHp = Math.floor(hitDie / 2) + 1 + conMod;
@@ -217,6 +238,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       setMulticlassClass(null);
       setSelectedNewSpells([]);
       setSelectedNewCantrips([]);
+      setSelectedFightingStyle(null);
+      setSelectedSubclass(character?.subclass || null);
+      setSelectedManeuvers(character?.maneuvers || []);
     }
   }, [isOpen]);
 
@@ -240,6 +264,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     if (step === 1) return true;
     if (step === 2 && hpMethod === 'roll') return hasRolled;
     if (step === 2 && hpMethod === 'average') return true;
+    if (step === classChoiceStep) {
+      if (hasFightingStyleChoice && !selectedFightingStyle) return false;
+      if (hasSubclassChoice && !selectedSubclass) return false;
+      if (bmNeedsManeuvers && selectedManeuvers.length < 3) return false;
+      return true;
+    }
     if (step === spellcastingStep) {
       // Known casters must select enough spells
       const neededSpells = classInfo?.type === 'known' ? spellGain : (isWizard ? wizardSpellbookGain : 0);
@@ -293,6 +323,17 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         requestData.new_cantrips = selectedNewCantrips.map(s => ({
           name: s.name, level: 0, school: s.school || ''
         }));
+      }
+      
+      // Add fighter-specific selections
+      if (selectedFightingStyle) {
+        requestData.fighting_style = selectedFightingStyle;
+      }
+      if (selectedSubclass && hasSubclassChoice) {
+        requestData.subclass = selectedSubclass;
+      }
+      if (selectedManeuvers.length > 0) {
+        requestData.maneuvers = selectedManeuvers;
       }
 
       // Use different endpoint for multiclassing
@@ -454,11 +495,17 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       {(() => {
                         const classKey = character?.character_class?.toLowerCase();
                         const classData = CLASS_FEATURES[classKey];
-                        const nextFeatures = (classData?.features || []).filter(f => f.level === newLevel);
-                        if (nextFeatures.length === 0) return null;
+                        const nextFeatures = (classData?.features || []).filter(f => f.level === newLevel && !f.isChoice);
+                        // Also include subclass features if character has a subclass
+                        const subclassKey = character?.subclass;
+                        const subFeatures = subclassKey && classData?.subclasses?.[subclassKey]
+                          ? classData.subclasses[subclassKey].features.filter(f => f.level === newLevel)
+                          : [];
+                        const allFeatures = [...nextFeatures, ...subFeatures];
+                        if (allFeatures.length === 0) return null;
                         return (
                           <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {nextFeatures.map((feat, i) => {
+                            {allFeatures.map((feat, i) => {
                               const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
                               return (
                                 <span key={i} style={{
@@ -778,6 +825,132 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                     <div style={{ color: theme.text.secondary, fontSize: '13px' }}>
                       +{oldProfBonus} → +{newProfBonus}
                     </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step: Class-Specific Choices (Fighting Style, Subclass, Maneuvers) */}
+          {step === classChoiceStep && hasClassChoiceStep && (
+            <div>
+              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
+                {hasSubclassChoice ? `Choose Your ${classData?.subclass_label || 'Subclass'}` : hasFightingStyleChoice ? 'Choose Fighting Style' : 'Martial Choices'}
+              </h3>
+
+              {/* Fighting Style Selection */}
+              {hasFightingStyleChoice && (
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '12px' }}>
+                    Choose a fighting style that defines your combat approach. This is a permanent specialization.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {(classData?.fighting_styles || []).map(fs => (
+                      <button
+                        key={fs.name}
+                        data-testid={`fighting-style-${fs.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        onClick={() => setSelectedFightingStyle(fs.name)}
+                        style={{
+                          padding: '14px 16px', textAlign: 'left', borderRadius: '10px', cursor: 'pointer',
+                          background: selectedFightingStyle === fs.name ? 'rgba(138, 43, 226, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                          border: `2px solid ${selectedFightingStyle === fs.name ? theme.sunset.purple : theme.border}`,
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ color: theme.text.primary, fontWeight: 600, fontSize: '14px' }}>{fs.name}</div>
+                            <div style={{ color: theme.text.muted, fontSize: '12px', marginTop: '2px' }}>{fs.description}</div>
+                          </div>
+                          {selectedFightingStyle === fs.name && <Check size={18} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Subclass Selection */}
+              {hasSubclassChoice && (
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '12px' }}>
+                    Choose your martial archetype. This defines your specialization path and grants features at levels 3, 7, 10, 15, and 18.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {Object.entries(classData?.subclasses || {}).map(([key, sc]) => (
+                      <button
+                        key={key}
+                        data-testid={`subclass-${key}`}
+                        onClick={() => setSelectedSubclass(key)}
+                        style={{
+                          padding: '16px', textAlign: 'left', borderRadius: '12px', cursor: 'pointer',
+                          background: selectedSubclass === key ? 'rgba(138, 43, 226, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                          border: `2px solid ${selectedSubclass === key ? theme.sunset.purple : theme.border}`,
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ color: theme.text.primary, fontWeight: 700, fontSize: '15px' }}>{sc.name}</div>
+                            <div style={{ color: theme.text.muted, fontSize: '12px', marginTop: '4px' }}>{sc.description}</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
+                              {sc.features.filter(f => f.level === newClassLevel).map((f, i) => (
+                                <span key={i} style={{
+                                  fontSize: '11px', padding: '2px 8px', borderRadius: '4px',
+                                  background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', fontWeight: 500,
+                                }}>{f.name}</span>
+                              ))}
+                            </div>
+                          </div>
+                          {selectedSubclass === key && <Check size={20} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Battle Master Maneuver Selection */}
+              {bmNeedsManeuvers && selectedSubclass === 'battle_master' && (
+                <div>
+                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
+                    Choose 3 maneuvers. These special combat techniques are fueled by your superiority dice.
+                  </p>
+                  <p style={{ color: theme.text.muted, fontSize: '12px', marginBottom: '12px' }}>
+                    Selected: {selectedManeuvers.length}/3
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '300px', overflowY: 'auto' }}>
+                    {(classData?.subclasses?.battle_master?.maneuvers || []).map(m => {
+                      const isSelected = selectedManeuvers.includes(m.name);
+                      return (
+                        <button
+                          key={m.name}
+                          data-testid={`maneuver-${m.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedManeuvers(prev => prev.filter(n => n !== m.name));
+                            } else if (selectedManeuvers.length < 3) {
+                              setSelectedManeuvers(prev => [...prev, m.name]);
+                            }
+                          }}
+                          style={{
+                            padding: '10px 14px', textAlign: 'left', borderRadius: '8px', cursor: 'pointer',
+                            background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(15, 10, 30, 0.4)',
+                            border: `1px solid ${isSelected ? '#3B82F6' : theme.border}`,
+                            opacity: !isSelected && selectedManeuvers.length >= 3 ? 0.4 : 1,
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ color: theme.text.primary, fontWeight: 600, fontSize: '13px' }}>{m.name}</div>
+                              <div style={{ color: theme.text.muted, fontSize: '11px', marginTop: '2px' }}>{m.description}</div>
+                            </div>
+                            {isSelected && <Check size={16} style={{ color: '#3B82F6', flexShrink: 0 }} />}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1214,6 +1387,28 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                         {isWizard ? 'Spellbook Additions' : 'New Spells'}: </span>
                       <span style={{ color: '#EC4899', fontWeight: '600', fontSize: 13 }}>
                         {selectedNewSpells.map(s => s.name).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Fighter selections summary */}
+                  {selectedFightingStyle && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                      <span style={{ color: theme.text.secondary }}>Fighting Style</span>
+                      <span style={{ color: '#3B82F6', fontWeight: '600' }}>{selectedFightingStyle}</span>
+                    </div>
+                  )}
+                  {selectedSubclass && hasSubclassChoice && classData?.subclasses?.[selectedSubclass] && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(138, 43, 226, 0.1)', borderRadius: '8px' }}>
+                      <span style={{ color: theme.text.secondary }}>{classData?.subclass_label || 'Subclass'}</span>
+                      <span style={{ color: theme.sunset.purple, fontWeight: '600' }}>{classData.subclasses[selectedSubclass].name}</span>
+                    </div>
+                  )}
+                  {selectedManeuvers.length > 0 && (
+                    <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                      <span style={{ color: theme.text.secondary, fontSize: 13 }}>Maneuvers: </span>
+                      <span style={{ color: '#3B82F6', fontWeight: '600', fontSize: 13 }}>
+                        {selectedManeuvers.join(', ')}
                       </span>
                     </div>
                   )}

@@ -21,22 +21,29 @@ function DiceRoller() {
   const [rollHistory, setRollHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  const rollDice = () => {
+  const rollDice = (rollType = 'normal') => {
     setRolling(true);
+    
+    const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && selectedDice.sides === 20;
+    const effectiveCount = isAdvRoll ? 2 : diceCount;
     
     // Animate through random numbers
     let animationCount = 0;
     const animationInterval = setInterval(() => {
-      const tempResults = Array.from({ length: diceCount }, () => 
+      const tempResults = Array.from({ length: effectiveCount }, () => 
         Math.floor(Math.random() * selectedDice.sides) + 1
       );
+      const tempTotal = isAdvRoll 
+        ? (rollType === 'advantage' ? Math.max(...tempResults) : Math.min(...tempResults)) + modifier
+        : tempResults.reduce((a, b) => a + b, 0) + modifier;
       setCurrentResult({
         dice: selectedDice,
-        count: diceCount,
+        count: effectiveCount,
         rolls: tempResults,
-        total: tempResults.reduce((a, b) => a + b, 0) + modifier,
+        total: tempTotal,
         modifier: modifier,
-        isAnimating: true
+        isAnimating: true,
+        rollType
       });
       animationCount++;
       
@@ -44,21 +51,27 @@ function DiceRoller() {
         clearInterval(animationInterval);
         
         // Final roll
-        const finalResults = Array.from({ length: diceCount }, () => 
+        const finalResults = Array.from({ length: effectiveCount }, () => 
           Math.floor(Math.random() * selectedDice.sides) + 1
         );
-        const finalTotal = finalResults.reduce((a, b) => a + b, 0) + modifier;
+        const keptValue = isAdvRoll
+          ? (rollType === 'advantage' ? Math.max(...finalResults) : Math.min(...finalResults))
+          : finalResults.reduce((a, b) => a + b, 0);
+        const finalTotal = keptValue + modifier;
+        const keptIndex = isAdvRoll ? finalResults.indexOf(rollType === 'advantage' ? Math.max(...finalResults) : Math.min(...finalResults)) : -1;
         
         const finalRoll = {
           dice: selectedDice,
-          count: diceCount,
+          count: effectiveCount,
           rolls: finalResults,
           total: finalTotal,
           modifier: modifier,
           isAnimating: false,
+          rollType,
+          keptIndex,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isCrit: selectedDice.sides === 20 && diceCount === 1 && finalResults[0] === 20,
-          isFail: selectedDice.sides === 20 && diceCount === 1 && finalResults[0] === 1
+          isCrit: selectedDice.sides === 20 && (isAdvRoll ? finalResults[keptIndex] === 20 : effectiveCount === 1 && finalResults[0] === 20),
+          isFail: selectedDice.sides === 20 && (isAdvRoll ? finalResults[keptIndex] === 1 : effectiveCount === 1 && finalResults[0] === 1)
         };
         
         setCurrentResult(finalRoll);
@@ -219,12 +232,12 @@ function DiceRoller() {
 
       {/* Roll Button */}
       <Button
-        onClick={rollDice}
+        onClick={() => rollDice('normal')}
         disabled={rolling}
         className="btn-primary"
         style={{ 
           width: '100%', 
-          marginBottom: '16px',
+          marginBottom: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -236,6 +249,36 @@ function DiceRoller() {
         <Dices size={20} className={rolling ? 'animate-spin' : ''} />
         {rolling ? 'Rolling...' : `Roll ${diceCount}${selectedDice.label}${modifier !== 0 ? (modifier > 0 ? `+${modifier}` : modifier) : ''}`}
       </Button>
+      
+      {/* Advantage / Disadvantage Buttons (D20 only) */}
+      {selectedDice.sides === 20 && (
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <button
+            data-testid="roll-advantage"
+            onClick={() => rollDice('advantage')}
+            disabled={rolling}
+            style={{
+              flex: 1, padding: '10px', borderRadius: '8px', cursor: rolling ? 'wait' : 'pointer',
+              background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.4)',
+              color: '#22C55E', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s',
+            }}
+          >
+            Advantage (2d20 keep high)
+          </button>
+          <button
+            data-testid="roll-disadvantage"
+            onClick={() => rollDice('disadvantage')}
+            disabled={rolling}
+            style={{
+              flex: 1, padding: '10px', borderRadius: '8px', cursor: rolling ? 'wait' : 'pointer',
+              background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#EF4444', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s',
+            }}
+          >
+            Disadvantage (2d20 keep low)
+          </button>
+        </div>
+      )}
 
       {/* Result Display */}
       {currentResult && (
@@ -290,6 +333,26 @@ function DiceRoller() {
           }}>
             {currentResult.total}
           </div>
+          {/* Advantage/Disadvantage indicator */}
+          {currentResult.rollType && currentResult.rollType !== 'normal' && !currentResult.isAnimating && (
+            <div style={{
+              fontSize: '11px', fontWeight: 700, marginTop: '4px',
+              color: currentResult.rollType === 'advantage' ? '#22C55E' : '#EF4444',
+              textTransform: 'uppercase', letterSpacing: '1px',
+            }}>
+              {currentResult.rollType === 'advantage' ? 'ADVANTAGE' : 'DISADVANTAGE'}
+              <span style={{ color: '#64748b', fontWeight: 400, marginLeft: '6px' }}>
+                ({currentResult.rolls.map((r, i) => (
+                  <span key={i} style={{
+                    textDecoration: currentResult.keptIndex !== undefined && currentResult.keptIndex !== i ? 'line-through' : 'none',
+                    opacity: currentResult.keptIndex !== undefined && currentResult.keptIndex !== i ? 0.5 : 1,
+                  }}>
+                    {r}{i < currentResult.rolls.length - 1 ? ', ' : ''}
+                  </span>
+                ))})
+              </span>
+            </div>
+          )}
           <div style={{ 
             fontSize: '13px', 
             color: '#94a3b8', 
