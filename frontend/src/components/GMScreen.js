@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 // Logo import removed for minimalist design
 import { 
   Sword, Users, BookOpen, Send, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles, Grid3x3, Globe
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import DiceRoller3D from '@/components/ui/DiceRoller3D';
@@ -16,7 +16,6 @@ import PartyInventory from '@/components/PartyInventory';
 import { QuickReferenceModal } from '@/components/QuickReference';
 import MonsterLookup from '@/components/MonsterLookup';
 import RandomTables from '@/components/RandomTables';
-import QuickTips, { TIPS } from '@/components/QuickTips';
 import CustomCreatureManager from '@/components/CustomCreatureManager';
 import QuickCombatModal from '@/components/QuickCombatModal';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
@@ -33,6 +32,8 @@ import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import InitiativeTracker from '@/components/gm/InitiativeTracker';
 import SessionTimer from '@/components/gm/SessionTimer';
 import QuickNpcGenerator from '@/components/gm/QuickNpcGenerator';
+import SendItemPanel from '@/components/gm/SendItemPanel';
+import MapMaker from '@/components/gm/MapMaker';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -350,6 +351,8 @@ function GMScreen({ username }) {
 
   const tabs = [
     { id: 'combat', icon: Swords, label: 'Combat' },
+    { id: 'battlemap', icon: Grid3x3, label: 'Battle Map' },
+    { id: 'worldmap', icon: Globe, label: 'World Map' },
     { id: 'location', icon: Compass, label: 'Location' },
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
     { id: 'network', icon: Link2, label: 'NPC Network' },
@@ -553,15 +556,6 @@ function GMScreen({ username }) {
               );
             })}
           </div>
-          
-          {/* Quick Tips */}
-          <div style={{ padding: '16px', marginTop: '16px' }}>
-            <QuickTips 
-              tips={TIPS.gmScreen} 
-              pageId="gmScreen" 
-              title="GM Screen Tips"
-            />
-          </div>
         </div>
 
         {/* MAIN CONTENT AREA */}
@@ -726,6 +720,20 @@ function GMScreen({ username }) {
               <div style={{ marginTop: '24px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '16px' }}>
                 <InitiativeTracker theme={theme} campaignId={campaignId} combatants={selectedScenario?.combatants || []} />
               </div>
+            </div>
+          )}
+
+          {/* BATTLE MAP TAB */}
+          {activeTab === 'battlemap' && (
+            <div style={{ padding: '16px' }}>
+              <MapMaker theme={theme} mode="battle" campaignId={campaignId} />
+            </div>
+          )}
+
+          {/* WORLD MAP TAB */}
+          {activeTab === 'worldmap' && (
+            <div style={{ padding: '16px' }}>
+              <MapMaker theme={theme} mode="world" campaignId={campaignId} />
             </div>
           )}
 
@@ -1103,6 +1111,13 @@ function GMScreen({ username }) {
                   ))}
                 </div>
               )}
+
+              {/* Send Item to Player */}
+              <div style={{ marginTop: '20px' }}>
+                <SendItemPanel theme={theme} partyCharacters={players.map(p => ({
+                  id: p.id, name: p.name, level: p.level, character_class: p.class || p.character_class,
+                }))} />
+              </div>
             </div>
           )}
 

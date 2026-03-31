@@ -13,6 +13,7 @@ import CharacterSpellbook from './CharacterSpellbook';
 import SessionJournal from './SessionJournal';
 import PlayerProgressionDashboard from './PlayerProgressionDashboard';
 import RestPanel from './RestPanel';
+import RookHints from './RookHints';
 import { CLASS_FEATURES } from '../data/classFeatures';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, SPELL_DATABASE } from '../data/spellDatabase';
 import DiceRoller3D from './ui/DiceRoller3D';
@@ -759,6 +760,9 @@ export default function CharacterSheetFull() {
               </button>
             ))}
           </div>
+
+          {/* ROOK Hints */}
+          <RookHints character={character} theme={theme} activeTab={activeTab} />
 
           {/* Tab Content - Scrollable */}
           <div style={{ ...panelStyle, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

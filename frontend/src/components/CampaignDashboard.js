@@ -11,10 +11,8 @@ import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
 import SessionRecapAI from '@/components/SessionRecapAI';
-import QuickTips, { TIPS } from '@/components/QuickTips';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import TronBackground from '@/components/TronBackground';
-import { RookGuide } from '@/components/RookGuide';
 // Consolidated Tabs
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
 import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
@@ -483,13 +481,6 @@ function CampaignDashboard({ username, onLogout }) {
           padding: 'clamp(12px, 3vw, 24px)',
           background: 'transparent'
         }}>
-          {/* Quick Tips */}
-          <QuickTips 
-            tips={TIPS.campaignDashboard} 
-            pageId="campaignDashboard" 
-            title="Campaign Tips"
-          />
-
           {/* Tab Content */}
           <div style={{
             background: 'rgba(26, 17, 46, 0.85)',
@@ -500,8 +491,6 @@ function CampaignDashboard({ username, onLogout }) {
             minHeight: '500px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
           }}>
-            {/* Rook Guide for Active Tab */}
-            <RookGuide guideId={activeTab} variant="card" />
             
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}

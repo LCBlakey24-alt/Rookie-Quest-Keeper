@@ -1249,3 +1249,79 @@ async def level_up_specific_class(character_id: str, class_data: Dict[str, Any],
     
     updated = await collection.find_one({'id': character_id}, {'_id': 0})
     return {"character": updated, "hp_gained": hp_gain, "hp_roll": hp_roll, "class_leveled": class_name}
+
+
+@router.post("/characters/{character_id}/send-item")
+async def send_item_to_character(
+    character_id: str,
+    item_data: Dict[str, Any],
+    username: str = Depends(get_current_user)
+):
+    """GM sends a magical item or gear to a character."""
+    character = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    campaign_id = character.get('campaign_id')
+    if campaign_id:
+        await verify_campaign_ownership(campaign_id, username)
+
+    item = {
+        'id': str(uuid.uuid4()),
+        'name': item_data.get('name', 'Unknown Item'),
+        'type': item_data.get('type', 'wondrous'),
+        'rarity': item_data.get('rarity', 'common'),
+        'description': item_data.get('description', ''),
+        'requires_attunement': item_data.get('requires_attunement', False),
+        'attuned': False,
+        'equipped': False,
+        'properties': item_data.get('properties', []),
+        'sent_by_gm': True,
+        'sent_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+    inventory = character.get('inventory', [])
+    inventory.append(item)
+
+    await db.player_characters.update_one(
+        {'id': character_id},
+        {'$set': {'inventory': inventory, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+
+    return {"success": True, "item": item, "message": f"{item['name']} sent to {character.get('name', 'character')}"}
+
+
+@router.patch("/characters/{character_id}/attunement")
+async def update_attunement(
+    character_id: str,
+    data: Dict[str, Any],
+    username: str = Depends(get_current_user)
+):
+    """Toggle attunement on an item."""
+    character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    item_id = data.get('item_id')
+    attune = data.get('attune', False)
+
+    inventory = character.get('inventory', [])
+    attuned_count = sum(1 for i in inventory if i.get('attuned'))
+
+    for item in inventory:
+        if item.get('id') == item_id:
+            if attune and not item.get('attuned'):
+                if attuned_count >= 3:
+                    raise HTTPException(status_code=400, detail="Maximum 3 attuned items. Unattune one first.")
+                item['attuned'] = True
+            elif not attune:
+                item['attuned'] = False
+            break
+
+    await db.player_characters.update_one(
+        {'id': character_id, 'user_id': username},
+        {'$set': {'inventory': inventory, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+
+    updated = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    return updated

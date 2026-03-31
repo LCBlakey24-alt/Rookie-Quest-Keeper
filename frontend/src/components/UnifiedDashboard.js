@@ -8,7 +8,6 @@ import {
   Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
-import { RookGuide } from '@/components/RookGuide';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -619,7 +618,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: "'Outfit', sans-serif",
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase'
                 }}>
@@ -656,9 +655,6 @@ function UnifiedDashboard({ username, onLogout }) {
                 New Character
               </Button>
             </div>
-
-            {/* Rook Guide for Player Section */}
-            <RookGuide guideId="dashboard-player" variant="card" />
 
             {/* Character List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -715,7 +711,7 @@ function UnifiedDashboard({ username, onLogout }) {
                         margin: '0 0 6px', 
                         fontSize: '18px',
                         fontWeight: '600',
-                        fontFamily: "'Cinzel', serif"
+                        fontFamily: "'Outfit', sans-serif"
                       }}>
                         {char.name}
                       </h3>
@@ -815,7 +811,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: "'Outfit', sans-serif",
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase'
                 }}>
@@ -827,7 +823,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   fontSize: '26px',
                   color: theme.text.primary,
                   margin: 0,
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: "'Outfit', sans-serif",
                   letterSpacing: '0.03em'
                 }}>
                   My Campaigns
@@ -881,9 +877,6 @@ function UnifiedDashboard({ username, onLogout }) {
                 New Campaign
               </Button>
             </div>
-
-            {/* Rook Guide for GM Section */}
-            <RookGuide guideId="dashboard-gm" variant="card" />
 
             {/* Campaign List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1228,7 +1221,7 @@ function UnifiedDashboard({ username, onLogout }) {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ 
-              fontFamily: "'Cinzel', serif",
+              fontFamily: "'Outfit', sans-serif",
               color: theme.gm.primary, 
               margin: '0 0 8px',
               fontSize: '24px',
