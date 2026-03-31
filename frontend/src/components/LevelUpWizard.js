@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
+import { CLASS_FEATURES } from '../data/classFeatures';
+import { FEATURE_TYPE_CONFIG } from '../data/classResources';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -369,6 +371,29 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
                         Gain {character?.character_class} features and d{HIT_DICE[character?.character_class] || 8} Hit Die
                       </div>
+                      {/* Preview features for next level */}
+                      {(() => {
+                        const classKey = character?.character_class?.toLowerCase();
+                        const classData = CLASS_FEATURES[classKey];
+                        const nextFeatures = (classData?.features || []).filter(f => f.level === newLevel);
+                        if (nextFeatures.length === 0) return null;
+                        return (
+                          <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                            {nextFeatures.map((feat, i) => {
+                              const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
+                              return (
+                                <span key={i} style={{
+                                  fontSize: 11, padding: '2px 8px', borderRadius: 4,
+                                  background: typeConfig.bg, color: typeConfig.color,
+                                  fontWeight: 500,
+                                }}>
+                                  {feat.name}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                     {!isMulticlassing && <Check size={20} style={{ color: theme.sunset.purple, marginLeft: 'auto' }} />}
                   </div>
@@ -892,6 +917,46 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       <span style={{ color: theme.sunset.pink, fontWeight: '600' }}>{selectedFeat.name}</span>
                     </div>
                   )}
+                  
+                  {/* Features Gained at this Level */}
+                  {(() => {
+                    const classKey = (isMulticlassing ? multiclassClass : characterClass)?.toLowerCase();
+                    const classData = CLASS_FEATURES[classKey];
+                    const newFeatures = (classData?.features || []).filter(f => f.level === newLevel);
+                    if (newFeatures.length === 0) return null;
+                    return (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: theme.sunset.gold, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 }}>
+                          Features Gained
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          {newFeatures.map((feat, i) => {
+                            const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
+                            return (
+                              <div key={i} style={{
+                                display: 'flex', alignItems: 'center', gap: 8,
+                                padding: '8px 10px', borderRadius: 6,
+                                background: 'rgba(255,255,255,0.04)',
+                                borderLeft: `3px solid ${typeConfig.color}`,
+                              }}>
+                                <span style={{
+                                  fontSize: 10, fontWeight: 700, padding: '1px 5px',
+                                  borderRadius: 3, background: typeConfig.bg, color: typeConfig.color,
+                                  minWidth: 24, textAlign: 'center',
+                                }}>{typeConfig.short}</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: theme.text.primary }}>{feat.name}</div>
+                                  <div style={{ fontSize: 11, color: theme.text.muted, marginTop: 2, lineHeight: 1.4 }}>
+                                    {feat.description?.length > 120 ? feat.description.substring(0, 120) + '...' : feat.description}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

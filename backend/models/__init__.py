@@ -621,6 +621,11 @@ class PlayerCharacter(BaseModel):
     appearance: str = ""
     notes: str = ""
     
+    # Class Resources (Ki Points, Rage, Sorcery Points, etc.)
+    # { "ki_points": 3, "rage": 2 } = current remaining uses
+    resources: Dict[str, int] = {}
+    # Max resources are computed on the frontend from class data
+    
     # Meta
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -719,6 +724,9 @@ class PlayerCharacterUpdate(BaseModel):
     equipped: Optional[Dict[str, Any]] = None
     currency: Optional[Dict[str, int]] = None
     gold: Optional[int] = None
+    
+    # Resources
+    resources: Optional[Dict[str, int]] = None
     
     # Character Details
     alignment: Optional[str] = None

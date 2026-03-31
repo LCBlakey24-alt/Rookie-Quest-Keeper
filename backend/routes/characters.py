@@ -450,6 +450,125 @@ async def delete_character(
     
     return {"message": "Character deleted successfully"}
 
+
+@router.put("/characters/{character_id}/resources")
+async def update_character_resources(
+    character_id: str,
+    resources: Dict[str, int],
+    username: str = Depends(get_current_user)
+):
+    """Update character class resources (Ki Points, Rage, etc.)"""
+    existing = await db.player_characters.find_one({'id': character_id, 'user_id': username})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+
+    await db.player_characters.update_one(
+        {'id': character_id, 'user_id': username},
+        {'$set': {'resources': resources, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"resources": resources}
+
+
+@router.post("/characters/{character_id}/short-rest")
+async def short_rest(
+    character_id: str,
+    hit_dice_to_spend: Optional[int] = 0,
+    username: str = Depends(get_current_user)
+):
+    """
+    Short rest: restore short-rest resources, optionally spend hit dice to heal.
+    Resources to restore are determined by the frontend based on class data.
+    The frontend sends the new resource values after computing restores.
+    """
+    existing = await db.player_characters.find_one({'id': character_id, 'user_id': username})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+
+    update = {'updated_at': datetime.now(timezone.utc).isoformat()}
+
+    # Spend hit dice to heal
+    if hit_dice_to_spend and hit_dice_to_spend > 0:
+        remaining_dice = existing.get('hit_dice_remaining', existing.get('level', 1))
+        dice_to_spend = min(hit_dice_to_spend, remaining_dice)
+        if dice_to_spend > 0:
+            char_class = existing.get('character_class', '').lower()
+            hit_die_size = HIT_DICE.get(char_class.title(), 8)
+            con_mod = (existing.get('constitution', 10) - 10) // 2
+            # Average roll per die + CON mod
+            hp_healed = dice_to_spend * ((hit_die_size // 2 + 1) + con_mod)
+            hp_healed = max(dice_to_spend, hp_healed)  # min 1 HP per die
+            new_hp = min(
+                existing.get('max_hit_points', 10),
+                existing.get('current_hit_points', 0) + hp_healed
+            )
+            update['current_hit_points'] = new_hp
+            update['hit_dice_remaining'] = remaining_dice - dice_to_spend
+
+    # Warlock pact magic restores on short rest
+    char_class = existing.get('character_class', '').lower()
+    if char_class == 'warlock':
+        spell_slots = existing.get('spell_slots', {})
+        for level_str, max_slots in spell_slots.items():
+            update[f'spell_slots_{level_str}_used'] = 0
+
+    await db.player_characters.update_one(
+        {'id': character_id, 'user_id': username},
+        {'$set': update}
+    )
+
+    updated = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    return updated
+
+
+@router.post("/characters/{character_id}/long-rest")
+async def long_rest(
+    character_id: str,
+    username: str = Depends(get_current_user)
+):
+    """
+    Long rest: restore all HP, half hit dice (min 1), all spell slots,
+    and all resources (both short-rest and long-rest).
+    """
+    existing = await db.player_characters.find_one({'id': character_id, 'user_id': username})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+
+    level = existing.get('level', 1)
+    max_hp = existing.get('max_hit_points', 10)
+
+    update = {
+        'current_hit_points': max_hp,
+        'hit_dice_remaining': min(level, existing.get('hit_dice_remaining', 0) + max(1, level // 2)),
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+
+    # Cap hit dice at level
+    if update['hit_dice_remaining'] > level:
+        update['hit_dice_remaining'] = level
+
+    # Restore all spell slots
+    spell_slots = existing.get('spell_slots', {})
+    if spell_slots:
+        for level_str in spell_slots:
+            update[f'spell_slots_{level_str}_used'] = 0
+    # Also check individual spell_slots_N fields
+    for key in existing:
+        if key.startswith('spell_slots_') and key.endswith('_used'):
+            update[key] = 0
+
+    # Resources are reset by frontend (sends full resource dict)
+    # But we can clear resources to empty so frontend re-initializes them to max
+    update['resources'] = {}
+
+    await db.player_characters.update_one(
+        {'id': character_id, 'user_id': username},
+        {'$set': update}
+    )
+
+    updated = await db.player_characters.find_one({'id': character_id}, {'_id': 0})
+    return updated
+
+
 @router.get("/characters/{character_id}/level-up-info")
 async def get_level_up_info(
     character_id: str,

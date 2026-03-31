@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import LevelUpWizard from './LevelUpWizard';
 import CharacterInventory from './CharacterInventory';
+import CharacterCombatTab from './CharacterCombatTab';
+import { CLASS_FEATURES } from '../data/classFeatures';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, SPELL_DATABASE } from '../data/spellDatabase';
 import DiceRoller3D from './ui/DiceRoller3D';
 
@@ -379,6 +381,30 @@ export default function CharacterSheetFull() {
     }
     
     rollDice(action.dice, modifier, action.name);
+  };
+
+  // Resource & Rest handlers
+  const handleUpdateResources = async (resources) => {
+    try {
+      await axios.put(`${API}/characters/${characterId}/resources`, resources);
+      setCharacter(prev => prev ? { ...prev, resources } : prev);
+    } catch (err) {
+      console.error('Failed to update resources');
+    }
+  };
+
+  const handleRest = async (type) => {
+    try {
+      const response = await axios.post(
+        `${API}/characters/${characterId}/${type}-rest`,
+        type === 'short' ? { hit_dice_to_spend: 1 } : undefined
+      );
+      setCharacter(response.data);
+      setCurrentHp(response.data.current_hit_points || response.data.hp || currentHp);
+      toast.success(`${type === 'short' ? 'Short' : 'Long'} rest complete`);
+    } catch (err) {
+      toast.error(`Rest failed: ${err.response?.data?.detail || 'unknown error'}`);
+    }
   };
 
   // Styles - Electric Tundra (Player Mode)
@@ -759,121 +785,14 @@ export default function CharacterSheetFull() {
           {/* Tab Content - Scrollable */}
           <div style={{ ...panelStyle, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {activeTab === 'combat' && (
-              <div className="character-combat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', height: '100%', overflow: 'hidden' }}>
-                {/* Actions Box */}
-                <div className="card-hover" style={{ 
-                  background: 'rgba(239, 68, 68, 0.05)', 
-                  border: '1px solid rgba(239, 68, 68, 0.2)', 
-                  borderRadius: '12px', 
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden'
-                }}>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: '#EF4444', marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <Swords size={18} /> Actions
-                  </h4>
-                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {/* Unarmed Strike */}
-                    <div
-                      style={actionBtnStyle('attack')}
-                      onClick={() => rollDice('1d20', profBonus + getModifier(abilities.strength), 'Unarmed Strike')}
-                    >
-                      <div>
-                        <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>Unarmed Strike</div>
-                        <div style={{ color: theme.text.muted, fontSize: '12px' }}>+{profBonus + getModifier(abilities.strength)} • 1+{getModifier(abilities.strength)} bludg</div>
-                      </div>
-                      <Dices size={18} style={{ color: '#EF4444', flexShrink: 0 }} />
-                    </div>
-                    
-                    {classActions.actions.filter(a => a.name !== 'Attack').map((action, i) => (
-                      <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
-                        <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
-                        </div>
-                        {action.dice && <Dices size={18} style={{ color: action.type === 'spell' ? theme.accent.primary : action.type === 'heal' ? '#10B981' : '#EF4444', flexShrink: 0 }} />}
-                      </div>
-                    ))}
-                    
-                    {/* Basic Actions */}
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '6px' }}>
-                      <div style={{ fontSize: '12px', color: theme.text.muted, marginBottom: '8px', fontWeight: '500' }}>BASIC</div>
-                      {[
-                        { name: 'Dash', desc: 'Double movement' },
-                        { name: 'Dodge', desc: 'Attacks have disadvantage' },
-                        { name: 'Help', desc: 'Give ally advantage' },
-                        { name: 'Hide', desc: 'Stealth check', dice: '1d20' },
-                        { name: 'Ready', desc: 'Prepare action' }
-                      ].map((action, i) => (
-                        <div 
-                          key={i} 
-                          style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', marginBottom: '6px', cursor: 'pointer', fontSize: '13px' }}
-                          onClick={() => action.dice ? rollDice(action.dice, 0, action.name) : toast.info(action.desc)}
-                        >
-                          <span style={{ color: theme.text.primary }}>{action.name}</span>
-                          <span style={{ color: theme.text.muted, marginLeft: '8px' }}>- {action.desc}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bonus Actions Box */}
-                <div style={{ 
-                  background: 'rgba(245, 158, 11, 0.05)', 
-                  border: '1px solid rgba(245, 158, 11, 0.2)', 
-                  borderRadius: '12px', 
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden'
-                }}>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.highlight, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <Sparkles size={18} /> Bonus Actions
-                  </h4>
-                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {classActions.bonusActions.length > 0 ? classActions.bonusActions.map((action, i) => (
-                      <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
-                        <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
-                        </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.accent.highlight, flexShrink: 0 }} />}
-                      </div>
-                    )) : (
-                      <div style={{ color: theme.text.muted, fontSize: '14px', fontStyle: 'italic', textAlign: 'center', padding: '24px' }}>
-                        No bonus actions available at this level
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Reactions Box */}
-                <div style={{ 
-                  background: 'rgba(138, 43, 226, 0.05)', 
-                  border: '1px solid rgba(77, 208, 225, 0.2)', 
-                  borderRadius: '12px', 
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden'
-                }}>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <Target size={18} /> Reactions
-                  </h4>
-                  <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {classActions.reactions.map((action, i) => (
-                      <div key={i} style={actionBtnStyle(action.type)} onClick={() => handleRoll(action)}>
-                        <div>
-                          <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
-                          <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
-                        </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.accent.primary, flexShrink: 0 }} />}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+                <CharacterCombatTab
+                  character={character}
+                  onUpdateCharacter={(updates) => setCharacter(prev => prev ? { ...prev, ...updates } : prev)}
+                  onUpdateResources={handleUpdateResources}
+                  onRest={handleRest}
+                  isGMMode={false}
+                />
               </div>
             )}
 

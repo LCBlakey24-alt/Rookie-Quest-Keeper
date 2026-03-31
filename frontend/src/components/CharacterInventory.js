@@ -45,6 +45,8 @@ export default function CharacterInventory({ characterId, character, onUpdate })
   const [rarityFilter, setRarityFilter] = useState('');
   const [expandedItem, setExpandedItem] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showCustomAdd, setShowCustomAdd] = useState(false);
+  const [customItem, setCustomItem] = useState({ name: '', type: 'Weapon', damage: '', description: '' });
 
   // Filter items
   const filteredItems = ITEMS_DATABASE.filter(item => {
@@ -351,6 +353,14 @@ export default function CharacterInventory({ characterId, character, onUpdate })
           >
             <Plus size={14} /> Add Item
           </Button>
+          <Button
+            onClick={() => setShowCustomAdd(!showCustomAdd)}
+            size="sm"
+            variant="outline"
+            style={{ fontSize: '12px', marginLeft: 4 }}
+          >
+            Custom
+          </Button>
         </div>
 
         {/* Weight & Gold */}
@@ -471,6 +481,68 @@ export default function CharacterInventory({ characterId, character, onUpdate })
                   No items found
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Custom Item Quick-Add */}
+        {showCustomAdd && (
+          <div style={{ 
+            marginBottom: '12px', padding: '12px', 
+            background: 'rgba(0,0,0,0.3)', borderRadius: '8px',
+            border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: theme.accent }}>Add Custom Item</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Input
+                value={customItem.name}
+                onChange={(e) => setCustomItem(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Item name"
+                style={{ flex: 1, minWidth: 140, background: 'rgba(0,0,0,0.4)', fontSize: 12 }}
+              />
+              <select
+                value={customItem.type}
+                onChange={(e) => setCustomItem(prev => ({ ...prev, type: e.target.value }))}
+                style={{
+                  background: 'rgba(0,0,0,0.4)', border: '1px solid #374151',
+                  borderRadius: 6, color: theme.text, padding: '6px 10px', fontSize: 12
+                }}
+              >
+                <option value="Weapon">Weapon</option>
+                <option value="Armor">Armor</option>
+                <option value="Shield">Shield</option>
+                <option value="Gear">Gear</option>
+                <option value="Potion">Potion</option>
+                <option value="Scroll">Scroll</option>
+                <option value="Wondrous">Wondrous</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Input
+                value={customItem.damage}
+                onChange={(e) => setCustomItem(prev => ({ ...prev, damage: e.target.value }))}
+                placeholder="Damage (e.g. 1d8) or AC"
+                style={{ flex: 1, background: 'rgba(0,0,0,0.4)', fontSize: 12 }}
+              />
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (!customItem.name.trim()) { toast.error('Name required'); return; }
+                  addItem({
+                    name: customItem.name.trim(),
+                    type: customItem.type,
+                    damage: customItem.damage || undefined,
+                    description: customItem.description || `Custom ${customItem.type.toLowerCase()}`,
+                    rarity: 'Common',
+                    is_magic: false,
+                  });
+                  setCustomItem({ name: '', type: 'Weapon', damage: '', description: '' });
+                  setShowCustomAdd(false);
+                }}
+                style={{ background: theme.accent, color: '#000', fontWeight: 600, fontSize: 12 }}
+              >
+                Add
+              </Button>
             </div>
           </div>
         )}
