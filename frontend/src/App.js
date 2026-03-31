@@ -19,6 +19,34 @@ import CharacterSheetFull from '@/components/CharacterSheetFull';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
+import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
+
+// Component to automatically set theme based on route
+function ThemeRouter() {
+  const location = useLocation();
+  const { setTheme } = useTheme();
+  
+  useEffect(() => {
+    const path = location.pathname;
+    
+    // GM routes - purple/violet theme
+    if (path.startsWith('/gm-screen') || 
+        path.startsWith('/campaign/') || 
+        path.startsWith('/campaigns')) {
+      setTheme(THEMES.GM);
+    }
+    // Player routes - blue/cyan theme
+    else if (path.startsWith('/characters')) {
+      setTheme(THEMES.PLAYER);
+    }
+    // Landing/auth/other - neutral theme
+    else {
+      setTheme(THEMES.LANDING);
+    }
+  }, [location.pathname, setTheme]);
+  
+  return null;
+}
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -164,9 +192,11 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <SubscriptionProvider>
-          <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
-            <Routes>
+        <ThemeProvider>
+          <ThemeRouter />
+          <SubscriptionProvider>
+            <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
+              <Routes>
             {/* Login route - redirects to /auth */}
             <Route 
               path="/login" 
@@ -287,10 +317,11 @@ function App() {
           </Routes>
           {/* Floating Dice Roller - Disabled to reduce UI clutter */}
           {/* <ConditionalDiceRoller isAuthenticated={isAuthenticated} /> */}
-        </KeyboardShortcutsProvider>
-        </SubscriptionProvider>
+          </KeyboardShortcutsProvider>
+          </SubscriptionProvider>
+        </ThemeProvider>
       </BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors theme="dark" />
     </div>
   );
 }

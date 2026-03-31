@@ -26,43 +26,43 @@ import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Fantasy Sunset Theme - Matching Landing Page & Character Builder
+// GM Mode Theme - Midnight Neon (Purple/Violet)
 const theme = {
   bg: {
-    black: '#0F0A1E',
-    dark: '#1A112E',
-    panel: 'rgba(26, 17, 46, 0.85)',
-    card: 'rgba(26, 17, 46, 0.9)',
-    hover: '#2E1F45',
-    elevated: '#2E1F45',
-    surface: 'rgba(26, 17, 46, 0.8)'
+    black: '#0B0B0D',
+    dark: '#131317',
+    panel: 'rgba(19, 19, 23, 0.9)',
+    card: 'rgba(19, 19, 23, 0.95)',
+    hover: '#1C1C24',
+    elevated: '#1C1C24',
+    surface: 'rgba(19, 19, 23, 0.85)'
   },
   sunset: {
-    purple: '#8B5CF6',
-    pink: '#EC4899',
+    purple: '#8A2BE2',
+    pink: '#BA55D3',
     gold: '#F59E0B'
   },
   accent: {
-    primary: '#F59E0B',      // Gold
-    secondary: '#8B5CF6',    // Purple
-    tertiary: '#EC4899',     // Pink
-    hover: '#A855F7',
-    subtle: 'rgba(139, 92, 246, 0.15)',
-    glow: '0 0 20px rgba(139, 92, 246, 0.4)',
-    gm: '#F59E0B',
-    red: '#F59E0B',          // Legacy - now gold
-    redHover: '#FBBF24',
-    redSubtle: 'rgba(245, 158, 11, 0.15)',
-    orange: '#F97316'
+    primary: '#8A2BE2',      // Blue Violet
+    secondary: '#4B0082',    // Indigo
+    tertiary: '#9932CC',     // Dark Orchid
+    hover: '#9932CC',
+    subtle: 'rgba(138, 43, 226, 0.15)',
+    glow: '0 0 20px rgba(138, 43, 226, 0.4)',
+    gm: '#8A2BE2',
+    red: '#8A2BE2',          // Now violet
+    redHover: '#9932CC',
+    redSubtle: 'rgba(138, 43, 226, 0.15)',
+    orange: '#BA55D3'
   },
   text: {
     white: '#FFFFFF',
-    primary: '#F8FAFC',
-    secondary: '#94A3B8',
-    muted: '#64748B'
+    primary: '#F8F8FF',
+    secondary: '#A0A0B0',
+    muted: '#6B6B7B'
   },
-  border: 'rgba(139, 92, 246, 0.3)',
-  gradient: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)'
+  border: 'rgba(138, 43, 226, 0.3)',
+  gradient: 'linear-gradient(135deg, #4B0082, #8A2BE2)'
 };
 
 function CampaignDashboard({ username, onLogout }) {

@@ -14,12 +14,13 @@ import { useDiceRoller } from './ui/DiceRoller3D';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Theme
+// Theme - Electric Tundra (Player Mode)
 const theme = {
-  bg: { primary: '#0F0A1E', surface: '#1A112E', elevated: '#2E1F45' },
-  sunset: { purple: '#8B5CF6', pink: '#EC4899', gold: '#F59E0B' },
-  text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-  border: 'rgba(139, 92, 246, 0.3)'
+  bg: { primary: '#050A30', surface: '#0A1140', elevated: '#0C1650' },
+  accent: { primary: '#4DD0E1', secondary: '#0066FF', highlight: '#00CED1' },
+  text: { primary: '#F0F8FF', secondary: '#9EB0D0', muted: '#6B7B9B' },
+  border: 'rgba(77, 208, 225, 0.3)',
+  glow: '0 0 20px rgba(77, 208, 225, 0.3)'
 };
 
 const getModifier = (score) => Math.floor((score - 10) / 2);
@@ -343,33 +344,45 @@ export default function CharacterSheetFull() {
     rollDice(action.dice, modifier, action.name);
   };
 
-  // Styles
+  // Styles - Electric Tundra (Player Mode)
   const pageStyle = {
     minHeight: '100vh',
-    background: `linear-gradient(180deg, rgba(15, 10, 30, 0.85) 0%, rgba(15, 10, 30, 0.95) 100%), url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    background: '#050A30',
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative'
+  };
+
+  // Background gradient overlay
+  const bgOverlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'radial-gradient(ellipse at 0% 100%, rgba(0, 102, 255, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 100% 0%, rgba(77, 208, 225, 0.1) 0%, transparent 50%)',
+    pointerEvents: 'none',
+    zIndex: 0
   };
 
   const panelStyle = {
-    background: 'rgba(26, 17, 46, 0.85)',
+    background: 'rgba(10, 17, 64, 0.85)',
     backdropFilter: 'blur(16px)',
     border: `1px solid ${theme.border}`,
     borderRadius: '12px',
-    padding: '16px'
+    padding: '16px',
+    position: 'relative',
+    zIndex: 1
   };
 
   const scrollBoxStyle = {
     overflowY: 'auto',
     maxHeight: '100%',
     scrollbarWidth: 'thin',
-    scrollbarColor: `${theme.sunset.purple} transparent`
+    scrollbarColor: `${theme.accent.primary} transparent`
   };
 
   const actionBtnStyle = (type) => ({
@@ -378,10 +391,10 @@ export default function CharacterSheetFull() {
     justifyContent: 'space-between',
     padding: '12px 16px',
     background: type === 'attack' ? 'rgba(239, 68, 68, 0.15)' : 
-                type === 'spell' ? 'rgba(139, 92, 246, 0.15)' :
+                type === 'spell' ? 'rgba(77, 208, 225, 0.15)' :
                 type === 'heal' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
     border: `1px solid ${type === 'attack' ? 'rgba(239, 68, 68, 0.3)' : 
-             type === 'spell' ? 'rgba(139, 92, 246, 0.3)' :
+             type === 'spell' ? 'rgba(77, 208, 225, 0.3)' :
              type === 'heal' ? 'rgba(16, 185, 129, 0.3)' : theme.border}`,
     borderRadius: '8px',
     cursor: 'pointer',
@@ -403,7 +416,7 @@ export default function CharacterSheetFull() {
       <div style={pageStyle}>
         <div style={{ ...panelStyle, textAlign: 'center', padding: '60px', margin: 'auto' }}>
           <h2 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '16px' }}>Character Not Found</h2>
-          <button onClick={() => navigate('/home')} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer' }}>
+          <button onClick={() => navigate('/home')} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer' }}>
             Back to Dashboard
           </button>
         </div>
@@ -413,14 +426,17 @@ export default function CharacterSheetFull() {
 
   return (
     <div style={pageStyle}>
+      {/* Background gradient overlay */}
+      <div style={bgOverlayStyle} />
+      
       {/* Header - Fixed */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
-        <button onClick={() => navigate('/home')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(139, 92, 246, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
+        <button onClick={() => navigate('/home')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(77, 208, 225, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
           <ChevronLeft size={18} /> Dashboard
         </button>
         
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.5rem', background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.5rem', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {character.name}
           </h1>
           <div style={{ color: theme.text.secondary, fontSize: '13px' }}>
@@ -450,7 +466,7 @@ export default function CharacterSheetFull() {
               <ArrowUp size={16} /> Level Up
             </button>
           )}
-          <button onClick={() => navigate(`/characters/${characterId}/edit`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(139, 92, 246, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
+          <button onClick={() => navigate(`/characters/${characterId}/edit`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(77, 208, 225, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
             <Edit3 size={16} /> Edit
           </button>
         </div>
@@ -472,7 +488,7 @@ export default function CharacterSheetFull() {
         
         {/* LEFT COLUMN: Abilities + Saving Throws */}
         <div className="card-hover" style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Ability Scores</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Ability Scores</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SAVING_THROWS.map((ability) => {
@@ -486,17 +502,17 @@ export default function CharacterSheetFull() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '13px', color: theme.text.muted, letterSpacing: '1px', fontWeight: '600' }}>{ABILITY_SHORT[ability]}</span>
                     <span style={{ fontSize: '22px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
-                    <span style={{ fontSize: '16px', fontWeight: '600', color: theme.sunset.gold }}>{formatModifier(mod)}</span>
+                    <span style={{ fontSize: '16px', fontWeight: '600', color: theme.accent.highlight }}>{formatModifier(mod)}</span>
                   </div>
                   <button
                     onClick={() => rollDice('1d20', saveMod, `${ABILITY_SHORT[ability]} Save`)}
                     style={{
                       width: '100%',
                       padding: '8px',
-                      background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(139, 92, 246, 0.1)',
+                      background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(77, 208, 225, 0.1)',
                       border: `1px solid ${isProficient ? 'rgba(245, 158, 11, 0.4)' : theme.border}`,
                       borderRadius: '6px',
-                      color: isProficient ? theme.sunset.gold : theme.text.secondary,
+                      color: isProficient ? theme.accent.highlight : theme.text.secondary,
                       fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -515,13 +531,13 @@ export default function CharacterSheetFull() {
           {/* Proficiency Bonus */}
           <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '8px', marginTop: '8px', flexShrink: 0 }}>
             <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>PROFICIENCY</div>
-            <div style={{ fontSize: '26px', fontWeight: 'bold', color: theme.sunset.pink }}>+{profBonus}</div>
+            <div style={{ fontSize: '26px', fontWeight: 'bold', color: theme.accent.secondary }}>+{profBonus}</div>
           </div>
         </div>
 
         {/* MIDDLE COLUMN: Skills */}
         <div style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.pink, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Skills</h3>
+          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.secondary, marginBottom: '12px', fontSize: '1rem', flexShrink: 0 }}>Skills</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SKILLS.map(skill => {
@@ -561,7 +577,7 @@ export default function CharacterSheetFull() {
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isProficient && <span style={{ color: theme.sunset.purple, fontSize: '8px' }}>●</span>}
+                    {isProficient && <span style={{ color: theme.accent.primary, fontSize: '8px' }}>●</span>}
                     {skill.name}
                   </span>
                   <span style={{ fontWeight: '600', color: isProficient ? '#a78bfa' : theme.text.primary, fontSize: '15px' }}>{formatModifier(bonus)}</span>
@@ -618,7 +634,7 @@ export default function CharacterSheetFull() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
                 <Shield size={14} /> AC
               </div>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', color: theme.sunset.purple }}>{ac}</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: theme.accent.primary }}>{ac}</div>
             </div>
 
             {/* Initiative */}
@@ -628,7 +644,7 @@ export default function CharacterSheetFull() {
               </div>
               <button
                 onClick={() => rollDice('1d20', initiative, 'Initiative')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '32px', fontWeight: 'bold', color: theme.sunset.pink }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '32px', fontWeight: 'bold', color: theme.accent.secondary }}
               >
                 {formatModifier(initiative)}
               </button>
@@ -639,7 +655,7 @@ export default function CharacterSheetFull() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: theme.text.muted, fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>
                 <Wind size={14} /> SPEED
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: theme.sunset.gold }}>{speed}<span style={{ fontSize: '14px' }}>ft</span></div>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: theme.accent.highlight }}>{speed}<span style={{ fontSize: '14px' }}>ft</span></div>
             </div>
           </div>
 
@@ -654,7 +670,7 @@ export default function CharacterSheetFull() {
                   flex: '1 1 auto',
                   minWidth: '80px',
                   padding: '12px 16px',
-                  background: activeTab === tab ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(139, 92, 246, 0.1)',
+                  background: activeTab === tab ? 'linear-gradient(135deg, #0066FF, #4DD0E1)' : 'rgba(77, 208, 225, 0.1)',
                   border: activeTab === tab ? 'none' : `1px solid ${theme.border}`,
                   borderRadius: '10px',
                   color: theme.text.primary,
@@ -706,7 +722,7 @@ export default function CharacterSheetFull() {
                           <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
                           <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: action.type === 'spell' ? theme.sunset.purple : action.type === 'heal' ? '#10B981' : '#EF4444', flexShrink: 0 }} />}
+                        {action.dice && <Dices size={18} style={{ color: action.type === 'spell' ? theme.accent.primary : action.type === 'heal' ? '#10B981' : '#EF4444', flexShrink: 0 }} />}
                       </div>
                     ))}
                     
@@ -743,7 +759,7 @@ export default function CharacterSheetFull() {
                   flexDirection: 'column',
                   overflow: 'hidden'
                 }}>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.highlight, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <Sparkles size={18} /> Bonus Actions
                   </h4>
                   <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -753,7 +769,7 @@ export default function CharacterSheetFull() {
                           <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
                           <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.sunset.gold, flexShrink: 0 }} />}
+                        {action.dice && <Dices size={18} style={{ color: theme.accent.highlight, flexShrink: 0 }} />}
                       </div>
                     )) : (
                       <div style={{ color: theme.text.muted, fontSize: '14px', fontStyle: 'italic', textAlign: 'center', padding: '24px' }}>
@@ -766,14 +782,14 @@ export default function CharacterSheetFull() {
                 {/* Reactions Box */}
                 <div style={{ 
                   background: 'rgba(139, 92, 246, 0.05)', 
-                  border: '1px solid rgba(139, 92, 246, 0.2)', 
+                  border: '1px solid rgba(77, 208, 225, 0.2)', 
                   borderRadius: '12px', 
                   padding: '14px',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden'
                 }}>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <Target size={18} /> Reactions
                   </h4>
                   <div style={{ ...scrollBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -783,7 +799,7 @@ export default function CharacterSheetFull() {
                           <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '14px' }}>{action.name}</div>
                           <div style={{ color: theme.text.muted, fontSize: '12px' }}>{action.desc}</div>
                         </div>
-                        {action.dice && <Dices size={18} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
+                        {action.dice && <Dices size={18} style={{ color: theme.accent.primary, flexShrink: 0 }} />}
                       </div>
                     ))}
                   </div>
@@ -793,7 +809,7 @@ export default function CharacterSheetFull() {
 
             {activeTab === 'spells' && (
               <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.purple, marginBottom: '16px', fontSize: '1.1rem' }}>Spellcasting</h4>
+                <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '16px', fontSize: '1.1rem' }}>Spellcasting</h4>
                 {(() => {
                   const classInfo = SPELLCASTING_CLASSES[character.character_class];
                   if (!classInfo) {
@@ -818,19 +834,19 @@ export default function CharacterSheetFull() {
                   return (
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                        <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ background: 'rgba(77, 208, 225, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
                           <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>SPELL DC</div>
-                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: theme.sunset.purple }}>{spellDC}</div>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: theme.accent.primary }}>{spellDC}</div>
                         </div>
-                        <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ background: 'rgba(77, 208, 225, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
                           <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>SPELL ATK</div>
-                          <button onClick={() => rollDice('1d20', spellAttackBonus, 'Spell Attack')} style={{ background: 'none', border: 'none', fontSize: '24px', fontWeight: 'bold', color: theme.sunset.pink, cursor: 'pointer' }}>
+                          <button onClick={() => rollDice('1d20', spellAttackBonus, 'Spell Attack')} style={{ background: 'none', border: 'none', fontSize: '24px', fontWeight: 'bold', color: theme.accent.secondary, cursor: 'pointer' }}>
                             +{spellAttackBonus}
                           </button>
                         </div>
-                        <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ background: 'rgba(77, 208, 225, 0.1)', padding: '14px', borderRadius: '8px', textAlign: 'center' }}>
                           <div style={{ fontSize: '12px', color: theme.text.muted, fontWeight: '500' }}>ABILITY</div>
-                          <div style={{ fontSize: '18px', fontWeight: '600', color: theme.sunset.gold }}>{spellAbility.substring(0, 3).toUpperCase()}</div>
+                          <div style={{ fontSize: '18px', fontWeight: '600', color: theme.accent.highlight }}>{spellAbility.substring(0, 3).toUpperCase()}</div>
                         </div>
                       </div>
                       
@@ -842,12 +858,12 @@ export default function CharacterSheetFull() {
                             <button 
                               onClick={() => setUsedSlots({})}
                               style={{
-                                background: 'rgba(139, 92, 246, 0.2)',
+                                background: 'rgba(77, 208, 225, 0.2)',
                                 border: '1px solid rgba(139, 92, 246, 0.3)',
                                 borderRadius: '4px',
                                 padding: '4px 8px',
                                 fontSize: '10px',
-                                color: theme.sunset.purple,
+                                color: theme.accent.primary,
                                 cursor: 'pointer'
                               }}
                             >
@@ -871,14 +887,14 @@ export default function CharacterSheetFull() {
                                         width: '36px',
                                         height: '36px',
                                         borderRadius: '8px',
-                                        border: `2px solid ${theme.sunset.pink}`,
+                                        border: `2px solid ${theme.accent.secondary}`,
                                         background: isUsed ? 'rgba(100, 100, 100, 0.3)' : 'rgba(236, 72, 153, 0.3)',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         fontSize: '14px',
-                                        color: isUsed ? theme.text.muted : theme.sunset.pink,
+                                        color: isUsed ? theme.text.muted : theme.accent.secondary,
                                         transition: 'all 0.2s'
                                       }}
                                     >
@@ -915,7 +931,7 @@ export default function CharacterSheetFull() {
                                             width: '24px',
                                             height: '24px',
                                             borderRadius: '50%',
-                                            border: `2px solid ${theme.sunset.pink}`,
+                                            border: `2px solid ${theme.accent.secondary}`,
                                             background: isUsed ? 'rgba(100, 100, 100, 0.3)' : 'rgba(236, 72, 153, 0.4)',
                                             cursor: 'pointer',
                                             padding: 0,
@@ -965,11 +981,11 @@ export default function CharacterSheetFull() {
                                   className="tab-glow press-scale"
                                   style={{ 
                                     padding: '8px 14px', 
-                                    background: 'rgba(139, 92, 246, 0.2)', 
-                                    border: `1px solid ${theme.sunset.purple}`,
+                                    background: 'rgba(77, 208, 225, 0.2)', 
+                                    border: `1px solid ${theme.accent.primary}`,
                                     borderRadius: '16px',
                                     fontSize: '13px',
-                                    color: theme.sunset.purple,
+                                    color: theme.accent.primary,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
                                   }}
@@ -1015,7 +1031,7 @@ export default function CharacterSheetFull() {
                                 style={{ 
                                   padding: '14px', 
                                   background: 'rgba(15, 10, 30, 0.5)', 
-                                  border: `1px solid ${isUtility ? theme.border : theme.sunset.pink}`,
+                                  border: `1px solid ${isUtility ? theme.border : theme.accent.secondary}`,
                                   borderRadius: '10px',
                                   textAlign: 'left',
                                   cursor: isUtility ? 'default' : 'pointer',
@@ -1024,7 +1040,7 @@ export default function CharacterSheetFull() {
                               >
                                 <div style={{ fontWeight: '600', color: theme.text.primary, fontSize: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   {spellName}
-                                  {!isUtility && <span style={{ fontSize: '12px', color: theme.sunset.pink, background: 'rgba(236, 72, 153, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>{dice}</span>}
+                                  {!isUtility && <span style={{ fontSize: '12px', color: theme.accent.secondary, background: 'rgba(236, 72, 153, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>{dice}</span>}
                                 </div>
                                 {spell.level !== undefined && (
                                   <div style={{ color: theme.text.muted, fontSize: '14px', marginTop: '4px' }}>
@@ -1061,7 +1077,7 @@ export default function CharacterSheetFull() {
                 {/* Character Notes Section */}
                 <div>
                   <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <BookOpen size={18} style={{ color: theme.sunset.purple }} />
+                    <BookOpen size={18} style={{ color: theme.accent.primary }} />
                     Character Notes
                   </h4>
                   <div style={{ 
@@ -1081,8 +1097,8 @@ export default function CharacterSheetFull() {
                 {/* GM Synced Notes Section */}
                 {character.gm_notes && character.gm_notes.length > 0 && (
                   <div>
-                    <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Sparkles size={18} style={{ color: theme.sunset.gold }} />
+                    <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.highlight, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} style={{ color: theme.accent.highlight }} />
                       GM Updates
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1093,7 +1109,7 @@ export default function CharacterSheetFull() {
                           borderRadius: '10px',
                           padding: '14px'
                         }}>
-                          <div style={{ fontSize: '13px', color: theme.sunset.gold, fontWeight: '600', marginBottom: '6px' }}>
+                          <div style={{ fontSize: '13px', color: theme.accent.highlight, fontWeight: '600', marginBottom: '6px' }}>
                             {note.title || 'GM Note'}
                           </div>
                           <div style={{ fontSize: '14px', color: theme.text.secondary, lineHeight: '1.5' }}>
@@ -1115,14 +1131,14 @@ export default function CharacterSheetFull() {
                   <div style={{ 
                     marginTop: 'auto',
                     padding: '12px 16px',
-                    background: 'rgba(139, 92, 246, 0.1)',
-                    border: '1px solid rgba(139, 92, 246, 0.2)',
+                    background: 'rgba(77, 208, 225, 0.1)',
+                    border: '1px solid rgba(77, 208, 225, 0.2)',
                     borderRadius: '8px',
                     fontSize: '13px',
                     color: theme.text.muted,
                     textAlign: 'center'
                   }}>
-                    <Sparkles size={14} style={{ display: 'inline', marginRight: '6px', color: theme.sunset.purple }} />
+                    <Sparkles size={14} style={{ display: 'inline', marginRight: '6px', color: theme.accent.primary }} />
                     Your GM can sync session notes and updates to you directly
                   </div>
                 )}

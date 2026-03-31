@@ -274,41 +274,49 @@ function GMScreen({ username }) {
     { id: 'notes', icon: FileText, label: 'Notes' },
   ];
 
-  // GM Theme - Fantasy Sunset (matching the rest of the app)
+  // GM Theme - Midnight Neon (Dark Purple/Violet)
   const theme = {
     bg: { 
-      primary: '#0F0A1E', 
-      surface: '#1A112E', 
-      elevated: '#2E1F45',
-      panel: 'rgba(26, 17, 46, 0.85)',
-      card: 'rgba(15, 10, 30, 0.6)',
-      hover: 'rgba(139, 92, 246, 0.15)'
+      primary: '#0B0B0D', 
+      surface: '#131317', 
+      elevated: '#1C1C24',
+      panel: 'rgba(19, 19, 23, 0.9)',
+      card: 'rgba(11, 11, 13, 0.8)',
+      hover: 'rgba(138, 43, 226, 0.15)'
     },
     accent: { 
-      primary: '#8B5CF6',      // Purple
-      secondary: '#EC4899',    // Pink
-      gold: '#F59E0B',         // Gold
-      orange: '#F97316',
-      hover: '#A78BFA',
-      subtle: 'rgba(139, 92, 246, 0.15)',
-      glow: '0 0 20px rgba(139, 92, 246, 0.4)',
-      // GM-specific accent (gold for GM tools)
-      gm: '#F59E0B',
-      gmSubtle: 'rgba(245, 158, 11, 0.15)'
+      primary: '#8A2BE2',      // Blue Violet
+      secondary: '#4B0082',    // Indigo
+      gold: '#F59E0B',         // Gold for highlights
+      orange: '#BA55D3',       // Medium Orchid
+      hover: '#9932CC',        // Dark Orchid
+      subtle: 'rgba(138, 43, 226, 0.15)',
+      glow: '0 0 20px rgba(138, 43, 226, 0.4)',
+      // GM-specific accent (violet glow)
+      gm: '#8A2BE2',
+      gmSubtle: 'rgba(138, 43, 226, 0.15)'
     },
-    text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-    border: 'rgba(139, 92, 246, 0.3)',
-    gradient: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)'
+    text: { primary: '#F8F8FF', secondary: '#A0A0B0', muted: '#6B6B7B' },
+    border: 'rgba(138, 43, 226, 0.3)',
+    gradient: 'linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%)'
   };
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: `linear-gradient(180deg, rgba(15, 10, 30, 0.9) 0%, rgba(15, 10, 30, 0.95) 100%), url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed'
+      background: '#0B0B0D'
     }}>
+      {/* Gradient background overlay */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'radial-gradient(ellipse at 0% 0%, rgba(75, 0, 130, 0.2) 0%, transparent 50%), radial-gradient(ellipse at 100% 100%, rgba(138, 43, 226, 0.1) 0%, transparent 50%)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
       {/* Header */}
       <div style={{ 
         position: 'relative',

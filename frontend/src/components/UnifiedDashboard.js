@@ -13,45 +13,45 @@ import { RookGuide } from '@/components/RookGuide';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Fantasy Sunset Theme - Matching Landing Page & Character Builder
+// Dual Theme - Landing page neutral bridging GM (purple) and Player (cyan)
 const theme = {
   bg: {
-    primary: '#0F0A1E',
-    surface: 'rgba(26, 17, 46, 0.85)',
-    surfaceHover: '#2E1F45',
-    card: 'rgba(26, 17, 46, 0.9)',
-    hover: 'rgba(139, 92, 246, 0.15)'
+    primary: '#080A1A',
+    surface: 'rgba(10, 17, 64, 0.85)',
+    surfaceHover: '#0F1225',
+    card: 'rgba(10, 17, 64, 0.9)',
+    hover: 'rgba(138, 43, 226, 0.15)'
   },
   sunset: {
-    purple: '#8B5CF6',
-    pink: '#EC4899',
+    purple: '#8A2BE2',
+    pink: '#4DD0E1',
     gold: '#F59E0B'
   },
   gm: {
-    primary: '#F59E0B',
-    secondary: '#D97706',
-    hover: '#FBBF24',
-    glow: 'rgba(245, 158, 11, 0.4)',
-    subtle: 'rgba(245, 158, 11, 0.15)',
-    border: 'rgba(245, 158, 11, 0.3)'
+    primary: '#8A2BE2',
+    secondary: '#4B0082',
+    hover: '#9932CC',
+    glow: 'rgba(138, 43, 226, 0.4)',
+    subtle: 'rgba(138, 43, 226, 0.15)',
+    border: 'rgba(138, 43, 226, 0.3)'
   },
   player: {
-    primary: '#8B5CF6',
-    secondary: '#7C3AED',
-    glow: 'rgba(139, 92, 246, 0.4)',
-    subtle: 'rgba(139, 92, 246, 0.15)'
+    primary: '#4DD0E1',
+    secondary: '#0066FF',
+    glow: 'rgba(77, 208, 225, 0.4)',
+    subtle: 'rgba(77, 208, 225, 0.15)'
   },
   accent: {
-    pink: '#EC4899',
-    pinkGlow: 'rgba(236, 72, 153, 0.4)'
+    pink: '#4DD0E1',
+    pinkGlow: 'rgba(77, 208, 225, 0.4)'
   },
   text: {
-    primary: '#F8FAFC',
-    secondary: '#94A3B8',
-    muted: '#64748B'
+    primary: '#F8F8FF',
+    secondary: '#9EB0D0',
+    muted: '#6B7B9B'
   },
-  border: 'rgba(139, 92, 246, 0.3)',
-  gradient: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)'
+  border: 'rgba(77, 208, 225, 0.2)',
+  gradient: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 100%)'
 };
 
 // Ember Particles Component
@@ -597,7 +597,7 @@ function UnifiedDashboard({ username, onLogout }) {
           }}>
             {/* Coming Soon Banner */}
             <div style={{
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              background: 'linear-gradient(135deg, #8A2BE2, #4DD0E1)',
               padding: '12px 40px',
               borderRadius: '8px',
               marginBottom: '24px',
