@@ -1,15 +1,36 @@
 # Rookie Quest Keeper (ROOK) - Product Requirements Document
 
 ## Original Problem Statement
-Build a TTRPG application called "Rookie Quest Keeper" (ROOK) with a "Fantasy Sunset" theme. The application serves both Players (character management) and Game Masters (campaign management, GM tools).
+Build a TTRPG application called "Rookie Quest Keeper" (ROOK) for Players (character management) and Game Masters (campaign management, GM tools).
 
-## Visual Theme: Fantasy Sunset
-All pages share a consistent visual theme:
-- **Background**: Dark purple gradient over scenic mountain/sunset image
-- **Glass Panels**: Frosted glass effect with backdrop blur
-- **Accent Colors**: Purple (#8B5CF6), Pink (#EC4899), Gold (#F59E0B)
-- **Typography**: Cinzel for headers, Montserrat for body
-- **NO GREEN**: All green (#22c55e) replaced with gold (#F59E0B)
+## Visual Theme: Cyber-Fantasy Dual Theme (Updated March 2026)
+
+### Theme System
+The app uses a **dual-theme system** with three distinct color schemes:
+
+#### Landing Page (Neutral Bridging Theme)
+- **Background**: Dark (#080A1A) with purple and cyan gradient overlays
+- **Glass Panels**: Frosted glass with blue-tinted backdrop blur
+- **Accent Colors**: Purple (#8A2BE2) and Cyan (#4DD0E1) gradient
+
+#### GM Mode - "Midnight Neon" (Purple/Violet)
+- **Background**: Pure black (#0B0B0D)
+- **Surface**: Dark gray (#131317)
+- **Primary Accent**: Blue Violet (#8A2BE2)
+- **Secondary Accent**: Indigo (#4B0082)
+- **Usage**: Campaign Dashboard, GM Screen, Combat Page
+
+#### Player Mode - "Electric Tundra" (Blue/Cyan)
+- **Background**: Deep blue (#050A30)
+- **Surface**: Dark blue (#0A1140)
+- **Primary Accent**: Cyan (#4DD0E1)
+- **Secondary Accent**: Blue (#0066FF)
+- **Usage**: Character Builder, Character Sheet
+
+### Typography
+- **Headings**: Outfit (sans-serif)
+- **Body Text**: Manrope (sans-serif)
+- **Logo Only**: Cinzel (serif) - ROOK branding only
 
 ## Current Access Model (March 2026)
 - **Player Features**: LOCKED - "Coming Soon" overlay on home page
@@ -25,113 +46,92 @@ All pages share a consistent visual theme:
 
 ## Recent Updates (March 2026)
 
-### Persistent Quick Dice Panel (NEW)
-- **Always visible** on right side of GM Screen across all tabs
-- **Quick Roll buttons**: d4, d6, d8, d10, d12, d20
-- **Common Rolls**: Attack (d20), Advantage (2d20 high), Disadvantage (2d20 low), Damage (2d6), Fireball (8d6)
-- **Percentile**: Roll d100
-- **Collapsible**: Can minimize to icon-only mode
+### Complete UI Redesign (NEW - March 31, 2026)
+- **Replaced** old "Fantasy Sunset" theme (pink/orange/purple Instagram-like gradients)
+- **Implemented** dual-theme system: Midnight Neon (GM) and Electric Tundra (Player)
+- **Created** ThemeContext.js for automatic theme switching based on routes
+- **Updated** all major components: LandingPage, AuthPage, UnifiedDashboard, CampaignDashboard, GMScreen, CharacterSheetFull
+- **Changed** fonts from Cinzel/Montserrat to Outfit/Manrope (Cinzel reserved for logo)
 
-### Color Theme Cleanup (Complete)
-Replaced ALL green (#22c55e) with gold (#F59E0B) in:
-- GMScreen.js - Names, Tables, Party stats
-- DiceRoller.js - All roll buttons
-- RandomTables.js - Shop Name, save buttons
-- CombatCreatorTab.js - Monster CR colors, selected states
-- EncounterGeneratorTab.js - Easy difficulty, selection states
-- CalendarTab.js - Today highlights
-- CampaignSettingTab.js - Player management, buttons
-- AccountSettings.js - All green buttons/highlights
-- AdminPage.js - Status indicators
-- CombatPage.js - HP/status colors
-- CustomCreatureManager.js - Success states
-- CharacterSheetFull.js - Heal buttons
+### Copyright Cleanup (March 17, 2026)
+- **Removed** all copyrighted D&D items from itemsDatabase.js (3,059 items)
+- **Replaced** with SRD-only items (92 items) under Creative Commons
+- **Removed** copyrighted items_database.json from backend
+- **Removed** "Death Tyrant" (Beholder-related) from monsterDatabase.js
+- **Retained** SRD spells and classes (Open Gaming License)
+
+### Persistent Quick Dice Panel
+- Always visible on right side of GM Screen across all tabs
+- Quick Roll buttons: d4, d6, d8, d10, d12, d20
+- Common Rolls: Attack (d20), Advantage (2d20 high), Disadvantage (2d20 low), Damage (2d6), Fireball (8d6)
+- Percentile: Roll d100
+- Collapsible: Can minimize to icon-only mode
 
 ### GM Screen Tab Consolidation (9 Tabs)
-1. **Combat** - Combat control, saved encounters, spontaneous combat
-2. **Location** - Location management
-3. **NPCs** - Saved NPCs + Name Generator (side by side)
-4. **Monsters** - SRD Lookup + Custom Creatures (side by side)
-5. **Tables** - Random tables (Tavern, Shop, NPC Quirk, Weather, Plot Hook, Loot)
-6. **Loot** - Loot generator
-7. **Dice** - Full dice roller (separate from quick panel)
-8. **Party** - Party overview
-9. **Notes** - GM notes with sync
+1. Combat - Combat control, encounters, quick combat
+2. Location - Party location tracker
+3. NPCs - Name generator + saved NPCs (merged)
+4. Monsters - Creature lookup + custom creatures (merged)
+5. Tables - Random encounter tables
+6. Loot - Treasure generator
+7. Dice - Dice roller
+8. Party - Party inventory, loot distribution
+9. Notes - Session notes
 
-### Campaign Settings Modal
-- **Settings button** in Campaign Dashboard header
-- Upload Custom Rulesets, Races/Classes, Items/Spells, Monsters/NPCs
+## Implementation Files
 
-## Implemented Features
+### Theme System
+- `/app/frontend/src/index.css` - CSS variables and dual-theme definitions
+- `/app/frontend/src/contexts/ThemeContext.js` - Theme switching context
+- `/app/frontend/src/App.js` - ThemeRouter component
 
-### Landing Page
-- [x] Centered logo with "KEEPER" in large white text with glow
-- [x] Foggy glass panels for readability
-- [x] 4-tier pricing: Free, Player (Coming Soon), GM (£3.99), Legendary (£5.99)
+### Key Components (Updated for new theme)
+- `/app/frontend/src/components/LandingPage.js` - Neutral bridging theme
+- `/app/frontend/src/components/AuthPage.js` - Neutral theme
+- `/app/frontend/src/components/UnifiedDashboard.js` - GM/Player split view
+- `/app/frontend/src/components/CampaignDashboard.js` - Midnight Neon theme
+- `/app/frontend/src/components/GMScreen.js` - Midnight Neon theme
+- `/app/frontend/src/components/CharacterSheetFull.js` - Electric Tundra theme
 
-### Home Dashboard
-- [x] **Player Section**: LOCKED with "Coming Soon" overlay
-- [x] **GM Section**: Fully functional with campaigns visible
+### Data Files (Copyright Clean)
+- `/app/frontend/src/data/itemsDatabase.js` - SRD-only items (92 items)
+- `/app/frontend/src/data/monsterDatabase.js` - SRD monsters only
+- `/app/frontend/src/data/spellDatabase.js` - SRD spells (OGL)
+- `/app/backend/data/srd/classes.json` - SRD classes (OGL)
 
-### Campaign Dashboard
-- [x] Settings button - Opens upload modal
-- [x] GM Screen button - Opens GM tools
-- [x] ROOK assistant panel
-- [x] World Setting with style selector
+## Upcoming Tasks (Priority Order)
 
-### GM Screen (9 Tabs + Quick Dice)
-- [x] **Quick Dice Panel** - Persistent sidebar with d4-d20, common rolls, d100
-- [x] **Combat** - Saved encounters + spontaneous combat
-- [x] **Location** - Location management
-- [x] **NPCs** - Two-column: Saved NPCs + Name Generator
-- [x] **Monsters** - Two-column: SRD Lookup + Custom Creatures
-- [x] **Tables** - Random tables (gold colors)
-- [x] **Loot** - Loot generator
-- [x] **Dice** - Full dice roller
-- [x] **Party** - Party overview
-- [x] **Notes** - GM notes with sync
+### P0 - Critical
+1. **Finalize Equipment & Inventory System** - Implement equip/unequip functionality that modifies character stats (AC, attack bonuses)
 
-### Character System (Locked but Ready)
-- [x] Character Builder with edit mode
-- [x] 3D Dice Roller
-- [x] Equipment & Inventory System (3,059 items)
-- [x] Temporary HP with damage absorption
-- [x] Proficient skills with purple glow
-- [x] Level Up Wizard with Multiclassing
+### P1 - High Priority
+2. **Character Sheet UI/UX Overhaul** - Condense layout to fit all major sections on one screen without scrolling
+3. **Real-time GM Loot System** - Enable drag-and-drop loot assignment with WebSocket push to players
+4. **Map Creator Enhancements** - Textured drawing tools, wall/door tools, smooth pan/zoom
 
-## Remaining Tasks
+### P2 - Medium Priority
+5. **Player Timeline & Note Sync UI** - Backend endpoints exist, build frontend components
 
-### When Player Tier Launches
-1. Remove "Coming Soon" overlay from Player section
-2. Enable character creation for subscribers
-3. Connect inventory system
-4. Enable real-time GM loot drops
+### Future Tasks
+- Soundboard with ambient noises
+- Map sharing to second screen
+- PDF export/print for character sheets
+- Live audio transcription ("ROOK listener")
+- Virtual Tabletop (VTT) functionality
+- AI-powered travel encounter generator
 
-### Upcoming Features
-1. File upload backend implementation
-2. Real-time GM Loot System (WebSocket)
-3. Map Creator Enhancements
+## Known Issues
+- **Production Login/Password Reset Broken** - External environment configuration issue (database credentials, Resend API key, domain verification). Cannot be fixed from preview environment.
 
-### Future/Backlog
-1. Soundboard with ambient noises
-2. PDF export for character sheets
-3. Live audio transcription
-4. VTT with video/audio chat
-5. Backend refactoring
-
-## Technical Architecture
-```
-/app/frontend/src/components/
-├── GMScreen.js           - 9 tabs + persistent Quick Dice panel
-│   ├── Quick Dice (persistent right sidebar)
-│   ├── Combat, Location, NPCs, Monsters, Tables
-│   ├── Loot, Dice, Party, Notes
-├── CampaignDashboard.js  - Settings modal, GM Screen button
-├── LandingPage.js        - 4-tier pricing
-├── UnifiedDashboard.js   - Player section locked
-└── All components        - Gold (#F59E0B) instead of green
-```
-
-## Test Credentials (Preview Only)
+## Test Credentials
 - Email: lcblakey24@outlook.com
 - Password: LCBlakey24?!
+
+## Third-Party Integrations
+- **Stripe**: Subscriptions (User API Key required)
+- **Resend**: Email sending (User API Key required)
+- **Emergent LLM Key**: AI features via emergentintegrations
+- **PyMuPDF**: PDF text extraction
+
+---
+*Last Updated: March 31, 2026*

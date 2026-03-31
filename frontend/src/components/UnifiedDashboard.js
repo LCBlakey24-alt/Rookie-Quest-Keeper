@@ -477,6 +477,7 @@ function UnifiedDashboard({ username, onLogout }) {
 
           <Button
             onClick={onLogout}
+            data-testid="logout-button"
             style={{
               background: 'transparent',
               border: 'none',

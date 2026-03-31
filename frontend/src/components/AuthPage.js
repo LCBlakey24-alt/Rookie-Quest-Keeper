@@ -132,7 +132,7 @@ export default function AuthPage({ onLogin }) {
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
-      {/* Fantasy Sunset Background */}
+      {/* Modern Dark Background with Gradients */}
       <div 
         style={{
           position: 'fixed',
@@ -140,16 +140,12 @@ export default function AuthPage({ onLogin }) {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: `url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(4px)',
-          transform: 'scale(1.1)',
+          background: '#080A1A',
           zIndex: 0
         }}
       />
       
-      {/* Overlay */}
+      {/* Gradient Overlays */}
       <div 
         style={{
           position: 'fixed',
@@ -157,7 +153,7 @@ export default function AuthPage({ onLogin }) {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(180deg, rgba(15, 10, 30, 0.5) 0%, rgba(15, 10, 30, 0.7) 100%)',
+          background: 'radial-gradient(ellipse at 20% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(77, 208, 225, 0.15) 0%, transparent 50%)',
           zIndex: 1
         }}
       />
@@ -187,13 +183,13 @@ export default function AuthPage({ onLogin }) {
           <img 
             src="/images/logo-mini.png" 
             alt="ROOK" 
-            style={{ height: '50px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(139, 92, 246, 0.5))' }}
+            style={{ height: '50px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(138, 43, 226, 0.5))' }}
           />
           <span style={{
             fontFamily: "'Cinzel', serif",
             fontSize: '32px',
             fontWeight: '700',
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
+            background: 'linear-gradient(135deg, #8A2BE2, #4DD0E1)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
@@ -205,7 +201,7 @@ export default function AuthPage({ onLogin }) {
         <div style={{
           width: '100%',
           maxWidth: '420px',
-          background: 'rgba(15, 10, 30, 0.75)',
+          background: 'rgba(10, 17, 64, 0.85)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(139, 92, 246, 0.3)',
@@ -288,7 +284,7 @@ export default function AuthPage({ onLogin }) {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                  background: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
@@ -389,7 +385,7 @@ export default function AuthPage({ onLogin }) {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                  background: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
@@ -451,7 +447,7 @@ export default function AuthPage({ onLogin }) {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                  background: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
@@ -510,7 +506,7 @@ export default function AuthPage({ onLogin }) {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                  background: 'linear-gradient(135deg, #8A2BE2 0%, #4DD0E1 100%)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
