@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissToasts, hideEmergentBadge, generateTestEmail, generateTestUsername, TEST_USER, loginTestUser } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://neon-quest-keeper.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://dice-history-1.preview.emergentagent.com';
 
 test.describe('Subscription Pricing - 4 Tier System', () => {
   

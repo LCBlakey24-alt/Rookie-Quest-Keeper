@@ -1400,6 +1400,214 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
 
 
+
+# ==================== AI SESSION PLANNER ====================
+
+@router.post("/ai/session-outline/{campaign_id}")
+async def generate_session_outline(campaign_id: str, request: Dict[str, Any], username: str = Depends(get_current_user)):
+    """AI generates a session outline based on campaign context (notes, NPCs, locations, journal)."""
+    await verify_campaign_ownership(campaign_id, username)
+
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    notes = await db.ingame_notes.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(20)
+    npcs = await db.npcs.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'role': 1, 'description': 1}).to_list(30)
+    locations = await db.locations.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'description': 1, 'type': 1}).to_list(20)
+    journal = await db.player_journal.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(10)
+
+    notes_text = "\n".join([f"- {n.get('title','')}: {n.get('content','')}" for n in notes[:10]]) or "No session notes yet."
+    npcs_text = "\n".join([f"- {n.get('name','Unknown')}: {n.get('role','')}" for n in npcs[:15]]) or "No NPCs."
+    locs_text = "\n".join([f"- {l.get('name','Unknown')} ({l.get('type','')})" for l in locations[:10]]) or "No locations."
+    journal_text = "\n".join([f"- {j.get('title','')}: {j.get('content','')[:200]}" for j in journal[:5]]) or "No journal entries."
+
+    focus = request.get('focus', 'balanced')
+    tone = request.get('tone', 'classic fantasy')
+    extra_notes = request.get('gm_notes', '')
+
+    prompt = f"""You are an expert TTRPG session planner. Generate a detailed session outline for the next game session.
+
+Campaign: {campaign.get('name', 'Unknown')}
+Setting: {campaign.get('setting', 'Fantasy')}
+GM Focus: {focus}
+Tone: {tone}
+{f"GM Additional Notes: {extra_notes}" if extra_notes else ""}
+
+Recent Session Notes:
+{notes_text}
+
+Active NPCs:
+{npcs_text}
+
+Known Locations:
+{locs_text}
+
+Player Journal Highlights:
+{journal_text}
+
+Generate a structured session outline in Markdown with these sections:
+## Session Hook
+A compelling opening scene or event to kick off the session.
+
+## Key Scenes (3-5)
+Each scene should have:
+- **Location**: Where it takes place
+- **NPCs Present**: Who is there
+- **Goal**: What the players should accomplish or discover
+- **Possible Complications**: What could go wrong
+- **Transition**: How to move to the next scene
+
+## Combat Encounters (if applicable)
+- Suggested enemies and difficulty
+- Tactical notes for the GM
+
+## Roleplaying Moments
+- Key NPC interactions and dialogue hooks
+- Moral dilemmas or decisions
+
+## Session Cliffhanger
+An ending hook to leave players eager for next session.
+
+## GM Prep Checklist
+- Maps, tokens, or handouts needed
+- Music/atmosphere suggestions"""
+
+    try:
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"outline-{campaign_id}-{uuid.uuid4().hex[:8]}",
+            system_message="You are a master TTRPG session planner. Create engaging, well-paced session outlines that balance combat, roleplay, and exploration."
+        ).with_model("openai", "gpt-5.2")
+
+        response = await chat.send_message(UserMessage(text=prompt))
+        content = response.strip() if isinstance(response, str) else str(response)
+
+        outline = {
+            'id': str(uuid.uuid4()),
+            'campaign_id': campaign_id,
+            'content': content,
+            'focus': focus,
+            'tone': tone,
+            'generated_by': username,
+            'generated_at': datetime.now(timezone.utc).isoformat(),
+        }
+        await db.session_outlines.insert_one(outline)
+        del outline['_id']
+        return outline
+
+    except Exception as e:
+        logger.error(f"Session outline generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+
+@router.get("/ai/session-outlines/{campaign_id}")
+async def get_session_outlines(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all generated session outlines for a campaign."""
+    outlines = await db.session_outlines.find(
+        {'campaign_id': campaign_id}, {'_id': 0}
+    ).sort('generated_at', -1).to_list(20)
+    return {"outlines": outlines}
+
+
+@router.post("/ai/session-replay/{campaign_id}")
+async def generate_session_replay(campaign_id: str, request: Dict[str, Any], username: str = Depends(get_current_user)):
+    """AI generates a narrative recap of the session from combat logs, notes, and dice rolls."""
+    await verify_campaign_ownership(campaign_id, username)
+
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    notes = await db.ingame_notes.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(15)
+    journal = await db.player_journal.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(10)
+    characters = await db.player_characters.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'race': 1, 'class_name': 1, 'level': 1}).to_list(10)
+
+    notes_text = "\n".join([f"- {n.get('title','')}: {n.get('content','')}" for n in notes[:10]]) or "No notes."
+    journal_text = "\n".join([f"- {j.get('title','')}: {j.get('content','')[:300]}" for j in journal[:5]]) or "No journal."
+    chars_text = "\n".join([f"- {c.get('name','')}, Level {c.get('level',1)} {c.get('race','')} {c.get('class_name','')}" for c in characters]) or "No characters."
+
+    style = request.get('style', 'narrative')
+    session_number = request.get('session_number', '')
+    extra_context = request.get('extra_context', '')
+
+    style_map = {
+        'narrative': 'Write as an epic tale told by a bard at a tavern. Use vivid descriptions, dialogue, and dramatic pacing.',
+        'chronicle': 'Write as a historical chronicle. Factual, structured, with clear dates/events and formal language.',
+        'comedic': 'Write with humor and wit. Highlight funny moments, puns, and the absurd situations the party got into.',
+        'dark': 'Write with a grim, dark fantasy tone. Emphasize danger, loss, and the harsh realities of adventuring.',
+    }
+
+    prompt = f"""You are a master storyteller creating a session replay for a TTRPG campaign.
+
+Campaign: {campaign.get('name', 'Unknown')}
+{f"Session #{session_number}" if session_number else ""}
+Style: {style_map.get(style, style_map['narrative'])}
+{f"Additional Context: {extra_context}" if extra_context else ""}
+
+Party Members:
+{chars_text}
+
+Session Notes:
+{notes_text}
+
+Player Journal Entries:
+{journal_text}
+
+Write a compelling session replay in Markdown. Include:
+1. **Opening Scene** — Set the stage with atmosphere and location
+2. **The Adventure** — Narrate key events, combat, discoveries, and NPC interactions
+3. **Dramatic Moments** — Highlight critical rolls, heroic actions, or devastating failures
+4. **Resolution** — How the session ended, what was accomplished
+5. **Teaser** — A mysterious hint or cliffhanger for next session
+
+Make it feel like reading a fantasy novel chapter. Use character names and make them the heroes of the story."""
+
+    try:
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"replay-{campaign_id}-{uuid.uuid4().hex[:8]}",
+            system_message="You are a legendary bard who transforms TTRPG session notes into gripping narrative recaps."
+        ).with_model("openai", "gpt-5.2")
+
+        response = await chat.send_message(UserMessage(text=prompt))
+        content = response.strip() if isinstance(response, str) else str(response)
+
+        replay = {
+            'id': str(uuid.uuid4()),
+            'campaign_id': campaign_id,
+            'content': content,
+            'style': style,
+            'session_number': session_number,
+            'generated_by': username,
+            'generated_at': datetime.now(timezone.utc).isoformat(),
+        }
+        await db.session_replays.insert_one(replay)
+        del replay['_id']
+        return replay
+
+    except Exception as e:
+        logger.error(f"Session replay generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+
+@router.get("/ai/session-replays/{campaign_id}")
+async def get_session_replays(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get all generated session replays for a campaign."""
+    replays = await db.session_replays.find(
+        {'campaign_id': campaign_id}, {'_id': 0}
+    ).sort('generated_at', -1).to_list(20)
+    return {"replays": replays}
+
+
 # ==================== CHARACTER MULTICLASS SUPPORT ====================
 
 

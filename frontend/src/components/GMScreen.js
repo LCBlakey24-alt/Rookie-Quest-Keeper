@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 // Logo import removed for minimalist design
 import { 
   Sword, Users, BookOpen, Send, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import DiceRoller3D from '@/components/ui/DiceRoller3D';
+import DiceRollHistory from './DiceRollHistory';
 import LootGenerator from '@/components/LootGenerator';
 import PartyInventory from '@/components/PartyInventory';
 import { QuickReferenceModal } from '@/components/QuickReference';
@@ -28,6 +29,7 @@ import SmartSessionLog from '@/components/gm/SmartSessionLog';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import NPCRelationshipMap from '@/components/gm/NPCRelationshipMap';
 import AICoGM from '@/components/gm/AICoGM';
+import AISessionPlanner from '@/components/gm/AISessionPlanner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -71,6 +73,7 @@ function GMScreen({ username }) {
   const [diceTotal, setDiceTotal] = useState(0);
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
+  const [diceHistory, setDiceHistory] = useState([]);
   
   // Live Session Mode state
   const [showLiveSession, setShowLiveSession] = useState(false);
@@ -141,6 +144,12 @@ function GMScreen({ username }) {
     setDiceCrit(isCrit);
     setDiceFumble(isFumble);
     setShow3DDice(true);
+
+    setDiceHistory(prev => [{
+      label: label || notation, total, modifier,
+      rolls, isCrit, isFumble,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    }, ...prev].slice(0, 50));
   };
 
   // Navigate to Combat Page with scenario data
@@ -332,6 +341,7 @@ function GMScreen({ username }) {
     { id: 'party', icon: Users, label: 'Party' },
     { id: 'notes', icon: FileText, label: 'Notes' },
     { id: 'story', icon: Target, label: 'Story Arcs' },
+    { id: 'planner', icon: Sparkles, label: 'AI Planner' },
     { id: 'sound', icon: Volume2, label: 'Soundboard' },
   ];
 
@@ -1166,6 +1176,11 @@ function GMScreen({ username }) {
             <StoryArcTracker theme={theme} campaignId={campaignId} />
           )}
 
+          {/* AI PLANNER TAB */}
+          {activeTab === 'planner' && (
+            <AISessionPlanner theme={theme} campaignId={campaignId} />
+          )}
+
           {/* SOUNDBOARD TAB */}
           {activeTab === 'sound' && (
             <Soundboard theme={theme} campaignId={campaignId} />
@@ -1351,6 +1366,14 @@ function GMScreen({ username }) {
         isCrit={diceCrit}
         isFumble={diceFumble}
         theme="gm"
+      />
+      <DiceRollHistory
+        history={diceHistory}
+        theme="gm"
+        onShare={(roll) => {
+          const text = `GM rolled ${roll.label}: ${roll.total}${roll.isCrit ? ' (NAT 20!)' : roll.isFumble ? ' (NAT 1!)' : ''}`;
+          navigator.clipboard.writeText(text).then(() => toast.success('Roll copied to clipboard!'));
+        }}
       />
       
       {/* AI Co-GM Assistant */}

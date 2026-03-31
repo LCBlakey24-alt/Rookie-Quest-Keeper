@@ -7,7 +7,7 @@ import {
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://neon-quest-keeper.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://dice-history-1.preview.emergentagent.com';
 const TEST_EMAIL = 'admin@rookiequestkeeper.com';
 const TEST_PASSWORD = 'admin123';
 

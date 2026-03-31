@@ -15,6 +15,7 @@ import PlayerProgressionDashboard from './PlayerProgressionDashboard';
 import { CLASS_FEATURES } from '../data/classFeatures';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, SPELL_DATABASE } from '../data/spellDatabase';
 import DiceRoller3D from './ui/DiceRoller3D';
+import DiceRollHistory from './DiceRollHistory';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -244,6 +245,7 @@ export default function CharacterSheetFull() {
   const [diceTotal, setDiceTotal] = useState(0);
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
+  const [diceHistory, setDiceHistory] = useState([]);
 
   // 3D Dice Roll Function - supports compound notation like "2d6+1d4" or "1d20+1d4"
   const rollDice = (notation, modifier = 0, label = '') => {
@@ -287,6 +289,12 @@ export default function CharacterSheetFull() {
     setDiceCrit(isCrit);
     setDiceFumble(isFumble);
     setShow3DDice(true);
+
+    setDiceHistory(prev => [{
+      label: strLabel || notation, total, modifier: totalMod,
+      rolls, isCrit, isFumble,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    }, ...prev].slice(0, 50));
   };
 
   useEffect(() => {
@@ -942,6 +950,14 @@ export default function CharacterSheetFull() {
         isCrit={diceCrit}
         isFumble={diceFumble}
         theme="player"
+      />
+      <DiceRollHistory
+        history={diceHistory}
+        theme="player"
+        onShare={(roll) => {
+          const text = `${character?.name || 'Player'} rolled ${roll.label}: ${roll.total}${roll.isCrit ? ' (NAT 20!)' : roll.isFumble ? ' (NAT 1!)' : ''}`;
+          navigator.clipboard.writeText(text).then(() => toast.success('Roll copied to clipboard!'));
+        }}
       />
     </div>
   );

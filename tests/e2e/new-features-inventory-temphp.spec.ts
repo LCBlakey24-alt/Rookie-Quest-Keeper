@@ -22,7 +22,7 @@ test.describe('New Features - Equipment & Inventory, Temp HP, Skills', () => {
       const newContext = await page.context().browser()!.newContext();
       const newPage = await newContext.newPage();
       
-      await newPage.goto('https://neon-quest-keeper.preview.emergentagent.com/', { waitUntil: 'domcontentloaded' });
+      await newPage.goto('https://dice-history-1.preview.emergentagent.com/', { waitUntil: 'domcontentloaded' });
       
       // Verify KEEPER text is visible and white
       const keeperText = newPage.locator('h1:has-text("KEEPER")');
