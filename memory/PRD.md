@@ -13,6 +13,7 @@ Build an immersive, context-aware TTRPG application with strict SRD 5.1 complian
 │   └── utils/                 
 └── frontend/src/components/
     ├── ui/DiceRoller3D.js          # BG3-style sequential dice animation
+    ├── DiceRollHistory.js          # Dice roll history sidebar
     ├── CharacterSheetFull.js       # 6 tabs: overview, combat, spells, inventory, journal, notes
     ├── CharacterCombatTab.js       # Combat dashboard
     ├── CharacterSpellbook.js       # Smart Spellbook
@@ -22,9 +23,15 @@ Build an immersive, context-aware TTRPG application with strict SRD 5.1 complian
     ├── SessionJournal.js           # Auto-tagging session log
     ├── PartyInventory.js           # Loot/Economy with treasure gen
     ├── CampaignDashboard.js        # Fixed sidebar navigation
-    └── tabs/
-        ├── WorldMapTab.js          # Pin hover previews
-        └── CombatCreatorTab.js     # Quick NPC Bar
+    ├── GMScreen.js                 # GM tools with 13 tabs
+    └── gm/
+        ├── AICoGM.js               # AI Co-GM assistant
+        ├── AISessionPlanner.js     # AI Session Outline & Replay generator
+        ├── SmartSessionLog.js      # Auto-tagging session log
+        ├── StoryArcTracker.js      # Story arc tracking
+        ├── NPCRelationshipMap.js   # NPC network visualization
+        ├── Soundboard.js           # Ambient sound effects
+        └── LiveSessionMode.js      # Live session tools
 ```
 
 ## Implemented Features
@@ -49,29 +56,19 @@ Full auth, character CRUD, GM tools, world map, AI, 3D dice, soundboard, NPC net
 - **Campaign Sidebar Fix**: Group headers auto-navigate on click
 
 ### Phase 5: Dice & Progression (Complete - March 31, 2026)
-- **3D Dice Roller (BG3-style)**: Sequential animation — dice appear one at a time, spin, land with result, then "smash together" into total with impact shockwave
-  - Blue (#4DD0E1) flames for Player theme
-  - Dark purple (#8A2BE2) flames for GM theme
-  - Red glow + red flames on Natural 1
-  - Green glow + green flames on Natural 20
-  - Edge glow on all 4 screen borders
-  - Corner intensifiers for crit/fumble
-  - Compound dice support (2d6+1d4, 8d6)
-  - Flame particles, screen shake on impact
-- **Player Progression Dashboard**: Default 'overview' tab showing:
-  - Character header with level badge, XP Progress bar
-  - Stat cards (HP, AC, Spells, Items, Gold)
-  - Vitals bars (HP, Hit Dice)
-  - Adventure Timeline (level ups, spells learned, items found, combat, quests)
-  - Achievement badges (Adventurer, Specialization, Veteran, Arcanist, Collector, Wealthy, Chronicler)
-- **rollDice signature fix**: Standardized (notation, modifier, label) across all callers
+- **3D Dice Roller (BG3-style)**: Sequential animation with blue flames (Player), purple flames (GM), red/green for nat 1/20
+- **Player Progression Dashboard**: Visual timeline, achievement badges, stat cards
+
+### Phase 6: AI Planner & History (Complete - March 31, 2026)
+- **Dice Roll History Sidebar**: Session-persistent roll log with timestamps, crit/fumble highlights, stats footer (NAT 20s, NAT 1s, AVG, TOTAL), Share Roll button for epic rolls. Integrated into both Player (CharacterSheetFull) and GM (GMScreen) pages with dual-theme styling.
+- **AI Session Outline Auto-generator**: GM tool that auto-generates structured session outlines from campaign context (notes, NPCs, locations, journal). Configurable focus (balanced, combat-heavy, roleplay-heavy, exploration, mystery, political) and tone (classic fantasy, dark & gritty, lighthearted, horror, epic). Uses GPT-5.2 via Emergent LLM Key.
+- **AI Session Replay Generator**: Generates narrative-style recaps from session data. Supports 4 writing styles (Epic Narrative, Historical Chronicle, Comedic Retelling, Dark Fantasy). Stored and retrievable per campaign.
 
 ## Prioritized Backlog
 
 ### P2 - Future Tasks
 - Event System: Custom activities with configurable costs/risks
 - Mini-game Engine: Gambling/racing with dice outcomes
-- Session Replay Generator: Narrative-style recaps
 
 ### Known Issues
 - Production Login/Password Reset: BLOCKED (External host config)
@@ -82,10 +79,14 @@ Full auth, character CRUD, GM tools, world map, AI, 3D dice, soundboard, NPC net
 - `PUT /api/characters/{id}/resources` - Sync class resources
 - `POST /api/characters/{id}/rest` - Short/Long rest
 - `POST /api/characters/{id}/level-up` - Level up with spell selections
+- `POST /api/ai/session-outline/{campaign_id}` - Generate AI session outline
+- `GET /api/ai/session-outlines/{campaign_id}` - List generated outlines
+- `POST /api/ai/session-replay/{campaign_id}` - Generate AI session replay
+- `GET /api/ai/session-replays/{campaign_id}` - List generated replays
 
 ## Test Iterations
 - 62: Backend refactor 100% | 63: Player features 100% | 64: Batch A 100% | 65: Batch B/C 100%
-- 67: P1 features 100% | 68: Dice & Progression 100%
+- 67: P1 features 100% | 68: Dice & Progression 100% | 69: Dice History & AI Planner 100%
 
 ---
 *Last Updated: March 31, 2026*
