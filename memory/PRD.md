@@ -11,80 +11,64 @@ Build an immersive, context-aware TTRPG application with strict SRD 5.1 complian
 │   ├── models/                # Pydantic models
 │   ├── routes/                # 18 modular route files
 │   ├── tests/                 # Test scripts
-│   └── utils/                 
+│   └── utils/
 └── frontend/src/
     ├── components/
     │   ├── ui/DiceRoller3D.js          # BG3-style sequential dice animation
-    │   ├── DiceRoller.js               # GM dice roller (adv/disadv buttons)
+    │   ├── DiceRoller.js               # GM dice roller
     │   ├── DiceRollHistory.js          # Dice roll history sidebar
-    │   ├── CharacterSheetFull.js       # Player page (compact layout, condition-aware)
+    │   ├── CharacterSheetFull.js       # Player page (compact layout, backstory tab, rest panel)
     │   ├── CharacterCombatTab.js       # Combat dashboard (HP, attacks, exhaustion, concentration)
-    │   ├── LevelUpWizard.js            # Full class progression (subclass, fighting style, spellcasting, ASI/feat, multiclass)
-    │   ├── GMScreen.js                 # GM tools (13 tabs)
-    │   └── gm/AISessionPlanner.js      # AI Session Outline, Replay & Prep Checklist
+    │   ├── RestPanel.js                # Short/Long Rest automation
+    │   ├── LevelUpWizard.js            # Full class progression (12 classes, 24 subclasses)
+    │   ├── GMScreen.js                 # GM tools (13 tabs + initiative tracker, session timer)
+    │   └── gm/
+    │       ├── AISessionPlanner.js     # AI Outline, Replay & Prep Checklist
+    │       ├── InitiativeTracker.js    # Drag-and-drop turn order with HP tracking
+    │       ├── SessionTimer.js         # Real-time session duration counter
+    │       └── QuickNpcGenerator.js    # Instant NPC with personality/quirk/motivation
     └── data/
-        ├── classFeatures.js            # 2014 + 2024 rules for ALL 12 classes, subclasses, fighting styles
-        ├── characterRules5e.js         # 9 races, 12 classes, backgrounds, multiclass rules
-        ├── classResources.js           # Feature type configs
-        ├── conditionEffects.js         # D&D 5e condition → roll effect mapping
-        └── spellDatabase.js            # Spellcasting classes, spell slots, spells
+        ├── classFeatures.js            # 2014 + 2024 rules, 12 classes, 24 subclasses
+        ├── characterRules5e.js         # 9 races, backgrounds, multiclass
+        ├── conditionEffects.js         # 16 conditions → roll effects
+        └── spellDatabase.js
 ```
 
 ## Implemented Features
 
-### Phases 1-7: Core → Fighter System (Complete)
-Full auth, character CRUD, 18-route backend, GM tools, world map, AI, 3D dice, soundboard, NPC network, Smart Spellbook, Quick-Action Inventory, Player Progression Dashboard, AI Session Planner, Dice Roll History, Fighter 20-level progression.
-
-### Phase 8: Combat UX Overhaul (Complete)
-Clickable attacks, HP Tracker, Roll Mode Toggle, Death Save animation, Quick Dice Bar, 2014/2024 rules edition.
-
-### Phase 9: Condition Auto-Effects System (Complete)
-16 D&D 5e conditions with mechanical effects, visual indicators, effects summary bar.
+### Phases 1-9: Core through Condition Auto-Effects (Complete)
+Full auth, character CRUD, 18-route backend, GM tools (13 tabs), world map, AI, 3D dice, soundboard, NPC network, Smart Spellbook, Quick-Action Inventory, Player Progression Dashboard, AI Session Planner, Dice Roll History, Combat UX Overhaul (clickable attacks, HP tracker, death saves), 16 D&D 5e conditions with auto-effects.
 
 ### Phase 10: UI Compaction & Trackers (Complete - March 31, 2026)
-Compact 3-column layout, Exhaustion Tracker (levels 1-6, backend persistence), Concentration Tracker, 2024 Class Features for all 12 classes.
+Compact 3-column layout, Exhaustion Tracker (1-6), Concentration Tracker, 2024 class features for all 12 classes.
 
 ### Phase 11: Session Prep Checklist (Complete - March 31, 2026)
-AI-generated prep checklists (8 categories, 3 priorities, progress tracking), "Generate from Outline" button.
+AI-generated prep checklists (8 categories, 3 priorities, progress tracking).
 
-### Phase 12: Full Class Progression System (Complete - March 31, 2026)
-- **ALL 12 classes** now have full subclass data with SRD-compliant options:
-  - Barbarian: Berserker, Totem Warrior
-  - Bard: College of Lore, College of Valor
-  - Cleric: Life Domain, Light Domain
-  - Druid: Circle of the Land, Circle of the Moon
-  - Fighter: Champion, Battle Master, Eldritch Knight
-  - Monk: Way of the Open Hand, Way of Shadow
-  - Paladin: Oath of Devotion, Oath of the Ancients
-  - Ranger: Hunter, Beast Master
-  - Rogue: Thief, Assassin
-  - Sorcerer: Draconic Bloodline, Wild Magic
-  - Warlock: The Fiend, The Archfey
-  - Wizard: School of Evocation, School of Abjuration
-- **Fighting Styles** for Paladin (4 styles at level 2) and Ranger (4 styles at level 2), matching Fighter
-- **Subclass selection** in Level-Up Wizard with class-specific labels (Sacred Oath, Monastic Tradition, etc.)
-- **Feature pills** preview on "Continue as [Class]" button showing what you'll gain
-- **Spellcasting progression** for all casters (spell slots, cantrip/spell selection, spellbook for Wizard)
-- **ASI/Feat** at correct levels per class (Fighter: 7 ASI levels, Rogue: 6, all others: 5)
-- **Multiclass** option when stats qualify
-- **Backend**: All 12 classes verified via automated test (12/12 PASS)
-- **9 races** supported: Human, Elf, Dwarf, Halfling, Gnome, Tiefling, Aasimar, Goliath, Orc
+### Phase 12: Full Class Progression (Complete - March 31, 2026)
+- **24 subclasses** across all 12 classes (Barbarian: Berserker/Totem Warrior, Bard: Lore/Valor, Cleric: Life/Light, Druid: Land/Moon, Fighter: Champion/BM/EK, Monk: Open Hand/Shadow, Paladin: Devotion/Ancients, Ranger: Hunter/Beast Master, Rogue: Thief/Assassin, Sorcerer: Draconic/Wild Magic, Warlock: Fiend/Archfey, Wizard: Evocation/Abjuration)
+- Fighting styles for Fighter, Paladin, Ranger
+- Spellcasting progression, ASI/Feat, multiclass support
+- 9 races verified (Human, Elf, Dwarf, Halfling, Gnome, Tiefling, Aasimar, Goliath, Orc)
+
+### Phase 13: Player & GM Experience Enhancements (Complete - March 31, 2026)
+**Player Page:**
+- **Rest Panel**: Expandable Short/Long Rest automation in Combat tab. Short Rest: hit dice selector (d[hitdie]+CON), resource recovery. Long Rest: full HP restoration, hit dice recovery, spell slot reset, exhaustion reduction.
+- **Backstory Tab**: 7 editable fields (Personality Traits, Ideals, Bonds, Flaws, Backstory, Allies & Organizations, Appearance) with inline editing and backend persistence.
+
+**GM Screen:**
+- **Initiative Tracker**: Add combatants (Name, Init, HP, NPC flag). Roll All initiative. Start Combat with sorted turn order, highlighted current turn, round counter. HP bars with +/- adjustment. Next Turn advances through the order.
+- **Session Timer**: Real-time play duration counter in the GM Screen header. Play/pause/reset controls. Monospace font display.
+- **Quick NPC Generator**: Instant random NPC with name, race, occupation, personality, quirk, motivation, and voice note. Regenerate for new NPC. Copy to clipboard button.
 
 ## Prioritized Backlog
 
-### Suggested Player Page Enhancements
-- Party View Panel (see allies' HP/AC/conditions)
-- Short/Long Rest automation
-- Character Backstory/RP Notes tab
+### Suggested Enhancements
+- Party View Panel (see allies' HP/AC/conditions at a glance)
 - Spell Slot visual overhaul (animated orbs)
 - Combat Log per character
-
-### Suggested Campaign Page Enhancements
-- Initiative Tracker (drag-and-drop turn order)
-- Session Timer/Clock
-- Quick NPC Generator
-- Player Handout System
-- Session Recap Sharing
+- Player Handout System (GM reveals content to specific players)
+- Session Recap Sharing (shareable links for session replays)
 
 ### P2 - Future Tasks
 - Event System: Custom activities with configurable costs/risks
@@ -95,7 +79,7 @@ AI-generated prep checklists (8 categories, 3 priorities, progress tracking), "G
 - Production Deployment Risk: BLOCKED (external hosting config)
 
 ## Test Iterations (All 100%)
-62-65: Core | 67-68: P1 | 69: AI Planner | 70: Fighter | 71: Combat UX | 72: Condition Effects | 73: UI Compaction/Trackers | 74: Prep Checklist | 75: Full Class Progression (12/12 classes)
+62-65: Core | 67-68: P1 | 69: AI Planner | 70: Fighter | 71: Combat UX | 72: Conditions | 73: UI Compaction | 74: Checklist | 75: All Classes (12/12) | 76: Player/GM Enhancements (5 features, 7/7 backend)
 
 ---
 *Last Updated: March 31, 2026*
