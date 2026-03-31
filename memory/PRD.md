@@ -24,9 +24,15 @@ Build an immersive, context-aware TTRPG (Tabletop RPG) application with strict S
         ├── components/
         │   ├── CharacterSheetFull.js 
         │   ├── CharacterCombatTab.js     # Combat dashboard
-        │   ├── CharacterSpellbook.js     # Smart Spellbook (NEW)
+        │   ├── CharacterSpellbook.js     # Smart Spellbook
         │   ├── CharacterInventory.js     # Quick-Action Inventory
-        │   └── LevelUpWizard.js          # Spellcasting-aware Level Up
+        │   ├── LevelUpWizard.js          # Spellcasting-aware Level Up
+        │   ├── SessionJournal.js         # Smart Session Log with auto-tagging
+        │   ├── PartyInventory.js         # Loot/Economy with treasure generator
+        │   ├── CampaignDashboard.js      # Fixed sidebar group navigation
+        │   └── tabs/
+        │       ├── WorldMapTab.js        # Pin hover preview cards
+        │       └── CombatCreatorTab.js   # Quick NPC Bar
         └── data/
             ├── classFeatures.js
             ├── classResources.js
@@ -41,9 +47,7 @@ Build an immersive, context-aware TTRPG (Tabletop RPG) application with strict S
 - GM tools: Campaign management, combat tracker, NPC generator
 - World map with interactive pins
 - AI integration (Co-GM, NPC generation)
-- 3D dice roller
-- Soundboard
-- Story Arc Tracker
+- 3D dice roller, Soundboard, Story Arc Tracker
 - NPC Relationship Network
 
 ### Phase 2: Backend Monolith Refactoring (Complete - March 2026)
@@ -54,39 +58,59 @@ Build an immersive, context-aware TTRPG (Tabletop RPG) application with strict S
 ### Phase 3: Player Page Improvements (Complete - March 31, 2026)
 
 **Batch A - Combat Dashboard:**
-- CharacterCombatTab.js: Spell slots, Death Saves, Hit Dice, Conditions, Concentration, Inspiration tracking
-- PATCH endpoint for character partial updates (HP, conditions, death saves, spell slots, etc.)
-- Short Rest / Long Rest endpoints with proper hit dice spending
-- Level Up Wizard spellcasting step: spell slot progression display, cantrip selection, spell selection for known casters, Wizard spellbook additions
-- 100% test pass rate (iteration_64)
+- CharacterCombatTab.js: Spell slots, Death Saves, Hit Dice, Conditions, Concentration, Inspiration
+- PATCH endpoint for character partial updates
+- Short Rest / Long Rest endpoints
+- Level Up Wizard spellcasting step: spell slot progression, cantrip/spell selection, Wizard spellbook
+- 100% test pass (iteration_64)
 
 **Batch B - Quick-Action Inventory:**
-- Multi-currency system (CP/SP/EP/GP/PP) with total GP value display
-- Currency converter with quick-convert buttons
-- Quick equip/unequip toggle buttons on each item row
-- EQUIPPED badge visual indicator
+- Multi-currency system (CP/SP/EP/GP/PP) with converter
+- Quick equip/unequip toggle buttons
 - Attunement tracking (max 3 magic items)
-- Auto-save with AC calculation from equipped gear
+- Auto-save with AC calculation
 
 **Batch C - Smart Spellbook:**
 - Dedicated CharacterSpellbook.js component
-- Spell DC / Spell ATK / Ability stat display
-- Clickable spell slot tracking (use/recover/reset)
-- Prepared vs Known spell toggle for prepared casters
-- Spell search filter
-- Cantrip damage rolls
-- Cast button with upcast level selector and damage scaling
-- Spell school color coding
-- 100% test pass rate (iteration_65)
+- Spell DC / Spell ATK / Ability display
+- Clickable spell slot tracking with reset
+- Prepared vs Known spell toggle
+- Spell search, Cast button with upcast level selector
+- 100% test pass (iteration_65)
+
+### Phase 4: P1 Features (Complete - March 31, 2026)
+
+**Smart Session Log:**
+- SessionJournal integrated into character sheet as 'journal' tab
+- Auto-tagging: detects combat, loot, quest, travel, social, danger, magic, death, mystery keywords
+- Tag chips display with color coding
+- Tag-based filtering of entries
+- Auto-detected tags shown during entry creation
+
+**Location Detail Cards:**
+- Hover preview cards on World Map pins
+- Shows location name, type, description snippet
+- Glassmorphism card with pin-colored border
+- Linked location indicator
+
+**NPC Encounter Builder:**
+- Quick NPC Bar above encounter builder in Combat Creator
+- One-click add campaign NPCs to combat with HP/AC display
+- NPC count badge showing duplicates in encounter
+
+**Loot and Economy System:**
+- SRD Treasure Tables (Individual + Hoard by CR tier)
+- Treasure Generator with CR selector and Hoard toggle
+- Gem and magic item generation from SRD tables
+- Auto-split gold among party members
+- One-click "Add to Party Loot" for generated treasure
+
+**Campaign Sidebar Fix:**
+- Group headers now auto-navigate to first tab when clicked from outside the group
+
+**All P1 features: 100% test pass (iterations 66-67)**
 
 ## Prioritized Backlog
-
-### P1 - Upcoming Tasks
-- Smart Session Log: Auto-tagging notes
-- Location Detail Cards: Hover previews on World Map pins
-- AI Session Outline Auto-generator: AI Co-GM session outlines
-- NPC Encounter Builder: Drag NPCs from network into Combat tracker
-- Loot and Economy System: Shared party loot, dynamic economy
 
 ### P2 - Future Tasks
 - Event System: Custom activities with configurable costs/risks
@@ -102,6 +126,8 @@ Build an immersive, context-aware TTRPG (Tabletop RPG) application with strict S
 - `PUT /api/characters/{id}/resources` - Sync class resources
 - `POST /api/characters/{id}/rest` - Short/Long rest
 - `POST /api/characters/{id}/level-up` - Level up with spell selections
+- `GET /api/player/journal` - Player journal entries
+- `POST /api/player/journal` - Create journal entry with auto-tags
 
 ## 3rd Party Integrations
 - Stripe: Subscriptions (requires user API key)
