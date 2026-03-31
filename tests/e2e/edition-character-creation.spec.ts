@@ -11,7 +11,7 @@ import { loginTestUser, hideEmergentBadge, dismissToasts, TEST_USER } from '../f
  * - Edition label shows correctly
  */
 
-const BASE_URL = 'https://rook-fantasy-sunset.preview.emergentagent.com';
+const BASE_URL = 'https://ally-enemy-net.preview.emergentagent.com';
 
 test.describe('Edition-Aware Character Creation', () => {
   test.beforeEach(async ({ page }) => {

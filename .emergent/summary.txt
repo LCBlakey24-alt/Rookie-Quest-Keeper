@@ -1,179 +1,137 @@
 <analysis>**original_problem_statement:**
-The user wants to build a TTRPG application called Rookie Quest Keeper (ROOK). The primary goal is to address a comprehensive list of bugs, UI/UX improvements, and new feature requests. The core tasks are:
-1.  **Full Site Redesign:** Unify the UI across all pages to a consistent Fantasy Sunset theme (new color palette, glassmorphism, specific fonts), which has been the main focus.
-2.  **Fix Critical Bugs:** Address major issues including a broken level-up flow, incorrect HP calculations, and non-functional character editing.
-3.  **Implement Core Gameplay Features:** Build out the equipment/inventory system, a real-time GM loot drop system, and spell slot tracking.
-4.  **Reorganize UI:** Consolidate and refactor UI elements for better usability, particularly on the GM screen and landing page.
-5.  **Restrict Content:** Lock features for non-paying users and update subscription tier information.
+The user wants to evolve Rookie Quest Keeper (ROOK) into a deeply immersive, context-aware TTRPG application. The core requirements include:
+1. **Strict Copyright Compliance**: Completely remove any WotC copyrighted material (Vecna, Beholders, non-SRD items/spells) and restrict content exclusively to SRD 5.1/Public Domain. 
+2. **Dual-Theme Redesign**: Implement Midnight Neon (Black to Purple gradients) for GM tools and Electric Tundra (Black to Blue/Cyan gradients) for Player tools. 
+3. **Advanced GM Screen Features**: Add a 3D animated dice roller with full-screen edge glow effects (green for Nat 20, red for Nat 1, theme-colored for normal rolls), Soundboard, Story Arc Tracker, centralized Uploads, and NPC Relationship Mapping. 
+4. **Future Deep World Simulation**: Implement a Context-aware AI Co-GM, dynamic economy/loot system, and advanced mapping with fog of war.
 
-**User's preferred language**: English
+**User's preferred language**: INSTRUCT next agent to respond in **English** only.
 
-**what currently exists?**
-The application is a full-stack React/FastAPI app with a MongoDB database. A Fantasy Sunset theme has been extensively applied across the application.
-
--   **Bug Fixes:** All major reported application bugs have been fixed, including the critical level-up flow, edit character functionality, and HP display issues. Several smaller bugs on the GM screen (monster lookup, truncated lists) have also been resolved.
--   **UI/UX Overhaul:**
-    -   The  has been completely redesigned with a centered logo, foggier glass panels for text visibility, and corrected pricing tiers.
-    -   The GM Screen () has been significantly refactored: tabs have been consolidated (merging Monsters/Creatures and NPCs/Names), and a persistent, collapsible dice roller panel has been added.
-    -   A massive UI consistency pass was completed to replace old color schemes (greens/reds) and fonts with the new Fantasy Sunset theme across dozens of components.
-    -   A new Settings modal was added to the  to centralize all file-upload functionalities.
--   **Feature Implementation:**
-    -   The Player side of the  is now locked with a Coming Soon overlay to guide users towards the GM/Legendary tiers.
-    -   An  has been successfully added to the .
-    -   The initial framework for an inventory system () and temporary HP has been added to the .
+**what currently exists?** 
+A full-stack React/FastAPI TTRPG app leveraging a strictly SRD-safe database (3000+ copyrighted items removed, replaced with 92 SRD magic items). The app now features a fully unlocked Player Dashboard with an Electric Tundra aesthetic, and a comprehensive GM Screen sporting a Midnight Neon aesthetic. The GM screen integrates 12 tabs including newly added Story Arcs, Soundboard, and consolidated Uploads. A 3D Dice roller overlays the screen with dynamic edge-glow effects.
 
 **Last working item**:
--   **Last item agent was working:** The agent completed a comprehensive, application-wide UI consistency pass. It identified and fixed dozens of files that were still using old color themes (e.g., green/red buttons) or incorrect fonts (e.g., Eros Book, Inter). This was done to ensure every part of the UI adheres to the Fantasy Sunset design language requested by the user. The process involved running widespread search-and-replace commands and then fixing syntax errors that were introduced.
--   **Status:** IN PROGRESS (The code changes are complete, but final verification is pending).
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** Frontend testing agent. The last set of changes affected numerous files across the application. A full frontend regression test is required to ensure that the widespread UI fixes did not introduce any new bugs or visual regressions.
--   **User Testing Done:** N
+- **Last item agent was working**: Initializing the  component. The user requested this as part of a massive list of GM enhancements. The agent successfully updated the 3D dice roller edge glows and then created the empty file for the NPC Relationship Map just before the fork ended.
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: N
+- **Which testing method agent to use?**: Frontend testing agent (once the component is fully built and integrated into the GM screen).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Production Login & Password Reset Broken (P0 - CRITICAL)**
-    -   **Description:** The user cannot log in or use the password reset feature on their live production website. This is likely an issue with the production environment's database or email (Resend) configuration.
-    -   **Attempted fixes:** This cannot be fixed from the preview environment.
-    -   **Next debug checklist:** Inform the user that this is an external configuration issue they need to investigate on their production server (e.g., database credentials, Resend API key, domain verification).
-    -   **Status:** BLOCKED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Backend
-    -   **Blocked on other issue:** External environment configuration.
+- **Issue 1: Production Login & Password Reset Broken (P0 - CRITICAL)**
+   - **Attempted fixes**: Cannot be fixed from preview environment. Agent previously noted this.
+   - **Next debug checklist**: Inform the user that this is an external configuration issue on their production server (database credentials/Resend API/domain verification).
+   - **Why fix this issue and what will be achieved with the fix?**: User cannot log into their live app.
+   - **Status**: BLOCKED (External environment issue)
+   - **Is recurring issue?**: Y
+   - **Should Test frontend/backend/both after fix?**: Backend
+   - **Blocked on other issue**: External Host Configuration
 
 **In progress Task List**:
--   **Task 1: Verify UI Consistency Pass (P0)**
-    -   **Where to resume:** The agent just finished a large-scale replacement of colors and fonts across the codebase.
-    -   **What will be achieved with this?** This will confirm that the extensive UI cleanup did not introduce any functional or visual regressions and that the application is stable.
-    -   **Next Steps:** Run the  in  mode to perform a full frontend test.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Frontend
+- **Task 1: NPC Relationship Mapping (P0)**
+   - **Where to resume**:  has been created but is empty. Build out the visual graph interface allowing GMs to map connections (allies, enemies, family) between NPCs, and integrate it as a tab in .
+   - **What will be achieved with this?**: Fulfills the user's request for advanced NPC management tools for political/complex campaigns.
+   - **Status**: IN PROGRESS
+   - **Should Test frontend/backend/both after fix?**: Frontend
+   - **Blocked on something**: None
 
-**Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   **P0: Finalize Equipment & Inventory System:**
-        -   **Files:** , , , 
-        -   **Details:** The UI component exists, but the logic is incomplete. Implement equip/unequip functionality that correctly modifies character stats (AC, attack bonuses). Add an equipment selection step to the .
-    -   **P1: Character Sheet UI/UX Overhaul:**
-        -   **Files:** 
-        -   **Details:** Condense the layout to fit all major sections (abilities, skills, HP/AC block) on one screen without scrolling, as requested by the user.
-    -   **P1: Implement Real-time GM Loot System:**
-        -   **Files:** , , 
-        -   **Details:** Enable drag-and-drop functionality on the  for GMs to assign loot to players. Use WebSockets to push item data to the player's client in real-time.
-    -   **P1: Enhance Map Creator:**
-        -   **Files:**  (or similar)
-        -   **Details:** Implement textured drawing tools (wood, stone), wall/door drawing tools, and smooth pan/zoom controls.
-    -   **P2: Implement Player Timeline & Note Sync UI:**
-        -   **Files:** , 
-        -   **Details:** The backend endpoints exist. Build the frontend components to display the campaign timeline and enable GM note syncing.
+**Upcoming and Future Tasks**:
+- **Upcoming Tasks**:
+   - **P0: Finalize Equipment & Inventory System**: Logic to modify character stats (AC, attack bonuses) when equipping/unequipping items from the SRD-safe database. 
+   - **P0: Context-aware AI Co-GM Assistant**: Generates dialogue, encounters, summaries, and story developments based on the current active view in the GM screen.
+   - **P1: Smart Session Log**: Enhance the newly added notes/log section with automatic tagging and auto-recaps.
+   - **P1: Advanced Map System enhancements**: Custom uploads, interactive pins, drawn routes, teleportation networks, multi-layer controls, and fog of war.
+   - **P1: Combat Flow System**: Intuitive flow with initiative tracking, status effects, and optional AI suggestions.
+   - **P1: Loot and Economy System**: Shared party loot, city/regional wealth tracking, and dynamic world engine where player actions impact trade.
+- **Future Tasks**:
+   - **P2: Event System**: Creation of custom activities (festivals, tournaments) with configurable costs, risks, and outcome calculations.
+   - **P2: Mini-game Engine**: Supports horse racing or gambling with betting and dice-driven outcomes.
+   - **P2: Session Replay Generator**: Narrative-style recaps and session highlights.
 
--   **Future Tasks:**
-    -   Soundboard with ambient noises.
-    -   Map sharing to a second screen.
-    -   PDF export/print for character sheets.
-    -   Live audio transcription for session notes (ROOK listener).
-    -   Virtual Tabletop (VTT) functionality.
-    -   AI-powered travel encounter generator.
+**Completed work in this session**:
+- **Copyright Cleanup (DONE)**: Removed  (3,059 WotC items) and backend . Replaced with 92 SRD-safe magic items. Purged Death Tyrant from Monster database.
+- **Dual-Theme Overhaul (DONE)**: Fully implemented Midnight Neon (purple/violet) for GM UI and Electric Tundra (cyan/blue) for Player UI. Added .
+- **Player Section Unlocked (DONE)**: Removed the Coming Soon overlay from the player dashboard.
+- **3D Dice Roller Upgrades (DONE)**: Added blurred backgrounds and screen-edge glow effects (Red for Nat 1, Green for Nat 20, Theme color for standard rolls).
+- **GM Screen Additions (DONE)**: Consolidated uploads tab, added Soundboard tab, added Story Arcs tab. Merged Live Session mode directly into the standard GM layout.
 
-**Completed work in this session**
--   **Critical Bug Fixes (RESOLVED):**
-    -   Fixed broken Level-Up flow (, ).
-    -   Fixed Edit Character leading to a blank screen by implementing  (, ).
-    -   Fixed HP displaying a value higher than max HP ().
--   **P2 Bug Fixes (RESOLVED):**
-    -   Fixed monster list truncation in combat tracker ().
-    -   Fixed monster lookup on GM screen by using local data ().
-    -   Verified that the admin account subscription status was displaying correctly.
--   **GM Screen & Dashboard Refactor (DONE):**
-    -   Consolidated Creatures + Monsters and Names + NPCs tabs on .
-    -   Added a persistent, collapsible dice roller panel to .
-    -   Created a Settings modal on  for all file uploads.
--   **UI & Subscription Redesign (DONE):**
-    -   Redesigned  with corrected pricing, a Coming Soon tier, a centered logo, and improved text visibility.
-    -   Locked the player character section on the  with a Coming Soon overlay.
-    -   Performed a massive UI consistency pass, theming dozens of components to the Fantasy Sunset style.
--   **Feature Enhancements (DONE):**
-    -   Added  field to backend character models ().
-    -   Added a temporary HP input and proficiency glow effect to .
-    -   Integrated a new  component into the character sheet.
+**Earlier issues found/mentioned but not fixed**:
+- **Issue 1: Production Deployment Risk**
+   - **Debug checklist**: Root cause of production site going blank post-deployment remains unknown.
+   - **Why to solve this issue and what will be achieved with this?**: Prevents catastrophic deployment failures on user's live site.
+   - **Should Test frontend/backend/both after fix**: Both
+   - **Is recurring issue?**: Y
 
-**Earlier issues found/mentioned but not fixed**
--   **Issue 1: Production Deployment Risk**
-    -   **Debug checklist:** The root cause of the production site going blank post-deployment is unknown and remains a critical unresolved issue for the user to investigate in their deployment environment.
+**Known issue recurrence from previous fork**:
+- **Issue recurrence in previous fork**: Production login/password reset broken.
+- **Recurrence count**: 2
+- **Status**: BLOCKED
 
-**Known issue recurrence from previous fork**
--   None.
-
-**Code Architecture**
+**Code Architecture**:
 
 
-**Key Technical Concepts**
--   **UI/UX:** Heavy focus on a consistent Fantasy Sunset aesthetic using glassmorphism (), CSS gradients, and custom fonts (, ).
--   **Component Refactoring:** Significant consolidation of components and UI logic, especially within  to improve user experience.
--   **State Management:** Extensive use of React Hooks (, ) for managing UI state and character data.
--   **DOM Manipulation:** Widespread, systematic updates to class names and styles using  to enforce UI consistency.
+**Key Technical Concepts**:
+- **React Context API**:  actively switches CSS configurations depending on whether the user is on a GM or Player route.
+- **Portals & Animations**:  heavily relies on React Portals to overlay the entire screen and uses CSS animations for dice rolling and edge-glow states (Crit, Fumble, Standard).
+- **Strict OGL/SRD Compliance**: Application logic must not include explicit references to WotC Product Identity (e.g., Vecna, Beholders, Mind Flayers).
 
-**key DB schema**
--   **characters**:  was added to the  and  Pydantic models.
+**key DB schema**:
+- **characters**: 
 
-**changes in tech stack**
--   None.
+**changes in tech stack**:
+- Added  and  driving the dual-theme UI approach.
 
-**All files of reference**
--    (Heavily refactored for tab consolidation and dice roller)
--    (Reference for the latest design and pricing structure)
--    (Contains the new central Settings modal)
--    (Contains the Coming Soon overlay logic)
--    (Reference for  implementation)
--    (Target for upcoming layout overhaul)
--    (Contains all backend logic)
+**All files of reference**:
+-  (Updated for edge glows, critical reference for animations).
+-  (Target file to resume work).
+-  (Where the NPC relationship map will need to be imported and registered as a tab).
+-  (Manages active themes).
+-  (Updated deeply with the new large-scale feature sets).
 
 **Areas that need refactoring**:
--   **:** This file remains a monolith over 8,000 lines long and is a technical debt risk. It should be broken down into smaller, domain-specific routers (e.g., , , ).
+-  is over 8,000 lines long and needs breaking down into domain-specific routers (e.g., auth, characters, campaigns, items).
 
-**key api endpoints**
--   : Now used by the  in  to save updates to existing characters.
+**key api endpoints**:
+- N/A for current UI-centric workflow.
 
-**Critical Info for New Agent**
--   **Verify First:** The very last action was a massive, codebase-wide UI fix. Your first step should be to run the  to ensure these changes haven't introduced any regressions.
--   **User's Priorities:** The user has consistently prioritized UI/UX and fixing broken functionality. After verification, the next focus should be on completing the core gameplay features, starting with the **Equipment & Inventory System**.
--   **Design Consistency is Paramount:** The user is very detail-oriented about the Fantasy Sunset theme. Any new component or change must strictly adhere to the established aesthetic (glass panels, / fonts, and the purple/gold/pink color palette).
--   **Production Issue is External:** Do not attempt to fix the production login issue. It is an environment configuration problem on the user's end. Remind the user of the likely causes if they ask again.
+**Critical Info for New Agent**:
+- **Copyright Alert**: You must NEVER introduce D&D materials that are not explicitly part of the 5e SRD/OGL or public domain. Avoid named WotC characters, specific book references, and proprietary monsters.
+- **Design Adherence**: The UI is now strictly Dual Theme. Ensure any new component consumes  and responds appropriately to  (Cyan/Blue) or  (Purple/Dark). Do not use generic Tailwind colors that break this aesthetic.
+- **Current Task Flow**: Resume work precisely on the  file, build out the UI graph interface, and hook it into the GM Screen.
+- **Do not debug production issues**: If user brings up the live site login issue, firmly remind them it is a hosting/environment config issue.
 
-**documents and test reports created in this job**
--    was updated.
--   Multiple test reports in  were generated, with the latest being after the GM screen bug fixes.
+**documents and test reports created in this job**:
+- 
+- 
+-  (Last successful test run showing 100% pass on UI overhauls)
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks to continue with UI improvements and look for inconsistencies. (IN PROGRESS)
-2.  **User:** Asks to continue with GM improvements, making the dice roller persistent and fixing theme inconsistencies. (DONE)
-3.  **User:** Suggests merging tabs on the GM screen (Creatures+Monsters, Names+NPCs) to reduce clutter. (DONE)
-4.  **User:** Asks to focus on the GM side, fixing incorrect fonts/colors and reorganizing settings/upload functionality into a new top-level Settings tab. (DONE)
-5.  **User:** Provides new requirements for the subscription tiers on the landing page and requests the player/character creation side be locked off. (DONE)
-6.  **User:** Requests the main logo be centered and the KEEPER text be made white and larger. (DONE)
-7.  **User:** Reports that text is invisible on the landing page due to color clashes and asks for foggier glass panels and updated pricing. (DONE)
-8.  **User:** Prioritizes fixing bugs first before implementing new features. (DONE)
+**Last 10 User Messages and any pending HUMAN messages**:
+1. **User**: Requested complete removal of copyrighted WotC material, SRD and custom items only. (DONE)
+2. **User**: Uploaded 3 design images. Requested Midnight Neon (purple/black) for GM and Electric Tundra (blue/cyan) for Player pages, abandoning Fantasy Sunset. (DONE)
+3. **User**: Approved all design suggestions and asked to proceed. (DONE)
+4. **User**: Provided a massive list of new GM page requirements: Live Session Mode, AI Co-GM, NPC Relationship Mapping, Story Arc Tracker, Smart Session log, Maps improvements, Combat Flow, Economy/Loot systems, Event System, Minigames, Soundboard, 3D GM dice roller, centralized uploads. (IN PROGRESS)
+5. **User**: Confirmed proceeding with all features. Asked for 3D GM dice roller and all uploads in one top-level tab. (DONE)
+6. **User**: Requested Live session be merged into GM screen. Asked for 3D dice roller background to be blurred, GM screen to have black-to-purple background, Player page to have black-to-blue background. Asked to unlock the player page and remove non-theme colors (red/green) from GM tabs. (DONE)
+7. **User**: Requested edge-of-screen glow for 3D dice rolls (Blue for player theme, Purple for GM theme, Red for Nat 1, Green for Nat 20). Asked to continue with suggested improvements (NPC Relationship Mapping). (IN PROGRESS)
 
-**Project Health Check:**
--   **Broken:**
-    -   Production login/password reset functionality (external environment issue).
--   **Mocked:** N/A
+**Project Health Check**:
+- Broken: Production login (Mocked/External issue).
 
-**3rd Party Integrations**
--   **Stripe:** For subscriptions. Requires User API Key.
--   **Resend:** For sending emails. Requires User API Key.
--   **Emergent LLM Key:** Used via  for AI features.
--   **PyMuPDF:** For PDF text extraction.
+**3rd Party Integrations**:
+- **Stripe**: Subscriptions (requires User API Key).
+- **Resend**: Emails (requires User API Key).
+- **Emergent LLM Key**: Used via  for AI Co-GM features.
+- **PyMuPDF**: PDF text extraction.
 
-**Testing status**
--   **Testing agent used after significant changes:** YES. It was used successfully multiple times after critical bug fixes and major feature refactors. It has **not** been run after the final, widespread UI consistency sweep.
--   **Troubleshoot agent used after agent stuck in loop:** NO.
--   **Test files created:** None.
--   **Known regressions:** All known regressions from the start of the session (level-up, edit character) have been fixed.
+**Testing status**:
+- **Testing agent used after significant changes**: YES (iteration 58).
+- **Troubleshoot agent used after agent stuck in loop**: NO.
+- **Test files created**: None new this session.
+- **Known regressions**: None.
 
-**Credentials to test flow:**
--   **Email:** 
--   **Password:** 
+**Credentials to test flow**:
+- Email: 
+- Password: 
 
-**What agent forgot to execute**
--   The agent did not run the  after the final, widespread UI consistency fix. This is the most critical next step.
--   Core gameplay features from the user's request list, such as the real-time GM loot system and map creator enhancements, have not been started.
--   The equipment/inventory system was started (UI and backend model) but the core logic (equipping items, stat changes) was not implemented.</analysis>
+**What agent forgot to execute**:
+- The agent created the file  but it is completely empty. The component needs to be built and registered inside  before proceeding with the remainder of the user's massive feature request list.</analysis>

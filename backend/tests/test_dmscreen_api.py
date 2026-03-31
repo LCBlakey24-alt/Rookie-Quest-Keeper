@@ -8,7 +8,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rook-fantasy-sunset.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ally-enemy-net.preview.emergentagent.com').rstrip('/')
 API = f"{BASE_URL}/api"
 
 # Test user credentials - unique per test run

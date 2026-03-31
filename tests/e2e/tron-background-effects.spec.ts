@@ -7,7 +7,7 @@ import {
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rook-fantasy-sunset.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://ally-enemy-net.preview.emergentagent.com';
 const TEST_EMAIL = 'admin@rookiequestkeeper.com';
 const TEST_PASSWORD = 'admin123';
 

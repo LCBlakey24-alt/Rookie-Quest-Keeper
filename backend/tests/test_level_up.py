@@ -7,7 +7,7 @@ import requests
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://rook-fantasy-sunset.preview.emergentagent.com"
+BASE_URL = "https://ally-enemy-net.preview.emergentagent.com"
 
 # Test user credentials
 TEST_USER_EMAIL = "leveltest@test.com"

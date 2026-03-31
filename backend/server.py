@@ -1152,33 +1152,115 @@ class ProgressionQueryRequest(BaseModel):
 
 
 
+class NPCAttack(BaseModel):
+    name: str = ""
+    bonus: str = ""
+    damage: str = ""
+    notes: str = ""
+
+class NPCAbility(BaseModel):
+    name: str = ""
+    description: str = ""
+
+class NPCSpells(BaseModel):
+    casting_ability: str = ""
+    spell_save_dc: int = 0
+    spell_attack_bonus: int = 0
+    cantrips: List[str] = []
+    slot_level: int = 0
+    slot_count: int = 0
+    known_spells: List[str] = []
+
+class NPCStats(BaseModel):
+    strength: int = 10
+    dexterity: int = 10
+    constitution: int = 10
+    intelligence: int = 10
+    wisdom: int = 10
+    charisma: int = 10
+
 class NPC(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     campaign_id: str
     name: str
+    race: str = ""
+    class_name: str = ""
+    level: int = 1
+    alignment: str = ""
     description: str = ""
+    appearance: str = ""
+    personality: str = ""
+    backstory: str = ""
+    role: str = ""
     hp: int = 10
+    max_hp: int = 10
     ac: int = 10
+    speed: str = "30 ft."
+    proficiency_bonus: int = 2
+    stats: NPCStats = Field(default_factory=NPCStats)
+    saving_throws: List[str] = []
+    skills: List[str] = []
+    attacks: List[NPCAttack] = []
+    abilities: List[NPCAbility] = []
+    spells: Optional[NPCSpells] = None
     location: str = ""
     notes: str = ""
+    color: str = "#8A2BE2"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class NPCCreate(BaseModel):
     name: str
+    race: str = ""
+    class_name: str = ""
+    level: int = 1
+    alignment: str = ""
     description: str = ""
+    appearance: str = ""
+    personality: str = ""
+    backstory: str = ""
+    role: str = ""
     hp: int = 10
+    max_hp: int = 10
     ac: int = 10
+    speed: str = "30 ft."
+    proficiency_bonus: int = 2
+    stats: Optional[NPCStats] = None
+    saving_throws: List[str] = []
+    skills: List[str] = []
+    attacks: List[NPCAttack] = []
+    abilities: List[NPCAbility] = []
+    spells: Optional[NPCSpells] = None
     location: str = ""
     notes: str = ""
+    color: str = "#8A2BE2"
+    occupation: str = ""
 
 class NPCUpdate(BaseModel):
     name: Optional[str] = None
+    race: Optional[str] = None
+    class_name: Optional[str] = None
+    level: Optional[int] = None
+    alignment: Optional[str] = None
     description: Optional[str] = None
+    appearance: Optional[str] = None
+    personality: Optional[str] = None
+    backstory: Optional[str] = None
+    role: Optional[str] = None
     hp: Optional[int] = None
+    max_hp: Optional[int] = None
     ac: Optional[int] = None
+    speed: Optional[str] = None
+    proficiency_bonus: Optional[int] = None
+    stats: Optional[NPCStats] = None
+    saving_throws: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    attacks: Optional[List[NPCAttack]] = None
+    abilities: Optional[List[NPCAbility]] = None
+    spells: Optional[NPCSpells] = None
     location: Optional[str] = None
     notes: Optional[str] = None
+    color: Optional[str] = None
 
 class InitiativeEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -4593,15 +4675,25 @@ async def delete_player(campaign_id: str, player_id: str, username: str = Depend
 
 # ==================== NPC ROUTES ====================
 
-@api_router.post("/campaigns/{campaign_id}/npcs", response_model=NPC, status_code=status.HTTP_201_CREATED)
+@api_router.post("/campaigns/{campaign_id}/npcs", status_code=status.HTTP_201_CREATED)
 async def create_npc(campaign_id: str, npc_data: NPCCreate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     npc_dict = npc_data.model_dump()
+    # Handle occupation field from old name generator
+    occupation = npc_dict.pop('occupation', '')
+    if occupation and not npc_dict.get('role'):
+        npc_dict['role'] = occupation
+    # Set max_hp to match hp if not set
+    if npc_dict.get('hp') and not npc_dict.get('max_hp'):
+        npc_dict['max_hp'] = npc_dict['hp']
+    if npc_dict.get('stats') is None:
+        npc_dict['stats'] = NPCStats().model_dump()
     npc_obj = NPC(campaign_id=campaign_id, **npc_dict)
     doc = npc_obj.model_dump()
     await db.npcs.insert_one(doc)
-    return npc_obj
+    doc.pop('_id', None)
+    return doc
 
 @api_router.get("/campaigns/{campaign_id}/npcs", response_model=List[NPC])
 async def get_npcs(campaign_id: str, username: str = Depends(get_current_user)):
@@ -4610,11 +4702,20 @@ async def get_npcs(campaign_id: str, username: str = Depends(get_current_user)):
     npcs = await db.npcs.find({'campaign_id': campaign_id}, {'_id': 0}).to_list(1000)
     return npcs
 
-@api_router.put("/campaigns/{campaign_id}/npcs/{npc_id}", response_model=NPC)
+@api_router.put("/campaigns/{campaign_id}/npcs/{npc_id}")
 async def update_npc(campaign_id: str, npc_id: str, npc_data: NPCUpdate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
     update_dict = {k: v for k, v in npc_data.model_dump().items() if v is not None}
+    # Convert nested models to dicts
+    if 'stats' in update_dict and hasattr(update_dict['stats'], 'model_dump'):
+        update_dict['stats'] = update_dict['stats'].model_dump()
+    if 'attacks' in update_dict:
+        update_dict['attacks'] = [a.model_dump() if hasattr(a, 'model_dump') else a for a in update_dict['attacks']]
+    if 'abilities' in update_dict:
+        update_dict['abilities'] = [a.model_dump() if hasattr(a, 'model_dump') else a for a in update_dict['abilities']]
+    if 'spells' in update_dict and update_dict['spells'] and hasattr(update_dict['spells'], 'model_dump'):
+        update_dict['spells'] = update_dict['spells'].model_dump()
     result = await db.npcs.update_one(
         {'id': npc_id, 'campaign_id': campaign_id},
         {'$set': update_dict}
@@ -4634,6 +4735,171 @@ async def delete_npc(campaign_id: str, npc_id: str, username: str = Depends(get_
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NPC not found")
     return {'message': 'NPC deleted successfully'}
+
+class GenerateNPCRequest(BaseModel):
+    prompt: str = ""
+    race: str = ""
+    class_name: str = ""
+    level: int = 5
+    role: str = ""
+
+@api_router.post("/campaigns/{campaign_id}/npcs/generate")
+async def generate_npc_with_stats(campaign_id: str, request: GenerateNPCRequest, username: str = Depends(get_current_user)):
+    """AI-generate a full NPC with stat block, class-appropriate abilities, attacks, and spells."""
+    await verify_campaign_ownership(campaign_id, username)
+    
+    can_use_ai = await check_premium_feature(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
+    
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
+    
+    campaign_context = await get_campaign_context(campaign_id)
+    
+    race_hint = f'Race: {request.race}. ' if request.race else ''
+    class_hint = f'Class: {request.class_name}. ' if request.class_name else ''
+    level_hint = f'Level: {request.level}. '
+    role_hint = f'Role in campaign: {request.role}. ' if request.role else ''
+    user_prompt = request.prompt if request.prompt else 'Generate a unique and interesting NPC.'
+    
+    system_message = """You are ROOK, a TTRPG NPC generator that creates fully statted NPCs using D&D 5e SRD rules.
+
+RULES:
+1. Respond ONLY with valid JSON - no markdown, no code fences, no explanation
+2. Ability scores should be appropriate for the NPC's level and class
+3. Calculate proficiency bonus from level: levels 1-4 = +2, 5-8 = +3, 9-12 = +4, 13-16 = +5, 17-20 = +6
+4. HP should be calculated roughly as: (hit die avg + CON mod) * level
+5. AC should match their equipment/class (unarmored, leather, chain, plate, mage armor, etc.)
+6. Skills should match their class and background
+7. Attacks should include specific to-hit bonuses and damage dice
+8. If the class is a spellcaster, include full spell list appropriate to their level with cantrips and leveled spells from the SRD
+9. Abilities/features should be class-appropriate for their level (e.g., a level 5 Fighter gets Extra Attack)
+10. Use ONLY content from the 5e SRD/OGL - no copyrighted material
+11. saving_throws should list the ability names that the NPC is proficient in saving throws for"""
+
+    npc_json_schema = """{
+  "name": "Full Name",
+  "race": "Race",
+  "class_name": "Class (Fighter, Wizard, Cleric, Rogue, Ranger, Warlock, Bard, Barbarian, Druid, Monk, Paladin, Sorcerer)",
+  "level": 5,
+  "alignment": "e.g. Neutral Good",
+  "appearance": "2 sentences describing physical appearance",
+  "personality": "2 sentences describing personality traits, ideals, flaws",
+  "backstory": "2-3 sentences of background",
+  "role": "Role in campaign (Ally, Enemy, Merchant, Quest Giver, etc.)",
+  "hp": 38,
+  "max_hp": 38,
+  "ac": 16,
+  "speed": "30 ft.",
+  "proficiency_bonus": 3,
+  "stats": {
+    "strength": 16,
+    "dexterity": 12,
+    "constitution": 14,
+    "intelligence": 10,
+    "wisdom": 13,
+    "charisma": 8
+  },
+  "saving_throws": ["strength", "constitution"],
+  "skills": ["athletics", "intimidation", "perception", "survival"],
+  "attacks": [
+    {"name": "Longsword", "bonus": "+6", "damage": "1d8+3 slashing", "notes": "Versatile (1d10+3)"},
+    {"name": "Handaxe", "bonus": "+6", "damage": "1d6+3 slashing", "notes": "Thrown (20/60)"}
+  ],
+  "abilities": [
+    {"name": "Second Wind", "description": "Regain 1d10+5 HP as a bonus action (1/short rest)"},
+    {"name": "Action Surge", "description": "Take one additional action (1/short rest)"},
+    {"name": "Extra Attack", "description": "Attack twice when taking the Attack action"}
+  ],
+  "spells": null,
+  "location": "Where they can be found",
+  "notes": "GM notes, secrets, plot hooks, motivations"
+}
+
+For spellcasters, spells should be:
+{
+  "casting_ability": "Charisma",
+  "spell_save_dc": 15,
+  "spell_attack_bonus": 7,
+  "cantrips": ["Fire Bolt", "Mage Hand", "Prestidigitation"],
+  "slot_level": 3,
+  "slot_count": 2,
+  "known_spells": ["Shield", "Misty Step", "Fireball", "Counterspell"]
+}"""
+
+    context_section = ""
+    if campaign_context:
+        context_section = f"\n\nCAMPAIGN CONTEXT:\n{campaign_context}\n\nMake the NPC fit naturally into this world."
+    
+    full_prompt = f"""Generate a fully statted NPC with the following requirements:
+{race_hint}{class_hint}{level_hint}{role_hint}
+User request: {user_prompt}{context_section}
+
+Respond with ONLY valid JSON matching this schema:
+{npc_json_schema}"""
+
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"{username}-npc-gen-{datetime.now(timezone.utc).timestamp()}",
+        system_message=system_message
+    )
+    chat.with_model('openai', 'gpt-4o')
+    
+    response = await chat.send_message(UserMessage(text=full_prompt))
+    
+    json_match = re.search(r'\{[\s\S]*\}', response)
+    if not json_match:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to parse AI response")
+    
+    entity_data = json.loads(json_match.group())
+    
+    # Build NPC from AI response
+    npc_id = str(uuid.uuid4())
+    stats_data = entity_data.get('stats', {})
+    spells_data = entity_data.get('spells')
+    
+    npc_doc = {
+        'id': npc_id,
+        'campaign_id': campaign_id,
+        'name': entity_data.get('name', 'Unknown NPC'),
+        'race': entity_data.get('race', request.race or 'Human'),
+        'class_name': entity_data.get('class_name', request.class_name or 'Commoner'),
+        'level': entity_data.get('level', request.level),
+        'alignment': entity_data.get('alignment', 'True Neutral'),
+        'description': entity_data.get('description', ''),
+        'appearance': entity_data.get('appearance', ''),
+        'personality': entity_data.get('personality', ''),
+        'backstory': entity_data.get('backstory', ''),
+        'role': entity_data.get('role', request.role or ''),
+        'hp': entity_data.get('hp', 10),
+        'max_hp': entity_data.get('max_hp', entity_data.get('hp', 10)),
+        'ac': entity_data.get('ac', 10),
+        'speed': entity_data.get('speed', '30 ft.'),
+        'proficiency_bonus': entity_data.get('proficiency_bonus', 2),
+        'stats': {
+            'strength': stats_data.get('strength', 10),
+            'dexterity': stats_data.get('dexterity', 10),
+            'constitution': stats_data.get('constitution', 10),
+            'intelligence': stats_data.get('intelligence', 10),
+            'wisdom': stats_data.get('wisdom', 10),
+            'charisma': stats_data.get('charisma', 10),
+        },
+        'saving_throws': entity_data.get('saving_throws', []),
+        'skills': entity_data.get('skills', []),
+        'attacks': entity_data.get('attacks', []),
+        'abilities': entity_data.get('abilities', []),
+        'spells': spells_data,
+        'location': entity_data.get('location', ''),
+        'notes': entity_data.get('notes', ''),
+        'color': '#8A2BE2',
+        'created_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.npcs.insert_one(npc_doc)
+    npc_doc.pop('_id', None)
+    return npc_doc
 
 # ==================== INITIATIVE ROUTES ====================
 
@@ -5298,12 +5564,29 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
   "alignment": "alignment (e.g., Lawful Good, Chaotic Neutral)",
   "notes": "additional lore or worship practices"
 }''',
-            'npc': '''Generate a fantasy NPC. Respond ONLY with valid JSON in this exact format:
+            'npc': '''Generate a fantasy NPC with full stat block. Respond ONLY with valid JSON in this exact format:
 {
   "name": "NPC full name",
+  "race": "Race",
+  "class_name": "Class",
+  "level": 5,
+  "alignment": "Alignment",
   "description": "physical appearance, personality, and background in 2-3 sentences",
-  "hp": 10,
-  "ac": 10,
+  "appearance": "physical appearance",
+  "personality": "personality traits",
+  "backstory": "brief backstory",
+  "role": "Role in world",
+  "hp": 32,
+  "max_hp": 32,
+  "ac": 14,
+  "speed": "30 ft.",
+  "proficiency_bonus": 3,
+  "stats": {"strength": 10, "dexterity": 14, "constitution": 12, "intelligence": 13, "wisdom": 10, "charisma": 16},
+  "saving_throws": ["wisdom", "charisma"],
+  "skills": ["arcana", "deception"],
+  "attacks": [{"name": "Dagger", "bonus": "+5", "damage": "1d4+2 piercing", "notes": "Finesse"}],
+  "abilities": [{"name": "Feature", "description": "Description"}],
+  "spells": null,
   "location": "where they can be found",
   "notes": "motivations, secrets, or plot hooks"
 }''',
@@ -5399,17 +5682,46 @@ IMPORTANT RULES:
             await db.gods.insert_one(new_god.model_dump())
             
         elif request.entity_type == 'npc':
-            new_npc = NPC(
-                id=entity_id,
-                campaign_id=request.campaign_id,
-                name=entity_data.get('name', 'Unknown NPC'),
-                description=entity_data.get('description', ''),
-                hp=entity_data.get('hp', 10),
-                ac=entity_data.get('ac', 10),
-                location=entity_data.get('location', ''),
-                notes=entity_data.get('notes', '')
-            )
-            await db.npcs.insert_one(new_npc.model_dump())
+            stats_data = entity_data.get('stats', {})
+            spells_data = entity_data.get('spells')
+            npc_doc = {
+                'id': entity_id,
+                'campaign_id': request.campaign_id,
+                'name': entity_data.get('name', 'Unknown NPC'),
+                'race': entity_data.get('race', 'Human'),
+                'class_name': entity_data.get('class_name', 'Commoner'),
+                'level': entity_data.get('level', 1),
+                'alignment': entity_data.get('alignment', ''),
+                'description': entity_data.get('description', ''),
+                'appearance': entity_data.get('appearance', ''),
+                'personality': entity_data.get('personality', ''),
+                'backstory': entity_data.get('backstory', ''),
+                'role': entity_data.get('role', ''),
+                'hp': entity_data.get('hp', 10),
+                'max_hp': entity_data.get('max_hp', entity_data.get('hp', 10)),
+                'ac': entity_data.get('ac', 10),
+                'speed': entity_data.get('speed', '30 ft.'),
+                'proficiency_bonus': entity_data.get('proficiency_bonus', 2),
+                'stats': {
+                    'strength': stats_data.get('strength', 10),
+                    'dexterity': stats_data.get('dexterity', 10),
+                    'constitution': stats_data.get('constitution', 10),
+                    'intelligence': stats_data.get('intelligence', 10),
+                    'wisdom': stats_data.get('wisdom', 10),
+                    'charisma': stats_data.get('charisma', 10),
+                },
+                'saving_throws': entity_data.get('saving_throws', []),
+                'skills': entity_data.get('skills', []),
+                'attacks': entity_data.get('attacks', []),
+                'abilities': entity_data.get('abilities', []),
+                'spells': spells_data,
+                'location': entity_data.get('location', ''),
+                'notes': entity_data.get('notes', ''),
+                'color': '#8A2BE2',
+                'created_at': datetime.now(timezone.utc).isoformat()
+            }
+            await db.npcs.insert_one(npc_doc)
+            npc_doc.pop('_id', None)
             
         elif request.entity_type == 'location':
             new_location = Location(

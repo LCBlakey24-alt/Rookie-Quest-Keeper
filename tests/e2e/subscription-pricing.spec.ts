@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissToasts, hideEmergentBadge, generateTestEmail, generateTestUsername, TEST_USER, loginTestUser } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://rook-fantasy-sunset.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://ally-enemy-net.preview.emergentagent.com';
 
 test.describe('Subscription Pricing - 4 Tier System', () => {
   

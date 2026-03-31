@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 // Logo import removed for minimalist design
 import { 
   Sword, Users, BookOpen, Send, 
-  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Upload, Music, Target, Volume2
+  Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Upload, Music, Target, Volume2, Link2
 } from 'lucide-react';
 import DiceRoller from '@/components/DiceRoller';
 import DiceRoller3D from '@/components/ui/DiceRoller3D';
@@ -27,6 +27,7 @@ import LiveSessionMode from '@/components/gm/LiveSessionMode';
 import SmartSessionLog from '@/components/gm/SmartSessionLog';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import UploadTab from '@/components/gm/UploadTab';
+import NPCRelationshipMap from '@/components/gm/NPCRelationshipMap';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -318,6 +319,7 @@ function GMScreen({ username }) {
     { id: 'combat', icon: Swords, label: 'Combat' },
     { id: 'location', icon: Compass, label: 'Location' },
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
+    { id: 'network', icon: Link2, label: 'NPC Network' },
     { id: 'monsters', icon: Skull, label: 'Monsters' },
     { id: 'tables', icon: Wand2, label: 'Tables' },
     { id: 'loot', icon: Coins, label: 'Loot' },
@@ -1168,6 +1170,11 @@ function GMScreen({ username }) {
           {/* UPLOADS TAB */}
           {activeTab === 'uploads' && (
             <UploadTab theme={theme} campaignId={campaignId} />
+          )}
+
+          {/* NPC NETWORK TAB */}
+          {activeTab === 'network' && (
+            <NPCRelationshipMap theme={theme} campaignId={campaignId} />
           )}
           </div>
           
