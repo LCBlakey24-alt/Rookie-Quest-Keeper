@@ -578,22 +578,67 @@ export default function CharacterSheetFull() {
       <div style={bottomLeftGlow} />
       <div style={bottomRightGlow} />
       
-      {/* Header - Fixed */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
-        <button onClick={() => navigate('/home')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(77, 208, 225, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 16px', color: theme.text.primary, cursor: 'pointer' }}>
+      {/* Header - Fixed (Identity + Vitals Bar) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
+        <button onClick={() => navigate('/home')} data-testid="sheet-back-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(77, 208, 225, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 14px', color: theme.text.primary, cursor: 'pointer', flexShrink: 0 }}>
           <ChevronLeft size={18} /> Dashboard
         </button>
-        
-        <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.5rem', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            {character.name}
-          </h1>
-          <div style={{ color: theme.text.secondary, fontSize: '13px' }}>
-            {character.race} {character.character_class} • Level {character.level || 1}
+
+        {/* Identity */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          {character.portrait_url ? (
+            <img src={character.portrait_url} alt="" style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent.primary}`, boxShadow: theme.glow }} onError={e => { e.target.style.display = 'none'; }} />
+          ) : (
+            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <User size={24} color="#fff" />
+            </div>
+          )}
+          <div style={{ textAlign: 'left' }}>
+            <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.3rem', margin: 0, background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {character.name}
+            </h1>
+            <div style={{ color: theme.text.secondary, fontSize: '12px' }}>
+              {character.race}{character.subrace ? ` (${character.subrace})` : ''} • {character.character_class}{character.subclass ? ` (${character.subclass})` : ''} • Lv {character.level || 1}
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Vitals Bar - Always Visible */}
+        <div data-testid="vitals-bar" style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {/* HP */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 10px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', minWidth: '90px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: theme.text.muted, fontWeight: 600 }}><Heart size={11} color="#EF4444" /> HP</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+              <button onClick={() => handleHpChange(-1)} data-testid="hp-decrease" style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+              <span data-testid="current-hp" style={{ fontSize: '15px', fontWeight: 700, color: currentHp <= maxHp / 4 ? '#EF4444' : '#fff', minWidth: '52px', textAlign: 'center' }}>
+                {currentHp}/{maxHp}{tempHp > 0 && <span style={{ color: '#10B981', fontSize: '11px' }}> +{tempHp}</span>}
+              </span>
+              <button onClick={() => handleHpChange(1)} data-testid="hp-increase" style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.2)', border: 'none', color: '#10B981', cursor: 'pointer', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+            </div>
+          </div>
+          {/* AC */}
+          <VitalChip icon={Shield} label="AC" value={ac} color={theme.accent.primary} testId="vital-ac" />
+          {/* Initiative */}
+          <VitalChip icon={Zap} label="INIT" value={formatModifier(initiative)} color={theme.accent.highlight} onClick={() => rollDice('1d20', initiative, 'Initiative')} testId="vital-init" />
+          {/* Speed */}
+          <VitalChip icon={Wind} label="SPD" value={`${speed}ft`} color={theme.accent.secondary} testId="vital-speed" />
+          {/* Inspiration */}
+          <button
+            onClick={() => handleUpdateCharacter({ inspiration: !character.inspiration })}
+            data-testid="inspiration-toggle"
+            title="Toggle Inspiration"
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 10px', borderRadius: '10px',
+              background: character.inspiration ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+              border: `1px solid ${character.inspiration ? 'rgba(245, 158, 11, 0.5)' : theme.border}`,
+              cursor: 'pointer', minWidth: '60px'
+            }}>
+            <Sparkles size={14} color={character.inspiration ? '#F59E0B' : theme.text.muted} />
+            <div style={{ fontSize: '9px', color: character.inspiration ? '#F59E0B' : theme.text.muted, fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>INSP</div>
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
           {(character.level || 1) < 20 && (
             <button 
               onClick={() => setShowLevelUpWizard(true)} 
@@ -1021,6 +1066,30 @@ function BackstoryTab({ character, characterId, theme, onUpdateCharacter }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+
+function VitalChip({ icon: Icon, label, value, color, onClick, testId }) {
+  const interactive = typeof onClick === 'function';
+  return (
+    <div
+      onClick={onClick}
+      data-testid={testId}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '6px 12px', borderRadius: '10px',
+        background: `${color}15`, border: `1px solid ${color}40`,
+        cursor: interactive ? 'pointer' : 'default',
+        minWidth: '60px', transition: 'all 0.2s'
+      }}
+      role={interactive ? 'button' : undefined}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#9EB0D0', fontWeight: 600 }}>
+        <Icon size={11} color={color} /> {label}
+      </div>
+      <div style={{ fontSize: '15px', fontWeight: 700, color, marginTop: '2px' }}>{value}</div>
     </div>
   );
 }

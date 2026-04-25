@@ -549,6 +549,7 @@ class PlayerCharacter(BaseModel):
     # Basic Info
     name: str
     race: str  # Human, Elf, Dwarf, etc.
+    subrace: str = ""  # High Elf, Hill Dwarf, etc.
     character_class: str  # Fighter, Wizard, etc.
     subclass: str = ""
     background: str = ""
@@ -639,6 +640,7 @@ class PlayerCharacter(BaseModel):
 class PlayerCharacterCreate(BaseModel):
     name: str
     race: str
+    subrace: Optional[str] = ""
     character_class: str
     subclass: str = ""
     background: str = ""
@@ -661,6 +663,16 @@ class PlayerCharacterCreate(BaseModel):
     backstory: str = ""
     portrait_url: Optional[str] = None
     campaign_id: Optional[str] = None
+
+    # Proficiencies & traits chosen during character creation
+    skill_proficiencies: Optional[List[str]] = []
+    saving_throw_proficiencies: Optional[List[str]] = []
+    weapon_proficiencies: Optional[List[str]] = []
+    armor_proficiencies: Optional[List[str]] = []
+    tool_proficiencies: Optional[List[str]] = []
+    languages: Optional[List[str]] = []
+    racial_traits: Optional[List[Dict[str, str]]] = []
+    class_features: Optional[List[Dict[str, str]]] = []
     
     # Spell and feat selections from character creation
     # spells_known: for known-spell casters (Bard, Sorcerer, Ranger, Warlock)
@@ -674,6 +686,7 @@ class PlayerCharacterCreate(BaseModel):
 class PlayerCharacterUpdate(BaseModel):
     name: Optional[str] = None
     race: Optional[str] = None
+    subrace: Optional[str] = None
     character_class: Optional[str] = None
     subclass: Optional[str] = None
     background: Optional[str] = None
@@ -706,6 +719,7 @@ class PlayerCharacterUpdate(BaseModel):
     skill_proficiencies: Optional[List[str]] = None
     weapon_proficiencies: Optional[List[str]] = None
     armor_proficiencies: Optional[List[str]] = None
+    tool_proficiencies: Optional[List[str]] = None
     languages: Optional[List[str]] = None
     
     # Features & Traits
