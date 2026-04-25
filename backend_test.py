@@ -15,7 +15,7 @@ import aiohttp
 import uuid
 
 # Backend URL configuration
-BACKEND_URL = "https://neon-tundra-preview.preview.emergentagent.com/api"
+BACKEND_URL = "https://beyond-level-builder.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

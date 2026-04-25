@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loginUser, dismissToasts, hideEmergentBadge, TEST_USER, generateTestUsername } from '../fixtures/helpers';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://neon-tundra-preview.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
 
 test.describe('Delete Functionality on Home Page', () => {
   test.beforeEach(async ({ page }) => {

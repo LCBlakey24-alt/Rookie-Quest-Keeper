@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260331_071707/results.json' }],
   ],
   use: {
-    baseURL: 'https://neon-tundra-preview.preview.emergentagent.com',
+    baseURL: 'https://beyond-level-builder.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,

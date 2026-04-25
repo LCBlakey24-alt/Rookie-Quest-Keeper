@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://neon-tundra-preview.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "lcblakey24@outlook.com"

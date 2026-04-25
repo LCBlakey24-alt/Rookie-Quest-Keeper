@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://neon-tundra-preview.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
 
 // Admin credentials
 const ADMIN_EMAIL = 'gmtest@test.com';

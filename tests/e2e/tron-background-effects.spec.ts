@@ -7,7 +7,7 @@ import {
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://neon-tundra-preview.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
 const TEST_EMAIL = 'admin@rookiequestkeeper.com';
 const TEST_PASSWORD = 'admin123';
 
