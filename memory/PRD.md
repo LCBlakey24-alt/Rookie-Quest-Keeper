@@ -9,92 +9,87 @@ Build an immersive, context-aware TTRPG application with strict SRD 5.1 complian
 ├── backend/
 │   ├── server.py              # Thin orchestrator
 │   ├── models/                # Pydantic models
-│   ├── routes/                # 19 modular route files
+│   ├── routes/                # 20 modular route files
 │   │   ├── events.py          # Event System + Location Economy
 │   │   └── ...
 │   ├── tests/                 # Test scripts
 │   └── utils/
 └── frontend/src/
     ├── components/
-    │   ├── ui/DiceRoller3D.js
-    │   ├── CharacterSheetFull.js       # Player page
-    │   ├── CharacterCombatTab.js       # Combat dashboard
-    │   ├── RestPanel.js                # Short/Long Rest automation
-    │   ├── LevelUpWizard.js            # Full class progression (12 classes, 24 subclasses)
-    │   ├── GMScreen.js                 # Live Play Mode (16 tabs)
+    │   ├── GMScreen.js                 # Live Play Mode (~905 lines, grouped tabs)
     │   ├── CampaignDashboard.js        # GM Page (prep & creation)
+    │   ├── CharacterSheetFull.js       # Player page
+    │   ├── LevelUpWizard.js            # Full class progression (~1491 lines)
     │   └── gm/
+    │       ├── CombatTab.js            # Extracted Combat content
+    │       ├── NpcsTab.js              # Extracted NPCs content
+    │       ├── PartyTab.js             # Extracted Party content
+    │       ├── NotesTab.js             # Extracted Notes content
+    │       ├── MonstersTab.js          # Extracted Monsters content
+    │       ├── MapMaker.js             # Polished: Fill, Undo, Templates, Import/Export
     │       ├── EventSystem.js          # City/Area Event Economy System
     │       ├── AISessionPlanner.js
     │       ├── InitiativeTracker.js
     │       ├── SessionTimer.js
     │       ├── QuickNpcGenerator.js
-    │       ├── MapMaker.js
-    │       ├── SendItemPanel.js
-    │       └── MiniGameEngine.js       # Legacy (functionality folded into EventSystem)
+    │       └── SendItemPanel.js
     └── data/
         ├── classFeatures.js            # 12 classes, 24 subclasses
+        ├── levelUpData.js              # Extracted: FEATS, HIT_DICE, ASI_LEVELS
         └── ...
 ```
 
 ## Implemented Features
 
-### Phases 1-9: Core through Condition Auto-Effects (Complete)
-Full auth, character CRUD, 18-route backend, GM tools, world map, AI, 3D dice, soundboard, NPC network, Smart Spellbook, Quick-Action Inventory, Player Progression Dashboard, AI Session Planner, Dice Roll History, Combat UX Overhaul, 16 D&D 5e conditions with auto-effects.
-
-### Phase 10: UI Compaction & Trackers (Complete - March 31, 2026)
-Compact 3-column layout, Exhaustion Tracker (1-6), Concentration Tracker, 2024 class features.
-
-### Phase 11: Session Prep Checklist (Complete - March 31, 2026)
-AI-generated prep checklists (8 categories, 3 priorities, progress tracking).
-
-### Phase 12: Full Class Progression (Complete - March 31, 2026)
-24 subclasses, fighting styles, spellcasting progression, ASI/Feat, multiclass support.
-
-### Phase 13: Player & GM Experience Enhancements (Complete - March 31, 2026)
-Rest Panel, Backstory Tab, Initiative Tracker, Session Timer, Quick NPC Generator.
+### Phases 1-13 (Complete)
+Full auth, character CRUD, 18-route backend, GM tools, world map, AI, 3D dice, soundboard, NPC network, Smart Spellbook, Quick-Action Inventory, Player Progression Dashboard, AI Session Planner, Dice Roll History, Combat UX, 16 conditions, UI Compaction, Checklist, All 12 Classes, Rest Panel, Backstory, Initiative Tracker, Session Timer, Quick NPC Generator.
 
 ### Phase 14: Event System & Live Play Mode (Complete - April 25, 2026)
-**Rename**: GM Screen → Live Play Mode (throughout UI)
-**Event System** - Full city/area economic event management:
-- **Location Economy**: Create cities/areas with population, gold treasury, reputation tracking
-- **Major Events**: Horse Racing, Boxing Match, Grand Tournament, Harvest Festival, Market Fair
-- **Minor Events**: Arm Wrestling, Drinking Contest, Card Game, Knife Throwing, Riddle Challenge
-- **Custom Events**: GM defines event name, type, costs, prizes, quality level
-- **Financial Engine**: Realistic economic model where changing costs ripples through attendance, revenue, satisfaction, reputation, and population changes
-- **Live Financial Preview**: Real-time calculation as sliders are adjusted
-- **Day-by-Day History**: Track location economy over time (gold, population, reputation per day)
-- **Preview & Run**: Preview projected impact before committing; run applies changes to location
-- **Cascading Effects**: Events affect city treasury, population growth/decline, reputation score
+- GM Screen renamed to Live Play Mode
+- Event System: Major events (Horse Racing, Boxing, Tournament, Festival, Market), Minor events (Arm Wrestling, Drinking, Cards, etc.)
+- Location Economy: City tracking with gold treasury, population, reputation
+- Financial Engine: Realistic cost-ripple model, Live Financial Preview, Day-by-day history
 
-**Backend Endpoints**:
-- `GET/POST/PATCH/DELETE /api/campaigns/{id}/event-locations` - Location CRUD
-- `GET/POST/PATCH/DELETE /api/campaigns/{id}/events` - Event CRUD
-- `POST /api/campaigns/{id}/events/{id}/preview` - Preview financial impact
-- `POST /api/campaigns/{id}/events/{id}/run` - Execute event, update economy
-- `POST /api/campaigns/{id}/events/{id}/preview-config` - Preview with modified config
+### Phase 15: Tab Organization & Refactoring (Complete - April 25, 2026)
+**Grouped Sidebar Tabs**: 16 tabs organized into 5 collapsible categories:
+- COMBAT (red): Combat, Battle Map
+- WORLD (blue): World Map, Location, Events
+- CHARACTERS (purple): NPCs, NPC Network, Party, Monsters
+- REFERENCE (gold): Tables, Loot, Dice
+- SESSION (green): Notes, Story Arcs, AI Planner, Soundboard
+
+**GMScreen.js Refactoring**: 1441 → 905 lines (37% reduction)
+- Extracted: CombatTab, NpcsTab, PartyTab, NotesTab, MonstersTab
+
+**LevelUpWizard.js Refactoring**: 1554 → 1491 lines
+- Extracted: FEATS, HIT_DICE, ASI_LEVELS, ABILITIES to `/data/levelUpData.js`
+
+**MapMaker Polish**:
+- Fill tool (bucket fill algorithm)
+- Undo (20-step stack)
+- Map Templates: Tavern Interior, Dungeon Corridor, Forest Clearing, Coastline
+- Import/Export (.json)
+- Simple/Advanced toggle (tokens, map resize in Advanced)
+- 12 terrain types (Grass, Forest, Water, Mountain, Stone, Sand, Lava, Building, Wall, Door, Snow, Swamp)
 
 ## Prioritized Backlog
 
 ### P1 - Upcoming
-- Polish Map Maker functionality
-- Review/organize Live Play Mode tabs (16 tabs - consider grouping)
+- Party View Panel (see allies' HP/AC/conditions at a glance)
+- Spell Slot visual overhaul
 
 ### P2 - Future
-- Party View Panel (see allies' HP/AC/conditions at a glance)
-- Spell Slot visual overhaul (animated orbs)
 - Combat Log per character
 - Player Handout System
 - Session Recap Sharing
-- GMScreen.js refactoring (~1500 lines)
-- LevelUpWizard.js refactoring (~1500 lines)
+- Additional MapMaker features (custom brushes, layers)
 
 ### Known Issues (External)
 - Production Login/Password Reset: BLOCKED (external hosting config)
 - Production Deployment Risk: BLOCKED (external hosting config)
 
 ## Test Iterations
-62-65: Core | 67-68: P1 | 69: AI Planner | 70: Fighter | 71: Combat UX | 72: Conditions | 73: UI Compaction | 74: Checklist | 75: All Classes | 76: Player/GM Enhancements | 77: Maps/Items | 78: Event System (14 backend + 4 frontend, 100%)
+62-65: Core | 67-68: P1 | 69: AI Planner | 70: Fighter | 71: Combat UX | 72: Conditions | 73: UI | 74: Checklist | 75: Classes | 76: Enhancements | 77: Maps/Items | 78: Event System (100%) | 79: Tab Grouping + Refactoring + MapMaker (35/35, 100%)
 
 ---
 *Last Updated: April 25, 2026*
