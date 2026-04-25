@@ -103,7 +103,7 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
       const response = await axios.post(`${API}/rook/chat`, {
         message: msg,
         campaign_id: campaignId,
-        context: `Active GM Screen tab: ${activeTab}. ${ctx.system}`
+        context: `Active Live Play tab: ${activeTab}. ${ctx.system}`
       }, { headers: { Authorization: `Bearer ${token}` } });
 
       const aiMsg = { role: 'assistant', content: response.data.response || response.data.message || 'No response', timestamp: Date.now() };

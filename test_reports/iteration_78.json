@@ -1,0 +1,46 @@
+{
+  "iteration": 78,
+  "timestamp": "2026-04-25T07:35:00Z",
+  "test_type": "backend + frontend smoke",
+  "features_tested": [
+    "Event System - Backend API (14 tests)",
+    "Event System - Frontend UI (Events tab, location creation, event creation, templates)",
+    "GM Screen renamed to Live Play Mode"
+  ],
+  "results": {
+    "backend": {
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "tests": [
+        "POST event-locations - Create location: PASS",
+        "GET event-locations - List locations: PASS",
+        "POST events - Create major event (Horse Racing): PASS",
+        "POST events - Create minor event (Arm Wrestling): PASS",
+        "GET events - List events: PASS",
+        "POST events/{id}/preview - Preview financial impact: PASS",
+        "POST events/{id}/preview-config - Modified config preview: PASS",
+        "POST events/{id}/run - Run major event (economy updated): PASS",
+        "POST events/{id}/run - Run minor event (economy updated): PASS",
+        "GET event-locations - Verify history entries (3): PASS",
+        "POST events/{id}/run - Cannot re-run completed: PASS",
+        "DELETE events/{id} - Delete event: PASS",
+        "DELETE event-locations/{id} - Delete location cascades: PASS",
+        "GET events - Verify cascading delete (0 remaining): PASS"
+      ]
+    },
+    "frontend": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        "Events tab visible in Live Play Mode sidebar: PASS",
+        "Location creation form + toast notification: PASS",
+        "Event templates (Horse Racing etc.) populate form: PASS",
+        "Campaign Dashboard button says 'Live Play Mode': PASS"
+      ]
+    }
+  },
+  "overall_status": "PASS",
+  "pass_rate": "100%"
+}

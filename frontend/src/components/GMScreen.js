@@ -34,6 +34,7 @@ import SessionTimer from '@/components/gm/SessionTimer';
 import QuickNpcGenerator from '@/components/gm/QuickNpcGenerator';
 import SendItemPanel from '@/components/gm/SendItemPanel';
 import MapMaker from '@/components/gm/MapMaker';
+import EventSystem from '@/components/gm/EventSystem';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -106,7 +107,7 @@ function GMScreen({ username }) {
       setSessionNotes(notesRes.data.slice(0, 30));
       setCustomCreatures(creaturesRes.data || []);
     } catch (error) {
-      toast.error('Failed to load GM Screen data');
+      toast.error('Failed to load Live Play data');
     } finally {
       setLoading(false);
     }
@@ -364,6 +365,7 @@ function GMScreen({ username }) {
     { id: 'notes', icon: FileText, label: 'Notes' },
     { id: 'story', icon: Target, label: 'Story Arcs' },
     { id: 'planner', icon: Sparkles, label: 'AI Planner' },
+    { id: 'events', icon: Coins, label: 'Events' },
     { id: 'sound', icon: Volume2, label: 'Soundboard' },
   ];
 
@@ -1232,6 +1234,11 @@ function GMScreen({ username }) {
           {/* SOUNDBOARD TAB */}
           {activeTab === 'sound' && (
             <Soundboard theme={theme} campaignId={campaignId} />
+          )}
+
+          {/* EVENTS TAB */}
+          {activeTab === 'events' && (
+            <EventSystem theme={theme} campaignId={campaignId} />
           )}
 
           {/* NPC NETWORK TAB */}

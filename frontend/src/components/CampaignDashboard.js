@@ -391,7 +391,7 @@ function CampaignDashboard({ username, onLogout }) {
               }}
             >
               <Monitor size={18} />
-              <span className="desktop-only">Open </span>GM Screen
+              <span className="desktop-only">Open </span>Live Play Mode
             </Button>
           </div>
         </div>
