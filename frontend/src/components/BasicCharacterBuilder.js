@@ -18,7 +18,6 @@ export default function BasicCharacterBuilder() {
   const [race, setRace] = useState('Human');
   const [level, setLevel] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [edition, setEdition] = useState('2014');
 
   const statBlock = useMemo(() => defaultsByClass[characterClass] || defaultsByClass.Fighter, [characterClass]);
 
@@ -41,6 +40,7 @@ export default function BasicCharacterBuilder() {
         alignment: 'Neutral',
         edition,
         ruleset_id: edition === '2024' ? 'dnd5e_2024' : 'dnd5e_2014',
+        edition: '2014',
         ...statBlock,
         max_hit_points: maxHP,
         skill_proficiencies: (cls?.skillChoices || []).slice(0, cls?.skillCount || 2),
@@ -67,7 +67,6 @@ export default function BasicCharacterBuilder() {
     <div style={{ maxWidth: 520, display: 'grid', gap: 12 }}>
       <input placeholder='Character Name' value={name} onChange={e => setName(e.target.value)} />
       <select value={level} onChange={e => setLevel(Number(e.target.value))}>{Array.from({ length: 20 }, (_, i) => i + 1).map(l => <option key={l} value={l}>{l}</option>)}</select>
-      <select value={edition} onChange={e => setEdition(e.target.value)}><option value='2014'>2014 Rules</option><option value='2024'>2024 Rules</option></select>
       <select value={characterClass} onChange={e => setCharacterClass(e.target.value)}>{Object.keys(CLASSES).map(c => <option key={c} value={c}>{c}</option>)}</select>
       <select value={race} onChange={e => setRace(e.target.value)}>{Object.keys(RACES).map(r => <option key={r} value={r}>{r}</option>)}</select>
       <button disabled={loading} onClick={submit}>{loading ? 'Creating...' : 'Create Character'}</button>
