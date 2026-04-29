@@ -247,7 +247,10 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           requestData.asi_choices = asiChoices;
         } else if (choiceType === 'feat') {
           requestData.choice_type = 'feat';
-          requestData.feat_name = selectedFeat?.name;
+          requestData.feat_choice = {
+            name: selectedFeat?.name || 'Feat',
+            description: selectedFeat?.description || ''
+          };
         }
       }
 

@@ -9,7 +9,7 @@ from utils.auth import (
 from models import (
     PlayerCharacter, PlayerCharacterCreate, PlayerCharacterUpdate,
     LevelUpRequest, CampaignJoinRequest, AICharacterGenerateRequest,
-    JournalEntry, JournalEntryCreate, SUBSCRIPTION_PLANS
+    JournalEntry, JournalEntryCreate, SUBSCRIPTION_PLANS, TemplateMatchRequest
 )
 from typing import Optional, Dict, Any, List
 import uuid
@@ -26,6 +26,78 @@ except ImportError:
     EMERGENT_KEY = None
 
 router = APIRouter()
+
+
+def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
+    if explicit_ruleset_id:
+        return explicit_ruleset_id
+    return "dnd5e_2024" if str(edition) == "2024" else "dnd5e_2014"
+
+
+PREMADE_TEMPLATES = [
+    {
+        "id": "fighter_guardian_2014_v1", "ruleset_id": "dnd5e_2014", "name": "Shield Guardian",
+        "character_class": "Fighter", "race": "Human", "background": "Soldier", "complexity": 1,
+        "playstyle_tags": ["tank", "melee", "simple"], "pitch": "A sturdy front-liner who protects allies."
+    },
+    {
+        "id": "wizard_scholar_2014_v1", "ruleset_id": "dnd5e_2014", "name": "Arcane Scholar",
+        "character_class": "Wizard", "race": "High Elf", "background": "Sage", "complexity": 3,
+        "playstyle_tags": ["magic", "control", "utility"], "pitch": "A tactical spellcaster with broad utility."
+    },
+    {
+        "id": "fighter_guardian_2024_v1", "ruleset_id": "dnd5e_2024", "name": "Shield Guardian (2024)",
+        "character_class": "Fighter", "race": "Human", "background": "Guard", "complexity": 1,
+        "playstyle_tags": ["tank", "melee", "simple"], "pitch": "A durable defender built for 2024 rules."
+    },
+    {
+        "id": "wizard_scholar_2024_v1", "ruleset_id": "dnd5e_2024", "name": "Arcane Scholar (2024)",
+        "character_class": "Wizard", "race": "Elf", "background": "Scribe", "complexity": 3,
+        "playstyle_tags": ["magic", "control", "utility"], "pitch": "A flexible 2024 wizard starter template."
+    }
+]
+
+
+
+@router.get("/character-templates")
+async def list_character_templates(ruleset_id: str = "dnd5e_2014"):
+    templates = [t for t in PREMADE_TEMPLATES if t.get("ruleset_id") == ruleset_id]
+    return {"templates": templates, "count": len(templates), "ruleset_id": ruleset_id}
+
+
+@router.post("/character-templates/ai-match")
+async def ai_match_character_template(payload: TemplateMatchRequest):
+    ruleset_id = payload.ruleset_id
+    description = payload.description.lower()
+    candidates = [t for t in PREMADE_TEMPLATES if t.get("ruleset_id") == ruleset_id]
+
+    keywords = {
+        "tank": ["tank", "protect", "defend", "front line"],
+        "magic": ["magic", "spell", "wizard", "cast"],
+        "melee": ["melee", "sword", "close"],
+        "utility": ["utility", "support", "control"],
+        "simple": ["easy", "simple", "beginner"]
+    }
+
+    def score(template):
+        score_value = 0
+        tags = set(template.get("playstyle_tags", []))
+        for tag, keys in keywords.items():
+            if any(k in description for k in keys) and tag in tags:
+                score_value += 2
+        if template.get("complexity") == 1 and any(k in description for k in ["easy", "simple", "beginner"]):
+            score_value += 1
+        return score_value
+
+    ranked = sorted(candidates, key=score, reverse=True)
+    best = ranked[0] if ranked else None
+    alts = ranked[1:3] if len(ranked) > 1 else []
+    return {
+        "ruleset_id": ruleset_id,
+        "best_match": best,
+        "alternatives": alts,
+        "note": "Deterministic template matching (MVP)."
+    }
 
 @router.get("/characters")
 async def get_user_characters(username: str = Depends(get_current_user)):
@@ -67,6 +139,7 @@ async def create_character(
     
     # Validate subclass selection based on edition and level
     edition = getattr(character, 'edition', '2014')
+    ruleset_id = normalize_ruleset_id(edition, getattr(character, 'ruleset_id', ''))
     if character.subclass:
         subclass_unlock_level = get_subclass_unlock_level(character.character_class, edition)
         if character.level < subclass_unlock_level:
@@ -95,9 +168,9 @@ async def create_character(
     
     # Prepare character data, excluding fields that will be calculated or explicitly set
     char_data = character.model_dump()
-    excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class', 
+    excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class',
                        'spells_known', 'spells_prepared', 'cantrips_known', 'feats', 'edition',
-                       'portrait_url', 'campaign_id']
+                       'portrait_url', 'campaign_id', 'ruleset_id']
     char_data = {k: v for k, v in char_data.items() if k not in excluded_fields}
     
     # Normalize spell/cantrip inputs - ensure they are in object format
@@ -137,7 +210,8 @@ async def create_character(
         feats=character.feats or [],
         edition=edition,
         portrait_url=character.portrait_url or '',
-        spellcasting_ability=spellcasting_ability
+        spellcasting_ability=spellcasting_ability,
+        ruleset_id=ruleset_id
     )
     
     await db.player_characters.insert_one(new_character.model_dump())
@@ -190,6 +264,12 @@ async def update_character(
         )
     
     # Validate subclass selection based on edition and level
+    if 'rules_edition' in update_data and update_data['rules_edition'] and 'edition' not in update_data:
+        update_data['edition'] = update_data['rules_edition']
+
+    if 'edition' in update_data and 'ruleset_id' not in update_data:
+        update_data['ruleset_id'] = normalize_ruleset_id(update_data['edition'])
+
     if 'subclass' in update_data and update_data['subclass']:
         edition = existing.get('edition', '2014')
         character_class = update_data.get('character_class', existing.get('character_class'))
@@ -414,9 +494,32 @@ async def level_up_character(
                 update_data[f'spell_slots_{spell_level}_used'] = 0
 
     # Persist new spells/cantrips from level-up selections
-    if level_up.new_spells:
+    # Rules guardrails:
+    # - Wizard learns exactly 2 spells per wizard level.
+    # - Known casters can only learn net gain for that level.
+    known_caster_progression = {
+        'bard': {1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22},
+        'sorcerer': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 12, 13: 13, 14: 13, 15: 14, 16: 14, 17: 15, 18: 15, 19: 15, 20: 15},
+        'warlock': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10, 11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15},
+        'ranger': {2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7, 12: 7, 13: 8, 14: 8, 15: 9, 16: 9, 17: 10, 18: 10, 19: 11, 20: 11},
+    }
+    new_spells = level_up.new_spells or []
+    if char_class == 'wizard' and len(new_spells) not in (0, 2):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wizard level-up requires exactly 2 new spells.")
+    if char_class in known_caster_progression:
+        table = known_caster_progression[char_class]
+        old_known = table.get(current_level, 0)
+        new_known = table.get(level_up.new_level, old_known)
+        expected_gain = max(0, new_known - old_known)
+        if len(new_spells) not in (0, expected_gain):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{existing.get('character_class')} level-up expects {expected_gain} new spell(s)."
+            )
+
+    if new_spells:
         existing_spells = existing.get('spells_known', [])
-        for spell in level_up.new_spells:
+        for spell in new_spells:
             if not any(s.get('name') == spell.get('name') for s in existing_spells):
                 existing_spells.append(spell)
         update_data['spells_known'] = existing_spells

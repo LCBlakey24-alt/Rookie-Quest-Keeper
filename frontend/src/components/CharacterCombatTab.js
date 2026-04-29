@@ -249,7 +249,7 @@ export default function CharacterCombatTab({
 
   const weaponAttacks = getWeaponAttacks();
   const ac = computeAC();
-  const accent = isGMMode ? '#8A2BE2' : '#4DD0E1';
+  const accent = isGMMode ? '#B8941F' : '#D4AF37';
   const rulesEdition = character?.rules_edition || '2014';
 
   // Attack roll handler - applies condition effects automatically
@@ -297,7 +297,7 @@ export default function CharacterCombatTab({
   };
 
   return (
-    <div data-testid="combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13 }}>
+    <div data-testid="combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, fontFamily: "'Montserrat', sans-serif" }}>
 
       {/* ── Quick Stats + Inspiration ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>

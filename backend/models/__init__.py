@@ -556,6 +556,7 @@ class PlayerCharacter(BaseModel):
     level: int = 1
     experience_points: int = 0
     edition: str = "2014"  # D&D edition: "2014" or "2024"
+    ruleset_id: str = "dnd5e_2014"  # canonical ruleset key
     
     # Ability Scores
     strength: int = 10
@@ -646,6 +647,7 @@ class PlayerCharacterCreate(BaseModel):
     background: str = ""
     level: int = 1
     edition: str = "2014"  # D&D edition: "2014" or "2024"
+    ruleset_id: str = "dnd5e_2014"
     
     # Ability Scores
     strength: int = 10
@@ -694,6 +696,7 @@ class PlayerCharacterUpdate(BaseModel):
     experience_points: Optional[int] = None
     edition: Optional[str] = None  # "2014" or "2024"
     rules_edition: Optional[str] = None  # Alias for edition
+    ruleset_id: Optional[str] = None
     
     # Ability Scores
     strength: Optional[int] = None
@@ -1632,6 +1635,11 @@ class LevelUpRequest(BaseModel):
     # Multiclass
     multiclass: Optional[bool] = None
     new_class: Optional[str] = None
+
+
+class TemplateMatchRequest(BaseModel):
+    ruleset_id: str = "dnd5e_2014"
+    description: str = ""
 
 
 class JournalEntry(BaseModel):
