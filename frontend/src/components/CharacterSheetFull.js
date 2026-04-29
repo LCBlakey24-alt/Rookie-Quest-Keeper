@@ -410,6 +410,9 @@ export default function CharacterSheetFull() {
   const handleTempHpChange = (delta) => {
     const newTempHp = Math.max(0, tempHp + delta);
     setTempHp(newTempHp);
+    axios.patch(`${API}/characters/${characterId}`, { temporary_hit_points: newTempHp }).catch(() => {
+      console.error('Failed to update temporary HP');
+    });
   };
 
   const handleRoll = (action, ability = null) => {

@@ -586,6 +586,18 @@ async def patch_character(
     # Map 'hp' shorthand to 'current_hit_points'
     if 'hp' in filtered:
         filtered['current_hit_points'] = filtered.pop('hp')
+
+    max_hp = existing.get('max_hit_points', 1)
+    if 'current_hit_points' in filtered:
+        filtered['current_hit_points'] = max(0, min(int(filtered['current_hit_points']), int(max_hp)))
+    if 'temporary_hit_points' in filtered:
+        filtered['temporary_hit_points'] = max(0, int(filtered['temporary_hit_points']))
+    if 'death_saves_successes' in filtered:
+        filtered['death_saves_successes'] = max(0, min(3, int(filtered['death_saves_successes'])))
+    if 'death_saves_failures' in filtered:
+        filtered['death_saves_failures'] = max(0, min(3, int(filtered['death_saves_failures'])))
+    if 'exhaustion_level' in filtered:
+        filtered['exhaustion_level'] = max(0, min(6, int(filtered['exhaustion_level'])))
     
     filtered['updated_at'] = datetime.now(timezone.utc).isoformat()
     
