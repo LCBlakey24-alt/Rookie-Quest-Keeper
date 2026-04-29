@@ -15,6 +15,10 @@ import AdminPage from '@/components/AdminPage';
 import LandingPage from '@/components/LandingPage';
 import AccountSettings from '@/components/AccountSettings';
 import CharacterBuilder from '@/components/CharacterBuilder';
+import CharacterCreationModePicker from '@/components/CharacterCreationModePicker';
+import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
+import PremadeCharacterBuilder from '@/components/PremadeCharacterBuilder';
+import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
 import CharacterSheetFull from '@/components/CharacterSheetFull';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
@@ -226,10 +230,14 @@ function App() {
               path="/characters/new" 
               element={
                 isAuthenticated ? 
-                  <CharacterBuilder /> : 
+                  <CharacterCreationModePicker /> : 
                   <Navigate to="/auth" replace />
               } 
             />
+            <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+            <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
+            <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
+            <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
             <Route 
               path="/characters/:characterId" 
               element={

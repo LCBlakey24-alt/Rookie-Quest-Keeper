@@ -243,6 +243,19 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     setStats(prev => ({ ...prev, [a]: clampScore(v) }));
   };
 
+  const handleAssignedScoreChange = (ability, nextValue) => {
+    const value = Number(nextValue);
+    setStats(prev => {
+      const swappedAbility = ABILITIES.find(a => a !== ability && Number(prev[a]) === value);
+      if (!swappedAbility) return { ...prev, [ability]: value };
+      return {
+        ...prev,
+        [ability]: value,
+        [swappedAbility]: prev[ability]
+      };
+    });
+  };
+
   // Step validation
   const canAdvance = () => {
     const id = STEPS[step].id;
@@ -671,15 +684,33 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
               </div>
               <input
                 type="number" min={MIN_ABILITY_SCORE} max={MAX_ABILITY_SCORE}
-                value={base} disabled={method === 'standard'}
+                value={base} disabled={method === 'standard' || method === 'roll'}
                 onChange={e => handleStatChange(ability, e.target.value)}
                 data-testid={`ability-${ability}`}
                 style={{
                   width: '70px', padding: '8px',
                   background: 'rgba(15, 10, 30, 0.8)', border: `1px solid ${theme.border}`,
                   borderRadius: '8px', color: theme.text.primary, fontSize: '20px',
-                  fontWeight: 'bold', textAlign: 'center', outline: 'none'
+                  fontWeight: 'bold', textAlign: 'center', outline: 'none',
+                  display: method === 'point' ? 'block' : 'none'
                 }} />
+              {(method === 'standard' || method === 'roll') && (
+                <select
+                  value={base}
+                  onChange={e => handleAssignedScoreChange(ability, e.target.value)}
+                  data-testid={`ability-assign-${ability}`}
+                  style={{
+                    width: '84px', padding: '8px',
+                    background: 'rgba(15, 10, 30, 0.8)', border: `1px solid ${theme.border}`,
+                    borderRadius: '8px', color: theme.text.primary, fontSize: '18px',
+                    fontWeight: 'bold', textAlign: 'center', outline: 'none'
+                  }}
+                >
+                  {Array.from(new Set(ABILITIES.map(a => Number(stats[a])))).sort((a, b) => b - a).map(score => (
+                    <option key={score} value={score}>{score}</option>
+                  ))}
+                </select>
+              )}
               {bonus !== 0 && (
                 <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px', fontWeight: 600 }}>
                   + {bonus} = {final}

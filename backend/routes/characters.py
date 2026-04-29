@@ -9,7 +9,7 @@ from utils.auth import (
 from models import (
     PlayerCharacter, PlayerCharacterCreate, PlayerCharacterUpdate,
     LevelUpRequest, CampaignJoinRequest, AICharacterGenerateRequest,
-    JournalEntry, JournalEntryCreate, SUBSCRIPTION_PLANS
+    JournalEntry, JournalEntryCreate, SUBSCRIPTION_PLANS, TemplateMatchRequest
 )
 from typing import Optional, Dict, Any, List
 import uuid
@@ -26,6 +26,78 @@ except ImportError:
     EMERGENT_KEY = None
 
 router = APIRouter()
+
+
+def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
+    if explicit_ruleset_id:
+        return explicit_ruleset_id
+    return "dnd5e_2024" if str(edition) == "2024" else "dnd5e_2014"
+
+
+PREMADE_TEMPLATES = [
+    {
+        "id": "fighter_guardian_2014_v1", "ruleset_id": "dnd5e_2014", "name": "Shield Guardian",
+        "character_class": "Fighter", "race": "Human", "background": "Soldier", "complexity": 1,
+        "playstyle_tags": ["tank", "melee", "simple"], "pitch": "A sturdy front-liner who protects allies."
+    },
+    {
+        "id": "wizard_scholar_2014_v1", "ruleset_id": "dnd5e_2014", "name": "Arcane Scholar",
+        "character_class": "Wizard", "race": "High Elf", "background": "Sage", "complexity": 3,
+        "playstyle_tags": ["magic", "control", "utility"], "pitch": "A tactical spellcaster with broad utility."
+    },
+    {
+        "id": "fighter_guardian_2024_v1", "ruleset_id": "dnd5e_2024", "name": "Shield Guardian (2024)",
+        "character_class": "Fighter", "race": "Human", "background": "Guard", "complexity": 1,
+        "playstyle_tags": ["tank", "melee", "simple"], "pitch": "A durable defender built for 2024 rules."
+    },
+    {
+        "id": "wizard_scholar_2024_v1", "ruleset_id": "dnd5e_2024", "name": "Arcane Scholar (2024)",
+        "character_class": "Wizard", "race": "Elf", "background": "Scribe", "complexity": 3,
+        "playstyle_tags": ["magic", "control", "utility"], "pitch": "A flexible 2024 wizard starter template."
+    }
+]
+
+
+
+@router.get("/character-templates")
+async def list_character_templates(ruleset_id: str = "dnd5e_2014"):
+    templates = [t for t in PREMADE_TEMPLATES if t.get("ruleset_id") == ruleset_id]
+    return {"templates": templates, "count": len(templates), "ruleset_id": ruleset_id}
+
+
+@router.post("/character-templates/ai-match")
+async def ai_match_character_template(payload: TemplateMatchRequest):
+    ruleset_id = payload.ruleset_id
+    description = payload.description.lower()
+    candidates = [t for t in PREMADE_TEMPLATES if t.get("ruleset_id") == ruleset_id]
+
+    keywords = {
+        "tank": ["tank", "protect", "defend", "front line"],
+        "magic": ["magic", "spell", "wizard", "cast"],
+        "melee": ["melee", "sword", "close"],
+        "utility": ["utility", "support", "control"],
+        "simple": ["easy", "simple", "beginner"]
+    }
+
+    def score(template):
+        score_value = 0
+        tags = set(template.get("playstyle_tags", []))
+        for tag, keys in keywords.items():
+            if any(k in description for k in keys) and tag in tags:
+                score_value += 2
+        if template.get("complexity") == 1 and any(k in description for k in ["easy", "simple", "beginner"]):
+            score_value += 1
+        return score_value
+
+    ranked = sorted(candidates, key=score, reverse=True)
+    best = ranked[0] if ranked else None
+    alts = ranked[1:3] if len(ranked) > 1 else []
+    return {
+        "ruleset_id": ruleset_id,
+        "best_match": best,
+        "alternatives": alts,
+        "note": "Deterministic template matching (MVP)."
+    }
 
 @router.get("/characters")
 async def get_user_characters(username: str = Depends(get_current_user)):
@@ -67,6 +139,7 @@ async def create_character(
     
     # Validate subclass selection based on edition and level
     edition = getattr(character, 'edition', '2014')
+    ruleset_id = normalize_ruleset_id(edition, getattr(character, 'ruleset_id', ''))
     if character.subclass:
         subclass_unlock_level = get_subclass_unlock_level(character.character_class, edition)
         if character.level < subclass_unlock_level:
@@ -95,9 +168,9 @@ async def create_character(
     
     # Prepare character data, excluding fields that will be calculated or explicitly set
     char_data = character.model_dump()
-    excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class', 
+    excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class',
                        'spells_known', 'spells_prepared', 'cantrips_known', 'feats', 'edition',
-                       'portrait_url', 'campaign_id']
+                       'portrait_url', 'campaign_id', 'ruleset_id']
     char_data = {k: v for k, v in char_data.items() if k not in excluded_fields}
     
     # Normalize spell/cantrip inputs - ensure they are in object format
@@ -137,7 +210,8 @@ async def create_character(
         feats=character.feats or [],
         edition=edition,
         portrait_url=character.portrait_url or '',
-        spellcasting_ability=spellcasting_ability
+        spellcasting_ability=spellcasting_ability,
+        ruleset_id=ruleset_id
     )
     
     await db.player_characters.insert_one(new_character.model_dump())
@@ -190,6 +264,12 @@ async def update_character(
         )
     
     # Validate subclass selection based on edition and level
+    if 'rules_edition' in update_data and update_data['rules_edition'] and 'edition' not in update_data:
+        update_data['edition'] = update_data['rules_edition']
+
+    if 'edition' in update_data and 'ruleset_id' not in update_data:
+        update_data['ruleset_id'] = normalize_ruleset_id(update_data['edition'])
+
     if 'subclass' in update_data and update_data['subclass']:
         edition = existing.get('edition', '2014')
         character_class = update_data.get('character_class', existing.get('character_class'))
@@ -359,6 +439,43 @@ async def level_up_character(
     update_data['asi_increases'] = asi_increases
     
     # Calculate spell slots for spellcasters
+    def get_spell_slot_progression(caster_class: str, level: int) -> Dict[str, int]:
+        if not caster_class:
+            return {}
+        caster_class = caster_class.lower()
+        # Full caster spell slots table (level -> slots per spell level)
+        full_caster_slots = {
+            1: {1: 2}, 2: {1: 3}, 3: {1: 4, 2: 2}, 4: {1: 4, 2: 3},
+            5: {1: 4, 2: 3, 3: 2}, 6: {1: 4, 2: 3, 3: 3}, 7: {1: 4, 2: 3, 3: 3, 4: 1},
+            8: {1: 4, 2: 3, 3: 3, 4: 2}, 9: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1},
+            10: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}, 11: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1},
+            12: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1}, 13: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1},
+            14: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1}, 15: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1},
+            16: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1},
+            18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1},
+            20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}
+        }
+        half_caster_slots = {
+            2: {1: 2}, 3: {1: 3}, 4: {1: 3}, 5: {1: 4, 2: 2}, 6: {1: 4, 2: 2}, 7: {1: 4, 2: 3},
+            8: {1: 4, 2: 3}, 9: {1: 4, 2: 3, 3: 2}, 10: {1: 4, 2: 3, 3: 2}, 11: {1: 4, 2: 3, 3: 3},
+            12: {1: 4, 2: 3, 3: 3}, 13: {1: 4, 2: 3, 3: 3, 4: 1}, 14: {1: 4, 2: 3, 3: 3, 4: 1},
+            15: {1: 4, 2: 3, 3: 3, 4: 2}, 16: {1: 4, 2: 3, 3: 3, 4: 2}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1},
+            18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}, 20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}
+        }
+        warlock_slots = {
+            1: {1: 1}, 2: {1: 2}, 3: {2: 2}, 4: {2: 2}, 5: {3: 2}, 6: {3: 2}, 7: {4: 2}, 8: {4: 2},
+            9: {5: 2}, 10: {5: 2}, 11: {5: 3}, 12: {5: 3}, 13: {5: 3}, 14: {5: 3}, 15: {5: 3},
+            16: {5: 3}, 17: {5: 4}, 18: {5: 4}, 19: {5: 4}, 20: {5: 4}
+        }
+        if caster_class in {'bard', 'cleric', 'druid', 'sorcerer', 'wizard'}:
+            slots = full_caster_slots.get(level, {})
+        elif caster_class in {'paladin', 'ranger'}:
+            slots = half_caster_slots.get(level, {})
+        elif caster_class == 'warlock':
+            slots = warlock_slots.get(level, {})
+        else:
+            slots = {}
+        return {str(k): int(v) for k, v in slots.items()}
     spellcaster_config = {
         'bard': {'ability': 'charisma', 'type': 'full'},
         'cleric': {'ability': 'wisdom', 'type': 'full'},
@@ -374,49 +491,37 @@ async def level_up_character(
         config = spellcaster_config[char_class]
         update_data['spellcasting_ability'] = config['ability']
         
-        # Full caster spell slots table (level -> slots per spell level)
-        full_caster_slots = {
-            1: {1: 2}, 2: {1: 3}, 3: {1: 4, 2: 2}, 4: {1: 4, 2: 3},
-            5: {1: 4, 2: 3, 3: 2}, 6: {1: 4, 2: 3, 3: 3}, 7: {1: 4, 2: 3, 3: 3, 4: 1},
-            8: {1: 4, 2: 3, 3: 3, 4: 2}, 9: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1},
-            10: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}, 11: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1},
-            12: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1}, 13: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1},
-            14: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1}, 15: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1},
-            16: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1},
-            18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1},
-            20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1}
-        }
-        
-        # Half caster spell slots (paladin/ranger) - use half level (round down) for slot table
-        half_caster_slots = {
-            2: {1: 2}, 3: {1: 3}, 4: {1: 3}, 5: {1: 4, 2: 2}, 6: {1: 4, 2: 2}, 7: {1: 4, 2: 3},
-            8: {1: 4, 2: 3}, 9: {1: 4, 2: 3, 3: 2}, 10: {1: 4, 2: 3, 3: 2}, 11: {1: 4, 2: 3, 3: 3},
-            12: {1: 4, 2: 3, 3: 3}, 13: {1: 4, 2: 3, 3: 3, 4: 1}, 14: {1: 4, 2: 3, 3: 3, 4: 1},
-            15: {1: 4, 2: 3, 3: 3, 4: 2}, 16: {1: 4, 2: 3, 3: 3, 4: 2}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1},
-            18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}, 20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}
-        }
-        
-        # Warlock pact magic slots (all same level, limited slots)
-        warlock_slots = {
-            1: {1: 1}, 2: {1: 2}, 3: {2: 2}, 4: {2: 2}, 5: {3: 2}, 6: {3: 2}, 7: {4: 2}, 8: {4: 2},
-            9: {5: 2}, 10: {5: 2}, 11: {5: 3}, 12: {5: 3}, 13: {5: 3}, 14: {5: 3}, 15: {5: 3},
-            16: {5: 3}, 17: {5: 4}, 18: {5: 4}, 19: {5: 4}, 20: {5: 4}
-        }
-        
-        slot_table = full_caster_slots if config['type'] == 'full' else (warlock_slots if config['type'] == 'pact' else half_caster_slots)
-        
-        # Get slots for current level
-        if level_up.new_level in slot_table:
-            slots = slot_table[level_up.new_level]
-            for spell_level, num_slots in slots.items():
-                update_data[f'spell_slots_{spell_level}'] = num_slots
-                # Reset used slots on level up (restore all)
-                update_data[f'spell_slots_{spell_level}_used'] = 0
+        slots = get_spell_slot_progression(char_class, level_up.new_level)
+        update_data['spell_slots'] = slots
+        update_data['spell_slots_remaining'] = slots.copy()
 
     # Persist new spells/cantrips from level-up selections
-    if level_up.new_spells:
+    # Rules guardrails:
+    # - Wizard learns exactly 2 spells per wizard level.
+    # - Known casters can only learn net gain for that level.
+    known_caster_progression = {
+        'bard': {1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22},
+        'sorcerer': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 12, 13: 13, 14: 13, 15: 14, 16: 14, 17: 15, 18: 15, 19: 15, 20: 15},
+        'warlock': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10, 11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15},
+        'ranger': {2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7, 12: 7, 13: 8, 14: 8, 15: 9, 16: 9, 17: 10, 18: 10, 19: 11, 20: 11},
+    }
+    new_spells = level_up.new_spells or []
+    if char_class == 'wizard' and len(new_spells) not in (0, 2):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wizard level-up requires exactly 2 new spells.")
+    if char_class in known_caster_progression:
+        table = known_caster_progression[char_class]
+        old_known = table.get(current_level, 0)
+        new_known = table.get(level_up.new_level, old_known)
+        expected_gain = max(0, new_known - old_known)
+        if len(new_spells) not in (0, expected_gain):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{existing.get('character_class')} level-up expects {expected_gain} new spell(s)."
+            )
+
+    if new_spells:
         existing_spells = existing.get('spells_known', [])
-        for spell in level_up.new_spells:
+        for spell in new_spells:
             if not any(s.get('name') == spell.get('name') for s in existing_spells):
                 existing_spells.append(spell)
         update_data['spells_known'] = existing_spells
@@ -468,6 +573,72 @@ async def level_up_character(
     }
 
 
+@router.get("/characters/{character_id}/level-up-options")
+async def get_level_up_options(
+    character_id: str,
+    target_level: int,
+    username: str = Depends(get_current_user)
+):
+    existing = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character not found")
+    current_level = existing.get('level', 1)
+    if target_level != current_level + 1:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Target level must be {current_level + 1}")
+    char_class = (existing.get('character_class') or '').lower()
+    asi_levels = [4, 8, 12, 16, 19]
+    if char_class == 'fighter':
+        asi_levels.extend([6, 14])
+    elif char_class == 'rogue':
+        asi_levels.append(10)
+    is_asi_level = target_level in asi_levels
+    spellcaster_classes = {'bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard'}
+    known_caster_progression = {
+        'bard': {1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22},
+        'sorcerer': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 12, 13: 13, 14: 13, 15: 14, 16: 14, 17: 15, 18: 15, 19: 15, 20: 15},
+        'warlock': {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10, 11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15},
+        'ranger': {2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7, 12: 7, 13: 8, 14: 8, 15: 9, 16: 9, 17: 10, 18: 10, 19: 11, 20: 11},
+    }
+    cantrip_progression = {
+        'bard': {1: 2, 4: 3, 10: 4},
+        'cleric': {1: 3, 4: 4, 10: 5},
+        'druid': {1: 2, 4: 3, 10: 4},
+        'sorcerer': {1: 4, 4: 5, 10: 6},
+        'warlock': {1: 2, 4: 3, 10: 4},
+        'wizard': {1: 3, 4: 4, 10: 5},
+    }
+    spell_learn_count = 0
+    if char_class == 'wizard':
+        spell_learn_count = 2
+    elif char_class in known_caster_progression:
+        old_count = known_caster_progression[char_class].get(current_level, 0)
+        new_count = known_caster_progression[char_class].get(target_level, old_count)
+        spell_learn_count = max(0, new_count - old_count)
+    cantrip_gain = 0
+    if char_class in cantrip_progression:
+        prog = cantrip_progression[char_class]
+        old_cantrip = max([v for k, v in prog.items() if k <= current_level], default=0)
+        new_cantrip = max([v for k, v in prog.items() if k <= target_level], default=old_cantrip)
+        cantrip_gain = max(0, new_cantrip - old_cantrip)
+    subclass_unlock_level = get_subclass_unlock_level(existing.get('character_class', ''), existing.get('edition', '2014'))
+    subclass_choice_available = current_level < subclass_unlock_level <= target_level and not existing.get('subclass')
+    return {
+        "character_id": character_id,
+        "current_level": current_level,
+        "target_level": target_level,
+        "is_asi_level": is_asi_level,
+        "asi_or_feat_required": is_asi_level,
+        "is_spellcaster": char_class in spellcaster_classes,
+        "spell_learn_count": spell_learn_count,
+        "cantrip_gain": cantrip_gain,
+        "subclass_unlock_level": subclass_unlock_level,
+        "subclass_choice_available": subclass_choice_available,
+        "valid_choice_types": ["asi", "feat"] if is_asi_level else ["standard"],
+        "class_name": existing.get('character_class', ''),
+        "ruleset_id": existing.get('ruleset_id', 'dnd5e_2014')
+    }
+
+
 @router.delete("/characters/{character_id}")
 async def delete_character(
     character_id: str,
@@ -503,7 +674,7 @@ async def patch_character(
     allowed = {
         'hp', 'current_hit_points', 'max_hit_points', 'temporary_hit_points',
         'hit_dice_remaining', 'death_saves_successes', 'death_saves_failures',
-        'conditions', 'inspiration', 'concentrating_on', 'used_spell_slots',
+        'conditions', 'inspiration', 'concentrating_on',
         'resources', 'notes', 'equipped', 'equipment', 'inventory',
         'armor_class', 'speed', 'currency', 'gold', 'attuned_items',
         'exhaustion_level', 'backstory',
@@ -515,6 +686,18 @@ async def patch_character(
     # Map 'hp' shorthand to 'current_hit_points'
     if 'hp' in filtered:
         filtered['current_hit_points'] = filtered.pop('hp')
+
+    max_hp = existing.get('max_hit_points', 1)
+    if 'current_hit_points' in filtered:
+        filtered['current_hit_points'] = max(0, min(int(filtered['current_hit_points']), int(max_hp)))
+    if 'temporary_hit_points' in filtered:
+        filtered['temporary_hit_points'] = max(0, int(filtered['temporary_hit_points']))
+    if 'death_saves_successes' in filtered:
+        filtered['death_saves_successes'] = max(0, min(3, int(filtered['death_saves_successes'])))
+    if 'death_saves_failures' in filtered:
+        filtered['death_saves_failures'] = max(0, min(3, int(filtered['death_saves_failures'])))
+    if 'exhaustion_level' in filtered:
+        filtered['exhaustion_level'] = max(0, min(6, int(filtered['exhaustion_level'])))
     
     filtered['updated_at'] = datetime.now(timezone.utc).isoformat()
     

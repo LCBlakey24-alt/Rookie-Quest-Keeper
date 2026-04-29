@@ -23,13 +23,13 @@ import { getConditionRollEffect, getConditionIndicator } from '../data/condition
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Theme - Electric Tundra (Player Mode)
+// Simplified theme (performance-first): dark blue + gold accents
 const theme = {
-  bg: { primary: '#050A30', surface: '#0A1140', elevated: '#0C1650' },
-  accent: { primary: '#4DD0E1', secondary: '#0066FF', highlight: '#00CED1' },
-  text: { primary: '#F0F8FF', secondary: '#9EB0D0', muted: '#6B7B9B' },
-  border: 'rgba(77, 208, 225, 0.3)',
-  glow: '0 0 20px rgba(77, 208, 225, 0.3)'
+  bg: { primary: '#0B1E3A', surface: '#10264A', elevated: '#15325F' },
+  accent: { primary: '#D4AF37', secondary: '#B8941F', highlight: '#F1D77A' },
+  text: { primary: '#F4F7FB', secondary: '#C7D3E3', muted: '#8EA0B8' },
+  border: 'rgba(212, 175, 55, 0.45)',
+  glow: 'none'
 };
 
 const getModifier = (score) => Math.floor((score - 10) / 2);
@@ -410,6 +410,9 @@ export default function CharacterSheetFull() {
   const handleTempHpChange = (delta) => {
     const newTempHp = Math.max(0, tempHp + delta);
     setTempHp(newTempHp);
+    axios.patch(`${API}/characters/${characterId}`, { temporary_hit_points: newTempHp }).catch(() => {
+      console.error('Failed to update temporary HP');
+    });
   };
 
   const handleRoll = (action, ability = null) => {
@@ -464,55 +467,34 @@ export default function CharacterSheetFull() {
   // Styles - Electric Tundra (Player Mode)
   const pageStyle = {
     minHeight: '100vh',
-    background: '#050A30',
+    background: theme.bg.primary,
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    fontFamily: "'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
   };
 
-  // Background gradient overlay - black at top, blue/cyan glow at bottom
+  // Minimal background (removed expensive gradients/glows)
   const bgOverlayStyle = {
     position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    background: `
-      linear-gradient(180deg, 
-        rgba(5, 10, 48, 1) 0%, 
-        rgba(5, 10, 48, 0.95) 40%, 
-        rgba(0, 102, 255, 0.15) 70%,
-        rgba(77, 208, 225, 0.12) 100%
-      )
-    `,
+    background: theme.bg.primary,
     pointerEvents: 'none',
     zIndex: 0
   };
 
-  // Subtle corner glows
   const bottomLeftGlow = {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    width: '50%',
-    height: '50%',
-    background: 'radial-gradient(ellipse at 0% 100%, rgba(0, 102, 255, 0.1) 0%, transparent 60%)',
-    pointerEvents: 'none',
-    zIndex: 0
+    display: 'none'
   };
 
   const bottomRightGlow = {
-    position: 'fixed',
-    bottom: 0,
-    right: 0,
-    width: '50%',
-    height: '50%',
-    background: 'radial-gradient(ellipse at 100% 100%, rgba(77, 208, 225, 0.08) 0%, transparent 60%)',
-    pointerEvents: 'none',
-    zIndex: 0
+    display: 'none'
   };
 
   const panelStyle = {
@@ -562,8 +544,8 @@ export default function CharacterSheetFull() {
     return (
       <div style={pageStyle}>
         <div style={{ ...panelStyle, textAlign: 'center', padding: '60px', margin: 'auto' }}>
-          <h2 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '16px' }}>Character Not Found</h2>
-          <button onClick={() => navigate('/home')} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer' }}>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.text.primary, marginBottom: '16px' }}>Character Not Found</h2>
+          <button onClick={() => navigate('/home')} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #B8941F, #D4AF37)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer' }}>
             Back to Dashboard
           </button>
         </div>
@@ -590,12 +572,12 @@ export default function CharacterSheetFull() {
           {character.portrait_url ? (
             <img src={character.portrait_url} alt="" style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent.primary}`, boxShadow: theme.glow }} onError={e => { e.target.style.display = 'none'; }} />
           ) : (
-            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #B8941F, #D4AF37)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <User size={24} color="#fff" />
             </div>
           )}
           <div style={{ textAlign: 'left' }}>
-            <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.3rem', margin: 0, background: 'linear-gradient(135deg, #0066FF, #4DD0E1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '1.3rem', margin: 0, color: theme.accent.primary }}>
               {character.name}
             </h1>
             <div style={{ color: theme.text.secondary, fontSize: '12px' }}>
@@ -683,7 +665,7 @@ export default function CharacterSheetFull() {
         
         {/* LEFT COLUMN: Abilities + Saving Throws */}
         <div className="card-hover" style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.primary, marginBottom: '6px', fontSize: '0.85rem', flexShrink: 0 }}>Ability Scores</h3>
+          <h3 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.accent.primary, marginBottom: '6px', fontSize: '0.85rem', flexShrink: 0 }}>Ability Scores</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SAVING_THROWS.map((ability) => {
@@ -712,7 +694,7 @@ export default function CharacterSheetFull() {
                     }}
                     style={{
                       width: '100%', padding: '4px 6px',
-                      background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(77, 208, 225, 0.1)',
+                      background: isProficient ? 'rgba(245, 158, 11, 0.2)' : 'rgba(212, 175, 55, 0.12)',
                       border: `1px solid ${isProficient ? 'rgba(245, 158, 11, 0.4)' : theme.border}`,
                       borderRadius: '5px', color: isProficient ? theme.accent.highlight : theme.text.secondary,
                       fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -740,7 +722,7 @@ export default function CharacterSheetFull() {
 
         {/* MIDDLE COLUMN: Skills */}
         <div style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.secondary, marginBottom: '4px', fontSize: '0.85rem', flexShrink: 0 }}>Skills</h3>
+          <h3 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.accent.secondary, marginBottom: '4px', fontSize: '0.85rem', flexShrink: 0 }}>Skills</h3>
           
           <div style={{ ...scrollBoxStyle, flex: 1 }}>
             {SKILLS.map(skill => {
@@ -791,7 +773,7 @@ export default function CharacterSheetFull() {
                   flex: '1 1 auto',
                   minWidth: '80px',
                   padding: '12px 16px',
-                  background: activeTab === tab ? 'linear-gradient(135deg, #0066FF, #4DD0E1)' : 'rgba(77, 208, 225, 0.1)',
+                  background: activeTab === tab ? 'linear-gradient(135deg, #B8941F, #D4AF37)' : 'rgba(212, 175, 55, 0.12)',
                   border: activeTab === tab ? 'none' : `1px solid ${theme.border}`,
                   borderRadius: '10px',
                   color: theme.text.primary,
@@ -870,7 +852,7 @@ export default function CharacterSheetFull() {
               <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Character Notes Section */}
                 <div>
-                  <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.text.primary, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <BookOpen size={18} style={{ color: theme.accent.primary }} />
                     Character Notes
                   </h4>
@@ -891,7 +873,7 @@ export default function CharacterSheetFull() {
                 {/* GM Synced Notes Section */}
                 {character.gm_notes && character.gm_notes.length > 0 && (
                   <div>
-                    <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.accent.highlight, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h4 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.accent.highlight, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} style={{ color: theme.accent.highlight }} />
                       GM Updates
                     </h4>
@@ -925,7 +907,7 @@ export default function CharacterSheetFull() {
                   <div style={{ 
                     marginTop: 'auto',
                     padding: '12px 16px',
-                    background: 'rgba(77, 208, 225, 0.1)',
+                    background: 'rgba(212, 175, 55, 0.12)',
                     border: '1px solid rgba(77, 208, 225, 0.2)',
                     borderRadius: '8px',
                     fontSize: '13px',
@@ -1027,7 +1009,7 @@ function BackstoryTab({ character, characterId, theme, onUpdateCharacter }) {
 
   return (
     <div data-testid="backstory-tab" style={{ ...panelStyle, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', padding: '12px' }}>
-      <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <h4 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.text.primary, margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <User size={16} color={theme.accent.primary} /> Character Backstory
       </h4>
       {fields.map(f => (

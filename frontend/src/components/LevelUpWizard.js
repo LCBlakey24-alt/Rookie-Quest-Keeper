@@ -43,6 +43,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [selectedFightingStyle, setSelectedFightingStyle] = useState(null);
   const [selectedSubclass, setSelectedSubclass] = useState(null);
   const [selectedManeuvers, setSelectedManeuvers] = useState([]);
+  const [preflight, setPreflight] = useState(null);
 
   const currentLevel = character?.level || 1;
   const newLevel = currentLevel + 1;
@@ -182,6 +183,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !character?.id) return;
+    axios.get(`${API}/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
+      .then(res => setPreflight(res.data))
+      .catch(() => setPreflight(null));
+  }, [isOpen, character?.id, newLevel]);
+
   const rollHitDie = () => {
     const roll = Math.floor(Math.random() * hitDie) + 1;
     setHpRoll(roll);
@@ -247,7 +255,10 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           requestData.asi_choices = asiChoices;
         } else if (choiceType === 'feat') {
           requestData.choice_type = 'feat';
-          requestData.feat_name = selectedFeat?.name;
+          requestData.feat_choice = {
+            name: selectedFeat?.name || 'Feat',
+            description: selectedFeat?.description || ''
+          };
         }
       }
 
@@ -275,6 +286,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       }
 
       // Use different endpoint for multiclassing
+      if (preflight?.target_level && preflight.target_level !== newLevel) {
+        toast.error('Level-up preflight mismatch. Please reopen level up.');
+        setLoading(false);
+        return;
+      }
       const endpoint = isMulticlassing && multiclassClass 
         ? `${API}/characters/${character.id}/multiclass`
         : `${API}/characters/${character.id}/level-up`;

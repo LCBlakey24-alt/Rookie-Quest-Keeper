@@ -101,7 +101,15 @@ export default function CharacterCombatTab({
     return SPELL_SLOTS[level] || {};
   }, [charClass, level, classInfo]);
 
-  const [usedSlots, setUsedSlots] = useState(character?.used_spell_slots || {});
+  const [usedSlots, setUsedSlots] = useState(() => {
+    const remaining = character?.spell_slots_remaining || {};
+    const used = {};
+    Object.entries(spellSlots || {}).forEach(([lvl, count]) => {
+      const remain = Number(remaining[lvl] ?? count);
+      used[lvl] = Math.max(0, Number(count) - remain);
+    });
+    return used;
+  });
 
   function toggleSlot(slotLevel, index) {
     setUsedSlots(prev => {
@@ -110,8 +118,12 @@ export default function CharacterCombatTab({
       const isUsed = used > index;
       const newVal = isUsed ? used - 1 : used + 1;
       const updated = { ...prev, [key]: newVal };
-      // Persist to character
-      onUpdateCharacter?.({ used_spell_slots: updated });
+      const remaining = {};
+      Object.entries(spellSlots || {}).forEach(([lvl, count]) => {
+        const usedCount = updated[lvl] || 0;
+        remaining[lvl] = Math.max(0, Number(count) - usedCount);
+      });
+      onUpdateCharacter?.({ spell_slots_remaining: remaining });
       return updated;
     });
   }
@@ -249,7 +261,7 @@ export default function CharacterCombatTab({
 
   const weaponAttacks = getWeaponAttacks();
   const ac = computeAC();
-  const accent = isGMMode ? '#8A2BE2' : '#4DD0E1';
+  const accent = isGMMode ? '#B8941F' : '#D4AF37';
   const rulesEdition = character?.rules_edition || '2014';
 
   // Attack roll handler - applies condition effects automatically
@@ -286,8 +298,9 @@ export default function CharacterCombatTab({
     setHpInput('');
   };
   const handleTempHp = (delta) => {
-    const newTemp = Math.max(0, (character?.temp_hit_points || 0) + delta);
-    onUpdateCharacter?.({ temp_hit_points: newTemp });
+    const currentTemp = character?.temporary_hit_points || 0;
+    const newTemp = Math.max(0, currentTemp + delta);
+    onUpdateCharacter?.({ temporary_hit_points: newTemp });
   };
   // Exhaustion management
   const handleExhaustion = (newLevel) => {
@@ -297,7 +310,7 @@ export default function CharacterCombatTab({
   };
 
   return (
-    <div data-testid="combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13 }}>
+    <div data-testid="combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, fontFamily: "'Montserrat', sans-serif" }}>
 
       {/* ── Quick Stats + Inspiration ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -370,7 +383,7 @@ export default function CharacterCombatTab({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px', background: 'rgba(59,130,246,0.06)', borderRadius: 6 }}>
           <span style={{ fontSize: 10, color: '#3B82F6', fontWeight: 600 }}>TEMP HP</span>
           <button onClick={() => handleTempHp(-1)} style={{ padding: '1px 6px', background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>-</button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: (character?.temp_hit_points || 0) > 0 ? '#3B82F6' : '#6B7280', minWidth: 20, textAlign: 'center' }}>{character?.temp_hit_points || 0}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: (character?.temporary_hit_points || 0) > 0 ? '#3B82F6' : '#6B7280', minWidth: 20, textAlign: 'center' }}>{character?.temporary_hit_points || 0}</span>
           <button onClick={() => handleTempHp(1)} style={{ padding: '1px 6px', background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>+</button>
         </div>
       </div>
