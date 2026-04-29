@@ -27,6 +27,12 @@ except ImportError:
 
 router = APIRouter()
 
+
+def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
+    if explicit_ruleset_id:
+        return explicit_ruleset_id
+    return "dnd5e_2024" if str(edition) == "2024" else "dnd5e_2014"
+
 @router.get("/characters")
 async def get_user_characters(username: str = Depends(get_current_user)):
     """Get all characters owned by the current user"""
@@ -67,6 +73,7 @@ async def create_character(
     
     # Validate subclass selection based on edition and level
     edition = getattr(character, 'edition', '2014')
+    ruleset_id = normalize_ruleset_id(edition, getattr(character, 'ruleset_id', ''))
     if character.subclass:
         subclass_unlock_level = get_subclass_unlock_level(character.character_class, edition)
         if character.level < subclass_unlock_level:
@@ -137,7 +144,8 @@ async def create_character(
         feats=character.feats or [],
         edition=edition,
         portrait_url=character.portrait_url or '',
-        spellcasting_ability=spellcasting_ability
+        spellcasting_ability=spellcasting_ability,
+        ruleset_id=ruleset_id
     )
     
     await db.player_characters.insert_one(new_character.model_dump())
@@ -190,6 +198,12 @@ async def update_character(
         )
     
     # Validate subclass selection based on edition and level
+    if 'rules_edition' in update_data and update_data['rules_edition'] and 'edition' not in update_data:
+        update_data['edition'] = update_data['rules_edition']
+
+    if 'edition' in update_data and 'ruleset_id' not in update_data:
+        update_data['ruleset_id'] = normalize_ruleset_id(update_data['edition'])
+
     if 'subclass' in update_data and update_data['subclass']:
         edition = existing.get('edition', '2014')
         character_class = update_data.get('character_class', existing.get('character_class'))
