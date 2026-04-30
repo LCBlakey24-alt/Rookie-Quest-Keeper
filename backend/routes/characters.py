@@ -578,6 +578,9 @@ async def patch_character(
         'resources', 'notes', 'equipped', 'equipment', 'inventory',
         'armor_class', 'speed', 'currency', 'gold', 'attuned_items',
         'exhaustion_level', 'backstory',
+        # Spell management (Learn Spell / Prepare Spell on sheet)
+        'cantrips_known', 'spells_known', 'spells_prepared',
+        'used_spell_slots',
     }
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:

@@ -445,11 +445,16 @@ export default function CharacterSheetFull() {
 
   // Resource & Rest handlers
   const handleUpdateCharacter = async (updates) => {
+    const prevSnapshot = character;
     setCharacter(prev => prev ? { ...prev, ...updates } : prev);
     try {
       await axios.patch(`${API}/characters/${characterId}`, updates);
     } catch (err) {
       console.error('Failed to persist character update:', err);
+      // Roll back optimistic update so UI matches server
+      setCharacter(prevSnapshot);
+      // Rethrow so callers (e.g. Learn Spell) can show real error toasts
+      throw err;
     }
   };
 

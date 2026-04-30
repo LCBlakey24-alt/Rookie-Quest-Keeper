@@ -76,7 +76,11 @@ Immersive SRD-5.1-compliant TTRPG app with GM tools + a Player experience that m
 - Production login / password reset (hosting config)
 
 ## Test iterations
-77, 78, 79, 80, 81 (Block B 14/14 backend pass + smoke), Phase 18 self-verified (Learn modal + exhaustion PATCH curl + multiclass display)
+77, 78, 79, 80, 81 (Block B 14/14 backend pass + smoke), 82 (Phase 18 — **critical Learn Spell persistence bug found and fixed**: added cantrips_known/spells_known/spells_prepared/used_spell_slots to PATCH whitelist in routes/characters.py; handleUpdateCharacter now rethrows + rolls back optimistic state on failure)
+
+## Phase 19 — Post-test Fixes (Apr 30)
+- **Learn Spell persistence bug** (from iteration 82): backend PATCH whitelist now accepts `cantrips_known`, `spells_known`, `spells_prepared`, `used_spell_slots`. Frontend `handleUpdateCharacter` rethrows errors and rolls back optimistic state so callers can show real toasts.
+- Verified end-to-end: Learn Fire Bolt → reload → UI shows CANTRIPS (1) Fire Bolt, API confirms persistence.
 
 ---
 *Last updated: April 30, 2026*
