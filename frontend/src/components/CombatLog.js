@@ -11,6 +11,13 @@ const ICONS = {
   roll: ScrollText,
 };
 
+// Emoji prefix map used by the Session Recap share feature (kept module-level
+// for perf — a single immutable object reused across renders).
+const ICONS_TXT = {
+  attack: '⚔', damage: '💥', heal: '💚', spell: '✨',
+  rest: '🌙', condition: '🛡', roll: '🎲',
+};
+
 const COLORS = {
   attack: '#F87171',
   damage: '#EF4444',
@@ -58,10 +65,6 @@ export default function CombatLog({ entries = [], onClear, theme, characterName 
    *   💥 14:24 — Took 7 damage
    *   ...
    */
-  const ICONS_TXT = {
-    attack: '⚔', damage: '💥', heal: '💚', spell: '✨',
-    rest: '🌙', condition: '🛡', roll: '🎲',
-  };
   const handleShareRecap = () => {
     if (entries.length === 0) return;
     const fmt = (ts) => {

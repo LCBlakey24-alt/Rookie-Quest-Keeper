@@ -129,8 +129,18 @@ Continued audit polish — heavier touch on character sheet + GM + Live Session:
 
 **Tests**: backend 6/6 (login + character GET + partial PATCH + 3 maps endpoints all 200). Frontend 8/8 critical flows verified (skill ○ icons, prepared-spells warning hidden correctly, GM sidebar persistence, dice panel persistence, MapMaker file deleted with no orphan refs, Iter 85 regression). See `/app/test_reports/iteration_86.json`.
 
+## Phase 27 — Audit Fixes Batch 3 + Session Recap P2 (Apr 30 / Iter 87)
+Ambitious batch — builder, admin, combat polish + first shipped P2 feature:
+- **Character Builder live preview + progress**: new 2-column layout (wizard panel + sticky preview on the right). Preview shows name, race/subrace, class/subclass, edition + background, ability-score grid with modifiers, selected-skills/cantrip/spell counts, and origin feat. Progress bar shows `STEP X OF N` + live percentage — updates on every Next/Previous.
+- **AdminPage testids**: all 4 stat boxes now carry `admin-stat-users / -codes / -referrals / -reviews` for testing stability.
+- **CombatPage — drag-to-reorder initiative**: HTML5 native drag (no library) — drag any initiative card into a new slot; toast confirms "Initiative reordered"; opacity 0.4 on the dragged card.
+- **CombatPage — Concentration save prompt**: when a combatant with `concentrating_on` takes damage, a long-duration warning toast fires with `DC = max(10, floor(damage/2))` — standard 5e RAW.
+- **[P2 SHIPPED] Session Recap Sharing**: `SHARE RECAP` button in the Combat Log copies a Discord/Slack-friendly markdown summary (`**Session Recap — {characterName}**` + emoji-prefixed entry lines ⚔/💥/💚/✨/🌙/🛡/🎲) to the clipboard via `navigator.clipboard.writeText`. `window.prompt` fallback for locked-down browsers. `rook:toast` CustomEvent + sonner listener shows "Recap copied" confirmation.
+
+**Tests**: backend 4/4 (auth, character GET/PATCH round-trip, campaign GET). Frontend 9/9 (builder-progress + live-preview, 4 admin testids, regression for search + pill + skill icons + condition toggles, code review for drag-drop + concentration + share recap). See `/app/test_reports/iteration_87.json` + `/app/backend/tests/test_iter87_audit_batch3.py`.
+
 ## Test iterations
-77, 78, 79, 80, 81, 82, 83, 84, 85, 86 (Phase 26 — 100% backend, 100% frontend audit batch 2)
+77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87 (Phase 27 — 100% backend, 100% frontend audit batch 3 + P2 Recap)
 
 ---
 *Last updated: April 30, 2026*
