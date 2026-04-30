@@ -44,16 +44,29 @@ export default function PremadeCharacterBuilder() {
     if (!name.trim()) return toast.error('Enter character name first');
     setCreatingTemplateId(template.id);
     try {
+      // Fetch full template details (with stats, skills, spells, etc.)
+      const { data: full } = await axios.get(`${API_BASE}/character-templates/${template.id}`);
+      const abilities = full.ability_scores || {};
       const payload = {
         name: name.trim(),
-        race: template.race,
-        character_class: template.character_class,
-        background: template.background || '',
+        race: full.race || template.race,
+        subrace: full.subrace || '',
+        character_class: full.character_class || template.character_class,
+        subclass: full.subclass || '',
+        background: full.background || template.background || '',
         level: 1,
-        alignment: 'Neutral',
+        alignment: full.alignment || 'Neutral',
         edition,
         ruleset_id: rulesetId,
-        strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8
+        strength: abilities.strength ?? 10,
+        dexterity: abilities.dexterity ?? 10,
+        constitution: abilities.constitution ?? 10,
+        intelligence: abilities.intelligence ?? 10,
+        wisdom: abilities.wisdom ?? 10,
+        charisma: abilities.charisma ?? 10,
+        skill_proficiencies: full.skill_proficiencies || [],
+        spells_known: (full.spells_known || []).map(s => typeof s === 'string' ? { name: s } : s),
+        cantrips_known: (full.cantrips_known || []).map(s => typeof s === 'string' ? { name: s } : s),
       };
       const res = await axios.post(`${API_BASE}/characters`, payload);
       toast.success('Premade character created');

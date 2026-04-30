@@ -89,6 +89,21 @@ const loadDraft = () => {
 
 const ALIGNMENTS = ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'];
 
+// Standard SRD 5e language menu for "one of your choice" options
+const EXTRA_LANGUAGE_OPTIONS = [
+  'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
+  'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon'
+];
+
+// Classes that choose subclass at L1 in 2014 rules
+const SUBCLASS_AT_L1_2014 = new Set(['Cleric', 'Sorcerer', 'Warlock']);
+
+// Count of "floating" extra languages a race grants ("One of choice" strings)
+const countLanguageChoices = (raceData) => {
+  if (!raceData?.languages) return 0;
+  return raceData.languages.filter(l => String(l).toLowerCase().includes('choice') || String(l).toLowerCase().includes('additional')).length;
+};
+
 export default function CharacterBuilder({ onCreateCharacter, editMode = false }) {
   const navigate = useNavigate();
   const { characterId } = useParams();
@@ -109,6 +124,8 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const [edition, setEdition] = useState(initialState.edition || "2014");
   const [stats, setStats] = useState(initialState.stats);
   const [selectedSkills, setSelectedSkills] = useState(initialState.selectedSkills || []);
+  const [floatingAsi, setFloatingAsi] = useState(initialState.floatingAsi || {}); // { strength: 1, dexterity: 1 }
+  const [chosenLanguages, setChosenLanguages] = useState(initialState.chosenLanguages || []); // ['Draconic', ...]
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load existing character data in edit mode
@@ -150,13 +167,26 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const availableSubclasses = classData?.subclasses || [];
   const backgroundData = BACKGROUNDS[background] || null;
 
-  // Reset subrace if not available for chosen race
+  // Reset subrace + race-specific picks when race changes
   useEffect(() => {
     if (race && availableSubraces.length === 0) setSubrace("");
     if (race && subrace && !availableSubraces.includes(subrace)) setSubrace("");
+    setFloatingAsi({});
+    setChosenLanguages([]);
   }, [race, availableSubraces.length]);
 
-  // ASI calculation
+  // How many floating +1s does this race offer? (2014 only)
+  const floatingAsiBudget = useMemo(() => {
+    if (edition !== '2014' || !raceData) return 0;
+    return raceData.asi2014?.choice || 0;
+  }, [edition, raceData]);
+
+  // How many extra languages does this race offer?
+  const languageBudget = useMemo(() => countLanguageChoices(raceData), [raceData]);
+
+  const totalFloatingSpent = Object.values(floatingAsi).reduce((a, b) => a + b, 0);
+
+  // ASI calculation (now includes floating +1s the player distributed)
   const asiBonus = useMemo(() => {
     const bonus = { strength: 0, dexterity: 0, constitution: 0, intelligence: 0, wisdom: 0, charisma: 0 };
     if (edition === "2014" && raceData) {
@@ -168,17 +198,21 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
           if (bonus[s] !== undefined) bonus[s] += v;
         });
       }
+      // Floating +1s chosen by player
+      Object.entries(floatingAsi).forEach(([s, v]) => {
+        if (bonus[s] !== undefined) bonus[s] += v;
+      });
     } else if (edition === "2024" && backgroundData?.asi2024) {
       Object.entries(backgroundData.asi2024).forEach(([s, v]) => { if (bonus[s] !== undefined) bonus[s] = v; });
     }
     return bonus;
-  }, [edition, raceData, backgroundData, subrace]);
+  }, [edition, raceData, backgroundData, subrace, floatingAsi]);
 
   // Auto-save draft
   useEffect(() => {
-    const draft = { step, name, race, subrace, className, subclass, background, portrait, alignment, method, edition, stats, selectedSkills };
+    const draft = { step, name, race, subrace, className, subclass, background, portrait, alignment, method, edition, stats, selectedSkills, floatingAsi, chosenLanguages };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  }, [step, name, race, subrace, className, subclass, background, portrait, alignment, method, edition, stats, selectedSkills]);
+  }, [step, name, race, subrace, className, subclass, background, portrait, alignment, method, edition, stats, selectedSkills, floatingAsi, chosenLanguages]);
 
   const pointBuySpent = useMemo(
     () => ABILITIES.reduce((sum, a) => sum + calculatePointBuyCost(stats[a]), 0),
@@ -260,8 +294,18 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const canAdvance = () => {
     const id = STEPS[step].id;
     if (id === 'edition') return !!edition;
-    if (id === 'race') return !!race && (availableSubraces.length === 0 || !!subrace);
-    if (id === 'class') return !!className;
+    if (id === 'race') {
+      if (!race) return false;
+      if (availableSubraces.length > 0 && !subrace) return false;
+      if (floatingAsiBudget > 0 && totalFloatingSpent !== floatingAsiBudget) return false;
+      if (languageBudget > 0 && chosenLanguages.length !== languageBudget) return false;
+      return true;
+    }
+    if (id === 'class') {
+      if (!className) return false;
+      if (edition === '2014' && SUBCLASS_AT_L1_2014.has(className) && !subclass) return false;
+      return true;
+    }
     if (id === 'background') return !!background;
     if (id === 'abilities') {
       if (!validateAbilityScores(stats)) return false;
@@ -295,6 +339,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     setSubclass(""); setBackground(""); setPortrait("");
     setAlignment('Neutral'); setMethod(reset.method); setEdition(reset.edition);
     setStats(reset.stats); setSelectedSkills([]);
+    setFloatingAsi({}); setChosenLanguages([]);
     toast.success('Draft cleared');
   };
 
@@ -350,7 +395,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
       payload.armor_proficiencies = classData?.armorProficiencies || [];
       payload.weapon_proficiencies = classData?.weaponProficiencies || [];
       payload.tool_proficiencies = tools;
-      payload.languages = baseLanguages;
+      payload.languages = Array.from(new Set([...baseLanguages, ...chosenLanguages]));
       payload.racial_traits = [...racialTraits, ...subraceTraits];
       payload.class_features = classFeatures;
       payload.speed = raceData?.speed || 30;
@@ -491,6 +536,95 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
           </div>
         </div>
       )}
+
+      {/* Floating ASI picker (Half-Elf 2014: +1 to two abilities of your choice) */}
+      {edition === '2014' && floatingAsiBudget > 0 && (
+        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: 'rgba(138, 43, 226, 0.08)', border: `1px solid ${theme.border}` }}>
+          <label style={labelStyle}>
+            Distribute {floatingAsiBudget} floating +1{floatingAsiBudget === 1 ? '' : 's'}
+            {' — '}
+            <span style={{ color: totalFloatingSpent === floatingAsiBudget ? '#10B981' : theme.sunset.gold, textTransform: 'none' }}>
+              {totalFloatingSpent}/{floatingAsiBudget} assigned
+            </span>
+          </label>
+          <div style={{ fontSize: 12, color: theme.text.muted, marginBottom: 8 }}>
+            Pick {floatingAsiBudget} different abilities to each gain +1. Cannot stack on the same ability.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
+            {ABILITIES.map(a => {
+              const fixed = (raceData?.asi2014?.[a] || 0) > 0; // fixed bonus already
+              const chosen = !!floatingAsi[a];
+              const disabled = fixed;
+              return (
+                <button
+                  key={a} type="button" disabled={disabled}
+                  data-testid={`floating-asi-${a}`}
+                  onClick={() => {
+                    setFloatingAsi(prev => {
+                      const next = { ...prev };
+                      if (next[a]) delete next[a];
+                      else if (totalFloatingSpent < floatingAsiBudget) next[a] = 1;
+                      else toast.info(`Only ${floatingAsiBudget} floating +1s allowed`);
+                      return next;
+                    });
+                  }}
+                  style={{
+                    padding: '8px 10px', borderRadius: 8,
+                    background: chosen ? 'rgba(16, 185, 129, 0.2)' : disabled ? 'rgba(138, 43, 226, 0.05)' : 'rgba(15, 10, 30, 0.5)',
+                    border: `1px solid ${chosen ? '#10B981' : disabled ? 'rgba(138, 43, 226, 0.15)' : theme.border}`,
+                    color: disabled ? theme.text.muted : theme.text.primary,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.5 : 1, fontSize: 12, fontWeight: 600
+                  }}>
+                  {chosen ? '✓ ' : ''}{a.charAt(0).toUpperCase() + a.slice(1)}
+                  {fixed && <span style={{ fontSize: 9, display: 'block', color: theme.text.muted }}>Already +{raceData.asi2014[a]}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Language picker (for races with "One of choice") */}
+      {languageBudget > 0 && (
+        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: 'rgba(77, 208, 225, 0.06)', border: `1px solid ${theme.border}` }}>
+          <label style={labelStyle}>
+            Choose {languageBudget} extra language{languageBudget === 1 ? '' : 's'}
+            {' — '}
+            <span style={{ color: chosenLanguages.length === languageBudget ? '#10B981' : theme.sunset.gold, textTransform: 'none' }}>
+              {chosenLanguages.length}/{languageBudget} picked
+            </span>
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {EXTRA_LANGUAGE_OPTIONS.filter(l => !(raceData?.languages || []).includes(l)).map(lang => {
+              const sel = chosenLanguages.includes(lang);
+              return (
+                <button
+                  key={lang} type="button"
+                  data-testid={`language-${lang.toLowerCase()}`}
+                  onClick={() => {
+                    setChosenLanguages(prev => {
+                      if (prev.includes(lang)) return prev.filter(l => l !== lang);
+                      if (prev.length >= languageBudget) {
+                        toast.info(`Only ${languageBudget} language${languageBudget === 1 ? '' : 's'} can be chosen`);
+                        return prev;
+                      }
+                      return [...prev, lang];
+                    });
+                  }}
+                  style={{
+                    padding: '5px 10px', borderRadius: 6, fontSize: 12,
+                    background: sel ? 'rgba(77, 208, 225, 0.2)' : 'rgba(15, 10, 30, 0.5)',
+                    border: `1px solid ${sel ? theme.sunset.pink : theme.border}`,
+                    color: theme.text.primary, cursor: 'pointer'
+                  }}>
+                  {sel ? '✓ ' : ''}{lang}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -546,11 +680,26 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
 
       {availableSubclasses.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <label style={labelStyle}>Subclass <span style={{ color: theme.text.muted, textTransform: 'none' }}>(optional now — typically chosen at level 3)</span></label>
-          <select value={subclass} onChange={e => setSubclass(e.target.value)} style={inputStyle} data-testid="subclass-select">
-            <option value="">Select later</option>
-            {availableSubclasses.map(sc => <option key={sc} value={sc}>{sc}</option>)}
-          </select>
+          {(() => {
+            const requiresL1 = edition === '2014' && SUBCLASS_AT_L1_2014.has(className);
+            const subclassLabel = {
+              'Cleric': 'Divine Domain', 'Sorcerer': 'Sorcerous Origin', 'Warlock': 'Otherworldly Patron'
+            }[className] || 'Subclass';
+            return (
+              <>
+                <label style={labelStyle}>
+                  {subclassLabel}
+                  <span style={{ color: requiresL1 ? '#EF4444' : theme.text.muted, textTransform: 'none', marginLeft: 6 }}>
+                    {requiresL1 ? '(REQUIRED at Level 1)' : '(optional now — typically chosen at level 3)'}
+                  </span>
+                </label>
+                <select value={subclass} onChange={e => setSubclass(e.target.value)} style={{ ...inputStyle, borderColor: requiresL1 && !subclass ? '#EF4444' : theme.border }} data-testid="subclass-select">
+                  <option value="">{requiresL1 ? `-- Choose a ${subclassLabel} --` : 'Select later'}</option>
+                  {availableSubclasses.map(sc => <option key={sc} value={sc}>{sc}</option>)}
+                </select>
+              </>
+            );
+          })()}
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ from routes.srd import router as srd_router
 from routes.progression import router as progression_router
 from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
+from routes.character_templates import router as character_templates_router
 
 all_routers = [
     auth_router,
@@ -39,4 +40,5 @@ all_routers = [
     progression_router,
     rule_systems_router,
     events_router,
+    character_templates_router,
 ]
