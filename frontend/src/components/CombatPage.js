@@ -57,6 +57,8 @@ function CombatPage() {
   const [attackingCreature, setAttackingCreature] = useState(null);
   const [showNPCRecruiter, setShowNPCRecruiter] = useState(false);
   const [expandedAbilities, setExpandedAbilities] = useState({});
+  // Hide monster HP from screen-shared view (GM still sees the values via tooltip)
+  const [hideMonsterHp, setHideMonsterHp] = useState(false);
   
   // Map integration state
   const [selectedMap, setSelectedMap] = useState(null);
@@ -564,6 +566,22 @@ function CombatPage() {
           }}>
             ROUND {round}
           </div>
+          <button data-testid="toggle-monster-hp"
+            onClick={() => setHideMonsterHp(v => !v)}
+            title={hideMonsterHp ? 'Monster HP is hidden — show numeric values' : 'Hide monster HP for screen-share play'}
+            style={{
+              background: hideMonsterHp ? 'rgba(212, 160, 23, 0.18)' : 'transparent',
+              border: '1px solid rgba(212, 160, 23, 0.40)',
+              borderRadius: '10px',
+              padding: '8px 14px',
+              color: '#D4A017',
+              fontWeight: 700,
+              fontSize: 11,
+              letterSpacing: 0.5,
+              cursor: 'pointer',
+            }}>
+            {hideMonsterHp ? 'HP HIDDEN' : 'HIDE HP'}
+          </button>
           <Button onClick={nextTurn} style={{ display: 'flex', gap: '8px', padding: '12px 24px', background: '#D4A017', border: 'none', borderRadius: '10px', color: '#0A1628', fontWeight: '800' }}>
             <SkipForward size={18} /> Next Turn
           </Button>
@@ -649,7 +667,12 @@ function CombatPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Heart size={14} style={{ color: hpPct > 50 ? '#10B981' : hpPct > 25 ? '#eab308' : '#ef4444' }} />
-                        <span style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '600' }}>{c.hp} / {c.maxHp}</span>
+                        <span title={hideMonsterHp && c.type !== 'player' ? `${c.hp} / ${c.maxHp} (hidden from view)` : undefined}
+                          style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '600' }}>
+                          {hideMonsterHp && c.type !== 'player'
+                            ? (hpPct > 75 ? 'Healthy' : hpPct > 50 ? 'Wounded' : hpPct > 25 ? 'Bloodied' : hpPct > 0 ? 'Critical' : 'Down')
+                            : `${c.hp} / ${c.maxHp}`}
+                        </span>
                       </div>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         {[-10, -5, -1, 1, 5, 10].map(n => (

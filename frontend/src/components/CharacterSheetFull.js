@@ -738,6 +738,29 @@ export default function CharacterSheetFull() {
             <Sparkles size={14} color={character.inspiration ? '#F59E0B' : theme.text.muted} />
             <div style={{ fontSize: '9px', color: character.inspiration ? '#F59E0B' : theme.text.muted, fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>INSP</div>
           </button>
+          {/* "Spells not prepared" warning for prepared casters with 0 prepped spells */}
+          {(() => {
+            const preparedClasses = ['Cleric', 'Druid', 'Wizard', 'Paladin', 'Artificer'];
+            const isPrepared = preparedClasses.includes(character.character_class);
+            const knownCount = (character.spells_known || character.spells_prepared || character.spells || []).length;
+            const preppedCount = (character.prepared_spell_names || []).length;
+            if (!isPrepared || knownCount === 0 || preppedCount > 0) return null;
+            return (
+              <button
+                data-testid="spells-not-prepared-warning"
+                onClick={() => setActiveTab('spells')}
+                title="Open Spells tab to prepare spells"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 10px', borderRadius: '10px', cursor: 'pointer',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.40)',
+                  color: '#F87171', fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
+                }}>
+                <span style={{ fontSize: 13 }}>!</span> SPELLS NOT PREPARED
+              </button>
+            );
+          })()}
           {/* Active Conditions chips — surfaces blinded/paralyzed/etc on the sheet */}
           {(activeConditions.length > 0 || exhaustion > 0 || isIncapacitated) && (
             <div data-testid="active-conditions-strip" style={{
@@ -885,31 +908,36 @@ export default function CharacterSheetFull() {
             {SKILLS.map(skill => {
               const mod = getModifier(abilities[skill.ability]);
               const isProficient = character.skill_proficiencies?.includes(skill.name);
-              const bonus = mod + (isProficient ? profBonus : 0);
+              const isExpertise = character.skill_expertise?.includes(skill.name) || character.expertise?.includes(skill.name);
+              const profMultiplier = isExpertise ? 2 : isProficient ? 1 : 0;
+              const bonus = mod + (profBonus * profMultiplier);
               const skillContext = `${skill.ability.substring(0, 3).toLowerCase()}_check`;
               const condIndicator = getConditionIndicator(character?.conditions || [], skillContext, character?.exhaustion_level || 0);
               const condEffect = getConditionRollEffect(character?.conditions || [], skillContext, 'normal', character?.exhaustion_level || 0);
+              const profIcon = isExpertise ? '★' : isProficient ? '●' : '○';
+              const profIconColor = isExpertise ? '#F5C542' : isProficient ? theme.accent.primary : theme.text.muted;
               
               return (
                 <button
                   key={skill.name}
                   onClick={() => rollDice('1d20', bonus, skill.name, condEffect.mode)}
                   data-testid={`skill-${skill.name.toLowerCase().replace(' ', '-')}`}
+                  title={isExpertise ? 'Expertise (×2 proficiency)' : isProficient ? 'Proficient' : 'Not proficient'}
                   style={{
                     width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '5px 8px', marginBottom: '1px',
-                    background: isProficient ? 'rgba(212, 160, 23, 0.15)' : condIndicator ? `${condIndicator.color}08` : 'transparent',
-                    border: isProficient ? '1px solid rgba(212, 160, 23, 0.4)' : '1px solid transparent',
-                    borderRadius: '4px', color: isProficient ? '#a78bfa' : theme.text.secondary,
+                    background: isExpertise ? 'rgba(245, 197, 66, 0.15)' : isProficient ? 'rgba(212, 160, 23, 0.10)' : condIndicator ? `${condIndicator.color}08` : 'transparent',
+                    border: isExpertise ? '1px solid rgba(245, 197, 66, 0.45)' : isProficient ? '1px solid rgba(212, 160, 23, 0.30)' : '1px solid transparent',
+                    borderRadius: '4px', color: theme.text.secondary,
                     fontSize: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    {isProficient && <span style={{ color: theme.accent.primary, fontSize: '6px' }}>●</span>}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: profIconColor, fontSize: '11px', fontWeight: 800, width: 12, textAlign: 'center' }}>{profIcon}</span>
                     {skill.name}
                     {condIndicator && <span title={condIndicator.tooltip} style={{ fontSize: '9px', fontWeight: 800, color: condIndicator.color }}>{condIndicator.symbol}</span>}
                   </span>
-                  <span style={{ fontWeight: '600', color: isProficient ? '#a78bfa' : theme.text.primary, fontSize: '13px' }}>{formatModifier(bonus)}</span>
+                  <span style={{ fontWeight: '700', color: isExpertise ? '#F5C542' : isProficient ? theme.accent.primary : theme.text.primary, fontSize: '13px' }}>{formatModifier(bonus)}</span>
                 </button>
               );
             })}

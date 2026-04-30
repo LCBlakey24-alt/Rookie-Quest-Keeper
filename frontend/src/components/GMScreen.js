@@ -66,7 +66,13 @@ function GMScreen({ username }) {
   
   // Tab state - single tab for everything
   const [activeTab, setActiveTab] = useState('combat');
-  const [showDicePanel, setShowDicePanel] = useState(true);
+  // Dice panel toggle persisted between sessions (default: visible)
+  const [showDicePanel, setShowDicePanel] = useState(() => {
+    try { return localStorage.getItem('gm.dicePanel.show') !== '0'; } catch { return true; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem('gm.dicePanel.show', showDicePanel ? '1' : '0'); } catch { /* ignore */ }
+  }, [showDicePanel]);
   
   // 3D Dice Roller state
   const [show3DDice, setShow3DDice] = useState(false);
@@ -81,9 +87,20 @@ function GMScreen({ username }) {
   // Live Session Mode state
   const [showLiveSession, setShowLiveSession] = useState(false);
   
-  // Grouped tab collapse state
-  const [collapsedGroups, setCollapsedGroups] = useState({});
-  const toggleGroup = (group) => setCollapsedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+  // Grouped tab collapse state — persisted to localStorage so the sidebar
+  // remembers what the GM had collapsed between sessions.
+  const COLLAPSED_KEY = 'gm.sidebar.collapsedGroups';
+  const [collapsedGroups, setCollapsedGroups] = useState(() => {
+    try {
+      const raw = localStorage.getItem(COLLAPSED_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
+  const toggleGroup = (group) => setCollapsedGroups(prev => {
+    const next = { ...prev, [group]: !prev[group] };
+    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    return next;
+  });
 
   // Rules edition (2014 vs 2024) — propagated to AI prompts via campaign.rules_edition
   const rulesEdition = campaign?.rules_edition === '2014' ? '2014' : '2024';
