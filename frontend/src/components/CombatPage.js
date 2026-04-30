@@ -59,6 +59,25 @@ function CombatPage() {
   const [expandedAbilities, setExpandedAbilities] = useState({});
   // Hide monster HP from screen-shared view (GM still sees the values via tooltip)
   const [hideMonsterHp, setHideMonsterHp] = useState(false);
+  // Drag-to-reorder initiative
+  const [draggedId, setDraggedId] = useState(null);
+  const handleDragStart = (id) => () => setDraggedId(id);
+  const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+  const handleDrop = (targetId) => (e) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) { setDraggedId(null); return; }
+    setCombatants(prev => {
+      const next = [...prev];
+      const fromIdx = next.findIndex(c => c.id === draggedId);
+      const toIdx = next.findIndex(c => c.id === targetId);
+      if (fromIdx === -1 || toIdx === -1) return prev;
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      return next;
+    });
+    setDraggedId(null);
+    toast.success('Initiative reordered');
+  };
   
   // Map integration state
   const [selectedMap, setSelectedMap] = useState(null);
@@ -209,7 +228,18 @@ function CombatPage() {
         const newHp = Math.max(0, Math.min(c.maxHp, c.hp + change));
         const wasDown = c.hp <= 0;
         const nowDown = newHp <= 0;
-        
+        const damageTaken = change < 0 ? Math.abs(change) : 0;
+
+        // Concentration save prompt — D&D 5e: any time a concentrating caster
+        // takes damage, they make a CON save vs DC max(10, half-damage).
+        if (damageTaken > 0 && c.concentrating_on) {
+          const dc = Math.max(10, Math.floor(damageTaken / 2));
+          toast.warning(
+            `${c.name} is concentrating on "${c.concentrating_on}" — DC ${dc} CON save!`,
+            { duration: 8000 }
+          );
+        }
+
         if (!wasDown && nowDown) {
           toast.warning(`${c.name} is down!`);
           return { ...c, hp: newHp, deathSaves: { successes: 0, failures: 0 } };
@@ -618,14 +648,21 @@ function CombatPage() {
               return (
                 <div
                   key={c.id}
+                  draggable
+                  onDragStart={handleDragStart(c.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop(c.id)}
+                  data-testid={`initiative-card-${c.id}`}
+                  title="Drag to reorder initiative"
                   style={{
                     background: isCurrent ? 'rgba(16, 185, 129, 0.15)' : isDead ? 'rgba(30,30,30,0.5)' : isDown ? 'rgba(239, 68, 68, 0.1)' : 'rgba(15, 10, 30, 0.6)',
                     border: `2px solid ${isCurrent ? '#10B981' : isDead ? '#64748b' : isDown ? '#ef4444' : c.type === 'player' ? theme.sunset.purple : '#ef4444'}`,
                     borderRadius: '14px',
                     padding: '14px',
-                    opacity: isDead ? 0.5 : 1,
+                    opacity: draggedId === c.id ? 0.4 : isDead ? 0.5 : 1,
                     boxShadow: isCurrent ? '0 0 20px rgba(16, 185, 129, 0.4)' : 'none',
-                    transition: 'all 0.3s'
+                    transition: 'all 0.3s',
+                    cursor: 'grab',
                   }}
                 >
                   {/* Header */}

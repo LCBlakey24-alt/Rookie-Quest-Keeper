@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ScrollText, Sword, Heart, BookOpen, Shield, Bed, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ScrollText, Sword, Heart, BookOpen, Shield, Bed, Trash2, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 
 const ICONS = {
   attack: Sword,
@@ -37,7 +37,7 @@ const formatTime = (ts) => {
  *
  * type ∈ 'attack' | 'damage' | 'heal' | 'spell' | 'rest' | 'condition' | 'roll'
  */
-export default function CombatLog({ entries = [], onClear, theme }) {
+export default function CombatLog({ entries = [], onClear, theme, characterName }) {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -49,6 +49,38 @@ export default function CombatLog({ entries = [], onClear, theme }) {
       setAutoExpanded(true);
     }
   }, [entries.length, autoExpanded]);
+
+  /**
+   * Build a Discord/Slack-friendly markdown recap from log entries and copy it
+   * to the clipboard. Format example:
+   *   **Session Recap — Test_Orc_Wiz**
+   *   ⚔ 14:23 — Fire Bolt (cantrip): 18
+   *   💥 14:24 — Took 7 damage
+   *   ...
+   */
+  const ICONS_TXT = {
+    attack: '⚔', damage: '💥', heal: '💚', spell: '✨',
+    rest: '🌙', condition: '🛡', roll: '🎲',
+  };
+  const handleShareRecap = () => {
+    if (entries.length === 0) return;
+    const fmt = (ts) => {
+      try { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+      catch { return ''; }
+    };
+    const header = `**Session Recap${characterName ? ` — ${characterName}` : ''}**`;
+    const lines = entries.map(e => `${ICONS_TXT[e.type] || '•'} ${fmt(e.ts)} — ${e.text}`);
+    const text = [header, '', ...lines].join('\n');
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => { try { window.dispatchEvent(new CustomEvent('rook:toast', { detail: 'Recap copied — paste in Discord/Slack' })); } catch {} },
+        () => { try { window.prompt('Copy this session recap:', text); } catch {} }
+      );
+    } else {
+      // No clipboard API — show a prompt dialog so the user can copy manually
+      try { window.prompt('Copy this session recap:', text); } catch {}
+    }
+  };
 
   const filtered = useMemo(() => {
     if (filter === 'all') return entries;
@@ -105,13 +137,29 @@ export default function CombatLog({ entries = [], onClear, theme }) {
                 {t}
               </button>
             ))}
+            {entries.length > 0 && (
+              <button
+                data-testid="combat-log-share"
+                onClick={handleShareRecap}
+                title="Copy session recap to clipboard"
+                style={{
+                  marginLeft: 'auto',
+                  padding: '2px 8px', borderRadius: 4, fontSize: 9,
+                  background: 'rgba(212, 160, 23, 0.15)',
+                  border: `1px solid #D4A017`,
+                  color: '#D4A017', cursor: 'pointer', fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: 3,
+                }}
+              >
+                <Share2 size={9} /> SHARE RECAP
+              </button>
+            )}
             {entries.length > 0 && onClear && (
               <button
                 data-testid="combat-log-clear"
                 onClick={onClear}
                 title="Clear combat log"
                 style={{
-                  marginLeft: 'auto',
                   padding: '2px 8px', borderRadius: 4, fontSize: 9,
                   background: 'transparent',
                   border: `1px solid ${border}`,

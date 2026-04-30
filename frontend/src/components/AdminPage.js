@@ -259,7 +259,7 @@ function AdminPage({ username }) {
           gap: '16px',
           marginBottom: '32px'
         }}>
-          <div style={{
+          <div data-testid="admin-stat-users" style={{
             background: '#0F2440',
             border: '1px solid rgba(212, 160, 23, 0.35)',
             padding: '20px',
@@ -275,7 +275,7 @@ function AdminPage({ username }) {
             </div>
           </div>
           
-          <div style={{
+          <div data-testid="admin-stat-codes" style={{
             background: '#0F2440',
             border: '1px solid rgba(212, 160, 23, 0.35)',
             padding: '20px',
@@ -291,7 +291,7 @@ function AdminPage({ username }) {
             </div>
           </div>
           
-          <div style={{
+          <div data-testid="admin-stat-referrals" style={{
             background: '#0F2440',
             border: '1px solid rgba(212, 160, 23, 0.35)',
             padding: '20px',
@@ -307,7 +307,7 @@ function AdminPage({ username }) {
             </div>
           </div>
 
-          <div style={{
+          <div data-testid="admin-stat-reviews" style={{
             background: '#0F2440',
             border: '1px solid rgba(212, 160, 23, 0.35)',
             padding: '20px',

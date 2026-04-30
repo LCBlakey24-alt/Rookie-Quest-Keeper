@@ -252,6 +252,13 @@ export default function CharacterSheetFull() {
   };
   const clearCombatLog = () => setCombatLog([]);
 
+  // Listen for the CombatLog "Share Recap" copy-success event so we can show a toast.
+  useEffect(() => {
+    const handler = (e) => toast.success(e?.detail || 'Recap copied');
+    window.addEventListener('rook:toast', handler);
+    return () => window.removeEventListener('rook:toast', handler);
+  }, []);
+
   // Persisted setter — also pushes used_spell_slots to backend so it survives reloads.
   const persistUsedSlots = (next) => {
     setUsedSlots(prev => {
@@ -999,7 +1006,7 @@ export default function CharacterSheetFull() {
                   <RestPanel character={character} theme={theme} onRest={handleRest} onUpdateCharacter={handleUpdateCharacter} />
                 </div>
                 <div style={{ marginTop: '8px' }}>
-                  <CombatLog entries={combatLog} onClear={clearCombatLog} theme={theme} />
+                  <CombatLog entries={combatLog} onClear={clearCombatLog} theme={theme} characterName={character?.name} />
                 </div>
               </div>
             )}
