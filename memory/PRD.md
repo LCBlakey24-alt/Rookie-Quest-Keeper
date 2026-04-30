@@ -169,8 +169,29 @@ Five tightly-scoped architectural cleanups from user's tech audit — ALL shippe
 - `routes/characters.py` imports private `_SPELLS_KNOWN_PROGRESSION` from `data.class_progression`. Future: expose public helpers.
 - `UploadTab.js` cards still use the old purple gradient theme (PRE-EXISTING). Theme cleanup batch deferred.
 
+## Phase 29 — Follow-ups + P2 features (Apr 30 / Iter 89)
+Executed every follow-up from Iter 88 plus one new P2 feature:
+
+1. **Seed logic now preserves admin DB edits** — `seed_templates_if_empty` uses a scoped `_CONTENT_FIELDS` allow-list on version bumps (character_class/race/subrace/background/alignment/ability_scores/ruleset_id/version/playstyle_tags only); admin-authored fields like name/pitch/source/active are never overwritten.
+2. **Public helpers** `spells_known_table()` / `cantrips_known_table()` in `data/class_progression.py`. `routes/characters.py` no longer reaches into private `_*` names.
+3. **LevelUpWizard preflight loading skeleton** — gold-tinted placeholder bars + "Loading level-up options…" caption while `/level-up-options` is in-flight. Prevents local-fallback flicker.
+4. **UploadTab colors unified to Gold** — all 5 upload cards (maps / portraits / docs / audio / other) now use `#D4A017` consistent with the strict design lock.
+5. **`routes/ai.py` deduped** — 334 lines removed (was 1809, now 1465). Removed duplicate bodies for `generate_ai_content`, `process_note_with_ai`, `get_campaign_tokens`, `get_entity_token`, `get_session_recaps`, `ai_generate_with_rules`, plus dead `load_srd_file` helper. Fixed exposed `logging` typo.
+
+**NEW — Admin Templates Editor** (`/admin` → TEMPLATES tab):
+- Backend: `GET /api/admin/character-templates`, `PATCH .../{id}`, `POST .../{id}/clone`, `DELETE .../{id}` with scoped allow-list + core-template deletion guard.
+- Frontend: `TemplateEditor` component — filterable table (All / 2014 / 2024 / Inactive), Eye-icon active-toggle, Clone-to-homebrew button, Delete button (disabled for core).
+- Case-insensitive `is_admin` check so 'LCBlakey24' matches admin 'lcblakey24'.
+
+**NEW — Personality Prompts in Character Builder** (P2 feature shipped):
+- Review step now includes optional `Personality Trait`, `Ideal`, `Bond`, `Flaw/Fear`, and `Backstory` textareas.
+- All 5 fields whitelisted in backend PATCH and hydrate on character edit.
+- Enables richer AI co-GM narration and GM story hooks.
+
+**Tests**: backend 10/10 pytest (admin list/patch/clone/delete, core-delete blocked, preflight regression, 3 ai.py post-dedupe endpoints, personality round-trip). Frontend 9/9 Playwright (Templates tab, 24 rows, filters, toggle, Personality testids, preflight skeleton, Iter 88 regression). See `/app/test_reports/iteration_89.json` + `/app/backend/tests/test_iter89_audit_batch5.py`.
+
 ## Test iterations
-77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88 (Phase 28 — 100% backend, 100% frontend tech audit sprint)
+77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 (Phase 29 — 100% backend + frontend, Admin templates editor + personality prompts shipped)
 
 ---
 *Last updated: April 30, 2026*
