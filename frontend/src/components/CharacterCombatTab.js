@@ -267,7 +267,7 @@ export default function CharacterCombatTab({
   // Attack roll handler - applies condition effects automatically
   const handleAttackRoll = (atk, type) => {
     if (!rollDice) return;
-    const condEffect = getConditionRollEffect(activeConditions, 'attack', rollMode);
+    const condEffect = getConditionRollEffect(activeConditions, 'attack', rollMode, exhaustionLevel);
     if (type === 'hit') {
       const mod = parseInt(atk.toHit) || 0;
       rollDice('1d20', mod, `${atk.name} (Attack)`, condEffect.mode);
@@ -655,10 +655,10 @@ export default function CharacterCombatTab({
 
         {/* Active Condition Effects Summary */}
         {activeConditions.length > 0 && (() => {
-          const attackEffect = getConditionRollEffect(activeConditions, 'attack');
-          const checkEffect = getConditionRollEffect(activeConditions, 'ability_check');
-          const strSave = getConditionRollEffect(activeConditions, 'str_save');
-          const dexSave = getConditionRollEffect(activeConditions, 'dex_save');
+          const attackEffect = getConditionRollEffect(activeConditions, 'attack', 'normal', exhaustionLevel);
+          const checkEffect = getConditionRollEffect(activeConditions, 'ability_check', 'normal', exhaustionLevel);
+          const strSave = getConditionRollEffect(activeConditions, 'str_save', 'normal', exhaustionLevel);
+          const dexSave = getConditionRollEffect(activeConditions, 'dex_save', 'normal', exhaustionLevel);
           const effects = [];
           if (attackEffect.mode !== 'normal') effects.push({ label: 'Attacks', ...attackEffect });
           if (attackEffect.autoFail) effects.push({ label: 'Attacks', mode: 'auto_fail', reason: attackEffect.reason });
@@ -705,7 +705,7 @@ export default function CharacterCombatTab({
       {/* ── Weapon Attacks ── */}
       <Section title="Attacks" accent={accent}>
         {(() => {
-          const attackEffect = getConditionRollEffect(activeConditions, 'attack', rollMode);
+          const attackEffect = getConditionRollEffect(activeConditions, 'attack', rollMode, exhaustionLevel);
           const attackIndicator = attackEffect.mode !== 'normal' ? { mode: attackEffect.mode, reason: attackEffect.reason } : null;
           return (
             <>

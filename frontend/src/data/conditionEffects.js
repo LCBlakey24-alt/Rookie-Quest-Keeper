@@ -155,13 +155,40 @@ export const CONDITION_EFFECTS = {
 };
 
 /**
+ * Returns mechanical effects of a given exhaustion level (0–6).
+ * D&D 5e 2014 cumulative scale.
+ */
+export function getExhaustionEffects(level = 0) {
+  const lvl = Math.max(0, Math.min(6, Number(level) || 0));
+  return {
+    level: lvl,
+    abilityCheckDisadvantage: lvl >= 1,
+    speedHalved: lvl >= 2,
+    attackAndSaveDisadvantage: lvl >= 3,
+    hpMaxHalved: lvl >= 4,
+    speedZero: lvl >= 5,
+    death: lvl >= 6,
+    description: [
+      'No effect',
+      'Disadvantage on ability checks',
+      'Speed halved',
+      'Disadvantage on attack rolls and saving throws',
+      'Hit point maximum halved',
+      'Speed reduced to 0',
+      'Death'
+    ][lvl] || 'No effect'
+  };
+}
+
+/**
  * Determine the effective roll mode given active conditions and roll context.
  * @param {string[]} conditions - Array of active condition keys
  * @param {string} context - 'attack', 'ability_check', 'str_save', 'dex_save', etc.
  * @param {string} userOverride - 'normal', 'advantage', 'disadvantage' from user toggle
+ * @param {number} exhaustionLevel - Optional 0-6 exhaustion level
  * @returns {{ mode: string, reason: string|null, autoFail: boolean }}
  */
-export function getConditionRollEffect(conditions = [], context, userOverride = 'normal') {
+export function getConditionRollEffect(conditions = [], context, userOverride = 'normal', exhaustionLevel = 0) {
   let hasAdvantage = false;
   let hasDisadvantage = false;
   let autoFail = false;
@@ -192,6 +219,21 @@ export function getConditionRollEffect(conditions = [], context, userOverride = 
     }
   }
 
+  // Apply graduated exhaustion effects
+  if (exhaustionLevel > 0) {
+    const isCheck = context.includes('_check') || context === 'ability_check';
+    const isAttack = context === 'attack';
+    const isSave = context.includes('_save') || context === 'saving_throw';
+    if (exhaustionLevel >= 1 && isCheck) {
+      hasDisadvantage = true;
+      reasons.push(`Exhaustion ${exhaustionLevel}: disadvantage on checks`);
+    }
+    if (exhaustionLevel >= 3 && (isAttack || isSave)) {
+      hasDisadvantage = true;
+      reasons.push(`Exhaustion ${exhaustionLevel}: disadvantage on ${isAttack ? 'attacks' : 'saves'}`);
+    }
+  }
+
   // User override
   if (userOverride === 'advantage') hasAdvantage = true;
   if (userOverride === 'disadvantage') hasDisadvantage = true;
@@ -218,8 +260,8 @@ export function getConditionRollEffect(conditions = [], context, userOverride = 
  * Get a visual indicator for a skill/save roll based on conditions.
  * Returns { color, symbol, tooltip } or null.
  */
-export function getConditionIndicator(conditions = [], context) {
-  const { mode, autoFail, reason } = getConditionRollEffect(conditions, context);
+export function getConditionIndicator(conditions = [], context, exhaustionLevel = 0) {
+  const { mode, autoFail, reason } = getConditionRollEffect(conditions, context, 'normal', exhaustionLevel);
   if (autoFail) return { color: '#EF4444', symbol: '✕', tooltip: reason };
   if (mode === 'advantage') return { color: '#22C55E', symbol: '▲', tooltip: reason };
   if (mode === 'disadvantage') return { color: '#EF4444', symbol: '▼', tooltip: reason };

@@ -1,6 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { BookOpen, Zap, Shield, Search, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { BookOpen, Zap, Shield, Search, ChevronDown, ChevronUp, Star, Plus, X } from 'lucide-react';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, getMaxSpellLevel } from '../data/spellDatabase';
+import { API_BASE } from '../lib/api';
 
 const CANTRIP_DAMAGE = {
   'Fire Bolt': '1d10', 'Eldritch Blast': '1d10', 'Sacred Flame': '1d8',
@@ -48,6 +51,11 @@ export default function CharacterSpellbook({
   const [expandedSpell, setExpandedSpell] = useState(null);
   const [castingSpell, setCastingSpell] = useState(null);
   const [collapsedLevels, setCollapsedLevels] = useState({});
+  const [showLearnModal, setShowLearnModal] = useState(false);
+  const [learnLevel, setLearnLevel] = useState(0); // 0 = cantrip, 1+ = spell level
+  const [learnSearch, setLearnSearch] = useState('');
+  const [srdSpells, setSrdSpells] = useState([]);
+  const [srdLoading, setSrdLoading] = useState(false);
 
   const classInfo = SPELLCASTING_CLASSES[character?.character_class];
   if (!classInfo) {
@@ -194,8 +202,96 @@ export default function CharacterSpellbook({
     padding: 12,
   };
 
+  // ============ LEARN/PREPARE SPELL ============
+  // Fetch SRD spells when modal opens or class/level changes
+  useEffect(() => {
+    if (!showLearnModal) return;
+    setSrdLoading(true);
+    axios.get(`${API_BASE}/srd/spells`, {
+      params: { class_name: character?.character_class, level: learnLevel }
+    })
+      .then(res => setSrdSpells(res.data?.spells || []))
+      .catch(() => toast.error('Failed to load SRD spells'))
+      .finally(() => setSrdLoading(false));
+  }, [showLearnModal, learnLevel, character?.character_class]);
+
+  // Existing names already in spellbook (deduped)
+  const knownNames = useMemo(() => {
+    const set = new Set();
+    (character?.cantrips_known || []).forEach(s => set.add(typeof s === 'string' ? s : s.name));
+    (character?.spells_known || []).forEach(s => set.add(typeof s === 'string' ? s : s.name));
+    (character?.spells_prepared || []).forEach(s => set.add(typeof s === 'string' ? s : s.name));
+    return set;
+  }, [character]);
+
+  const learnSpell = async (spell) => {
+    if (!onUpdateCharacter) {
+      toast.error('Cannot save spell — character not editable');
+      return;
+    }
+    const isCantrip = spell.level === 0;
+    const targetField = isCantrip
+      ? 'cantrips_known'
+      : (classInfo.type === 'prepared' ? 'spells_prepared' : 'spells_known');
+    const existing = (character?.[targetField] || []).map(s => typeof s === 'string' ? { name: s } : s);
+    if (existing.some(s => s.name === spell.name)) {
+      toast.info(`${spell.name} is already in your ${isCantrip ? 'cantrips' : 'spellbook'}`);
+      return;
+    }
+    const updated = [...existing, {
+      name: spell.name,
+      level: spell.level,
+      school: spell.school,
+      casting_time: spell.casting_time,
+      range: spell.range,
+      concentration: spell.concentration,
+      ritual: spell.ritual,
+      description: spell.description
+    }];
+    try {
+      await onUpdateCharacter({ [targetField]: updated });
+      toast.success(`Learned ${spell.name}`);
+    } catch (e) {
+      toast.error('Failed to learn spell');
+    }
+  };
+
+  const forgetSpell = async (spellName, isCantrip) => {
+    if (!onUpdateCharacter) return;
+    const targetField = isCantrip
+      ? 'cantrips_known'
+      : (classInfo.type === 'prepared' ? 'spells_prepared' : 'spells_known');
+    const existing = (character?.[targetField] || []).map(s => typeof s === 'string' ? { name: s } : s);
+    const updated = existing.filter(s => s.name !== spellName);
+    try {
+      await onUpdateCharacter({ [targetField]: updated });
+      toast.success(`Forgot ${spellName}`);
+    } catch {
+      toast.error('Failed to forget spell');
+    }
+  };
+
   return (
     <div data-testid="spellbook" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Header row with Learn Spell button */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text.primary, fontFamily: "'Cinzel', serif" }}>
+          {character?.character_class} Spellbook
+        </span>
+        <button
+          data-testid="learn-spell-btn"
+          onClick={() => { setShowLearnModal(true); setLearnLevel(0); setLearnSearch(''); }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '5px 10px', borderRadius: 6,
+            background: 'rgba(212, 160, 23, 0.12)', border: '1px solid rgba(212, 160, 23, 0.4)',
+            color: '#D4A017', cursor: 'pointer', fontSize: 11, fontWeight: 700
+          }}
+        >
+          <Plus size={12} /> LEARN SPELL
+        </button>
+      </div>
+
       {/* Stats Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
@@ -528,7 +624,115 @@ export default function CharacterSpellbook({
         <div style={{ textAlign: 'center', padding: 30, color: theme.text.muted }}>
           <BookOpen size={28} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
           <p>No spells {classInfo.type === 'prepared' ? 'prepared' : 'known'} yet</p>
-          <p style={{ fontSize: 11, marginTop: 4 }}>Add spells during level up or from the spell database.</p>
+          <p style={{ fontSize: 11, marginTop: 4 }}>Click LEARN SPELL above to add spells from the SRD list.</p>
+        </div>
+      )}
+
+      {/* Learn Spell Modal */}
+      {showLearnModal && (
+        <div data-testid="learn-spell-modal" style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
+        }}>
+          <div style={{
+            background: '#0F0A1E', border: '1px solid rgba(212, 160, 23, 0.4)',
+            borderRadius: 12, padding: 20,
+            width: 'min(800px, 100%)', maxHeight: '85vh', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0, color: '#D4A017', fontFamily: "'Cinzel', serif", fontSize: 18 }}>
+                Learn a {character?.character_class} Spell
+              </h3>
+              <button data-testid="learn-modal-close" onClick={() => setShowLearnModal(false)} style={{
+                background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer'
+              }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Level filter */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].slice(0, maxSpellLevel + 1).map(lvl => (
+                <button
+                  key={lvl}
+                  data-testid={`learn-level-${lvl}`}
+                  onClick={() => setLearnLevel(lvl)}
+                  style={{
+                    padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+                    background: learnLevel === lvl ? 'rgba(212, 160, 23, 0.25)' : 'rgba(15, 10, 30, 0.5)',
+                    border: `1px solid ${learnLevel === lvl ? '#D4A017' : theme.border}`,
+                    color: learnLevel === lvl ? '#D4A017' : theme.text.primary, cursor: 'pointer'
+                  }}>
+                  {lvl === 0 ? 'Cantrips' : `Lvl ${lvl}`}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <input
+              data-testid="learn-search"
+              value={learnSearch}
+              onChange={e => setLearnSearch(e.target.value)}
+              placeholder="Search spells..."
+              style={{
+                width: '100%', padding: '8px 12px', marginBottom: 10,
+                background: 'rgba(15, 10, 30, 0.6)', border: `1px solid ${theme.border}`,
+                borderRadius: 8, color: theme.text.primary, fontSize: 13, outline: 'none'
+              }}
+            />
+
+            {/* Spell list */}
+            <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+              {srdLoading && <div style={{ color: theme.text.muted, padding: 16, textAlign: 'center' }}>Loading…</div>}
+              {!srdLoading && srdSpells.length === 0 && (
+                <div style={{ color: theme.text.muted, padding: 16, textAlign: 'center', fontSize: 12 }}>
+                  No spells available at this level for {character?.character_class}.
+                </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {srdSpells
+                  .filter(s => !learnSearch || s.name.toLowerCase().includes(learnSearch.toLowerCase()))
+                  .map(spell => {
+                    const known = knownNames.has(spell.name);
+                    return (
+                      <div key={spell.name} style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '8px 10px', borderRadius: 8,
+                        background: known ? 'rgba(16, 185, 129, 0.06)' : 'rgba(15, 10, 30, 0.5)',
+                        border: `1px solid ${known ? 'rgba(16, 185, 129, 0.25)' : theme.border}`
+                      }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text.primary, fontFamily: "'Cinzel', serif" }}>
+                            {known && '✓ '}{spell.name} <span style={{ fontSize: 10, color: theme.text.muted, fontWeight: 400 }}>· {spell.school}</span>
+                          </div>
+                          <div style={{ fontSize: 10, color: theme.text.muted, marginTop: 2 }}>
+                            {spell.casting_time} · {spell.range} · {spell.duration}
+                            {spell.concentration && ' · Concentration'}
+                            {spell.ritual && ' · Ritual'}
+                          </div>
+                        </div>
+                        <button
+                          data-testid={`learn-add-${spell.name.toLowerCase().replace(/\s/g, '-')}`}
+                          disabled={known}
+                          onClick={() => learnSpell(spell)}
+                          style={{
+                            padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+                            background: known ? 'rgba(255,255,255,0.05)' : '#D4A017',
+                            border: `1px solid ${known ? 'rgba(255,255,255,0.1)' : '#D4A017'}`,
+                            color: known ? theme.text.muted : '#0A1628',
+                            cursor: known ? 'not-allowed' : 'pointer',
+                            opacity: known ? 0.5 : 1
+                          }}>
+                          {known ? 'KNOWN' : 'LEARN'}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

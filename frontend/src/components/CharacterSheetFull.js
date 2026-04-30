@@ -352,10 +352,13 @@ export default function CharacterSheetFull() {
   }, [character]);
 
   const profBonus = useMemo(() => Math.ceil((character?.level || 1) / 4) + 1, [character]);
-  const maxHp = character?.max_hit_points ?? character?.max_hp ?? (8 + getModifier(abilities.constitution));
+  const exhaustion = character?.exhaustion_level || 0;
+  const rawMaxHp = character?.max_hit_points ?? character?.max_hp ?? (8 + getModifier(abilities.constitution));
+  const maxHp = exhaustion >= 4 ? Math.floor(rawMaxHp / 2) : rawMaxHp;
   const ac = character?.armor_class ?? character?.ac ?? (10 + getModifier(abilities.dexterity));
   const initiative = getModifier(abilities.dexterity);
-  const speed = character?.speed || 30;
+  const rawSpeed = character?.speed || 30;
+  const speed = exhaustion >= 5 ? 0 : (exhaustion >= 2 ? Math.floor(rawSpeed / 2) : rawSpeed);
 
   // Get class-specific actions
   const classActions = useMemo(() => {
@@ -590,7 +593,14 @@ export default function CharacterSheetFull() {
               {character.name}
             </h1>
             <div style={{ color: theme.text.secondary, fontSize: '12px' }}>
-              {character.race}{character.subrace ? ` (${character.subrace})` : ''} • {character.character_class}{character.subclass ? ` (${character.subclass})` : ''} • Lv {character.level || 1}
+              {character.race}{character.subrace ? ` (${character.subrace})` : ''} •{' '}
+              {(() => {
+                const ml = character.multiclass_levels || character.class_levels;
+                if (ml && Object.keys(ml).length > 1) {
+                  return Object.entries(ml).map(([cls, lvl]) => `${cls} ${lvl}`).join(' / ');
+                }
+                return `${character.character_class}${character.subclass ? ` (${character.subclass})` : ''} • Lv ${character.level || 1}`;
+              })()}
             </div>
           </div>
         </div>
@@ -683,8 +693,8 @@ export default function CharacterSheetFull() {
               const saveMod = mod + (character.saving_throw_proficiencies?.includes(ability) ? profBonus : 0);
               const isProficient = character.saving_throw_proficiencies?.includes(ability);
               const saveContext = `${ABILITY_SHORT[ability].toLowerCase()}_save`;
-              const condIndicator = getConditionIndicator(character?.conditions || [], saveContext);
-              const condEffect = getConditionRollEffect(character?.conditions || [], saveContext);
+              const condIndicator = getConditionIndicator(character?.conditions || [], saveContext, character?.exhaustion_level || 0);
+              const condEffect = getConditionRollEffect(character?.conditions || [], saveContext, 'normal', character?.exhaustion_level || 0);
               
               return (
                 <div key={ability} style={{ marginBottom: '4px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px', padding: '6px 8px' }}>
@@ -739,8 +749,8 @@ export default function CharacterSheetFull() {
               const isProficient = character.skill_proficiencies?.includes(skill.name);
               const bonus = mod + (isProficient ? profBonus : 0);
               const skillContext = `${skill.ability.substring(0, 3).toLowerCase()}_check`;
-              const condIndicator = getConditionIndicator(character?.conditions || [], skillContext);
-              const condEffect = getConditionRollEffect(character?.conditions || [], skillContext);
+              const condIndicator = getConditionIndicator(character?.conditions || [], skillContext, character?.exhaustion_level || 0);
+              const condEffect = getConditionRollEffect(character?.conditions || [], skillContext, 'normal', character?.exhaustion_level || 0);
               
               return (
                 <button
