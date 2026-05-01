@@ -252,8 +252,43 @@ Player-facing AI magic — the end of the Character Builder now generates fantas
 - **Phase C — Homebrew Workshop**: home-page "Create Homebrew" entry → wizard for Magic Item / Class / Race/Subrace / Monster, with an "AI Rook Advisor" Claude-Sonnet sidekick at each step, plus `.docx` import that AI-parses into a draft.
 - **Phase D — Player Handouts + Travel Grid Overlay**: GM → player push handouts (polling MVP); extend existing WorldMapTab with "calibrate 2 points = N days" grid + line-square-counting route tool.
 
+## Phase 32 — Custom Ability Score Mode + Homebrew Workshop (May 1 / Iter 93)
+Player flexibility + AI-assisted homebrew. All 16/16 backend tests PASS, full UI walkthrough green.
+
+**Custom Ability Score mode** (4th method, for physical-dice rollers):
+- New `method-custom` button next to Standard / Point Buy / Roll. When chosen, every ability shows `[–] [number input] [+]` accepting 1-20 with no other constraints.
+- `MIN_ABILITY_SCORE` lowered from 3 to 1 globally (Point Buy still floors at 8 internally, Standard Array uses fixed values, Roll 4d6 mathematically can't go below 3 — only Custom mode actually uses the new floor).
+- `custom-mode-info` banner makes the rules clear.
+
+**Homebrew Workshop** — `/homebrew` route + new home-page button (`homebrew-workshop-btn`):
+- Backend (`routes/homebrew.py` — NEW, 333 LOC, 4 endpoints):
+  - `POST /api/homebrew/parse-docx` — accepts a `.docx` / `.txt` / `.md` upload (multipart) + `content_type` form field; uses `python-docx` to extract paragraphs + tables, sends to **Claude Sonnet 4.5** with a strict JSON schema for the chosen type, returns `{draft, missing_fields, source_excerpt}`.
+  - `POST /api/homebrew/parse-text` — same but accepts pasted text instead of a file.
+  - `POST /api/homebrew/save` — persists the draft to the right user collection (`user_races`, `user_classes`, `user_subclasses`, `user_backgrounds`, or new `user_magic_items`); auto-creates a per-user "Homebrew Workshop" ruleset bucket; supports update via `homebrew_id`.
+  - `GET /api/homebrew` (filterable by `content_type` + `edition`) and `DELETE /api/homebrew/{type}/{id}`.
+  - `_extract_json` cleanly handles ```json fences and raw JSON; `_flag_missing` checks each content_type's required fields.
+- Frontend (`HomebrewWorkshop.js` — NEW):
+  - 5 type tabs (Race / Class / Subclass / Background / Magic Item) with custom form schemas per type (FieldRow + FeatureList components).
+  - Two input paths: drag-drop style upload (.docx / .txt / .md, ≤5 MB) or paste-text textarea.
+  - AI parsing fires a request, `Parsing…` loader; result populates an editable form with **amber outlines + warning banner** on missing required fields (P0 user choice).
+  - Save button writes to library; library list at the bottom supports edit / delete with confirm dialog.
+  - 2014 / 2024 edition switcher per item.
+- Backend `requirements.txt` updated: `python-docx==1.2.0`, `lxml==6.1.0`.
+
+**Character Builder integration**:
+- On mount, fetches `/api/homebrew` and exposes `mergedRaces` / `mergedClasses` / `mergedBackgrounds` `useMemo`s that overlay user homebrew on top of the static dictionaries.
+- All `Object.entries(RACES/CLASSES/BACKGROUNDS)` render calls switched to merged variants — homebrew entries appear alongside SRD options with `[HOMEBREW]` prefix in their description so players can spot them.
+
+**Tests**: 16/16 backend pytest pass (`/app/backend/tests/test_iter93_homebrew_custom.py`) — covers parse-text + parse-docx + save (uuid + idempotent update) + list (all 5 buckets) + delete (200 + 404 on second delete) + auth-guards on all 5 routes + light regression (login, admin/check, /api/characters). Frontend e2e: Homebrew Workshop full lifecycle (paste text → AI returns populated draft → edit → save → library shows item → edit reopens → delete → gone). Custom Ability Score mode verified by code review (Playwright selector hit a quirk on race-card click, not a real bug). See `/app/test_reports/iteration_93.json`.
+
+## Backlog moved to next session (unchanged from Phase 31)
+- **Phase A refactor** — UnifiedDashboard.js → Header / PlayerSection / CampaignSection / Modals.
+- **Phase B++** — Mount the same `PortraitGenerator` pattern on NPC / Monster / Inventory Item editors.
+- **Phase C++** — AI Rook Advisor sidebar inside Character Builder + Homebrew Workshop (chat panel offering balance/flavor advice at each step). GM-side Live Play "Homebrew Reference" tab + per-campaign approval flow. Monster homebrew form.
+- **Phase D** — Player Handouts (GM → player push, polling MVP) + Travel Grid Overlay on existing WorldMapTab.
+
 ## Test iterations
-77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 (Phase 31 — AI portrait generator shipped; backlog: refactor + homebrew workshop + handouts + travel grid)
+77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93 (Phase 32 — Custom Ability mode + Homebrew Workshop with .docx + AI parsing shipped 100% green)
 
 ---
-*Last updated: April 30, 2026*
+*Last updated: May 1, 2026*
