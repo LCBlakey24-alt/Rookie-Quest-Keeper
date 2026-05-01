@@ -47,7 +47,7 @@ export default function AdminUsersTab() {
       try {
         setLoading(true);
         const res = await axios.get(`${API}/admin/users`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` }
         });
         setUsers(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
@@ -61,7 +61,7 @@ export default function AdminUsersTab() {
   const downloadCsv = async (kind) => {
     try {
       const res = await axios.get(`${API}/admin/export/${kind}.csv`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` },
         responseType: 'blob'
       });
       const blob = new Blob([res.data], { type: 'text/csv' });
@@ -85,17 +85,17 @@ export default function AdminUsersTab() {
       const res = await axios.post(
         `${API}/admin/users/${encodeURIComponent(targetUsername)}/impersonate`,
         {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` } }
       );
       const { token, username } = res.data || {};
       if (!token) throw new Error('No token returned');
       // Stash admin's own creds for restoration
-      const adminToken = localStorage.getItem('token');
-      const adminUsername = localStorage.getItem('username');
+      const adminToken = localStorage.getItem('dm_token');
+      const adminUsername = localStorage.getItem('dm_username');
       sessionStorage.setItem('rq_admin_token_stash', adminToken || '');
       sessionStorage.setItem('rq_admin_username_stash', adminUsername || '');
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', username);
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', username);
       toast.success(`Now viewing as ${username}`);
       // Reload to home — full app re-renders with the new token
       window.location.assign('/home');

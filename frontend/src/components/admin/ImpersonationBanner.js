@@ -17,15 +17,15 @@ export default function ImpersonationBanner() {
     ? sessionStorage.getItem('rq_admin_username_stash')
     : null;
   const current = typeof window !== 'undefined'
-    ? localStorage.getItem('username')
+    ? localStorage.getItem('dm_username')
     : null;
 
   if (!stashedToken) return null;
 
   const restore = () => {
     try {
-      localStorage.setItem('token', stashedToken);
-      if (stashedUsername) localStorage.setItem('username', stashedUsername);
+      localStorage.setItem('dm_token', stashedToken);
+      if (stashedUsername) localStorage.setItem('dm_username', stashedUsername);
       sessionStorage.removeItem('rq_admin_token_stash');
       sessionStorage.removeItem('rq_admin_username_stash');
       toast.success('Admin session restored');

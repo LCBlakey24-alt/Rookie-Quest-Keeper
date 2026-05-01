@@ -1,0 +1,47 @@
+{
+  "iteration": 91,
+  "timestamp": "2026-01-30T22:30:00Z",
+  "test_type": "frontend only (impersonation E2E retest + brief regression smoke)",
+  "overall_status": "GREEN — impersonation flow fully working end-to-end after localStorage key alignment",
+  "summary": "Re-tested the impersonation E2E flow (and a brief regression smoke) after the iter-90 fix that renamed all 7 references in AdminUsersTab.js + ImpersonationBanner.js from `token`/`username` to `dm_token`/`dm_username`. Source-level audit confirms the fix is in place. Live e2e via Playwright on the public preview URL: login → /admin → admin-tab-users → impersonate-LCBlakey24 → confirm() accepted → app navigates to /home, impersonation-banner appears (text: 'IMPERSONATING LCBlakey24 (as LCBlakey24) Stop impersonating'), sessionStorage.rq_admin_token_stash is non-empty (length=153), sessionStorage.rq_admin_username_stash=LCBlakey24, localStorage.dm_token swapped to a fresh token (different from admin's original), localStorage.dm_username updated. Stop-impersonating-btn click clears both sessionStorage stash keys, restores dm_token to the original admin token, redirects to /admin, and the banner disappears. Regression smoke: /home renders character-search-input + campaign-search-input + character-sort + campaign-sort; search filters character list correctly. /characters/new/full loads Edition step with edition-2014 + edition-2024 testids and step-abilities pill is reachable in the wizard nav. Per request, did NOT re-run backend (iter-90 backend was 17/17 green) and did NOT re-run home-sort persistence or admin tab UI. Iter 90 is now fully green.",
+  "results": {
+    "frontend": {
+      "passed": [
+        "Login with lcblakey24@outlook.com / LCBlakey24?! → /home, dm_token + dm_username persisted",
+        "Navigate /admin → click admin-tab-users → admin-users-tab renders, impersonate-LCBlakey24 button visible",
+        "Click impersonate → confirm() auto-accepted → POST /api/admin/users/LCBlakey24/impersonate → app navigates to /home",
+        "impersonation-banner is visible after impersonate, label reads 'IMPERSONATING LCBlakey24 (as LCBlakey24)'",
+        "sessionStorage.rq_admin_token_stash is non-empty (153 chars) and rq_admin_username_stash='LCBlakey24'",
+        "localStorage.dm_token differs from admin's original (token actually swapped) and dm_username updated",
+        "Click stop-impersonating-btn → sessionStorage stash keys cleared (null) → localStorage.dm_token restored to admin's original → redirected to /admin → banner removed",
+        "Regression: /home shows character-search-input, campaign-search-input, character-sort, campaign-sort; typing in character-search filters list",
+        "Regression: /characters/new/full loads Edition step (edition-2014 + edition-2024 testids), step-abilities pill present in wizard nav (reachable)"
+      ],
+      "failed": []
+    }
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_90.json",
+    "/app/backend/tests/test_iter90_ability_admin.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Iter-90 fix verified: AdminUsersTab.js (lines 50, 64, 88, 93-94, 97-98) and ImpersonationBanner.js (lines 20, 27-28) now consistently use dm_token/dm_username, matching App.js axios interceptor + login/logout. No remaining inconsistencies in the impersonation path.",
+    "Minor (carry-over from iter 90, low priority): AdminUsersTab.js still passes Authorization headers manually on /admin/users and /admin/export/*.csv even though the App.js axios interceptor would do this automatically. Cleanup-only — no functional impact.",
+    "Minor (low priority): ImpersonationBanner reads sessionStorage on render rather than reactively (no storage event listener). If an admin opens a second tab while impersonating, the banner state can be inconsistent across tabs until reload. Not blocking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (iter-90 17/17, not re-run)", "frontend": "100% — impersonation E2E + regression smoke all pass"},
+  "test_credentials": "lcblakey24@outlook.com / LCBlakey24?! (admin)",
+  "seed_data_creation": "None — no new test data created in this iteration",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter 91 confirms iter 90 is fully green. Impersonation flow works end-to-end with banner, session-stash, token swap, and restore-on-stop. Home sort + admin tab UI + backend (17/17) were already verified in iter 90 and remain green. Next iteration can move on to new work — no remaining blockers from iter 90.",
+  "rca_of_the_issue": "Iter-90 RCA confirmed: localStorage key mismatch resolved by renaming `token`→`dm_token` and `username`→`dm_username` across all 7 references in AdminUsersTab.js + ImpersonationBanner.js. Verified via live e2e: stash now captures the admin's real token (153 chars), token swap is observed, axios interceptor picks up the new dm_token without issue, and stop-impersonating cleanly restores."
+}
