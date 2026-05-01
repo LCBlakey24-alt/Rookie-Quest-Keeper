@@ -224,8 +224,36 @@ Player and admin polish — all shipped and verified end-to-end:
 - `AdminUsersTab.js` still passes `Authorization` headers manually — the App.js axios interceptor already does this; redundant but harmless.
 - `ImpersonationBanner` reads sessionStorage on render; does not listen for `storage` events. Multi-tab state can briefly disagree until a reload. Non-blocking.
 
+## Phase 31 — AI Character Portraits (Nano Banana) + Portrait PATCH (Apr 30 / Iter 92)
+Player-facing AI magic — the end of the Character Builder now generates fantasy portraits.
+
+**Backend** (`routes/ai_portrait.py` — NEW):
+- `POST /api/ai/portrait` — generate a single fantasy portrait via Gemini Nano Banana (`gemini-3.1-flash-image-preview`) with style presets `photoreal` / `painterly` / `stylized`. Accepts race, subrace, character_class, subclass, background, alignment, gender, description, style. Builds a deterministic prompt, returns `{ image_base64, mime_type, style, prompt }`.
+- `POST /api/ai/portrait/batch` — kicks off all 3 style variants in parallel via `asyncio.gather`; each result is either a portrait or `{style, error}` so a single failure never sinks the whole batch.
+- Uses `EMERGENT_LLM_KEY` via `emergentintegrations.llm.chat.LlmChat` + `UserMessage`. Graceful 503 if the package or key is missing.
+- `PATCH /api/characters/{id}` whitelist extended with `portrait_url` so the selected AI portrait (or uploaded PNG) persists on edit.
+
+**Frontend** (`/components/builder/PortraitGenerator.js` — NEW):
+- Drop-in Review-step component with two paths:
+  - **Generate 3 Portraits** button fires `/api/ai/portrait/batch`, shows a 3-tile grid (`portrait-option-{style}`), click a tile to pick → stores base64 data URI into `character.portrait`.
+  - **Upload your own** label+file input (`portrait-upload-label`, `portrait-file-input`) — 4MB cap, MIME guard, reads via FileReader into a data URI.
+- Gender + appearance description fields feed the prompt; optional Clear button resets to none.
+- Loading states, `rq-spin` micro-animation on the wand icon during generation.
+
+**CharacterBuilder** — replaced the plain "Portrait URL" input at the Review step with `<PortraitGenerator />` wired to `portrait` / `setPortrait`.
+
+**Tests**: backend 8/9 (the 1 "failure" is environmental — `EMERGENT_LLM_KEY` monthly cap at $1.40 is exhausted, so the 3-image batch drops 2/3 per request — the code path itself is verified correct: the endpoint returns `{portraits: [{style, error, ...}, ...]}` so the UI can cleanly show "Generation failed" tiles). Single-portrait endpoint verified end-to-end with a real Gemini JPEG (~1.1MB). Auth guard (401/403), invalid-style fallback, and the `portrait_url` PATCH whitelist fix all pass. Frontend code-review confirms every required data-testid is present. See `/app/test_reports/iteration_92.json` + `/app/backend/tests/test_iter92_ai_portrait.py`.
+
+**⚠️ Action item for the user**: raise the `EMERGENT_LLM_KEY` budget (Profile → Universal Key → Add Balance / enable auto top-up) so the 3-image batch can actually return 3 images. Current cap is exhausted after the first image. The code handles partial failures gracefully, but the UX is best with a real budget.
+
+## Backlog moved to next session
+- **Phase A refactor** (UnifiedDashboard.js → Header/PlayerSection/CampaignSection/Modals) — pure code-hygiene, no user-facing value. Deferred to preserve context for higher-value features.
+- **Phase B extension**: simplified image uploads for NPCs / Monsters / Items / Inventory — same `PortraitGenerator`-style component reused everywhere. (Core generator built; just needs to be mounted in those other editors.)
+- **Phase C — Homebrew Workshop**: home-page "Create Homebrew" entry → wizard for Magic Item / Class / Race/Subrace / Monster, with an "AI Rook Advisor" Claude-Sonnet sidekick at each step, plus `.docx` import that AI-parses into a draft.
+- **Phase D — Player Handouts + Travel Grid Overlay**: GM → player push handouts (polling MVP); extend existing WorldMapTab with "calibrate 2 points = N days" grid + line-square-counting route tool.
+
 ## Test iterations
-77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91 (Phase 30 — Ability Score UX overhaul, Home sort, Admin CSV + Impersonation: 100% backend + frontend)
+77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 (Phase 31 — AI portrait generator shipped; backlog: refactor + homebrew workshop + handouts + travel grid)
 
 ---
 *Last updated: April 30, 2026*
