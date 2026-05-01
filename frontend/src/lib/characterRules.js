@@ -8,7 +8,7 @@ export const ABILITIES = [
 ];
 
 export const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
-export const MIN_ABILITY_SCORE = 3;
+export const MIN_ABILITY_SCORE = 1;
 export const MAX_ABILITY_SCORE = 20;
 export const POINT_BUY_TOTAL = 27;
 

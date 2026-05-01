@@ -15,6 +15,7 @@ import AdminPage from '@/components/AdminPage';
 import LandingPage from '@/components/LandingPage';
 import AccountSettings from '@/components/AccountSettings';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
+import HomebrewWorkshop from '@/components/HomebrewWorkshop';
 import CharacterBuilder from '@/components/CharacterBuilder';
 import CharacterCreationModePicker from '@/components/CharacterCreationModePicker';
 import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
@@ -237,6 +238,7 @@ function App() {
               } 
             />
             <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+            <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
             <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
             <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
             <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />

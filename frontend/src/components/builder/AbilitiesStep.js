@@ -184,6 +184,12 @@ export default function AbilitiesStep({
       setDice([]);
       setAssignedIds({});
       runRollAnimation();
+    } else if (nextMethod === 'custom') {
+      // Manual entry — start at 10s and let the user freely set 1-20 per slot
+      setDice([]);
+      setAssignedIds({});
+      setDiceFaces([null, null, null, null, null, null]);
+      setStats(ABILITIES.reduce((acc, a) => ({ ...acc, [a]: 10 }), {}));
     }
   };
 
@@ -279,7 +285,8 @@ export default function AbilitiesStep({
         {[
           { key: 'standard', label: 'Standard Array', desc: '15, 14, 13, 12, 10, 8' },
           { key: 'point', label: 'Point Buy', desc: `${POINT_BUY_TOTAL} points to spend` },
-          { key: 'roll', label: 'Roll 4d6', desc: 'Drop lowest, randomized' }
+          { key: 'roll', label: 'Roll 4d6', desc: 'Drop lowest, randomized' },
+          { key: 'custom', label: 'Custom (Manual)', desc: 'For physical dice — 1 to 20, any combo' }
         ].map(m => (
           <button
             key={m.key}
@@ -310,6 +317,20 @@ export default function AbilitiesStep({
             border: `1px solid ${pointBuyRemaining === 0 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`
           }}>
           Points: {pointBuySpent} / {POINT_BUY_TOTAL} · {pointBuyRemaining} remaining
+        </div>
+      )}
+
+      {/* Custom mode info pill */}
+      {method === 'custom' && (
+        <div
+          data-testid="custom-mode-info"
+          style={{
+            marginBottom: 16, padding: '10px 14px', borderRadius: 10,
+            background: 'rgba(212, 160, 23, 0.10)',
+            color: theme.gold, fontWeight: 700, fontSize: 13,
+            border: `1px solid ${theme.border}`
+          }}>
+          Manual entry — for players who rolled physical dice. Each ability accepts 1-20.
         </div>
       )}
 
@@ -492,6 +513,72 @@ export default function AbilitiesStep({
                       border: `1px solid ${theme.gold}`,
                       color: theme.gold,
                       cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 800
+                    }}>
+                    <Plus size={16} />
+                  </button>
+                </div>
+              )}
+
+              {/* Custom mode: free 1-20 input + steppers */}
+              {method === 'custom' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = Number(base) || 1;
+                      if (cur > 1) setStats(prev => ({ ...prev, [ability]: cur - 1 }));
+                    }}
+                    disabled={Number(base) <= 1}
+                    data-testid={`stat-dec-${ability}`}
+                    style={{
+                      width: 30, height: 30, borderRadius: 8,
+                      background: Number(base) <= 1 ? 'rgba(100,116,139,0.1)' : 'rgba(212,160,23,0.15)',
+                      border: `1px solid ${Number(base) <= 1 ? 'rgba(100,116,139,0.3)' : theme.gold}`,
+                      color: Number(base) <= 1 ? theme.text.muted : theme.gold,
+                      cursor: Number(base) <= 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 800
+                    }}>
+                    <Minus size={16} />
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={base ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        setStats(prev => ({ ...prev, [ability]: '' }));
+                        return;
+                      }
+                      const n = Math.max(1, Math.min(20, parseInt(raw, 10) || 1));
+                      setStats(prev => ({ ...prev, [ability]: n }));
+                    }}
+                    data-testid={`ability-${ability}`}
+                    style={{
+                      width: 56, padding: '6px 4px',
+                      background: 'rgba(15, 36, 64, 0.8)', border: `1px solid ${theme.border}`,
+                      borderRadius: 8, color: theme.text.primary,
+                      fontSize: 22, fontWeight: 800, textAlign: 'center', outline: 'none'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = Number(base) || 0;
+                      if (cur < 20) setStats(prev => ({ ...prev, [ability]: cur + 1 }));
+                    }}
+                    disabled={Number(base) >= 20}
+                    data-testid={`stat-inc-${ability}`}
+                    style={{
+                      width: 30, height: 30, borderRadius: 8,
+                      background: Number(base) >= 20 ? 'rgba(100,116,139,0.1)' : 'rgba(212,160,23,0.15)',
+                      border: `1px solid ${Number(base) >= 20 ? 'rgba(100,116,139,0.3)' : theme.gold}`,
+                      color: Number(base) >= 20 ? theme.text.muted : theme.gold,
+                      cursor: Number(base) >= 20 ? 'not-allowed' : 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontWeight: 800
                     }}>

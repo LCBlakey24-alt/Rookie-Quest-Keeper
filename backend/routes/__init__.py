@@ -20,6 +20,7 @@ from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
 from routes.ai_portrait import router as ai_portrait_router
+from routes.homebrew import router as homebrew_router
 
 all_routers = [
     auth_router,
@@ -43,4 +44,5 @@ all_routers = [
     events_router,
     character_templates_router,
     ai_portrait_router,
+    homebrew_router,
 ]

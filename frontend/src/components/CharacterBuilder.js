@@ -212,11 +212,94 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     }
   };
 
-  const raceData = RACES[race] || null;
+  // ── Homebrew integration ────────────────────────────────────────────────
+  // Fetches the user's homebrew once on mount and merges races / classes /
+  // backgrounds into the existing static dictionaries. Homebrew entries are
+  // prefixed with [HOMEBREW] in their description so players can spot them.
+  const [homebrew, setHomebrew] = useState({ race: [], class: [], background: [] });
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`${API_BASE}/homebrew`).then(res => {
+      if (cancelled) return;
+      const hb = res.data?.homebrew || {};
+      setHomebrew({
+        race: hb.race || [],
+        class: hb.class || [],
+        background: hb.background || []
+      });
+    }).catch(() => { /* silent — homebrew is optional */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Inject homebrew entries into the static dictionaries (read-only merge).
+  // Homebrew entries are converted to the same shape the wizard expects.
+  const mergedRaces = useMemo(() => {
+    const out = { ...RACES };
+    (homebrew.race || []).forEach(item => {
+      if (!item?.name) return;
+      const ab = item.ability_bonuses || {};
+      out[item.name] = {
+        name: item.name,
+        description: `[HOMEBREW] ${item.description || ''}`,
+        speed: Number(item.speed) || 30,
+        size: item.size || 'Medium',
+        asi2014: ab,
+        asi2024: null,
+        traits: (item.traits || []).map(t => typeof t === 'string' ? t : (t.name || '')).filter(Boolean),
+        languages: item.languages || ['Common'],
+        homebrew: true
+      };
+    });
+    return out;
+  }, [homebrew.race]);
+
+  const mergedClasses = useMemo(() => {
+    const out = { ...CLASSES };
+    (homebrew.class || []).forEach(item => {
+      if (!item?.name) return;
+      const dieMatch = String(item.hit_die || '').match(/(\d+)/);
+      out[item.name] = {
+        name: item.name,
+        description: `[HOMEBREW] ${item.description || ''}`,
+        hitDie: dieMatch ? parseInt(dieMatch[1], 10) : 8,
+        primaryAbility: (item.primary_ability || 'strength').toLowerCase(),
+        savingThrows: (item.saving_throw_proficiencies || []).map(s => s.toLowerCase()),
+        armorProf: item.armor_proficiencies || [],
+        weaponProf: item.weapon_proficiencies || [],
+        skillsToChoose: 2,
+        skills: [],
+        features: item.features || [],
+        homebrew: true
+      };
+    });
+    return out;
+  }, [homebrew.class]);
+
+  const mergedBackgrounds = useMemo(() => {
+    const out = { ...BACKGROUNDS };
+    (homebrew.background || []).forEach(item => {
+      if (!item?.name) return;
+      out[item.name] = {
+        name: item.name,
+        description: `[HOMEBREW] ${item.description || ''}`,
+        skills: item.skill_proficiencies || [],
+        tools: item.tool_proficiencies || [],
+        languages: Number(item.languages) || 0,
+        equipment: item.equipment || [],
+        feature: item.feature_name || '',
+        featureDesc: item.feature_description || '',
+        homebrew: true
+      };
+    });
+    return out;
+  }, [homebrew.background]);
+  // ────────────────────────────────────────────────────────────────────────
+
+  const raceData = mergedRaces[race] || RACES[race] || null;
   const availableSubraces = raceData?.subraces ? Object.keys(raceData.subraces) : [];
-  const classData = CLASSES[className] || null;
+  const classData = mergedClasses[className] || CLASSES[className] || null;
   const availableSubclasses = classData?.subclasses || [];
-  const backgroundData = BACKGROUNDS[background] || null;
+  const backgroundData = mergedBackgrounds[background] || BACKGROUNDS[background] || null;
 
   // Dynamic steps - spells only for spellcasters
   const STEPS = useMemo(() => {
@@ -581,7 +664,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     <div>
       <StepHeader icon={User} title="Choose Your Race" subtitle="Your ancestry shapes your traits and abilities" color={theme.sunset.pink} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(RACES).map(([key, r]) => (
+        {Object.entries(mergedRaces).map(([key, r]) => (
           <SelectCard
             key={key} active={race === key} onClick={() => setRace(key)}
             color={theme.sunset.pink}
@@ -740,7 +823,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     <div>
       <StepHeader icon={Sword} title="Choose Your Class" subtitle="Your class defines your role and abilities" color={theme.sunset.purple} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(CLASSES).map(([key, c]) => (
+        {Object.entries(mergedClasses).map(([key, c]) => (
           <SelectCard
             key={key} active={className === key} onClick={() => setClassName(key)}
             color={theme.sunset.purple}
@@ -848,7 +931,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     <div>
       <StepHeader icon={Scroll} title="Choose Your Background" subtitle="Your past life shapes your skills and gear" color={theme.sunset.gold} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(BACKGROUNDS).map(([key, b]) => (
+        {Object.entries(mergedBackgrounds).map(([key, b]) => (
           <SelectCard
             key={key} active={background === key} onClick={() => setBackground(key)}
             color={theme.sunset.gold}

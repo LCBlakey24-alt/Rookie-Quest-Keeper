@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
   User, Crown, Plus, ChevronRight, Star, Link2, Settings,
-  Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson
+  Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson, Sparkles
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
 
@@ -689,6 +689,25 @@ function UnifiedDashboard({ username, onLogout }) {
               >
                 <Plus size={18} />
                 New Character
+              </Button>
+              <Button
+                onClick={() => navigate('/homebrew')}
+                data-testid="homebrew-workshop-btn"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #D4A017',
+                  color: '#D4A017',
+                  padding: '12px 18px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginLeft: 8,
+                  letterSpacing: 0.5
+                }}
+              >
+                <Sparkles size={16} />
+                Homebrew Workshop
               </Button>
             </div>
 

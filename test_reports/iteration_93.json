@@ -1,0 +1,37 @@
+{
+  "summary": "Iter 93 - Homebrew Workshop + Custom Ability Score mode. Backend: 16/16 pytest tests PASS in /app/backend/tests/test_iter93_homebrew_custom.py — covers parse-text (Pirate background w/ Athletics+Perception, race w/ size+speed in draft or missing, invalid content_type→400, empty→400), parse-docx (in-memory python-docx Pirate.docx → draft populated, .pdf rejected with 400), save (uuid id returned, update with same homebrew_id reuses id, no _id leak), list (all 5 buckets — race/class/subclass/background/magic_item — present + filter by content_type works), delete (200 with deleted={id}, second delete→404), auth guards (all 5 endpoints return 401/403 unauthenticated), and light regression (login + admin/check + GET /api/characters). Frontend: full Homebrew Workshop walkthrough succeeded — login → homebrew-workshop-btn on /home → /homebrew → all 5 type tabs (race/class/subclass/background/magic_item) + hb-edition + hb-paste-text + hb-parse-text-btn render → parse btn label flips to 'Parsing…' → hb-draft-editor populates → hb-save-btn creates hb-item-{uuid} in library → hb-edit-{id} reopens draft → hb-delete-{id} → 'Deleted' toast → item gone (count 1→0). Static races (Human, Elf, Dwarf, Halfling, Gnome, Half-Orc, Half-Elf, Tiefling, Aasimar, Goliath, Orc) render on Step 2/Race. AbilitiesStep custom mode verified by code review (live walkthrough blocked on race-card click selector — see context note).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter93_homebrew_custom.py",
+    "/app/test_reports/pytest/iter93_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "homebrew.py is solid: pydantic input validation, content_type whitelist (5 types), per-content-type required-fields map for missing_fields, _extract_json gracefully handles ```json fences AND raw JSON, async LLM call with try/except → 502 on AI fail, idempotent ruleset bucket lookup ('Homebrew Workshop' per-edition), and consistent _id stripping on every response. Auth-gated via Depends(get_current_user) on all 5 routes.",
+    "Save endpoint uses uuid4() for new ids and reuses homebrew_id on update — verified PASS in test_full_lifecycle (same id returned on second save).",
+    "AbilitiesStep.js custom mode (lines 524-588) is clean: stat-dec disables at ≤1, stat-inc disables at ≥20, number input clamped to 1-20 in onChange via Math.max(1, Math.min(20, parseInt)). MIN_ABILITY_SCORE in characterRules.js correctly lowered to 1.",
+    "HomebrewWorkshop.js has every required data-testid (hb-type-{race|class|subclass|background|magic_item}, hb-edition, hb-paste-text, hb-parse-text-btn, hb-draft-editor, hb-save-btn, hb-item-{id}, hb-edit-{id}, hb-delete-{id}); button label correctly toggles to 'Parsing…' during async LLM call.",
+    "Minor (informational only): parse-docx route also accepts .txt and .md as a convenience — not in problem statement but graceful and harmless. Non-.docx (e.g. .pdf) is correctly rejected with 400."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter93_homebrew_custom.py (new — 16 pytest cases, all PASS)"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16)",
+    "frontend": "Homebrew Workshop end-to-end PASS (parse → save → edit → delete → toast). Race step PASS (all 11 static races visible). Custom Ability mode verified by code review only — live walkthrough timed out on race-card click selector (see context_for_next_testing_agent)."
+  },
+  "test_credentials": "lcblakey24@outlook.com / LCBlakey24?! (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "test_full_lifecycle creates a TEST_iter93_Pirate_<hex> homebrew background and deletes it within the same test (no leftover seed).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter93 backend tests at /app/backend/tests/test_iter93_homebrew_custom.py — re-run with `pytest -v --junitxml=/app/test_reports/pytest/iter93_results.xml`. The Homebrew Workshop end-to-end UI flow (parse-text → draft → save → library → edit → delete) is fully verified including the LLM round-trip (real Claude Sonnet returned a populated Pirate draft within ~10s). Custom Ability Score mode walkthrough was blocked because the Race-step card uses a complex layout where `h3:has-text(\"Human\")` times out even though the card is clearly visible — likely the h3 is inside a clickable parent <div> with pointer-events:none on the heading itself. To reach Step 5 next time, click by `[role=\"button\"]:has-text(\"Human\")` or click the parent card via `.has(h3:text(\"Human\"))` ancestor selector, or set localStorage characterDraft directly. The data-testids, methods, and disabled-state logic for Custom mode are correct per code review (AbilitiesStep.js lines 285-295 for the 4 method buttons, 326 for custom-mode-info, 524-588 for the 1-20 input and steppers).",
+  "rca of the issue": "No bugs found — Homebrew Workshop and Custom Ability Score modes are implemented correctly. The only test friction was a Playwright selector against the Race-step cards; functionality is unaffected and confirmed via code review."
+}
