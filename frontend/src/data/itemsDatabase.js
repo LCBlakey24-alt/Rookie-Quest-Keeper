@@ -83,7 +83,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: false,
-    description: "After drinking this potion, you can use a bonus action to exhale fire at a target within 30 feet of you. The target must make a DC 13 Dexterity saving throw, taking 4d6 fire damage on a failed save, or half as much on a successful one. The effect ends after you exhale fire three times or 1 hour passes."
+    description: "After drinking this potion, you can use a bonus action to exhale fire at a target within 30 feet of you. The target must make a DC 13 Dexterity saving throw, taking 4d6 fire damage on a failed save, or half as much on a successful one."
   },
   {
     name: "Potion of Flying",
@@ -147,7 +147,7 @@ export const ITEMS_DATABASE = [
     rarity: "Very Rare",
     is_magic: true,
     requires_attunement: false,
-    description: "This potion's container looks empty but feels as though it holds liquid. When you drink it, you become invisible for 1 hour. Anything you wear or carry is invisible with you. The effect ends early if you attack or cast a spell."
+    description: "This potion's container looks empty but feels as though it holds liquid. When you drink it, you become invisible for 1 hour. Anything you wear or carry is invisible with you. The spell ends if you attack or cast a spell."
   },
   {
     name: "Potion of Resistance",
@@ -213,7 +213,7 @@ export const ITEMS_DATABASE = [
     rarity: "Very Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "While wearing this ring, you regain 1d6 hit points every 10 minutes, provided you have at least 1 hit point. If you lose a body part, the ring causes the missing part to regrow after 1d6 + 1 days."
+    description: "While wearing this ring, you regain 1d6 hit points every 10 minutes, provided you have at least 1 hit point. If you lose a body part, the ring causes the missing part to regrow and reattach to you."
   },
 
   // === WANDS (SRD) ===
@@ -223,7 +223,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: false,
-    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more charges to cast the magic missile spell from it. For 1 charge, you cast the 1st-level version. You can increase the spell slot level by one for each additional charge you expend. The wand regains 1d6 + 1 expended charges daily at dawn."
+    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more charges to cast the magic missile spell from it. For 1 charge, you cast the 1st-level version of the spell."
   },
   {
     name: "Wand of Fireballs",
@@ -231,7 +231,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more of its charges to cast the fireball spell (save DC 15) from it. For 1 charge, you cast the 3rd-level version. You can increase the spell slot level by one for each additional charge you expend. The wand regains 1d6 + 1 expended charges daily at dawn."
+    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more of its charges to cast the fireball spell (save DC 15) from it. For 1 charge, you cast the 3rd-level version of the spell."
   },
   {
     name: "Wand of Lightning Bolts",
@@ -239,7 +239,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more of its charges to cast the lightning bolt spell (save DC 15) from it. For 1 charge, you cast the 3rd-level version. You can increase the spell slot level by one for each additional charge you expend. The wand regains 1d6 + 1 expended charges daily at dawn."
+    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 or more of its charges to cast the lightning bolt spell (save DC 15) from it. For 1 charge, you cast the 3rd-level version of the spell."
   },
   {
     name: "Wand of Paralysis",
@@ -247,7 +247,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60 feet. The target must succeed on a DC 15 Constitution saving throw or be paralyzed for 1 minute."
+    description: "This wand has 7 charges. While holding it, you can use an action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60 feet of you."
   },
   {
     name: "Wand of Web",
@@ -273,7 +273,7 @@ export const ITEMS_DATABASE = [
     rarity: "Very Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "You have resistance to cold damage while you hold this staff. The staff has 10 charges. While holding it, you can use an action to expend charges to cast cone of cold (5 charges), fog cloud (1 charge), ice storm (4 charges), or wall of ice (4 charges)."
+    description: "You have resistance to cold damage while you hold this staff. The staff has 10 charges. While holding it, you can use an action to expend charges to cast cone of cold (5 charges) or ice storm (4 charges)."
   },
   {
     name: "Staff of Healing",
@@ -289,7 +289,7 @@ export const ITEMS_DATABASE = [
     rarity: "Very Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This staff can be wielded as a magic quarterstaff that grants a +2 bonus to attack and damage rolls. While holding it, you gain a +2 bonus to AC, saving throws, and spell attack rolls. The staff has 20 charges for various spell effects."
+    description: "This staff can be wielded as a magic quarterstaff that grants a +2 bonus to attack and damage rolls. While holding it, you gain a +2 bonus to AC, saving throws, and spell attack rolls."
   },
   {
     name: "Staff of Striking",
@@ -297,7 +297,7 @@ export const ITEMS_DATABASE = [
     rarity: "Very Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This staff can be wielded as a magic quarterstaff that grants a +3 bonus to attack and damage rolls made with it. The staff has 10 charges. When you hit with a melee attack using it, you can expend up to 3 charges. For each charge you expend, the target takes an extra 1d6 force damage."
+    description: "This staff can be wielded as a magic quarterstaff that grants a +3 bonus to attack and damage rolls made with it. The staff has 10 charges. When you hit with a melee attack using it, you can expend up to 3 of its charges to deal an extra 3d6 force damage per charge."
   },
   {
     name: "Staff of the Magi",
@@ -305,7 +305,7 @@ export const ITEMS_DATABASE = [
     rarity: "Legendary",
     is_magic: true,
     requires_attunement: true,
-    description: "This staff can be wielded as a magic quarterstaff that grants a +2 bonus to attack and damage rolls. While you hold it, you gain a +2 bonus to spell attack rolls. The staff has 50 charges for various powerful spell effects."
+    description: "This staff can be wielded as a magic quarterstaff that grants a +2 bonus to attack and damage rolls. While you hold it, you gain a +2 bonus to spell attack rolls. The staff has 50 charges for the following properties."
   },
 
   // === RODS (SRD) ===
@@ -323,7 +323,7 @@ export const ITEMS_DATABASE = [
     rarity: "Legendary",
     is_magic: true,
     requires_attunement: true,
-    description: "This rod has a flanged head, and it functions as a magic mace that grants a +3 bonus to attack and damage rolls. The rod has properties associated with six different buttons that are set in a row along the haft."
+    description: "This rod has a flanged head, and it functions as a magic mace that grants a +3 bonus to attack and damage rolls. The rod has properties associated with six different buttons that are set into the head."
   },
 
   // === WONDROUS ITEMS (SRD) ===
@@ -373,7 +373,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "While you wear these boots, you can use a bonus action and click the boots' heels together. If you do, the boots double your walking speed, and any creature that makes an opportunity attack against you has disadvantage on the attack roll. The effect lasts for up to 10 minutes."
+    description: "While you wear these boots, you can use a bonus action and click the boots' heels together. If you do, the boots double your walking speed, and any creature that makes an opportunity attack against you has disadvantage."
   },
   {
     name: "Boots of Striding and Springing",
@@ -453,7 +453,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: true,
-    description: "These gloves seem to almost meld into your hands when you don them. When a ranged weapon attack hits you while you're wearing them, you can use your reaction to reduce the damage by 1d10 + your Dexterity modifier."
+    description: "These gloves seem to almost meld into your hands when you don them. When a ranged weapon attack hits you while you're wearing them, you can use your reaction to reduce the damage by 1d4 + your Dexterity modifier."
   },
   {
     name: "Goggles of Night",
@@ -469,7 +469,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: false,
-    description: "This backpack has a central pouch and two side pouches, each of which is an extradimensional space. Each side pouch can hold up to 20 pounds. The central pouch can hold up to 8 cubic feet or 80 pounds."
+    description: "This backpack has a central pouch and two side pouches, each of which is an extradimensional space. Each side pouch can hold up to 20 pounds. The central pouch can hold up to 80 pounds of nonliving material."
   },
   {
     name: "Headband of Intellect",
@@ -485,7 +485,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: true,
-    description: "While wearing this helm, you can use an action to cast the detect thoughts spell (save DC 13) from it. As long as you maintain concentration on the spell, you can use a bonus action to send a telepathic message."
+    description: "While wearing this helm, you can use an action to cast the detect thoughts spell (save DC 13) from it. As long as you maintain concentration on the spell, you can use a bonus action to transmit telepathic messages."
   },
   {
     name: "Immovable Rod",
@@ -501,7 +501,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: false,
-    description: "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright light in a 30-foot radius and dim light for an additional 30 feet. Invisible creatures and objects are visible as long as they are in the lantern's bright light."
+    description: "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright light in a 30-foot radius and dim light for an additional 30 feet. Invisible creatures and objects are visible as long as they are in the lantern's light."
   },
   {
     name: "Medallion of Thoughts",
@@ -517,7 +517,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: false,
-    description: "This necklace has 1d6 + 3 beads hanging from it. You can use an action to detach a bead and throw it up to 60 feet away. When it reaches the end of its trajectory, the bead detonates as a 3rd-level fireball spell (save DC 15)."
+    description: "This necklace has 1d6 + 3 beads hanging from it. You can use an action to detach a bead and throw it up to 60 feet away. When it reaches the end of its trajectory, the bead detonates as a 2nd-level fireball spell."
   },
   {
     name: "Periapt of Health",
@@ -541,7 +541,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: false,
-    description: "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can use an action to unfold it and place it on or against a solid surface, whereupon it creates an extradimensional hole 10 feet deep."
+    description: "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can use an action to unfold it into a 10-foot-radius hemisphere or back into a cloth."
   },
   {
     name: "Robe of Eyes",
@@ -549,7 +549,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "This robe is adorned with eyelike patterns. While you wear the robe, you gain darkvision out to 120 feet, advantage on Perception checks that rely on sight, and you can see invisible creatures and objects."
+    description: "This robe is adorned with eyelike patterns. While you wear the robe, you gain darkvision out to 120 feet, advantage on Perception checks that rely on sight, and you can see invisible creatures and objects as long as they are in the robe's line of sight."
   },
   {
     name: "Rope of Climbing",
@@ -557,7 +557,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: false,
-    description: "This 60-foot length of silk rope weighs 3 pounds and can hold up to 3,000 pounds. If you hold one end of the rope and use an action to speak the command word, the rope animates and can climb in any direction at a speed of 10 feet per round."
+    description: "This 60-foot length of silk rope weighs 3 pounds and can hold up to 3,000 pounds. If you hold one end of the rope and use an action to speak the command word, the rope animates and moves to follow your commands."
   },
   {
     name: "Slippers of Spider Climbing",
@@ -581,7 +581,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: true,
-    description: "While wearing this cloak, you can use an action to speak its command word. This turns the cloak into a pair of bat wings or bird wings on your back for 1 hour or until you repeat the command word. The wings give you a flying speed of 60 feet."
+    description: "While wearing this cloak, you can use an action to speak its command word. This turns the cloak into a pair of bat wings or bird wings on your back for 1 hour or until you repeat the command word as an action."
   },
 
   // === MAGIC ARMOR (SRD) ===
@@ -623,7 +623,7 @@ export const ITEMS_DATABASE = [
     rarity: "Uncommon",
     is_magic: true,
     requires_attunement: false,
-    description: "Mithral is a light, flexible metal. If the armor normally imposes disadvantage on Dexterity (Stealth) checks or has a Strength requirement, the mithral version of the armor doesn't."
+    description: "Mithral is a light, flexible metal. If the armor normally imposes disadvantage on Dexterity (Stealth) checks or has a Strength requirement, the mithral version of the armor doesn't impose these drawbacks."
   },
   {
     name: "Shield +1",
@@ -697,7 +697,7 @@ export const ITEMS_DATABASE = [
     rarity: "Rare",
     is_magic: true,
     requires_attunement: false,
-    description: "You gain a +1 bonus to attack and damage rolls made with this magic weapon. When you hit a giant with it, the giant takes an extra 2d6 damage of the weapon's type and must succeed on a DC 15 Strength saving throw or fall prone."
+    description: "You gain a +1 bonus to attack and damage rolls made with this magic weapon. When you hit a giant with it, the giant takes an extra 2d6 damage of the weapon's type and must succeed on a Strength saving throw or fall prone."
   },
   {
     name: "Vorpal Sword",
@@ -705,7 +705,7 @@ export const ITEMS_DATABASE = [
     rarity: "Legendary",
     is_magic: true,
     requires_attunement: true,
-    description: "You gain a +3 bonus to attack and damage rolls made with this magic weapon. In addition, the weapon ignores resistance to slashing damage. When you roll a 20 on an attack roll with this weapon against a creature that has at least one head, you cut off one of the creature's heads."
+    description: "You gain a +3 bonus to attack and damage rolls made with this magic weapon. In addition, the weapon ignores resistance to slashing damage. When you roll a 20 on an attack roll with this weapon, the creature hit by the attack must succeed on a DC 17 Constitution saving throw or take an extra 6d8 slashing damage."
   },
   {
     name: "Luck Blade",
@@ -713,7 +713,7 @@ export const ITEMS_DATABASE = [
     rarity: "Legendary",
     is_magic: true,
     requires_attunement: true,
-    description: "You gain a +1 bonus to attack and damage rolls made with this magic weapon. While the sword is on your person, you also gain a +1 bonus to saving throws. The sword has 1d4-1 charges. While holding it, you can use an action to expend 1 charge to cast wish."
+    description: "You gain a +1 bonus to attack and damage rolls made with this magic weapon. While the sword is on your person, you also gain a +1 bonus to saving throws. The sword has 1d4-1 charges and regains 1d4 expended charges daily at dawn."
   },
 
   // === AMMUNITION (SRD) ===
@@ -749,7 +749,7 @@ export const ITEMS_DATABASE = [
     rarity: "Common",
     is_magic: true,
     requires_attunement: false,
-    description: "A spell scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components."
+    description: "A spell scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any of the spell's components."
   },
   {
     name: "Spell Scroll (1st Level)",
@@ -792,6 +792,9 @@ export const ITEMS_DATABASE = [
     description: "A spell scroll bears the words of a single 5th-level spell. The spell's saving throw DC is 17 and attack bonus is +9."
   }
 ];
+
+// Extract POTIONS from ITEMS_DATABASE
+export const POTIONS = ITEMS_DATABASE.filter(item => item.type === 'Potion');
 
 // Helper function to get items by type
 export const getItemsByType = (type) => ITEMS_DATABASE.filter(item => item.type === type);
