@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
   dismissToasts, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER,
   TEST_CAMPAIGN_ID 
@@ -12,7 +12,7 @@ test.describe('Rook Guide - First-Time User Tips', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     // Clear localStorage to simulate first-time user
     await page.addInitScript(() => {
       localStorage.removeItem('rook_guides_dismissed');

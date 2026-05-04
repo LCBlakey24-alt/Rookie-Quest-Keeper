@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { dismissToasts, hideEmergentBadge, generateTestEmail, generateTestUsername, TEST_USER, loginTestUser } from '../fixtures/helpers';
+import { dismissToasts, removeBlockingBadges, generateTestEmail, generateTestUsername, TEST_USER, loginTestUser } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 
 test.describe('Subscription Pricing - 4 Tier System', () => {
   
@@ -13,7 +13,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     
     test('should display all 4 pricing tiers after login', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Navigate to pricing page
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
@@ -31,7 +31,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display Free plan with correct pricing and features', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const freePlanCard = page.getByTestId('plan-card-free');
@@ -53,7 +53,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display Hero (player) plan with $3.99/month pricing', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const heroCard = page.getByTestId('plan-card-player');
@@ -74,7 +74,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display Quest Master (GM) plan with $3.99/month pricing', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const gmCard = page.getByTestId('plan-card-gm');
@@ -97,7 +97,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display Legendary plan with $5.99/month pricing and MOST POPULAR badge', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const legendaryCard = page.getByTestId('plan-card-legendary');
@@ -122,7 +122,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should toggle between monthly and yearly billing', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       // Monthly should be default
@@ -151,7 +151,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     
     test('should display promo code input section', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       // Check for promo code section
@@ -168,7 +168,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should convert promo code to uppercase', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const promoInput = page.getByTestId('promo-code-input');
@@ -184,7 +184,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     test('should show error for invalid promo code', async ({ page }) => {
       // Bug was fixed: PricingPage now calls /api/promo-codes/apply correctly
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const promoInput = page.getByTestId('promo-code-input');
@@ -210,7 +210,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     
     test('should display subscribe button for Hero plan', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const heroCard = page.getByTestId('plan-card-player');
@@ -231,7 +231,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display subscribe button for Quest Master plan', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const gmCard = page.getByTestId('plan-card-gm');
@@ -250,7 +250,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should display subscribe button for Legendary plan', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const legendaryCard = page.getByTestId('plan-card-legendary');
@@ -269,7 +269,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
 
     test('should show Free Forever text for free plan instead of button', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       const freePlanCard = page.getByTestId('plan-card-free');
@@ -290,7 +290,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     
     test('should display referral section', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       // Check for referral section
@@ -309,7 +309,7 @@ test.describe('Subscription Pricing - 4 Tier System', () => {
     
     test('should navigate back to home when clicking back button', async ({ page }) => {
       await loginTestUser(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
       
       // Click back button (arrow left icon)

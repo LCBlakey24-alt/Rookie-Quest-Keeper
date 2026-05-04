@@ -34,7 +34,7 @@
   "action_items": [],
   "updated_files": [
     "/app/tests/e2e/combat-tab-class-features.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (49/49 tests passed)",

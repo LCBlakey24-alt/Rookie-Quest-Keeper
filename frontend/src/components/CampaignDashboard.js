@@ -271,7 +271,7 @@ function CampaignDashboard({ username, onLogout }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(180deg, rgba(15, 10, 30, 0.92) 0%, rgba(15, 10, 30, 0.98) 100%), url('https://static.prod-images.emergentagent.com/jobs/b9fc55bd-0a80-4d15-9934-a7087e3445c8/images/9be68b2095230a13a9d52ed25ea5ba93da54c6f47b915d5cd89f4c7b8992a6d3.png')`,
+      background: 'linear-gradient(180deg, rgba(15, 10, 30, 0.96) 0%, rgba(15, 10, 30, 0.99) 100%)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',

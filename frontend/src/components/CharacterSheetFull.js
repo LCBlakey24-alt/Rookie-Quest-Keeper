@@ -34,6 +34,16 @@ const theme = {
   glow: 'none'
 };
 
+const CHARACTER_TABS = [
+  { id: 'overview', label: 'Overview', icon: Sparkles },
+  { id: 'combat', label: 'Combat', icon: Swords },
+  { id: 'spells', label: 'Spells', icon: BookOpen },
+  { id: 'inventory', label: 'Inventory', icon: Backpack },
+  { id: 'backstory', label: 'Story', icon: User },
+  { id: 'journal', label: 'Journal', icon: Dices },
+  { id: 'notes', label: 'Notes', icon: Edit3 }
+];
+
 const getModifier = (score) => Math.floor((score - 10) / 2);
 const formatModifier = (mod) => (mod >= 0 ? `+${mod}` : `${mod}`);
 
@@ -955,30 +965,59 @@ export default function CharacterSheetFull() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
-            {['overview', 'combat', 'spells', 'inventory', 'backstory', 'journal', 'notes'].map(tab => (
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            flexShrink: 0,
+            flexWrap: 'wrap',
+            padding: '10px',
+            background: 'linear-gradient(180deg, rgba(6, 13, 28, 0.98) 0%, rgba(10, 22, 40, 0.98) 100%)',
+            border: '2px solid rgba(245, 197, 66, 0.62)',
+            borderRadius: '10px',
+            boxShadow: '0 10px 26px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            position: 'relative',
+            zIndex: 4
+          }}>
+            {CHARACTER_TABS.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+
+              return (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`tab-glow press-scale ${activeTab === tab ? 'tab-active' : ''}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                data-testid={`character-tab-${tab.id}`}
+                className={`tab-glow press-scale ${isActive ? 'tab-active' : ''}`}
                 style={{
                   flex: '1 1 auto',
-                  minWidth: '80px',
-                  padding: '12px 16px',
-                  background: activeTab === tab ? theme.accent.primary : theme.bg.surface,
-                  color: activeTab === tab ? theme.bg.primary : theme.text.secondary,
-                  border: activeTab === tab ? 'none' : `1px solid ${theme.border}`,
-                  borderRadius: '10px',
-                  fontSize: '15px',
-                  fontWeight: activeTab === tab ? '600' : '400',
+                  minWidth: '112px',
+                  minHeight: '50px',
+                  padding: '10px 14px',
+                  background: isActive
+                    ? 'linear-gradient(135deg, #D4A017 0%, #F5C542 100%)'
+                    : 'linear-gradient(180deg, rgba(20, 48, 79, 0.98) 0%, rgba(15, 36, 64, 0.98) 100%)',
+                  color: isActive ? '#07111F' : '#F8FAFC',
+                  border: isActive ? '1px solid rgba(255, 236, 168, 0.95)' : '1px solid rgba(245, 197, 66, 0.42)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 800,
                   cursor: 'pointer',
-                  textTransform: 'capitalize',
-                  transition: 'all 0.3s ease'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: isActive
+                    ? '0 0 22px rgba(212, 160, 23, 0.35)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+                  letterSpacing: '0px'
                 }}
               >
-                {tab}
+                <Icon size={17} strokeWidth={2.4} />
+                <span>{tab.label}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
 
           {/* ROOK Hints */}

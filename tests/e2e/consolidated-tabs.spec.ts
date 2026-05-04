@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 // Test the consolidated tabs feature in Campaign Dashboard
 test.describe('Consolidated Tabs - Campaign Dashboard', () => {
@@ -16,7 +16,7 @@ test.describe('Consolidated Tabs - Campaign Dashboard', () => {
     // Navigate to campaign
     await page.goto(`/campaign/${campaignId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should display consolidated Maps tab with World Map and Local Maps sub-tabs', async ({ page }) => {

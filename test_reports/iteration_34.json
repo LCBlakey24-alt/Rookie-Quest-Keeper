@@ -37,7 +37,7 @@
   "updated_files": [
     "/app/backend/tests/test_party_location_tracker.py",
     "/app/tests/e2e/party-location-tracker.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (14/14 tests passed)",

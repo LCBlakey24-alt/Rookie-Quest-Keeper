@@ -15,7 +15,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://beyond-level-builder.preview.emergentagent.com",
+    "http://localhost:8000",
 ).rstrip("/")
 ADMIN_EMAIL = "lcblakey24@outlook.com"
 ADMIN_PASSWORD = "LCBlakey24?!"

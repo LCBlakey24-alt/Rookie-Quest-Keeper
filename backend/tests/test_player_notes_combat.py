@@ -8,7 +8,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 # Test user credentials
 TEST_USER_EMAIL = 'stress_test_1772651200@test.com'

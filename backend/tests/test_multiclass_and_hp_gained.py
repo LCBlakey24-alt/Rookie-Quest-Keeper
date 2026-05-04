@@ -10,7 +10,7 @@ import requests
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://beyond-level-builder.preview.emergentagent.com"
+BASE_URL = "http://localhost:8000"
 
 # Test user credentials - from test_level_up.py
 TEST_USER_EMAIL = "leveltest@test.com"

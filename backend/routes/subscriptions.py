@@ -6,6 +6,9 @@ from models import (
     SUBSCRIPTION_PLANS, SubscriptionTier, SubscriptionResponse,
     CreateCheckoutRequest, CustomReferralCodeRequest
 )
+import asyncio
+import json
+import os
 import uuid
 from datetime import datetime, timezone, timedelta
 
@@ -140,8 +143,9 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         raise HTTPException(status_code=503, detail="Stripe payments not configured. Use promo codes for premium access.")
     
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
-        
+        if stripe is None:
+            raise HTTPException(status_code=500, detail="Stripe SDK is not available")
+
         plan = SUBSCRIPTION_PLANS.get(request.plan_id)
         if not plan:
             raise HTTPException(status_code=400, detail="Invalid plan")
@@ -159,30 +163,33 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         success_url = f"{request.origin_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{request.origin_url}/subscription/cancel"
         
-        # Initialize Stripe checkout
-        host_url = str(http_request.base_url).rstrip('/')
-        webhook_url = f"{host_url}/api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        # Create checkout session with fixed price from backend
-        checkout_request = CheckoutSessionRequest(
-            amount=float(price_amount),  # Keep as float for Stripe
-            currency='gbp',
+        session = await asyncio.to_thread(
+            stripe.checkout.Session.create,
+            mode='payment',
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'gbp',
+                    'product_data': {
+                        'name': f"{plan['name']} - {request.billing_cycle.title()}",
+                    },
+                    'unit_amount': int(round(float(price_amount) * 100)),
+                },
+                'quantity': 1,
+            }],
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
                 'username': username,
                 'plan_id': request.plan_id,
-                'billing_cycle': request.billing_cycle
-            }
+                'billing_cycle': request.billing_cycle,
+            },
         )
-        
-        session = await stripe_checkout.create_checkout_session(checkout_request)
-        
+
         # Create payment transaction record BEFORE redirect
         transaction = {
             'id': str(uuid.uuid4()),
-            'session_id': session.session_id,
+            'session_id': session.id,
             'username': username,
             'amount': float(price_amount),
             'currency': 'gbp',
@@ -193,11 +200,10 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         }
         await db.payment_transactions.insert_one(transaction)
         
-        return {"checkout_url": session.url, "session_id": session.session_id}
+        return {"checkout_url": session.url, "session_id": session.id}
         
-    except ImportError as e:
-        logger.error(f"Stripe integration import error: {e}")
-        raise HTTPException(status_code=500, detail="Stripe integration not available")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Checkout error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Checkout failed: {str(e)}")
@@ -209,19 +215,16 @@ async def get_checkout_status(session_id: str, http_request: Request, username: 
         raise HTTPException(status_code=503, detail="Stripe payments not configured.")
     
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
-        
-        host_url = str(http_request.base_url).rstrip('/')
-        webhook_url = f"{host_url}/api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        status = await stripe_checkout.get_checkout_status(session_id)
-        
+        if stripe is None:
+            raise HTTPException(status_code=500, detail="Stripe SDK is not available")
+
+        checkout_session = await asyncio.to_thread(stripe.checkout.Session.retrieve, session_id)
+
         # Get the transaction record
         transaction = await db.payment_transactions.find_one({'session_id': session_id})
         
         # Only process if payment is successful and not already processed
-        if status.payment_status == 'paid' and transaction and transaction.get('payment_status') != 'paid':
+        if checkout_session.payment_status == 'paid' and transaction and transaction.get('payment_status') != 'paid':
             plan_id = transaction.get('plan_id', 'legendary')
             billing_cycle = transaction.get('billing_cycle', 'monthly')
             
@@ -249,12 +252,14 @@ async def get_checkout_status(session_id: str, http_request: Request, username: 
             logger.info(f"Subscription activated for {username}: {plan_id}")
         
         return {
-            "status": status.status,
-            "payment_status": status.payment_status,
-            "amount": status.amount_total / 100 if status.amount_total else 0,
-            "currency": status.currency
+            "status": checkout_session.status,
+            "payment_status": checkout_session.payment_status,
+            "amount": checkout_session.amount_total / 100 if checkout_session.amount_total else 0,
+            "currency": checkout_session.currency
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Status check error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
@@ -266,23 +271,26 @@ async def stripe_webhook(request: Request):
         return {"status": "ignored", "message": "Stripe not configured"}
     
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
-        
+        if stripe is None:
+            return {"status": "error", "message": "Stripe SDK is not available"}
+
         body = await request.body()
         signature = request.headers.get("Stripe-Signature")
-        
-        host_url = str(request.base_url).rstrip('/')
-        webhook_url = f"{host_url}/api/webhook/stripe"
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-        
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        
-        logger.info(f"Stripe webhook received: {webhook_response.event_type}")
-        
+
+        webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+        if webhook_secret and signature:
+            event = stripe.Webhook.construct_event(body, signature, webhook_secret)
+        else:
+            event = json.loads(body.decode('utf-8'))
+
+        event_type = event.get('type')
+        session = (event.get('data') or {}).get('object') or {}
+        logger.info(f"Stripe webhook received: {event_type}")
+
         # Handle successful payment
-        if webhook_response.payment_status == 'paid':
-            session_id = webhook_response.session_id
-            metadata = webhook_response.metadata or {}
+        if session.get('payment_status') == 'paid':
+            session_id = session.get('id')
+            metadata = session.get('metadata') or {}
             username = metadata.get('username')
             plan_id = metadata.get('plan_id')
             
@@ -308,7 +316,7 @@ async def stripe_webhook(request: Request):
                 
                 logger.info(f"Webhook: Subscription activated for {username}: {plan_id}")
         
-        return {"status": "received", "event_type": webhook_response.event_type}
+        return {"status": "received", "event_type": event_type}
         
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")

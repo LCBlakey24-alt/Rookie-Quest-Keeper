@@ -15,7 +15,7 @@ import aiohttp
 import uuid
 
 # Backend URL configuration
-BACKEND_URL = "https://beyond-level-builder.preview.emergentagent.com/api"
+BACKEND_URL = "http://localhost:8000/api"
 
 class BackendTester:
     def __init__(self):

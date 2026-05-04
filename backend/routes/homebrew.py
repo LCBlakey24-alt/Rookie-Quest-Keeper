@@ -6,28 +6,20 @@ Saves into the existing user_races / user_classes / user_subclasses /
 user_backgrounds collections (so the Character Builder picks them up via the
 existing /api/user/content endpoints), plus a new `user_magic_items` collection.
 
-Uses Claude Sonnet via emergentintegrations for structured extraction.
+Uses Claude Sonnet via the configured AI provider for structured extraction.
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import io
 import json
-import os
 import re
 import uuid
 from datetime import datetime, timezone
 
 from utils.auth import get_current_user
 from config import db, logger
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 try:
     from docx import Document
@@ -162,7 +154,7 @@ def _flag_missing(content_type: str, parsed: Dict[str, Any]) -> List[str]:
 async def _llm_extract(content_type: str, raw_text: str, username: str) -> Dict[str, Any]:
     """Ask Claude Sonnet to convert raw text into a structured JSON object
     matching SCHEMA_HINTS[content_type]. Returns a dict (possibly partial)."""
-    if not LlmChat or not UserMessage or not EMERGENT_KEY:
+    if not LlmChat or not UserMessage or not get_llm_api_key("anthropic"):
         raise HTTPException(status_code=503, detail="AI is not configured on this server.")
 
     schema = SCHEMA_HINTS.get(content_type)
@@ -187,7 +179,7 @@ async def _llm_extract(content_type: str, raw_text: str, username: str) -> Dict[
         f"Return ONLY the JSON object."
     )
     chat = LlmChat(
-        api_key=EMERGENT_KEY,
+        api_key=get_llm_api_key("anthropic"),
         session_id=f"homebrew-{username}-{uuid.uuid4().hex[:6]}",
         system_message=system
     ).with_model("anthropic", "claude-sonnet-4-5-20250929")

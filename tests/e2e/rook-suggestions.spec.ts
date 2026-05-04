@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   navigateToGMScreen,
   selectEncounterAndStartCombat,
@@ -11,7 +11,7 @@ import {
 
 test.describe('ROOK AI Suggestions - P2 Feature', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('ROOK suggestion popup appears on Player Dashboard after delay', async ({ page }) => {

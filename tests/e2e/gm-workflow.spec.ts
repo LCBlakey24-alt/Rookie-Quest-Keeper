@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER,
   TEST_CAMPAIGN_ID
@@ -16,7 +16,7 @@ import {
 
 test.describe('Campaign Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
     
     // Navigate to campaign dashboard
@@ -56,7 +56,7 @@ test.describe('Campaign Dashboard', () => {
 
 test.describe('GM Screen', () => {
   test('GM Screen loads with combat controls', async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
     
     // Navigate directly to GM Screen
@@ -73,7 +73,7 @@ test.describe('API-based GM Workflow', () => {
     const npcName = `TEST_NPC_${uniqueId}`;
     
     // Get auth token
-    const loginRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('http://localhost:8000/api/auth/login', {
       data: {
         email: TEST_USER.email,
         password: TEST_USER.password
@@ -83,7 +83,7 @@ test.describe('API-based GM Workflow', () => {
     const { token } = await loginRes.json();
     
     // Create NPC via API
-    const createRes = await request.post(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns/${TEST_CAMPAIGN_ID}/npcs`, {
+    const createRes = await request.post(`http://localhost:8000/api/campaigns/${TEST_CAMPAIGN_ID}/npcs`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         name: npcName,
@@ -100,7 +100,7 @@ test.describe('API-based GM Workflow', () => {
     expect(npc.id).toBeDefined();
     
     // Cleanup - Delete NPC
-    const deleteRes = await request.delete(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns/${TEST_CAMPAIGN_ID}/npcs/${npc.id}`, {
+    const deleteRes = await request.delete(`http://localhost:8000/api/campaigns/${TEST_CAMPAIGN_ID}/npcs/${npc.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(deleteRes.ok()).toBeTruthy();
@@ -111,7 +111,7 @@ test.describe('API-based GM Workflow', () => {
     const locationName = `TEST_Location_${uniqueId}`;
     
     // Get auth token
-    const loginRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('http://localhost:8000/api/auth/login', {
       data: {
         email: TEST_USER.email,
         password: TEST_USER.password
@@ -121,7 +121,7 @@ test.describe('API-based GM Workflow', () => {
     const { token } = await loginRes.json();
     
     // Create Location via API
-    const createRes = await request.post(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns/${TEST_CAMPAIGN_ID}/locations`, {
+    const createRes = await request.post(`http://localhost:8000/api/campaigns/${TEST_CAMPAIGN_ID}/locations`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         name: locationName,
@@ -137,7 +137,7 @@ test.describe('API-based GM Workflow', () => {
     expect(location.id).toBeDefined();
     
     // Cleanup - Delete Location
-    const deleteRes = await request.delete(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns/${TEST_CAMPAIGN_ID}/locations/${location.id}`, {
+    const deleteRes = await request.delete(`http://localhost:8000/api/campaigns/${TEST_CAMPAIGN_ID}/locations/${location.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(deleteRes.ok()).toBeTruthy();
@@ -148,7 +148,7 @@ test.describe('API-based GM Workflow', () => {
     const campaignName = `TEST_Campaign_${uniqueId}`;
     
     // Get auth token
-    const loginRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('http://localhost:8000/api/auth/login', {
       data: {
         email: TEST_USER.email,
         password: TEST_USER.password
@@ -158,7 +158,7 @@ test.describe('API-based GM Workflow', () => {
     const { token } = await loginRes.json();
     
     // Create Campaign via API
-    const createRes = await request.post(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns`, {
+    const createRes = await request.post(`http://localhost:8000/api/campaigns`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         name: campaignName,
@@ -174,7 +174,7 @@ test.describe('API-based GM Workflow', () => {
     expect(campaign.id).toBeDefined();
     
     // Cleanup - Delete Campaign
-    const deleteRes = await request.delete(`https://beyond-level-builder.preview.emergentagent.com/api/campaigns/${campaign.id}`, {
+    const deleteRes = await request.delete(`http://localhost:8000/api/campaigns/${campaign.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(deleteRes.ok()).toBeTruthy();

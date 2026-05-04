@@ -46,7 +46,7 @@
     "/app/tests/e2e/ux-updates.spec.ts",
     "/app/tests/e2e/gm-screen-tabs.spec.ts",
     "/app/tests/e2e/map-builder.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (31/31)",

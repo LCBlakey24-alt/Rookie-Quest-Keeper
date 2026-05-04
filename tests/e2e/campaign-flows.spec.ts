@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername, generateTestEmail, registerUser, loginUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, generateTestUsername, generateTestEmail, registerUser, loginUser } from '../fixtures/helpers';
 
 test.describe('Campaign Management Flow', () => {
   let testUsername: string;
@@ -8,7 +8,7 @@ test.describe('Campaign Management Flow', () => {
 
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Create a fresh test user for each test
     testEmail = generateTestEmail();

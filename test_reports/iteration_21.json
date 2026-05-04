@@ -38,7 +38,7 @@
   "updated_files": [
     "/app/tests/e2e/quick-reference-srd.spec.ts",
     "/app/backend/tests/test_srd_api.py",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (20/20)",

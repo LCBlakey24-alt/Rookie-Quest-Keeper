@@ -10,7 +10,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000')
 
 class TestAuth:
     """Test user registration and login"""

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser, 
   navigateToGMScreen,
   TEST_CAMPAIGN_ID,
@@ -11,7 +11,7 @@ import {
 
 test.describe('NPC Combat Recruiter - Add NPCs/Creatures to Combat', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Recruit NPC button is visible during combat', async ({ page }) => {

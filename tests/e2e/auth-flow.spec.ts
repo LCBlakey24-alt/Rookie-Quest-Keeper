@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername, generateTestEmail, loginUser, registerUser, TEST_USER } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, generateTestUsername, generateTestEmail, loginUser, registerUser, TEST_USER } from '../fixtures/helpers';
 
 test.describe('Auth Flow - Email Based Login', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should display login page with email input', async ({ page }) => {
@@ -114,7 +114,7 @@ test.describe('Auth Flow - Email Based Login', () => {
 test.describe('Forgot Password Flow', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should navigate to forgot password form', async ({ page }) => {
@@ -166,7 +166,7 @@ test.describe('Forgot Password Flow', () => {
 test.describe('Reset Password Flow', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should display reset password form when token present', async ({ page }) => {

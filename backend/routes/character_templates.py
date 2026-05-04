@@ -17,15 +17,7 @@ from config import db, logger
 from utils.auth import get_current_user
 from models import TemplateMatchRequest
 from typing import Optional, List, Dict, Any
-import os
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -367,10 +359,10 @@ async def ai_match_template(
 
     # If AI available, ask it to refine the match reason (non-blocking fallback)
     rationale = None
-    if LlmChat and UserMessage and EMERGENT_KEY and best_score > 0:
+    if LlmChat and UserMessage and get_llm_api_key("openai") and best_score > 0:
         try:
             chat = LlmChat(
-                api_key=EMERGENT_KEY,
+                api_key=get_llm_api_key("openai"),
                 session_id=f"template-match-{username}",
                 system_message="You help TTRPG players pick a premade character. Respond in ONE sentence (<=40 words)."
             ).with_model("openai", "gpt-4o-mini")

@@ -46,7 +46,7 @@
   "updated_files": [
     "/app/backend/tests/test_multiclass_and_hp_gained.py",
     "/app/tests/e2e/level-up-multiclass.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (10/10 tests passed)",

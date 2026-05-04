@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
   dismissToasts, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER,
   TEST_CAMPAIGN_ID 
@@ -12,7 +12,7 @@ test.describe('Interactive Maps - World Map and Local Map', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     // Clear the RookGuide localStorage to prevent it blocking interactions
     await page.addInitScript(() => {
       const dismissed = ['setting', 'world-map', 'local-maps', 'npcs', 'locations', 'dashboard-player', 'dashboard-gm'];

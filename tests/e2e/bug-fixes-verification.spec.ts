@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USER, waitForAppReady, dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { TEST_USER, waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 const TEST_EMAIL = TEST_USER.email;
 const TEST_PASSWORD = TEST_USER.password;
@@ -10,7 +10,7 @@ const TEST_CHARACTER_ID = '0bda5cf5-b8be-40c8-b2bc-b030ea70c366';
 test.describe('Bug Fix Verification - Critical Bugs', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
@@ -145,7 +145,7 @@ test.describe('Bug Fix Verification - Critical Bugs', () => {
 test.describe('Level Up Wizard - Complete Flow Test', () => {
   test('Complete Level Up with Average HP option', async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
@@ -196,7 +196,7 @@ test.describe('Level Up Wizard - Complete Flow Test', () => {
 
   test('Level Up wizard Cancel button works', async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });

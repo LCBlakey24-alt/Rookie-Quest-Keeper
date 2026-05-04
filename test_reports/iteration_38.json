@@ -40,7 +40,7 @@
     "/app/tests/e2e/billing-toggle.spec.ts",
     "/app/tests/e2e/consolidated-tabs.spec.ts",
     "/app/tests/e2e/rooks-tips-consolidated.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "N/A (no new backend changes, auth API verified working)",

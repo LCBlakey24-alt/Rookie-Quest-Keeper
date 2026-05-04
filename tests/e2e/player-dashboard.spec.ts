@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER
 } from '../fixtures/helpers';
 
 test.describe('Player Dashboard and Notes', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
     
     // After login, user is on UnifiedDashboard (/home)

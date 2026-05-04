@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, generateTestUsername, generateTestEmail, loginUser, registerUser, TEST_USER } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, generateTestUsername, generateTestEmail, loginUser, registerUser, TEST_USER } from '../fixtures/helpers';
 
 test.describe('Account Settings Page', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should display account settings page with all sections', async ({ page }) => {
@@ -203,7 +203,7 @@ test.describe('Account Settings - Profile Update', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Create a new test user for each test
     testEmail = generateTestEmail();
@@ -259,7 +259,7 @@ test.describe('Account Settings - Change Password', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Create a new test user for each test
     testEmail = generateTestEmail();
@@ -314,7 +314,7 @@ test.describe('Account Settings - Delete Account', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Create a new test user for each test
     testEmail = generateTestEmail();

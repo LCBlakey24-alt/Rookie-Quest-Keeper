@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 // Test user credentials (pre-registered)
 const AI_TEST_USER = {
@@ -24,7 +24,7 @@ test.describe('AI Character Generation - Unseen Servant in Character Builder', (
     // Navigate to character builder
     await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Character Builder page loads with Unseen Servant panel', async ({ page }) => {

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginTestUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, TEST_USER, TEST_CAMPAIGN_ID, loginTestUser } from '../fixtures/helpers';
 
 test.describe('QuickReferenceTab - SRD Data Features', () => {
   test.beforeEach(async ({ page }) => {
@@ -21,7 +21,7 @@ test.describe('QuickReferenceTab - SRD Data Features', () => {
     await page.waitForSelector('[data-testid="reference-tab"]', { timeout: 10000 });
     await page.getByTestId('reference-tab').click();
     await page.waitForSelector('[data-testid="quick-reference-tab"]', { timeout: 10000 });
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test.describe('Section Navigation', () => {

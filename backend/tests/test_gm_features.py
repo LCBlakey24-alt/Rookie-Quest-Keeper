@@ -8,7 +8,7 @@ import requests
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://beyond-level-builder.preview.emergentagent.com"
+BASE_URL = "http://localhost:8000"
 
 # Test credentials
 GM_TEST_EMAIL = "gmtest@test.com"

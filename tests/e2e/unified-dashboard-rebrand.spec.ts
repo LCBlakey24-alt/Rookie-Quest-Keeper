@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   dismissToasts,
   TEST_USER,
@@ -11,7 +11,7 @@ import {
 
 test.describe('Unified Dashboard Rebrand', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await dismissToasts(page);
   });
 

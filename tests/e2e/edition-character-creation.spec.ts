@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginTestUser, hideEmergentBadge, dismissToasts, TEST_USER } from '../fixtures/helpers';
+import { loginTestUser, removeBlockingBadges, dismissToasts, TEST_USER } from '../fixtures/helpers';
 
 /**
  * Tests for Edition-Aware Character Creation
@@ -11,7 +11,7 @@ import { loginTestUser, hideEmergentBadge, dismissToasts, TEST_USER } from '../f
  * - Edition label shows correctly
  */
 
-const BASE_URL = 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = 'http://localhost:3000';
 
 test.describe('Edition-Aware Character Creation', () => {
   test.beforeEach(async ({ page }) => {

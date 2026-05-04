@@ -12,14 +12,8 @@ from models import (
 )
 from typing import Optional, List
 import uuid
-import os
 from datetime import datetime, timezone
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-except ImportError:
-    LlmChat = None
-    UserMessage = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -105,7 +99,7 @@ Write the recap now:"""
             )
         
         llm_chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            api_key=get_llm_api_key("openai"),
             session_id=f"session-recap-{campaign_id}",
             system_message="You are a creative fantasy storyteller who writes engaging session recaps for tabletop RPG groups."
         )

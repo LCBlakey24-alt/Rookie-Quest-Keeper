@@ -1032,7 +1032,7 @@ class LevelUpWizardState(BaseModel):
     pending_features: List[str] = []
     pending_choices: List[Dict[str, Any]] = []
     completed_selections: List[Dict[str, Any]] = []
-    hp_method: str = "average"  # "average" or "roll"
+    hp_method: str = "average"  # "average", "roll", or "manual"
     hp_roll_result: Optional[int] = None
 
 class ProgressionQueryRequest(BaseModel):
@@ -1624,9 +1624,9 @@ class LevelUpRequest(BaseModel):
     asi_choices: Optional[Dict[str, str]] = None
     # For Feat: {"name": "Alert", "description": "..."}
     feat_choice: Optional[Dict[str, str]] = None
-    # Optional HP roll result (if not using average)
+    # Optional HP die result (virtual roll or manually entered physical roll)
     hp_roll: Optional[int] = None
-    hp_method: Optional[str] = None
+    hp_method: Optional[str] = None  # "average", "roll", or "manual"
     # Spellcasting: new spells learned at this level
     new_spells: Optional[List[Dict[str, Any]]] = None
     new_cantrips: Optional[List[Dict[str, Any]]] = None

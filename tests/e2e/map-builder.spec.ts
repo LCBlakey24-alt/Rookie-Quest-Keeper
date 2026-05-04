@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { 
   loginTestUser, 
   dismissToasts, 
-  hideEmergentBadge,
+  removeBlockingBadges,
   TEST_CAMPAIGN_ID 
 } from '../fixtures/helpers';
 
@@ -14,7 +14,7 @@ test.describe('Map Builder Feature - Campaign Dashboard', () => {
     // Navigate to Campaign Dashboard (Maps tab is now here, not GM Screen)
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: /Campaign Setting/i })).toBeVisible({ timeout: 15000 });
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Maps tab is visible and accessible in Campaign Dashboard', async ({ page }) => {

@@ -37,7 +37,7 @@
   "updated_files": [
     "/app/backend/tests/test_campaign_content.py",
     "/app/tests/e2e/campaign-character-builder.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (11/11 tests passed)",

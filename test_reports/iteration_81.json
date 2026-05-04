@@ -38,7 +38,7 @@
   "critical_code_review_comments": [
     "Backend model PlayerCharacterCreate requires racial_traits/class_features/cantrips_known/spells_known as List[Dict] (matches CharacterBuilder.js payload lines 504-512 which wraps names in {name}). Do NOT pass plain strings - 422 error.",
     "character_templates.py uses ruleset_id filter correctly; all 12 templates are tagged dnd5e_2014. No 2024-tagged templates exist yet, so the edition filter works but 2024-only mode would return []. Non-blocking but worth confirming with user.",
-    "AI match endpoint rationale: tag-based fallback activates when EMERGENT_LLM_KEY is available but LLM call wrapped in try/except so will not fail tests; confirmed keyword-map scoring returns Fighter/Paladin/Barbarian for 'tank' and caster classes for 'magic/caster'.",
+    "AI match endpoint rationale: tag-based fallback activates when LLM_API_KEY is available but LLM call wrapped in try/except so will not fail tests; confirmed keyword-map scoring returns Fighter/Paladin/Barbarian for 'tank' and caster classes for 'magic/caster'.",
     "HP PATCH: current_hit_points clamping to max_hit_points is verified (999 -> 7 for Half-Elf Wizard). temporary_hit_points accepted and persisted.",
     "CharacterBuilder.js has all required conditional-step testids (spell-*, equipment-A/B, fighting-style-*, floating-asi-*, language-*, versatility-*, subrace-*, subclass-select) at correct lines; full end-to-end Half-Elf+Wizard flow through Spells/Gear steps not executed due to token budget."
   ],

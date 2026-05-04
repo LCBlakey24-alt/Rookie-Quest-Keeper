@@ -16,25 +16,37 @@ logging.basicConfig(
 )
 logger = logging.getLogger('rook')
 
+def require_env(name: str) -> str:
+    """Return a required environment variable or fail loudly on startup."""
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
 # MongoDB
-mongo_url = os.environ['MONGO_URL']
+mongo_url = require_env('MONGO_URL')
+db_name = require_env('DB_NAME')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 # JWT
-JWT_SECRET = os.environ.get('JWT_SECRET_KEY', 'your-secret-key')
+JWT_SECRET = require_env('JWT_SECRET_KEY')
 JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = 24
+JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', '24'))
 security = HTTPBearer()
+
+# App / CORS
+APP_URL = require_env('APP_URL')
+CORS_ORIGINS = require_env('CORS_ORIGINS')
 
 # Email
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@rookiequestkeeper.com')
-APP_URL = os.environ.get('APP_URL', 'https://rookiequestkeeper.com')
 
 # Stripe
-STRIPE_ENABLED = True
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+STRIPE_ENABLED = bool(STRIPE_API_KEY)
 
 # Admin
 ADMIN_USERNAMES = ["lcblakey24"]

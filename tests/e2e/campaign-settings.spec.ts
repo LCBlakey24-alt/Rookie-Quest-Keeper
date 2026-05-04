@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { dismissToasts, hideEmergentBadge, loginTestUser, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
+import { dismissToasts, removeBlockingBadges, loginTestUser, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
 
 test.describe('Campaign Settings Bug Fix Verification', () => {
   
@@ -10,7 +10,7 @@ test.describe('Campaign Settings Bug Fix Verification', () => {
   test('should save and persist campaign settings content', async ({ page }) => {
     // Login as test user
     await loginTestUser(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Navigate directly to campaign dashboard with Setting tab
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
@@ -50,7 +50,7 @@ test.describe('Campaign Settings Bug Fix Verification', () => {
       
       // Reload page to verify persistence
       await page.reload();
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Click setting tab again if needed
       if (settingTabVisible) {

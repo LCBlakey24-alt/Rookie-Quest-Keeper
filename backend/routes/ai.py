@@ -22,16 +22,7 @@ import re
 import base64
 import asyncio
 from datetime import datetime, timezone, timedelta
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    OpenAIImageGeneration = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, OpenAIImageGeneration, get_llm_api_key
 
 router = APIRouter()
 
@@ -129,7 +120,7 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
     prompt = prompts.get(prompt_type, f"{rule_instructions}\n\n{context}")
     
     try:
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        llm_key = get_llm_api_key("openai")
         if not llm_key:
             raise HTTPException(status_code=500, detail="AI service not configured")
         
@@ -166,7 +157,7 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
         if not campaign:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
         
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        api_key = get_llm_api_key("openai")
         if not api_key:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
         
@@ -428,7 +419,7 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
             )
         
         # Get API key from environment
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        api_key = get_llm_api_key("openai")
         if not api_key:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
         
@@ -544,7 +535,7 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     if not can_use_ai:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
     
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
     
@@ -585,7 +576,7 @@ async def process_note_with_ai(campaign_id: str, note_id: str, username: str = D
         if not note:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
         
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        api_key = get_llm_api_key("openai")
         if not api_key:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
         
@@ -725,24 +716,24 @@ Extract and return JSON in this EXACT format:
 }}"""
 
     try:
-        # Use emergentintegrations LLM
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        llm_key = get_llm_api_key("openai")
         if not llm_key:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="AI service not configured"
             )
         
-        chat = LlmChat(api_key=llm_key, model="gpt-5.2")
-        response = chat.send_message(
-            system_prompt=system_message,
-            messages=[UserMessage(role="user", content=user_prompt)],
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"smart-notes-{campaign_id}-{uuid.uuid4().hex[:8]}",
+            system_message=system_message,
+        ).with_model("openai", "gpt-5.2")
+        response_text = await chat.send_message(
+            UserMessage(text=user_prompt),
             max_tokens=1500,
-            temperature=0.3  # Lower temperature for more consistent parsing
+            temperature=0.3
         )
-        
-        # Parse the response
-        response_text = response.message.content.strip()
+        response_text = response_text.strip()
         
         # Remove markdown code blocks if present
         if response_text.startswith('```'):
@@ -886,7 +877,7 @@ medieval fantasy style, painterly, heroic pose, portrait framing.
 No text, no watermarks, professional fantasy art."""
 
     try:
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        llm_key = get_llm_api_key("openai")
         if not llm_key:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -941,7 +932,7 @@ async def ai_generate_token(
     circular frame, high contrast, no background, professional fantasy game art."""
 
     try:
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        llm_key = get_llm_api_key("openai")
         if not llm_key:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1070,21 +1061,17 @@ Generate a well-formatted recap that captures the key events, NPCs, locations, c
 Format the output in Markdown."""
 
     try:
-        # Try to use ROOK AI
-        from emergentintegrations.llm.chat import chat, UserMessage
-        
-        emergent_api_key = os.environ.get('EMERGENT_API_KEY')
-        if not emergent_api_key:
+        llm_api_key = get_llm_api_key("openai")
+        if not llm_api_key:
             raise Exception("No API key")
-        
-        response = await asyncio.to_thread(
-            chat,
-            api_key=emergent_api_key,
-            messages=[UserMessage(content=prompt)],
-            model="gpt-4o-mini"
-        )
-        
-        content = response.content
+
+        chat = LlmChat(
+            api_key=llm_api_key,
+            session_id=f"session-recap-{request.campaign_id}-{uuid.uuid4().hex[:8]}",
+            system_message="You turn tabletop RPG session notes into concise player-facing recaps."
+        ).with_model("openai", "gpt-4o-mini")
+
+        content = await chat.send_message(UserMessage(text=prompt))
         
     except Exception as e:
         logger.warning(f"AI recap generation failed: {e}")
@@ -1127,7 +1114,7 @@ async def generate_session_outline(campaign_id: str, request: Dict[str, Any], us
     """AI generates a session outline based on campaign context (notes, NPCs, locations, journal)."""
     await verify_campaign_ownership(campaign_id, username)
 
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=500, detail="AI service not configured")
 
@@ -1241,7 +1228,7 @@ async def generate_session_checklist(campaign_id: str, request: Dict[str, Any], 
     """AI generates a prep checklist from a session outline or campaign context."""
     await verify_campaign_ownership(campaign_id, username)
 
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=500, detail="AI service not configured")
 
@@ -1370,7 +1357,7 @@ async def generate_session_replay(campaign_id: str, request: Dict[str, Any], use
     """AI generates a narrative recap of the session from combat logs, notes, and dice rolls."""
     await verify_campaign_ownership(campaign_id, username)
 
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=500, detail="AI service not configured")
 

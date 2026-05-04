@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 /**
  * Tests for Character Sheet Theme Updates - Visual Verification:

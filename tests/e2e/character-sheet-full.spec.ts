@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * Tabs: Overview, Abilities & Skills, Spells, Features & Feats, Equipment, Notes & Bio
  */
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const TEST_USER = {
   email: 'stress_test_1772651200@test.com',
   password: 'TestPass123!'

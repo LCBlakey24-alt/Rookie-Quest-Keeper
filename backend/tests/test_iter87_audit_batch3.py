@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/') or 'https://beyond-level-builder.preview.emergentagent.com'
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/') or 'http://localhost:8000'
 EMAIL = 'lcblakey24@outlook.com'
 PASSWORD = 'LCBlakey24?!'
 CHAR_ID = 'a1e7babc-c582-48ec-8a64-8c71501fa281'

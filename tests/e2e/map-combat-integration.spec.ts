@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   navigateToGMScreen,
   selectEncounterAndStartCombat,
@@ -15,7 +15,7 @@ const TEST_MAP_NAME = 'Forest Clearing';
 
 test.describe('Map-Combat Integration - P3 Feature', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Load Battle Map button appears in Combat when maps exist', async ({ page }) => {

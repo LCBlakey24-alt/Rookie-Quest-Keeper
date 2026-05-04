@@ -1,7 +1,7 @@
 """Iter 84: Campaign rules_edition field + AI prompt edition fragment."""
 import os, requests, pytest
 
-BASE = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com').rstrip('/')
+BASE = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 EMAIL = "lcblakey24@outlook.com"
 PASSWORD = "LCBlakey24?!"
 CAMPAIGN_ID = "b51ba0e9-5b08-44ed-b3dd-4a97dd2a09f6"

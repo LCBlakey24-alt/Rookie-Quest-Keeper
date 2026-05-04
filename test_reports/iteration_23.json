@@ -40,7 +40,7 @@
     "/app/tests/e2e/character-builder-bugfixes.spec.ts",
     "/app/tests/e2e/dice-roller-position.spec.ts", 
     "/app/tests/e2e/character-sheet-theme.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "N/A (no backend changes)",

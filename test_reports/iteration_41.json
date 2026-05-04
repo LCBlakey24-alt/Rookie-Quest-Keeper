@@ -53,7 +53,7 @@
   "updated_files": [
     "/app/tests/fixtures/helpers.ts",
     "/app/tests/e2e/delete-functionality.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (49/49 tests passed)",

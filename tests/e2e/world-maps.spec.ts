@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
   dismissToasts, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER,
   TEST_CAMPAIGN_ID 
@@ -12,7 +12,7 @@ test.describe('World Map and Local Map Features', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
   });
 

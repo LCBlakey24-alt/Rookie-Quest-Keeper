@@ -50,7 +50,7 @@
     "/app/backend/tests/test_subscription.py",
     "/app/tests/e2e/subscription-pricing.spec.ts",
     "/app/tests/e2e/campaign-settings.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (18/18)",

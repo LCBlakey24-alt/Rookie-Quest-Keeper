@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
 
 test.describe('Unseen Servant Auto-Save Features', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Unseen Servant Auto-Save Features', () => {
     // Navigate to test campaign
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Gods tab - Unseen Servant panel is visible with correct UI', async ({ page }) => {

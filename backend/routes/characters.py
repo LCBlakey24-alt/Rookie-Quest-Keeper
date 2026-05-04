@@ -14,16 +14,8 @@ from models import (
 from typing import Optional, Dict, Any, List
 import uuid
 import json
-import os
 from datetime import datetime, timezone
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -302,10 +294,26 @@ async def level_up_character(
     }
     hit_die = hit_die_map.get(char_class, 8)
     con_mod = (existing.get('constitution', 10) - 10) // 2
-    
-    if level_up.hp_roll is not None:
-        # Use rolled value (bounded to valid range)
-        hp_increase = max(1, min(level_up.hp_roll, hit_die)) + con_mod
+
+    hp_method = (level_up.hp_method or ('roll' if level_up.hp_roll is not None else 'average')).lower()
+    if hp_method not in {'average', 'roll', 'manual'}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="hp_method must be average, roll, or manual"
+        )
+
+    if hp_method in {'roll', 'manual'}:
+        if level_up.hp_roll is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="hp_roll is required when rolling hit points"
+            )
+        if level_up.hp_roll < 1 or level_up.hp_roll > hit_die:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"hp_roll must be between 1 and {hit_die}"
+            )
+        hp_increase = level_up.hp_roll + con_mod
     else:
         # Use average (round up)
         hp_increase = (hit_die // 2 + 1) + con_mod
@@ -368,6 +376,14 @@ async def level_up_character(
             'type': 'standard',
             'hp_gained': hp_increase
         }
+
+    level_entry = level_progression.setdefault(str(level_up.new_level), {
+        'type': level_up.choice_type if is_asi_level else 'standard',
+        'hp_gained': hp_increase
+    })
+    level_entry['hp_method'] = hp_method
+    if level_up.hp_roll is not None:
+        level_entry['hp_roll'] = level_up.hp_roll
     
     update_data['level_progression'] = level_progression
     update_data['asi_increases'] = asi_increases
@@ -501,6 +517,8 @@ async def level_up_character(
         'level_up_summary': {
             'new_level': level_up.new_level,
             'hp_gained': hp_increase,
+            'hp_method': hp_method,
+            'hp_roll': level_up.hp_roll,
             'is_asi_level': is_asi_level,
             'choice_made': level_up.choice_type if is_asi_level else None
         }
@@ -1179,7 +1197,7 @@ Make ability scores appropriate for the class (e.g., high STR for Fighter, high 
 Use point buy values (8-15 before racial modifiers, total around 72 points)."""
 
     try:
-        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        llm_key = get_llm_api_key("openai")
         if not llm_key:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

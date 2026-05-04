@@ -66,7 +66,7 @@
     "/app/tests/e2e/visual-overhaul-update.spec.ts",
     "/app/tests/e2e/theme-redesign.spec.ts",
     "/app/tests/e2e/gm-screen-enhancements.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "test_results": {
     "frontend": "100% (25/25 tests passed, 1 skipped)",

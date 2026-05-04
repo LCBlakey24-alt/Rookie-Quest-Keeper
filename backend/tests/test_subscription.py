@@ -8,7 +8,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 
 class TestSubscriptionPlans:
@@ -318,7 +318,7 @@ class TestSubscriptionCheckout:
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"plan_id": "player", "billing_cycle": "monthly", "origin_url": "https://beyond-level-builder.preview.emergentagent.com"}
+            json={"plan_id": "player", "billing_cycle": "monthly", "origin_url": "http://localhost:8000"}
         )
         
         # Should return checkout URL with Stripe configured
@@ -345,7 +345,7 @@ class TestSubscriptionCheckout:
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"plan_id": "free", "billing_cycle": "monthly", "origin_url": "https://beyond-level-builder.preview.emergentagent.com"}
+            json={"plan_id": "free", "billing_cycle": "monthly", "origin_url": "http://localhost:8000"}
         )
         
         # Should return 400 for free plan (or 500 if Stripe error occurs first)
@@ -361,7 +361,7 @@ class TestSubscriptionCheckout:
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"plan_id": "legendary", "billing_cycle": "monthly", "origin_url": "https://beyond-level-builder.preview.emergentagent.com"}
+            json={"plan_id": "legendary", "billing_cycle": "monthly", "origin_url": "http://localhost:8000"}
         )
         
         # 200 if Stripe works, 500 if Stripe prices not configured
@@ -374,7 +374,7 @@ class TestSubscriptionCheckout:
         response = requests.post(
             f"{BASE_URL}/api/subscription/checkout",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"plan_id": "gm", "billing_cycle": "yearly", "origin_url": "https://beyond-level-builder.preview.emergentagent.com"}
+            json={"plan_id": "gm", "billing_cycle": "yearly", "origin_url": "http://localhost:8000"}
         )
         
         # 200 if Stripe works, 500 if Stripe prices not configured

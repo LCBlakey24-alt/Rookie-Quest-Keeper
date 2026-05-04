@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginTestUser, dismissToasts, hideEmergentBadge, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
+import { loginTestUser, dismissToasts, removeBlockingBadges, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
 
 test.describe('NPCsTab and LocationsTab UX Improvements', () => {
   test.beforeEach(async ({ page }) => {

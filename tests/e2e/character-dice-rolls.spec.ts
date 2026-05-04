@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';
@@ -17,7 +17,7 @@ import {
 
 test.describe('Character Sheet Dice Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
     
     // Navigate to character sheet

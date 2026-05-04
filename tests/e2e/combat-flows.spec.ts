@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser, 
   navigateToGMScreen,
   selectEncounterAndStartCombat,
@@ -11,7 +11,7 @@ import {
 
 test.describe('Combat Flow - DM Screen to Combat Page', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('DM Screen shows encounter selector and Start Combat button', async ({ page }) => {

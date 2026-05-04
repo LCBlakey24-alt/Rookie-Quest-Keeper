@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { loginUser, dismissToasts, hideEmergentBadge, TEST_USER, generateTestUsername } from '../fixtures/helpers';
+import { loginUser, dismissToasts, removeBlockingBadges, TEST_USER, generateTestUsername } from '../fixtures/helpers';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 
 test.describe('Delete Functionality on Home Page', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
     await loginUser(page, TEST_USER.email, TEST_USER.password);
     await page.waitForURL(/\/home/, { timeout: 15000 });
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('home page loads with character and campaign cards', async ({ page }) => {
@@ -133,7 +133,7 @@ test.describe('Route Cleanup Verification', () => {
     await dismissToasts(page);
     await loginUser(page, TEST_USER.email, TEST_USER.password);
     await page.waitForURL(/\/home/, { timeout: 15000 });
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('/characters/new route works for character creation', async ({ page }) => {
@@ -202,7 +202,7 @@ test.describe('Navigation Between Dashboards', () => {
     await dismissToasts(page);
     await loginUser(page, TEST_USER.email, TEST_USER.password);
     await page.waitForURL(/\/home/, { timeout: 15000 });
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('can navigate to GM dashboard from home', async ({ page }) => {

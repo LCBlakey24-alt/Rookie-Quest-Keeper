@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginTestUser, TEST_USER, hideEmergentBadge, dismissToasts } from '../fixtures/helpers';
+import { loginTestUser, TEST_USER, removeBlockingBadges, dismissToasts } from '../fixtures/helpers';
 
 // Test credentials
 const EMAIL = TEST_USER.email;
@@ -13,7 +13,7 @@ test.describe('Subscription Tier Badge and Campaign Limits', () => {
   test('Dashboard shows subscription tier badge with campaign limit info', async ({ page }) => {
     await loginTestUser(page);
     await page.waitForTimeout(1500);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Should see subscription tier badge in GM section
     // For Legendary tier it shows "Legendary · Unlimited"

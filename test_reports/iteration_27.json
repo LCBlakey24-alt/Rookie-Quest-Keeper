@@ -63,7 +63,7 @@
     "/app/tests/e2e/gm-workflow.spec.ts",
     "/app/tests/e2e/character-dice-rolls.spec.ts",
     "/app/backend/tests/test_journal_crud.py",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (35/35)",

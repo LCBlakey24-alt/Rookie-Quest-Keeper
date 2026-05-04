@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
 
 test.describe('Locations and Places of Interest', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Locations and Places of Interest', () => {
     // Navigate to test campaign
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Navigate to Locations tab
     await page.getByTestId('locations-tab').click();

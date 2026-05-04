@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { 
-  hideEmergentBadge,
+  removeBlockingBadges,
   dismissToasts, 
   loginTestUser, 
   navigateToGMScreen,
@@ -23,7 +23,7 @@ import {
  */
 test.describe('Golden Path: Complete Combat Flow', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await dismissToasts(page);
   });
 

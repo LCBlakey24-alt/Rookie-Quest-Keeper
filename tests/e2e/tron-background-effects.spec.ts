@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady,
   dismissToasts,
-  hideEmergentBadge,
+  removeBlockingBadges,
   TEST_CAMPAIGN_ID,
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const TEST_EMAIL = 'admin@rookiequestkeeper.com';
 const TEST_PASSWORD = 'admin123';
 
@@ -49,7 +49,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Verify Get Started button works despite Tron effects layer
     const getStartedBtn = page.getByTestId('get-started-btn');
@@ -92,7 +92,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Fill login form
     await page.getByTestId('login-email').fill(TEST_EMAIL);
@@ -114,7 +114,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.getByTestId('login-email').fill(TEST_EMAIL);
@@ -158,7 +158,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.getByTestId('login-email').fill(TEST_EMAIL);
@@ -192,7 +192,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     await page.getByTestId('login-email').fill(TEST_EMAIL);
     await page.getByTestId('login-password').fill(TEST_PASSWORD);
@@ -228,7 +228,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Start at landing page
     await expect(page.locator('.tron-effects-container').first()).toBeVisible({ timeout: 10000 });
@@ -268,7 +268,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login
     await page.getByTestId('login-email').fill(TEST_EMAIL);
@@ -304,7 +304,7 @@ test.describe('Tron Light Cycle Background Effects', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/auth', { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Verify Tron container has pointer-events: none
     const tronContainer = page.locator('.tron-effects-container').first();

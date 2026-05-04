@@ -41,7 +41,7 @@
     "/app/tests/e2e/rook-guide.spec.ts",
     "/app/tests/e2e/interactive-maps.spec.ts",
     "/app/backend/tests/test_interactive_maps.py",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (12/12 tests passed)",

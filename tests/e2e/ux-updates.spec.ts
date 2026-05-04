@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { 
   loginTestUser, 
   dismissToasts, 
-  hideEmergentBadge,
+  removeBlockingBadges,
   TEST_CAMPAIGN_ID,
   TEST_CHARACTER_ID
 } from '../fixtures/helpers';

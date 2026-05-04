@@ -10,16 +10,8 @@ from models import (
 from typing import Optional, List
 import uuid
 import json
-import os
 from datetime import datetime, timezone
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -93,7 +85,7 @@ async def generate_npc_with_stats(campaign_id: str, request: GenerateNPCRequest,
     if not can_use_ai:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
     
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = get_llm_api_key("openai")
     if not api_key:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
     

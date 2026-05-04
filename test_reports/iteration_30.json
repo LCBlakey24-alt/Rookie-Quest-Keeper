@@ -38,7 +38,7 @@
     "/app/backend/server.py",
     "/app/backend/tests/test_gm_features.py",
     "/app/tests/e2e/gm-features.spec.ts",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (18/18 tests passed)",

@@ -1,4 +1,4 @@
-"""AI portrait generation — Gemini Nano Banana via emergentintegrations.
+"""AI portrait generation — Gemini Nano Banana via the configured AI provider.
 
 Single endpoint POST /api/ai/portrait accepts a character sketch plus a style
 and returns a base64-encoded PNG so the frontend can render inline + save to
@@ -7,20 +7,12 @@ the character record's portrait field.
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
-import os
 import asyncio
 import uuid
 
 from utils.auth import get_current_user
 from config import logger
-
-try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
-except ImportError:
-    LlmChat = None
-    UserMessage = None
-    EMERGENT_KEY = None
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -92,7 +84,7 @@ async def generate_portrait(req: PortraitRequest, username: str = Depends(get_cu
 
     Returns: { image_base64: str, mime_type: str, prompt: str, style: str }
     """
-    if LlmChat is None or UserMessage is None or not EMERGENT_KEY:
+    if LlmChat is None or UserMessage is None or not get_llm_api_key("gemini"):
         raise HTTPException(status_code=503, detail="Image generation is not configured on this server.")
 
     if req.style not in STYLE_PROMPTS:
@@ -103,7 +95,7 @@ async def generate_portrait(req: PortraitRequest, username: str = Depends(get_cu
 
     try:
         chat = LlmChat(
-            api_key=EMERGENT_KEY,
+            api_key=get_llm_api_key("gemini"),
             session_id=session_id,
             system_message="You are an expert fantasy portrait artist."
         )
@@ -130,7 +122,7 @@ async def generate_portrait(req: PortraitRequest, username: str = Depends(get_cu
 async def generate_portrait_batch(req: PortraitRequest, username: str = Depends(get_current_user)):
     """Generate 3 portraits (photoreal, painterly, stylized) in parallel so the
     player can pick their favorite at the end of the builder."""
-    if LlmChat is None or UserMessage is None or not EMERGENT_KEY:
+    if LlmChat is None or UserMessage is None or not get_llm_api_key("gemini"):
         raise HTTPException(status_code=503, detail="Image generation is not configured on this server.")
 
     styles = ["photoreal", "painterly", "stylized"]
@@ -141,7 +133,7 @@ async def generate_portrait_batch(req: PortraitRequest, username: str = Depends(
         session_id = f"portrait-{username}-{style}-{uuid.uuid4().hex[:6]}"
         try:
             chat = LlmChat(
-                api_key=EMERGENT_KEY,
+                api_key=get_llm_api_key("gemini"),
                 session_id=session_id,
                 system_message="You are an expert fantasy portrait artist."
             )

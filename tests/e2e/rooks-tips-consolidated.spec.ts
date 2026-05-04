@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 // Test Rook's Tips guides for the consolidated tabs
 test.describe("Rook's Tips - Consolidated Tabs", () => {
@@ -22,7 +22,7 @@ test.describe("Rook's Tips - Consolidated Tabs", () => {
     // Navigate to campaign
     await page.goto(`/campaign/${campaignId}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('should show Maps Hub guide when navigating to Maps tab', async ({ page }) => {

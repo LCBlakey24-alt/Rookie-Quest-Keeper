@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USER, waitForAppReady, dismissToasts, hideEmergentBadge } from '../fixtures/helpers';
+import { TEST_USER, waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 const TEST_EMAIL = TEST_USER.email;
 const TEST_PASSWORD = TEST_USER.password;
@@ -101,7 +101,7 @@ test.describe('P3 - Landing Page and Player Section Updates', () => {
   test.describe('Home Page - Player Section Locked', () => {
     test.beforeEach(async ({ page }) => {
       await dismissToasts(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Login
       await page.goto('/auth', { waitUntil: 'domcontentloaded' });
@@ -188,7 +188,7 @@ test.describe('P3 - Landing Page and Player Section Updates', () => {
   test.describe('Previous Features Still Work', () => {
     test.beforeEach(async ({ page }) => {
       await dismissToasts(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Login
       await page.goto('/auth', { waitUntil: 'domcontentloaded' });

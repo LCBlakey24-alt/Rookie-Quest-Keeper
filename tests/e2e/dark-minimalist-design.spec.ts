@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   dismissToasts,
   TEST_USER,
@@ -10,7 +10,7 @@ import {
 
 test.describe('Dark Minimalist Design - Full Redesign Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await dismissToasts(page);
   });
 

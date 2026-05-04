@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, TEST_USER, TEST_CAMPAIGN_ID, loginUser } from '../fixtures/helpers';
 
 test.describe('Reference Tab Features', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Reference Tab Features', () => {
     // Navigate to test campaign
     await page.goto(`/campaign/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Reference tab loads with Items Database section', async ({ page }) => {
@@ -165,7 +165,7 @@ test.describe('Reference Tab Features', () => {
 test.describe('Login Page Logos', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Login page displays Rookie Quest logo on left side above form', async ({ page }) => {
@@ -234,7 +234,7 @@ test.describe('DM Screen Party Tab - Initiative Modifier', () => {
     // Navigate to DM Screen
     await page.goto(`/dm-screen/${TEST_CAMPAIGN_ID}`, { waitUntil: 'domcontentloaded' });
     await waitForAppReady(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   test('Party tab shows initiative modifier with correct format (+ or -)', async ({ page }) => {

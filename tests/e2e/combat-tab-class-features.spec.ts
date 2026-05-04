@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * based on character class and level from classFeatures.js
  */
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const TEST_USER = {
   email: 'lcblakey24@outlook.com',
   password: 'Trigger24?!'

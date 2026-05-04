@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USER, waitForAppReady, dismissToasts, hideEmergentBadge, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
+import { TEST_USER, waitForAppReady, dismissToasts, removeBlockingBadges, TEST_CAMPAIGN_ID } from '../fixtures/helpers';
 
 const TEST_EMAIL = TEST_USER.email;
 const TEST_PASSWORD = TEST_USER.password;
@@ -9,7 +9,7 @@ test.describe('P2 Bug Fixes Verification', () => {
   test.describe('Landing Page Fixes (Unauthenticated)', () => {
     test.beforeEach(async ({ page }) => {
       await dismissToasts(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
     });
 
     test('Landing page has visible white text on glass panels', async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe('P2 Bug Fixes Verification', () => {
   test.describe('Monster Lookup Fix - GM Screen', () => {
     test.beforeEach(async ({ page }) => {
       await dismissToasts(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Login
       await page.goto('/auth', { waitUntil: 'domcontentloaded' });
@@ -121,7 +121,7 @@ test.describe('P2 Bug Fixes Verification', () => {
   test.describe('Combat Creator - Full Monster List Fix', () => {
     test.beforeEach(async ({ page }) => {
       await dismissToasts(page);
-      await hideEmergentBadge(page);
+      await removeBlockingBadges(page);
       
       // Login
       await page.goto('/auth', { waitUntil: 'domcontentloaded' });

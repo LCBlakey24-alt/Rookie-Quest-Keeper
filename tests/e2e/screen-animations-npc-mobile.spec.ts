@@ -4,18 +4,18 @@ import {
   navigateToGMScreen, 
   TEST_CAMPAIGN_ID,
   dismissToasts,
-  hideEmergentBadge,
+  removeBlockingBadges,
   waitForAppReady
 } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://beyond-level-builder.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 
 test.describe('Screen Animations, NPC Quick Reference & Mobile Toggle', () => {
   
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
     await loginTestUser(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
   });
 
   // ==================== DASHBOARD ANIMATIONS ====================

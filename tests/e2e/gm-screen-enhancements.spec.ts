@@ -240,10 +240,11 @@ test.describe('GM Screen Enhancements', () => {
   test.skip('Live Session Mode toggle button is visible (REMOVED - merged into GM Screen)', async ({ page }) => {
     await loginAndNavigateToGMScreen(page);
     
-    // Remove Emergent badge that may block clicks
+    // Remove any fixed badge that may block clicks
     await page.evaluate(() => {
-      const badge = document.querySelector('#emergent-badge');
-      if (badge) badge.remove();
+      document
+        .querySelectorAll('[data-hosted-badge], [data-testid="hosted-badge"]')
+        .forEach((badge) => badge.remove());
     });
     
     // Verify the Live Session Mode toggle button (lightning bolt icon) is visible in bottom right

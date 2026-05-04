@@ -6,7 +6,7 @@ import requests
 import os
 
 # Set BASE_URL for all tests - use localhost for local testing against the running backend
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-level-builder.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 
 
 @pytest.fixture

@@ -57,7 +57,7 @@
   ],
   "updated_files": [
     "/app/backend/tests/test_subscription.py",
-    "/app/.emergent/testing_baseline_commit"
+    "/app/.baseline/testing_baseline_commit"
   ],
   "success_rate": {
     "backend": "100% (23/23)",

@@ -26,10 +26,11 @@ export async function checkForErrors(page: Page): Promise<string[]> {
   });
 }
 
-export async function hideEmergentBadge(page: Page) {
+export async function removeBlockingBadges(page: Page) {
   await page.evaluate(() => {
-    const badge = document.querySelector('[class*="emergent"], [id*="emergent-badge"]');
-    if (badge) (badge as HTMLElement).remove();
+    document
+      .querySelectorAll('[data-hosted-badge], [data-testid="hosted-badge"]')
+      .forEach((badge) => (badge as HTMLElement).remove());
   });
 }
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   waitForAppReady, 
-  hideEmergentBadge, 
+  removeBlockingBadges, 
   loginTestUser,
   TEST_USER
 } from '../fixtures/helpers';
@@ -13,7 +13,7 @@ import {
 
 test.describe('Session Journal CRUD', () => {
   test.beforeEach(async ({ page }) => {
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     await loginTestUser(page);
     
     // Navigate to Player Dashboard
@@ -79,18 +79,18 @@ test.describe('Session Journal CRUD', () => {
     await expect(page.getByText(entryTitle)).toBeVisible({ timeout: 10000 });
     
     // Cleanup - Delete the entry via API
-    const loginRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('http://localhost:8000/api/auth/login', {
       data: { email: TEST_USER.email, password: TEST_USER.password }
     });
     const { token } = await loginRes.json();
     
-    const response = await request.get('https://beyond-level-builder.preview.emergentagent.com/api/player/journal', {
+    const response = await request.get('http://localhost:8000/api/player/journal', {
       headers: { Authorization: `Bearer ${token}` }
     });
     const entries = await response.json();
     const entry = entries.find((e: any) => e.title === entryTitle);
     if (entry) {
-      await request.delete(`https://beyond-level-builder.preview.emergentagent.com/api/player/journal/${entry.id}`, {
+      await request.delete(`http://localhost:8000/api/player/journal/${entry.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
     }
@@ -135,7 +135,7 @@ test.describe('Session Journal CRUD', () => {
 test.describe('Session Journal API Tests', () => {
   test('Create and delete journal entry via API', async ({ page, request }) => {
     // Login to get token
-    const loginRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/auth/login', {
+    const loginRes = await request.post('http://localhost:8000/api/auth/login', {
       data: {
         email: TEST_USER.email,
         password: TEST_USER.password
@@ -148,7 +148,7 @@ test.describe('Session Journal API Tests', () => {
     const entryTitle = `TEST_API_Journal_${uniqueId}`;
     
     // Create entry
-    const createRes = await request.post('https://beyond-level-builder.preview.emergentagent.com/api/player/journal', {
+    const createRes = await request.post('http://localhost:8000/api/player/journal', {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         title: entryTitle,
@@ -161,7 +161,7 @@ test.describe('Session Journal API Tests', () => {
     expect(entry.title).toBe(entryTitle);
     
     // Delete entry
-    const deleteRes = await request.delete(`https://beyond-level-builder.preview.emergentagent.com/api/player/journal/${entry.id}`, {
+    const deleteRes = await request.delete(`http://localhost:8000/api/player/journal/${entry.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(deleteRes.ok()).toBeTruthy();

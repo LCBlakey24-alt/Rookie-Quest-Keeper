@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, dismissToasts, hideEmergentBadge, TEST_USER, TEST_CAMPAIGN_ID, loginTestUser } from '../fixtures/helpers';
+import { waitForAppReady, dismissToasts, removeBlockingBadges, TEST_USER, TEST_CAMPAIGN_ID, loginTestUser } from '../fixtures/helpers';
 
 test.describe('Dashboard Additional Tabs', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-    await hideEmergentBadge(page);
+    await removeBlockingBadges(page);
     
     // Login with existing test user
     await loginTestUser(page);
