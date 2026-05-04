@@ -2,7 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { BookOpen, Zap, Shield, Search, ChevronDown, ChevronUp, Star, Plus, X } from 'lucide-react';
-import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, getMaxSpellLevel, getMulticlassSpellSlots } from '../data/spellDatabase';
+import {
+  PACT_MAGIC_SLOTS,
+  getCharacterSpellcastingInfo,
+  getMaxSpellLevel,
+  getMulticlassSpellSlots,
+  getSpellSlotsForCaster
+} from '../data/spellDatabase';
 import { API_BASE } from '../lib/api';
 import { getClassAccent } from '../lib/theme';
 
@@ -58,7 +64,9 @@ export default function CharacterSpellbook({
   const [srdSpells, setSrdSpells] = useState([]);
   const [srdLoading, setSrdLoading] = useState(false);
 
-  const classInfo = SPELLCASTING_CLASSES[character?.character_class];
+  const spellcasting = getCharacterSpellcastingInfo(character);
+  const spellcastingClass = spellcasting?.className || character?.character_class;
+  const classInfo = spellcasting?.classInfo;
   const classAccent = getClassAccent(character);
   if (!classInfo) {
     return (
@@ -68,14 +76,15 @@ export default function CharacterSpellbook({
     );
   }
 
-  const level = character?.level || 1;
+  const level = spellcasting?.level || character?.level || 1;
+  const characterLevel = character?.level || level;
   const abilities = {
     strength: character?.strength || 10, dexterity: character?.dexterity || 10,
     constitution: character?.constitution || 10, intelligence: character?.intelligence || 10,
     wisdom: character?.wisdom || 10, charisma: character?.charisma || 10,
   };
   const getMod = (score) => Math.floor((score - 10) / 2);
-  const profBonus = Math.ceil(level / 4) + 1;
+  const profBonus = Math.ceil(characterLevel / 4) + 1;
   const spellAbilityMod = getMod(abilities[classInfo.ability] || 10);
   const spellDC = 8 + profBonus + spellAbilityMod;
   const spellAttackBonus = profBonus + spellAbilityMod;
@@ -86,26 +95,22 @@ export default function CharacterSpellbook({
   const classLevels = character?.multiclass_levels || character?.class_levels;
   const isMulticlass = classLevels && Object.keys(classLevels).length > 1;
   const multiclassData = useMemo(() =>
-    isMulticlass ? getMulticlassSpellSlots(classLevels) : null,
-    [isMulticlass, classLevels]
+    isMulticlass ? getMulticlassSpellSlots(classLevels, character) : null,
+    [isMulticlass, classLevels, character]
   );
 
   let slots;
   if (isMulticlass && classInfo.pactMagic) {
     // Pact magic always uses Warlock level only (separate from multiclass slot pool)
-    slots = multiclassData?.pactMagic || PACT_MAGIC_SLOTS[classLevels.Warlock || level];
+    slots = multiclassData?.pactMagic || PACT_MAGIC_SLOTS[level];
   } else if (isMulticlass) {
     // Show the combined multiclass full/half-caster slot table
     slots = multiclassData?.slots || {};
   } else {
-    slots = classInfo.pactMagic
-      ? PACT_MAGIC_SLOTS[level]
-      : classInfo.halfCaster
-        ? SPELL_SLOTS[Math.floor(level / 2)] || {}
-        : SPELL_SLOTS[level] || {};
+    slots = getSpellSlotsForCaster(classInfo, level);
   }
 
-  const maxSpellLevel = getMaxSpellLevel(character.character_class, level);
+  const maxSpellLevel = getMaxSpellLevel(spellcastingClass, level);
 
   // Prepared spell limit for prepared casters
   const maxPrepared = classInfo.type === 'prepared'
@@ -228,12 +233,12 @@ export default function CharacterSpellbook({
     if (!showLearnModal) return;
     setSrdLoading(true);
     axios.get(`${API_BASE}/srd/spells`, {
-      params: { class_name: character?.character_class, level: learnLevel }
+      params: { class_name: spellcastingClass, level: learnLevel }
     })
       .then(res => setSrdSpells(res.data?.spells || []))
       .catch(() => toast.error('Failed to load SRD spells'))
       .finally(() => setSrdLoading(false));
-  }, [showLearnModal, learnLevel, character?.character_class]);
+  }, [showLearnModal, learnLevel, spellcastingClass]);
 
   // Existing names already in spellbook (deduped)
   const knownNames = useMemo(() => {
@@ -296,7 +301,7 @@ export default function CharacterSpellbook({
       {/* Header row with Learn Spell button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: theme.text.primary, fontFamily: "'Cinzel', serif" }}>
-          {character?.character_class} Spellbook
+          {spellcastingClass} Spellbook
         </span>
         <button
           data-testid="learn-spell-btn"
@@ -710,7 +715,7 @@ export default function CharacterSpellbook({
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ margin: 0, color: '#D4A017', fontFamily: "'Cinzel', serif", fontSize: 18 }}>
-                Learn a {character?.character_class} Spell
+                Learn a {spellcastingClass} Spell
               </h3>
               <button data-testid="learn-modal-close" onClick={() => setShowLearnModal(false)} style={{
                 background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer'
@@ -755,7 +760,7 @@ export default function CharacterSpellbook({
               {srdLoading && <div style={{ color: theme.text.muted, padding: 16, textAlign: 'center' }}>Loading…</div>}
               {!srdLoading && srdSpells.length === 0 && (
                 <div style={{ color: theme.text.muted, padding: 16, textAlign: 'center', fontSize: 12 }}>
-                  No spells available at this level for {character?.character_class}.
+                  No spells available at this level for {spellcastingClass}.
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

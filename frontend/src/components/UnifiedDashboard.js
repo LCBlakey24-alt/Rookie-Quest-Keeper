@@ -37,7 +37,8 @@ const theme = {
     primary: '#D4A017',
     secondary: '#F5C542',
     glow: 'transparent',
-    subtle: 'rgba(212, 160, 23, 0.08)'
+    subtle: 'rgba(212, 160, 23, 0.08)',
+    border: 'rgba(212, 160, 23, 0.35)'
   },
   accent: {
     pink: '#D4A017',
@@ -65,8 +66,6 @@ const EmberParticles = () => (
 );
 
 function UnifiedDashboard({ username, onLogout }) {
-  // Mobile view toggle: 'player' or 'gm'
-  const [mobileView, setMobileView] = useState('player');
   const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
@@ -371,11 +370,11 @@ function UnifiedDashboard({ username, onLogout }) {
       
       {/* Header */}
       <header style={{
-        background: 'rgba(26, 17, 46, 0.95)',
+        background: 'rgba(15, 36, 64, 0.95)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${theme.border}`,
-        padding: '16px 32px',
+        padding: '10px 18px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -392,14 +391,14 @@ function UnifiedDashboard({ username, onLogout }) {
             style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 12px rgba(212, 160, 23, 0.5))' }}
           />
           <h1 className="mobile-hide" style={{
-            fontWeight: '700',
+            fontWeight: '800',
             fontSize: '22px',
             background: theme.gradient,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             margin: 0,
-            fontFamily: "'Cinzel', serif",
-            letterSpacing: '0.1em'
+            fontFamily: "'Montserrat', sans-serif",
+            letterSpacing: 0
           }}>
             ROOKIE QUEST KEEPER
           </h1>
@@ -413,7 +412,7 @@ function UnifiedDashboard({ username, onLogout }) {
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="dashboard-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {isAdmin && (
             <Button
               onClick={() => navigate('/admin')}
@@ -426,7 +425,7 @@ function UnifiedDashboard({ username, onLogout }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                fontWeight: '400'
+                fontWeight: '800'
               }}
             >
               <Shield size={16} />
@@ -455,15 +454,15 @@ function UnifiedDashboard({ username, onLogout }) {
           <label
             data-testid="upload-json-btn"
             style={{
-              background: 'linear-gradient(135deg, #10B981, #059669)',
+              background: 'linear-gradient(135deg, #D4A017, #A87912)',
               border: 'none',
-              color: '#fff',
+              color: '#0A1628',
               padding: '8px 16px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               borderRadius: '8px',
-              fontWeight: '400',
+              fontWeight: '800',
               fontSize: '14px',
               cursor: uploadingRuleset ? 'not-allowed' : 'pointer',
               opacity: uploadingRuleset ? 0.6 : 1
@@ -524,7 +523,7 @@ function UnifiedDashboard({ username, onLogout }) {
         </div>
       </header>
 
-      {/* Mobile Navigation Toggle */}
+      {/* Mobile/tablet player hub strip */}
       <div 
         className="animate-fade-in"
         style={{
@@ -537,65 +536,57 @@ function UnifiedDashboard({ username, onLogout }) {
         id="mobile-nav-toggle"
       >
         <style>{`
-          @media (max-width: 768px) {
+          @media (max-width: 1024px) {
             #mobile-nav-toggle { display: flex !important; }
-            #player-section { display: ${mobileView === 'player' ? 'block' : 'none'} !important; }
-            #gm-section { display: ${mobileView === 'gm' ? 'block' : 'none'} !important; }
+            #player-section { display: block !important; }
+            #gm-section { display: none !important; }
+          }
+          @media (max-width: 720px) {
+            .dashboard-actions [data-testid="review-btn"],
+            .dashboard-actions [data-testid="upload-json-btn"],
+            .dashboard-actions [data-testid="referral-btn"],
+            .dashboard-actions [data-testid="admin-btn"] {
+              display: none !important;
+            }
+            .dashboard-actions {
+              gap: 4px !important;
+            }
+            header {
+              padding: 10px 12px !important;
+            }
+          }
+          @media (max-width: 520px) {
+            #player-section {
+              padding: 14px !important;
+            }
           }
         `}</style>
-        <button
-          onClick={() => setMobileView('player')}
-          className="tab-glow press-scale"
-          style={{
-            flex: 1,
-            padding: '12px',
-            background: mobileView === 'player' ? theme.player.primary : 'transparent',
-            border: `1px solid ${mobileView === 'player' ? theme.player.primary : theme.border}`,
-            borderRight: 'none',
-            borderRadius: '8px 0 0 8px',
-            color: mobileView === 'player' ? '#fff' : theme.text.muted,
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          <Sword size={16} />
-          PLAYER HUB
-        </button>
-        <button
-          onClick={() => setMobileView('gm')}
-          className="tab-glow press-scale"
-          style={{
-            flex: 1,
-            padding: '12px',
-            background: mobileView === 'gm' ? theme.gm.primary : 'transparent',
-            border: `1px solid ${mobileView === 'gm' ? theme.gm.primary : theme.border}`,
-            borderRadius: '0 8px 8px 0',
-            color: mobileView === 'gm' ? '#0B1530' : theme.text.muted,
-            fontSize: '13px',
-            fontWeight: '400',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-        >
-          <Crown size={16} />
-          GM SIDE
-        </button>
+        <div style={{
+          width: '100%',
+          padding: '10px 12px',
+          background: 'rgba(212, 160, 23, 0.12)',
+          border: `1px solid ${theme.border}`,
+          borderRadius: 8,
+          color: theme.player.primary,
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}>
+          <Sword size={15} />
+          Player Hub
+        </div>
       </div>
 
       {/* Main Content - Split Design */}
       <div style={{
         flex: 1,
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
         minHeight: 'calc(100vh - 70px)',
         gap: '0'
       }}>
@@ -604,11 +595,11 @@ function UnifiedDashboard({ username, onLogout }) {
           id="player-section"
           className="animate-fade-in-left"
           style={{ 
-            background: 'rgba(26, 17, 46, 0.7)',
+            background: 'rgba(15, 36, 64, 0.72)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             borderRight: `1px solid ${theme.border}`,
-            padding: '28px',
+            padding: '18px',
             position: 'relative',
             overflow: 'hidden',
             minHeight: '400px'
@@ -643,31 +634,31 @@ function UnifiedDashboard({ username, onLogout }) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '32px'
+                  marginBottom: '18px'
             }}>
               <div>
                 <h2 style={{
-                  fontWeight: '600',
+                  fontWeight: '800',
                   fontSize: '12px',
                   color: theme.player.primary,
                   margin: '0 0 8px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Outfit', sans-serif",
-                  letterSpacing: '0.15em',
+                  fontFamily: "'Montserrat', sans-serif",
+                  letterSpacing: 0,
                   textTransform: 'uppercase'
                 }}>
                   <User size={18} />
                   PLAYER SIDE
                 </h2>
                 <h3 style={{
-                  fontWeight: '500',
+                  fontWeight: '800',
                   fontSize: '24px',
                   color: theme.text.primary,
                   margin: 0,
                   fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: '0.03em'
+                  letterSpacing: 0
                 }}>
                   My Characters
                 </h3>
@@ -678,9 +669,9 @@ function UnifiedDashboard({ username, onLogout }) {
                 style={{
                   background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.primary})`,
                   border: 'none',
-                  color: '#fff',
-                  padding: '12px 24px',
-                  fontWeight: '500',
+                  color: '#0A1628',
+                  padding: '9px 16px',
+                  fontWeight: '800',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -697,7 +688,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   background: 'transparent',
                   border: '1px solid #D4A017',
                   color: '#D4A017',
-                  padding: '12px 18px',
+                  padding: '9px 14px',
                   fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
@@ -724,7 +715,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     flex: 1, minWidth: 220,
                     background: theme.bg.surface, color: theme.text.primary,
                     border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '10px 14px', fontSize: 13, outline: 'none',
+                    padding: '8px 12px', fontSize: 12, outline: 'none',
                   }}
                 />
                 <select
@@ -735,7 +726,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     minWidth: 150,
                     background: theme.bg.surface, color: theme.text.primary,
                     border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '10px 14px', fontSize: 13, outline: 'none', cursor: 'pointer'
+                    padding: '8px 12px', fontSize: 12, outline: 'none', cursor: 'pointer'
                   }}
                 >
                   <option value="recent">Sort: Recent</option>
@@ -766,8 +757,8 @@ function UnifiedDashboard({ username, onLogout }) {
                       background: theme.player.primary,
                       border: 'none',
                       padding: '14px 28px',
-                      color: '#fff',
-                      fontWeight: '400'
+                      color: '#0A1628',
+                      fontWeight: '800'
                     }}
                   >
                     Create Character
@@ -781,11 +772,11 @@ function UnifiedDashboard({ username, onLogout }) {
                     data-testid={`character-${char.id}`}
                     className="card-hover"
                     style={{
-                      background: 'rgba(26, 17, 46, 0.9)',
+                      background: 'rgba(15, 36, 64, 0.92)',
                       border: `1px solid ${theme.border}`,
                       borderLeft: `3px solid ${theme.player.primary}`,
-                      borderRadius: '12px',
-                      padding: '20px 24px',
+                      borderRadius: '8px',
+                      padding: '14px 18px',
                       cursor: 'pointer',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -798,8 +789,8 @@ function UnifiedDashboard({ username, onLogout }) {
                         color: theme.text.primary, 
                         margin: '0 0 6px', 
                         fontSize: '18px',
-                        fontWeight: '600',
-                        fontFamily: "'Outfit', sans-serif"
+                        fontWeight: '800',
+                        fontFamily: "'Montserrat', sans-serif"
                       }}>
                         {char.name}
                       </h3>
@@ -808,7 +799,7 @@ function UnifiedDashboard({ username, onLogout }) {
                         margin: 0, 
                         fontSize: '13px',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
+                        letterSpacing: 0
                       }}>
                         Level {char.level} {char.race} {char.character_class}
                       </p>
@@ -852,10 +843,10 @@ function UnifiedDashboard({ username, onLogout }) {
           id="gm-section"
           className="animate-fade-in-right"
           style={{ 
-            background: 'rgba(26, 17, 46, 0.7)',
+            background: 'rgba(15, 36, 64, 0.72)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            padding: '28px',
+            padding: '18px',
             position: 'relative',
             overflow: 'hidden',
             minHeight: '400px'
@@ -888,31 +879,31 @@ function UnifiedDashboard({ username, onLogout }) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '32px'
+              marginBottom: '18px'
             }}>
               <div>
                 <h2 style={{
-                  fontWeight: '600',
+                  fontWeight: '800',
                   fontSize: '12px',
                   color: theme.gm.primary,
                   margin: '0 0 8px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  fontFamily: "'Outfit', sans-serif",
-                  letterSpacing: '0.15em',
+                  fontFamily: "'Montserrat', sans-serif",
+                  letterSpacing: 0,
                   textTransform: 'uppercase'
                 }}>
                   <Sword size={18} />
                   GM SIDE
                 </h2>
                 <h3 style={{
-                  fontWeight: '700',
+                  fontWeight: '800',
                   fontSize: '26px',
                   color: theme.text.primary,
                   margin: 0,
-                  fontFamily: "'Outfit', sans-serif",
-                  letterSpacing: '0.03em'
+                  fontFamily: "'Montserrat', sans-serif",
+                  letterSpacing: 0
                 }}>
                   My Campaigns
                 </h3>
@@ -924,7 +915,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     borderRadius: '4px',
                     background: 'rgba(212, 160, 23, 0.15)',
                     color: theme.gm.primary,
-                    fontWeight: '500',
+                    fontWeight: '800',
                     marginTop: '4px'
                   }}>
                     {subscriptionInfo.campaigns_limit === -1 
@@ -952,9 +943,9 @@ function UnifiedDashboard({ username, onLogout }) {
                 style={{
                   background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                   border: 'none',
-                  color: '#fff',
-                  padding: '12px 24px',
-                  fontWeight: '500',
+                  color: '#0A1628',
+                  padding: '9px 16px',
+                  fontWeight: '800',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -979,7 +970,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     flex: 1, minWidth: 220,
                     background: theme.bg.surface, color: theme.text.primary,
                     border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '10px 14px', fontSize: 13, outline: 'none',
+                    padding: '8px 12px', fontSize: 12, outline: 'none',
                   }}
                 />
                 <select
@@ -990,7 +981,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     minWidth: 150,
                     background: theme.bg.surface, color: theme.text.primary,
                     border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '10px 14px', fontSize: 13, outline: 'none', cursor: 'pointer'
+                    padding: '8px 12px', fontSize: 12, outline: 'none', cursor: 'pointer'
                   }}
                 >
                   <option value="recent">Sort: Recent</option>
@@ -1022,8 +1013,8 @@ function UnifiedDashboard({ username, onLogout }) {
                           background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                           border: 'none',
                           padding: '14px 28px',
-                          color: '#fff',
-                          fontWeight: '500',
+                          color: '#0A1628',
+                          fontWeight: '800',
                           boxShadow: `0 4px 15px ${theme.gm.glow}`
                         }}
                       >
@@ -1041,8 +1032,8 @@ function UnifiedDashboard({ username, onLogout }) {
                           background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                           border: 'none',
                           padding: '14px 28px',
-                          color: '#fff',
-                          fontWeight: '500',
+                          color: '#0A1628',
+                          fontWeight: '800',
                           boxShadow: `0 4px 15px ${theme.gm.glow}`
                         }}
                       >
@@ -1063,7 +1054,7 @@ function UnifiedDashboard({ username, onLogout }) {
                       border: `1px solid ${theme.border}`,
                       borderLeft: `3px solid ${theme.gm.primary}`,
                       borderRadius: '8px',
-                      padding: '20px 24px',
+                      padding: '14px 18px',
                       cursor: 'pointer',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -1075,7 +1066,7 @@ function UnifiedDashboard({ username, onLogout }) {
                         color: theme.text.primary, 
                         margin: '0 0 6px', 
                         fontSize: '18px',
-                        fontWeight: '600',
+                        fontWeight: '800',
                         fontFamily: "'Montserrat', sans-serif"
                       }}>
                         {campaign.name}
@@ -1168,7 +1159,7 @@ function UnifiedDashboard({ username, onLogout }) {
             <h2 style={{ 
               color: theme.text.primary, 
               margin: '0 0 8px',
-              fontWeight: '400',
+              fontWeight: '800',
               fontSize: '20px'
             }}>
               Leave a Review
@@ -1238,9 +1229,9 @@ function UnifiedDashboard({ username, onLogout }) {
                   flex: 1,
                   background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                   border: 'none',
-                  color: '#fff',
+                  color: '#0A1628',
                   padding: '12px',
-                  fontWeight: '400'
+                  fontWeight: '800'
                 }}
               >
                 {submittingReview ? 'Submitting...' : 'Submit'}
@@ -1276,7 +1267,7 @@ function UnifiedDashboard({ username, onLogout }) {
             <h2 style={{ 
               color: theme.text.primary, 
               margin: '0 0 8px',
-              fontWeight: '400',
+              fontWeight: '800',
               fontSize: '20px'
             }}>
               Your Referral Code
@@ -1297,8 +1288,8 @@ function UnifiedDashboard({ username, onLogout }) {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 fontSize: '18px',
-                fontWeight: '400',
-                letterSpacing: '2px'
+                fontWeight: '800',
+                letterSpacing: 0
               }}>
                 {referralCode || 'Loading...'}
               </code>
@@ -1310,9 +1301,9 @@ function UnifiedDashboard({ username, onLogout }) {
                 width: '100%',
                 background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
                 border: 'none',
-                color: '#fff',
+                color: '#0A1628',
                 padding: '14px',
-                fontWeight: '400',
+                fontWeight: '800',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1354,11 +1345,11 @@ function UnifiedDashboard({ username, onLogout }) {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ 
-              fontFamily: "'Outfit', sans-serif",
+              fontFamily: "'Montserrat', sans-serif",
               color: theme.gm.primary, 
               margin: '0 0 8px',
               fontSize: '24px',
-              fontWeight: '600'
+              fontWeight: '800'
             }}>
               Create New Campaign
             </h2>
@@ -1381,7 +1372,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     padding: '14px 16px',
                     borderRadius: '10px',
                     border: `1px solid ${theme.border}`,
-                    background: 'rgba(15, 10, 30, 0.6)',
+                    background: 'rgba(10, 22, 40, 0.62)',
                     color: theme.text.primary,
                     fontSize: '15px'
                   }}
@@ -1402,7 +1393,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     padding: '14px 16px',
                     borderRadius: '10px',
                     border: `1px solid ${theme.border}`,
-                    background: 'rgba(15, 10, 30, 0.6)',
+                    background: 'rgba(10, 22, 40, 0.62)',
                     color: theme.text.primary,
                     fontSize: '15px',
                     resize: 'vertical'
@@ -1420,8 +1411,8 @@ function UnifiedDashboard({ username, onLogout }) {
                     border: 'none',
                     padding: '14px',
                     borderRadius: '10px',
-                    color: theme.text.primary,
-                    fontWeight: '600',
+                    color: '#0A1628',
+                    fontWeight: '800',
                     fontSize: '15px'
                   }}
                 >
@@ -1437,7 +1428,7 @@ function UnifiedDashboard({ username, onLogout }) {
                     padding: '14px',
                     borderRadius: '10px',
                     color: theme.text.secondary,
-                    fontWeight: '500',
+                    fontWeight: '800',
                     fontSize: '15px'
                   }}
                 >

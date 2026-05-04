@@ -15,8 +15,8 @@ import PlayerProgressionDashboard from './PlayerProgressionDashboard';
 import RestPanel from './RestPanel';
 import CombatLog from './CombatLog';
 import RookHints from './RookHints';
-import { CLASS_FEATURES } from '../data/classFeatures';
-import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, SPELL_DATABASE } from '../data/spellDatabase';
+import { canCharacterCastSpells } from '../data/spellDatabase';
+import { CLASS_RESOURCES, getResourceMax, getRestoreType } from '../data/classResources';
 import DiceRoller3D from './ui/DiceRoller3D';
 import DiceRollHistory from './DiceRollHistory';
 import { getConditionRollEffect, getConditionIndicator, CONDITION_EFFECTS } from '../data/conditionEffects';
@@ -251,6 +251,11 @@ export default function CharacterSheetFull() {
   
   // Spell slot tracking - { 1: 0, 2: 0, ... } = used slots per level
   const [usedSlots, setUsedSlots] = useState({});
+  const canUseSpells = useMemo(() => canCharacterCastSpells(character), [character]);
+  const visibleTabs = useMemo(
+    () => CHARACTER_TABS.filter(tab => tab.id !== 'spells' || canUseSpells),
+    [canUseSpells]
+  );
 
   // Per-character Combat Log (in-memory; capped at 100 most recent)
   const [combatLog, setCombatLog] = useState([]);
@@ -276,7 +281,7 @@ export default function CharacterSheetFull() {
       // Fire-and-forget PATCH; errors are non-fatal (UI will retry on next click)
       if (characterId) {
         axios.patch(`${API}/characters/${characterId}`, { used_spell_slots: resolved })
-          .catch(() => { /* swallow — UI state already updated */ });
+          .catch(() => toast.error('Could not save spell slots'));
       }
       return resolved;
     });
@@ -373,6 +378,12 @@ export default function CharacterSheetFull() {
   useEffect(() => {
     if (characterId) fetchCharacter();
   }, [characterId]);
+
+  useEffect(() => {
+    if (activeTab === 'spells' && !canUseSpells) {
+      setActiveTab('overview');
+    }
+  }, [activeTab, canUseSpells]);
 
   const fetchCharacter = async () => {
     try {
@@ -531,6 +542,7 @@ export default function CharacterSheetFull() {
       await axios.patch(`${API}/characters/${characterId}`, updates);
     } catch (err) {
       console.error('Failed to persist character update:', err);
+      toast.error('Could not save character update');
       // Roll back optimistic update so UI matches server
       setCharacter(prevSnapshot);
       // Rethrow so callers (e.g. Learn Spell) can show real error toasts
@@ -544,7 +556,38 @@ export default function CharacterSheetFull() {
       setCharacter(prev => prev ? { ...prev, resources } : prev);
     } catch (err) {
       console.error('Failed to update resources');
+      toast.error('Could not save resources');
     }
+  };
+
+  const getRestoredResourcesForRest = (restType, sourceCharacter) => {
+    const className = sourceCharacter?.character_class;
+    const classResources = CLASS_RESOURCES[className] || [];
+    const currentResources = sourceCharacter?.resources || {};
+    if (classResources.length === 0) return currentResources;
+
+    const level = sourceCharacter?.level || 1;
+    const abilityScores = {
+      strength: sourceCharacter?.strength,
+      dexterity: sourceCharacter?.dexterity,
+      constitution: sourceCharacter?.constitution,
+      intelligence: sourceCharacter?.intelligence,
+      wisdom: sourceCharacter?.wisdom,
+      charisma: sourceCharacter?.charisma
+    };
+
+    const restored = { ...currentResources };
+    classResources.forEach(res => {
+      if (res.minLevel && level < res.minLevel) return;
+      const max = getResourceMax(res, level, abilityScores);
+      if (max <= 0) return;
+      const restoresOn = getRestoreType(res, level);
+      if (restType === 'long' || restoresOn === restType) {
+        restored[res.key] = max;
+      }
+    });
+
+    return restored;
   };
 
   const handleRest = async (type) => {
@@ -553,8 +596,15 @@ export default function CharacterSheetFull() {
         ? `${API}/characters/${characterId}/short-rest?hit_dice_to_spend=1`
         : `${API}/characters/${characterId}/long-rest`;
       const response = await axios.post(url);
-      setCharacter(response.data);
-      setCurrentHp(response.data.current_hit_points ?? response.data.hp ?? currentHp);
+      const restoredResources = getRestoredResourcesForRest(type, response.data);
+      const restedCharacter = { ...response.data, resources: restoredResources };
+      setCharacter(restedCharacter);
+      setCurrentHp(restedCharacter.current_hit_points ?? restedCharacter.hp ?? currentHp);
+
+      if (Object.keys(restoredResources).length > 0) {
+        axios.put(`${API}/characters/${characterId}/resources`, restoredResources)
+          .catch(() => toast.error('Could not save restored resources'));
+      }
 
       // Spell slot recovery per 5e RAW
       if (type === 'long') {
@@ -583,7 +633,7 @@ export default function CharacterSheetFull() {
   const pageStyle = {
     minHeight: '100vh',
     background: theme.bg.primary,
-    padding: '20px',
+    padding: '12px',
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
@@ -616,8 +666,8 @@ export default function CharacterSheetFull() {
     background: 'rgba(10, 17, 64, 0.85)',
     backdropFilter: 'blur(16px)',
     border: `1px solid ${theme.border}`,
-    borderRadius: '10px',
-    padding: '10px',
+    borderRadius: '8px',
+    padding: '8px',
     position: 'relative',
     zIndex: 1
   };
@@ -669,7 +719,122 @@ export default function CharacterSheetFull() {
   }
 
   return (
-    <div style={pageStyle}>
+    <div data-testid="character-sheet-full" className="character-sheet-shell" style={pageStyle}>
+      <style>{`
+        .character-sheet-shell {
+          --sheet-panel-gap: 8px;
+        }
+
+        .character-sheet-shell button,
+        .character-sheet-shell input,
+        .character-sheet-shell select,
+        .character-sheet-shell textarea {
+          letter-spacing: 0 !important;
+        }
+
+        .character-sheet-tabs {
+          scrollbar-width: thin;
+        }
+
+        @media (max-width: 1240px) {
+          .character-sheet-shell {
+            height: auto !important;
+            min-height: 100vh !important;
+            overflow: auto !important;
+            padding: 10px !important;
+          }
+
+          .character-sheet-header {
+            align-items: stretch !important;
+            flex-wrap: wrap !important;
+          }
+
+          .character-sheet-identity {
+            order: -1;
+            flex: 1 1 360px !important;
+          }
+
+          .character-sheet-vitals {
+            justify-content: flex-start !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            padding-bottom: 2px !important;
+          }
+
+          .character-sheet-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: visible !important;
+            min-height: auto !important;
+            gap: 8px !important;
+          }
+
+          .character-sheet-tabs {
+            position: sticky !important;
+            top: 0 !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            padding: 6px !important;
+          }
+
+          .character-sheet-tabs button {
+            flex: 0 0 auto !important;
+            min-width: 94px !important;
+            min-height: 40px !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .character-sheet-header {
+            gap: 8px !important;
+            margin-bottom: 8px !important;
+          }
+
+          .character-sheet-identity h1 {
+            font-size: 1.05rem !important;
+          }
+
+          .character-sheet-identity img,
+          .character-sheet-identity .portrait-fallback {
+            width: 42px !important;
+            height: 42px !important;
+          }
+
+          .character-sheet-header-actions {
+            width: 100%;
+          }
+
+          .character-sheet-header-actions button {
+            flex: 1;
+            justify-content: center;
+            padding: 7px 10px !important;
+            font-size: 12px !important;
+          }
+
+          .character-sheet-tabs button span {
+            display: none;
+          }
+
+          .character-sheet-tabs button {
+            min-width: 46px !important;
+            width: 46px !important;
+            padding: 8px !important;
+          }
+
+          .quick-dice-bar {
+            max-width: calc(100vw - 16px);
+            overflow-x: auto;
+            padding: 5px 8px !important;
+          }
+
+          .quick-dice-bar button {
+            min-width: 34px !important;
+            padding: 5px 8px !important;
+          }
+        }
+      `}</style>
       {/* Background gradient overlay */}
       <div style={bgOverlayStyle} />
       {/* Corner glows */}
@@ -677,19 +842,19 @@ export default function CharacterSheetFull() {
       <div style={bottomRightGlow} />
       
       {/* Header - Fixed (Identity + Vitals Bar) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
+      <div className="character-sheet-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
         <button onClick={() => navigate('/home')} data-testid="sheet-back-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(212, 160, 23, 0.2)', border: `1px solid ${theme.border}`, borderRadius: '10px', padding: '8px 14px', color: theme.text.primary, cursor: 'pointer', flexShrink: 0 }}>
           <ChevronLeft size={18} /> Dashboard
         </button>
 
         {/* Identity */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+        <div className="character-sheet-identity" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           {(() => { const accent = getClassAccent(character); return (
           <div style={{ position: 'relative' }}>
             {character.portrait_url ? (
-              <img src={character.portrait_url} alt="" style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent.primary}`, boxShadow: `0 0 0 1px ${accent.tint}` }} onError={e => { e.target.style.display = 'none'; }} />
+              <img src={character.portrait_url} alt="" style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent.primary}`, boxShadow: `0 0 0 1px ${accent.tint}` }} onError={e => { e.target.style.display = 'none'; }} />
             ) : (
-              <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: theme.bg.surface, border: `2px solid ${theme.accent.primary}`, boxShadow: `0 0 0 1px ${accent.tint}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div className="portrait-fallback" style={{ width: '46px', height: '46px', borderRadius: '50%', background: theme.bg.surface, border: `2px solid ${theme.accent.primary}`, boxShadow: `0 0 0 1px ${accent.tint}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <User size={24} color="#fff" />
               </div>
             )}
@@ -706,7 +871,7 @@ export default function CharacterSheetFull() {
           </div>
           ); })()}
           <div style={{ textAlign: 'left' }}>
-            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '1.3rem', margin: 0, color: theme.accent.primary }}>
+            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '1.18rem', margin: 0, color: theme.accent.primary }}>
               {character.name}
             </h1>
             <div style={{ color: theme.text.secondary, fontSize: '12px' }}>
@@ -723,9 +888,9 @@ export default function CharacterSheetFull() {
         </div>
 
         {/* Vitals Bar - Always Visible */}
-        <div data-testid="vitals-bar" style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div data-testid="vitals-bar" className="character-sheet-vitals" style={{ display: 'flex', gap: '5px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
           {/* HP */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 10px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', minWidth: '90px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 8px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', minWidth: '82px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: theme.text.muted, fontWeight: 600 }}><Heart size={11} color="#EF4444" /> HP</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
               <button onClick={() => handleHpChange(-1)} data-testid="hp-decrease" style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
@@ -758,7 +923,7 @@ export default function CharacterSheetFull() {
           {/* "Spells not prepared" warning for prepared casters with 0 prepped spells */}
           {(() => {
             const preparedClasses = ['Cleric', 'Druid', 'Wizard', 'Paladin', 'Artificer'];
-            const isPrepared = preparedClasses.includes(character.character_class);
+            const isPrepared = canUseSpells && preparedClasses.includes(character.character_class);
             const knownCount = (character.spells_known || character.spells_prepared || character.spells || []).length;
             const preppedCount = (character.prepared_spell_names || []).length;
             if (!isPrepared || knownCount === 0 || preppedCount > 0) return null;
@@ -818,7 +983,7 @@ export default function CharacterSheetFull() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+        <div className="character-sheet-header-actions" style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
           {(character.level || 1) < 20 && (
             <button 
               onClick={() => setShowLevelUpWizard(true)} 
@@ -858,7 +1023,7 @@ export default function CharacterSheetFull() {
       />
 
       {/* Main Content - Fills remaining space */}
-      <div className="character-sheet-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '190px 180px 1fr', gap: '10px', overflow: 'hidden', minHeight: 0 }}>
+      <div className="character-sheet-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '168px 172px minmax(0, 1fr)', gap: '8px', overflow: 'hidden', minHeight: 0 }}>
         
         {/* LEFT COLUMN: Abilities + Saving Throws */}
         <div className="card-hover" style={{ ...panelStyle, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -965,7 +1130,7 @@ export default function CharacterSheetFull() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}>
 
           {/* Tabs */}
-          <div style={{
+          <div className="character-sheet-tabs" style={{
             display: 'flex',
             gap: '8px',
             flexShrink: 0,
@@ -978,7 +1143,7 @@ export default function CharacterSheetFull() {
             position: 'relative',
             zIndex: 4
           }}>
-            {CHARACTER_TABS.map(tab => {
+            {visibleTabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
 
@@ -1050,7 +1215,7 @@ export default function CharacterSheetFull() {
               </div>
             )}
 
-            {activeTab === 'spells' && (
+            {activeTab === 'spells' && canUseSpells && (
               <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
                 <CharacterSpellbook
                   character={character}
@@ -1160,7 +1325,7 @@ export default function CharacterSheetFull() {
       </div>
       
       {/* Quick Dice Bar */}
-      <div data-testid="quick-dice-bar" style={{
+      <div data-testid="quick-dice-bar" className="quick-dice-bar" style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
         display: 'flex', gap: '4px', padding: '6px 16px',
         background: 'rgba(10, 8, 25, 0.95)', backdropFilter: 'blur(12px)',
@@ -1299,17 +1464,17 @@ function VitalChip({ icon: Icon, label, value, color, onClick, testId }) {
       type={interactive ? 'button' : undefined}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '6px 12px', borderRadius: '10px',
+        padding: '5px 9px', borderRadius: '8px',
         background: `${color}15`, border: `1px solid ${color}40`,
         cursor: interactive ? 'pointer' : 'default',
-        minWidth: '60px', transition: 'all 0.2s',
+        minWidth: '54px', transition: 'all 0.2s',
         font: 'inherit', color: 'inherit'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#9EB0D0', fontWeight: 600 }}>
         <Icon size={11} color={color} /> {label}
       </div>
-      <div style={{ fontSize: '15px', fontWeight: 700, color, marginTop: '2px' }}>{value}</div>
+      <div style={{ fontSize: '14px', fontWeight: 700, color, marginTop: '1px' }}>{value}</div>
     </Tag>
   );
 }

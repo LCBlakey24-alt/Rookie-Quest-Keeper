@@ -10,8 +10,101 @@ export const SPELLCASTING_CLASSES = {
   Warlock: { ability: 'charisma', type: 'known', ritual: false, pactMagic: true },
   Paladin: { ability: 'charisma', type: 'prepared', ritual: false, halfCaster: true },
   Ranger: { ability: 'wisdom', type: 'known', ritual: false, halfCaster: true },
-  Fighter: { ability: 'intelligence', type: 'known', ritual: false, subclassOnly: 'Eldritch Knight' },
-  Rogue: { ability: 'intelligence', type: 'known', ritual: false, subclassOnly: 'Arcane Trickster' }
+  Fighter: { ability: 'intelligence', type: 'known', ritual: false, subclassOnly: 'Eldritch Knight', thirdCaster: true },
+  Rogue: { ability: 'intelligence', type: 'known', ritual: false, subclassOnly: 'Arcane Trickster', thirdCaster: true }
+};
+
+const normalizeRuleName = (value = '') =>
+  String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export const getCanonicalSpellcastingClass = (className = '') =>
+  Object.keys(SPELLCASTING_CLASSES).find(cls => normalizeRuleName(cls) === normalizeRuleName(className)) || className;
+
+export const getCharacterClassLevel = (character = {}, className = '') => {
+  const canonicalClass = getCanonicalSpellcastingClass(className);
+  const classLevels = character?.multiclass_levels || character?.class_levels || {};
+  const levelEntry = Object.entries(classLevels).find(([cls]) =>
+    normalizeRuleName(cls) === normalizeRuleName(canonicalClass)
+  );
+  if (levelEntry) return Number(levelEntry[1]) || 0;
+
+  const classEntry = (character?.classes || []).find(cls =>
+    normalizeRuleName(cls?.name || cls?.class_name || cls?.character_class) === normalizeRuleName(canonicalClass)
+  );
+  if (classEntry) return Number(classEntry.level) || 0;
+
+  return normalizeRuleName(character?.character_class) === normalizeRuleName(canonicalClass)
+    ? Number(character?.level) || 1
+    : 0;
+};
+
+export const getCharacterSubclassForClass = (character = {}, className = '') => {
+  const canonicalClass = getCanonicalSpellcastingClass(className);
+  const classEntry = (character?.classes || []).find(cls =>
+    normalizeRuleName(cls?.name || cls?.class_name || cls?.character_class) === normalizeRuleName(canonicalClass)
+  );
+
+  if (classEntry?.subclass) return classEntry.subclass;
+  return normalizeRuleName(character?.character_class) === normalizeRuleName(canonicalClass)
+    ? character?.subclass
+    : '';
+};
+
+export const classHasSpellcasting = (character = {}, className = '') => {
+  const canonicalClass = getCanonicalSpellcastingClass(className);
+  const classInfo = SPELLCASTING_CLASSES[canonicalClass];
+  if (!classInfo) return false;
+
+  const classLevel = getCharacterClassLevel(character, canonicalClass);
+  if (classLevel <= 0) return false;
+  if (classInfo.halfCaster && classLevel < 2) return false;
+
+  if (classInfo.subclassOnly) {
+    const subclass = getCharacterSubclassForClass(character, canonicalClass);
+    return classLevel >= 3 && normalizeRuleName(subclass) === normalizeRuleName(classInfo.subclassOnly);
+  }
+
+  return true;
+};
+
+export const getCharacterSpellcastingClass = (character = {}) => {
+  const primaryClass = getCanonicalSpellcastingClass(character?.character_class || '');
+  if (classHasSpellcasting(character, primaryClass)) return primaryClass;
+
+  const classNames = new Set([
+    ...Object.keys(character?.multiclass_levels || {}),
+    ...Object.keys(character?.class_levels || {}),
+    ...(character?.classes || []).map(cls => cls?.name || cls?.class_name || cls?.character_class).filter(Boolean),
+  ]);
+
+  for (const className of classNames) {
+    const canonicalClass = getCanonicalSpellcastingClass(className);
+    if (classHasSpellcasting(character, canonicalClass)) return canonicalClass;
+  }
+
+  return null;
+};
+
+export const canCharacterCastSpells = (character = {}) =>
+  Boolean(getCharacterSpellcastingClass(character));
+
+export const getCharacterSpellcastingInfo = (character = {}) => {
+  const className = getCharacterSpellcastingClass(character);
+  if (!className) return null;
+
+  return {
+    className,
+    classInfo: SPELLCASTING_CLASSES[className],
+    level: getCharacterClassLevel(character, className),
+  };
+};
+
+export const getSpellSlotsForCaster = (classInfo, casterLevel) => {
+  if (!classInfo || casterLevel <= 0) return {};
+  if (classInfo.pactMagic) return PACT_MAGIC_SLOTS[casterLevel] || {};
+  if (classInfo.halfCaster) return SPELL_SLOTS[Math.floor(casterLevel / 2)] || {};
+  if (classInfo.thirdCaster) return SPELL_SLOTS[Math.floor(casterLevel / 3)] || {};
+  return SPELL_SLOTS[casterLevel] || {};
 };
 
 // Spell slots per level (full casters)
@@ -332,7 +425,8 @@ export const getSpellsForClass = (className, spellLevel = null) => {
 
 // Get max spell level for a class at a given character level
 export const getMaxSpellLevel = (className, characterLevel) => {
-  const classInfo = SPELLCASTING_CLASSES[className];
+  const canonicalClass = getCanonicalSpellcastingClass(className);
+  const classInfo = SPELLCASTING_CLASSES[canonicalClass];
   if (!classInfo) return 0;
   
   if (classInfo.pactMagic) {
@@ -341,6 +435,14 @@ export const getMaxSpellLevel = (className, characterLevel) => {
   
   if (classInfo.halfCaster) {
     const effectiveLevel = Math.floor(characterLevel / 2);
+    for (let i = 9; i >= 1; i--) {
+      if (SPELL_SLOTS[effectiveLevel]?.[i]) return i;
+    }
+    return 0;
+  }
+
+  if (classInfo.thirdCaster) {
+    const effectiveLevel = Math.floor(characterLevel / 3);
     for (let i = 9; i >= 1; i--) {
       if (SPELL_SLOTS[effectiveLevel]?.[i]) return i;
     }
@@ -367,16 +469,21 @@ export const getMaxSpellLevel = (className, characterLevel) => {
  * @param {Object} classLevels  e.g. { Wizard: 5, Cleric: 3 }
  * @returns {{ multiclassLevel, slots, pactMagic }}
  */
-export const getMulticlassSpellSlots = (classLevels = {}) => {
+export const getMulticlassSpellSlots = (classLevels = {}, character = null) => {
   let multiclassLevel = 0;
   let warlockLevel = 0;
 
   Object.entries(classLevels).forEach(([cls, lvl]) => {
-    const info = SPELLCASTING_CLASSES[cls];
+    const canonicalClass = getCanonicalSpellcastingClass(cls);
+    const info = SPELLCASTING_CLASSES[canonicalClass];
     if (!info) return;
     const n = Number(lvl) || 0;
     if (info.pactMagic) {
       warlockLevel += n;
+    } else if (info.subclassOnly) {
+      if (character && classHasSpellcasting(character, canonicalClass)) {
+        multiclassLevel += Math.floor(n / 3);
+      }
     } else if (info.halfCaster) {
       multiclassLevel += Math.floor(n / 2);
     } else {

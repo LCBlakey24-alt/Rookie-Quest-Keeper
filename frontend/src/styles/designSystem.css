@@ -1,38 +1,38 @@
 /* ============================================
    ROOKIE QUEST KEEPER - DESIGN SYSTEM v2.0
    Clean, Modern, Square Corners
-   GM: Red Theme | Player: Blue Theme
+   Unified Navy + Gold Theme
    ============================================ */
 
 :root {
   /* ============ BASE COLORS ============ */
-  --bg-primary: #18181B;
-  --bg-secondary: #1E1E22;
-  --bg-card: #242428;
-  --bg-elevated: #2E2E32;
-  --bg-hover: #38383D;
+  --bg-primary: #0A1628;
+  --bg-secondary: #0F2440;
+  --bg-card: #0F2440;
+  --bg-elevated: #14304F;
+  --bg-hover: #173958;
   
   /* ============ TEXT ============ */
-  --text-primary: #FAFAFA;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
-  --text-disabled: #52525B;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-disabled: #475569;
   
-  /* ============ GM THEME (RED) ============ */
-  --gm-primary: #A4243B;
-  --gm-hover: #B82E47;
-  --gm-active: #8B1E32;
-  --gm-subtle: rgba(164, 36, 59, 0.15);
-  --gm-border: rgba(164, 36, 59, 0.4);
-  --gm-glow: rgba(164, 36, 59, 0.25);
+  /* ============ GM THEME ============ */
+  --gm-primary: #D4A017;
+  --gm-hover: #F5C542;
+  --gm-active: #A87912;
+  --gm-subtle: rgba(212, 160, 23, 0.12);
+  --gm-border: rgba(212, 160, 23, 0.35);
+  --gm-glow: rgba(212, 160, 23, 0.18);
   
-  /* ============ PLAYER THEME (BLUE) ============ */
-  --player-primary: #2563EB;
-  --player-hover: #3B82F6;
-  --player-active: #1D4ED8;
-  --player-subtle: rgba(37, 99, 235, 0.15);
-  --player-border: rgba(37, 99, 235, 0.4);
-  --player-glow: rgba(37, 99, 235, 0.25);
+  /* ============ PLAYER THEME ============ */
+  --player-primary: #D4A017;
+  --player-hover: #F5C542;
+  --player-active: #A87912;
+  --player-subtle: rgba(212, 160, 23, 0.12);
+  --player-border: rgba(212, 160, 23, 0.35);
+  --player-glow: rgba(212, 160, 23, 0.18);
   
   /* ============ STATUS COLORS ============ */
   --success: #22C55E;
@@ -58,7 +58,7 @@
   --radius-lg: 6px;
   
   /* ============ TYPOGRAPHY ============ */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: 'Montserrat', var(--font-sans);
 }
 

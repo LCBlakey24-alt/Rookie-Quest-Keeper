@@ -457,7 +457,7 @@ function CombatPage() {
     canvas.width = containerRef.current.clientWidth;
     canvas.height = containerRef.current.clientHeight;
     
-    ctx.fillStyle = '#0a0a2e';
+    ctx.fillStyle = '#0A1628';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.save();
@@ -539,13 +539,13 @@ function CombatPage() {
 
   if (!scenarioData) return null;
 
-  // Midnight Neon theme (GM)
+  // Unified navy and gold theme
   const theme = {
-    bg: { primary: '#0F0A1E', surface: '#1A112E', panel: 'rgba(26, 17, 46, 0.95)' },
+    bg: { primary: '#0A1628', surface: '#0F2440', panel: 'rgba(15, 36, 64, 0.95)' },
     text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-    border: 'rgba(138, 43, 226, 0.3)',
-    sunset: { purple: '#8A2BE2', pink: '#4DD0E1' },
-    gradient: 'linear-gradient(135deg, #4B0082, #8A2BE2)'
+    border: 'rgba(212, 160, 23, 0.35)',
+    sunset: { purple: '#D4A017', pink: '#F5C542', gold: '#D4A017' },
+    gradient: 'linear-gradient(135deg, #D4A017, #F5C542)'
   };
 
   return (
@@ -632,7 +632,7 @@ function CombatPage() {
           overflowY: 'auto',
           maxHeight: 'calc(100vh - 70px)'
         }}>
-          <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '18px', color: theme.text.primary, fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '18px', color: theme.text.primary, fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Users size={20} style={{ color: theme.sunset.purple }} />
             Initiative Order
           </h2>
@@ -655,7 +655,7 @@ function CombatPage() {
                   data-testid={`initiative-card-${c.id}`}
                   title="Drag to reorder initiative"
                   style={{
-                    background: isCurrent ? 'rgba(16, 185, 129, 0.15)' : isDead ? 'rgba(30,30,30,0.5)' : isDown ? 'rgba(239, 68, 68, 0.1)' : 'rgba(15, 10, 30, 0.6)',
+                    background: isCurrent ? 'rgba(16, 185, 129, 0.15)' : isDead ? 'rgba(30,30,30,0.5)' : isDown ? 'rgba(239, 68, 68, 0.1)' : 'rgba(10, 22, 40, 0.72)',
                     border: `2px solid ${isCurrent ? '#10B981' : isDead ? '#64748b' : isDown ? '#ef4444' : c.type === 'player' ? theme.sunset.purple : '#ef4444'}`,
                     borderRadius: '14px',
                     padding: '14px',
@@ -671,26 +671,26 @@ function CombatPage() {
                       width: '44px', height: '44px', borderRadius: '50%',
                       background: isCurrent ? '#10B981' : c.type === 'player' ? theme.sunset.purple : '#ef4444',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '700', fontSize: '18px', color: '#fff', fontFamily: "'Cinzel', serif",
+                      fontWeight: '800', fontSize: '18px', color: c.type === 'player' && !isCurrent ? '#0A1628' : '#fff', fontFamily: "'Montserrat', sans-serif",
                       boxShadow: isCurrent ? '0 0 15px rgba(16, 185, 129, 0.6)' : 'none'
                     }}>
                       {c.initiative}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '16px', fontWeight: '600', color: isDead ? '#64748b' : theme.text.primary, fontFamily: "'Cinzel', serif", display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: '800', color: isDead ? '#64748b' : theme.text.primary, fontFamily: "'Montserrat', sans-serif", display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {c.name}
                         {isDead && <Skull size={14} />}
-                        {isCurrent && !isDown && <span style={{ fontSize: '11px', color: '#10B981', background: 'rgba(16,185,129,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '600' }}>TURN</span>}
-                        {isDown && !isDead && !isStable && <span style={{ fontSize: '11px', color: '#ef4444', background: 'rgba(239,68,68,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '600' }}>DYING</span>}
-                        {isStable && <span style={{ fontSize: '11px', color: '#eab308', background: 'rgba(234,179,8,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '600' }}>STABLE</span>}
+                        {isCurrent && !isDown && <span style={{ fontSize: '11px', color: '#10B981', background: 'rgba(16,185,129,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '800' }}>TURN</span>}
+                        {isDown && !isDead && !isStable && <span style={{ fontSize: '11px', color: '#ef4444', background: 'rgba(239,68,68,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '800' }}>DYING</span>}
+                        {isStable && <span style={{ fontSize: '11px', color: '#eab308', background: 'rgba(234,179,8,0.2)', padding: '3px 10px', borderRadius: '10px', fontWeight: '800' }}>STABLE</span>}
                       </div>
                       <div style={{ fontSize: '12px', color: theme.text.muted }}>
                         {c.type === 'player' ? 'Player' : 'Enemy'} • Rolled: {c.initiativeRoll}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(138, 43, 226, 0.1)', padding: '6px 12px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(212, 160, 23, 0.10)', padding: '6px 12px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
                       <Shield size={14} style={{ color: theme.sunset.gold }} />
-                      <span style={{ fontWeight: '600', fontSize: '15px', color: theme.text.primary }}>{c.ac}</span>
+                      <span style={{ fontWeight: '800', fontSize: '15px', color: theme.text.primary }}>{c.ac}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <button onClick={() => moveInOrder(c.id, 'up')} style={{ background: 'transparent', border: 'none', color: theme.text.muted, cursor: 'pointer', padding: '2px' }}><ChevronUp size={16} /></button>
@@ -705,7 +705,7 @@ function CombatPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Heart size={14} style={{ color: hpPct > 50 ? '#10B981' : hpPct > 25 ? '#eab308' : '#ef4444' }} />
                         <span title={hideMonsterHp && c.type !== 'player' ? `${c.hp} / ${c.maxHp} (hidden from view)` : undefined}
-                          style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '600' }}>
+                          style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '800' }}>
                           {hideMonsterHp && c.type !== 'player'
                             ? (hpPct > 75 ? 'Healthy' : hpPct > 50 ? 'Wounded' : hpPct > 25 ? 'Bloodied' : hpPct > 0 ? 'Critical' : 'Down')
                             : `${c.hp} / ${c.maxHp}`}
@@ -723,7 +723,7 @@ function CombatPage() {
                               color: n < 0 ? '#ef4444' : '#10B981',
                               padding: '4px 8px',
                               fontSize: '13px',
-                              fontWeight: '600',
+                              fontWeight: '800',
                               cursor: 'pointer'
                             }}
                           >
@@ -741,14 +741,14 @@ function CombatPage() {
                   {isDown && !isDead && (
                     <div style={{ background: 'rgba(239,68,68,0.1)', border: '2px solid #ef4444', borderRadius: '10px', padding: '12px', marginBottom: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}><Skull size={14} /> Death Saves</span>
+                        <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}><Skull size={14} /> Death Saves</span>
                         <Button onClick={() => rollDeathSave(c.id)} style={{ padding: '6px 14px', fontSize: '13px', background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444' }} disabled={isStable}>
                           <CircleDot size={14} style={{ marginRight: '4px' }} /> Roll
                         </Button>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: '12px', color: '#10B981', marginBottom: '6px', fontWeight: '600' }}>Success</div>
+                          <div style={{ fontSize: '12px', color: '#10B981', marginBottom: '6px', fontWeight: '800' }}>Success</div>
                           <div style={{ display: 'flex', gap: '6px' }}>
                             {[0, 1, 2].map(i => (
                               <div key={i} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #10B981', background: i < c.deathSaves.successes ? '#10B981' : 'transparent' }} />
@@ -756,7 +756,7 @@ function CombatPage() {
                           </div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: '12px', color: '#ef4444', marginBottom: '6px', fontWeight: '600' }}>Failure</div>
+                          <div style={{ fontSize: '12px', color: '#ef4444', marginBottom: '6px', fontWeight: '800' }}>Failure</div>
                           <div style={{ display: 'flex', gap: '6px' }}>
                             {[0, 1, 2].map(i => (
                               <div key={i} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #ef4444', background: i < c.deathSaves.failures ? '#ef4444' : 'transparent' }} />
@@ -820,7 +820,7 @@ function CombatPage() {
                         border: 'none',
                         borderRadius: '10px',
                         color: '#fff',
-                        fontWeight: '400',
+                        fontWeight: '800',
                         fontSize: '13px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -857,7 +857,7 @@ function CombatPage() {
                         border: 'none',
                         borderRadius: '10px',
                         color: '#000',
-                        fontWeight: '400',
+                        fontWeight: '800',
                         fontSize: '13px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -874,7 +874,7 @@ function CombatPage() {
                   
                   {/* Loot collected indicator */}
                   {c.lootCollected && (
-                    <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #F59E0B', borderRadius: '8px', textAlign: 'center', fontSize: '11px', color: '#F59E0B', fontWeight: '400' }}>
+                    <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #F59E0B', borderRadius: '8px', textAlign: 'center', fontSize: '11px', color: '#F59E0B', fontWeight: '800' }}>
                       <Package size={12} style={{ marginRight: '4px', display: 'inline' }} /> Loot Collected
                     </div>
                   )}
@@ -894,13 +894,13 @@ function CombatPage() {
         </div>
 
         {/* RIGHT - Battle Map */}
-        <div style={{ position: 'relative', background: '#0a0a2e' }}>
+        <div style={{ position: 'relative', background: '#0A1628' }}>
           {/* Map Controls */}
           <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, display: 'flex', gap: '8px' }}>
-            <Button onClick={() => setZoom(z => Math.min(2, z + 0.2))} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><ZoomIn size={18} /></Button>
-            <Button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><ZoomOut size={18} /></Button>
-            <Button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)' }}><RotateCcw size={18} /></Button>
-            <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ background: 'rgba(10,10,46,0.9)', color: showGrid ? '#F59E0B' : '#64748b' }}><Grid size={18} /></Button>
+            <Button onClick={() => setZoom(z => Math.min(2, z + 0.2))} className="btn-icon" style={{ background: 'rgba(15,36,64,0.92)' }}><ZoomIn size={18} /></Button>
+            <Button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} className="btn-icon" style={{ background: 'rgba(15,36,64,0.92)' }}><ZoomOut size={18} /></Button>
+            <Button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="btn-icon" style={{ background: 'rgba(15,36,64,0.92)' }}><RotateCcw size={18} /></Button>
+            <Button onClick={() => setShowGrid(!showGrid)} className="btn-icon" style={{ background: 'rgba(15,36,64,0.92)', color: showGrid ? '#F59E0B' : '#64748b' }}><Grid size={18} /></Button>
           </div>
           
           <div
@@ -931,7 +931,7 @@ function CombatPage() {
           bottom: '20px',
           right: '20px',
           width: '350px',
-          background: 'rgba(10, 10, 46, 0.98)',
+          background: 'rgba(15, 36, 64, 0.98)',
           border: '2px solid #eab308',
           borderRadius: '16px',
           padding: '16px',
@@ -939,7 +939,7 @@ function CombatPage() {
           zIndex: 100
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '16px', color: '#eab308', fontFamily: 'Montserrat', fontWeight: '400', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', color: '#eab308', fontFamily: 'Montserrat', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Coins size={18} /> Collected Loot ({collectedLoot.length})
             </h3>
             <button onClick={() => setShowLootPanel(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}>
@@ -951,7 +951,7 @@ function CombatPage() {
             {collectedLoot.map((loot, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '8px', marginBottom: '6px' }}>
                 <div>
-                  <div style={{ color: '#fff', fontWeight: '400', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ color: '#fff', fontWeight: '800', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {loot.name}
                     {loot.is_magical && <span style={{ color: '#eab308' }}>✨</span>}
                   </div>
@@ -994,7 +994,7 @@ function CombatPage() {
             borderRadius: '50px',
             padding: '12px 20px',
             color: '#000',
-            fontWeight: '400',
+            fontWeight: '800',
             fontSize: '14px',
             cursor: 'pointer',
             display: 'flex',
@@ -1019,17 +1019,17 @@ function CombatPage() {
             bottom: '24px',
             left: '24px',
             padding: '14px 20px',
-            background: 'linear-gradient(180deg, #06b6d4 0%, #0891b2 100%)',
+            background: 'linear-gradient(180deg, #D4A017 0%, #A87912 100%)',
             border: 'none',
             borderRadius: '12px',
-            color: '#fff',
-            fontWeight: '400',
+            color: '#0A1628',
+            fontWeight: '800',
             fontSize: '14px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)',
+            boxShadow: '0 0 30px rgba(212, 160, 23, 0.25)',
             zIndex: 100
           }}
         >
@@ -1054,8 +1054,8 @@ function CombatPage() {
           justifyContent: 'center'
         }}>
           <div style={{
-            background: 'rgba(17, 24, 39, 0.95)',
-            border: '2px solid rgba(6, 182, 212, 0.3)',
+            background: 'rgba(15, 36, 64, 0.96)',
+            border: '2px solid rgba(212, 160, 23, 0.35)',
             borderRadius: '20px',
             padding: '24px',
             maxWidth: '600px',
@@ -1065,7 +1065,7 @@ function CombatPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '800', fontFamily: 'Montserrat', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Map size={24} color="#06b6d4" />
+                <Map size={24} color="#D4A017" />
                 Select Battle Map
               </h2>
               <button data-testid="close-map-selector-btn" onClick={() => setShowMapSelector(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
@@ -1079,8 +1079,8 @@ function CombatPage() {
                   key={map.id}
                   onClick={() => loadMapIntoCombat(map)}
                   style={{
-                    background: 'rgba(6, 182, 212, 0.1)',
-                    border: '2px solid rgba(6, 182, 212, 0.3)',
+                    background: 'rgba(212, 160, 23, 0.10)',
+                    border: '2px solid rgba(212, 160, 23, 0.35)',
                     borderRadius: '12px',
                     padding: '16px',
                     cursor: 'pointer',
@@ -1097,9 +1097,9 @@ function CombatPage() {
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}>
-                    <Map size={32} color="#06b6d4" style={{ opacity: 0.5 }} />
+                    <Map size={32} color="#D4A017" style={{ opacity: 0.5 }} />
                   </div>
-                  <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '400', margin: '0 0 4px 0' }}>
+                  <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '800', margin: '0 0 4px 0' }}>
                     {map.name}
                   </h3>
                   <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>

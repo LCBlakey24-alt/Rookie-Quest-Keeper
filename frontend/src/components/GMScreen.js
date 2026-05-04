@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Sword, Users, BookOpen, Send, 
   Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles,
-  ChevronDown, ChevronRight, BarChart3
+  ChevronDown, ChevronRight, BarChart3, Search
 } from 'lucide-react';
 import DiceRoller3D from '@/components/ui/DiceRoller3D';
 import DiceRollHistory from './DiceRollHistory';
@@ -66,6 +66,7 @@ function GMScreen({ username }) {
   
   // Tab state - single tab for everything
   const [activeTab, setActiveTab] = useState('combat');
+  const [globalSearch, setGlobalSearch] = useState('');
   // Dice panel toggle persisted between sessions (default: visible)
   const [showDicePanel, setShowDicePanel] = useState(() => {
     try { return localStorage.getItem('gm.dicePanel.show') !== '0'; } catch { return true; }
@@ -393,7 +394,7 @@ function GMScreen({ username }) {
 
   if (loading) return <div className="loading-screen"><div className="loading-spinner"></div></div>;
 
-  // GM Theme - Midnight Neon (Dark Purple/Violet)
+  // GM Theme - unified navy and gold
   const theme = {
     bg: { 
       primary: '#0A1628', 
@@ -420,25 +421,25 @@ function GMScreen({ username }) {
   };
 
   const tabGroups = [
-    { group: 'COMBAT', color: '#EF4444', tabs: [
+    { group: 'COMBAT', color: '#D4A017', tabs: [
       { id: 'combat', icon: Swords, label: 'Combat' },
     ]},
-    { group: 'WORLD', color: '#3B82F6', tabs: [
+    { group: 'WORLD', color: '#D4A017', tabs: [
       { id: 'location', icon: Compass, label: 'Location' },
       { id: 'events', icon: BarChart3, label: 'Events' },
     ]},
-    { group: 'CHARACTERS', color: '#8B5CF6', tabs: [
+    { group: 'CHARACTERS', color: '#D4A017', tabs: [
       { id: 'npcs', icon: UserCircle, label: 'NPCs' },
       { id: 'network', icon: Link2, label: 'NPC Network' },
       { id: 'party', icon: Users, label: 'Party' },
       { id: 'monsters', icon: Skull, label: 'Monsters' },
     ]},
-    { group: 'REFERENCE', color: '#F59E0B', tabs: [
+    { group: 'REFERENCE', color: '#D4A017', tabs: [
       { id: 'tables', icon: Wand2, label: 'Tables' },
       { id: 'equipment', icon: Sword, label: 'Equipment' },
       { id: 'loot', icon: Coins, label: 'Loot' },
     ]},
-    { group: 'SESSION', color: '#10B981', tabs: [
+    { group: 'SESSION', color: '#D4A017', tabs: [
       { id: 'notes', icon: FileText, label: 'Notes' },
       { id: 'story', icon: Target, label: 'Story Arcs' },
       { id: 'planner', icon: Sparkles, label: 'AI Planner' },
@@ -446,13 +447,56 @@ function GMScreen({ username }) {
     ]},
   ];
 
+  const globalSearchResults = React.useMemo(() => {
+    const query = globalSearch.trim().toLowerCase();
+    if (!query) return [];
+
+    const includesQuery = (...values) =>
+      values.filter(Boolean).some(value => String(value).toLowerCase().includes(query));
+
+    const results = [];
+
+    players.forEach(player => {
+      const name = player.character_name || player.name || player.character?.name;
+      if (includesQuery(name, player.character_class, player.class, player.player_name)) {
+        results.push({ type: 'Party', tab: 'party', label: name || 'Party member', meta: player.character_class || player.class || 'Player' });
+      }
+    });
+
+    npcs.forEach(npc => {
+      if (includesQuery(npc.name, npc.role, npc.location, npc.description)) {
+        results.push({ type: 'NPC', tab: 'npcs', label: npc.name || 'NPC', meta: npc.role || npc.location || 'Character' });
+      }
+    });
+
+    scenarios.forEach(scenario => {
+      if (includesQuery(scenario.name, scenario.title, scenario.description)) {
+        results.push({ type: 'Combat', tab: 'combat', label: scenario.name || scenario.title || 'Encounter', meta: 'Encounter' });
+      }
+    });
+
+    sessionNotes.forEach(note => {
+      if (includesQuery(note.title, note.content, note.category)) {
+        results.push({ type: 'Note', tab: 'notes', label: note.title || note.content?.slice(0, 46) || 'Session note', meta: note.category || 'Note' });
+      }
+    });
+
+    customCreatures.forEach(creature => {
+      if (includesQuery(creature.name, creature.type, creature.description)) {
+        results.push({ type: 'Monster', tab: 'monsters', label: creature.name || 'Creature', meta: creature.type || 'Custom creature' });
+      }
+    });
+
+    return results.slice(0, 8);
+  }, [customCreatures, globalSearch, npcs, players, scenarios, sessionNotes]);
+
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#0B0B0D',
+      background: '#0A1628',
       position: 'relative'
     }}>
-      {/* Gradient background - black at top, purple glow at bottom */}
+      {/* Page background */}
       <div style={{
         position: 'fixed',
         top: 0,
@@ -461,10 +505,10 @@ function GMScreen({ username }) {
         bottom: 0,
         background: `
           linear-gradient(180deg, 
-            rgba(11, 11, 13, 1) 0%, 
-            rgba(11, 11, 13, 0.95) 40%, 
-            rgba(75, 0, 130, 0.2) 70%,
-            rgba(212, 160, 23, 0.15) 100%
+            rgba(10, 22, 40, 1) 0%,
+            rgba(10, 22, 40, 0.97) 40%,
+            rgba(15, 36, 64, 0.88) 70%,
+            rgba(212, 160, 23, 0.10) 100%
           )
         `,
         pointerEvents: 'none',
@@ -487,7 +531,7 @@ function GMScreen({ username }) {
         right: 0,
         width: '50%',
         height: '50%',
-        background: 'radial-gradient(ellipse at 100% 100%, rgba(75, 0, 130, 0.1) 0%, transparent 60%)',
+        background: 'radial-gradient(ellipse at 100% 100%, rgba(245, 197, 66, 0.08) 0%, transparent 60%)',
         pointerEvents: 'none',
         zIndex: 0
       }} />
@@ -498,13 +542,13 @@ function GMScreen({ username }) {
         background: theme.bg.panel,
         backdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${theme.border}`,
-        padding: '12px 24px'
+        padding: '8px 16px'
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '1px', height: '30px', background: theme.border }} />
             <div>
-              <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Sword size={22} style={{ color: theme.accent.gm }} />
                 {campaign?.name}
               </h1>
@@ -515,7 +559,73 @@ function GMScreen({ username }) {
               )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div data-testid="gm-global-search" style={{ position: 'relative', minWidth: 240 }}>
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.text.muted, pointerEvents: 'none' }} />
+              <input
+                value={globalSearch}
+                onChange={e => setGlobalSearch(e.target.value)}
+                placeholder="Search table..."
+                style={{
+                  width: '100%',
+                  height: 36,
+                  padding: '0 10px 0 30px',
+                  borderRadius: 8,
+                  border: `1px solid ${theme.border}`,
+                  background: 'rgba(0,0,0,0.22)',
+                  color: theme.text.primary,
+                  fontSize: 12,
+                  outline: 'none',
+                }}
+              />
+              {globalSearch.trim() && (
+                <div style={{
+                  position: 'absolute',
+                  top: 42,
+                  right: 0,
+                  width: 320,
+                  maxWidth: 'calc(100vw - 24px)',
+                  background: theme.bg.panel,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: 8,
+                  padding: 6,
+                  zIndex: 80,
+                  boxShadow: '0 14px 34px rgba(0,0,0,0.45)',
+                }}>
+                  {globalSearchResults.length === 0 ? (
+                    <div style={{ padding: 10, color: theme.text.muted, fontSize: 12 }}>No results</div>
+                  ) : globalSearchResults.map((result, index) => (
+                    <button
+                      key={`${result.type}-${result.label}-${index}`}
+                      onClick={() => {
+                        setActiveTab(result.tab);
+                        setGlobalSearch('');
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 10,
+                        padding: '8px 10px',
+                        border: 'none',
+                        borderRadius: 6,
+                        background: 'transparent',
+                        color: theme.text.primary,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 12, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.label}</span>
+                        <span style={{ display: 'block', fontSize: 10, color: theme.text.muted, marginTop: 1 }}>{result.meta}</span>
+                      </span>
+                      <span style={{ fontSize: 10, color: theme.accent.gm, fontWeight: 800, textTransform: 'uppercase' }}>{result.type}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* Rules edition toggle — propagates to AI via campaign.rules_edition */}
             <div data-testid="rules-edition-toggle" style={{
               display: 'flex', alignItems: 'center',
@@ -549,7 +659,7 @@ function GMScreen({ username }) {
             <Button onClick={() => setShowQuickRef(true)} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(212, 160, 23, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary }}>
               <BookOpen size={16} /> Reference
             </Button>
-            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: '10px', color: theme.text.primary }}>
+            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: '10px', color: '#0A1628' }}>
               <LogOut size={16} /> End Session
             </Button>
           </div>
@@ -565,19 +675,19 @@ function GMScreen({ username }) {
       }}>
         {/* LEFT SIDEBAR - Tab Navigation */}
         <div style={{
-          width: '210px',
-          minWidth: '210px',
+          width: '188px',
+          minWidth: '188px',
           background: theme.bg.panel,
           backdropFilter: 'blur(16px)',
           borderRight: `1px solid ${theme.border}`,
-          padding: '16px 0',
+          padding: '10px 0',
           overflowY: 'auto'
         }}>
           <h3 style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: "'Montserrat', sans-serif",
             color: theme.accent.gm,
             fontSize: '13px',
-            fontWeight: '600',
+            fontWeight: '800',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             marginBottom: '12px',
@@ -624,8 +734,8 @@ function GMScreen({ username }) {
                         style={{
                           position: 'relative', padding: '10px 16px 10px 28px', border: 'none',
                           background: isActive ? theme.gradient : (isHovered ? theme.bg.hover : 'transparent'),
-                          color: isActive ? theme.text.primary : (isHovered ? theme.text.primary : theme.text.secondary),
-                          fontWeight: '500', fontSize: '14px', cursor: 'pointer',
+                          color: isActive ? '#0A1628' : (isHovered ? theme.text.primary : theme.text.secondary),
+                          fontWeight: '800', fontSize: '14px', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '10px',
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                           textAlign: 'left', width: '100%', minHeight: '40px',
@@ -652,9 +762,9 @@ function GMScreen({ username }) {
         <div style={{ 
           flex: 1, 
           display: 'flex',
-          gap: '16px',
-          overflowY: 'auto',
-          padding: '24px',
+        gap: '10px',
+        overflowY: 'auto',
+          padding: '14px',
           background: 'transparent'
         }}>
           {/* Tab Content */}
@@ -663,8 +773,8 @@ function GMScreen({ username }) {
             background: theme.bg.panel, 
             backdropFilter: 'blur(16px)', 
             border: `1px solid ${theme.border}`, 
-            borderRadius: '12px', 
-            padding: '24px', 
+            borderRadius: '10px',
+            padding: '16px',
             minHeight: '500px',
             overflowY: 'auto'
           }}>
@@ -692,7 +802,7 @@ function GMScreen({ username }) {
           {/* RANDOM TABLES TAB */}
           {activeTab === 'tables' && (
             <div>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Wand2 size={24} style={{ color: theme.accent.gm }} /> Random Tables
               </h2>
               <RandomTables onSaveAsNote={(text) => {
@@ -711,7 +821,7 @@ function GMScreen({ username }) {
           {/* EQUIPMENT REFERENCE TAB */}
           {activeTab === 'equipment' && (
             <div>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Sword size={24} style={{ color: theme.accent.gm }} /> Equipment Reference
               </h2>
               <EquipmentReferenceTab />
@@ -721,7 +831,7 @@ function GMScreen({ username }) {
           {/* LOOT GENERATOR TAB */}
           {activeTab === 'loot' && (
             <div>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Coins size={24} style={{ color: theme.accent.gm }} /> Loot Generator
               </h2>
               <LootGenerator />
@@ -766,8 +876,8 @@ function GMScreen({ username }) {
           
           {/* PERSISTENT DICE ROLLER PANEL */}
           <div style={{
-            width: showDicePanel ? '320px' : '48px',
-            minWidth: showDicePanel ? '320px' : '48px',
+            width: showDicePanel ? '280px' : '44px',
+            minWidth: showDicePanel ? '280px' : '44px',
             transition: 'all 0.3s ease',
             display: 'flex',
             flexDirection: 'column'
@@ -785,10 +895,10 @@ function GMScreen({ username }) {
                 alignItems: 'center',
                 justifyContent: showDicePanel ? 'space-between' : 'center',
                 gap: '8px',
-                color: '#fff',
-                fontWeight: '600',
+                color: '#0A1628',
+                fontWeight: '800',
                 fontSize: '14px',
-                fontFamily: "'Cinzel', serif"
+                fontFamily: "'Montserrat', sans-serif"
               }}
             >
               <Dices size={20} />
@@ -825,7 +935,7 @@ function GMScreen({ username }) {
                           borderRadius: '8px',
                           color: theme.accent.primary,
                           fontSize: '13px',
-                          fontWeight: '600',
+                          fontWeight: '800',
                           cursor: 'pointer',
                           transition: 'all 0.2s'
                         }}
@@ -864,7 +974,7 @@ function GMScreen({ username }) {
                           borderRadius: '8px',
                           color: theme.text.primary,
                           fontSize: '12px',
-                          fontWeight: '500',
+                          fontWeight: '800',
                           cursor: 'pointer',
                           textAlign: 'left',
                           transition: 'all 0.2s'
@@ -895,7 +1005,7 @@ function GMScreen({ username }) {
                       borderRadius: '8px',
                       color: theme.accent.primary,
                       fontSize: '14px',
-                      fontWeight: '600',
+                      fontWeight: '800',
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}

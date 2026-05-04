@@ -9,6 +9,7 @@ import AuthPage from '@/components/AuthPage';
 import UnifiedDashboard from '@/components/UnifiedDashboard';
 import CampaignDashboard from '@/components/CampaignDashboard';
 import DMScreen from '@/components/GMScreen';
+import MobilePlayerCampaignView from '@/components/MobilePlayerCampaignView';
 import CombatPage from '@/components/CombatPage';
 import PricingPage from '@/components/PricingPage';
 import AdminPage from '@/components/AdminPage';
@@ -24,6 +25,7 @@ import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
 import CharacterSheetFull from '@/components/CharacterSheetFull';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+import { usePlayerOnlyDevice } from '@/hooks/useResponsiveMode';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 
@@ -144,6 +146,20 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   );
 }
 
+function ResponsiveCampaignRoute({ username, onLogout }) {
+  const playerOnlyDevice = usePlayerOnlyDevice();
+  return playerOnlyDevice
+    ? <MobilePlayerCampaignView />
+    : <CampaignDashboard username={username} onLogout={onLogout} />;
+}
+
+function ResponsiveGMScreenRoute({ username }) {
+  const playerOnlyDevice = usePlayerOnlyDevice();
+  return playerOnlyDevice
+    ? <MobilePlayerCampaignView />
+    : <DMScreen username={username} />;
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
@@ -262,7 +278,7 @@ function App() {
               path="/campaign/:campaignId" 
               element={
                 isAuthenticated ? 
-                  <CampaignDashboard username={username} onLogout={handleLogout} /> : 
+                  <ResponsiveCampaignRoute username={username} onLogout={handleLogout} /> :
                   <Navigate to="/auth" replace />
               } 
             />
@@ -270,7 +286,7 @@ function App() {
               path="/gm-screen/:campaignId" 
               element={
                 isAuthenticated ? 
-                  <DMScreen username={username} /> : 
+                  <ResponsiveGMScreenRoute username={username} /> :
                   <Navigate to="/auth" replace />
               } 
             />

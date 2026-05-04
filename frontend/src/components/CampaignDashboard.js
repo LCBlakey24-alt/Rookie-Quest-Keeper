@@ -25,33 +25,34 @@ import UploadTab from '@/components/gm/UploadTab';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// GM Mode Theme - Midnight Neon (Purple/Violet)
+// GM Mode Theme - unified navy and gold
 const theme = {
   bg: {
-    black: '#0B0B0D',
-    dark: '#131317',
-    panel: 'rgba(19, 19, 23, 0.9)',
-    card: 'rgba(19, 19, 23, 0.95)',
-    hover: '#1C1C24',
-    elevated: '#1C1C24',
-    surface: 'rgba(19, 19, 23, 0.85)'
+    black: '#0A1628',
+    dark: '#0F2440',
+    panel: 'rgba(15, 36, 64, 0.92)',
+    card: 'rgba(15, 36, 64, 0.96)',
+    hover: '#14304F',
+    elevated: '#14304F',
+    surface: 'rgba(15, 36, 64, 0.88)'
   },
   sunset: {
-    purple: '#8A2BE2',
-    pink: '#BA55D3'
+    purple: '#D4A017',
+    pink: '#F5C542',
+    gold: '#D4A017'
   },
   accent: {
-    primary: '#8A2BE2',      // Blue Violet
-    secondary: '#4B0082',    // Indigo
-    tertiary: '#9932CC',     // Dark Orchid
-    hover: '#9932CC',
-    subtle: 'rgba(138, 43, 226, 0.15)',
-    glow: '0 0 20px rgba(138, 43, 226, 0.4)',
-    gm: '#8A2BE2',
-    red: '#8A2BE2',          // Now violet
-    redHover: '#9932CC',
-    redSubtle: 'rgba(138, 43, 226, 0.15)',
-    orange: '#BA55D3'
+    primary: '#D4A017',
+    secondary: '#F5C542',
+    tertiary: '#F5C542',
+    hover: '#F5C542',
+    subtle: 'rgba(212, 160, 23, 0.12)',
+    glow: '0 0 18px rgba(212, 160, 23, 0.18)',
+    gm: '#D4A017',
+    red: '#D4A017',
+    redHover: '#F5C542',
+    redSubtle: 'rgba(212, 160, 23, 0.12)',
+    orange: '#F5C542'
   },
   text: {
     white: '#FFFFFF',
@@ -59,8 +60,8 @@ const theme = {
     secondary: '#A0A0B0',
     muted: '#6B6B7B'
   },
-  border: 'rgba(138, 43, 226, 0.3)',
-  gradient: 'linear-gradient(135deg, #4B0082, #8A2BE2)'
+  border: 'rgba(212, 160, 23, 0.35)',
+  gradient: 'linear-gradient(135deg, #D4A017, #F5C542)'
 };
 
 function CampaignDashboard({ username, onLogout }) {
@@ -187,9 +188,9 @@ function CampaignDashboard({ username, onLogout }) {
           position: 'relative',
           padding: isNested ? '10px 16px 10px 32px' : '12px 16px',
           border: 'none',
-          background: isActive ? theme.gradient : (isHovered ? 'rgba(138, 43, 226, 0.15)' : 'transparent'),
-          color: isActive ? theme.text.white : (isHovered ? theme.text.white : theme.text.secondary),
-          fontWeight: '500',
+          background: isActive ? theme.gradient : (isHovered ? theme.accent.subtle : 'transparent'),
+          color: isActive ? '#0A1628' : (isHovered ? theme.text.white : theme.text.secondary),
+          fontWeight: '800',
           fontSize: isNested ? '13px' : '14px',
           cursor: 'pointer',
           display: 'flex',
@@ -204,10 +205,10 @@ function CampaignDashboard({ username, onLogout }) {
           maxWidth: 'calc(100% - 16px)'
         }}
       >
-        <tab.icon size={isNested ? 16 : 18} style={{ color: isActive ? '#fff' : theme.sunset.purple }} />
+        <tab.icon size={isNested ? 16 : 18} style={{ color: isActive ? '#0A1628' : theme.sunset.purple }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
         
-        {/* Purple bar on right side when hovered (not active) */}
+        {/* Accent bar on right side when hovered (not active) */}
         {isHovered && !isActive && (
           <div style={{
             position: 'absolute',
@@ -249,7 +250,7 @@ function CampaignDashboard({ username, onLogout }) {
           border: 'none',
           background: hasActiveTab ? theme.accent.redSubtle : 'transparent',
           color: hasActiveTab ? theme.accent.red : theme.text.muted,
-          fontWeight: '400',
+          fontWeight: '800',
           fontSize: '11px',
           letterSpacing: '1px',
           textTransform: 'uppercase',
@@ -271,7 +272,7 @@ function CampaignDashboard({ username, onLogout }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, rgba(15, 10, 30, 0.96) 0%, rgba(15, 10, 30, 0.99) 100%)',
+      background: 'linear-gradient(180deg, rgba(10, 22, 40, 0.98) 0%, rgba(10, 22, 40, 1) 100%)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
@@ -280,10 +281,10 @@ function CampaignDashboard({ username, onLogout }) {
     }}>
       {/* Header */}
       <div style={{
-        background: 'rgba(26, 17, 46, 0.95)',
+        background: 'rgba(15, 36, 64, 0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: `1px solid ${theme.border}`,
-        padding: '12px 16px',
+        padding: '8px 14px',
         position: 'sticky',
         top: 0,
         zIndex: 50
@@ -330,9 +331,9 @@ function CampaignDashboard({ username, onLogout }) {
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <h1 style={{ 
                 fontSize: 'clamp(18px, 4vw, 24px)', 
-                color: theme.text.white, 
+                color: '#0A1628',
                 marginBottom: '4px',
-                fontWeight: '400',
+                fontWeight: '800',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -346,7 +347,7 @@ function CampaignDashboard({ username, onLogout }) {
                   color: theme.accent.red,
                   background: theme.accent.redSubtle,
                   padding: '2px 8px',
-                  fontWeight: '400'
+                  fontWeight: '800'
                 }}>
                   {campaign.system || '5e 2024'}
                 </span>
@@ -368,7 +369,7 @@ function CampaignDashboard({ username, onLogout }) {
                 fontSize: 'clamp(12px, 2vw, 14px)',
                 padding: '10px 16px',
                 minHeight: '44px',
-                fontWeight: '400'
+                fontWeight: '800'
               }}
             >
               <Monitor size={18} />
@@ -391,7 +392,7 @@ function CampaignDashboard({ username, onLogout }) {
           style={{
             width: '220px',
             minWidth: '220px',
-            background: 'rgba(26, 17, 46, 0.9)',
+            background: 'rgba(15, 36, 64, 0.92)',
             backdropFilter: 'blur(12px)',
             borderRight: `1px solid ${theme.border}`,
             padding: '16px 0',
@@ -402,12 +403,12 @@ function CampaignDashboard({ username, onLogout }) {
           <h3 style={{
             color: theme.sunset.gold,
             fontSize: '11px',
-            fontWeight: '500',
+            fontWeight: '800',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             marginBottom: '12px',
             paddingLeft: '16px',
-            fontFamily: "'Cinzel', serif"
+            fontFamily: "'Montserrat', sans-serif"
           }}>
             Campaign Tools
           </h3>
@@ -459,16 +460,16 @@ function CampaignDashboard({ username, onLogout }) {
         <div style={{ 
           flex: 1, 
           overflowY: 'auto',
-          padding: 'clamp(12px, 3vw, 24px)',
+          padding: 'clamp(8px, 2vw, 16px)',
           background: 'transparent'
         }}>
           {/* Tab Content */}
           <div style={{
-            background: 'rgba(26, 17, 46, 0.85)',
+            background: 'rgba(15, 36, 64, 0.88)',
             backdropFilter: 'blur(16px)',
             border: `1px solid ${theme.border}`,
-            borderRadius: '20px',
-            padding: '24px',
+            borderRadius: '10px',
+            padding: '16px',
             minHeight: '500px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
           }}>

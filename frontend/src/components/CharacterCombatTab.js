@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { CLASS_RESOURCES, getResourceMax, getRestoreType, FEATURE_COSTS, FEATURE_TYPE_CONFIG } from '../data/classResources';
 import { CLASS_FEATURES } from '../data/classFeatures';
 import { ALL_WEAPONS, ARMOR } from '../data/equipmentDatabase';
-import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS } from '../data/spellDatabase';
+import { getCharacterSpellcastingInfo, getSpellSlotsForCaster } from '../data/spellDatabase';
 import { getConditionRollEffect, getConditionIndicator, CONDITION_EFFECTS } from '../data/conditionEffects';
 import { getClassAccent } from '../lib/theme';
 
@@ -76,9 +76,18 @@ export default function CharacterCombatTab({
   }
 
   function spendResource(resKey, amount = 1) {
+    const cost = Number(amount) || 0;
+    if (cost <= 0) return true;
+    const res = classResources.find(r => r.key === resKey);
+    const { current } = res
+      ? getResCurrent(res)
+      : { current: Number(currentResources[resKey] || 0) };
+    if (current < cost) return false;
+
     const updated = { ...currentResources };
-    updated[resKey] = Math.max(0, (updated[resKey] ?? 999) - amount);
+    updated[resKey] = Math.max(0, current - cost);
     onUpdateResources?.(updated);
+    return true;
   }
   function restoreResource(resKey, amount = 1) {
     const res = classResources.find(r => r.key === resKey);
@@ -94,13 +103,12 @@ export default function CharacterCombatTab({
   }
 
   // ─── Spell Slots ──────────────────────────────────────────────
-  const classInfo = SPELLCASTING_CLASSES[charClass];
+  const spellcasting = getCharacterSpellcastingInfo(character);
+  const classInfo = spellcasting?.classInfo || null;
+  const spellcastingLevel = spellcasting?.level || 0;
   const spellSlots = useMemo(() => {
-    if (!classInfo) return {};
-    if (classInfo.pactMagic) return PACT_MAGIC_SLOTS[level] || {};
-    if (classInfo.halfCaster) return SPELL_SLOTS[Math.floor(level / 2)] || {};
-    return SPELL_SLOTS[level] || {};
-  }, [charClass, level, classInfo]);
+    return getSpellSlotsForCaster(classInfo, spellcastingLevel);
+  }, [classInfo, spellcastingLevel]);
 
   const [usedSlots, setUsedSlots] = useState(() => {
     const remaining = character?.spell_slots_remaining || {};
@@ -181,16 +189,19 @@ export default function CharacterCombatTab({
     if (!res) return;
     const { current } = getResCurrent(res);
     if (costInfo.cost === 'variable' || costInfo.cost === 'spell_slot') return;
-    if (current <= 0) return;
+    const cost = Number(costInfo.cost) || 0;
+    if (cost <= 0 || current < cost) return;
     spendResource(costInfo.resource, costInfo.cost);
   }
   function canUseFeature(feature) {
     const costInfo = FEATURE_COSTS[feature.name];
     if (!costInfo || !costInfo.resource) return true;
     if (costInfo.cost === 'variable' || costInfo.cost === 'spell_slot') return true;
+    const cost = Number(costInfo.cost) || 0;
+    if (cost <= 0) return true;
     const res = classResources.find(r => r.key === costInfo.resource);
     if (!res) return true;
-    return getResCurrent(res).current > 0;
+    return getResCurrent(res).current >= cost;
   }
 
   // ─── AC Calculation ───────────────────────────────────────────
@@ -311,7 +322,38 @@ export default function CharacterCombatTab({
   };
 
   return (
-    <div data-testid="combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, fontFamily: "'Montserrat', sans-serif" }}>
+    <div data-testid="combat-tab" className="character-combat-tab" style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, fontFamily: "'Montserrat', sans-serif" }}>
+      <style>{`
+        .character-combat-tab {
+          line-height: 1.35;
+        }
+
+        .character-combat-tab button,
+        .character-combat-tab input {
+          letter-spacing: 0 !important;
+        }
+
+        @media (max-width: 720px) {
+          .character-combat-tab {
+            gap: 8px !important;
+            font-size: 12px !important;
+          }
+
+          .character-combat-tab [data-testid="hp-tracker"] {
+            padding: 9px !important;
+          }
+
+          .character-combat-tab [data-testid^="resource-"] {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+          }
+
+          .character-combat-tab [data-testid^="feature-"] > div:first-child {
+            padding: 7px 8px !important;
+          }
+        }
+      `}</style>
 
       {/* ── Quick Stats + Inspiration ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -873,7 +915,22 @@ export default function CharacterCombatTab({
           {features.map((feat, i) => {
             const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
             const costInfo = FEATURE_COSTS[feat.name];
+            const numericCost = Number(costInfo?.cost) || 0;
+            const hasCostBadge = costInfo?.resource && (
+              costInfo.cost === 'variable' || costInfo.cost === 'spell_slot' || numericCost > 0
+            );
+            const hasSpendButton = costInfo?.resource &&
+              costInfo.cost !== 'variable' &&
+              costInfo.cost !== 'spell_slot' &&
+              numericCost > 0;
             const canUse = canUseFeature(feat);
+            const resource = costInfo?.resource
+              ? classResources.find(r => r.key === costInfo.resource)
+              : null;
+            const resourceState = resource ? getResCurrent(resource) : null;
+            const unavailableReason = resourceState && numericCost > 0 && resourceState.current < numericCost
+              ? `Needs ${numericCost} ${resource.name}`
+              : '';
             const isExpanded = expandedFeature === i;
             return (
               <div key={i} data-testid={`feature-${feat.name.replace(/\s+/g, '-').toLowerCase()}`}>
@@ -884,13 +941,17 @@ export default function CharacterCombatTab({
                 }}>
                   <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: typeConfig.bg, color: typeConfig.color, minWidth: 20, textAlign: 'center' }}>{typeConfig.short}</span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: '#E5E7EB', flex: 1 }}>{feat.name}</span>
-                  {costInfo?.resource && (
+                  {hasCostBadge && (
                     <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: canUse ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)', color: canUse ? '#F59E0B' : '#EF4444', fontWeight: 600 }}>
                       {costInfo.cost === 'variable' ? 'var' : costInfo.cost === 'spell_slot' ? 'slot' : costInfo.cost}
                     </span>
                   )}
-                  {costInfo?.resource && costInfo.cost !== 'variable' && costInfo.cost !== 'spell_slot' && (
-                    <button onClick={(e) => { e.stopPropagation(); useFeature(feat); }} disabled={!canUse} style={{
+                  {hasSpendButton && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); useFeature(feat); }}
+                      disabled={!canUse}
+                      title={unavailableReason || `Spend ${numericCost} ${resource?.name || 'resource'}`}
+                      style={{
                       fontSize: 9, padding: '2px 6px', borderRadius: 3, background: canUse ? accent : 'rgba(107,114,128,0.2)',
                       color: canUse ? '#fff' : '#6B7280', border: 'none', cursor: canUse ? 'pointer' : 'not-allowed', fontWeight: 600,
                     }}>Use</button>
@@ -900,6 +961,7 @@ export default function CharacterCombatTab({
                 {isExpanded && (
                   <div style={{ padding: '6px 8px 6px 32px', fontSize: 11, color: '#9CA3AF', lineHeight: 1.5, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     {feat.description}
+                    {unavailableReason && <span style={{ display: 'block', marginTop: 4, fontSize: 10, color: '#EF4444', fontWeight: 700 }}>{unavailableReason}</span>}
                     {feat.level > 1 && <span style={{ display: 'block', marginTop: 3, fontSize: 10, color: '#6B7280' }}>Unlocked at level {feat.level}</span>}
                   </div>
                 )}
