@@ -8,7 +8,7 @@ import {
   Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles,
   ChevronDown, ChevronRight, BarChart3, Search
 } from 'lucide-react';
-import DiceRoller3D from '@/components/ui/DiceRoller3D';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 import DiceRollHistory from './DiceRollHistory';
 import LootGenerator from '@/components/LootGenerator';
 import PartyInventory from '@/components/PartyInventory';
@@ -33,6 +33,7 @@ import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import SessionTimer from '@/components/gm/SessionTimer';
 import EventSystem from '@/components/gm/EventSystem';
 import EquipmentReferenceTab from '@/components/gm/EquipmentReferenceTab';
+import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -75,8 +76,8 @@ function GMScreen({ username }) {
     try { localStorage.setItem('gm.dicePanel.show', showDicePanel ? '1' : '0'); } catch { /* ignore */ }
   }, [showDicePanel]);
   
-  // 3D Dice Roller state
-  const [show3DDice, setShow3DDice] = useState(false);
+  // Compact dice result state
+  const [showDiceFlicker, setShowDiceFlicker] = useState(false);
   const [diceRolls, setDiceRolls] = useState([]);
   const [diceLabel, setDiceLabel] = useState('');
   const [diceModifier, setDiceModifier] = useState(0);
@@ -157,9 +158,9 @@ function GMScreen({ username }) {
     }
   };
 
-  // 3D Dice Roll Function - supports compound notation like "2d6+1d4+5"
+  // Dice roll function - supports compound notation like "2d6+1d4+5"
   // rollType: 'normal', 'advantage', 'disadvantage'
-  const roll3DDice = (notation, label = '', rollType = 'normal') => {
+  const rollQuickDice = (notation, label = '', rollType = 'normal') => {
     const diceGroups = notation.match(/(\d+)?d(\d+)/gi) || [];
     if (diceGroups.length === 0) return;
     
@@ -205,7 +206,7 @@ function GMScreen({ username }) {
     setDiceTotal(total);
     setDiceCrit(isCrit);
     setDiceFumble(isFumble);
-    setShow3DDice(true);
+    setShowDiceFlicker(true);
 
     setDiceHistory(prev => [{
       label: label || notation, total, modifier,
@@ -435,8 +436,8 @@ function GMScreen({ username }) {
       { id: 'monsters', icon: Skull, label: 'Monsters' },
     ]},
     { group: 'REFERENCE', color: '#D4A017', tabs: [
+      { id: 'reference-hub', icon: BookOpen, label: 'Reference Hub' },
       { id: 'tables', icon: Wand2, label: 'Tables' },
-      { id: 'equipment', icon: Sword, label: 'Equipment' },
       { id: 'loot', icon: Coins, label: 'Loot' },
     ]},
     { group: 'SESSION', color: '#D4A017', tabs: [
@@ -828,6 +829,16 @@ function GMScreen({ username }) {
             </div>
           )}
 
+          {/* UNIFIED REFERENCE HUB TAB */}
+          {activeTab === 'reference-hub' && (
+            <div>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <BookOpen size={24} style={{ color: theme.accent.gm }} /> Reference Center
+              </h2>
+              <UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />
+            </div>
+          )}
+
           {/* LOOT GENERATOR TAB */}
           {activeTab === 'loot' && (
             <div>
@@ -884,6 +895,7 @@ function GMScreen({ username }) {
           }}>
             {/* Toggle Button */}
             <button
+              data-testid="dice-roller-toggle"
               onClick={() => setShowDicePanel(!showDicePanel)}
               style={{
                 background: theme.gradient,
@@ -922,12 +934,12 @@ function GMScreen({ username }) {
               }}>
                 {/* Quick Roll Buttons */}
                 <div style={{ marginBottom: '16px' }}>
-                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Quick Roll (3D)</p>
+                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Quick Roll</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
                     {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
                       <button
                         key={die}
-                        onClick={() => roll3DDice(`1${die}`, die.toUpperCase())}
+                        onClick={() => rollQuickDice(`1${die}`, die.toUpperCase())}
                         style={{
                           padding: '10px 8px',
                           background: 'rgba(212, 160, 23, 0.2)',
@@ -956,7 +968,7 @@ function GMScreen({ username }) {
                 
                 {/* Common Rolls */}
                 <div style={{ marginBottom: '16px' }}>
-                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Common Rolls (3D)</p>
+                  <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Common Rolls</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {[
                       { label: 'Attack (d20)', dice: '1d20' },
@@ -966,7 +978,7 @@ function GMScreen({ username }) {
                     ].map(({ label, dice }) => (
                       <button
                         key={dice}
-                        onClick={() => roll3DDice(dice, label)}
+                        onClick={() => rollQuickDice(dice, label)}
                         style={{
                           padding: '10px 12px',
                           background: 'rgba(212, 160, 23, 0.15)',
@@ -996,7 +1008,7 @@ function GMScreen({ username }) {
                 <div>
                   <p style={{ color: theme.text.muted, fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Percentile</p>
                   <button
-                    onClick={() => roll3DDice('1d100', 'Percentile')}
+                    onClick={() => rollQuickDice('1d100', 'Percentile')}
                     style={{
                       width: '100%',
                       padding: '12px',
@@ -1037,10 +1049,10 @@ function GMScreen({ username }) {
         onStartCombat={handleQuickCombatStart}
       />
       
-      {/* 3D Dice Roller */}
-      <DiceRoller3D
-        isOpen={show3DDice}
-        onClose={() => setShow3DDice(false)}
+      {/* Compact dice result */}
+      <DiceRollFlicker
+        isOpen={showDiceFlicker}
+        onClose={() => setShowDiceFlicker(false)}
         rolls={diceRolls}
         label={diceLabel}
         modifier={diceModifier}

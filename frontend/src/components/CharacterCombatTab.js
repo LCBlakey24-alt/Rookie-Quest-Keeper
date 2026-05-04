@@ -46,8 +46,9 @@ export default function CharacterCombatTab({
   const charClass = character?.character_class || '';
   const level = character?.level || 1;
   const profBonus = character?.proficiency_bonus || (2 + Math.floor((level - 1) / 4));
-  const currentHp = character?.current_hit_points ?? 0;
-  const maxHp = character?.max_hit_points ?? 1;
+  const currentHp = character?.current_hit_points ?? character?.hp ?? 0;
+  const maxHp = character?.max_hit_points ?? character?.max_hp ?? 1;
+  const tempHp = Math.max(0, Number(character?.temporary_hit_points ?? character?.temp_hp ?? 0) || 0);
 
   const getMod = (score) => Math.floor(((score || 10) - 10) / 2);
   const strMod = getMod(character?.strength);
@@ -293,8 +294,19 @@ export default function CharacterCombatTab({
 
   // HP management - triggers concentration save on damage
   const handleHpChange = (delta) => {
-    const newHp = Math.max(0, Math.min(character?.max_hit_points || 1, (character?.current_hit_points || 0) + delta));
-    onUpdateCharacter?.({ current_hit_points: newHp });
+    let newHp = currentHp;
+    let newTempHp = tempHp;
+
+    if (delta < 0) {
+      const damage = Math.abs(delta);
+      const absorbed = Math.min(newTempHp, damage);
+      newTempHp -= absorbed;
+      newHp = Math.max(0, currentHp - (damage - absorbed));
+    } else {
+      newHp = Math.max(0, Math.min(maxHp, currentHp + delta));
+    }
+
+    onUpdateCharacter?.({ current_hit_points: newHp, temporary_hit_points: newTempHp });
     // Trigger concentration save if taking damage while concentrating
     if (delta < 0 && concSpell) {
       const dmg = Math.abs(delta);
@@ -310,8 +322,7 @@ export default function CharacterCombatTab({
     setHpInput('');
   };
   const handleTempHp = (delta) => {
-    const currentTemp = character?.temporary_hit_points || 0;
-    const newTemp = Math.max(0, currentTemp + delta);
+    const newTemp = Math.max(0, tempHp + delta);
     onUpdateCharacter?.({ temporary_hit_points: newTemp });
   };
   // Exhaustion management
@@ -358,7 +369,6 @@ export default function CharacterCombatTab({
       {/* ── Quick Stats + Inspiration ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <StatPill label="AC" value={ac} color={accent} />
-        <StatPill label="HP" value={`${currentHp}/${maxHp}`} color={currentHp < maxHp / 2 ? '#EF4444' : '#22C55E'} />
         <StatPill label="Prof" value={`+${profBonus}`} color="#F59E0B" />
         <button data-testid="roll-initiative" onClick={() => rollDice?.('1d20', dexMod, 'Initiative', rollMode)} style={{ background: 'none', border: 'none', padding: 0, cursor: rollDice ? 'pointer' : 'default' }}>
           <StatPill label="Init" value={`${dexMod >= 0 ? '+' : ''}${dexMod}`} color="#8B5CF6" />
@@ -382,22 +392,17 @@ export default function CharacterCombatTab({
         </button>
       </div>
 
-      {/* ── HP Tracker ── */}
+      {/* ── HP Controls ── */}
       <div data-testid="hp-tracker" style={{
         display: 'flex', flexDirection: 'column', gap: 8,
-        padding: '12px', borderRadius: 10,
+        padding: '10px', borderRadius: 8,
         background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
       }}>
-        {/* HP Bar */}
-        <div style={{ position: 'relative', height: 24, borderRadius: 6, background: 'rgba(0,0,0,0.4)', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: 6, transition: 'width 0.3s',
-            width: `${Math.min(100, (currentHp / maxHp) * 100)}%`,
-            background: currentHp < maxHp * 0.25 ? 'linear-gradient(90deg, #991B1B, #EF4444)' : currentHp < maxHp * 0.5 ? 'linear-gradient(90deg, #D97706, #F59E0B)' : 'linear-gradient(90deg, #059669, #22C55E)',
-          }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
-            {currentHp} / {maxHp}
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 800, letterSpacing: 1 }}>HP ADJUST</span>
+          {tempHp > 0 && (
+            <span style={{ fontSize: 10, color: '#3B82F6', fontWeight: 800 }}>TEMP +{tempHp}</span>
+          )}
         </div>
         {/* Damage/Heal Row */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -426,7 +431,7 @@ export default function CharacterCombatTab({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px', background: 'rgba(59,130,246,0.06)', borderRadius: 6 }}>
           <span style={{ fontSize: 10, color: '#3B82F6', fontWeight: 600 }}>TEMP HP</span>
           <button onClick={() => handleTempHp(-1)} style={{ padding: '1px 6px', background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>-</button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: (character?.temporary_hit_points || 0) > 0 ? '#3B82F6' : '#6B7280', minWidth: 20, textAlign: 'center' }}>{character?.temporary_hit_points || 0}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: tempHp > 0 ? '#3B82F6' : '#6B7280', minWidth: 20, textAlign: 'center' }}>{tempHp}</span>
           <button onClick={() => handleTempHp(1)} style={{ padding: '1px 6px', background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>+</button>
         </div>
       </div>

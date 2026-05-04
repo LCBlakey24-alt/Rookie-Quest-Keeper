@@ -72,6 +72,18 @@ def edition_prompt_fragment(campaign: Optional[Dict[str, Any]]) -> str:
     ed = _campaign_edition(campaign)
     return EDITION_INSTRUCTIONS_2024 if ed == '2024' else EDITION_INSTRUCTIONS_2014
 
+AI_SOURCE_BOUNDARY = """
+CAMPAIGN SOURCE BOUNDARY:
+- Use only the GM's saved campaign data, uploaded/custom rules, the current user prompt, and SRD/OGL mechanics as source material.
+- Do not introduce named worlds, factions, characters, places, deities, plotlines, or lore from published settings, actual-play shows, novels, games, films, or third-party IP unless those exact details appear in the provided campaign context or user prompt.
+- Treat selected genre/tone labels as mood only, not lore. Create original alternatives without naming or copying protected settings or characters.
+- If campaign context is thin, keep suggestions generic/original or ask for the missing detail instead of filling gaps with known setting lore.
+- For player-facing output, do not reveal GM-only secrets unless the provided source text explicitly marks them as player-known.
+""".strip()
+
+def ai_source_boundary_fragment() -> str:
+    return AI_SOURCE_BOUNDARY
+
 @router.post("/ai/generate-with-rules")
 async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depends(get_current_user)):
     """AI generation that respects the campaign's rule system"""
@@ -104,6 +116,7 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
     
     # Generic rule instructions based on campaign system setting
     rule_instructions = f"You are a TTRPG assistant for a campaign using the {system_name} rules.\n\n"
+    rule_instructions += ai_source_boundary_fragment() + "\n\n"
     rule_instructions += edition_prompt_fragment(campaign) + "\n\n"
     rule_instructions += "Generate content that fits this campaign's setting and rule system. "
     rule_instructions += "Use appropriate terminology and mechanics for the system being used.\n"
@@ -127,7 +140,7 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
         chat = LlmChat(
             api_key=llm_key,
             session_id=f"ai-gen-{username}-{uuid.uuid4().hex[:8]}",
-            system_message="You are a creative TTRPG game master assistant. Generate content that is engaging, balanced, and fits the specified rule system."
+            system_message=f"You are a creative TTRPG game master assistant. Generate content that is engaging, balanced, and fits the specified rule system.\n\n{ai_source_boundary_fragment()}"
         ).with_model("openai", "gpt-5.2")
         
         user_msg = UserMessage(text=prompt)
@@ -239,18 +252,20 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
         campaign_context = await get_campaign_context(request.campaign_id)
         
         # Build the full prompt with campaign context
-        system_message = """You are ROOK, a magical AI assistant for tabletop RPG Game Masters. You generate content that fits seamlessly into the GM's existing world and campaign.
+        system_message = f"""You are ROOK, a magical AI assistant for tabletop RPG Game Masters. You generate content that fits seamlessly into the GM's existing world and campaign.
 
 IMPORTANT RULES:
 1. Generate content in strict JSON format only - no markdown, no explanations
 2. Make your creations fit naturally with the existing world context provided
 3. Reference existing NPCs, locations, or deities when appropriate
-4. Maintain consistency with the established setting and tone"""
+4. Maintain consistency with the established setting and tone
+
+{ai_source_boundary_fragment()}"""
 
         # Build prompt with context
         context_section = ""
         if campaign_context:
-            context_section = f"\n\n=== CAMPAIGN CONTEXT ===\n{campaign_context}\n=== END CONTEXT ===\n\nUse this context to make your generation fit naturally into this world.\n\n"
+            context_section = f"\n\n=== CAMPAIGN CONTEXT ===\n{campaign_context}\n=== END CONTEXT ===\n\nUse only this saved context and the user's request to make your generation fit naturally into this world.\n\n"
         
         full_prompt = f"{entity_prompts[request.entity_type]}{context_section}\nUser request: {request.prompt}"
         
@@ -325,7 +340,7 @@ IMPORTANT RULES:
                 'spells': spells_data,
                 'location': entity_data.get('location', ''),
                 'notes': entity_data.get('notes', ''),
-                'color': '#8A2BE2',
+                'color': '#D4A017',
                 'created_at': datetime.now(timezone.utc).isoformat()
             }
             await db.npcs.insert_one(npc_doc)
@@ -428,41 +443,24 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         world_context = ""
         edition_context = ""
         if hasattr(request, 'campaign_id') and request.campaign_id:
+            await verify_campaign_membership(request.campaign_id, username)
             campaign = await db.campaigns.find_one({'id': request.campaign_id})
             if campaign:
                 system_context = f" for {campaign.get('system', '5e Compatible')} system"
                 edition_context = f"\n\nRULES EDITION:\n{edition_prompt_fragment(campaign)}"
+                saved_campaign_context = await get_campaign_context(request.campaign_id)
                 
-                # Build world setting context
+                # Build world setting context. Genre presets are tone labels only;
+                # all concrete lore must come from GM-saved campaign fields.
                 world_setting = campaign.get('world_setting', 'custom')
                 world_notes = campaign.get('world_setting_notes', '')
                 
-                # Pre-defined world setting descriptions (generic, no trademarks)
-                world_settings_lore = {
-                    'high_fantasy': """This campaign is set in a classic high fantasy world. Use typical fantasy tropes: medieval kingdoms, ancient magic, dragons, elves, dwarves, and epic quests. Include diverse regions, powerful wizards, noble knights, and dark forces threatening the realm. Reference generic fantasy elements like guilds, temples, taverns, and dungeons.""",
-                    
-                    'magipunk_noir': """This campaign blends magic with industrial/noir elements. Include magical technology, airships, trains, and urban intrigue. Feature powerful corporations or houses, political conspiracies, and a world recovering from a great war. Magic is integrated into daily life and industry.""",
-                    
-                    'classic_fantasy': """This is a classic sword & sorcery setting with a gritty, old-school feel. Include powerful wizards, ancient ruins, warring nations, and morally grey characters. Magic is powerful but dangerous. Focus on exploration, treasure hunting, and political intrigue.""",
-                    
-                    'epic_fantasy': """This campaign features epic, sweeping narratives with clear good vs evil conflicts. Include dragon riders, fallen kingdoms, prophecies, and world-changing events. Heroes are destined for greatness and face dark lords threatening all civilization.""",
-                    
-                    'gothic_horror': """This campaign is set in a dark, gothic horror world. Create content with atmosphere of dread, tragedy, and moral ambiguity. Include cursed lands, tragic villains, monsters born of fear, and domains ruled by powerful evil. Maintain themes of horror, isolation, and the corruption of good.""",
-                    
-                    'fantasy_space': """This campaign involves fantasy space travel between worlds. Include magical ships that sail between crystal spheres, bizarre alien creatures, and adventures across multiple worlds. Blend fantasy magic with the wonder of space exploration.""",
-                    
-                    'planar_adventure': """This campaign deals with multiple planes of existence. Include extraplanar cities, philosophical factions, portals to other realms, and beings of pure elemental or conceptual nature. Explore themes of belief, reality, and the nature of existence.""",
-                    
-                    'custom': """This is a custom/homebrew setting. Generate original content that fits a fantasy TTRPG world. Use the additional context provided by the GM to inform your creations."""
-                }
-                
-                base_world_context = world_settings_lore.get(world_setting, world_settings_lore['custom'])
-                
-                # Add custom notes if provided
+                world_context = f"\n\n{ai_source_boundary_fragment()}"
+                world_context += f"\n\nSELECTED GENRE/TONE LABEL: {world_setting}. This is not lore; do not import external setting details from it."
+                if saved_campaign_context:
+                    world_context += f"\n\nSAVED CAMPAIGN CONTEXT:\n{saved_campaign_context}"
                 if world_notes:
-                    world_context = f"\n\nWORLD SETTING CONTEXT:\n{base_world_context}\n\nADDITIONAL CAMPAIGN NOTES:\n{world_notes}"
-                else:
-                    world_context = f"\n\nWORLD SETTING CONTEXT:\n{base_world_context}"
+                    world_context += f"\n\nGM WORLD NOTES:\n{world_notes}"
                 # Always append edition rules at the end so AI honors 2014 vs 2024 mechanics
                 if edition_context:
                     world_context += edition_context
@@ -500,6 +498,8 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         }
         
         system_message = system_messages.get(request.generation_type, f'You are a helpful TTRPG assistant{system_context}.{world_context}')
+        if "CAMPAIGN SOURCE BOUNDARY" not in system_message:
+            system_message += f"\n\n{ai_source_boundary_fragment()}"
         
         # Initialize LLM chat
         chat = LlmChat(
@@ -542,12 +542,14 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     campaign_context = ""
     edition_block = ""
     if request.campaign_id:
+        await verify_campaign_membership(request.campaign_id, username)
         campaign_context = await get_campaign_context(request.campaign_id)
         campaign = await db.campaigns.find_one({'id': request.campaign_id}, {'_id': 0})
         if campaign:
             edition_block = f"\n\nRULES EDITION:\n{edition_prompt_fragment(campaign)}"
     
     system_msg = request.context or "You are ROOK, an AI co-GM assistant for D&D 5e. Help the Game Master with encounters, NPCs, world building, and story development. Use only SRD/OGL content. Be creative, concise, and dramatic."
+    system_msg = f"{ai_source_boundary_fragment()}\n\n{system_msg}"
     if campaign_context:
         system_msg += f"\n\nCAMPAIGN CONTEXT:\n{campaign_context}"
     if edition_block:
@@ -593,6 +595,8 @@ async def process_note_with_ai(campaign_id: str, note_id: str, username: str = D
         
         system_message = f"""You are an AI assistant helping organize tabletop RPG campaign notes.
 Given campaign notes from a session, extract structured information and suggest additions to existing entities or new entities to create.
+
+{ai_source_boundary_fragment()}
 
 Campaign Context:
 - Players: {', '.join(player_names) if player_names else 'None yet'}
@@ -677,7 +681,9 @@ async def parse_session_notes(
     location_names = [loc['name'] for loc in locations]
     
     # Build AI prompt
-    system_message = """You are a tabletop RPG Game Master assistant that extracts structured information from session notes.
+    system_message = f"""You are a tabletop RPG Game Master assistant that extracts structured information from session notes.
+
+{ai_source_boundary_fragment()}
 
 Your task: Analyze the session notes and extract:
 1. NPCs mentioned (with what happened to them)
@@ -1049,6 +1055,8 @@ async def generate_session_recap(request: SessionRecapRequest, username: str = D
     
     prompt = f"""You are a Game Master's assistant. Generate a session recap from the following notes.
 
+{ai_source_boundary_fragment()}
+
 Style: {style_instructions.get(request.style, style_instructions['narrative'])}
 
 Include these sections (if relevant content exists): {sections_text}
@@ -1068,7 +1076,7 @@ Format the output in Markdown."""
         chat = LlmChat(
             api_key=llm_api_key,
             session_id=f"session-recap-{request.campaign_id}-{uuid.uuid4().hex[:8]}",
-            system_message="You turn tabletop RPG session notes into concise player-facing recaps."
+            system_message=f"You turn tabletop RPG session notes into concise player-facing recaps.\n\n{ai_source_boundary_fragment()}"
         ).with_model("openai", "gpt-4o-mini")
 
         content = await chat.send_message(UserMessage(text=prompt))
@@ -1103,6 +1111,7 @@ Format the output in Markdown."""
 @router.get("/ai/session-recaps/{campaign_id}")
 async def get_session_recaps(campaign_id: str, username: str = Depends(get_current_user)):
     """Get all session recaps for a campaign"""
+    await verify_campaign_membership(campaign_id, username)
     recaps = await db.session_recaps.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
@@ -1126,6 +1135,7 @@ async def generate_session_outline(campaign_id: str, request: Dict[str, Any], us
     npcs = await db.npcs.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'role': 1, 'description': 1}).to_list(30)
     locations = await db.locations.find({'campaign_id': campaign_id}, {'_id': 0, 'name': 1, 'description': 1, 'type': 1}).to_list(20)
     journal = await db.player_journal.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(10)
+    saved_campaign_context = await get_campaign_context(campaign_id, limit=8)
 
     notes_text = "\n".join([f"- {n.get('title','')}: {n.get('content','')}" for n in notes[:10]]) or "No session notes yet."
     npcs_text = "\n".join([f"- {n.get('name','Unknown')}: {n.get('role','')}" for n in npcs[:15]]) or "No NPCs."
@@ -1138,8 +1148,10 @@ async def generate_session_outline(campaign_id: str, request: Dict[str, Any], us
 
     prompt = f"""You are an expert TTRPG session planner. Generate a detailed session outline for the next game session.
 
+{ai_source_boundary_fragment()}
+
 Campaign: {campaign.get('name', 'Unknown')}
-Setting: {campaign.get('setting', 'Fantasy')}
+Setting label: {campaign.get('setting', 'Fantasy')} (tone only, not lore)
 GM Focus: {focus}
 Tone: {tone}
 {f"GM Additional Notes: {extra_notes}" if extra_notes else ""}
@@ -1158,6 +1170,9 @@ Known Locations:
 
 Player Journal Highlights:
 {journal_text}
+
+Saved Campaign Context:
+{saved_campaign_context or "No additional saved campaign context."}
 
 Generate a structured session outline in Markdown with these sections:
 ## Session Hook
@@ -1190,7 +1205,7 @@ An ending hook to leave players eager for next session.
         chat = LlmChat(
             api_key=api_key,
             session_id=f"outline-{campaign_id}-{uuid.uuid4().hex[:8]}",
-            system_message="You are a master TTRPG session planner. Create engaging, well-paced session outlines that balance combat, roleplay, and exploration."
+            system_message=f"You are a master TTRPG session planner. Create engaging, well-paced session outlines that balance combat, roleplay, and exploration.\n\n{ai_source_boundary_fragment()}"
         ).with_model("openai", "gpt-5.2")
 
         response = await chat.send_message(UserMessage(text=prompt))
@@ -1217,6 +1232,7 @@ An ending hook to leave players eager for next session.
 @router.get("/ai/session-outlines/{campaign_id}")
 async def get_session_outlines(campaign_id: str, username: str = Depends(get_current_user)):
     """Get all generated session outlines for a campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     outlines = await db.session_outlines.find(
         {'campaign_id': campaign_id}, {'_id': 0}
     ).sort('generated_at', -1).to_list(20)
@@ -1251,6 +1267,8 @@ async def generate_session_checklist(campaign_id: str, request: Dict[str, Any], 
 
     prompt = f"""You are a TTRPG session prep assistant. Based on the following session outline/context, generate a detailed prep checklist for the Game Master.
 
+{ai_source_boundary_fragment()}
+
 Campaign: {campaign_name}
 
 RULES EDITION:
@@ -1278,7 +1296,7 @@ Generate 8-15 practical checklist items. Return ONLY the JSON array, no other te
         chat = LlmChat(
             api_key=api_key,
             session_id=f"checklist-{campaign_id}-{uuid.uuid4().hex[:8]}",
-            system_message="You are a practical TTRPG session prep assistant. Generate actionable, specific checklist items."
+            system_message=f"You are a practical TTRPG session prep assistant. Generate actionable, specific checklist items.\n\n{ai_source_boundary_fragment()}"
         ).with_model("openai", "gpt-4o")
 
         response = await chat.send_message(UserMessage(text=prompt))
@@ -1322,6 +1340,7 @@ Generate 8-15 practical checklist items. Return ONLY the JSON array, no other te
 @router.get("/ai/session-checklists/{campaign_id}")
 async def get_session_checklists(campaign_id: str, username: str = Depends(get_current_user)):
     """Get all session prep checklists for a campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     checklists = await db.session_checklists.find(
         {'campaign_id': campaign_id}, {'_id': 0}
     ).sort('generated_at', -1).to_list(20)
@@ -1334,6 +1353,7 @@ async def update_session_checklist(checklist_id: str, request: Dict[str, Any], u
     checklist = await db.session_checklists.find_one({'id': checklist_id})
     if not checklist:
         raise HTTPException(status_code=404, detail="Checklist not found")
+    await verify_campaign_ownership(checklist.get('campaign_id'), username)
 
     item_id = request.get('item_id')
     completed = request.get('completed')
@@ -1386,6 +1406,8 @@ async def generate_session_replay(campaign_id: str, request: Dict[str, Any], use
 
     prompt = f"""You are a master storyteller creating a session replay for a TTRPG campaign.
 
+{ai_source_boundary_fragment()}
+
 Campaign: {campaign.get('name', 'Unknown')}
 {f"Session #{session_number}" if session_number else ""}
 Style: {style_map.get(style, style_map['narrative'])}
@@ -1413,7 +1435,7 @@ Make it feel like reading a fantasy novel chapter. Use character names and make 
         chat = LlmChat(
             api_key=api_key,
             session_id=f"replay-{campaign_id}-{uuid.uuid4().hex[:8]}",
-            system_message="You are a legendary bard who transforms TTRPG session notes into gripping narrative recaps."
+            system_message=f"You are a legendary bard who transforms TTRPG session notes into gripping narrative recaps.\n\n{ai_source_boundary_fragment()}"
         ).with_model("openai", "gpt-5.2")
 
         response = await chat.send_message(UserMessage(text=prompt))
@@ -1440,6 +1462,7 @@ Make it feel like reading a fantasy novel chapter. Use character names and make 
 @router.get("/ai/session-replays/{campaign_id}")
 async def get_session_replays(campaign_id: str, username: str = Depends(get_current_user)):
     """Get all generated session replays for a campaign."""
+    await verify_campaign_ownership(campaign_id, username)
     replays = await db.session_replays.find(
         {'campaign_id': campaign_id}, {'_id': 0}
     ).sort('generated_at', -1).to_list(20)

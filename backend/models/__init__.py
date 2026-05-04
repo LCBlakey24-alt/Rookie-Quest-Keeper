@@ -5,8 +5,100 @@ from datetime import datetime, timezone
 import uuid
 import secrets
 
-# Subscription pricing tiers
-SUBSCRIPTION_PLANS = {'free': {'name': 'Free', 'price_monthly': 0.0, 'price_yearly': 0.0, 'characters': 1, 'campaigns': 0, 'ai_calls_per_month': 3, 'features': ['basic_character_sheet', 'dice_roller', 'join_campaigns'], 'stripe_price_id_monthly': None, 'stripe_price_id_yearly': None}, 'player': {'name': 'Hero', 'price_monthly': 3.99, 'price_yearly': 39.99, 'characters': -1, 'campaigns': 0, 'ai_calls_per_month': 50, 'features': ['unlimited_characters', 'character_journal', 'party_inventory', 'session_recaps', 'portrait_ai'], 'stripe_price_id_monthly': None, 'stripe_price_id_yearly': None}, 'gm': {'name': 'Quest Master', 'price_monthly': 3.99, 'price_yearly': 39.99, 'characters': 1, 'campaigns': -1, 'ai_calls_per_month': -1, 'features': ['unlimited_campaigns', 'world_building', 'rook_ai', 'combat_tracker', 'reference_tools', 'session_mode'], 'stripe_price_id_monthly': None, 'stripe_price_id_yearly': None}, 'legendary': {'name': 'Legendary', 'price_monthly': 5.99, 'price_yearly': 59.99, 'characters': -1, 'campaigns': -1, 'ai_calls_per_month': -1, 'features': ['all_player_features', 'all_gm_features', 'priority_support', 'early_access'], 'stripe_price_id_monthly': None, 'stripe_price_id_yearly': None}, 'adventurer': {'name': 'Adventurer', 'price_monthly': 0.0, 'price_yearly': 0.0, 'characters': -1, 'campaigns': -1, 'ai_calls_per_month': -1, 'features': ['all_player_features', 'all_gm_features', 'early_tester'], 'stripe_price_id_monthly': None, 'stripe_price_id_yearly': None}}
+# Subscription pricing tiers - UNIFIED MODEL
+# New model: Free tier has limited access, single "Ultimate DM Screen" Pro tier has everything
+SUBSCRIPTION_PLANS = {
+    'free': {
+        'name': 'Free',
+        'price_monthly': 0.0,
+        'price_yearly': 0.0,
+        'characters': 1,
+        'campaigns': 1,  # Observer only - can join campaigns but not create
+        'ai_calls_per_month': 3,
+        'features': [
+            'basic_character_sheet',
+            'dice_roller',
+            'join_campaigns',
+            'basic_reference_tables',
+            'character_overview'
+        ],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
+    'pro': {
+        'name': 'Ultimate DM Screen',
+        'price_monthly': 9.99,
+        'price_yearly': 99.99,
+        'characters': -1,  # Unlimited
+        'campaigns': -1,  # Unlimited
+        'ai_calls_per_month': -1,  # Unlimited
+        'features': [
+            'unlimited_characters',
+            'unlimited_campaigns',
+            'unlimited_ai_calls',
+            'character_journal',
+            'party_inventory',
+            'session_recaps',
+            'portrait_ai',
+            'world_building',
+            'rook_ai_coalescing',
+            'advanced_combat_tracker',
+            'full_reference_tables',
+            'session_mode_with_broadcasting',
+            'npc_network_mapping',
+            'story_arc_tracking',
+            'custom_creatures',
+            'encounter_builder'
+        ],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
+    # Legacy tiers kept for backwards compatibility - redirect to 'pro'
+    'player': {
+        'name': 'Hero (Legacy → Pro)',
+        'price_monthly': 9.99,
+        'price_yearly': 99.99,
+        'characters': -1,
+        'campaigns': -1,
+        'ai_calls_per_month': -1,
+        'features': ['legacy_redirect_to_pro'],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
+    'gm': {
+        'name': 'Quest Master (Legacy → Pro)',
+        'price_monthly': 9.99,
+        'price_yearly': 99.99,
+        'characters': -1,
+        'campaigns': -1,
+        'ai_calls_per_month': -1,
+        'features': ['legacy_redirect_to_pro'],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
+    'legendary': {
+        'name': 'Legendary (Legacy → Pro)',
+        'price_monthly': 9.99,
+        'price_yearly': 99.99,
+        'characters': -1,
+        'campaigns': -1,
+        'ai_calls_per_month': -1,
+        'features': ['legacy_redirect_to_pro'],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    },
+    'adventurer': {
+        'name': 'Adventurer (Internal)',
+        'price_monthly': 0.0,
+        'price_yearly': 0.0,
+        'characters': -1,
+        'campaigns': -1,
+        'ai_calls_per_month': -1,
+        'features': ['all_features', 'early_tester'],
+        'stripe_price_id_monthly': None,
+        'stripe_price_id_yearly': None
+    }
+}
 
 class RulesetUpload(BaseModel):
     """Model for uploading custom rules JSON (used by rulesets system)"""
@@ -94,8 +186,8 @@ class Campaign(BaseModel):
     description: str = ""
     system: str = "5e 2024 Compatible"  # TTRPG system
     rules_edition: str = "2024"  # "2014" or "2024" — controls AI prompts + class rules across the GM screen
-    world_setting: str = "custom"  # e.g., "forgotten_realms", "eberron", "greyhawk", "custom"
-    world_setting_notes: str = ""  # Additional notes about the setting for AI context
+    world_setting: str = "custom"  # Tone label only; concrete lore must come from GM-saved content
+    world_setting_notes: str = ""  # GM-provided notes about the setting for AI context
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class CampaignCreate(BaseModel):
@@ -119,8 +211,8 @@ class CampaignSettingUpdate(BaseModel):
     dm_rules: Optional[str] = None
 
 class CampaignWorldSettingUpdate(BaseModel):
-    world_setting: str = "custom"  # high_fantasy, magipunk_noir, classic_fantasy, epic_fantasy, gothic_horror, fantasy_space, planar_adventure, custom
-    world_setting_notes: str = ""  # Additional context for the AI
+    world_setting: str = "custom"  # Tone label only: high_fantasy, magipunk_noir, classic_fantasy, epic_fantasy, gothic_horror, fantasy_space, planar_adventure, custom
+    world_setting_notes: str = ""  # GM-authored context for the AI
 
 class CustomRulesUpload(BaseModel):
     name: str = Field(..., description="Name for this ruleset (e.g., 'PHB 2014', 'Homebrew Rules')")
@@ -1097,7 +1189,7 @@ class NPC(BaseModel):
     spells: Optional[NPCSpells] = None
     location: str = ""
     notes: str = ""
-    color: str = "#8A2BE2"
+    color: str = "#D4A017"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class NPCCreate(BaseModel):
@@ -1124,7 +1216,7 @@ class NPCCreate(BaseModel):
     spells: Optional[NPCSpells] = None
     location: str = ""
     notes: str = ""
-    color: str = "#8A2BE2"
+    color: str = "#D4A017"
     occupation: str = ""
 
 class NPCUpdate(BaseModel):
@@ -1348,6 +1440,7 @@ class TravelCalculateRequest(BaseModel):
 class AIGenerationRequest(BaseModel):
     prompt: str
     generation_type: str  # "encounter", "trap", "npc", "world"
+    campaign_id: Optional[str] = None
 
 class AIGenerationResponse(BaseModel):
     content: str

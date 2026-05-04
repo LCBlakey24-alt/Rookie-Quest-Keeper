@@ -8,6 +8,7 @@ import { CLASS_FEATURES } from '../data/classFeatures';
 import { FEATURE_TYPE_CONFIG } from '../data/classResources';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, CANTRIPS_KNOWN, SPELLS_KNOWN, getSpellsForClass, getMaxSpellLevel } from '../data/spellDatabase';
 import { HIT_DICE, ASI_LEVELS, FEATS, ABILITIES, ABILITY_SHORT, getFeatsByEdition } from '../data/levelUpData';
+import DiceRollFlicker from './DiceRollFlicker';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -26,6 +27,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [step, setStep] = useState(0); // Start at 0 for multiclass choice
   const [hpMethod, setHpMethod] = useState('average'); // 'average', 'roll', or 'manual'
   const [hpRoll, setHpRoll] = useState(null);
+  const [hpRollFlicker, setHpRollFlicker] = useState(null);
   const [manualHpRoll, setManualHpRoll] = useState('');
   const [hasRolled, setHasRolled] = useState(false);
   const [choiceType, setChoiceType] = useState(null); // 'asi' or 'feat'
@@ -187,6 +189,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       setStep(0); // Start at multiclass choice step
       setHpMethod('average');
       setHpRoll(null);
+      setHpRollFlicker(null);
       setManualHpRoll('');
       setHasRolled(false);
       setChoiceType(null);
@@ -214,6 +217,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const rollHitDie = () => {
     const roll = Math.floor(Math.random() * hitDie) + 1;
     setHpRoll(roll);
+    setHpRollFlicker({
+      label: `HP d${hitDie}`,
+      rolls: [{ sides: hitDie, result: roll }],
+      modifier: conMod,
+      total: Math.max(1, roll + conMod),
+    });
     setHasRolled(true);
     toast.success(`Rolled ${roll} on d${hitDie}!`);
   };
@@ -222,6 +231,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     setHpMethod(method);
     if (method !== 'roll') {
       setHpRoll(null);
+      setHpRollFlicker(null);
       setHasRolled(false);
     }
     if (method !== 'manual') {
@@ -1666,6 +1676,15 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           )}
         </div>
       </div>
+      <DiceRollFlicker
+        isOpen={!!hpRollFlicker}
+        onClose={() => setHpRollFlicker(null)}
+        rolls={hpRollFlicker?.rolls || []}
+        label={hpRollFlicker?.label}
+        modifier={hpRollFlicker?.modifier || 0}
+        total={hpRollFlicker?.total || 0}
+        theme="player"
+      />
     </div>
   );
 }

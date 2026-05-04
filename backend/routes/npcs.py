@@ -226,7 +226,7 @@ Respond with ONLY valid JSON matching this schema:
         'spells': spells_data,
         'location': entity_data.get('location', ''),
         'notes': entity_data.get('notes', ''),
-        'color': '#8A2BE2',
+        'color': '#D4A017',
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     

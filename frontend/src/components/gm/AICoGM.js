@@ -9,25 +9,25 @@ const API = `${BACKEND_URL}/api`;
 const TAB_CONTEXTS = {
   combat: {
     label: 'Combat Advisor',
-    color: '#EF4444',
+    color: '#D4A017',
     hints: ['Suggest tactical moves', 'Generate an encounter', 'What should the enemies do?', 'Describe this attack cinematically'],
     system: 'You are a combat advisor for a D&D 5e game. Help the GM run exciting combat encounters. Suggest enemy tactics, describe dramatic attack sequences, calculate damage, and keep combat flowing. Be concise and action-oriented.'
   },
   location: {
     label: 'Location Guide',
-    color: '#22C55E',
+    color: '#D4A017',
     hints: ['Describe this area', 'What do the players see?', 'Generate ambient details', 'What random event happens here?'],
     system: 'You are a vivid world narrator for a D&D 5e game. Describe locations with rich sensory detail - sights, sounds, smells. Generate atmospheric descriptions, random events, and environmental storytelling. Paint pictures with words.'
   },
   npcs: {
     label: 'NPC Voice',
-    color: '#F59E0B',
+    color: '#D4A017',
     hints: ['Generate NPC dialogue', 'How would this NPC react?', 'Give me a voice for this character', 'What secret is this NPC hiding?'],
     system: 'You are an NPC dialogue specialist for a D&D 5e game. Generate distinctive voices, mannerisms, and dialogue for NPCs. Each NPC should feel unique with personality quirks, speech patterns, and hidden motivations.'
   },
   network: {
     label: 'Intrigue Weaver',
-    color: '#EC4899',
+    color: '#D4A017',
     hints: ['Suggest a political plot', 'How are these NPCs connected?', 'Generate a betrayal twist', 'What faction conflict is brewing?'],
     system: 'You are a political intrigue specialist for a D&D 5e game. Weave complex webs of NPC relationships, faction politics, betrayals, and power struggles. Create compelling drama between characters.'
   },
@@ -39,25 +39,25 @@ const TAB_CONTEXTS = {
   },
   story: {
     label: 'Story Architect',
-    color: '#4DD0E1',
+    color: '#D4A017',
     hints: ['What happens next in this arc?', 'Generate a plot twist', 'How do I raise the stakes?', 'Suggest a story milestone'],
     system: 'You are a narrative architect for a D&D 5e campaign. Help develop story arcs, plot twists, rising tension, and satisfying payoffs. Create compelling narrative beats that make players feel like heroes.'
   },
   tables: {
     label: 'Random Oracle',
-    color: '#F97316',
+    color: '#D4A017',
     hints: ['Roll a random encounter', 'Generate a random event', 'What treasure do they find?', 'Random NPC motivation'],
     system: 'You are a random encounter and table generator for D&D 5e. Generate creative random encounters, events, treasure hauls, and surprising twists. Make the unexpected feel natural and exciting.'
   },
   loot: {
     label: 'Treasure Master',
-    color: '#EAB308',
+    color: '#D4A017',
     hints: ['Generate level-appropriate loot', 'Describe a magic item', 'What is in this treasure chest?', 'Create a cursed item'],
     system: 'You are a treasure and magic item specialist for D&D 5e using SRD content only. Generate appropriate loot for the party level, describe magic items vividly, and create interesting item effects and curses.'
   },
   notes: {
     label: 'Session Scribe',
-    color: '#6B7280',
+    color: '#D4A017',
     hints: ['Summarize tonight\'s session', 'What were the key moments?', 'Generate a session recap', 'What loose threads remain?'],
     system: 'You are a session note-taker and summarizer for D&D 5e. Help organize session notes, create narrative recaps, identify key plot threads, and track important decisions the party has made.'
   }
@@ -126,15 +126,15 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
       <button data-testid="ai-cogm-toggle" onClick={() => setIsOpen(true)}
         style={{
           position: 'fixed', bottom: '24px', right: '24px', width: '56px', height: '56px',
-          borderRadius: '50%', background: 'linear-gradient(135deg, #D4A017, #D4A017)',
-          border: '2px solid rgba(138,43,226,0.5)', cursor: 'pointer', zIndex: 2000,
+          borderRadius: '50%', background: 'linear-gradient(135deg, #D4A017, #F5C542)',
+          border: '2px solid rgba(212,160,23,0.5)', cursor: 'pointer', zIndex: 2000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(138,43,226,0.4)', transition: 'transform 0.2s'
+          boxShadow: '0 4px 20px rgba(212,160,23,0.25)', transition: 'transform 0.2s'
         }}
         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
-        <Sparkles size={24} color="#fff" />
+        <Sparkles size={24} color="#0A1628" />
       </button>
     );
   }

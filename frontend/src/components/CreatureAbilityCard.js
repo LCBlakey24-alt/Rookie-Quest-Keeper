@@ -4,6 +4,7 @@ import {
   Sword, Zap, Sparkles, Target, BookOpen, ChevronDown, ChevronUp,
   Wand2, Shield, Flame, Snowflake, Skull, Wind
 } from 'lucide-react';
+import DiceRollFlicker from './DiceRollFlicker';
 
 // Parse abilities/attacks from creature data
 function parseAbilities(creature) {
@@ -115,6 +116,7 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
   const [expanded, setExpanded] = useState(false);
   const [lastRoll, setLastRoll] = useState(null);
   const [rolling, setRolling] = useState(null);
+  const [rollFlicker, setRollFlicker] = useState(null);
   
   const abilities = parseAbilities(creature);
   
@@ -165,6 +167,23 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
         totalDamage,
         timestamp: new Date().toISOString()
       };
+
+      const attackRoll = results.find(r => r.type === 'attack');
+      const damageRolls = results
+        .filter(r => r.type === 'damage')
+        .flatMap(r => {
+          const sides = Number(r.dice.match(/d(\d+)/i)?.[1]) || 6;
+          return r.rolls.map(result => ({ sides, result }));
+        });
+
+      setRollFlicker({
+        label: totalDamage > 0 ? `${ability.name} damage` : `${ability.name} attack`,
+        rolls: damageRolls.length > 0 ? damageRolls : (attackRoll ? [{ sides: 20, result: attackRoll.roll }] : []),
+        modifier: damageRolls.length > 0 ? 0 : (attackRoll?.bonus || 0),
+        total: totalDamage > 0 ? totalDamage : (attackRoll?.total || 0),
+        isCrit: !!attackRoll?.isCrit,
+        isFumble: !!attackRoll?.isFumble,
+      });
       
       setLastRoll(rollResult);
       setRolling(null);
@@ -186,14 +205,29 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
     }
   };
 
+  const rollFlickerNode = (
+    <DiceRollFlicker
+      isOpen={!!rollFlicker}
+      onClose={() => setRollFlicker(null)}
+      rolls={rollFlicker?.rolls || []}
+      label={rollFlicker?.label}
+      modifier={rollFlicker?.modifier || 0}
+      total={rollFlicker?.total || 0}
+      isCrit={rollFlicker?.isCrit}
+      isFumble={rollFlicker?.isFumble}
+      theme="gm"
+    />
+  );
+
   if (compact) {
     return (
-      <div style={{
-        background: 'rgba(0, 0, 0, 0.3)',
-        borderRadius: '8px',
-        padding: '8px',
-        marginTop: '8px'
-      }}>
+      <>
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          borderRadius: '8px',
+          padding: '8px',
+          marginTop: '8px'
+        }}>
         <div 
           onClick={() => setExpanded(!expanded)}
           style={{ 
@@ -278,19 +312,22 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
             )}
           </div>
         )}
-      </div>
+        </div>
+        {rollFlickerNode}
+      </>
     );
   }
 
   // Full card view
   return (
-    <div style={{
-      background: 'rgba(0, 0, 0, 0.4)',
-      border: '2px solid #374151',
-      borderRadius: '12px',
-      padding: '14px',
-      marginTop: '12px'
-    }}>
+    <>
+      <div style={{
+        background: 'rgba(0, 0, 0, 0.4)',
+        border: '2px solid #374151',
+        borderRadius: '12px',
+        padding: '14px',
+        marginTop: '12px'
+      }}>
       <h4 style={{ 
         color: '#ef4444', 
         fontSize: '14px', 
@@ -485,7 +522,9 @@ function CreatureAbilityCard({ creature, onRollResult, compact = false }) {
           )}
         </div>
       )}
-    </div>
+      </div>
+      {rollFlickerNode}
+    </>
   );
 }
 

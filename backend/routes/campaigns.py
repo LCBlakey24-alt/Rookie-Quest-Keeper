@@ -137,7 +137,7 @@ async def update_campaign_setting(campaign_id: str, setting_data: CampaignSettin
 
 @router.put("/campaigns/{campaign_id}/world-setting")
 async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSettingUpdate, username: str = Depends(get_current_user)):
-    """Update campaign's world setting for AI context"""
+    """Update campaign's tone label and GM-provided AI context."""
     await verify_campaign_ownership(campaign_id, username)
     
     valid_settings = ['high_fantasy', 'magipunk_noir', 'classic_fantasy', 'epic_fantasy', 'gothic_horror', 'fantasy_space', 'planar_adventure', 'custom']
@@ -167,7 +167,7 @@ async def update_campaign_world_setting(campaign_id: str, data: CampaignWorldSet
     }
     
     return {
-        "message": f"World setting updated to {setting_names.get(data.world_setting, data.world_setting)}",
+        "message": f"World tone updated to {setting_names.get(data.world_setting, data.world_setting)}",
         "world_setting": data.world_setting,
         "world_setting_name": setting_names.get(data.world_setting, data.world_setting),
         "world_setting_notes": data.world_setting_notes
@@ -335,7 +335,7 @@ async def upload_rules_file(campaign_id: str, file: UploadFile, username: str = 
 
 @router.get("/campaigns/{campaign_id}/world-setting")
 async def get_campaign_world_setting(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get campaign's world setting"""
+    """Get campaign's world tone label and GM-provided context."""
     await verify_campaign_ownership(campaign_id, username)
     
     campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'world_setting': 1, 'world_setting_notes': 1, 'name': 1})
@@ -360,14 +360,14 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
         "world_setting_name": setting_names.get(world_setting, 'Custom Setting'),
         "world_setting_notes": campaign.get('world_setting_notes', ''),
         "available_settings": [
-            {"id": "high_fantasy", "name": "High Fantasy", "description": "Classic D&D style - kingdoms, dragons, epic quests"},
-            {"id": "magipunk_noir", "name": "Magipunk/Noir", "description": "Magic meets industry - airships, intrigue, corporations"},
-            {"id": "classic_fantasy", "name": "Classic Sword & Sorcery", "description": "Gritty old-school - ruins, treasure, morally grey"},
-            {"id": "epic_fantasy", "name": "Epic Fantasy", "description": "Grand narratives - prophecies, dragon riders, dark lords"},
-            {"id": "gothic_horror", "name": "Gothic Horror", "description": "Dark and dread - cursed lands, tragic villains, monsters"},
-            {"id": "fantasy_space", "name": "Fantasy Space", "description": "Magical ships between worlds - crystal spheres, alien creatures"},
-            {"id": "planar_adventure", "name": "Planar Adventures", "description": "Multiple planes - extraplanar cities, portals, philosophy"},
-            {"id": "custom", "name": "Custom Setting", "description": "Your own homebrew world"}
+            {"id": "high_fantasy", "name": "High Fantasy", "description": "Tone only - classic heroic fantasy"},
+            {"id": "magipunk_noir", "name": "Magipunk/Noir", "description": "Tone only - magic, industry, intrigue"},
+            {"id": "classic_fantasy", "name": "Classic Sword & Sorcery", "description": "Tone only - gritty adventure and ruins"},
+            {"id": "epic_fantasy", "name": "Epic Fantasy", "description": "Tone only - grand stakes and heroic arcs"},
+            {"id": "gothic_horror", "name": "Gothic Horror", "description": "Tone only - dread, tragedy, monsters"},
+            {"id": "fantasy_space", "name": "Fantasy Space", "description": "Tone only - magical travel beyond one world"},
+            {"id": "planar_adventure", "name": "Planar Adventures", "description": "Tone only - portals and strange realms"},
+            {"id": "custom", "name": "Custom Setting", "description": "Use only your saved homebrew notes"}
         ]
     }
 

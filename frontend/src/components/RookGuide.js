@@ -18,7 +18,7 @@ const GUIDE_CONTENT = {
       "Use the '+ New Character' button to create a new hero with Rook's AI-powered character builder.",
       "Characters can join campaigns when your GM invites you!"
     ],
-    color: '#22D3EE' // Cyan for player
+    color: '#D4A017'
   },
   'dashboard-gm': {
     title: "Welcome to the GM Command Center!",
@@ -28,7 +28,7 @@ const GUIDE_CONTENT = {
       "Hit '+ New Campaign' to start a fresh adventure.",
       "Each campaign has its own world, NPCs, locations, and maps!"
     ],
-    color: '#8A2BE2' // Red for GM
+    color: '#D4A017'
   },
   
   // Campaign Dashboard Tabs
@@ -40,7 +40,7 @@ const GUIDE_CONTENT = {
       "This is the first thing players see when they join your campaign.",
       "You can update these anytime as your world evolves."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'world': {
     title: "World Builder",
@@ -50,7 +50,7 @@ const GUIDE_CONTENT = {
       "Use the AI to help generate descriptions and history.",
       "Link locations together to create an interconnected world."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'world-map': {
     title: "World Map",
@@ -61,7 +61,7 @@ const GUIDE_CONTENT = {
       "Create paths between locations to calculate travel times!",
       "Use 'Travel Mode' to plan party journeys with different travel speeds."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'local-maps': {
     title: "Local Maps",
@@ -72,7 +72,7 @@ const GUIDE_CONTENT = {
       "Perfect for when the party arrives in a new location!",
       "Link local maps to world map locations for easy navigation."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   // Consolidated Maps tab
   'maps': {
@@ -84,7 +84,7 @@ const GUIDE_CONTENT = {
       "Local Maps: Detail city streets, dungeon rooms, and points of interest.",
       "Upload custom images or use the pin system to mark important locations."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   // Consolidated Chronicle tab
   'chronicle': {
@@ -96,7 +96,7 @@ const GUIDE_CONTENT = {
       "Add major events, milestones, and story beats to keep everything organized.",
       "Perfect for session recaps and remembering key moments!"
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   // Consolidated Combat tab
   'combat': {
@@ -120,7 +120,7 @@ const GUIDE_CONTENT = {
       "Essential tools for keeping your session running smoothly!",
       "Search and filter through thousands of 5e items and spells."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   // Consolidated Inventory tab
   'inventory': {
@@ -142,7 +142,7 @@ const GUIDE_CONTENT = {
       "Add NPCs, shops, and secrets to each location.",
       "Locations can be linked to map pins for visual navigation."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'npcs': {
     title: "NPC Manager",
@@ -152,7 +152,7 @@ const GUIDE_CONTENT = {
       "Use the AI to generate NPC backstories and motivations.",
       "Assign NPCs to locations so you always know who's where."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'npc-web': {
     title: "NPC Relationship Web",
@@ -162,7 +162,7 @@ const GUIDE_CONTENT = {
       "Draw relationship lines: allies, enemies, family, rivals.",
       "Great for tracking political intrigue and social dynamics!"
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'timeline': {
     title: "Session Timeline",
@@ -172,7 +172,7 @@ const GUIDE_CONTENT = {
       "Add events, milestones, and key moments.",
       "Never forget what happened - great for recaps!"
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'random-gen': {
     title: "Random Generators",
@@ -182,7 +182,7 @@ const GUIDE_CONTENT = {
       "Perfect for improv moments when you need something fast.",
       "Save favorites to use later in your campaign."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'gods': {
     title: "Pantheon Manager",
@@ -192,7 +192,7 @@ const GUIDE_CONTENT = {
       "Define domains, holy symbols, and commandments.",
       "Link clerics and paladins to their patron deities."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'players': {
     title: "Player Management",
@@ -202,7 +202,7 @@ const GUIDE_CONTENT = {
       "See which characters are in your campaign.",
       "Manage player access and permissions."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'combat-creator': {
     title: "Combat Setup",
@@ -252,7 +252,7 @@ const GUIDE_CONTENT = {
       "Add key events and let Rook fill in the details.",
       "Share recaps with your players to keep everyone caught up."
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'calendar': {
     title: "Campaign Calendar",
@@ -262,7 +262,7 @@ const GUIDE_CONTENT = {
       "Schedule festivals, holidays, and important dates.",
       "Never lose track of how many days have passed!"
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   },
   'ingame-notes': {
     title: "Session Notes",
@@ -305,7 +305,7 @@ const GUIDE_CONTENT = {
       "Use the Level Up button when you gain enough XP!",
       "Your GM can see your sheet during sessions."
     ],
-    color: '#22D3EE'
+    color: '#D4A017'
   },
   
   // GM Screen
@@ -318,7 +318,7 @@ const GUIDE_CONTENT = {
       "Use the dice roller for any rolls you need.",
       "Everything updates in real-time!"
     ],
-    color: '#8A2BE2'
+    color: '#D4A017'
   }
 };
 
@@ -384,7 +384,7 @@ export function RookGuide({ guideId, variant = 'tooltip', position = 'bottom' })
   
   if (!guide || !isVisible) return null;
   
-  const themeColor = guide.color || '#22D3EE';
+  const themeColor = guide.color || '#D4A017';
   
   // Tooltip variant - small floating tip
   if (variant === 'tooltip') {
@@ -397,7 +397,7 @@ export function RookGuide({ guideId, variant = 'tooltip', position = 'bottom' })
           [position === 'top' ? 'bottom' : 'top']: position === 'top' ? 'auto' : '-10px',
           left: '50%',
           transform: `translateX(-50%) translateY(${position === 'top' ? '-100%' : '100%'}) scale(${isAnimating ? 1 : 0.9})`,
-          background: '#111827',
+          background: '#0F2440',
           border: `1px solid ${themeColor}`,
           borderRadius: '8px',
           padding: '12px 16px',
@@ -441,7 +441,7 @@ export function RookGuide({ guideId, variant = 'tooltip', position = 'bottom' })
           transform: 'translateX(-50%) rotate(45deg)',
           width: '12px',
           height: '12px',
-          background: '#111827',
+          background: '#0F2440',
           border: `1px solid ${themeColor}`,
           borderTop: position === 'top' ? `1px solid ${themeColor}` : 'none',
           borderLeft: position === 'top' ? `1px solid ${themeColor}` : 'none',
@@ -457,7 +457,7 @@ export function RookGuide({ guideId, variant = 'tooltip', position = 'bottom' })
     <div
       data-testid={`rook-guide-${guideId}`}
       style={{
-        background: 'linear-gradient(135deg, #111827 0%, #0B0F19 100%)',
+        background: 'linear-gradient(135deg, #0F2440 0%, #0A1628 100%)',
         border: `1px solid ${themeColor}`,
         borderLeft: `4px solid ${themeColor}`,
         padding: '20px',

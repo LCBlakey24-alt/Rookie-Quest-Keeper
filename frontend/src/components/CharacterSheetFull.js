@@ -17,7 +17,7 @@ import CombatLog from './CombatLog';
 import RookHints from './RookHints';
 import { canCharacterCastSpells } from '../data/spellDatabase';
 import { CLASS_RESOURCES, getResourceMax, getRestoreType } from '../data/classResources';
-import DiceRoller3D from './ui/DiceRoller3D';
+import DiceRollFlicker from './DiceRollFlicker';
 import DiceRollHistory from './DiceRollHistory';
 import { getConditionRollEffect, getConditionIndicator, CONDITION_EFFECTS } from '../data/conditionEffects';
 import { getClassAccent } from '../lib/theme';
@@ -46,6 +46,7 @@ const CHARACTER_TABS = [
 
 const getModifier = (score) => Math.floor((score - 10) / 2);
 const formatModifier = (mod) => (mod >= 0 ? `+${mod}` : `${mod}`);
+const getTempHp = (source) => Math.max(0, Number(source?.temporary_hit_points ?? source?.temp_hp ?? 0) || 0);
 
 const SKILLS = [
   { name: 'Acrobatics', ability: 'dexterity' },
@@ -287,8 +288,8 @@ export default function CharacterSheetFull() {
     });
   };
   
-  // 3D Dice Roller state
-  const [show3DDice, setShow3DDice] = useState(false);
+  // Compact dice result state
+  const [showDiceFlicker, setShowDiceFlicker] = useState(false);
   const [diceRolls, setDiceRolls] = useState([]);
   const [diceLabel, setDiceLabel] = useState('');
   const [diceModifier, setDiceModifier] = useState(0);
@@ -297,7 +298,7 @@ export default function CharacterSheetFull() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [diceHistory, setDiceHistory] = useState([]);
 
-  // 3D Dice Roll Function - supports compound notation like "2d6+1d4" or "1d20+1d4"
+  // Dice roll function - supports compound notation like "2d6+1d4" or "1d20+1d4"
   // rollType: 'normal', 'advantage', 'disadvantage'
   const rollDice = (notation, modifier = 0, label = '', rollType = 'normal') => {
     // Parse compound dice: "2d6+1d4+3" or simple "1d20"
@@ -352,7 +353,7 @@ export default function CharacterSheetFull() {
     setDiceTotal(total);
     setDiceCrit(isCrit);
     setDiceFumble(isFumble);
-    setShow3DDice(true);
+    setShowDiceFlicker(true);
 
     setDiceHistory(prev => [{
       label: strLabel || notation, total, modifier: totalMod,
@@ -394,7 +395,7 @@ export default function CharacterSheetFull() {
       const charMaxHp = response.data.max_hit_points ?? response.data.max_hp ?? 10;
       const charHp = response.data.current_hit_points ?? response.data.hp ?? charMaxHp;
       setCurrentHp(Math.min(charHp, charMaxHp));
-      setTempHp(response.data.temporary_hit_points || 0);
+      setTempHp(getTempHp(response.data));
       // Hydrate spell slot usage from server so it survives reloads
       setUsedSlots(response.data.used_spell_slots || {});
     } catch (err) {
@@ -464,6 +465,7 @@ export default function CharacterSheetFull() {
         if (damage <= tempHp) {
           const newTempHp = tempHp - damage;
           setTempHp(newTempHp);
+          setCharacter(prev => prev ? { ...prev, temporary_hit_points: newTempHp, temp_hp: newTempHp } : prev);
           try {
             await axios.patch(`${API}/characters/${characterId}`, { temporary_hit_points: newTempHp });
           } catch {
@@ -475,6 +477,7 @@ export default function CharacterSheetFull() {
           setTempHp(0);
           const newHp = Math.max(0, currentHp - remainingDamage);
           setCurrentHp(newHp);
+          setCharacter(prev => prev ? { ...prev, current_hit_points: newHp, temporary_hit_points: 0, temp_hp: 0 } : prev);
           try {
             await axios.patch(`${API}/characters/${characterId}`, {
               current_hit_points: newHp,
@@ -491,6 +494,7 @@ export default function CharacterSheetFull() {
     // Healing or direct damage without temp HP
     const newHp = Math.max(0, Math.min(maxHp, currentHp + delta));
     setCurrentHp(newHp);
+    setCharacter(prev => prev ? { ...prev, current_hit_points: newHp } : prev);
     try {
       await axios.patch(`${API}/characters/${characterId}`, { current_hit_points: newHp });
     } catch (err) {
@@ -501,6 +505,7 @@ export default function CharacterSheetFull() {
   const handleTempHpChange = (delta) => {
     const newTempHp = Math.max(0, tempHp + delta);
     setTempHp(newTempHp);
+    setCharacter(prev => prev ? { ...prev, temporary_hit_points: newTempHp, temp_hp: newTempHp } : prev);
     axios.patch(`${API}/characters/${characterId}`, { temporary_hit_points: newTempHp }).catch(() => {
       console.error('Failed to update temporary HP');
     });
@@ -525,26 +530,45 @@ export default function CharacterSheetFull() {
   // Resource & Rest handlers
   const handleUpdateCharacter = async (updates) => {
     const prevSnapshot = character;
+    const hasHpUpdate = updates && ('current_hit_points' in updates || 'hp' in updates);
+    const hasTempHpUpdate = updates && ('temporary_hit_points' in updates || 'temp_hp' in updates);
+    const normalizedTempHp = hasTempHpUpdate ? getTempHp(updates) : null;
+    const localUpdates = hasTempHpUpdate
+      ? { ...updates, temporary_hit_points: normalizedTempHp, temp_hp: normalizedTempHp }
+      : updates;
+    const apiUpdates = hasTempHpUpdate
+      ? { ...updates, temporary_hit_points: normalizedTempHp }
+      : updates;
+    if (apiUpdates && 'temp_hp' in apiUpdates) delete apiUpdates.temp_hp;
+
     // Combat Log: track condition + exhaustion changes
-    if (updates && 'conditions' in updates && Array.isArray(updates.conditions)) {
+    if (localUpdates && 'conditions' in localUpdates && Array.isArray(localUpdates.conditions)) {
       const before = new Set(character?.conditions || []);
-      const after = new Set(updates.conditions);
+      const after = new Set(localUpdates.conditions);
       after.forEach(c => { if (!before.has(c)) logEvent('condition', `Gained condition: ${c}`); });
       before.forEach(c => { if (!after.has(c)) logEvent('condition', `Removed condition: ${c}`); });
     }
-    if (updates && 'exhaustion_level' in updates) {
+    if (localUpdates && 'exhaustion_level' in localUpdates) {
       const before = character?.exhaustion_level || 0;
-      const after = updates.exhaustion_level || 0;
+      const after = localUpdates.exhaustion_level || 0;
       if (after !== before) logEvent('condition', `Exhaustion ${before} → ${after}`);
     }
-    setCharacter(prev => prev ? { ...prev, ...updates } : prev);
+    if (hasHpUpdate) {
+      const nextHp = localUpdates.current_hit_points ?? localUpdates.hp;
+      if (nextHp !== undefined) setCurrentHp(Math.max(0, Math.min(maxHp, Number(nextHp) || 0)));
+    }
+    if (hasTempHpUpdate) setTempHp(normalizedTempHp);
+
+    setCharacter(prev => prev ? { ...prev, ...localUpdates } : prev);
     try {
-      await axios.patch(`${API}/characters/${characterId}`, updates);
+      await axios.patch(`${API}/characters/${characterId}`, apiUpdates);
     } catch (err) {
       console.error('Failed to persist character update:', err);
       toast.error('Could not save character update');
       // Roll back optimistic update so UI matches server
       setCharacter(prevSnapshot);
+      if (hasHpUpdate) setCurrentHp(prevSnapshot?.current_hit_points ?? prevSnapshot?.hp ?? currentHp);
+      if (hasTempHpUpdate) setTempHp(getTempHp(prevSnapshot));
       // Rethrow so callers (e.g. Learn Spell) can show real error toasts
       throw err;
     }
@@ -600,6 +624,7 @@ export default function CharacterSheetFull() {
       const restedCharacter = { ...response.data, resources: restoredResources };
       setCharacter(restedCharacter);
       setCurrentHp(restedCharacter.current_hit_points ?? restedCharacter.hp ?? currentHp);
+      setTempHp(getTempHp(restedCharacter));
 
       if (Object.keys(restoredResources).length > 0) {
         axios.put(`${API}/characters/${characterId}/resources`, restoredResources)
@@ -1352,10 +1377,10 @@ export default function CharacterSheetFull() {
         ))}
       </div>
       
-      {/* 3D Dice Roller Overlay */}
-      <DiceRoller3D 
-        isOpen={show3DDice}
-        onClose={() => setShow3DDice(false)}
+      {/* Compact dice result */}
+      <DiceRollFlicker
+        isOpen={showDiceFlicker}
+        onClose={() => setShowDiceFlicker(false)}
         rolls={diceRolls}
         label={diceLabel}
         modifier={diceModifier}

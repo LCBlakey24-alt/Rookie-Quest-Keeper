@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { TrendingUp, Sword, Shield, BookOpen, Star, Heart, ChevronDown, ChevronUp, Sparkles, Trophy, Target, Scroll } from 'lucide-react';
+import { TrendingUp, Sword, Shield, BookOpen, Star, ChevronDown, ChevronUp, Sparkles, Trophy, Target, Scroll } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -110,8 +110,6 @@ export default function PlayerProgressionDashboard({ character, characterId }) {
   const level = character.level || 1;
   const className = character.character_class || 'Adventurer';
   const race = character.race || 'Unknown';
-  const hp = character.current_hit_points || character.hp || 0;
-  const maxHp = character.max_hit_points || character.max_hp || hp;
   const ac = character.armor_class || 10;
   const spellCount = (character.spells_known?.length || 0) + (character.cantrips_known?.length || 0);
   const itemCount = character.inventory?.length || 0;
@@ -225,20 +223,18 @@ export default function PlayerProgressionDashboard({ character, characterId }) {
 
       {/* Quick Stats Row */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <StatCard icon={Heart} label="HP" value={`${hp}/${maxHp}`} color={theme.green} />
         <StatCard icon={Shield} label="AC" value={ac} color={theme.blue} />
         <StatCard icon={BookOpen} label="Spells" value={spellCount} color={theme.purple} />
         <StatCard icon={Sword} label="Items" value={itemCount} color={theme.pink} />
         <StatCard icon={Star} label="Gold" value={gold} color={theme.gold} />
       </div>
 
-      {/* HP & Resources */}
+      {/* Rest Resources */}
       <div style={{ ...cardStyle }}>
         <div style={{ fontSize: '10px', fontWeight: 700, color: theme.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: '10px' }}>
-          Vitals
+          Rest Resources
         </div>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          <HPBar current={hp} max={maxHp} label="Hit Points" />
           <HPBar
             current={character.hit_dice_remaining || level}
             max={level}

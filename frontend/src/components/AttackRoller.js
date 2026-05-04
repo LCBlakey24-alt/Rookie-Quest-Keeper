@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sword, Target, Sparkles, Dices, X, Check, Shield, Zap } from 'lucide-react';
+import DiceRollFlicker from './DiceRollFlicker';
 
 // Parse dice notation from ability text
 function parseDiceFromText(text) {
@@ -94,6 +95,7 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
   const [numAttacks, setNumAttacks] = useState(1);
   const [selectedAttack, setSelectedAttack] = useState(null);
   const [critAnimation, setCritAnimation] = useState(false);
+  const [rollFlicker, setRollFlicker] = useState(null);
   
   const attacks = parseAttacks(creature);
 
@@ -133,6 +135,15 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
     
     setAttackResults(results);
     setDamageResults(null);
+    const displayRoll = results[results.length - 1];
+    setRollFlicker({
+      label: results.length > 1 ? `${selectedAttack.name} attacks` : `${selectedAttack.name} attack`,
+      rolls: [{ sides: 20, result: displayRoll.roll }],
+      modifier: displayRoll.bonus,
+      total: displayRoll.total,
+      isCrit: displayRoll.isCrit,
+      isFumble: displayRoll.isFumble,
+    });
   };
 
   const rollDamage = () => {
@@ -174,11 +185,24 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
       totalDamage += attackDamage;
     });
     
-    setDamageResults({
+    const nextDamageResults = {
       totalDamage,
       rolls,
       hitsCount: hits.length,
       critsCount: hits.filter(h => h.isCrit).length
+    };
+
+    setDamageResults(nextDamageResults);
+    setRollFlicker({
+      label: `${selectedAttack.name} damage`,
+      rolls: rolls.flatMap(attack => attack.details.flatMap(detail => {
+        const sides = Number(detail.dice.match(/d(\d+)/i)?.[1]) || 6;
+        return detail.rolls.map(result => ({ sides, result }));
+      })),
+      modifier: 0,
+      total: totalDamage,
+      isCrit: nextDamageResults.critsCount > 0,
+      isFumble: false,
     });
   };
 
@@ -585,6 +609,17 @@ function AttackRoller({ creature, onDamageApplied, onClose }) {
           20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
       `}</style>
+      <DiceRollFlicker
+        isOpen={!!rollFlicker}
+        onClose={() => setRollFlicker(null)}
+        rolls={rollFlicker?.rolls || []}
+        label={rollFlicker?.label}
+        modifier={rollFlicker?.modifier || 0}
+        total={rollFlicker?.total || 0}
+        isCrit={rollFlicker?.isCrit}
+        isFumble={rollFlicker?.isFumble}
+        theme="gm"
+      />
     </div>
   );
 }

@@ -68,40 +68,15 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// Conditional Dice Roller - only shows on gameplay pages, with correct theme
-function ConditionalDiceRoller({ isAuthenticated, forceShow, onToggle }) {
-  const location = useLocation();
-  
-  // Pages where dice roller should NOT appear
-  const excludedPaths = ['/', '/auth', '/home', '/pricing', '/admin', '/account', '/reset-password'];
-  
-  // GM paths use red theme, everything else uses blue (player)
-  const gmPaths = ['/gm', '/campaigns'];
-  const isGMPage = gmPaths.some(path => location.pathname.startsWith(path));
-  const mode = isGMPage ? 'gm' : 'player';
-  
-  // Check if current path should show dice roller
-  const shouldShowDice = isAuthenticated && !excludedPaths.some(path => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
-  });
-  
-  // Show if forced or should show based on path
-  return (shouldShowDice || forceShow) ? <FloatingDiceRoller mode={mode} onToggle={onToggle} /> : null;
-}
-
 // Keyboard shortcuts wrapper component
 function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   const [showHelp, setShowHelp] = useState(false);
-  const [showDice, setShowDice] = useState(false);
   const location = useLocation();
   
   // Check if on a page where shortcuts should be active
   const shortcutsEnabled = isAuthenticated && !['/', '/auth'].includes(location.pathname);
   
   const handleToggleDice = useCallback(() => {
-    setShowDice(prev => !prev);
-    // Find and click the dice roller button if it exists
     const diceButton = document.querySelector('[data-testid="dice-roller-toggle"]');
     if (diceButton) diceButton.click();
   }, []);
@@ -343,8 +318,6 @@ function App() {
               } 
             />
           </Routes>
-          {/* Floating Dice Roller - Disabled to reduce UI clutter */}
-          {/* <ConditionalDiceRoller isAuthenticated={isAuthenticated} /> */}
           </KeyboardShortcutsProvider>
           </SubscriptionProvider>
         </ThemeProvider>

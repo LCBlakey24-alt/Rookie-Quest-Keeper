@@ -24,7 +24,7 @@ STYLE_PROMPTS = {
     ),
     "painterly": (
         "painterly fantasy illustration, oil painting style, soft brushwork, "
-        "Critical Role style, pen-and-ink watercolor feel, tabletop RPG art"
+        "original pen-and-ink watercolor feel, tabletop RPG art, not in the style of any specific show, brand, or living artist"
     ),
     "stylized": (
         "stylized fantasy portrait, bold line art, vibrant saturated colors, "

@@ -272,12 +272,12 @@ function RookSuggestionPopup({
     >
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)',
+          background: 'linear-gradient(135deg, rgba(15, 36, 64, 0.96) 0%, rgba(10, 22, 40, 0.96) 100%)',
           backdropFilter: 'blur(16px)',
-          border: '2px solid rgba(168, 85, 247, 0.4)',
-          borderRadius: '16px',
+          border: '2px solid rgba(212, 160, 23, 0.35)',
+          borderRadius: '10px',
           padding: '16px',
-          boxShadow: '0 8px 32px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35), 0 0 30px rgba(212, 160, 23, 0.12)'
         }}
       >
         {/* Header */}
@@ -286,13 +286,13 @@ function RookSuggestionPopup({
             width: '40px',
             height: '40px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #a855f7 0%, #3b82f6 100%)',
+            background: 'linear-gradient(135deg, #D4A017 0%, #F5C542 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <Lightbulb size={20} color="#fff" />
+            <Lightbulb size={20} color="#0A1628" />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ 
@@ -302,20 +302,20 @@ function RookSuggestionPopup({
               marginBottom: '4px'
             }}>
               <span style={{ 
-                color: '#a855f7', 
+                color: '#D4A017',
                 fontSize: '10px', 
-                fontWeight: '400',
+                fontWeight: '800',
                 textTransform: 'uppercase',
                 letterSpacing: '1px'
               }}>
                 ROOK Says
               </span>
-              <Sparkles size={12} color="#a855f7" />
+              <Sparkles size={12} color="#D4A017" />
             </div>
             <h4 style={{ 
               color: '#fff', 
               fontSize: '15px', 
-              fontWeight: '400',
+              fontWeight: '800',
               fontFamily: "'Montserrat', sans-serif",
               margin: 0
             }}>
@@ -352,15 +352,15 @@ function RookSuggestionPopup({
         {/* Tip */}
         {suggestion.tip && (
           <div style={{
-            background: 'rgba(168, 85, 247, 0.15)',
+            background: 'rgba(212, 160, 23, 0.12)',
             borderRadius: '8px',
             padding: '10px 12px',
             display: 'flex',
             alignItems: 'flex-start',
             gap: '8px'
           }}>
-            <ChevronRight size={14} color="#a855f7" style={{ marginTop: '2px', flexShrink: 0 }} />
-            <span style={{ color: '#c4b5fd', fontSize: '12px', lineHeight: '1.4' }}>
+            <ChevronRight size={14} color="#D4A017" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span style={{ color: '#F5C542', fontSize: '12px', lineHeight: '1.4' }}>
               {suggestion.tip}
             </span>
           </div>
