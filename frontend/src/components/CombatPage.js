@@ -132,7 +132,9 @@ function CombatPage() {
       const img = new window.Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => setMapImage(img);
-      img.onerror = () => console.log('Failed to load map');
+      img.onerror = () => {
+        // Image failed to load - use fallback
+      };
       img.src = scenarioData.map_url;
     }
     

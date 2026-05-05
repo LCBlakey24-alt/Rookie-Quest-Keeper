@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Heart, Shield, Zap, Swords, BookOpen, Backpack, ChevronLeft,
-  Plus, Minus, Skull, Wind, Edit3, Dices, Target, Sparkles, ArrowUp, User
+  Wind, Edit3, Dices, Sparkles, ArrowUp, User
 } from 'lucide-react';
 import LevelUpWizard from './LevelUpWizard';
 import CharacterInventory from './CharacterInventory';

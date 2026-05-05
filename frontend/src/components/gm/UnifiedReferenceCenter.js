@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Sword, Shield, FlaskConical, Sparkles, AlertCircle, ChevronDown, ChevronUp, Dices, BookOpen } from 'lucide-react';
 import { ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
-import { POTIONS, MAGIC_ITEMS } from '@/data/itemsDatabase';
+import { POTION_ITEMS, MAGIC_ITEMS } from '@/data/itemsDatabase';
 import { CONDITION_EFFECTS } from '@/data/conditionEffects';
 import { SPELL_DATABASE } from '@/data/spellDatabase';
 
@@ -38,7 +38,7 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
       ...(ARMOR.heavy || []),
       ...(ARMOR.shields || [])
     ].map(a => ({ ...a, type: 'armor' }));
-    const potions = (POTIONS || []).map(p => ({ ...p, type: 'potion' }));
+    const potions = (POTION_ITEMS || []).map(p => ({ ...p, type: 'potion' }));
     const items = (MAGIC_ITEMS || [])
       .filter(i => i.type !== 'Potion')
       .map(i => ({ ...i, type: 'item' }));

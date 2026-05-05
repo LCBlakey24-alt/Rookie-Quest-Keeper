@@ -181,7 +181,6 @@ function CombatTokenGenerator({
       setTokens(existingTokens);
     } catch (error) {
       // Tokens endpoint might not exist yet
-      console.log('No existing tokens found');
     }
   };
   
