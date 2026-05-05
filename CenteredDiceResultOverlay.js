@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // Assuming framer-motion is used for animations
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * CenteredDiceResultOverlay
- * Shows the roll result in the center of the screen with a "hold" duration.
+ * Shows the roll result in the center of the screen with a reveal delay
+ * to prevent the "spoiler" effect of seeing the total too early.
  */
 const CenteredDiceResultOverlay = ({ result, type, isVisible, onComplete, theme }) => {
   const [show, setShow] = useState(isVisible);
+  const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
       setShow(true);
-      // Hold the number on screen for 5 seconds for better visibility
+      setIsRevealed(false);
+
+      // Delay the reveal of the number for 1.2 seconds (Dice animation time)
+      const revealTimer = setTimeout(() => {
+        setIsRevealed(true);
+      }, 1200);
+
+      // Hold the number on screen for 6 seconds total
       const timer = setTimeout(() => {
         setShow(false);
         if (onComplete) onComplete();
-      }, 5000);
-      return () => clearTimeout(timer);
+      }, 6000);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(revealTimer);
+      };
     }
   }, [isVisible, onComplete]);
 
@@ -63,11 +75,27 @@ const CenteredDiceResultOverlay = ({ result, type, isVisible, onComplete, theme 
               letterSpacing: '0.1em',
               marginBottom: '4px'
             }}>
-              {type || 'ROLL RESULT'}
+              {isRevealed ? (type || 'ROLL RESULT') : 'ROLLING...'}
             </div>
-            <div style={{ fontSize: '72px', fontWeight: '900', color: '#fff', lineHeight: 1 }}>
-              {result}
-            </div>
+            <AnimatePresence mode="wait">
+              {isRevealed ? (
+                <motion.div
+                  key="result"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{ fontSize: '72px', fontWeight: '900', color: '#fff', lineHeight: 1 }}
+                >
+                  {result}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="loading"
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  style={{ width: '40px', height: '40px', border: `4px solid ${theme.accent}`, borderTopColor: 'transparent', borderRadius: '50%' }}
+                />
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       )}

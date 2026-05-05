@@ -1,35 +1,86 @@
 import React from 'react';
+import { Star, Shield, Sword, Globe } from 'lucide-react';
 
-const AbilityCard = ({ label, score, theme }) => {
+const AbilityBlock = ({ label, score, theme, skills = [], character }) => {
   const mod = Math.floor((score - 10) / 2);
   const modStr = mod >= 0 ? `+${mod}` : mod;
+  const profBonus = character.proficiency_bonus || 2;
+
+  // Helper to determine skill modifier
+  const getSkillMod = (skillName) => {
+    const skillData = character.skills?.[skillName.toLowerCase()];
+    let total = mod;
+    if (skillData?.proficient) total += profBonus;
+    if (skillData?.expertise) total += profBonus;
+    return total >= 0 ? `+${total}` : total;
+  };
 
   return (
     <div style={{
       background: 'rgba(255, 255, 255, 0.03)',
-      border: `1px solid ${theme.border}`,
+      border: `1px solid ${theme.border}44`,
       borderRadius: '8px',
-      padding: '10px',
+      padding: '12px',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      gap: '4px'
+      gap: '8px',
+      marginBottom: '12px',
+      transition: 'transform 0.2s',
+      cursor: 'default'
     }}>
-      <span style={{ fontSize: '10px', fontWeight: '700', color: theme.text.muted, textTransform: 'uppercase' }}>{label}</span>
-      <div style={{ fontSize: '20px', fontWeight: '800', color: theme.accent || '#D4A017' }}>{modStr}</div>
-      <div style={{ fontSize: '11px', color: theme.text.primary, background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{score}</div>
+      {/* Main Stat Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${theme.border}33`, paddingBottom: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '10px', fontWeight: '800', color: theme.text.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+          <span style={{ fontSize: '11px', color: theme.text.primary, opacity: 0.8 }}>Score: {score}</span>
+        </div>
+        <div style={{ fontSize: '24px', fontWeight: '900', color: theme.accent || '#D4A017' }}>{modStr}</div>
+      </div>
+
+      {/* Nested Skills */}
+      {skills.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+          {skills.map(skill => {
+            const isProficient = character.skills?.[skill.toLowerCase()]?.proficient;
+            const isExpert = character.skills?.[skill.toLowerCase()]?.expertise;
+            
+            return (
+              <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    border: `1px solid ${theme.accent}`,
+                    background: isProficient ? theme.accent : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {isExpert && <Star size={4} color="#0A1628" fill="#0A1628" />}
+                  </div>
+                  <span style={{ color: theme.text.primary, opacity: isProficient ? 1 : 0.6 }}>{skill}</span>
+                </div>
+                <span style={{ fontWeight: '700', color: isProficient ? theme.accent : theme.text.muted }}>
+                  {getSkillMod(skill)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
 
 const DesktopSidebar = ({ character, theme }) => {
-  const abilities = [
-    { label: 'Str', val: character.strength || 10 },
-    { label: 'Dex', val: character.dexterity || 10 },
-    { label: 'Con', val: character.constitution || 10 },
-    { label: 'Int', val: character.intelligence || 10 },
-    { label: 'Wis', val: character.wisdom || 10 },
-    { label: 'Cha', val: character.charisma || 10 },
+  const abilityData = [
+    { label: 'Strength', key: 'strength', skills: ['Athletics'] },
+    { label: 'Dexterity', key: 'dexterity', skills: ['Acrobatics', 'Sleight of Hand', 'Stealth'] },
+    { label: 'Constitution', key: 'constitution', skills: [] },
+    { label: 'Intelligence', key: 'intelligence', skills: ['Arcana', 'History', 'Investigation', 'Nature', 'Religion'] },
+    { label: 'Wisdom', key: 'wisdom', skills: ['Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival'] },
+    { label: 'Charisma', key: 'charisma', skills: ['Deception', 'Intimidation', 'Performance', 'Persuasion'] },
   ];
 
   return (
@@ -37,37 +88,26 @@ const DesktopSidebar = ({ character, theme }) => {
       width: '320px',
       background: 'rgba(3, 0, 20, 0.5)',
       borderRight: `1px solid ${theme.border}`,
-      padding: '24px',
-      height: 'calc(100vh - 160px)',
-      position: 'sticky',
-      top: '160px',
+      padding: '32px 24px',
+      height: '100%',
       overflowY: 'auto',
       scrollbarWidth: 'none'
     }}>
-      {/* Ability Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '32px' }}>
-        {abilities.map(a => <AbilityCard key={a.label} label={a.label} score={a.val} theme={theme} />)}
-      </div>
-
-      {/* Skills Section */}
-      <div style={{ marginBottom: '32px' }}>
-        <h3 style={{ fontSize: '12px', fontWeight: '800', color: theme.accent, textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '0.05em' }}>
-          Skills & Proficiencies
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {['Acrobatics', 'Athletics', 'Insight', 'Perception', 'Stealth'].map(skill => (
-            <div key={skill} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              fontSize: '13px',
-              padding: '6px 0',
-              borderBottom: `1px solid rgba(255,255,255,0.05)`
-            }}>
-              <span style={{ color: theme.text.primary }}>{skill}</span>
-              <span style={{ fontWeight: '700', color: theme.accent }}>+4</span>
-            </div>
-          ))}
-        </div>
+      <h3 style={{ fontSize: '12px', fontWeight: '800', color: theme.accent, textTransform: 'uppercase', marginBottom: '20px', letterSpacing: '0.1em' }}>
+        Abilities & Skills
+      </h3>
+      
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {abilityData.map(a => (
+          <AbilityBlock 
+            key={a.key} 
+            label={a.label} 
+            score={character[a.key] || 10} 
+            skills={a.skills} 
+            theme={theme}
+            character={character}
+          />
+        ))}
       </div>
 
       {/* Passive Scores */}
@@ -87,6 +127,36 @@ const DesktopSidebar = ({ character, theme }) => {
             <span style={{ fontSize: '13px', fontWeight: '800', color: theme.accent }}>{p.val}</span>
           </div>
         ))}
+      </div>
+
+      {/* Proficiencies & Languages */}
+      <div style={{ marginTop: '32px' }}>
+        <h3 style={{ fontSize: '11px', fontWeight: '800', color: theme.accent, textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '0.1em' }}>
+          Training
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Shield size={14} color={theme.text.muted} />
+            <div>
+              <div style={{ fontSize: '10px', color: theme.text.muted, fontWeight: '700' }}>ARMOR</div>
+              <div style={{ fontSize: '12px', color: theme.text.primary }}>Light, Medium, Shields</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Sword size={14} color={theme.text.muted} />
+            <div>
+              <div style={{ fontSize: '10px', color: theme.text.muted, fontWeight: '700' }}>WEAPONS</div>
+              <div style={{ fontSize: '12px', color: theme.text.primary }}>Simple, Martial</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Globe size={14} color={theme.text.muted} />
+            <div>
+              <div style={{ fontSize: '10px', color: theme.text.muted, fontWeight: '700' }}>LANGUAGES</div>
+              <div style={{ fontSize: '12px', color: theme.text.primary }}>Common, Elvish</div>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );

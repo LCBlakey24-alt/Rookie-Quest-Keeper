@@ -34,18 +34,16 @@ const OverviewTabDashboard = ({ character, theme, isMobile = false }) => {
         </div>
       </div>
 
-      {/* Proficiencies & Languages */}
+      {/* Character Notes / Features Summary */}
       <div style={{ background: theme.bg.panel, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
-        <h4 style={{ color: theme.accent, fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '16px' }}>Proficiencies & Languages</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '24px' }}>
-          <div>
-            <span style={{ fontSize: '11px', color: theme.text.muted, display: 'block', marginBottom: '8px' }}>ARMOR & WEAPONS</span>
-            <div style={{ fontSize: '13px', color: theme.text.primary }}>Light Armor, Medium Armor, Shields, Martial Weapons</div>
-          </div>
-          <div>
-            <span style={{ fontSize: '11px', color: theme.text.muted, display: 'block', marginBottom: '8px' }}>LANGUAGES</span>
-            <div style={{ fontSize: '13px', color: theme.text.primary }}>Common, Elvish, Dwarvish</div>
-          </div>
+        <h4 style={{ color: theme.accent, fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '12px' }}>Active Features</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {['Second Wind', 'Action Surge', 'Combat Superiority'].map(feat => (
+            <div key={feat} style={{ padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '13px', fontWeight: '700' }}>{feat}</div>
+              <div style={{ fontSize: '11px', color: theme.text.muted }}>Available until rest</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

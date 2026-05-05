@@ -26,16 +26,16 @@ const DesktopCharacterLayout = ({ character, theme, activeTab, onTabChange, chil
       color: theme.text.primary
     }}>
       {/* 1. TOP STICKY HEADER */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
         <DesktopStatHeader character={character} theme={theme} />
         
         {/* STICKY TABS */}
         <div style={{ 
           background: theme.bg.panel, 
           borderBottom: `1px solid ${theme.border}`,
-          padding: '0 320px 0 32px', // Align tabs to start after the sidebar width
+          paddingLeft: '320px', // Push tabs to align with the main content area
           display: 'flex',
-          gap: '24px'
+          gap: '32px'
         }}>
           {['Overview', 'Combat', 'Inventory', 'Story', 'Journal', 'Notes'].map(tab => (
             <button
@@ -60,9 +60,16 @@ const DesktopCharacterLayout = ({ character, theme, activeTab, onTabChange, chil
       </div>
 
       {/* 2 & 3. SIDEBAR AND MAIN CONTENT */}
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', flex: 1 }}>
-        <DesktopSidebar character={character} theme={theme} />
-        <main style={{ padding: '24px', overflowY: 'auto' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '320px 1fr', 
+        flex: 1,
+        height: 'calc(100vh - 140px)' // Account for header + tabs height
+      }}>
+        <div style={{ position: 'sticky', top: '140px', height: '100%' }}>
+          <DesktopSidebar character={character} theme={theme} />
+        </div>
+        <main style={{ padding: '32px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)' }}>
           {children}
         </main>
       </div>
