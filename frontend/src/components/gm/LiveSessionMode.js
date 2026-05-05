@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Zap, Dices, Users, Swords, BookOpen, Clock, Sparkles,
-  Volume2, Map, FileText, ChevronRight, ChevronLeft, Settings, Sword
+  Volume2, FileText, ChevronRight
 } from 'lucide-react';
+import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 
 // Quick access panel for fast session control
 export default function LiveSessionMode({ 
   theme, 
-  campaign, 
   players, 
   calendar,
   onRollDice,
@@ -17,7 +17,6 @@ export default function LiveSessionMode({
   isActive,
   onToggle
 }) {
-  const [recentRolls, setRecentRolls] = useState([]);
   const [quickNotes, setQuickNotes] = useState('');
   
   // Quick action buttons
@@ -227,6 +226,24 @@ export default function LiveSessionMode({
         {/* Player Quick View */}
         <PlayerQuickView />
 
+        {/* Unified Reference */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: theme.text.muted,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            marginBottom: '8px'
+          }}>
+            Reference
+          </div>
+          <UnifiedReferenceCenter
+            isCompact
+            onRollDamage={(notation, label) => onRollDice?.(notation, label)}
+          />
+        </div>
+
         {/* Quick Note Input */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ 
@@ -274,7 +291,7 @@ export default function LiveSessionMode({
             {[
               { id: 'combat', icon: Swords, label: 'Combat' },
               { id: 'npcs', icon: Users, label: 'NPCs' },
-              { id: 'equipment', icon: Sword, label: 'Equipment' },
+              { id: 'reference-hub', icon: BookOpen, label: 'Reference' },
               { id: 'notes', icon: FileText, label: 'Notes' },
               { id: 'sound', icon: Volume2, label: 'Soundboard' },
             ].map(nav => (

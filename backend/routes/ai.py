@@ -74,8 +74,9 @@ def edition_prompt_fragment(campaign: Optional[Dict[str, Any]]) -> str:
 
 AI_SOURCE_BOUNDARY = """
 CAMPAIGN SOURCE BOUNDARY:
-- Use only the GM's saved campaign data, uploaded/custom rules, the current user prompt, and SRD/OGL mechanics as source material.
-- Do not introduce named worlds, factions, characters, places, deities, plotlines, or lore from published settings, actual-play shows, novels, games, films, or third-party IP unless those exact details appear in the provided campaign context or user prompt.
+- Use only the GM's saved campaign data, uploaded/custom rules, and SRD/OGL mechanics as factual source material.
+- Treat the current user prompt as task direction only; it is not permission to import external setting lore that has not been saved to the campaign.
+- Do not introduce named worlds, factions, characters, places, deities, plotlines, or lore from published settings, actual-play shows, novels, games, films, or third-party IP unless those exact details appear in saved campaign context or uploaded/custom rules.
 - Treat selected genre/tone labels as mood only, not lore. Create original alternatives without naming or copying protected settings or characters.
 - If campaign context is thin, keep suggestions generic/original or ask for the missing detail instead of filling gaps with known setting lore.
 - For player-facing output, do not reveal GM-only secrets unless the provided source text explicitly marks them as player-known.

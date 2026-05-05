@@ -12,7 +12,6 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 import DiceRollHistory from './DiceRollHistory';
 import LootGenerator from '@/components/LootGenerator';
 import PartyInventory from '@/components/PartyInventory';
-import { QuickReferenceModal } from '@/components/QuickReference';
 import RandomTables from '@/components/RandomTables';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
 import TronBackground from '@/components/TronBackground';
@@ -32,7 +31,6 @@ import AICoGM from '@/components/gm/AICoGM';
 import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import SessionTimer from '@/components/gm/SessionTimer';
 import EventSystem from '@/components/gm/EventSystem';
-import EquipmentReferenceTab from '@/components/gm/EquipmentReferenceTab';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -48,7 +46,6 @@ function GMScreen({ username }) {
   const [npcs, setNPCs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scenarios, setScenarios] = useState([]);
-  const [showQuickRef, setShowQuickRef] = useState(false);
   const [calendar, setCalendar] = useState(null);
   const [sessionNotes, setSessionNotes] = useState([]);
   const [quickNote, setQuickNote] = useState('');
@@ -573,7 +570,7 @@ function GMScreen({ username }) {
                   padding: '0 10px 0 30px',
                   borderRadius: 8,
                   border: `1px solid ${theme.border}`,
-                  background: 'rgba(0,0,0,0.22)',
+                  background: theme.bg.surface,
                   color: theme.text.primary,
                   fontSize: 12,
                   outline: 'none',
@@ -657,7 +654,7 @@ function GMScreen({ username }) {
               })}
             </div>
             <SessionTimer theme={theme} />
-            <Button onClick={() => setShowQuickRef(true)} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(212, 160, 23, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary }}>
+            <Button onClick={() => setActiveTab('reference-hub')} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(212, 160, 23, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary }}>
               <BookOpen size={16} /> Reference
             </Button>
             <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: '10px', color: '#0A1628' }}>
@@ -816,16 +813,6 @@ function GMScreen({ username }) {
                 setSessionNotes(prev => [...prev, newNote]);
                 toast.success('Added to session notes!');
               }} />
-            </div>
-          )}
-
-          {/* EQUIPMENT REFERENCE TAB */}
-          {activeTab === 'equipment' && (
-            <div>
-              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Sword size={24} style={{ color: theme.accent.gm }} /> Equipment Reference
-              </h2>
-              <EquipmentReferenceTab />
             </div>
           )}
 
@@ -1037,7 +1024,18 @@ function GMScreen({ username }) {
         </div>
       </div>
 
-      <QuickReferenceModal isOpen={showQuickRef} onClose={() => setShowQuickRef(false)} />
+      <LiveSessionMode
+        theme={theme}
+        campaign={campaign}
+        players={players}
+        calendar={calendar}
+        onRollDice={rollQuickDice}
+        onQuickCombat={() => setShowQuickCombat(true)}
+        onOpenTab={setActiveTab}
+        onGenerateContent={(type) => setActiveTab(type === 'npc' ? 'npcs' : 'planner')}
+        isActive={showLiveSession}
+        onToggle={() => setShowLiveSession(prev => !prev)}
+      />
       
       {/* Quick Combat Modal */}
       <QuickCombatModal

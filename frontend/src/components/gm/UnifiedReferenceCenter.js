@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Sword, Shield, Potion, Sparkles, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { WEAPONS, ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
+import { Search, Sword, Shield, FlaskConical, Sparkles, AlertCircle, ChevronDown, ChevronUp, Dices, BookOpen } from 'lucide-react';
+import { ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
 import { POTIONS, MAGIC_ITEMS } from '@/data/itemsDatabase';
-import { SPELLS_BY_LEVEL } from '@/data/spellDatabase';
-import { CONDITIONS, CONDITION_EFFECTS } from '@/data/conditionEffects';
-import DiceRollButton from '@/components/DiceRollButton';
+import { CONDITION_EFFECTS } from '@/data/conditionEffects';
+import { SPELL_DATABASE } from '@/data/spellDatabase';
 
 const theme = {
   bg: { primary: '#0A1628', surface: '#0F2440', elevated: '#14304F' },
@@ -13,12 +12,24 @@ const theme = {
   border: 'rgba(212, 160, 23, 0.35)'
 };
 
+const searchableText = (value) => {
+  if (!value) return '';
+  if (Array.isArray(value)) return value.join(' ');
+  return String(value);
+};
+
+const getRollNotation = (item) => {
+  const source = searchableText(item.damage || item.healing || item.versatileDamage);
+  const match = source.match(/\d+d\d+(?:\s*[+-]\s*\d+)?/i);
+  return match ? match[0].replace(/\s+/g, '') : null;
+};
+
 export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false }) {
   const [activeTab, setActiveTab] = useState('weapons');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItems, setExpandedItems] = useState({});
 
-  // Flatten all equipment for search
+  // Flatten reference data so GM and live play use one source of truth.
   const allEquipment = useMemo(() => {
     const weapons = ALL_WEAPONS.map(w => ({ ...w, type: 'weapon' }));
     const armor = [
@@ -28,31 +39,54 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
       ...(ARMOR.shields || [])
     ].map(a => ({ ...a, type: 'armor' }));
     const potions = (POTIONS || []).map(p => ({ ...p, type: 'potion' }));
-    const items = (MAGIC_ITEMS || []).map(i => ({ ...i, type: 'item' }));
+    const items = (MAGIC_ITEMS || [])
+      .filter(i => i.type !== 'Potion')
+      .map(i => ({ ...i, type: 'item' }));
+    const spells = Object.entries(SPELL_DATABASE || {}).flatMap(([level, list]) => (
+      (list || []).map(spell => ({
+        ...spell,
+        type: 'spell',
+        level: level === 'cantrips' ? 0 : Number(level)
+      }))
+    ));
     
-    return { weapons, armor, potions, items };
+    return { weapons, armor, potions, items, spells };
   }, []);
 
   // Filter based on search + tab
   const filteredData = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    const tabData = allEquipment[activeTab === 'weapons' ? 'weapons' : activeTab === 'armor' ? 'armor' : activeTab === 'potions' ? 'potions' : 'items'];
+    const tabData = allEquipment[activeTab] || [];
     
-    if (!tabData) return [];
-    return tabData.filter(item => 
-      item.name?.toLowerCase().includes(query) ||
-      item.damageType?.toLowerCase().includes(query) ||
-      item.rarity?.toLowerCase().includes(query)
-    );
+    if (!query) return tabData;
+    return tabData.filter(item => {
+      const haystack = [
+        item.name,
+        item.damage,
+        item.healing,
+        item.damageType,
+        item.rarity,
+        item.school,
+        item.description,
+        item.cost,
+        item.ac,
+        searchableText(item.classes),
+        searchableText(item.properties)
+      ].map(searchableText).join(' ').toLowerCase();
+
+      return haystack.includes(query);
+    });
   }, [activeTab, searchQuery, allEquipment]);
 
   // Render equipment item with dice roller
-  const EquipmentItem = ({ item }) => {
-    const isExpanded = expandedItems[`${item.type}-${item.id}`];
+  const EquipmentItem = ({ item, itemKey }) => {
+    const rollNotation = getRollNotation(item);
+    const classList = Array.isArray(item.classes) ? item.classes.join(', ') : item.classes;
+    const isExpanded = expandedItems[itemKey];
     const toggleExpanded = () => {
       setExpandedItems(prev => ({
         ...prev,
-        [`${item.type}-${item.id}`]: !prev[`${item.type}-${item.id}`]
+        [itemKey]: !prev[itemKey]
       }));
     };
 
@@ -87,21 +121,43 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
                 flexWrap: 'wrap'
               }}>
                 {item.damage && <span>DMG: {item.damage}</span>}
+                {item.healing && <span>HEAL: {item.healing}</span>}
                 {item.damageType && <span>{item.damageType}</span>}
+                {item.school && <span>{item.school}</span>}
+                {item.level !== undefined && <span>{item.level === 0 ? 'Cantrip' : `Level ${item.level}`}</span>}
                 {item.ac && <span>AC: {item.ac}</span>}
                 {item.cost && <span>{item.cost}</span>}
                 {item.rarity && <span>{item.rarity}</span>}
+                {classList && <span>{classList}</span>}
               </div>
             )}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {item.damage && (
-              <DiceRollButton
-                diceFormula={item.damage}
-                label="Roll"
-                onRoll={onRollDamage}
-                size="sm"
-              />
+            {rollNotation && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRollDamage?.(rollNotation, item.name);
+                }}
+                title={`Roll ${rollNotation}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '5px 8px',
+                  borderRadius: '5px',
+                  border: `1px solid ${theme.accent.primary}`,
+                  background: 'rgba(212, 160, 23, 0.14)',
+                  color: theme.accent.secondary,
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <Dices size={13} />
+                {rollNotation}
+              </button>
             )}
             <div style={{ color: theme.text.muted, fontSize: '16px' }}>
               {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -141,6 +197,11 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
                 <strong>Two-handed:</strong> {item.versatileDamage}
               </div>
             )}
+            {classList && (
+              <div style={{ fontSize: '12px', color: theme.text.secondary, marginTop: '8px' }}>
+                <strong>Classes:</strong> {classList}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -150,7 +211,7 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
   // Render conditions tab
   const ConditionsTab = () => (
     <div>
-      {Object.entries(CONDITIONS).map(([key, condition]) => (
+      {Object.entries(CONDITION_EFFECTS).map(([key, condition]) => (
         <div key={key} style={{
           padding: '12px',
           marginBottom: '8px',
@@ -164,14 +225,14 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
             color: theme.accent.primary,
             marginBottom: '6px'
           }}>
-            {condition}
+            {condition.label}
           </div>
           <div style={{ 
             fontSize: '12px', 
             color: theme.text.secondary,
             lineHeight: '1.5'
           }}>
-            {CONDITION_EFFECTS[key]?.description || 'No description'}
+            {condition.notes || 'No description'}
           </div>
         </div>
       ))}
@@ -182,17 +243,19 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
   const tabs = [
     { id: 'weapons', label: 'Weapons', icon: Sword },
     { id: 'armor', label: 'Armor', icon: Shield },
-    { id: 'potions', label: 'Potions', icon: Potion },
+    { id: 'potions', label: 'Potions', icon: FlaskConical },
     { id: 'items', label: 'Items', icon: Sparkles },
+    { id: 'spells', label: 'Spells', icon: BookOpen },
     { id: 'conditions', label: 'Conditions', icon: AlertCircle }
   ];
 
   return (
     <div style={{
       padding: '16px',
-      background: theme.bg.primary,
+      background: `linear-gradient(180deg, ${theme.bg.primary} 0%, ${theme.bg.surface} 100%)`,
+      border: `1px solid ${theme.border}`,
       borderRadius: '8px',
-      maxHeight: isCompact ? '600px' : '100%',
+      maxHeight: isCompact ? '340px' : '100%',
       overflowY: 'auto'
     }}>
       {/* Search Bar */}
@@ -267,7 +330,11 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
         <div>
           {filteredData.length > 0 ? (
             filteredData.map((item, idx) => (
-              <EquipmentItem key={`${item.type}-${item.id || idx}`} item={item} />
+              <EquipmentItem
+                key={`${item.type}-${item.id || item.name || idx}`}
+                itemKey={`${item.type}-${item.id || item.name || idx}`}
+                item={item}
+              />
             ))
           ) : (
             <div style={{

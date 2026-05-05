@@ -165,11 +165,14 @@ async def create_checkout_session(request: CreateCheckoutRequest, http_request: 
         
         session = await asyncio.to_thread(
             stripe.checkout.Session.create,
-            mode='payment',
+            mode='subscription',
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'gbp',
+                    'recurring': {
+                        'interval': 'year' if request.billing_cycle == 'yearly' else 'month'
+                    },
                     'product_data': {
                         'name': f"{plan['name']} - {request.billing_cycle.title()}",
                     },
@@ -350,71 +353,52 @@ async def cancel_subscription(username: str = Depends(get_current_user)):
 
 @router.get("/subscription/plans")
 async def get_subscription_plans():
-    """Get available subscription plans with new three-tier structure"""
+    """Get public subscription plans.
+
+    Legacy player/gm/legendary tiers remain valid internally, but the public
+    pricing surface is intentionally simplified to one all-access paid plan.
+    """
+    free_plan = SUBSCRIPTION_PLANS['free']
+    pro_plan = SUBSCRIPTION_PLANS['pro']
+
     return {
         'plans': [
             {
                 'id': 'free',
-                'name': 'Free',
-                'price_monthly': 0,
-                'price_yearly': 0,
-                'target': 'casual',
+                'name': free_plan['name'],
+                'price_monthly': free_plan['price_monthly'],
+                'price_yearly': free_plan['price_yearly'],
+                'target': 'starter',
                 'color': '#808080',
                 'features': [
                     '1 character',
-                    'Join campaigns (can\'t create)',
+                    'Join campaigns',
                     'Basic character sheet',
                     'Dice roller',
-                    '3 AI generations per month'
+                    f"{free_plan['ai_calls_per_month']} AI generations per month"
                 ]
             },
             {
-                'id': 'player',
-                'name': 'Hero',
-                'price_monthly': 3.99,
-                'price_yearly': 39.99,
-                'target': 'player',
-                'color': '#3B82F6',
+                'id': 'pro',
+                'name': 'All Access',
+                'price_monthly': pro_plan['price_monthly'],
+                'price_yearly': pro_plan['price_yearly'],
+                'target': 'everyone',
+                'color': '#F59E0B',
+                'popular': True,
                 'features': [
                     'Unlimited characters',
                     'Character journal',
                     'Party inventory',
                     'Session recaps',
                     'AI portrait generation',
-                    '50 AI calls per month'
-                ]
-            },
-            {
-                'id': 'gm',
-                'name': 'Quest Master',
-                'price_monthly': 3.99,
-                'price_yearly': 39.99,
-                'target': 'gm',
-                'color': '#E11D48',
-                'features': [
                     'Unlimited campaigns',
                     'Full world building tools',
-                    'ROOK AI generation',
+                    'ROOK AI co-GM tools',
                     'Combat tracker',
-                    'Reference tools',
+                    'Full reference tools',
                     'Session mode',
                     'Unlimited AI calls'
-                ]
-            },
-            {
-                'id': 'legendary',
-                'name': 'Legendary',
-                'price_monthly': 5.99,
-                'price_yearly': 59.99,
-                'target': 'both',
-                'color': '#F59E0B',
-                'popular': True,
-                'features': [
-                    'Everything in Hero',
-                    'Everything in Quest Master',
-                    'Priority support',
-                    'Early access to features',
-                    'Unlimited everything'
                 ]
             }
         ]

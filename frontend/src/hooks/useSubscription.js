@@ -18,6 +18,31 @@ const TIER_FEATURES = {
       'join_campaigns'
     ]
   },
+  pro: {
+    name: 'All Access',
+    color: '#F59E0B',
+    characters: -1,
+    campaigns: -1,
+    aiCallsPerMonth: -1,
+    features: [
+      'basic_character_sheet',
+      'dice_roller',
+      'join_campaigns',
+      'unlimited_characters',
+      'character_journal',
+      'party_inventory',
+      'session_recaps',
+      'portrait_ai',
+      'unlimited_campaigns',
+      'world_building',
+      'rook_ai',
+      'combat_tracker',
+      'reference_tools',
+      'session_mode',
+      'priority_support',
+      'early_access'
+    ]
+  },
   player: {
     name: 'Hero',
     color: '#3B82F6',
@@ -106,6 +131,14 @@ const TIER_FEATURES = {
   }
 };
 
+['player', 'gm', 'legendary'].forEach((legacyTier) => {
+  TIER_FEATURES[legacyTier] = {
+    ...TIER_FEATURES.pro,
+    name: legacyTier === 'legendary' ? 'All Access' : `${TIER_FEATURES[legacyTier].name} (Legacy)`,
+    color: TIER_FEATURES.pro.color
+  };
+});
+
 // Feature gate check
 export function canAccessFeature(tier, feature) {
   const tierFeatures = TIER_FEATURES[tier] || TIER_FEATURES.free;
@@ -140,7 +173,7 @@ export function getFeatureRequirement(feature) {
       return { tier, tierName: config.name, color: config.color };
     }
   }
-  return { tier: 'legendary', tierName: 'Legendary', color: '#F59E0B' };
+  return { tier: 'pro', tierName: 'All Access', color: '#F59E0B' };
 }
 
 // Subscription Context

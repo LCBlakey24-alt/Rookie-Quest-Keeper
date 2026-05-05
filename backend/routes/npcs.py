@@ -15,6 +15,14 @@ from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
+NPC_AI_SOURCE_BOUNDARY = """
+CAMPAIGN SOURCE BOUNDARY:
+- Use only the GM's saved campaign data, uploaded/custom rules, and SRD/OGL mechanics as factual source material.
+- Treat the current user prompt as task direction only; it is not permission to import external setting lore that has not been saved to the campaign.
+- Do not introduce named worlds, factions, characters, places, deities, plotlines, or lore from published settings, actual-play shows, novels, games, films, or third-party IP unless those exact details appear in saved campaign context or uploaded/custom rules.
+- If campaign context is thin, keep suggestions generic/original or ask for the missing detail instead of filling gaps with known setting lore.
+""".strip()
+
 @router.post("/campaigns/{campaign_id}/npcs", status_code=status.HTTP_201_CREATED)
 async def create_npc(campaign_id: str, npc_data: NPCCreate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
@@ -97,7 +105,9 @@ async def generate_npc_with_stats(campaign_id: str, request: GenerateNPCRequest,
     role_hint = f'Role in campaign: {request.role}. ' if request.role else ''
     user_prompt = request.prompt if request.prompt else 'Generate a unique and interesting NPC.'
     
-    system_message = """You are ROOK, a TTRPG NPC generator that creates fully statted NPCs using D&D 5e SRD rules.
+    system_message = f"""You are ROOK, a TTRPG NPC generator that creates fully statted NPCs using D&D 5e SRD rules.
+
+{NPC_AI_SOURCE_BOUNDARY}
 
 RULES:
 1. Respond ONLY with valid JSON - no markdown, no code fences, no explanation
@@ -164,7 +174,7 @@ For spellcasters, spells should be:
 
     context_section = ""
     if campaign_context:
-        context_section = f"\n\nCAMPAIGN CONTEXT:\n{campaign_context}\n\nMake the NPC fit naturally into this world."
+        context_section = f"\n\nCAMPAIGN CONTEXT:\n{campaign_context}\n\nMake the NPC fit naturally into this world using only the saved context above."
     
     full_prompt = f"""Generate a fully statted NPC with the following requirements:
 {race_hint}{class_hint}{level_hint}{role_hint}

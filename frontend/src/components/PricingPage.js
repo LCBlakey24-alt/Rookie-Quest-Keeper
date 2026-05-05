@@ -120,6 +120,7 @@ function PricingPage({ username, onLogout }) {
     switch (planId) {
       case 'player': return <User size={28} />;
       case 'gm': return <Swords size={28} />;
+      case 'pro': return <Crown size={28} />;
       case 'legendary': return <Crown size={28} />;
       default: return <Sparkles size={28} />;
     }
@@ -129,6 +130,7 @@ function PricingPage({ username, onLogout }) {
     switch (planId) {
       case 'player': return theme.accent.blue;
       case 'gm': return theme.accent.red;
+      case 'pro': return theme.accent.gold;
       case 'legendary': return theme.accent.gold;
       default: return theme.text.muted;
     }
@@ -333,6 +335,8 @@ function PricingPage({ username, onLogout }) {
                     {plan.target === 'gm' && 'For Game Masters'}
                     {plan.target === 'both' && 'For Everyone'}
                     {plan.target === 'casual' && 'Get Started'}
+                    {plan.target === 'starter' && 'Get Started'}
+                    {plan.target === 'everyone' && 'For Players and GMs'}
                   </p>
                 </div>
 

@@ -1063,6 +1063,9 @@ export default function CharacterSheetFull() {
               const saveContext = `${ABILITY_SHORT[ability].toLowerCase()}_save`;
               const condIndicator = getConditionIndicator(character?.conditions || [], saveContext, character?.exhaustion_level || 0);
               const condEffect = getConditionRollEffect(character?.conditions || [], saveContext, 'normal', character?.exhaustion_level || 0);
+              const checkContext = `${ABILITY_SHORT[ability].toLowerCase()}_check`;
+              const checkIndicator = getConditionIndicator(character?.conditions || [], checkContext, character?.exhaustion_level || 0);
+              const checkEffect = getConditionRollEffect(character?.conditions || [], checkContext, 'normal', character?.exhaustion_level || 0);
               
               return (
                 <div key={ability} style={{ marginBottom: '4px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '8px', padding: '6px 8px' }}>
@@ -1071,6 +1074,30 @@ export default function CharacterSheetFull() {
                     <span style={{ fontSize: '18px', fontWeight: 'bold', color: theme.text.primary }}>{score}</span>
                     <span style={{ fontSize: '13px', fontWeight: '600', color: theme.accent.highlight }}>{formatModifier(mod)}</span>
                   </div>
+                  <button
+                    onClick={() => {
+                      if (checkEffect.autoFail) {
+                        toast.error(`${ABILITY_SHORT[ability]} Check: AUTO-FAIL (${checkEffect.reason})`);
+                        return;
+                      }
+                      rollDice('1d20', mod, `${ABILITY_SHORT[ability]} Check`, checkEffect.mode);
+                    }}
+                    style={{
+                      width: '100%', padding: '4px 6px', marginBottom: '4px',
+                      background: checkIndicator ? `${checkIndicator.color}14` : 'rgba(212, 175, 55, 0.08)',
+                      border: `1px solid ${checkIndicator ? `${checkIndicator.color}66` : theme.border}`,
+                      borderRadius: '5px', color: theme.text.secondary,
+                      fontSize: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}
+                  >
+                    <span>Check</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      {checkIndicator && (
+                        <span title={checkIndicator.tooltip} style={{ fontSize: '10px', fontWeight: 800, color: checkIndicator.color }}>{checkIndicator.symbol}</span>
+                      )}
+                      <span style={{ fontWeight: '600' }}>{formatModifier(mod)}</span>
+                    </div>
+                  </button>
                   <button
                     onClick={() => {
                       if (condEffect.autoFail) {
