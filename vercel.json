@@ -1,6 +1,7 @@
 {
-  "buildCommand": "cd frontend && yarn install && CI=true yarn build",
-  "outputDirectory": "frontend/build",
+  "buildCommand": "yarn build",
+  "outputDirectory": "build",
+  "installCommand": "yarn install",
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=3072",
     "DISABLE_ESLINT_PLUGIN": "true",
