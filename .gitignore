@@ -74,6 +74,9 @@ agenthub/agents/youtube/db
 # Build caches
 .cache/
 
+# Ignore frontend production build output
+frontend/build/
+
 # Test credentials
 memory/test_credentials.md
 -e 

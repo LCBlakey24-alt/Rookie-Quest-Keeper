@@ -10,6 +10,8 @@
 
 # production
 /build
+// Ignore the generated production build output directory
+frontend/build/
 
 # misc
 .DS_Store
