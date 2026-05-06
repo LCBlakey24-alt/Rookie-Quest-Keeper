@@ -6,11 +6,11 @@
 
 :root {
   /* ============ BASE COLORS ============ */
-  --bg-primary: #0A1628;
-  --bg-secondary: #0F2440;
-  --bg-card: #0F2440;
-  --bg-elevated: #14304F;
-  --bg-hover: #173958;
+  --bg-primary: #1F1F23;
+  --bg-secondary: #27272B;
+  --bg-card: #27272B;
+  --bg-elevated: #323235;
+  --bg-hover: #323235;
   
   /* ============ TEXT ============ */
   --text-primary: #F8FAFC;
@@ -19,34 +19,34 @@
   --text-disabled: #475569;
   
   /* ============ GM THEME ============ */
-  --gm-primary: #D4A017;
-  --gm-hover: #F5C542;
-  --gm-active: #A87912;
-  --gm-subtle: rgba(212, 160, 23, 0.12);
-  --gm-border: rgba(212, 160, 23, 0.35);
-  --gm-glow: rgba(212, 160, 23, 0.18);
+  --gm-primary: #EF4444;
+  --gm-hover: #F87171;
+  --gm-active: #B91C1C;
+  --gm-subtle: rgba(239,68,68,0.12);
+  --gm-border: rgba(239,68,68,0.28);
+  --gm-glow: rgba(239,68,68,0.18);
   
   /* ============ PLAYER THEME ============ */
-  --player-primary: #D4A017;
-  --player-hover: #F5C542;
-  --player-active: #A87912;
-  --player-subtle: rgba(212, 160, 23, 0.12);
-  --player-border: rgba(212, 160, 23, 0.35);
-  --player-glow: rgba(212, 160, 23, 0.18);
+  --player-primary: #EF4444;
+  --player-hover: #F87171;
+  --player-active: #B91C1C;
+  --player-subtle: rgba(239,68,68,0.12);
+  --player-border: rgba(239,68,68,0.28);
+  --player-glow: rgba(239,68,68,0.18);
   
   /* ============ STATUS COLORS ============ */
-  --success: #22C55E;
-  --success-subtle: rgba(34, 197, 94, 0.15);
+  --success: #10B981;
+  --success-subtle: rgba(16,185,129,0.15);
   --warning: #F59E0B;
-  --warning-subtle: rgba(245, 158, 11, 0.15);
+  --warning-subtle: rgba(245,158,11,0.15);
   --danger: #EF4444;
-  --danger-subtle: rgba(239, 68, 68, 0.15);
-  --info: #06B6D4;
-  --info-subtle: rgba(6, 182, 212, 0.15);
+  --danger-subtle: rgba(239,68,68,0.15);
+  --info: #EF4444;
+  --info-subtle: rgba(239,68,68,0.12);
   
   /* ============ BORDERS & SHADOWS ============ */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-default: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(239,68,68,0.12);
+  --border-default: rgba(239,68,68,0.18);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);

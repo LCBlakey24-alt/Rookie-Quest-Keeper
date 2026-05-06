@@ -524,9 +524,8 @@ export default function CharacterCombatTab({
                 width: 20, height: 20, borderRadius: '50%', cursor: 'pointer', fontSize: 10, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: lvl <= exhaustionLevel
-                background: lvl <= exhaustionLevel
-                  ? lvl >= 5 ? theme.accent.primary : lvl >= 3 ? theme.warning : '#92400E'
-                  : 'rgba(255,255,255,0.05) ',
+                  ? lvl >= 5 ? theme.accent.primary : lvl >= 3 ? theme.warning : theme.muted
+                  : 'rgba(255,255,255,0.05)',
                 border: `1.5px solid ${lvl <= exhaustionLevel ? (lvl >= 5 ? theme.accent.primary : theme.warning) : 'rgba(255,255,255,0.1)'}`,
                 color: lvl <= exhaustionLevel ? theme.text.primary : theme.text.muted,
                 transition: 'all 0.15s',

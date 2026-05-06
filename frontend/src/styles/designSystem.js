@@ -1,46 +1,45 @@
-// Shared Design System for Quest Keeper
-// Matches the Landing Page aesthetic
+import { theme } from '../lib/theme';
 
+// Shared design tokens mapped to central `theme`.
 export const COLORS = {
-  // Backgrounds
-  bgPrimary: '#0B0F19',
-  bgSecondary: '#111827',
-  bgCard: 'rgba(17, 24, 39, 0.8)',
-  bgCardHover: 'rgba(17, 24, 39, 0.95)',
-  bgGlass: 'rgba(11, 15, 25, 0.85)',
-  
-  // Accents
-  blue: '#3B82F6',
-  blueLight: '#60A5FA',
-  cyan: '#22D3EE',
-  purple: '#A855F7',
-  pink: '#EC4899',
-  red: '#EF4444',
-  orange: '#F59E0B',
-  green: '#22C55E',
-  teal: '#14B8A6',
-  
+  bgPrimary: theme.bg.primary,
+  bgSecondary: theme.bg.surface,
+  bgCard: theme.bg.surface,
+  bgCardHover: theme.bg.elevated,
+  bgGlass: theme.bg.deep,
+
+  // Accents — map to central accent palette
+  blue: theme.accent.primary,
+  blueLight: theme.accent.hover,
+  cyan: theme.accent.primary,
+  purple: theme.accent.primary,
+  pink: theme.accent.primary,
+  red: theme.accent.primary,
+  orange: theme.warning,
+  green: theme.success,
+  teal: theme.accent.primary,
+
   // Text
-  textPrimary: '#FFFFFF',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  
+  textPrimary: theme.text.primary,
+  textSecondary: theme.text.secondary,
+  textMuted: theme.text.muted,
+
   // Borders
-  borderPrimary: 'rgba(59, 130, 246, 0.2)',
-  borderSecondary: 'rgba(255, 255, 255, 0.1)',
-  borderAccent: 'rgba(34, 211, 238, 0.3)'
+  borderPrimary: theme.accent.line,
+  borderSecondary: theme.border,
+  borderAccent: theme.accent.line
 };
 
 export const GRADIENTS = {
-  background: 'linear-gradient(180deg, #0B0F19 0%, #111827 50%, #0B0F19 100%)',
-  backgroundAlt: 'linear-gradient(135deg, #0B0F19 0%, #1e1b4b 50%, #0B0F19 100%)',
-  cardBlue: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
-  cardPurple: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%)',
-  cardCyan: 'linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.05) 100%)',
-  cardRed: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%)',
-  cardGreen: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%)',
-  hero: 'radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 60%)',
-  glow: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)'
+  background: `linear-gradient(180deg, ${theme.bg.primary} 0%, ${theme.bg.surface} 50%, ${theme.bg.primary} 100%)`,
+  backgroundAlt: `linear-gradient(135deg, ${theme.bg.primary} 0%, ${theme.bg.elevated} 50%, ${theme.bg.primary} 100%)`,
+  cardBlue: `linear-gradient(135deg, ${theme.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+  cardPurple: `linear-gradient(135deg, ${theme.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+  cardCyan: `linear-gradient(135deg, ${theme.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+  cardRed: `linear-gradient(135deg, ${theme.accent.soft} 0%, rgba(0,0,0,0) 100%)`,
+  cardGreen: `linear-gradient(135deg, ${theme.success}15 0%, rgba(0,0,0,0) 100%)`,
+  hero: `radial-gradient(ellipse at 50% 0%, ${theme.accent.line} 0%, transparent 60%)`,
+  glow: `radial-gradient(circle, ${theme.accent.line} 0%, transparent 70%)`
 };
 
 export const SHADOWS = {
