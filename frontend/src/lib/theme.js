@@ -48,16 +48,16 @@ export const theme = {
 /** Common panel style: navy surface + gold 1px outline. */
 export const panelStyle = {
   background: theme.bg.surface,
-  border: `1px solid ${theme.border}`,
-  borderRadius: 12,
+  border: `1px solid ${theme.accent.line}`,
+  borderRadius: 0,
   padding: 16,
 };
 
 export const buttonStyle = {
-  background: theme.bg.surface,
+  background: 'transparent',
   border: `1px solid ${theme.accent.primary}`,
-  borderRadius: 8,
-  color: theme.accent.primary,
+  borderRadius: 0,
+  color: theme.text.primary,
   padding: '8px 14px',
   fontWeight: 600,
   cursor: 'pointer',

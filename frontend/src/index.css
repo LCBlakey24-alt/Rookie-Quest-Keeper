@@ -94,6 +94,24 @@ strong, b, h1, h2, h3, h4, h5, h6 {
   --ring: #EF4444;
   
   --theme-glow: rgba(212, 160, 23, 0.18);
+/* Enforce minimalist sharp-corner panels and red-lined boxes */
+.card-hover, .panel, .card, .character-sheet-shell .panel, .character-sheet-shell .card-hover {
+  border-radius: 0 !important;
+  border: 1px solid var(--primary) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+}
+
+/* Make buttons and inputs sharp and minimalist */
+.character-sheet-shell button, .character-sheet-shell input, .character-sheet-shell select, .character-sheet-shell textarea {
+  border-radius: 0 !important;
+  border: 1px solid var(--primary) !important;
+  background: transparent !important;
+  color: var(--foreground) !important;
+}
+
+/* Use red accent lines for left borders in lists/cards */
+.card-hover { border-left: 3px solid var(--primary) !important; }
   --theme-glow-secondary: rgba(245, 197, 66, 0.18);
   --glass-bg: rgba(15, 36, 64, 0.78);
   --glass-border: rgba(212, 160, 23, 0.32);
@@ -330,37 +348,32 @@ p, span, div, label, button, input, textarea, select {
 /* ===== SHADCN/TAILWIND OVERRIDES ===== */
 @layer base {
   :root {
-    --background: 216 60% 10%;
-    --foreground: 210 40% 98%;
-    --card: 213 62% 15%;
-    --card-foreground: 210 40% 98%;
-    --popover: 213 62% 15%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 43 78% 46%;
-    --primary-foreground: 216 60% 10%;
-    --secondary: 45 91% 61%;
-    --secondary-foreground: 216 60% 10%;
-    --muted: 212 60% 19%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 43 78% 46%;
-    --accent-foreground: 216 60% 10%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 43 78% 46%;
-    --input: 212 60% 19%;
-    --ring: 43 78% 46%;
+    --background: hsl(216 60% 10%);
+    --foreground: hsl(210 40% 98%);
+    --card: hsl(213 62% 15%);
+    --card-foreground: hsl(210 40% 98%);
+    --popover: hsl(213 62% 15%);
+    --popover-foreground: hsl(210 40% 98%);
+    --primary: hsl(43 78% 46%);
+    --primary-foreground: hsl(216 60% 10%);
+    --secondary: hsl(45 91% 61%);
+    --secondary-foreground: hsl(216 60% 10%);
+    --muted: hsl(212 60% 19%);
+    --muted-foreground: hsl(215 20% 65%);
+    --accent: hsl(43 78% 46%);
+    --accent-foreground: hsl(216 60% 10%);
+    --destructive: hsl(0 84% 60%);
+    --destructive-foreground: hsl(0 0% 100%);
+    --border: hsl(43 78% 46%);
+    --input: hsl(212 60% 19%);
+    --ring: hsl(43 78% 46%);
     --radius: 0.5rem;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+/* Tailwind @apply removed — prefer explicit CSS variables and utility usage.
+   If you rely on Tailwind utility composition for these, re-add valid
+   utility classes here (ensure they exist in your Tailwind config). */
 
 /* ===== SCROLLBAR STYLING ===== */
 ::-webkit-scrollbar {
@@ -769,3 +782,39 @@ select:focus {
   color: var(--primary);
   background: var(--muted);
 }
+
+/* ===== MINIMALIST RED-LINED THEME OVERRIDES ===== */
+/* Enforce sharp corners and red borders for panels and controls */
+.panel, .card, .card-hover, .glass-panel, .glass-panel-strong, .modal-content, .stat-block, .initiative-item, .reference-card, .map-toolbar {
+  border-radius: 0 !important;
+  border: 1px solid var(--primary) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+
+button, input, select, textarea {
+  border-radius: 0 !important;
+  border: 1px solid var(--primary) !important;
+  background: transparent !important;
+  color: var(--foreground) !important;
+}
+
+/* Make modal and panel corners sharp and minimal */
+.modal-content {
+  border-radius: 0 !important;
+}
+
+.stat-block, .initiative-item, .reference-card {
+  border-radius: 0 !important;
+  padding: 12px !important;
+}
+
+/* Reduce visual noise on primary buttons */
+.btn-primary, .btn-secondary {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Ensure body background is the dark primary */
+body { background: var(--background) !important; color: var(--foreground) !important; }

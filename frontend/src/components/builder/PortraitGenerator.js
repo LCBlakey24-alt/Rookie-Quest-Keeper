@@ -5,6 +5,7 @@ import { Sparkles, Wand2, Loader2, Check, RefreshCw, Upload } from "lucide-react
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const BACKEND_AVAILABLE = Boolean(BACKEND_URL && BACKEND_URL.length > 0);
 
 const theme = {
   gold: "#D4A017",
@@ -51,6 +52,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
         gender,
         description
       };
+      if (!BACKEND_AVAILABLE) throw new Error('AI backend not configured');
       const { data } = await axios.post(`${API}/ai/portrait/batch`, payload);
       setOptions(data.portraits || []);
       const good = (data.portraits || []).filter(p => p.image_base64).length;
@@ -60,7 +62,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
         toast.success(`Generated ${good} portrait${good === 1 ? "" : "s"} — pick your favorite`);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Portrait generation failed");
+      toast.error(err?.response?.data?.detail || err.message || "Portrait generation failed");
     } finally {
       setLoading(false);
     }
@@ -177,6 +179,11 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
           {loading ? <Loader2 size={14} className="rq-spin" /> : <Wand2 size={14} />}
           {loading ? "Conjuring portraits…" : options.length ? "Regenerate" : "Generate 3 Portraits"}
         </button>
+        {!BACKEND_AVAILABLE && (
+          <div style={{ color: '#EF4444', fontSize: 12, marginLeft: 8 }}>
+            AI backend not configured. Set REACT_APP_BACKEND_URL to enable portrait generation.
+          </div>
+        )}
 
         <label
           htmlFor="portrait-file-upload"
