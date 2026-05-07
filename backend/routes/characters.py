@@ -1010,7 +1010,7 @@ async def get_player_campaigns(username: str = Depends(get_current_user)):
     # Fetch campaign details
     campaigns = await db.campaigns.find(
         {'id': {'$in': campaign_ids}},
-        {'_id': 0, 'id': 1, 'name': 1, 'system': 1, 'dm_user_id': 1}
+        {'_id': 0, 'id': 1, 'name': 1, 'system': 1, 'dm_user_id': 1, 'campaign_environment': 1}
     ).to_list(50)
     
     # Add GM name to each campaign
@@ -1022,6 +1022,32 @@ async def get_player_campaigns(username: str = Depends(get_current_user)):
         campaign['gm_name'] = user.get('username') if user else 'Unknown'
     
     return campaigns
+
+@router.get("/player/campaign/{campaign_id}")
+async def get_player_campaign_detail(
+    campaign_id: str,
+    username: str = Depends(get_current_user)
+):
+    """Get a membership-safe campaign summary for the player-facing campaign page."""
+    campaign = await verify_campaign_membership(campaign_id, username)
+
+    user = await db.users.find_one(
+        {'username': campaign.get('dm_user_id')},
+        {'_id': 0, 'username': 1}
+    )
+
+    return {
+        "id": campaign.get('id'),
+        "name": campaign.get('name', 'Campaign'),
+        "description": campaign.get('description', ''),
+        "system": campaign.get('system', '5e 2024 Compatible'),
+        "rules_edition": campaign.get('rules_edition', '2024'),
+        "dm_user_id": campaign.get('dm_user_id'),
+        "gm_name": user.get('username') if user else campaign.get('dm_user_id', 'Unknown'),
+        "world_setting": campaign.get('world_setting', 'custom'),
+        "world_setting_notes": campaign.get('world_setting_notes', ''),
+        "campaign_environment": campaign.get('campaign_environment') or {},
+    }
 
 @router.get("/player/campaign/{campaign_id}/inventory")
 async def get_player_inventory(

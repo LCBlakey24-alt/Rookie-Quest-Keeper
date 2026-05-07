@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Sword, Users, BookOpen, Send, 
   Loader, LogOut, Play, Dices, Coins, Swords, ArrowRight, Package, FileText, UserPlus, Shuffle, Skull, Wand2, PlusCircle, Zap, Compass, UserCircle, Music, Target, Volume2, Link2, Sparkles,
-  ChevronDown, ChevronRight, BarChart3, Search
+  ChevronDown, ChevronRight, BarChart3, Search, CloudRain
 } from 'lucide-react';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import DiceRollHistory from './DiceRollHistory';
@@ -32,9 +32,10 @@ import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import SessionTimer from '@/components/gm/SessionTimer';
 import EventSystem from '@/components/gm/EventSystem';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
+import EnvironmentControl from '@/components/gm/EnvironmentControl';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function GMScreen({ username }) {
   const { campaignId } = useParams();
@@ -392,52 +393,53 @@ function GMScreen({ username }) {
 
   if (loading) return <div className="loading-screen"><div className="loading-spinner"></div></div>;
 
-  // GM Theme - unified navy and gold
+  // GM Theme - minimalist dark grey, red linework, white text
   const theme = {
     bg: { 
-      primary: '#0A1628', 
-      surface: '#0F2440', 
-      elevated: '#14304F',
-      panel: '#0F2440',
-      card: '#0F2440',
-      hover: 'rgba(212, 160, 23, 0.08)'
+      primary: '#1F1F23', 
+      surface: '#27272B', 
+      elevated: '#323235',
+      panel: '#27272B',
+      card: '#27272B',
+      hover: 'rgba(239, 68, 68, 0.12)'
     },
     accent: { 
-      primary: '#D4A017',
-      secondary: '#D4A017',
-      gold: '#D4A017',
-      orange: '#D4A017',
-      hover: '#F5C542',
-      subtle: 'rgba(212, 160, 23, 0.08)',
+      primary: '#EF4444',
+      secondary: '#B91C1C',
+      gold: '#EF4444',
+      orange: '#F87171',
+      hover: '#F87171',
+      subtle: 'rgba(239, 68, 68, 0.12)',
       glow: 'none',
-      gm: '#D4A017',
-      gmSubtle: 'rgba(212, 160, 23, 0.08)'
+      gm: '#EF4444',
+      gmSubtle: 'rgba(239, 68, 68, 0.12)'
     },
-    text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-    border: 'rgba(212, 160, 23, 0.35)',
-    gradient: '#D4A017'
+    text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
+    border: 'rgba(239, 68, 68, 0.42)',
+    gradient: '#EF4444'
   };
 
   const tabGroups = [
-    { group: 'COMBAT', color: '#D4A017', tabs: [
+    { group: 'COMBAT', color: '#EF4444', tabs: [
       { id: 'combat', icon: Swords, label: 'Combat' },
     ]},
-    { group: 'WORLD', color: '#D4A017', tabs: [
+    { group: 'WORLD', color: '#EF4444', tabs: [
       { id: 'location', icon: Compass, label: 'Location' },
+      { id: 'environment', icon: CloudRain, label: 'Environment' },
       { id: 'events', icon: BarChart3, label: 'Events' },
     ]},
-    { group: 'CHARACTERS', color: '#D4A017', tabs: [
+    { group: 'CHARACTERS', color: '#EF4444', tabs: [
       { id: 'npcs', icon: UserCircle, label: 'NPCs' },
       { id: 'network', icon: Link2, label: 'NPC Network' },
       { id: 'party', icon: Users, label: 'Party' },
       { id: 'monsters', icon: Skull, label: 'Monsters' },
     ]},
-    { group: 'REFERENCE', color: '#D4A017', tabs: [
+    { group: 'REFERENCE', color: '#EF4444', tabs: [
       { id: 'reference-hub', icon: BookOpen, label: 'Reference Hub' },
       { id: 'tables', icon: Wand2, label: 'Tables' },
       { id: 'loot', icon: Coins, label: 'Loot' },
     ]},
-    { group: 'SESSION', color: '#D4A017', tabs: [
+    { group: 'SESSION', color: '#EF4444', tabs: [
       { id: 'notes', icon: FileText, label: 'Notes' },
       { id: 'story', icon: Target, label: 'Story Arcs' },
       { id: 'planner', icon: Sparkles, label: 'AI Planner' },
@@ -491,7 +493,7 @@ function GMScreen({ username }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#0A1628',
+      background: '#1F1F23',
       position: 'relative'
     }}>
       {/* Page background */}
@@ -501,14 +503,7 @@ function GMScreen({ username }) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: `
-          linear-gradient(180deg, 
-            rgba(10, 22, 40, 1) 0%,
-            rgba(10, 22, 40, 0.97) 40%,
-            rgba(15, 36, 64, 0.88) 70%,
-            rgba(212, 160, 23, 0.10) 100%
-          )
-        `,
+        background: '#1F1F23',
         pointerEvents: 'none',
         zIndex: 0
       }} />
@@ -519,7 +514,7 @@ function GMScreen({ username }) {
         left: 0,
         width: '50%',
         height: '50%',
-        background: 'radial-gradient(ellipse at 0% 100%, rgba(212, 160, 23, 0.1) 0%, transparent 60%)',
+        background: 'transparent',
         pointerEvents: 'none',
         zIndex: 0
       }} />
@@ -529,7 +524,7 @@ function GMScreen({ username }) {
         right: 0,
         width: '50%',
         height: '50%',
-        background: 'radial-gradient(ellipse at 100% 100%, rgba(245, 197, 66, 0.08) 0%, transparent 60%)',
+        background: 'transparent',
         pointerEvents: 'none',
         zIndex: 0
       }} />
@@ -568,7 +563,7 @@ function GMScreen({ username }) {
                   width: '100%',
                   height: 36,
                   padding: '0 10px 0 30px',
-                  borderRadius: 8,
+                  borderRadius: 0,
                   border: `1px solid ${theme.border}`,
                   background: theme.bg.surface,
                   color: theme.text.primary,
@@ -585,7 +580,7 @@ function GMScreen({ username }) {
                   maxWidth: 'calc(100vw - 24px)',
                   background: theme.bg.panel,
                   border: `1px solid ${theme.border}`,
-                  borderRadius: 8,
+                  borderRadius: 0,
                   padding: 6,
                   zIndex: 80,
                   boxShadow: '0 14px 34px rgba(0,0,0,0.45)',
@@ -607,7 +602,7 @@ function GMScreen({ username }) {
                         gap: 10,
                         padding: '8px 10px',
                         border: 'none',
-                        borderRadius: 6,
+                        borderRadius: 0,
                         background: 'transparent',
                         color: theme.text.primary,
                         cursor: 'pointer',
@@ -627,8 +622,8 @@ function GMScreen({ username }) {
             {/* Rules edition toggle — propagates to AI via campaign.rules_edition */}
             <div data-testid="rules-edition-toggle" style={{
               display: 'flex', alignItems: 'center',
-              borderRadius: '10px', overflow: 'hidden',
-              border: `1px solid ${theme.border}`, background: 'rgba(212, 160, 23, 0.06)',
+              borderRadius: 0, overflow: 'hidden',
+              border: `1px solid ${theme.border}`, background: 'rgba(239, 68, 68, 0.10)',
             }}>
               <span style={{ fontSize: '10px', fontWeight: 700, color: theme.text.muted, padding: '0 8px', letterSpacing: 0.5 }}>
                 RULES
@@ -643,8 +638,8 @@ function GMScreen({ username }) {
                     title={`Switch the AI and GM tools to D&D 5e ${ed} rules`}
                     style={{
                       padding: '6px 12px', fontSize: '12px', fontWeight: 700,
-                      background: active ? '#D4A017' : 'transparent',
-                      color: active ? '#0A1628' : theme.text.secondary,
+                      background: active ? '#EF4444' : 'transparent',
+                      color: active ? '#FFFFFF' : theme.text.secondary,
                       border: 'none', cursor: 'pointer',
                       letterSpacing: 0.5, transition: 'all 0.12s',
                     }}>
@@ -654,10 +649,10 @@ function GMScreen({ username }) {
               })}
             </div>
             <SessionTimer theme={theme} />
-            <Button onClick={() => setActiveTab('reference-hub')} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(212, 160, 23, 0.1)', border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.text.secondary }}>
+            <Button onClick={() => setActiveTab('reference-hub')} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: 'rgba(239, 68, 68, 0.12)', border: `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.secondary }}>
               <BookOpen size={16} /> Reference
             </Button>
-            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: '10px', color: '#0A1628' }}>
+            <Button onClick={handleEndSession} style={{ display: 'flex', gap: '6px', padding: '10px 16px', fontSize: '14px', background: theme.gradient, border: 'none', borderRadius: 0, color: '#FFFFFF' }}>
               <LogOut size={16} /> End Session
             </Button>
           </div>
@@ -732,12 +727,12 @@ function GMScreen({ username }) {
                         style={{
                           position: 'relative', padding: '10px 16px 10px 28px', border: 'none',
                           background: isActive ? theme.gradient : (isHovered ? theme.bg.hover : 'transparent'),
-                          color: isActive ? '#0A1628' : (isHovered ? theme.text.primary : theme.text.secondary),
+                          color: isActive ? '#FFFFFF' : (isHovered ? theme.text.primary : theme.text.secondary),
                           fontWeight: '800', fontSize: '14px', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '10px',
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                           textAlign: 'left', width: '100%', minHeight: '40px',
-                          overflow: 'hidden', borderRadius: '6px'
+                          overflow: 'hidden', borderRadius: 0
                         }}
                       >
                         <tab.icon size={16} />
@@ -771,7 +766,7 @@ function GMScreen({ username }) {
             background: theme.bg.panel, 
             backdropFilter: 'blur(16px)', 
             border: `1px solid ${theme.border}`, 
-            borderRadius: '10px',
+            borderRadius: 0,
             padding: '16px',
             minHeight: '500px',
             overflowY: 'auto'
@@ -784,6 +779,15 @@ function GMScreen({ username }) {
           {/* LOCATION TAB */}
           {activeTab === 'location' && (
             <PartyLocationTracker campaignId={campaignId} />
+          )}
+
+          {/* ENVIRONMENT TAB */}
+          {activeTab === 'environment' && (
+            <EnvironmentControl
+              campaignId={campaignId}
+              campaign={campaign}
+              onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)}
+            />
           )}
 
           {/* NPCs TAB */}
@@ -887,14 +891,14 @@ function GMScreen({ username }) {
               style={{
                 background: theme.gradient,
                 border: 'none',
-                borderRadius: showDicePanel ? '12px 12px 0 0' : '12px',
+                borderRadius: 0,
                 padding: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: showDicePanel ? 'space-between' : 'center',
                 gap: '8px',
-                color: '#0A1628',
+                color: '#FFFFFF',
                 fontWeight: '800',
                 fontSize: '14px',
                 fontFamily: "'Montserrat', sans-serif"
@@ -914,7 +918,7 @@ function GMScreen({ username }) {
                 backdropFilter: 'blur(16px)',
                 border: `1px solid ${theme.border}`,
                 borderTop: 'none',
-                borderRadius: '0 0 12px 12px',
+                borderRadius: 0,
                 padding: '16px',
                 flex: 1,
                 overflowY: 'auto'
@@ -929,9 +933,9 @@ function GMScreen({ username }) {
                         onClick={() => rollQuickDice(`1${die}`, die.toUpperCase())}
                         style={{
                           padding: '10px 8px',
-                          background: 'rgba(212, 160, 23, 0.2)',
+                          background: 'rgba(239, 68, 68, 0.18)',
                           border: `1px solid ${theme.accent.primary}`,
-                          borderRadius: '8px',
+                          borderRadius: 0,
                           color: theme.accent.primary,
                           fontSize: '13px',
                           fontWeight: '800',
@@ -939,11 +943,11 @@ function GMScreen({ username }) {
                           transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(212, 160, 23, 0.4)';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.28)';
                           e.currentTarget.style.transform = 'scale(1.05)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(212, 160, 23, 0.2)';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)';
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
@@ -968,9 +972,9 @@ function GMScreen({ username }) {
                         onClick={() => rollQuickDice(dice, label)}
                         style={{
                           padding: '10px 12px',
-                          background: 'rgba(212, 160, 23, 0.15)',
+                          background: 'rgba(239, 68, 68, 0.14)',
                           border: `1px solid ${theme.accent.primary}`,
-                          borderRadius: '8px',
+                          borderRadius: 0,
                           color: theme.text.primary,
                           fontSize: '12px',
                           fontWeight: '800',
@@ -979,10 +983,10 @@ function GMScreen({ username }) {
                           transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(212, 160, 23, 0.3)';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.26)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(212, 160, 23, 0.15)';
+                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)';
                         }}
                       >
                         {label}
@@ -999,9 +1003,9 @@ function GMScreen({ username }) {
                     style={{
                       width: '100%',
                       padding: '12px',
-                      background: 'rgba(212, 160, 23, 0.2)',
+                      background: 'rgba(239, 68, 68, 0.18)',
                       border: `1px solid ${theme.accent.primary}`,
-                      borderRadius: '8px',
+                      borderRadius: 0,
                       color: theme.accent.primary,
                       fontSize: '14px',
                       fontWeight: '800',
@@ -1009,10 +1013,10 @@ function GMScreen({ username }) {
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(212, 160, 23, 0.4)';
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.28)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(212, 160, 23, 0.2)';
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)';
                     }}
                   >
                     Roll d100

@@ -188,6 +188,7 @@ class Campaign(BaseModel):
     rules_edition: str = "2024"  # "2014" or "2024" — controls AI prompts + class rules across the GM screen
     world_setting: str = "custom"  # Tone label only; concrete lore must come from GM-saved content
     world_setting_notes: str = ""  # GM-provided notes about the setting for AI context
+    campaign_environment: Dict[str, Any] = Field(default_factory=dict)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class CampaignCreate(BaseModel):
@@ -213,6 +214,15 @@ class CampaignSettingUpdate(BaseModel):
 class CampaignWorldSettingUpdate(BaseModel):
     world_setting: str = "custom"  # Tone label only: high_fantasy, magipunk_noir, classic_fantasy, epic_fantasy, gothic_horror, fantasy_space, planar_adventure, custom
     world_setting_notes: str = ""  # GM-authored context for the AI
+
+class CampaignEnvironmentUpdate(BaseModel):
+    weather: str = "clear"
+    lighting: str = "daylight"
+    mood: str = "neutral"
+    location: str = ""
+    notes: str = ""
+    background_image: str = ""
+    background_prompt: str = ""
 
 class CustomRulesUpload(BaseModel):
     name: str = Field(..., description="Name for this ruleset (e.g., 'PHB 2014', 'Homebrew Rules')")
@@ -1461,6 +1471,7 @@ class InventoryItem(BaseModel):
     attunement_required: bool = False
     attuned_to: str = ""  # Player name if attuned
     notes: str = ""
+    image_url: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class InventoryItemCreate(BaseModel):
@@ -1474,6 +1485,7 @@ class InventoryItemCreate(BaseModel):
     attunement_required: bool = False
     attuned_to: str = ""
     notes: str = ""
+    image_url: str = ""
 
 class InventoryItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -1486,6 +1498,7 @@ class InventoryItemUpdate(BaseModel):
     attunement_required: Optional[bool] = None
     attuned_to: Optional[str] = None
     notes: Optional[str] = None
+    image_url: Optional[str] = None
 
 class PartyCurrency(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -1518,6 +1531,7 @@ class CustomItem(BaseModel):
     attunement: bool = False
     value: str = ""
     weight: float = 0.0
+    image_url: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class CustomItemCreate(BaseModel):
@@ -1529,6 +1543,7 @@ class CustomItemCreate(BaseModel):
     attunement: bool = False
     value: str = ""
     weight: float = 0.0
+    image_url: str = ""
 
 class CustomItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -1539,6 +1554,7 @@ class CustomItemUpdate(BaseModel):
     attunement: Optional[bool] = None
     value: Optional[str] = None
     weight: Optional[float] = None
+    image_url: Optional[str] = None
 
 
 class SubscriptionTier(BaseModel):

@@ -107,7 +107,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
     <div
       data-testid="portrait-generator"
       style={{
-        padding: 16, borderRadius: 12,
+        padding: 16, borderRadius: 0,
         background: "rgba(39, 39, 43, 0.86)",
         border: `1px solid ${theme.border}`,
         marginBottom: 20
@@ -136,7 +136,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
             style={{
               width: "100%", padding: "8px 10px",
               background: theme.bg.primary, color: theme.text.primary,
-              border: `1px solid ${theme.border}`, borderRadius: 8,
+              border: `1px solid ${theme.border}`, borderRadius: 0,
               fontSize: 13, outline: "none"
             }}
           />
@@ -154,7 +154,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
             style={{
               width: "100%", padding: "8px 10px",
               background: theme.bg.primary, color: theme.text.primary,
-              border: `1px solid ${theme.border}`, borderRadius: 8,
+              border: `1px solid ${theme.border}`, borderRadius: 0,
               fontSize: 13, outline: "none"
             }}
           />
@@ -171,7 +171,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
             display: "inline-flex", alignItems: "center", gap: 8,
             padding: "10px 16px",
             background: loading ? "rgba(239, 68, 68, 0.1)" : "rgba(239, 68, 68, 0.16)",
-            border: `1px solid ${theme.gold}`, borderRadius: 10,
+            border: `1px solid ${theme.gold}`, borderRadius: 0,
             color: theme.gold, cursor: loading ? "not-allowed" : "pointer",
             fontSize: 13, fontWeight: 800, letterSpacing: 0.5
           }}>
@@ -191,7 +191,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
             display: "inline-flex", alignItems: "center", gap: 8,
             padding: "10px 14px",
             background: "transparent",
-            border: `1px solid ${theme.border}`, borderRadius: 10,
+            border: `1px solid ${theme.border}`, borderRadius: 0,
             color: theme.text.secondary, cursor: "pointer",
             fontSize: 12, fontWeight: 600
           }}>
@@ -229,7 +229,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
                 data-testid={`portrait-option-${opt.style}`}
                 style={{
                   padding: 0, overflow: "hidden",
-                  borderRadius: 10,
+                  borderRadius: 0,
                   background: theme.bg.primary,
                   border: selected ? `3px solid ${theme.gold}` : `1px solid ${theme.border}`,
                   cursor: hasImage ? "pointer" : "not-allowed",
@@ -270,7 +270,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
           <img
             src={portrait}
             alt=""
-            style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", border: `1px solid ${theme.border}` }}
+            style={{ width: 48, height: 48, borderRadius: 0, objectFit: "cover", border: `1px solid ${theme.border}` }}
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
           <span>Current portrait chosen — will save with your character.</span>
@@ -282,7 +282,7 @@ export default function PortraitGenerator({ character = {}, portrait = "", onCha
               marginLeft: "auto",
               display: "inline-flex", alignItems: "center", gap: 4,
               background: "transparent", border: `1px solid ${theme.border}`,
-              color: theme.text.muted, padding: "4px 10px", borderRadius: 6,
+              color: theme.text.muted, padding: "4px 10px", borderRadius: 0,
               fontSize: 11, cursor: "pointer"
             }}>
             <RefreshCw size={11} /> Clear

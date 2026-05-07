@@ -5,19 +5,19 @@ import { Sword, Users, Sparkles, Map, ChevronRight, Crown, Star, Zap, Check } fr
 // Unified theme — same Dark Navy + Gold palette as /home (UnifiedDashboard)
 const theme = {
   bg: {
-    primary: '#0A1628',
-    surface: '#0F2440',
-    surfaceHover: '#14304F',
+    primary: '#1F1F23',
+    surface: '#27272B',
+    surfaceHover: '#323235',
   },
   text: {
-    primary: '#F8FAFC',
-    secondary: '#94A3B8',
-    muted: '#64748B',
+    primary: '#FFFFFF',
+    secondary: '#D1D5DB',
+    muted: '#9CA3AF',
   },
-  gold: '#D4A017',
-  goldHover: '#F5C542',
-  border: 'rgba(212, 160, 23, 0.35)',
-  borderSubtle: 'rgba(212, 160, 23, 0.20)',
+  red: '#EF4444',
+  redHover: '#F87171',
+  border: 'rgba(239, 68, 68, 0.42)',
+  borderSubtle: 'rgba(239, 68, 68, 0.24)',
 };
 
 const features = [
@@ -45,14 +45,14 @@ export default function LandingPage() {
   const panel = {
     background: theme.bg.surface,
     border: `1px solid ${theme.border}`,
-    borderRadius: '12px',
+    borderRadius: 0,
   };
 
-  const goldButton = {
-    background: theme.gold,
-    color: theme.bg.primary,
-    border: `1px solid ${theme.gold}`,
-    borderRadius: '10px',
+  const redButton = {
+    background: theme.red,
+    color: theme.text.primary,
+    border: `1px solid ${theme.red}`,
+    borderRadius: 0,
     padding: '10px 22px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -62,9 +62,9 @@ export default function LandingPage() {
 
   const ghostButton = {
     background: 'transparent',
-    color: theme.gold,
+    color: theme.text.primary,
     border: `1px solid ${theme.border}`,
-    borderRadius: '10px',
+    borderRadius: 0,
     padding: '10px 22px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -87,16 +87,16 @@ export default function LandingPage() {
         position: 'sticky', top: 0, zIndex: 50,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Sword size={22} color={theme.gold} />
+          <Sword size={22} color={theme.red} />
           <span style={{
-            fontSize: 20, fontWeight: 800, color: theme.gold, letterSpacing: 4,
+            fontSize: 20, fontWeight: 800, color: theme.red, letterSpacing: 4,
           }}>ROOK</span>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button data-testid="landing-signin-btn" onClick={() => navigate('/login')} style={ghostButton}>
             Sign In
           </button>
-          <button data-testid="landing-getstarted-btn" onClick={() => navigate('/login')} style={goldButton}>
+          <button data-testid="landing-getstarted-btn" onClick={() => navigate('/login')} style={redButton}>
             Get Started
           </button>
         </div>
@@ -111,7 +111,7 @@ export default function LandingPage() {
             fontSize: 'clamp(40px, 6vw, 64px)',
             fontWeight: 800,
             letterSpacing: '0.18em',
-            color: theme.gold,
+            color: theme.red,
             margin: 0,
           }}>
             ROOKIE QUEST KEEPER
@@ -126,7 +126,7 @@ export default function LandingPage() {
             campaign tracking, and AI-powered game mastery.
           </p>
           <button data-testid="landing-cta-btn" onClick={() => navigate('/login')} style={{
-            ...goldButton, padding: '14px 28px', fontSize: 15,
+            ...redButton, padding: '14px 28px', fontSize: 15,
             display: 'inline-flex', alignItems: 'center', gap: 8,
           }}>
             Start Your Quest <ChevronRight size={18} />
@@ -147,7 +147,7 @@ export default function LandingPage() {
               <div key={i} data-testid={`feature-card-${i}`} style={{
                 ...panel, padding: 20, textAlign: 'center',
               }}>
-                <Icon size={26} color={theme.gold} style={{ margin: '0 auto 10px', display: 'block' }} />
+                <Icon size={26} color={theme.red} style={{ margin: '0 auto 10px', display: 'block' }} />
                 <h3 style={{ fontSize: 15, color: theme.text.primary, margin: '0 0 6px', fontWeight: 700 }}>
                   {f.title}
                 </h3>
@@ -161,7 +161,7 @@ export default function LandingPage() {
       {/* Pricing */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 32px 64px' }}>
         <h2 style={{
-          fontSize: 28, fontWeight: 800, textAlign: 'center', color: theme.gold,
+          fontSize: 28, fontWeight: 800, textAlign: 'center', color: theme.red,
           marginBottom: 32, letterSpacing: 1,
         }}>
           Choose Your Path
@@ -178,7 +178,7 @@ export default function LandingPage() {
                 ...panel,
                 padding: 24,
                 position: 'relative',
-                borderColor: tier.popular ? theme.gold : theme.border,
+                borderColor: tier.popular ? theme.red : theme.border,
                 borderWidth: tier.popular ? 2 : 1,
                 opacity: tier.comingSoon ? 0.7 : 1,
               }}>
@@ -186,7 +186,7 @@ export default function LandingPage() {
                   <div style={{
                     position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
                     padding: '4px 12px', fontSize: 10, fontWeight: 800, letterSpacing: 1,
-                    background: theme.gold, color: theme.bg.primary, borderRadius: 6,
+                    background: theme.red, color: theme.text.primary, borderRadius: 0,
                   }}>
                     MOST POPULAR
                   </div>
@@ -195,21 +195,21 @@ export default function LandingPage() {
                   <div style={{
                     position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
                     padding: '3px 10px', fontSize: 10, fontWeight: 700, letterSpacing: 1,
-                    background: theme.bg.primary, color: theme.gold,
-                    border: `1px solid ${theme.border}`, borderRadius: 4,
+                    background: theme.bg.primary, color: theme.red,
+                    border: `1px solid ${theme.border}`, borderRadius: 0,
                   }}>
                     COMING SOON
                   </div>
                 )}
                 <div style={{ marginTop: tier.comingSoon ? 28 : 0, marginBottom: 12 }}>
-                  <Icon size={24} color={theme.gold} />
+                  <Icon size={24} color={theme.red} />
                   <h3 style={{ fontSize: 18, color: theme.text.primary, margin: '8px 0 0', fontWeight: 800 }}>
                     {tier.name}
                   </h3>
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   {tier.comingSoon ? (
-                    <span style={{ fontSize: 22, fontWeight: 800, color: theme.gold }}>{tier.price}</span>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: theme.red }}>{tier.price}</span>
                   ) : (
                     <>
                       <span style={{ color: theme.text.muted, fontSize: 16 }}>$</span>
@@ -226,7 +226,7 @@ export default function LandingPage() {
                       display: 'flex', alignItems: 'flex-start', gap: 8,
                       fontSize: 12, color: theme.text.secondary, fontWeight: 500,
                     }}>
-                      <Check size={14} color={theme.gold} style={{ marginTop: 1, flexShrink: 0 }} />
+                      <Check size={14} color={theme.red} style={{ marginTop: 1, flexShrink: 0 }} />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -243,13 +243,13 @@ export default function LandingPage() {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    borderRadius: 8,
+                    borderRadius: 0,
                     fontWeight: 800,
                     fontSize: 13,
                     letterSpacing: 0.5,
                     cursor: tier.comingSoon ? 'not-allowed' : 'pointer',
-                    background: tier.popular ? theme.gold : 'transparent',
-                    color: tier.popular ? theme.bg.primary : theme.gold,
+                    background: tier.popular ? theme.red : 'transparent',
+                    color: tier.popular ? theme.text.primary : theme.text.primary,
                     border: `1px solid ${theme.border}`,
                     opacity: tier.comingSoon ? 0.5 : 1,
                   }}
@@ -270,8 +270,8 @@ export default function LandingPage() {
         borderTop: `1px solid ${theme.border}`,
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Sword size={16} color={theme.gold} />
-          <span style={{ fontSize: 14, fontWeight: 800, color: theme.gold, letterSpacing: 3 }}>ROOK</span>
+          <Sword size={16} color={theme.red} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: theme.red, letterSpacing: 3 }}>ROOK</span>
         </div>
         <p style={{ color: theme.text.muted, fontSize: 12, fontWeight: 500, margin: 0 }}>
           &copy; {new Date().getFullYear()} Rookie Quest Keeper. All rights reserved.

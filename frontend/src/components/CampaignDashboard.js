@@ -21,47 +21,47 @@ import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab
 import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
-// GM Mode Theme - unified navy and gold
+// GM Mode Theme - dark grey, red linework, white text
 const theme = {
   bg: {
-    black: '#0A1628',
-    dark: '#0F2440',
-    panel: 'rgba(15, 36, 64, 0.92)',
-    card: 'rgba(15, 36, 64, 0.96)',
-    hover: '#14304F',
-    elevated: '#14304F',
-    surface: 'rgba(15, 36, 64, 0.88)'
+    black: '#1F1F23',
+    dark: '#27272B',
+    panel: 'rgba(39, 39, 43, 0.94)',
+    card: 'rgba(39, 39, 43, 0.96)',
+    hover: '#323235',
+    elevated: '#323235',
+    surface: 'rgba(39, 39, 43, 0.90)'
   },
   sunset: {
-    purple: '#D4A017',
-    pink: '#F5C542',
-    gold: '#D4A017'
+    purple: '#EF4444',
+    pink: '#F87171',
+    gold: '#EF4444'
   },
   accent: {
-    primary: '#D4A017',
-    secondary: '#F5C542',
-    tertiary: '#F5C542',
-    hover: '#F5C542',
-    subtle: 'rgba(212, 160, 23, 0.12)',
-    glow: '0 0 18px rgba(212, 160, 23, 0.18)',
-    gm: '#D4A017',
-    red: '#D4A017',
-    redHover: '#F5C542',
-    redSubtle: 'rgba(212, 160, 23, 0.12)',
-    orange: '#F5C542'
+    primary: '#EF4444',
+    secondary: '#F87171',
+    tertiary: '#F87171',
+    hover: '#F87171',
+    subtle: 'rgba(239, 68, 68, 0.12)',
+    glow: 'none',
+    gm: '#EF4444',
+    red: '#EF4444',
+    redHover: '#F87171',
+    redSubtle: 'rgba(239, 68, 68, 0.12)',
+    orange: '#F87171'
   },
   text: {
     white: '#FFFFFF',
-    primary: '#F8F8FF',
-    secondary: '#A0A0B0',
-    muted: '#6B6B7B'
+    primary: '#FFFFFF',
+    secondary: '#D1D5DB',
+    muted: '#9CA3AF'
   },
-  border: 'rgba(212, 160, 23, 0.35)',
-  gradient: 'linear-gradient(135deg, #D4A017, #F5C542)'
+  border: 'rgba(239, 68, 68, 0.42)',
+  gradient: '#EF4444'
 };
 
 function CampaignDashboard({ username, onLogout }) {
@@ -189,7 +189,7 @@ function CampaignDashboard({ username, onLogout }) {
           padding: isNested ? '10px 16px 10px 32px' : '12px 16px',
           border: 'none',
           background: isActive ? theme.gradient : (isHovered ? theme.accent.subtle : 'transparent'),
-          color: isActive ? '#0A1628' : (isHovered ? theme.text.white : theme.text.secondary),
+          color: isActive ? '#FFFFFF' : (isHovered ? theme.text.white : theme.text.secondary),
           fontWeight: '800',
           fontSize: isNested ? '13px' : '14px',
           cursor: 'pointer',
@@ -200,12 +200,12 @@ function CampaignDashboard({ username, onLogout }) {
           textAlign: 'left',
           width: '100%',
           minHeight: isNested ? '40px' : '44px',
-          borderRadius: '8px',
+          borderRadius: 0,
           margin: '2px 8px',
           maxWidth: 'calc(100% - 16px)'
         }}
       >
-        <tab.icon size={isNested ? 16 : 18} style={{ color: isActive ? '#0A1628' : theme.sunset.purple }} />
+        <tab.icon size={isNested ? 16 : 18} style={{ color: isActive ? '#FFFFFF' : theme.sunset.purple }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
         
         {/* Accent bar on right side when hovered (not active) */}
@@ -216,7 +216,7 @@ function CampaignDashboard({ username, onLogout }) {
             top: '4px',
             bottom: '4px',
             width: '3px',
-            borderRadius: '2px',
+            borderRadius: 0,
             background: theme.sunset.purple,
             animation: 'slideIn 0.15s ease'
           }} />
@@ -272,7 +272,7 @@ function CampaignDashboard({ username, onLogout }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, rgba(10, 22, 40, 0.98) 0%, rgba(10, 22, 40, 1) 100%)',
+      background: '#1F1F23',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
@@ -281,7 +281,7 @@ function CampaignDashboard({ username, onLogout }) {
     }}>
       {/* Header */}
       <div style={{
-        background: 'rgba(15, 36, 64, 0.95)',
+        background: 'rgba(39, 39, 43, 0.96)',
         backdropFilter: 'blur(12px)',
         borderBottom: `1px solid ${theme.border}`,
         padding: '8px 14px',
@@ -331,7 +331,7 @@ function CampaignDashboard({ username, onLogout }) {
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <h1 style={{ 
                 fontSize: 'clamp(18px, 4vw, 24px)', 
-                color: '#0A1628',
+                color: theme.text.primary,
                 marginBottom: '4px',
                 fontWeight: '800',
                 whiteSpace: 'nowrap',
@@ -392,7 +392,7 @@ function CampaignDashboard({ username, onLogout }) {
           style={{
             width: '220px',
             minWidth: '220px',
-            background: 'rgba(15, 36, 64, 0.92)',
+            background: 'rgba(39, 39, 43, 0.94)',
             backdropFilter: 'blur(12px)',
             borderRight: `1px solid ${theme.border}`,
             padding: '16px 0',
@@ -465,13 +465,13 @@ function CampaignDashboard({ username, onLogout }) {
         }}>
           {/* Tab Content */}
           <div style={{
-            background: 'rgba(15, 36, 64, 0.88)',
+            background: 'rgba(39, 39, 43, 0.90)',
             backdropFilter: 'blur(16px)',
             border: `1px solid ${theme.border}`,
-            borderRadius: '10px',
+            borderRadius: 0,
             padding: '16px',
             minHeight: '500px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+            boxShadow: 'none'
           }}>
             
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}

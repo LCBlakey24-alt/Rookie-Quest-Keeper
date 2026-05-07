@@ -8,9 +8,10 @@ import {
   Sword, Shield, FlaskConical, ScrollText, Gem, Search, Users, GripVertical, ArrowRight,
   Dice5, Split, Wand2
 } from 'lucide-react';
+import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },
@@ -141,7 +142,8 @@ function PartyInventory({ campaignId, players = [] }) {
     is_magical: false,
     attunement_required: false,
     attuned_to: '',
-    notes: ''
+    notes: '',
+    image_url: ''
   });
 
   useEffect(() => {
@@ -174,7 +176,7 @@ function PartyInventory({ campaignId, players = [] }) {
       setNewItem({
         name: '', quantity: 1, item_type: 'misc', description: '',
         value: '', weight: 0, is_magical: false, attunement_required: false,
-        attuned_to: '', notes: ''
+        attuned_to: '', notes: '', image_url: ''
       });
       setShowAddForm(false);
       toast.success('Item added!');
@@ -337,7 +339,7 @@ function PartyInventory({ campaignId, players = [] }) {
   };
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || item.item_type === filterType;
     return matchesSearch && matchesType;
@@ -546,6 +548,25 @@ function PartyInventory({ campaignId, players = [] }) {
                   </label>
                 </div>
               </div>
+              <div style={{ marginTop: '10px' }}>
+                <AIImageGeneratorPanel
+                  title="AI Item Image"
+                  subtitle="Inventory item, armor, weapon, or equipment art."
+                  buttonLabel="Generate 3 Images"
+                  disabled={!newItem.name.trim()}
+                  selectedImage={newItem.image_url}
+                  onSelectImage={(src) => setNewItem(prev => ({ ...prev, image_url: src }))}
+                  onClearImage={() => setNewItem(prev => ({ ...prev, image_url: '' }))}
+                  payload={{
+                    subject_type: 'item',
+                    name: newItem.name || 'inventory item',
+                    item_type: ITEM_TYPES.find(t => t.id === newItem.item_type)?.label || newItem.item_type,
+                    rarity: newItem.is_magical ? 'magical' : 'common',
+                    description: newItem.description || newItem.notes || '',
+                    properties: newItem.attunement_required ? 'requires attunement' : '',
+                  }}
+                />
+              </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                 <Button onClick={handleAddItem} className="btn-primary" style={{ display: 'flex', gap: '4px', fontSize: '12px', padding: '6px 12px' }}>
                   <Plus size={12} /> Add
@@ -591,8 +612,12 @@ function PartyInventory({ campaignId, players = [] }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <GripVertical size={14} style={{ color: '#4a7dff', cursor: 'grab' }} />
-                        <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: `${typeInfo.color}30`, border: `2px solid ${typeInfo.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <TypeIcon size={16} style={{ color: typeInfo.color }} />
+                        <div style={{ width: '32px', height: '32px', borderRadius: 0, background: `${typeInfo.color}30`, border: `2px solid ${typeInfo.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <TypeIcon size={16} style={{ color: typeInfo.color }} />
+                          )}
                         </div>
                         <div>
                           <div style={{ color: '#ffffff', fontWeight: '400', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -666,7 +691,11 @@ function PartyInventory({ campaignId, players = [] }) {
                         return (
                           <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(10, 10, 40, 0.5)', borderRadius: '6px', padding: '6px 8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <TypeIcon size={12} style={{ color: typeInfo.color }} />
+                              {item.image_url ? (
+                                <img src={item.image_url} alt={item.name} style={{ width: 18, height: 18, objectFit: 'cover', border: `1px solid ${typeInfo.color}` }} />
+                              ) : (
+                                <TypeIcon size={12} style={{ color: typeInfo.color }} />
+                              )}
                               <span style={{ fontSize: '11px', color: '#fff' }}>{item.name}</span>
                               {item.is_magical && <Sparkles size={8} style={{ color: '#eab308' }} />}
                             </div>

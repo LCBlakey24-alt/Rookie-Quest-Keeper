@@ -8,7 +8,7 @@ from utils.auth import (
 from models import (
     Campaign, CampaignCreate, CampaignSetting, CampaignSettingUpdate,
     CampaignWorldSettingUpdate, CustomRulesUpload, CampaignInvite, CampaignMember,
-    CustomRuleset, SUBSCRIPTION_PLANS
+    CampaignEnvironmentUpdate, CustomRuleset, SUBSCRIPTION_PLANS
 )
 from typing import List, Optional, Dict, Any
 import uuid
@@ -370,6 +370,49 @@ async def get_campaign_world_setting(campaign_id: str, username: str = Depends(g
             {"id": "custom", "name": "Custom Setting", "description": "Use only your saved homebrew notes"}
         ]
     }
+
+@router.get("/campaigns/{campaign_id}/environment")
+async def get_campaign_environment(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get the current shared table environment for GM and player views."""
+    campaign = await verify_campaign_membership(campaign_id, username)
+    return campaign.get('campaign_environment') or {
+        "weather": "clear",
+        "lighting": "daylight",
+        "mood": "neutral",
+        "location": "",
+        "notes": "",
+        "background_image": "",
+        "background_prompt": "",
+    }
+
+@router.put("/campaigns/{campaign_id}/environment")
+async def update_campaign_environment(
+    campaign_id: str,
+    data: CampaignEnvironmentUpdate,
+    username: str = Depends(get_current_user)
+):
+    """Update the shared table environment. GM-only; players read it from their campaign page."""
+    await verify_campaign_ownership(campaign_id, username)
+
+    environment = data.model_dump()
+    environment['updated_at'] = datetime.now(timezone.utc).isoformat()
+    environment['updated_by'] = username
+
+    result = await db.campaigns.update_one(
+        {'id': campaign_id, 'dm_user_id': username},
+        {'$set': {'campaign_environment': environment}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+    await ws_manager.broadcast_to_campaign(campaign_id, {
+        "type": "environment_updated",
+        "campaign_id": campaign_id,
+        "environment": environment,
+        "timestamp": environment['updated_at'],
+    })
+
+    return environment
 
 @router.post("/campaigns/{campaign_id}/invite")
 async def create_campaign_invite(campaign_id: str, invite_data: Dict[str, Any] = None, username: str = Depends(get_current_user)):
