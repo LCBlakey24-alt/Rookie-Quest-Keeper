@@ -1,8 +1,8 @@
 import React from 'react';
-import { Heart, Shield, Zap, Wind, Sparkles, Coffee, Moon, ArrowUp, Edit3, User } from 'lucide-react';
+import { Heart, Shield, Zap, Wind, Sparkles, ArrowUp, Edit3, User } from 'lucide-react';
 import { getClassAccent } from '../lib/theme';
 
-const VitalChip = ({ icon: Icon, label, value, color, onClick, testId }) => {
+const VitalChip = ({ icon: Icon, label, value, color, mutedColor = '#9CA3AF', onClick, testId }) => {
   const interactive = typeof onClick === 'function';
   const Tag = interactive ? 'button' : 'div';
   return (
@@ -19,7 +19,7 @@ const VitalChip = ({ icon: Icon, label, value, color, onClick, testId }) => {
         font: 'inherit', color: 'inherit'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: theme.text.muted, fontWeight: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: mutedColor, fontWeight: 600 }}>
         <Icon size={11} color={color} /> {label}
       </div>
       <div style={{ fontSize: '14px', fontWeight: 700, color, marginTop: '1px' }}>{value}</div>
@@ -38,6 +38,7 @@ export default function CharacterHeader({
   const exhaustion = character?.exhaustion_level || 0;
   const incapacitatingConditions = ['incapacitated', 'paralyzed', 'petrified', 'stunned', 'unconscious'];
   const isIncapacitated = incapacitatingConditions.some(c => activeConditions.includes(c));
+  const mutedColor = theme?.text?.muted || '#9CA3AF';
 
   return (
     <div className="character-sheet-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexShrink: 0, position: 'relative', zIndex: 1 }}>
@@ -78,9 +79,9 @@ export default function CharacterHeader({
           </div>
         </div>
 
-        <VitalChip icon={Shield} label="AC" value={ac} color={theme.accent.primary} testId="vital-ac" />
-        <VitalChip icon={Zap} label="INIT" value={initiative >= 0 ? `+${initiative}` : initiative} color={theme.accent.highlight} onClick={() => rollDice('1d20', initiative, 'Initiative')} testId="vital-init" />
-        <VitalChip icon={Wind} label="SPD" value={`${speed}ft`} color={theme.accent.secondary} testId="vital-speed" />
+        <VitalChip icon={Shield} label="AC" value={ac} color={theme.accent.primary} mutedColor={mutedColor} testId="vital-ac" />
+        <VitalChip icon={Zap} label="INIT" value={initiative >= 0 ? `+${initiative}` : initiative} color={theme.accent.highlight} mutedColor={mutedColor} onClick={() => rollDice('1d20', initiative, 'Initiative')} testId="vital-init" />
+        <VitalChip icon={Wind} label="SPD" value={`${speed}ft`} color={theme.accent.secondary} mutedColor={mutedColor} testId="vital-speed" />
 
         <button onClick={() => onToggleInspiration && onToggleInspiration(!character.inspiration)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 10px', borderRadius: '10px', background: character.inspiration ? `rgba(245, 158, 11, 0.18)` : 'rgba(255, 255, 255, 0.04)', border: `1px solid ${character.inspiration ? 'rgba(245, 158, 11, 0.5)' : theme.border}`, cursor: 'pointer', minWidth: '60px' }} title="Toggle Inspiration">
           <Sparkles size={14} color={character.inspiration ? theme.warning : theme.text.muted} />
