@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import axios from 'axios';
 import '@/App.css';
 import '@/styles/designSystem.css';
+import '@/styles/characterBuilderResponsive.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
