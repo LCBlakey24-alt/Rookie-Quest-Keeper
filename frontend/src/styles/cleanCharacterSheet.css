@@ -229,8 +229,12 @@
   font-size: 12px;
 }
 
-.clean-sheet-tabs {
+.clean-sheet-tabs,
+.clean-sheet-content {
   max-width: 1180px;
+}
+
+.clean-sheet-tabs {
   margin: 0 auto 14px;
   display: flex;
   gap: 8px;
@@ -264,7 +268,6 @@
 }
 
 .clean-sheet-content {
-  max-width: 1180px;
   margin: 0 auto;
   padding-bottom: 90px;
 }
@@ -363,6 +366,52 @@
 .clean-sheet-skills strong {
   color: #FFFFFF;
   font-weight: 950;
+}
+
+/* Desktop/tablet sheet page navigation */
+@media (min-width: 901px) {
+  .clean-sheet-page {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    grid-template-areas:
+      "header header"
+      "vitals vitals"
+      "tabs content";
+    gap: 14px;
+    align-items: start;
+  }
+
+  .clean-sheet-header {
+    grid-area: header;
+    width: 100%;
+  }
+
+  .clean-sheet-vitals {
+    grid-area: vitals;
+    width: 100%;
+  }
+
+  .clean-sheet-tabs {
+    grid-area: tabs;
+    width: 100%;
+    margin: 0;
+    flex-direction: column;
+    overflow: visible;
+    position: sticky;
+    top: 16px;
+    align-self: start;
+  }
+
+  .clean-sheet-tabs button {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .clean-sheet-content {
+    grid-area: content;
+    width: 100%;
+    margin: 0;
+  }
 }
 
 @media (max-width: 900px) {
