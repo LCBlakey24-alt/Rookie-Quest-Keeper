@@ -2,7 +2,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, Swords, TrendingUp, User, Zap } from 'lucide-react';
+import {
+  Activity,
+  ArrowLeft,
+  Backpack,
+  BookOpen,
+  Coffee,
+  Dices,
+  Edit3,
+  Heart,
+  History,
+  Moon,
+  RotateCcw,
+  Shield,
+  Skull,
+  Sparkles,
+  Star,
+  Swords,
+  TrendingUp,
+  User,
+  Zap,
+} from 'lucide-react';
 import { API_BASE } from '@/lib/api';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
@@ -29,6 +49,29 @@ const SKILLS = [
   ['Sleight of Hand', 'dexterity'], ['Stealth', 'dexterity'], ['Survival', 'wisdom'],
 ];
 
+const PASSIVE_SKILLS = [
+  ['Perception', 'wisdom'],
+  ['Insight', 'wisdom'],
+  ['Investigation', 'intelligence'],
+];
+
+const COMMON_CONDITIONS = [
+  'blinded',
+  'charmed',
+  'deafened',
+  'frightened',
+  'grappled',
+  'incapacitated',
+  'invisible',
+  'paralyzed',
+  'petrified',
+  'poisoned',
+  'prone',
+  'restrained',
+  'stunned',
+  'unconscious',
+];
+
 const tabs = [
   { id: 'overview', label: 'Overview', icon: Sparkles },
   { id: 'combat', label: 'Combat', icon: Swords },
@@ -42,6 +85,7 @@ const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 const getMaxHp = (c) => Number(c?.max_hit_points ?? c?.max_hp ?? 10) || 10;
 const getCurrentHp = (c) => Number(c?.current_hit_points ?? c?.hp ?? getMaxHp(c)) || getMaxHp(c);
 const getTempHp = (c) => Number(c?.temporary_hit_points ?? c?.temp_hp ?? 0) || 0;
+const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
 
 function rollD20(modifier = 0) {
   const d20 = Math.floor(Math.random() * 20) + 1;
@@ -76,10 +120,14 @@ export default function CleanCharacterSheet() {
   const [loading, setLoading] = useState(true);
   const [savingHp, setSavingHp] = useState(false);
   const [savingTempHp, setSavingTempHp] = useState(false);
+  const [savingQuickState, setSavingQuickState] = useState(false);
   const [hpAmount, setHpAmount] = useState(1);
   const [tempHpAmount, setTempHpAmount] = useState(1);
   const [activeTab, setActiveTab] = useState('overview');
   const [rollBurst, setRollBurst] = useState(null);
+  const [rollHistory, setRollHistory] = useState([]);
+  const [showRollHistory, setShowRollHistory] = useState(false);
+  const [showConditionPicker, setShowConditionPicker] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,56 +157,200 @@ export default function CleanCharacterSheet() {
   const currentHp = Math.min(getCurrentHp(character), maxHp);
   const tempHp = getTempHp(character);
   const dexMod = mod(character?.dexterity);
-  const proficiencyBonus = 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
   const ac = Number(character?.armor_class ?? character?.ac ?? (10 + dexMod));
   const speed = Number(character?.speed ?? 30);
   const skillProficiencies = character?.skill_proficiencies || [];
   const saveProficiencies = character?.saving_throw_proficiencies || [];
+  const activeConditions = character?.conditions || [];
+  const exhaustionLevel = Number(character?.exhaustion_level || 0);
+  const deathSaveSuccesses = clampDeathCount(character?.death_saves_successes);
+  const deathSaveFailures = clampDeathCount(character?.death_saves_failures);
+  const hasInspiration = Boolean(character?.inspiration || character?.has_inspiration);
+  const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
+  const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? 1) || 0;
 
   const hpPercent = useMemo(() => {
     if (!maxHp) return 0;
     return Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100)));
   }, [currentHp, maxHp]);
 
+  const passiveScores = useMemo(() => {
+    return PASSIVE_SKILLS.map(([skill, ability]) => {
+      const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
+      return [skill, 10 + mod(character?.[ability]) + (proficient ? proficiencyBonus : 0)];
+    });
+  }, [character, proficiencyBonus, skillProficiencies]);
+
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
+
+  const patchCharacter = async (updates, options = {}) => {
+    const previous = character;
+    setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
+    try {
+      const response = await axios.patch(`${API}/characters/${characterId}`, updates);
+      if (response?.data && typeof response.data === 'object') {
+        setCharacter(response.data.character || response.data);
+      }
+      if (options.success) toast.success(options.success);
+      return true;
+    } catch (error) {
+      setCharacter(previous);
+      toast.error(options.error || 'Could not save character update');
+      return false;
+    }
+  };
 
   const updateHp = async (delta) => {
     if (!character || savingHp) return;
     const nextHp = Math.max(0, Math.min(maxHp, currentHp + delta));
-    setCharacter(prev => ({ ...prev, current_hit_points: nextHp }));
-    setSavingHp(true);
-    try {
-      await axios.patch(`${API}/characters/${characterId}`, { current_hit_points: nextHp });
-    } catch (error) {
-      toast.error('Could not save HP');
-      setCharacter(prev => ({ ...prev, current_hit_points: currentHp }));
-    } finally {
-      setSavingHp(false);
+    const updates = { current_hit_points: nextHp };
+    if (nextHp > 0 && (deathSaveSuccesses || deathSaveFailures)) {
+      updates.death_saves_successes = 0;
+      updates.death_saves_failures = 0;
     }
+    setSavingHp(true);
+    await patchCharacter(updates, { error: 'Could not save HP' });
+    setSavingHp(false);
   };
 
   const updateTempHp = async (delta) => {
     if (!character || savingTempHp) return;
     const nextTempHp = Math.max(0, tempHp + delta);
-    setCharacter(prev => ({ ...prev, temporary_hit_points: nextTempHp, temp_hp: nextTempHp }));
     setSavingTempHp(true);
-    try {
-      await axios.patch(`${API}/characters/${characterId}`, { temporary_hit_points: nextTempHp });
-    } catch (error) {
-      toast.error('Could not save temporary HP');
-      setCharacter(prev => ({ ...prev, temporary_hit_points: tempHp, temp_hp: tempHp }));
-    } finally {
-      setSavingTempHp(false);
-    }
+    await patchCharacter(
+      { temporary_hit_points: nextTempHp, temp_hp: nextTempHp },
+      { error: 'Could not save temporary HP' }
+    );
+    setSavingTempHp(false);
   };
 
   const makeRoll = (label, modifier) => {
     const result = rollD20(modifier);
-    setRollBurst({ label, ...result, id: `${Date.now()}-${Math.random()}` });
+    const entry = {
+      id: `${Date.now()}-${Math.random()}`,
+      label,
+      ...result,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setRollBurst(entry);
+    setRollHistory(prev => [entry, ...prev].slice(0, 12));
   };
 
   const updateCharacterLocal = (updates) => {
     setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
+  };
+
+  const toggleInspiration = async () => {
+    if (savingQuickState) return;
+    setSavingQuickState(true);
+    await patchCharacter(
+      { inspiration: !hasInspiration, has_inspiration: !hasInspiration },
+      { success: !hasInspiration ? 'Inspiration gained' : 'Inspiration removed', error: 'Could not save inspiration' }
+    );
+    setSavingQuickState(false);
+  };
+
+  const toggleCondition = async (condition) => {
+    if (savingQuickState) return;
+    const nextConditions = activeConditions.includes(condition)
+      ? activeConditions.filter(c => c !== condition)
+      : [...activeConditions, condition];
+    setSavingQuickState(true);
+    await patchCharacter(
+      { conditions: nextConditions },
+      { error: 'Could not save condition' }
+    );
+    setSavingQuickState(false);
+  };
+
+  const setDeathSaveCount = async (type, index) => {
+    const current = type === 'success' ? deathSaveSuccesses : deathSaveFailures;
+    const next = current === index + 1 ? index : index + 1;
+    const updates = type === 'success'
+      ? { death_saves_successes: next }
+      : { death_saves_failures: next };
+    await patchCharacter(updates, { error: 'Could not save death save' });
+  };
+
+  const resetDeathSaves = async () => {
+    await patchCharacter(
+      { death_saves_successes: 0, death_saves_failures: 0 },
+      { success: 'Death saves reset', error: 'Could not reset death saves' }
+    );
+  };
+
+  const rollDeathSave = async () => {
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const entry = {
+      id: `${Date.now()}-death-save`,
+      label: 'Death Save',
+      d20: roll,
+      modifier: 0,
+      total: roll,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setRollBurst(entry);
+    setRollHistory(prev => [entry, ...prev].slice(0, 12));
+
+    if (roll === 20) {
+      await patchCharacter(
+        { current_hit_points: 1, death_saves_successes: 0, death_saves_failures: 0 },
+        { success: 'Natural 20! You regain 1 HP.', error: 'Could not save death save result' }
+      );
+      return;
+    }
+
+    if (roll === 1) {
+      await patchCharacter(
+        { death_saves_failures: Math.min(3, deathSaveFailures + 2) },
+        { success: 'Natural 1: two failures marked.', error: 'Could not save death save result' }
+      );
+      return;
+    }
+
+    if (roll >= 10) {
+      await patchCharacter(
+        { death_saves_successes: Math.min(3, deathSaveSuccesses + 1) },
+        { success: 'Death save success marked.', error: 'Could not save death save result' }
+      );
+    } else {
+      await patchCharacter(
+        { death_saves_failures: Math.min(3, deathSaveFailures + 1) },
+        { success: 'Death save failure marked.', error: 'Could not save death save result' }
+      );
+    }
+  };
+
+  const handleRest = async (restType) => {
+    if (!character || savingQuickState) return;
+    setSavingQuickState(true);
+    const endpoint = restType === 'long' ? 'long-rest' : 'short-rest';
+    try {
+      const response = await axios.post(`${API}/characters/${characterId}/${endpoint}`);
+      const updated = response.data?.character || response.data;
+      if (updated && typeof updated === 'object') setCharacter(updated);
+      toast.success(restType === 'long' ? 'Long rest completed' : 'Short rest completed');
+    } catch (error) {
+      if (restType === 'long') {
+        await patchCharacter(
+          {
+            current_hit_points: maxHp,
+            temporary_hit_points: 0,
+            temp_hp: 0,
+            death_saves_successes: 0,
+            death_saves_failures: 0,
+            spell_slots_remaining: character?.spell_slots || {},
+            hit_dice_remaining: Number(character?.level || 1),
+          },
+          { success: 'Long rest applied', error: 'Could not apply long rest' }
+        );
+      } else {
+        toast.info('Short rest noted. Hit dice spending is coming next.');
+      }
+    } finally {
+      setSavingQuickState(false);
+    }
   };
 
   if (loading) {
@@ -186,6 +378,8 @@ export default function CleanCharacterSheet() {
     character.subclass ? `(${character.subclass})` : null,
     `Lv ${character.level || 1}`,
   ].filter(Boolean).join(' • ');
+
+  const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   return (
     <div className="clean-sheet-page">
@@ -261,6 +455,91 @@ export default function CleanCharacterSheet() {
         <StatCard icon={User} label="Speed" value={`${speed}ft`} />
       </section>
 
+      <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
+        <div className="clean-sheet-status-row">
+          <button type="button" className={`clean-sheet-inspiration ${hasInspiration ? 'active' : ''}`} onClick={toggleInspiration} disabled={savingQuickState} data-testid="inspiration-toggle">
+            <Star size={17} /> {hasInspiration ? 'Inspired' : 'Inspiration'}
+          </button>
+          <button type="button" className="clean-sheet-rest-button" onClick={() => handleRest('short')} disabled={savingQuickState} data-testid="short-rest-btn">
+            <Coffee size={17} /> Short Rest
+          </button>
+          <button type="button" className="clean-sheet-rest-button" onClick={() => handleRest('long')} disabled={savingQuickState} data-testid="long-rest-btn">
+            <Moon size={17} /> Long Rest
+          </button>
+        </div>
+
+        <div className="clean-sheet-passives" data-testid="passive-scores-strip">
+          {passiveScores.map(([label, value]) => (
+            <div key={label}><span>Passive {label}</span><strong>{value}</strong></div>
+          ))}
+        </div>
+
+        <div className="clean-sheet-hitdice-row" data-testid="hit-dice-row">
+          <span><Activity size={15} /> Hit Dice</span>
+          <strong>{hitDiceRemaining} / {hitDice}</strong>
+        </div>
+
+        <div className="clean-sheet-condition-panel" data-testid="conditions-strip">
+          <button type="button" onClick={() => setShowConditionPicker(prev => !prev)} className="clean-sheet-condition-toggle">
+            Conditions {activeConditions.length > 0 ? `(${activeConditions.length})` : ''}
+          </button>
+          {exhaustionLevel > 0 && <span className="clean-sheet-condition-chip danger">Exhaustion {exhaustionLevel}</span>}
+          {activeConditions.length === 0 && exhaustionLevel === 0 ? (
+            <span className="clean-sheet-no-conditions">No active conditions</span>
+          ) : (
+            activeConditions.map(condition => <span key={condition} className="clean-sheet-condition-chip">{condition}</span>)
+          )}
+          {showConditionPicker && (
+            <div className="clean-sheet-condition-picker">
+              {COMMON_CONDITIONS.map(condition => (
+                <button
+                  key={condition}
+                  type="button"
+                  className={activeConditions.includes(condition) ? 'active' : ''}
+                  onClick={() => toggleCondition(condition)}
+                  disabled={savingQuickState}
+                >
+                  {condition}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {showDeathSaves && (
+          <div className="clean-sheet-death-saves" data-testid="death-saves-panel">
+            <div className="clean-sheet-death-title"><Skull size={17} /> Death Saves</div>
+            <DeathSaveTrack label="Successes" type="success" count={deathSaveSuccesses} onToggle={setDeathSaveCount} />
+            <DeathSaveTrack label="Failures" type="failure" count={deathSaveFailures} onToggle={setDeathSaveCount} />
+            <div className="clean-sheet-death-actions">
+              <button type="button" onClick={rollDeathSave}>Roll Death Save</button>
+              <button type="button" onClick={resetDeathSaves}><RotateCcw size={15} /> Reset</button>
+            </div>
+          </div>
+        )}
+
+        <div className="clean-sheet-roll-history-panel" data-testid="roll-history-panel">
+          <button type="button" onClick={() => setShowRollHistory(prev => !prev)} className="clean-sheet-roll-history-toggle">
+            <History size={16} /> Last Rolls {rollHistory.length > 0 ? `(${rollHistory.length})` : ''}
+          </button>
+          {showRollHistory && (
+            <div className="clean-sheet-roll-history-list">
+              {rollHistory.length === 0 ? (
+                <p>No rolls yet.</p>
+              ) : (
+                rollHistory.map(entry => (
+                  <div key={entry.id}>
+                    <span>{entry.label}</span>
+                    <strong>{entry.total}</strong>
+                    <em>{entry.time} • d20 {entry.d20} {fmt(entry.modifier)}</em>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
       <nav className="clean-sheet-tabs" aria-label="Character sheet sections">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -334,6 +613,25 @@ export default function CleanCharacterSheet() {
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
+    </div>
+  );
+}
+
+function DeathSaveTrack({ label, type, count, onToggle }) {
+  return (
+    <div className="clean-sheet-death-track">
+      <span>{label}</span>
+      <div>
+        {[0, 1, 2].map(index => (
+          <button
+            key={index}
+            type="button"
+            className={index < count ? 'marked' : ''}
+            onClick={() => onToggle(type, index)}
+            aria-label={`${label} ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
