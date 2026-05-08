@@ -10,7 +10,7 @@
 
 .clean-sheet-action-card {
   text-align: left;
-  min-height: 92px;
+  min-height: 104px;
   background: #0B0B0C;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
@@ -39,40 +39,17 @@
   font-size: 13px;
 }
 
-.clean-sheet-roll-result {
-  min-height: 180px;
-  background: #0B0B0C;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  border-radius: 14px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-}
-
-.clean-sheet-roll-result span,
-.clean-sheet-combat-summary span {
-  color: #9CA3AF;
-  font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.clean-sheet-roll-result strong {
-  color: #FFFFFF;
-  font-size: 4rem;
-  line-height: 1;
-  font-weight: 950;
-}
-
-.clean-sheet-roll-result em {
+.clean-sheet-action-card .clean-sheet-action-type {
+  width: fit-content;
   color: #EF4444;
-  font-style: normal;
-  font-weight: 900;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .clean-sheet-muted {
@@ -92,6 +69,14 @@
   padding: 10px 12px;
 }
 
+.clean-sheet-combat-summary span {
+  color: #9CA3AF;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
 .clean-sheet-combat-summary strong {
   color: #FFFFFF;
   font-weight: 950;
@@ -100,9 +85,5 @@
 @media (max-width: 520px) {
   .clean-sheet-action-grid {
     grid-template-columns: 1fr;
-  }
-
-  .clean-sheet-roll-result strong {
-    font-size: 3rem;
   }
 }
