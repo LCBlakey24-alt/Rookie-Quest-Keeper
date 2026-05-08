@@ -1,0 +1,77 @@
+.clean-sheet-notes-textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  background: #0B0B0C;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  color: #FFFFFF;
+  padding: 14px;
+  font: inherit;
+  line-height: 1.55;
+  outline: none;
+}
+
+.clean-sheet-notes-textarea:focus {
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+
+.clean-sheet-notes-textarea::placeholder {
+  color: #6B7280;
+}
+
+.clean-sheet-notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.clean-sheet-notes-actions button {
+  min-height: 42px;
+  padding: 10px 16px;
+  background: #EF4444;
+  border: 1px solid #EF4444;
+  color: #FFFFFF;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.clean-sheet-notes-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clean-sheet-note-field {
+  background: #0B0B0C;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.clean-sheet-note-field span {
+  display: block;
+  color: #EF4444;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.clean-sheet-note-field p,
+.clean-sheet-backstory-text {
+  color: #D1D5DB;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 520px) {
+  .clean-sheet-notes-actions button {
+    width: 100%;
+  }
+}
