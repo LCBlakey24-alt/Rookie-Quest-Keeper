@@ -5,6 +5,7 @@ import '@/App.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
+import '@/styles/builderUI.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';

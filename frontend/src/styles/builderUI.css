@@ -1,0 +1,64 @@
+.rq-builder-shell {
+  overflow-x: hidden;
+}
+
+.rq-builder-option-card:hover:not(:disabled) {
+  border-color: #EF4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.rq-builder-option-card.selected {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
+}
+
+.rq-builder-option-grid {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .rq-builder-shell {
+    padding: 12px !important;
+  }
+
+  .rq-builder-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .rq-builder-panel {
+    padding: 16px !important;
+  }
+
+  .rq-builder-option-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rq-builder-step-header h2 {
+    font-size: 1.35rem !important;
+  }
+
+  .rq-builder-nav-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .rq-builder-nav-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .rq-builder-shell {
+    padding: 8px !important;
+  }
+
+  .rq-builder-panel {
+    padding: 12px !important;
+  }
+
+  .rq-builder-option-card {
+    min-height: auto !important;
+    padding: 14px !important;
+  }
+}
