@@ -1,0 +1,234 @@
+/* Brand polish: auth page, landing text and ROOK logo loader */
+
+:root {
+  --rook-black: #0B0B0C;
+  --rook-panel: #141414;
+  --rook-card: #1F1F23;
+  --rook-red: #EF4444;
+  --rook-red-soft: rgba(239, 68, 68, 0.14);
+  --rook-red-border: rgba(239, 68, 68, 0.35);
+  --rook-white: #FFFFFF;
+  --rook-soft-white: #D1D5DB;
+  --rook-muted: #9CA3AF;
+}
+
+/* Loading screen: use logo instead of plain spinner ring. */
+.loading-screen {
+  background: radial-gradient(circle at 50% 38%, rgba(239, 68, 68, 0.16), transparent 32%), var(--rook-black) !important;
+}
+
+.loading-spinner {
+  width: 78px !important;
+  height: 78px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: url('/images/logo-mini.png') center / contain no-repeat !important;
+  filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.55));
+  animation: rookLogoPulse 1.25s ease-in-out infinite !important;
+}
+
+@keyframes rookLogoPulse {
+  0%, 100% { opacity: 0.72; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* Landing page: text should read white, with red kept as accent only. */
+[data-testid="landing-page"] {
+  background: var(--rook-black) !important;
+  color: var(--rook-white) !important;
+}
+
+[data-testid="landing-page"] h1,
+[data-testid="landing-page"] h2,
+[data-testid="landing-page"] h3,
+[data-testid="landing-page"] p,
+[data-testid="landing-page"] span,
+[data-testid="landing-page"] li {
+  color: var(--rook-white) !important;
+}
+
+[data-testid="landing-page"] p,
+[data-testid="landing-page"] li span {
+  color: var(--rook-soft-white) !important;
+}
+
+[data-testid="landing-page"] button {
+  color: var(--rook-white) !important;
+}
+
+/* Auth page */
+.rq-auth-page {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 10%, rgba(239, 68, 68, 0.18), transparent 34%),
+              radial-gradient(circle at 80% 80%, rgba(127, 29, 29, 0.22), transparent 38%),
+              var(--rook-black);
+  color: var(--rook-white);
+}
+
+.rq-auth-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.rq-auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 34px;
+  cursor: pointer;
+  color: var(--rook-white);
+}
+
+.rq-auth-logo img {
+  height: 54px;
+  width: auto;
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.45));
+}
+
+.rq-auth-logo span {
+  color: var(--rook-white);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.rq-auth-panel {
+  width: 100%;
+  max-width: 430px;
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid var(--rook-red-border);
+  border-radius: 18px;
+  padding: 38px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48), 0 0 36px rgba(239, 68, 68, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.rq-auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.rq-auth-header h1 {
+  color: var(--rook-white);
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.rq-auth-header p {
+  color: var(--rook-soft-white);
+  margin: 0;
+  font-size: 14px;
+}
+
+.rq-auth-field {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.rq-auth-field svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--rook-red);
+}
+
+.rq-auth-input {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  background: #0B0B0C;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: var(--rook-white);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rq-auth-input:focus {
+  border-color: var(--rook-red);
+  box-shadow: 0 0 0 3px var(--rook-red-soft);
+}
+
+.rq-auth-input::placeholder {
+  color: var(--rook-muted);
+}
+
+.rq-auth-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--rook-red);
+  border: 1px solid var(--rook-red);
+  border-radius: 10px;
+  color: var(--rook-white);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.rq-auth-primary:hover:not(:disabled) {
+  background: #F87171;
+  transform: translateY(-1px);
+}
+
+.rq-auth-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.rq-auth-link {
+  background: none;
+  border: none;
+  color: var(--rook-white);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rq-auth-link:hover {
+  color: var(--rook-red);
+}
+
+.rq-auth-secondary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--rook-red-border);
+  border-radius: 10px;
+  color: var(--rook-white);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rq-auth-footer-text {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--rook-soft-white);
+  font-size: 14px;
+}
+
+.rq-auth-copyright {
+  margin-top: 30px;
+  color: var(--rook-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .rq-auth-content { padding: 24px 14px; }
+  .rq-auth-panel { padding: 24px 18px; border-radius: 14px; }
+  .rq-auth-logo span { font-size: 26px; }
+}
