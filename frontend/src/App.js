@@ -11,6 +11,7 @@ import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
 import '@/styles/professionalDashboard.css';
 import '@/styles/cleanCharacterSheet.css';
+import '@/styles/cleanCombatTab.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
