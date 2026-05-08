@@ -38,7 +38,7 @@ import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
 import PremadeCharacterBuilder from '@/components/PremadeCharacterBuilder';
 import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
 import CleanCharacterSheet from '@/components/CleanCharacterSheet';
-import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
+import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { usePlayerOnlyDevice } from '@/hooks/useResponsiveMode';
 import { SubscriptionProvider } from '@/hooks/useSubscription';
@@ -127,10 +127,7 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
     <>
       {children}
       {shortcutsEnabled && (
-        <>
-          <ShortcutsHint onClick={() => setShowHelp(true)} />
-          <KeyboardShortcutsModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
-        </>
+        <KeyboardShortcutsModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
       )}
     </>
   );
