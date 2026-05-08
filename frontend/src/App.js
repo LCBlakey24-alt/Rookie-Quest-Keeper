@@ -10,6 +10,7 @@ import '@/styles/brandPolish.css';
 import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
 import '@/styles/professionalDashboard.css';
+import '@/styles/cleanCharacterSheet.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
@@ -29,7 +30,7 @@ import CharacterCreationModePicker from '@/components/CharacterCreationModePicke
 import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
 import PremadeCharacterBuilder from '@/components/PremadeCharacterBuilder';
 import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
-import CharacterSheetFull from '@/components/CharacterSheetFull';
+import CleanCharacterSheet from '@/components/CleanCharacterSheet';
 import { KeyboardShortcutsModal, ShortcutsHint } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { usePlayerOnlyDevice } from '@/hooks/useResponsiveMode';
@@ -246,7 +247,7 @@ function App() {
               path="/characters/:characterId" 
               element={
                 isAuthenticated ? 
-                  <CharacterSheetFull /> : 
+                  <CleanCharacterSheet /> : 
                   <Navigate to="/auth" replace />
               } 
             />
