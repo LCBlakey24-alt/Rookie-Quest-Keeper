@@ -1,13 +1,19 @@
 /* Character Sheet Mobile Layout Fix
-   Forces the character sheet into a real phone layout without using broad page-breaking rules. */
+   Applies on narrow screens and touch devices, including mobile browsers using desktop-style viewport widths. */
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (pointer: coarse) {
   html,
   body,
   #root,
   .App {
     overflow-x: hidden !important;
     max-width: 100vw !important;
+  }
+
+  .App:has(.character-sheet-header) {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
   }
 
   .character-sheet-header {
@@ -89,6 +95,19 @@
     min-width: 0 !important;
   }
 
+  .App:has(.character-sheet-header) div[style*="max-width"],
+  .App:has(.character-sheet-header) div[style*="maxWidth"] {
+    max-width: 100vw !important;
+  }
+
+  .App:has(.character-sheet-header) div[style*="width: 1100"],
+  .App:has(.character-sheet-header) div[style*="width:1100"],
+  .App:has(.character-sheet-header) div[style*="max-width: 1100"],
+  .App:has(.character-sheet-header) div[style*="maxWidth: 1100"] {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
   .App:has(.character-sheet-header) section,
   .App:has(.character-sheet-header) aside,
   .App:has(.character-sheet-header) main {
@@ -97,7 +116,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 520px), (pointer: coarse) {
   .character-sheet-vitals {
     grid-template-columns: 1fr 1fr !important;
   }
