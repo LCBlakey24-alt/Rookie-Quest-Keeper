@@ -6,6 +6,7 @@ import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, S
 import { API_BASE } from '@/lib/api';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
+import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 
 const API = API_BASE;
 
@@ -328,7 +329,7 @@ export default function CleanCharacterSheet() {
         )}
 
         {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} />}
-        {activeTab === 'spells' && <EmptyState title="Spells" text="Spell display will be rebuilt here with known, prepared, cantrips and slots separated clearly." />}
+        {activeTab === 'spells' && <CleanSpellsTab character={character} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} />}
         {activeTab === 'notes' && <EmptyState title="Notes" text="Notes and journal entries will be rebuilt here in the next pass." />}
       </main>
