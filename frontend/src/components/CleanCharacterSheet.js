@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, Swords, User, Zap } from 'lucide-react';
+import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, Swords, TrendingUp, User, Zap } from 'lucide-react';
 import { API_BASE } from '@/lib/api';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 
@@ -45,14 +45,15 @@ function rollD20(modifier = 0) {
   return { d20, modifier, total: d20 + modifier };
 }
 
-function StatCard({ icon: Icon, label, value, sub }) {
+function StatCard({ icon: Icon, label, value, sub, onClick }) {
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div className="clean-sheet-stat-card">
+    <Tag type={onClick ? 'button' : undefined} onClick={onClick} className={`clean-sheet-stat-card ${onClick ? 'clean-sheet-clickable' : ''}`}>
       {Icon && <Icon size={18} />}
       <div className="clean-sheet-stat-value">{value}</div>
       <div className="clean-sheet-stat-label">{label}</div>
       {sub && <div className="clean-sheet-stat-sub">{sub}</div>}
-    </div>
+    </Tag>
   );
 }
 
@@ -199,9 +200,14 @@ export default function CleanCharacterSheet() {
             <p>{subtitle}</p>
           </div>
         </div>
-        <button className="clean-sheet-edit" onClick={() => navigate(`/characters/${character.id}/edit`)}>
-          <Edit3 size={18} /> Edit
-        </button>
+        <div className="clean-sheet-header-actions">
+          <button className="clean-sheet-level" onClick={() => toast.info('Level Up is coming back in the next pass.')}>
+            <TrendingUp size={18} /> Level Up
+          </button>
+          <button className="clean-sheet-edit" onClick={() => navigate(`/characters/${character.id}/edit`)}>
+            <Edit3 size={18} /> Edit
+          </button>
+        </div>
       </header>
 
       <section className="clean-sheet-vitals">
@@ -223,7 +229,7 @@ export default function CleanCharacterSheet() {
           </div>
         </div>
         <StatCard icon={Shield} label="AC" value={ac} />
-        <StatCard icon={Zap} label="Initiative" value={fmt(dexMod)} />
+        <StatCard icon={Zap} label="Initiative" value={fmt(dexMod)} onClick={() => makeRoll('Initiative', dexMod)} />
         <StatCard icon={Dices} label="Proficiency" value={fmt(proficiencyBonus)} />
         <StatCard icon={User} label="Speed" value={`${speed}ft`} />
       </section>
@@ -261,13 +267,15 @@ export default function CleanCharacterSheet() {
 
             <section className="clean-sheet-panel">
               <h2>Saving Throws</h2>
-              <div className="clean-sheet-list">
+              <div className="clean-sheet-save-grid">
                 {ABILITIES.map(([key, short]) => {
                   const proficient = saveProficiencies.includes(key) || saveProficiencies.includes(short.toLowerCase());
                   const saveMod = mod(character[key]) + (proficient ? proficiencyBonus : 0);
                   return (
-                    <button key={key} type="button" className="clean-sheet-row-button" onClick={() => makeRoll(`${short} Save`, saveMod)}>
-                      <span>{short}</span><strong>{fmt(saveMod)}</strong>
+                    <button key={key} type="button" className="clean-sheet-save-card" onClick={() => makeRoll(`${short} Save`, saveMod)}>
+                      <span>{short}</span>
+                      <strong>{fmt(saveMod)}</strong>
+                      {proficient && <em>Proficient</em>}
                     </button>
                   );
                 })}
@@ -276,13 +284,16 @@ export default function CleanCharacterSheet() {
 
             <section className="clean-sheet-panel clean-sheet-wide">
               <h2>Skills</h2>
-              <div className="clean-sheet-skills">
+              <div className="clean-sheet-skill-grid">
                 {SKILLS.map(([skill, ability]) => {
                   const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
                   const skillMod = mod(character[ability]) + (proficient ? proficiencyBonus : 0);
                   return (
-                    <button key={skill} type="button" className="clean-sheet-skill-button" onClick={() => makeRoll(skill, skillMod)}>
-                      <span>{skill}</span><em>{ability.slice(0, 3).toUpperCase()}</em><strong>{fmt(skillMod)}</strong>
+                    <button key={skill} type="button" className="clean-sheet-skill-card" onClick={() => makeRoll(skill, skillMod)}>
+                      <span>{skill}</span>
+                      <em>{ability.slice(0, 3).toUpperCase()}</em>
+                      <strong>{fmt(skillMod)}</strong>
+                      {proficient && <small>Proficient</small>}
                     </button>
                   );
                 })}
