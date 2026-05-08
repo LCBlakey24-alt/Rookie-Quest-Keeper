@@ -7,6 +7,7 @@ import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
 import '@/styles/builderUI.css';
 import '@/styles/builderAbilityScoresTouch.css';
+import '@/styles/abilitiesStepTap.css';
 import '@/styles/brandPolish.css';
 import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
@@ -45,26 +46,17 @@ import { SubscriptionProvider } from '@/hooks/useSubscription';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import { API_BASE } from '@/lib/api';
 
-// Component to automatically set theme based on route
 function ThemeRouter() {
   const location = useLocation();
   const { setTheme } = useTheme();
   
   useEffect(() => {
     const path = location.pathname;
-    
-    // GM routes - purple/violet theme
-    if (path.startsWith('/gm-screen') || 
-        path.startsWith('/campaign/') || 
-        path.startsWith('/campaigns')) {
+    if (path.startsWith('/gm-screen') || path.startsWith('/campaign/') || path.startsWith('/campaigns')) {
       setTheme(THEMES.GM);
-    }
-    // Player routes - blue/cyan theme
-    else if (path.startsWith('/characters')) {
+    } else if (path.startsWith('/characters')) {
       setTheme(THEMES.PLAYER);
-    }
-    // Landing/auth/other - neutral theme
-    else {
+    } else {
       setTheme(THEMES.LANDING);
     }
   }, [location.pathname, setTheme]);
@@ -74,21 +66,15 @@ function ThemeRouter() {
 
 const API = API_BASE;
 
-// Setup axios interceptor for auth
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('dm_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Keyboard shortcuts wrapper component
 function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   const [showHelp, setShowHelp] = useState(false);
   const location = useLocation();
-  
-  // Check if on a page where shortcuts should be active
   const shortcutsEnabled = isAuthenticated && !['/', '/auth'].includes(location.pathname);
   
   const handleToggleDice = useCallback(() => {
@@ -97,7 +83,6 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   }, []);
   
   const handleFocusSearch = useCallback(() => {
-    // Find any search input on the page
     const searchInput = document.querySelector('[data-testid="reference-search-input"]') ||
                         document.querySelector('input[type="search"]') ||
                         document.querySelector('input[placeholder*="Search"]');
@@ -109,7 +94,6 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   
   const handleEscape = useCallback(() => {
     setShowHelp(false);
-    // Close any open dialogs
     const closeButton = document.querySelector('[data-testid="dialog-close"]') ||
                         document.querySelector('[aria-label="Close"]');
     if (closeButton) closeButton.click();
@@ -126,25 +110,19 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   return (
     <>
       {children}
-      {shortcutsEnabled && (
-        <KeyboardShortcutsModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
-      )}
+      {shortcutsEnabled && <KeyboardShortcutsModal isOpen={showHelp} onClose={() => setShowHelp(false)} />}
     </>
   );
 }
 
 function ResponsiveCampaignRoute({ username, onLogout }) {
   const playerOnlyDevice = usePlayerOnlyDevice();
-  return playerOnlyDevice
-    ? <MobilePlayerCampaignView />
-    : <CampaignDashboard username={username} onLogout={onLogout} />;
+  return playerOnlyDevice ? <MobilePlayerCampaignView /> : <CampaignDashboard username={username} onLogout={onLogout} />;
 }
 
 function ResponsiveGMScreenRoute({ username }) {
   const playerOnlyDevice = usePlayerOnlyDevice();
-  return playerOnlyDevice
-    ? <MobilePlayerCampaignView />
-    : <DMScreen username={username} />;
+  return playerOnlyDevice ? <MobilePlayerCampaignView /> : <DMScreen username={username} />;
 }
 
 function App() {
@@ -152,14 +130,11 @@ function App() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  useEffect(() => { checkAuth(); }, []);
 
   const checkAuth = async () => {
     const token = localStorage.getItem('dm_token');
     const savedUsername = localStorage.getItem('dm_username');
-    
     if (token && savedUsername) {
       try {
         await axios.get(`${API}/auth/me`);
@@ -178,7 +153,6 @@ function App() {
     localStorage.setItem('dm_username', username);
     setIsAuthenticated(true);
     setUsername(username);
-    // Force redirect to home after login
     window.location.href = '/home';
   };
 
@@ -209,130 +183,29 @@ function App() {
           <SubscriptionProvider>
             <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
               <Routes>
-            {/* Login route - redirects to /auth */}
-            <Route 
-              path="/login" 
-              element={
-                isAuthenticated ? 
-                  <Navigate to="/home" replace /> : 
-                  <AuthPage onLogin={handleLogin} />
-              } 
-            />
-            <Route 
-              path="/auth" 
-              element={
-                isAuthenticated ? 
-                  <Navigate to="/home" replace /> : 
-                  <AuthPage onLogin={handleLogin} />
-              } 
-            />
-            <Route 
-              path="/home" 
-              element={
-                isAuthenticated ? 
-                  <UnifiedDashboard username={username} onLogout={handleLogout} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/characters/new" 
-              element={
-                isAuthenticated ? 
-                  <CharacterCreationModePicker /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
-            <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
-            <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
-            <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
-            <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
-            <Route 
-              path="/characters/:characterId" 
-              element={
-                isAuthenticated ? 
-                  <CleanCharacterSheet /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/characters/:characterId/edit" 
-              element={
-                isAuthenticated ? 
-                  <CharacterBuilder editMode={true} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/campaign/:campaignId" 
-              element={
-                isAuthenticated ? 
-                  <ResponsiveCampaignRoute username={username} onLogout={handleLogout} /> :
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/gm-screen/:campaignId" 
-              element={
-                isAuthenticated ? 
-                  <ResponsiveGMScreenRoute username={username} /> :
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/campaign/:campaignId/combat" 
-              element={
-                isAuthenticated ? 
-                  <CombatPage /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/pricing" 
-              element={
-                isAuthenticated ? 
-                  <PricingPage username={username} onLogout={handleLogout} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/subscription/success" 
-              element={<Navigate to="/pricing" replace />} 
-            />
-            <Route 
-              path="/subscription/cancel" 
-              element={<Navigate to="/pricing" replace />} 
-            />
-            <Route 
-              path="/admin" 
-              element={
-                isAuthenticated ? 
-                  <AdminPage username={username} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/account" 
-              element={
-                isAuthenticated ? 
-                  <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : 
-                  <Navigate to="/auth" replace />
-              } 
-            />
-            <Route 
-              path="/reset-password" 
-              element={<AuthPage onLogin={handleLogin} />} 
-            />
-            <Route 
-              path="/" 
-              element={
-                isAuthenticated ? 
-                  <Navigate to="/home" replace /> : 
-                  <LandingPage />
-              } 
-            />
-          </Routes>
-          </KeyboardShortcutsProvider>
+                <Route path="/login" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
+                <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
+                <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode={true} /> : <Navigate to="/auth" replace />} />
+                <Route path="/campaign/:campaignId" element={isAuthenticated ? <ResponsiveCampaignRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+                <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <ResponsiveGMScreenRoute username={username} /> : <Navigate to="/auth" replace />} />
+                <Route path="/campaign/:campaignId/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
+                <Route path="/pricing" element={isAuthenticated ? <PricingPage username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+                <Route path="/subscription/success" element={<Navigate to="/pricing" replace />} />
+                <Route path="/subscription/cancel" element={<Navigate to="/pricing" replace />} />
+                <Route path="/admin" element={isAuthenticated ? <AdminPage username={username} /> : <Navigate to="/auth" replace />} />
+                <Route path="/account" element={isAuthenticated ? <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : <Navigate to="/auth" replace />} />
+                <Route path="/reset-password" element={<AuthPage onLogin={handleLogin} />} />
+                <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+              </Routes>
+            </KeyboardShortcutsProvider>
           </SubscriptionProvider>
         </ThemeProvider>
       </BrowserRouter>
