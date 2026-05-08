@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, Swords, User, Zap } from 'lucide-react';
 import { API_BASE } from '@/lib/api';
+import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 
 const API = API_BASE;
 
@@ -229,7 +230,7 @@ export default function CleanCharacterSheet() {
           </div>
         )}
 
-        {activeTab === 'combat' && <EmptyState title="Combat" text="The rebuilt combat panel is next. For now, HP and core combat stats are available above." />}
+        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} />}
         {activeTab === 'spells' && <EmptyState title="Spells" text="Spell display will be rebuilt here with known, prepared, cantrips and slots separated clearly." />}
         {activeTab === 'inventory' && <EmptyState title="Inventory" text="Inventory will be rebuilt here with equipment, currency and carried items." />}
         {activeTab === 'notes' && <EmptyState title="Notes" text="Notes and journal entries will be rebuilt here in the next pass." />}
