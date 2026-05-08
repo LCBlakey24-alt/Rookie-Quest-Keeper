@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Dices, Edit3, Heart, Shield, Sparkles, Swords, TrendingUp, User, Zap } from 'lucide-react';
 import { API_BASE } from '@/lib/api';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
+import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 
 const API = API_BASE;
 
@@ -304,7 +305,7 @@ export default function CleanCharacterSheet() {
 
         {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} />}
         {activeTab === 'spells' && <EmptyState title="Spells" text="Spell display will be rebuilt here with known, prepared, cantrips and slots separated clearly." />}
-        {activeTab === 'inventory' && <EmptyState title="Inventory" text="Inventory will be rebuilt here with equipment, currency and carried items." />}
+        {activeTab === 'inventory' && <CleanInventoryTab character={character} />}
         {activeTab === 'notes' && <EmptyState title="Notes" text="Notes and journal entries will be rebuilt here in the next pass." />}
       </main>
     </div>
