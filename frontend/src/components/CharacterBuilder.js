@@ -20,7 +20,7 @@ import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e"
 import { getFeatsByEdition } from "../data/levelUpData";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import { API_BASE } from "../lib/api";
-import AbilitiesStep from "./builder/AbilitiesStep";
+import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
 
 const DRAFT_KEY = "rq_character_builder_draft_v2";
