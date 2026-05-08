@@ -10,6 +10,7 @@ import '@/styles/brandPolish.css';
 import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
 import '@/styles/professionalDashboard.css';
+import '@/styles/characterSheetMobileFix.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';

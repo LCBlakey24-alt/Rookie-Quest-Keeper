@@ -1,0 +1,124 @@
+/* Character Sheet Mobile Layout Fix
+   The sheet currently renders desktop-width panels on phones. This file forces a true mobile layout. */
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root,
+  .App {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  .App:has(.character-sheet-header) {
+    overflow-x: hidden !important;
+  }
+
+  .character-sheet-header {
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    margin: 8px !important;
+    padding: 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .character-sheet-identity {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: flex-start !important;
+  }
+
+  .character-sheet-identity h1,
+  .character-sheet-identity div {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .character-sheet-vitals {
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: stretch !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .character-sheet-vitals > div,
+  .character-sheet-vitals > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .character-sheet-header-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .character-sheet-header-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+  }
+
+  /* Tabs should be horizontal icon buttons, not a tall desktop menu. */
+  .App:has(.character-sheet-header) button,
+  .App:has(.character-sheet-header) [role="tab"],
+  .App:has(.character-sheet-header) [data-testid*="tab"] {
+    max-width: 100% !important;
+  }
+
+  .App:has(.character-sheet-header) nav,
+  .App:has(.character-sheet-header) [class*="tabs"],
+  .App:has(.character-sheet-header) [class*="Tabs"] {
+    max-width: 100vw !important;
+    overflow-x: auto !important;
+  }
+
+  /* Any big layout grids on the sheet collapse to one column. */
+  .App:has(.character-sheet-header) div[style*="grid-template-columns"],
+  .App:has(.character-sheet-header) div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .App:has(.character-sheet-header) div[style*="min-width"],
+  .App:has(.character-sheet-header) div[style*="minWidth"] {
+    min-width: 0 !important;
+  }
+
+  .App:has(.character-sheet-header) div[style*="width: 100vw"],
+  .App:has(.character-sheet-header) div[style*="width:100vw"] {
+    width: 100% !important;
+  }
+
+  .App:has(.character-sheet-header) section,
+  .App:has(.character-sheet-header) aside,
+  .App:has(.character-sheet-header) main {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Floating shortcut/dice helpers must not cover the whole sheet on mobile. */
+  .App:has(.character-sheet-header) [class*="shortcut"],
+  .App:has(.character-sheet-header) [class*="Shortcut"] {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .character-sheet-vitals {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .character-sheet-header-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .App:has(.character-sheet-header) {
+    font-size: 14px !important;
+  }
+}
