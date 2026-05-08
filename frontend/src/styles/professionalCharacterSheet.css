@@ -1,5 +1,5 @@
 /* Professional character sheet redesign layer
-   Premium black/white/red player sheet styling without changing sheet logic. */
+   Conservative styling only. Avoid broad :has() overrides that can blank mobile pages. */
 
 .character-sheet-header,
 .character-sheet-identity,
@@ -7,8 +7,6 @@
 .character-sheet-header-actions {
   --sheet-black: #0B0B0C;
   --sheet-panel: #141414;
-  --sheet-card: #1F1F23;
-  --sheet-elevated: #27272B;
   --sheet-red: #EF4444;
   --sheet-red-soft: rgba(239, 68, 68, 0.10);
   --sheet-red-border: rgba(239, 68, 68, 0.32);
@@ -18,25 +16,18 @@
   --sheet-muted: #9CA3AF;
 }
 
-/* Overall sheet page shell */
-.App:has(.character-sheet-header) > div[style*="min-height: 100vh"],
-.App:has(.character-sheet-header) > div[style*="minHeight: 100vh"] {
-  background: radial-gradient(circle at 18% 0%, rgba(239, 68, 68, 0.10), transparent 30%), #0B0B0C !important;
-  color: #FFFFFF !important;
-}
-
-/* Header */
 .character-sheet-header {
   background: rgba(20, 20, 20, 0.92) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid var(--sheet-border) !important;
   border-radius: 16px !important;
   padding: 14px !important;
   margin: 12px clamp(12px, 2.5vw, 24px) 12px !important;
   box-shadow: none !important;
+  color: var(--sheet-white) !important;
 }
 
 .character-sheet-header h1 {
-  color: #FFFFFF !important;
+  color: var(--sheet-white) !important;
   letter-spacing: -0.03em !important;
   font-weight: 900 !important;
 }
@@ -44,11 +35,11 @@
 .character-sheet-header div,
 .character-sheet-header span,
 .character-sheet-header p {
-  color: #D1D5DB !important;
+  color: var(--sheet-soft) !important;
 }
 
 .character-sheet-header svg {
-  color: #EF4444 !important;
+  color: var(--sheet-red) !important;
 }
 
 .character-sheet-header button {
@@ -57,139 +48,55 @@
   font-weight: 800 !important;
 }
 
-.character-sheet-header button[data-testid="sheet-back-btn"],
-.character-sheet-header button:has(svg) {
+.character-sheet-header button[data-testid="sheet-back-btn"] {
   background: transparent !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #FFFFFF !important;
+  color: var(--sheet-white) !important;
 }
 
 .character-sheet-header button[data-testid="level-up-btn"] {
-  background: #EF4444 !important;
-  border-color: #EF4444 !important;
-  color: #FFFFFF !important;
+  background: var(--sheet-red) !important;
+  border-color: var(--sheet-red) !important;
+  color: var(--sheet-white) !important;
 }
 
 .character-sheet-identity img,
 .portrait-fallback {
-  border-color: #EF4444 !important;
+  border-color: var(--sheet-red) !important;
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25) !important;
 }
 
-/* Vitals */
 .character-sheet-vitals > div,
 .character-sheet-vitals > button {
-  background: #0B0B0C !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: var(--sheet-black) !important;
+  border: 1px solid var(--sheet-border) !important;
   border-radius: 12px !important;
-  color: #FFFFFF !important;
+  color: var(--sheet-white) !important;
 }
 
 .character-sheet-vitals [data-testid="current-hp"],
 .character-sheet-vitals [data-testid="vital-ac"] div:last-child,
 .character-sheet-vitals [data-testid="vital-init"] div:last-child,
 .character-sheet-vitals [data-testid="vital-speed"] div:last-child {
-  color: #FFFFFF !important;
+  color: var(--sheet-white) !important;
 }
 
 .character-sheet-vitals button[data-testid="hp-decrease"],
 .character-sheet-vitals button[data-testid="hp-increase"] {
   border: none !important;
-  background: rgba(239, 68, 68, 0.12) !important;
-  color: #FFFFFF !important;
+  background: var(--sheet-red-soft) !important;
+  color: var(--sheet-white) !important;
 }
 
-/* Sheet panels and cards */
-.App:has(.character-sheet-header) .card,
-.App:has(.character-sheet-header) .glow-card,
-.App:has(.character-sheet-header) .rq-card,
-.App:has(.character-sheet-header) section,
-.App:has(.character-sheet-header) aside {
-  border-color: rgba(255, 255, 255, 0.10) !important;
-}
-
-.App:has(.character-sheet-header) [style*="background: rgba"],
-.App:has(.character-sheet-header) [style*="background: theme.bg"],
-.App:has(.character-sheet-header) [style*="backgroundColor"] {
-  box-shadow: none !important;
-}
-
-/* Tabs */
-.App:has(.character-sheet-header) button[role="tab"],
-.App:has(.character-sheet-header) .tab-item,
-.App:has(.character-sheet-header) [data-testid*="tab"] {
-  border-radius: 10px !important;
-}
-
-.App:has(.character-sheet-header) .tab-item.active,
-.App:has(.character-sheet-header) button[aria-selected="true"],
-.App:has(.character-sheet-header) [data-active="true"] {
-  background: #EF4444 !important;
-  color: #FFFFFF !important;
-  border-color: #EF4444 !important;
-}
-
-/* Common text hierarchy */
-.App:has(.character-sheet-header) h1,
-.App:has(.character-sheet-header) h2,
-.App:has(.character-sheet-header) h3,
-.App:has(.character-sheet-header) strong {
-  color: #FFFFFF !important;
-}
-
-.App:has(.character-sheet-header) p,
-.App:has(.character-sheet-header) span,
-.App:has(.character-sheet-header) label,
-.App:has(.character-sheet-header) li {
-  color: #D1D5DB !important;
-}
-
-.App:has(.character-sheet-header) svg {
-  color: #EF4444 !important;
-}
-
-/* Inputs and selects on sheet */
-.App:has(.character-sheet-header) input,
-.App:has(.character-sheet-header) select,
-.App:has(.character-sheet-header) textarea {
-  background: #141414 !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  color: #FFFFFF !important;
-  border-radius: 10px !important;
-}
-
-.App:has(.character-sheet-header) input:focus,
-.App:has(.character-sheet-header) select:focus,
-.App:has(.character-sheet-header) textarea:focus {
-  border-color: #EF4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
-}
-
-/* Action buttons */
-.App:has(.character-sheet-header) button {
-  box-shadow: none !important;
-}
-
-.App:has(.character-sheet-header) button:hover:not(:disabled) {
-  border-color: rgba(239, 68, 68, 0.36) !important;
-}
-
-/* Dice overlays/history should match sheet palette */
-.App:has(.character-sheet-header) [class*="dice"],
-.App:has(.character-sheet-header) [class*="Dice"] {
-  color: #FFFFFF;
-}
-
-/* Conditions strip */
 [data-testid="active-conditions-strip"] {
   background: rgba(239, 68, 68, 0.08) !important;
   border-color: rgba(239, 68, 68, 0.28) !important;
 }
 
 [data-testid="active-conditions-strip"] span {
-  background: #141414 !important;
-  border-color: rgba(255, 255, 255, 0.10) !important;
-  color: #FFFFFF !important;
+  background: var(--sheet-panel) !important;
+  border-color: var(--sheet-border) !important;
+  color: var(--sheet-white) !important;
 }
 
 @media (max-width: 900px) {
