@@ -1,3 +1,77 @@
+.clean-sheet-inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.clean-sheet-inventory-header h2 {
+  margin: 0;
+}
+
+.clean-sheet-inventory-header button,
+.clean-sheet-add-item-form button {
+  min-height: 38px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.10);
+  color: #FFFFFF;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 8px 12px;
+}
+
+.clean-sheet-inventory-header input,
+.clean-sheet-add-item-form input,
+.clean-sheet-add-item-form select,
+.clean-sheet-add-item-form textarea {
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #0B0B0C;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 800;
+}
+
+.clean-sheet-inventory-header input {
+  min-width: min(240px, 100%);
+}
+
+.clean-sheet-add-item-form {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 90px;
+  gap: 8px;
+}
+
+.clean-sheet-add-item-form textarea,
+.clean-sheet-checkbox-row,
+.clean-sheet-add-item-form button {
+  grid-column: 1 / -1;
+}
+
+.clean-sheet-add-item-form textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.clean-sheet-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #D1D5DB;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.clean-sheet-checkbox-row input {
+  min-height: auto;
+  width: 18px;
+  height: 18px;
+}
+
 .clean-sheet-item-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -13,6 +87,21 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
+}
+
+.clean-sheet-item-card.favorite {
+  border-color: rgba(239,68,68,0.42);
+  box-shadow: 0 0 0 1px rgba(239,68,68,0.08);
+}
+
+.clean-sheet-item-card.consumable {
+  background: linear-gradient(180deg, rgba(34,197,94,0.06), #0B0B0C 55%);
+}
+
+.clean-sheet-item-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .clean-sheet-empty-slot {
@@ -55,6 +144,17 @@
   text-transform: uppercase;
 }
 
+.clean-sheet-item-slot.favorite {
+  color: #FFFFFF;
+  background: rgba(239,68,68,0.22);
+}
+
+.clean-sheet-item-slot.consumable {
+  color: #22C55E;
+  border-color: rgba(34,197,94,0.35);
+  background: rgba(34,197,94,0.10);
+}
+
 .clean-sheet-item-actions {
   display: flex;
   flex-wrap: wrap;
@@ -75,12 +175,15 @@
   font-size: 11px;
 }
 
-.clean-sheet-item-actions button:hover:not(:disabled) {
+.clean-sheet-item-actions button:hover:not(:disabled),
+.clean-sheet-inventory-header button:hover,
+.clean-sheet-add-item-form button:hover {
   border-color: rgba(239, 68, 68, 0.55);
   background: rgba(239, 68, 68, 0.16);
 }
 
-.clean-sheet-item-actions button:disabled {
+.clean-sheet-item-actions button:disabled,
+.clean-sheet-add-item-form button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -114,6 +217,12 @@
   font-size: 1.2rem;
 }
 
+@media (max-width: 620px) {
+  .clean-sheet-add-item-form {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 520px) {
   .clean-sheet-item-grid {
     grid-template-columns: 1fr;
@@ -121,5 +230,14 @@
 
   .clean-sheet-currency-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .clean-sheet-inventory-header {
+    align-items: stretch;
+  }
+
+  .clean-sheet-inventory-header input,
+  .clean-sheet-inventory-header button {
+    width: 100%;
   }
 }
