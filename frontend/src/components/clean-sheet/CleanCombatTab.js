@@ -1,12 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
-
-function rollD20(modifier = 0) {
-  const d20 = Math.floor(Math.random() * 20) + 1;
-  return { d20, modifier, total: d20 + modifier };
-}
 
 function CombatActionCard({ title, description, onClick }) {
   return (
@@ -17,60 +12,24 @@ function CombatActionCard({ title, description, onClick }) {
   );
 }
 
-export default function CleanCombatTab({ character, ac, speed, proficiencyBonus }) {
-  const [lastRoll, setLastRoll] = useState(null);
-  const [rollBurst, setRollBurst] = useState(null);
+export default function CleanCombatTab({ character, ac, speed, proficiencyBonus, onRoll }) {
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
   const constitutionMod = mod(character?.constitution);
   const bestAttackMod = proficiencyBonus + Math.max(strengthMod, dexterityMod);
 
-  useEffect(() => {
-    if (!rollBurst) return undefined;
-    const timeout = setTimeout(() => setRollBurst(null), 950);
-    return () => clearTimeout(timeout);
-  }, [rollBurst]);
-
-  const makeRoll = (label, modifier) => {
-    const result = rollD20(modifier);
-    const nextRoll = { label, ...result };
-    setLastRoll(nextRoll);
-    setRollBurst({ ...nextRoll, id: `${Date.now()}-${Math.random()}` });
-  };
-
   return (
     <div className="clean-sheet-combat-wrap">
-      {rollBurst && (
-        <div key={rollBurst.id} className="clean-sheet-roll-burst" aria-hidden="true">
-          <span>{rollBurst.label}</span>
-          <strong>{rollBurst.total}</strong>
-          <em>d20 {rollBurst.d20} {fmt(rollBurst.modifier)}</em>
-        </div>
-      )}
-
       <div className="clean-sheet-grid">
-        <section className="clean-sheet-panel">
+        <section className="clean-sheet-panel clean-sheet-wide">
           <h2>Core Actions</h2>
           <div className="clean-sheet-action-grid">
-            <CombatActionCard title="Attack" description={`Roll d20 ${fmt(bestAttackMod)} to hit`} onClick={() => makeRoll('Attack', bestAttackMod)} />
-            <CombatActionCard title="Initiative" description={`Roll d20 ${fmt(dexterityMod)}`} onClick={() => makeRoll('Initiative', dexterityMod)} />
-            <CombatActionCard title="Strength Check" description={`Roll d20 ${fmt(strengthMod)}`} onClick={() => makeRoll('Strength Check', strengthMod)} />
-            <CombatActionCard title="Dexterity Check" description={`Roll d20 ${fmt(dexterityMod)}`} onClick={() => makeRoll('Dexterity Check', dexterityMod)} />
-            <CombatActionCard title="Constitution Check" description={`Roll d20 ${fmt(constitutionMod)}`} onClick={() => makeRoll('Constitution Check', constitutionMod)} />
+            <CombatActionCard title="Attack" description={`Roll d20 ${fmt(bestAttackMod)} to hit`} onClick={() => onRoll('Attack', bestAttackMod)} />
+            <CombatActionCard title="Initiative" description={`Roll d20 ${fmt(dexterityMod)}`} onClick={() => onRoll('Initiative', dexterityMod)} />
+            <CombatActionCard title="Strength Check" description={`Roll d20 ${fmt(strengthMod)}`} onClick={() => onRoll('Strength Check', strengthMod)} />
+            <CombatActionCard title="Dexterity Check" description={`Roll d20 ${fmt(dexterityMod)}`} onClick={() => onRoll('Dexterity Check', dexterityMod)} />
+            <CombatActionCard title="Constitution Check" description={`Roll d20 ${fmt(constitutionMod)}`} onClick={() => onRoll('Constitution Check', constitutionMod)} />
           </div>
-        </section>
-
-        <section className="clean-sheet-panel">
-          <h2>Roll Result</h2>
-          {lastRoll ? (
-            <div className="clean-sheet-roll-result">
-              <span>{lastRoll.label}</span>
-              <strong>{lastRoll.total}</strong>
-              <em>d20 {lastRoll.d20} {fmt(lastRoll.modifier)}</em>
-            </div>
-          ) : (
-            <p className="clean-sheet-muted">Choose an action to roll.</p>
-          )}
         </section>
 
         <section className="clean-sheet-panel clean-sheet-wide">
