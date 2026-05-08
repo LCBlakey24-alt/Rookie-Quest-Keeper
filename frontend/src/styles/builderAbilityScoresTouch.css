@@ -1,0 +1,86 @@
+/* Ability score builder touch/layout rescue
+   Improves Standard Array and Rolled Score assignment on phones/tablets without changing logic yet. */
+
+@media (max-width: 900px), (pointer: coarse) {
+  [data-testid="score-pool"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px !important;
+    overflow: visible !important;
+    min-height: auto !important;
+  }
+
+  [data-testid="score-pool"] > div:first-child {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  [data-testid^="pool-chip-"] {
+    width: 100% !important;
+    min-width: 54px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    position: relative !important;
+    z-index: 3 !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+  }
+
+  [data-testid^="ability-slot-"] {
+    min-height: 138px !important;
+    padding: 14px !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  [data-testid^="slot-chip-"] {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    position: relative !important;
+    z-index: 3 !important;
+    touch-action: manipulation !important;
+  }
+
+  [data-testid^="slot-empty-"] {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    touch-action: manipulation !important;
+  }
+
+  [data-testid^="slot-clear-"] {
+    width: 28px !important;
+    height: 28px !important;
+    top: -10px !important;
+    right: -10px !important;
+    z-index: 5 !important;
+  }
+
+  [data-testid="roll-animation"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  [data-testid="roll-animation"] > div {
+    width: 100% !important;
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  [data-testid="score-pool"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  [data-testid^="ability-slot-"] {
+    min-height: 128px !important;
+  }
+}

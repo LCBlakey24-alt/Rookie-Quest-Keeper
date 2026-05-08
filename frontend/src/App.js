@@ -6,6 +6,7 @@ import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
 import '@/styles/builderUI.css';
+import '@/styles/builderAbilityScoresTouch.css';
 import '@/styles/brandPolish.css';
 import '@/styles/authBrandOverrides.css';
 import '@/styles/professionalLanding.css';
