@@ -1,48 +1,59 @@
 /* ============================================
-   ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.0
-   Current app-wide direction: Deep Navy + Antique Gold
+   ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.1
+   Current app-wide direction: Charcoal + Red
    Clean surfaces, sharp corners, Montserrat typography
    ============================================ */
 
 :root {
   /* ============ BASE COLORS ============ */
-  --bg-primary: #0A1628;
-  --bg-secondary: #10213A;
-  --bg-card: #10213A;
-  --bg-elevated: #162B49;
-  --bg-hover: #1C3658;
-  --bg-overlay: rgba(10, 22, 40, 0.88);
+  --bg-primary: #1F1F23;
+  --bg-secondary: #27272B;
+  --bg-card: #27272B;
+  --bg-elevated: #323235;
+  --bg-hover: #3A3A3F;
+  --bg-overlay: rgba(31, 31, 35, 0.88);
 
   /* ============ TEXT ============ */
   --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  --text-disabled: #64748B;
+  --text-secondary: #D1D5DB;
+  --text-muted: #9CA3AF;
+  --text-disabled: #6B7280;
 
-  /* ============ BRAND / GOLD ============ */
-  --rq-gold: #D4A017;
-  --rq-gold-bright: #F2C94C;
-  --rq-gold-soft: rgba(212, 160, 23, 0.12);
-  --rq-gold-border: rgba(212, 160, 23, 0.36);
-  --rq-gold-border-strong: rgba(242, 201, 76, 0.62);
-  --rq-navy: #0A1628;
-  --rq-navy-soft: #10213A;
+  /* ============ BRAND / RED ============ */
+  --rq-red: #EF4444;
+  --rq-red-bright: #F87171;
+  --rq-red-dark: #B91C1C;
+  --rq-red-soft: rgba(239, 68, 68, 0.12);
+  --rq-red-border: rgba(239, 68, 68, 0.35);
+  --rq-red-border-strong: rgba(248, 113, 113, 0.62);
+  --rq-charcoal: #1F1F23;
+  --rq-charcoal-soft: #27272B;
+
+  /* ============ LEGACY ALIASES ============ */
+  /* Keep these so older components do not break while the app is fully swept. */
+  --rq-gold: var(--rq-red);
+  --rq-gold-bright: var(--rq-red-bright);
+  --rq-gold-soft: var(--rq-red-soft);
+  --rq-gold-border: var(--rq-red-border);
+  --rq-gold-border-strong: var(--rq-red-border-strong);
+  --rq-navy: var(--rq-charcoal);
+  --rq-navy-soft: var(--rq-charcoal-soft);
 
   /* ============ GM THEME ============ */
-  --gm-primary: var(--rq-gold);
-  --gm-hover: var(--rq-gold-bright);
-  --gm-active: #A9790F;
-  --gm-subtle: var(--rq-gold-soft);
-  --gm-border: var(--rq-gold-border);
-  --gm-glow: rgba(212, 160, 23, 0.18);
+  --gm-primary: var(--rq-red);
+  --gm-hover: var(--rq-red-bright);
+  --gm-active: var(--rq-red-dark);
+  --gm-subtle: var(--rq-red-soft);
+  --gm-border: var(--rq-red-border);
+  --gm-glow: rgba(239, 68, 68, 0.18);
 
   /* ============ PLAYER THEME ============ */
-  --player-primary: var(--rq-gold);
-  --player-hover: var(--rq-gold-bright);
-  --player-active: #A9790F;
-  --player-subtle: var(--rq-gold-soft);
-  --player-border: var(--rq-gold-border);
-  --player-glow: rgba(212, 160, 23, 0.18);
+  --player-primary: var(--rq-red);
+  --player-hover: var(--rq-red-bright);
+  --player-active: var(--rq-red-dark);
+  --player-subtle: var(--rq-red-soft);
+  --player-border: var(--rq-red-border);
+  --player-glow: rgba(239, 68, 68, 0.18);
 
   /* ============ STATUS COLORS ============ */
   --success: #10B981;
@@ -51,13 +62,13 @@
   --warning-subtle: rgba(245,158,11,0.15);
   --danger: #EF4444;
   --danger-subtle: rgba(239,68,68,0.15);
-  --info: #38BDF8;
-  --info-subtle: rgba(56,189,248,0.12);
+  --info: #60A5FA;
+  --info-subtle: rgba(96,165,250,0.12);
 
   /* ============ BORDERS & SHADOWS ============ */
-  --border-subtle: rgba(212,160,23,0.14);
-  --border-default: rgba(212,160,23,0.24);
-  --border-strong: rgba(212,160,23,0.42);
+  --border-subtle: rgba(239,68,68,0.14);
+  --border-default: rgba(239,68,68,0.24);
+  --border-strong: rgba(239,68,68,0.42);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.38);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.48);
@@ -82,7 +93,6 @@
   --rq-border: var(--border-subtle);
 }
 
-/* ============ GLOBAL RESETS ============ */
 * {
   box-sizing: border-box;
 }
@@ -102,7 +112,6 @@ select {
   font-family: var(--font-sans);
 }
 
-/* ============ CARD STYLES ============ */
 .card,
 .card-gm,
 .card-player,
@@ -114,10 +123,9 @@ select {
 
 .card-gm,
 .card-player {
-  border-color: var(--rq-gold-border);
+  border-color: var(--rq-red-border);
 }
 
-/* ============ BUTTON STYLES ============ */
 .btn,
 .rq-button-primary,
 .rq-button-secondary {
@@ -137,31 +145,31 @@ select {
 .btn-gm,
 .btn-player,
 .rq-button-primary {
-  background: var(--rq-gold);
-  color: var(--rq-navy);
-  border: 1px solid var(--rq-gold);
+  background: var(--rq-red);
+  color: var(--text-primary);
+  border: 1px solid var(--rq-red);
 }
 
 .btn-gm:hover,
 .btn-player:hover,
 .rq-button-primary:hover {
-  background: var(--rq-gold-bright);
-  border-color: var(--rq-gold-bright);
+  background: var(--rq-red-bright);
+  border-color: var(--rq-red-bright);
 }
 
 .btn-outline-gm,
 .btn-outline-player,
 .rq-button-secondary {
   background: transparent;
-  border: 1px solid var(--rq-gold-border);
-  color: var(--rq-gold-bright);
+  border: 1px solid var(--rq-red-border);
+  color: var(--rq-red-bright);
 }
 
 .btn-outline-gm:hover,
 .btn-outline-player:hover,
 .rq-button-secondary:hover {
-  background: var(--rq-gold-soft);
-  border-color: var(--rq-gold-bright);
+  background: var(--rq-red-soft);
+  border-color: var(--rq-red-bright);
 }
 
 .rq-button-primary:disabled,
@@ -170,7 +178,6 @@ select {
   cursor: not-allowed;
 }
 
-/* ============ TAB STYLES ============ */
 .tab {
   padding: 12px 20px;
   background: var(--bg-card);
@@ -187,12 +194,11 @@ select {
 .tab-gm:hover,
 .tab-player.active,
 .tab-player:hover {
-  background: var(--rq-gold-soft);
-  border-color: var(--rq-gold-bright);
+  background: var(--rq-red-soft);
+  border-color: var(--rq-red-bright);
   color: var(--text-primary);
 }
 
-/* ============ INPUT STYLES ============ */
 .input {
   padding: 10px 14px;
   background: var(--bg-secondary);
@@ -206,11 +212,10 @@ select {
 .input:focus,
 .input-gm:focus {
   outline: none;
-  border-color: var(--rq-gold-bright);
+  border-color: var(--rq-red-bright);
   background: var(--bg-elevated);
 }
 
-/* ============ PANEL STYLES ============ */
 .panel,
 .rq-panel {
   background: var(--bg-card);
@@ -225,14 +230,13 @@ select {
 
 .panel-gm,
 .panel-player {
-  border-left: 3px solid var(--rq-gold);
+  border-left: 3px solid var(--rq-red);
 }
 
-/* ============ GLASS MORPHISM ============ */
 .glass,
 .glass-gm,
 .glass-player {
-  background: rgba(10, 22, 40, 0.82);
+  background: rgba(31, 31, 35, 0.82);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -240,10 +244,9 @@ select {
 
 .glass-gm,
 .glass-player {
-  border-color: var(--rq-gold-border);
+  border-color: var(--rq-red-border);
 }
 
-/* ============ SECTION HEADERS ============ */
 .section-header,
 .rq-title {
   font-family: var(--font-display);
@@ -263,10 +266,9 @@ select {
 
 .section-header-gm,
 .section-header-player {
-  color: var(--rq-gold-bright);
+  color: var(--rq-red-bright);
 }
 
-/* ============ DIVIDER ============ */
 .divider {
   height: 1px;
   background: var(--border-subtle);
@@ -279,7 +281,6 @@ select {
   align-self: stretch;
 }
 
-/* ============ BADGES ============ */
 .badge,
 .badge-gm,
 .badge-player {
@@ -293,12 +294,11 @@ select {
 
 .badge-gm,
 .badge-player {
-  background: var(--rq-gold-soft);
-  color: var(--rq-gold-bright);
-  border: 1px solid var(--rq-gold-border);
+  background: var(--rq-red-soft);
+  color: var(--rq-red-bright);
+  border: 1px solid var(--rq-red-border);
 }
 
-/* ============ STAT BLOCKS ============ */
 .stat-block,
 .rq-stat {
   background: var(--bg-elevated);
@@ -324,13 +324,11 @@ select {
   margin-top: 4px;
 }
 
-/* ============ RQ HELPERS ============ */
 .rq-muted {
   color: var(--text-muted);
   font-size: 14px;
 }
 
-/* ============ ANIMATIONS ============ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
