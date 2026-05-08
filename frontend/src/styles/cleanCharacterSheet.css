@@ -24,8 +24,10 @@
 .clean-sheet-loading button,
 .clean-sheet-back,
 .clean-sheet-edit,
+.clean-sheet-level,
 .clean-sheet-tabs button,
-.clean-sheet-hp-actions button {
+.clean-sheet-hp-actions button,
+.clean-sheet-mobile-tools button {
   font: inherit;
 }
 
@@ -42,8 +44,17 @@
   padding: 14px;
 }
 
+.clean-sheet-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .clean-sheet-back,
-.clean-sheet-edit {
+.clean-sheet-edit,
+.clean-sheet-level {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -58,8 +69,14 @@
   font-weight: 800;
 }
 
+.clean-sheet-level {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.10);
+}
+
 .clean-sheet-back:hover,
-.clean-sheet-edit:hover {
+.clean-sheet-edit:hover,
+.clean-sheet-level:hover {
   border-color: rgba(239, 68, 68, 0.42);
   background: rgba(239, 68, 68, 0.08);
 }
@@ -128,7 +145,8 @@
 .clean-sheet-hp-card,
 .clean-sheet-stat-card,
 .clean-sheet-panel,
-.clean-sheet-empty {
+.clean-sheet-empty,
+.clean-sheet-mobile-tools {
   background: #141414;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 16px;
@@ -181,21 +199,50 @@
   border-radius: 999px;
 }
 
-.clean-sheet-hp-actions {
+.clean-sheet-hp-actions,
+.clean-sheet-hp-bulk-row,
+.clean-sheet-temp-hp-bulk-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.75fr 1fr 1fr;
   gap: 8px;
+  align-items: center;
 }
 
-.clean-sheet-hp-actions button {
+.clean-sheet-temp-hp-bulk-row {
+  grid-template-columns: auto auto 0.75fr 1fr 1fr;
+  margin-top: 10px;
+}
+
+.clean-sheet-hp-bulk-row input,
+.clean-sheet-temp-hp-bulk-row input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #0B0B0C;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 900;
+}
+
+.clean-sheet-hp-actions button,
+.clean-sheet-hp-bulk-row button,
+.clean-sheet-temp-hp-bulk-row button {
   min-height: 42px;
   border: 1px solid rgba(239, 68, 68, 0.28);
   background: rgba(239, 68, 68, 0.10);
   color: #FFFFFF;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 1.2rem;
   font-weight: 900;
+}
+
+.clean-sheet-hp-actions button:disabled,
+.clean-sheet-hp-bulk-row button:disabled,
+.clean-sheet-temp-hp-bulk-row button:disabled,
+.clean-sheet-mobile-tools button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .clean-sheet-stat-card {
@@ -227,6 +274,260 @@
 .clean-sheet-stat-sub {
   color: #9CA3AF;
   font-size: 12px;
+}
+
+.clean-sheet-mobile-tools {
+  max-width: 1180px;
+  margin: 0 auto 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.clean-sheet-status-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.clean-sheet-inspiration,
+.clean-sheet-rest-button,
+.clean-sheet-condition-toggle,
+.clean-sheet-roll-history-toggle,
+.clean-sheet-death-actions button {
+  min-height: 42px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  color: #FFFFFF;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.clean-sheet-inspiration.active {
+  background: #EF4444;
+  border-color: #F87171;
+  box-shadow: 0 0 18px rgba(239,68,68,0.22);
+}
+
+.clean-sheet-passives {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.clean-sheet-passives div,
+.clean-sheet-hitdice-row,
+.clean-sheet-roll-history-list div,
+.clean-sheet-death-saves {
+  background: #0B0B0C;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+}
+
+.clean-sheet-passives div {
+  padding: 10px;
+  text-align: center;
+}
+
+.clean-sheet-passives span,
+.clean-sheet-hitdice-row span,
+.clean-sheet-death-track span,
+.clean-sheet-roll-history-list span {
+  display: block;
+  color: #9CA3AF;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clean-sheet-passives strong {
+  display: block;
+  margin-top: 4px;
+  color: #FFFFFF;
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.clean-sheet-hitdice-row {
+  min-height: 42px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clean-sheet-hitdice-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.clean-sheet-hitdice-row svg,
+.clean-sheet-death-title svg,
+.clean-sheet-roll-history-toggle svg {
+  color: #EF4444;
+}
+
+.clean-sheet-hitdice-row strong {
+  color: #FFFFFF;
+  font-weight: 950;
+}
+
+.clean-sheet-condition-panel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.clean-sheet-condition-toggle {
+  padding: 9px 12px;
+}
+
+.clean-sheet-no-conditions {
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.clean-sheet-condition-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(239,68,68,0.28);
+  background: rgba(239,68,68,0.10);
+  color: #FFFFFF;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.clean-sheet-condition-chip.danger {
+  border-color: rgba(245,158,11,0.45);
+  background: rgba(245,158,11,0.14);
+}
+
+.clean-sheet-condition-picker {
+  flex: 1 0 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.clean-sheet-condition-picker button {
+  min-height: 36px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: #0B0B0C;
+  color: #D1D5DB;
+  border-radius: 10px;
+  text-transform: capitalize;
+  font-weight: 800;
+}
+
+.clean-sheet-condition-picker button.active {
+  color: #FFFFFF;
+  border-color: #EF4444;
+  background: rgba(239,68,68,0.16);
+}
+
+.clean-sheet-death-saves {
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  border-color: rgba(239,68,68,0.35);
+}
+
+.clean-sheet-death-title {
+  color: #FFFFFF;
+  font-weight: 950;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.clean-sheet-death-track {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.clean-sheet-death-track div {
+  display: flex;
+  gap: 8px;
+}
+
+.clean-sheet-death-track button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: transparent;
+  cursor: pointer;
+}
+
+.clean-sheet-death-track button.marked {
+  background: #EF4444;
+  border-color: #F87171;
+}
+
+.clean-sheet-death-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.clean-sheet-roll-history-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.clean-sheet-roll-history-toggle {
+  width: 100%;
+}
+
+.clean-sheet-roll-history-list {
+  display: grid;
+  gap: 7px;
+}
+
+.clean-sheet-roll-history-list div {
+  padding: 9px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.clean-sheet-roll-history-list p {
+  margin: 0;
+  color: #9CA3AF;
+}
+
+.clean-sheet-roll-history-list strong {
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 950;
+}
+
+.clean-sheet-roll-history-list em {
+  grid-column: 1 / -1;
+  color: #9CA3AF;
+  font-style: normal;
+  font-size: 11px;
 }
 
 .clean-sheet-tabs,
@@ -295,29 +596,58 @@
   letter-spacing: -0.02em;
 }
 
-.clean-sheet-empty p {
+.clean-sheet-empty p,
+.clean-sheet-muted {
   color: #D1D5DB;
   line-height: 1.6;
   margin: 0;
 }
 
-.clean-sheet-abilities {
+.clean-sheet-abilities,
+.clean-sheet-save-grid,
+.clean-sheet-skill-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.clean-sheet-ability {
+.clean-sheet-abilities {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.clean-sheet-save-grid,
+.clean-sheet-skill-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.clean-sheet-ability,
+.clean-sheet-save-card,
+.clean-sheet-skill-card {
   background: #0B0B0C;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   padding: 14px;
   text-align: center;
+  color: #FFFFFF;
+}
+
+.clean-sheet-clickable,
+.clean-sheet-save-card,
+.clean-sheet-skill-card {
+  cursor: pointer;
+}
+
+.clean-sheet-clickable:hover,
+.clean-sheet-save-card:hover,
+.clean-sheet-skill-card:hover {
+  border-color: rgba(239,68,68,0.42);
+  background: rgba(239,68,68,0.08);
 }
 
 .clean-sheet-ability span,
 .clean-sheet-list span,
-.clean-sheet-skills span {
+.clean-sheet-skills span,
+.clean-sheet-save-card span,
+.clean-sheet-skill-card span {
   color: #9CA3AF;
   font-size: 12px;
   text-transform: uppercase;
@@ -325,16 +655,25 @@
   letter-spacing: 0.08em;
 }
 
-.clean-sheet-ability strong {
+.clean-sheet-ability strong,
+.clean-sheet-save-card strong,
+.clean-sheet-skill-card strong {
   display: block;
   color: #FFFFFF;
-  font-size: 1.9rem;
+  font-size: 1.5rem;
   font-weight: 950;
   margin: 6px 0;
 }
 
+.clean-sheet-ability strong {
+  font-size: 1.9rem;
+}
+
 .clean-sheet-ability em,
-.clean-sheet-skills em {
+.clean-sheet-skills em,
+.clean-sheet-save-card em,
+.clean-sheet-skill-card em,
+.clean-sheet-skill-card small {
   color: #EF4444;
   font-style: normal;
   font-weight: 900;
@@ -376,6 +715,7 @@
     grid-template-areas:
       "header header"
       "vitals vitals"
+      "tools tools"
       "tabs content";
     gap: 14px;
     align-items: start;
@@ -388,6 +728,11 @@
 
   .clean-sheet-vitals {
     grid-area: vitals;
+    width: 100%;
+  }
+
+  .clean-sheet-mobile-tools {
+    grid-area: tools;
     width: 100%;
   }
 
@@ -424,8 +769,14 @@
     align-items: stretch;
   }
 
+  .clean-sheet-header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .clean-sheet-back,
-  .clean-sheet-edit {
+  .clean-sheet-edit,
+  .clean-sheet-level {
     width: 100%;
   }
 
@@ -443,6 +794,28 @@
 
   .clean-sheet-abilities {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .clean-sheet-status-row,
+  .clean-sheet-passives,
+  .clean-sheet-death-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .clean-sheet-temp-hp-bulk-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .clean-sheet-temp-hp-bulk-row span,
+  .clean-sheet-temp-hp-bulk-row strong {
+    grid-column: span 1;
+  }
+
+  .clean-sheet-save-grid,
+  .clean-sheet-skill-grid {
+    grid-template-columns: 1fr;
   }
 }
 
