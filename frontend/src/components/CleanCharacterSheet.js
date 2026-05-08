@@ -74,6 +74,8 @@ export default function CleanCharacterSheet() {
   const [loading, setLoading] = useState(true);
   const [savingHp, setSavingHp] = useState(false);
   const [savingTempHp, setSavingTempHp] = useState(false);
+  const [hpAmount, setHpAmount] = useState(1);
+  const [tempHpAmount, setTempHpAmount] = useState(1);
   const [activeTab, setActiveTab] = useState('overview');
   const [rollBurst, setRollBurst] = useState(null);
 
@@ -115,6 +117,8 @@ export default function CleanCharacterSheet() {
     if (!maxHp) return 0;
     return Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100)));
   }, [currentHp, maxHp]);
+
+  const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
 
   const updateHp = async (delta) => {
     if (!character || savingHp) return;
@@ -222,15 +226,31 @@ export default function CleanCharacterSheet() {
             <strong>{currentHp}/{maxHp}</strong>
           </div>
           <div className="clean-sheet-hp-bar"><div style={{ width: `${hpPercent}%` }} /></div>
-          <div className="clean-sheet-hp-actions">
-            <button onClick={() => updateHp(-1)} disabled={savingHp}>-</button>
-            <button onClick={() => updateHp(1)} disabled={savingHp}>+</button>
+          <div className="clean-sheet-hp-bulk-row">
+            <input
+              type="number"
+              min="1"
+              max="999"
+              value={hpAmount}
+              onChange={(e) => setHpAmount(e.target.value)}
+              aria-label="HP amount"
+            />
+            <button onClick={() => updateHp(-getSafeAmount(hpAmount))} disabled={savingHp}>Damage</button>
+            <button onClick={() => updateHp(getSafeAmount(hpAmount))} disabled={savingHp}>Heal</button>
           </div>
-          <div className="clean-sheet-temp-hp-row">
+          <div className="clean-sheet-temp-hp-row clean-sheet-temp-hp-bulk-row">
             <span>Temp HP</span>
             <strong>{tempHp}</strong>
-            <button onClick={() => updateTempHp(-1)} disabled={savingTempHp || tempHp <= 0}>-</button>
-            <button onClick={() => updateTempHp(1)} disabled={savingTempHp}>+</button>
+            <input
+              type="number"
+              min="1"
+              max="999"
+              value={tempHpAmount}
+              onChange={(e) => setTempHpAmount(e.target.value)}
+              aria-label="Temporary HP amount"
+            />
+            <button onClick={() => updateTempHp(-getSafeAmount(tempHpAmount))} disabled={savingTempHp || tempHp <= 0}>Remove</button>
+            <button onClick={() => updateTempHp(getSafeAmount(tempHpAmount))} disabled={savingTempHp}>Add</button>
           </div>
         </div>
         <StatCard icon={Shield} label="AC" value={ac} />
