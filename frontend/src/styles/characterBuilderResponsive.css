@@ -1,0 +1,131 @@
+/*
+  Character builder responsive rescue layer
+  ------------------------------------------------------------
+  The full character builder uses a lot of inline styles. These
+  targeted mobile/tablet overrides force cramped desktop grids,
+  panels, controls and wizard rows to become readable stacked UI.
+*/
+
+@media (max-width: 900px) {
+  /* Character builder page wrapper */
+  div[style*="min-height: 100vh"][style*="padding: 24px"],
+  div[style*="minHeight: 100vh"][style*="padding: 24px"] {
+    padding: 12px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Main builder container */
+  div[style*="max-width: 1100px"],
+  div[style*="maxWidth: 1100px"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  /* Large wizard panels */
+  div[style*="padding: 28px"][style*="border-radius: 12px"],
+  div[style*="padding: 28px"][style*="borderRadius: 12px"] {
+    padding: 16px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Any builder grid becomes a clean single column on mobile/tablet. */
+  div[style*="grid-template-columns"],
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Option cards should never squeeze into unreadable columns. */
+  div[style*="minmax(140px"],
+  div[style*="minmax(160px"],
+  div[style*="minmax(180px"],
+  div[style*="minmax(200px"],
+  div[style*="minmax(220px"],
+  div[style*="minmax(240px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Progress/wizard nav rows should scroll instead of crushing labels. */
+  div[style*="display: flex"][style*="gap: 8px"],
+  div[style*="display: flex"][style*="gap: 10px"],
+  div[style*="display: flex"][style*="gap: 12px"] {
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+  }
+
+  /* Buttons need thumb-sized tap targets and readable text. */
+  button {
+    min-height: 44px !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+
+  button[style*="flex: 1"],
+  button[style*="min-width"],
+  button[style*="minWidth"] {
+    min-width: 100% !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Form controls should be comfortable to read and tap. */
+  input,
+  select,
+  textarea {
+    min-height: 44px !important;
+    font-size: 16px !important;
+  }
+
+  textarea {
+    min-height: 120px !important;
+  }
+
+  /* Ability score cards get extra breathing room. */
+  div[data-testid^="ability-slot-"] {
+    min-height: 128px !important;
+    padding: 14px !important;
+  }
+
+  /* Score pool chips wrap cleanly. */
+  div[data-testid="score-pool"] {
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  /* Prevent long descriptions and source notes from forcing horizontal overflow. */
+  p,
+  span,
+  div,
+  label,
+  button {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 520px) {
+  /* Smaller phones need even tighter outer spacing. */
+  div[style*="min-height: 100vh"][style*="padding: 24px"],
+  div[style*="minHeight: 100vh"][style*="padding: 24px"] {
+    padding: 8px !important;
+  }
+
+  div[style*="padding: 28px"][style*="border-radius: 12px"],
+  div[style*="padding: 28px"][style*="borderRadius: 12px"] {
+    padding: 12px !important;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.15 !important;
+  }
+
+  /* Keep action rows from sitting side-by-side on narrow screens. */
+  div[style*="justify-content: space-between"],
+  div[style*="justifyContent: space-between"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+}
