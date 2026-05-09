@@ -161,6 +161,61 @@
   text-transform: uppercase;
 }
 
+.clean-sheet-attack-card {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+
+.clean-sheet-attack-card-top {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.clean-sheet-attack-card-top strong {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.clean-sheet-attack-details {
+  color: #D1D5DB !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.clean-sheet-attack-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.clean-sheet-attack-stat-row div {
+  background: #141414;
+  padding: 10px 8px;
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+}
+
+.clean-sheet-attack-stat-row span {
+  color: #9CA3AF !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clean-sheet-attack-stat-row strong {
+  color: #FFFFFF;
+  font-size: 12px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
 .clean-sheet-pending-damage {
   background: rgba(34, 197, 94, 0.08);
   border: 1px solid rgba(34, 197, 94, 0.28);
@@ -249,5 +304,9 @@
   .clean-sheet-action-grid,
   .clean-sheet-resource-grid {
     grid-template-columns: 1fr;
+  }
+
+  .clean-sheet-attack-stat-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
