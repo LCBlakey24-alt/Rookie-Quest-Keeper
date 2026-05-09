@@ -1,0 +1,82 @@
+/* Small mobile polish overrides for the clean character sheet. */
+
+.clean-sheet-hp-bulk-row {
+  display: grid !important;
+  grid-template-columns: minmax(58px, 0.7fr) minmax(82px, 1fr) minmax(72px, 0.9fr) !important;
+  gap: 7px !important;
+  align-items: center !important;
+}
+
+.clean-sheet-hp-bulk-row input {
+  min-width: 0 !important;
+  text-align: center !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+
+.clean-sheet-hp-bulk-row button {
+  min-width: 0 !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  white-space: nowrap !important;
+}
+
+.clean-sheet-attack-card {
+  padding: 0 !important;
+  overflow: hidden !important;
+  gap: 0 !important;
+}
+
+.clean-sheet-attack-card-top {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.clean-sheet-attack-details {
+  color: #D1D5DB !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.clean-sheet-attack-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.clean-sheet-attack-stat-row div {
+  background: #141414;
+  padding: 10px 8px;
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+}
+
+.clean-sheet-attack-stat-row span {
+  color: #9CA3AF !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clean-sheet-attack-stat-row strong {
+  color: #FFFFFF;
+  font-size: 12px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .clean-sheet-hp-bulk-row {
+    grid-template-columns: 52px 1fr 1fr !important;
+    gap: 5px !important;
+  }
+  .clean-sheet-hp-bulk-row button {
+    font-size: 12px !important;
+  }
+}
