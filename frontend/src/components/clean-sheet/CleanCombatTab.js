@@ -27,19 +27,25 @@ const WEAPON_FALLBACKS = {
 };
 
 const RESOURCE_CONFIG = {
-  Barbarian: [{ key: 'rage', label: 'Rage', fallbackMax: c => c?.level >= 17 ? 6 : c?.level >= 12 ? 5 : c?.level >= 6 ? 4 : c?.level >= 3 ? 3 : 2 }],
-  Bard: [{ key: 'bardic_inspiration', label: 'Bardic Inspiration', fallbackMax: c => Math.max(1, mod(c?.charisma)) }],
-  Cleric: [{ key: 'channel_divinity', label: 'Channel Divinity', fallbackMax: c => c?.level >= 18 ? 3 : c?.level >= 6 ? 2 : 1 }],
-  Druid: [{ key: 'wild_shape', label: 'Wild Shape', fallbackMax: () => 2 }],
+  Barbarian: [{ key: 'rage', label: 'Rage', minLevel: 1, fallbackMax: c => c?.level >= 17 ? 6 : c?.level >= 12 ? 5 : c?.level >= 6 ? 4 : c?.level >= 3 ? 3 : 2 }],
+  Bard: [{ key: 'bardic_inspiration', label: 'Bardic Inspiration', minLevel: 1, fallbackMax: c => Math.max(1, mod(c?.charisma)) }],
+  Cleric: [{ key: 'channel_divinity', label: 'Channel Divinity', minLevel: 2, fallbackMax: c => c?.level >= 18 ? 3 : c?.level >= 6 ? 2 : 1 }],
+  Druid: [{ key: 'wild_shape', label: 'Wild Shape', minLevel: 2, fallbackMax: () => 2 }],
   Fighter: [
-    { key: 'second_wind', label: 'Second Wind', fallbackMax: () => 1 },
-    { key: 'action_surge', label: 'Action Surge', fallbackMax: c => c?.level >= 17 ? 2 : 1 },
+    { key: 'second_wind', label: 'Second Wind', minLevel: 1, fallbackMax: () => 1 },
+    { key: 'action_surge', label: 'Action Surge', minLevel: 2, fallbackMax: c => c?.level >= 17 ? 2 : 1 },
   ],
-  Monk: [{ key: 'ki', label: 'Ki', fallbackMax: c => Math.max(0, Number(c?.level || 1)) }],
-  Paladin: [{ key: 'lay_on_hands', label: 'Lay on Hands', fallbackMax: c => Math.max(0, Number(c?.level || 1) * 5) }],
-  Sorcerer: [{ key: 'sorcery_points', label: 'Sorcery Points', fallbackMax: c => Math.max(0, Number(c?.level || 1)) }],
-  Warlock: [{ key: 'pact_magic', label: 'Pact Magic', fallbackMax: () => 2 }],
+  Monk: [{ key: 'ki', label: 'Ki', minLevel: 2, fallbackMax: c => Math.max(0, Number(c?.level || 1)) }],
+  Paladin: [{ key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, fallbackMax: c => Math.max(0, Number(c?.level || 1) * 5) }],
+  Sorcerer: [{ key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, fallbackMax: c => Math.max(0, Number(c?.level || 1)) }],
+  Warlock: [{ key: 'pact_magic', label: 'Pact Magic', minLevel: 1, fallbackMax: c => (Number(c?.level || 1) >= 2 ? 2 : 1) }],
 };
+
+function hasSaveProficiency(character, ability) {
+  const saves = character?.saving_throw_proficiencies || [];
+  const short = ability.slice(0, 3).toLowerCase();
+  return saves.some(save => String(save).toLowerCase() === ability || String(save).toLowerCase() === short);
+}
 
 function rollDice(count = 1, sides = 8, modifier = 0) {
   const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
@@ -173,10 +179,12 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
   const constitutionMod = mod(character?.constitution);
+  const concentrationMod = constitutionMod + (hasSaveProficiency(character, 'constitution') ? proficiencyBonus : 0);
   const bestAbilityMod = Math.max(strengthMod, dexterityMod);
   const bestAttackMod = proficiencyBonus + bestAbilityMod;
   const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
+  const characterLevel = Number(character?.level || 1);
   const concentratingOn = character?.concentrating_on || character?.concentration || '';
 
   const equippedWeaponAttacks = useMemo(
@@ -210,13 +218,16 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
   const classResources = useMemo(() => {
     const configs = RESOURCE_CONFIG[className] || [];
     const resources = character?.resources || {};
-    return configs.map(config => {
-      const raw = resources[config.key] || {};
-      const max = Number(raw.max ?? raw.total ?? config.fallbackMax?.(character) ?? 0) || 0;
-      const current = Number(resourceDrafts[config.key] ?? raw.current ?? raw.remaining ?? max) || 0;
-      return { ...config, current: Math.max(0, Math.min(max, current)), max };
-    }).filter(resource => resource.max > 0);
-  }, [character, className, resourceDrafts]);
+    return configs
+      .filter(config => characterLevel >= (config.minLevel || 1))
+      .map(config => {
+        const raw = resources[config.key] || {};
+        const max = Number(raw.max ?? raw.total ?? config.fallbackMax?.(character) ?? 0) || 0;
+        const current = Number(resourceDrafts[config.key] ?? raw.current ?? raw.remaining ?? max) || 0;
+        return { ...config, current: Math.max(0, Math.min(max, current)), max };
+      })
+      .filter(resource => resource.max > 0);
+  }, [character, characterLevel, className, resourceDrafts]);
 
   const rollAttack = (attack) => {
     onRoll(attack.attackLabel, attack.attackMod ?? bestAttackMod);
@@ -231,7 +242,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
   };
 
   const rollConcentrationSave = () => {
-    onRoll('Concentration Save', proficiencyBonus + constitutionMod);
+    onRoll('Concentration Save', concentrationMod);
   };
 
   const saveConcentration = async (value) => {
@@ -256,7 +267,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     if (ok !== false) toast.success(`${resource.label}: ${next}/${resource.max}`);
   };
 
-  const useConsumable = async (item, index) => {
+  const useConsumable = async (item) => {
     const heal = getPotionHealing(item);
     const result = rollDice(heal.count, heal.sides, heal.modifier);
     toast.success(`${getItemName(item)} heals ${result.total} HP`);
@@ -291,7 +302,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
                 placeholder="Spell or effect…"
                 aria-label="Concentration spell or effect"
               />
-              <button type="button" onClick={rollConcentrationSave}>Roll Save</button>
+              <button type="button" onClick={rollConcentrationSave}>Roll Save {fmt(concentrationMod)}</button>
               {concentratingOn && <button type="button" onClick={() => saveConcentration('')}>Clear</button>}
             </div>
 
@@ -314,7 +325,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
               <div className="clean-sheet-consumable-strip">
                 <span>Quick Consumables</span>
                 {consumables.map((item, index) => (
-                  <button key={`${getItemName(item)}-${index}`} type="button" onClick={() => useConsumable(item, index)}>
+                  <button key={`${getItemName(item)}-${index}`} type="button" onClick={() => useConsumable(item)}>
                     {getItemName(item)}{getItemQuantity(item) ? ` x${getItemQuantity(item)}` : ''}
                   </button>
                 ))}
