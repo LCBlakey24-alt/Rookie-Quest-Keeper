@@ -20,7 +20,6 @@ from routes.progression import router as progression_router
 from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
-from routes.ai_portrait import router as ai_portrait_router
 from routes.homebrew import router as homebrew_router
 
 all_routers = [
@@ -35,7 +34,7 @@ all_routers = [
     combat_router,
     players_router,
     maps_router,
-    ai_router,
+    ai_router,  # Text-based Rook AI helpers stay enabled.
     inventory_router,
     user_content_router,
     # Keep lenient PATCH before the legacy strict characters router so
@@ -47,6 +46,6 @@ all_routers = [
     rule_systems_router,
     events_router,
     character_templates_router,
-    ai_portrait_router,
+    # Paid image-generation routes intentionally not registered for now.
     homebrew_router,
 ]
