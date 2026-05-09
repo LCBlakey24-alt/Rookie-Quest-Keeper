@@ -1,9 +1,9 @@
-// Class resource rules used by the clean character sheet.
+// Class resource rules used by the clean character sheet and character builder.
 // Keep feature/resource unlock levels here so the UI does not show resources
 // before the class actually gains them.
 
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
-const levelOf = (character) => Number(character?.level || 1);
+const levelOf = (character) => Math.max(1, Number(character?.level || 1));
 
 export const CLASS_RESOURCE_RULES = {
   Barbarian: [
@@ -11,6 +11,7 @@ export const CLASS_RESOURCE_RULES = {
       key: 'rage',
       label: 'Rage',
       minLevel: 1,
+      restore: 'long-rest',
       max: (character) => {
         const level = levelOf(character);
         if (level >= 17) return 6;
@@ -26,6 +27,7 @@ export const CLASS_RESOURCE_RULES = {
       key: 'bardic_inspiration',
       label: 'Bardic Inspiration',
       minLevel: 1,
+      restore: (character) => levelOf(character) >= 5 ? 'short-rest' : 'long-rest',
       max: (character) => Math.max(1, abilityMod(character?.charisma)),
     },
   ],
@@ -34,6 +36,7 @@ export const CLASS_RESOURCE_RULES = {
       key: 'channel_divinity',
       label: 'Channel Divinity',
       minLevel: 2,
+      restore: 'short-rest',
       max: (character) => {
         const level = levelOf(character);
         if (level >= 18) return 3;
@@ -43,38 +46,79 @@ export const CLASS_RESOURCE_RULES = {
     },
   ],
   Druid: [
-    { key: 'wild_shape', label: 'Wild Shape', minLevel: 2, max: () => 2 },
+    { key: 'wild_shape', label: 'Wild Shape', minLevel: 2, restore: 'short-rest', max: () => 2 },
   ],
   Fighter: [
-    { key: 'second_wind', label: 'Second Wind', minLevel: 1, max: () => 1 },
-    { key: 'action_surge', label: 'Action Surge', minLevel: 2, max: (character) => levelOf(character) >= 17 ? 2 : 1 },
-    { key: 'indomitable', label: 'Indomitable', minLevel: 9, max: (character) => levelOf(character) >= 17 ? 3 : levelOf(character) >= 13 ? 2 : 1 },
+    { key: 'second_wind', label: 'Second Wind', minLevel: 1, restore: 'short-rest', max: () => 1 },
+    { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) >= 17 ? 2 : 1 },
+    { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => levelOf(character) >= 17 ? 3 : levelOf(character) >= 13 ? 2 : 1 },
   ],
   Monk: [
-    { key: 'ki', label: 'Ki', minLevel: 2, max: (character) => levelOf(character) },
+    { key: 'ki', label: 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) },
   ],
   Paladin: [
-    { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, max: (character) => levelOf(character) * 5 },
-    { key: 'channel_divinity', label: 'Channel Divinity', minLevel: 3, max: () => 1 },
+    { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => levelOf(character) * 5 },
+    { key: 'channel_divinity', label: 'Channel Divinity', minLevel: 3, restore: 'short-rest', max: () => 1 },
   ],
   Ranger: [],
   Rogue: [],
   Sorcerer: [
-    { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, max: (character) => levelOf(character) },
+    { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, restore: 'long-rest', max: (character) => levelOf(character) },
   ],
   Warlock: [
-    { key: 'pact_magic', label: 'Pact Magic', minLevel: 1, max: (character) => levelOf(character) >= 2 ? 2 : 1 },
+    { key: 'pact_magic', label: 'Pact Magic', minLevel: 1, restore: 'short-rest', max: (character) => levelOf(character) >= 2 ? 2 : 1 },
   ],
   Wizard: [
-    { key: 'arcane_recovery', label: 'Arcane Recovery', minLevel: 1, max: () => 1 },
+    { key: 'arcane_recovery', label: 'Arcane Recovery', minLevel: 1, restore: 'long-rest', max: () => 1 },
   ],
 };
 
 export function getClassResourceRules(character) {
-  const className = character?.character_class || '';
+  const className = character?.character_class || character?.className || '';
   const level = levelOf(character);
   return (CLASS_RESOURCE_RULES[className] || [])
     .filter(rule => level >= (rule.minLevel || 1))
-    .map(rule => ({ ...rule, maxValue: Math.max(0, Number(rule.max?.(character) || 0)) }))
+    .map(rule => {
+      const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
+      return {
+        ...rule,
+        restore,
+        maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
+      };
+    })
     .filter(rule => rule.maxValue > 0);
+}
+
+export function buildInitialClassResources(character) {
+  return getClassResourceRules(character).reduce((resources, rule) => {
+    resources[rule.key] = {
+      label: rule.label,
+      current: rule.maxValue,
+      remaining: rule.maxValue,
+      max: rule.maxValue,
+      restore: rule.restore || 'long-rest',
+      min_level: rule.minLevel || 1,
+    };
+    return resources;
+  }, {});
+}
+
+export function restoreClassResources(character, restType = 'long-rest') {
+  const currentResources = character?.resources || {};
+  const restored = { ...currentResources };
+  getClassResourceRules(character).forEach(rule => {
+    const existing = restored[rule.key] || {};
+    const shouldRestore = restType === 'long-rest' || existing.restore === 'short-rest' || rule.restore === 'short-rest';
+    if (!shouldRestore) return;
+    restored[rule.key] = {
+      ...existing,
+      label: rule.label,
+      current: rule.maxValue,
+      remaining: rule.maxValue,
+      max: rule.maxValue,
+      restore: rule.restore || existing.restore || 'long-rest',
+      min_level: rule.minLevel || existing.min_level || 1,
+    };
+  });
+  return restored;
 }
