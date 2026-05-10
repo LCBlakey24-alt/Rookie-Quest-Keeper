@@ -22,6 +22,7 @@ import '@/styles/cleanNotesTab.css';
 import '@/styles/levelUpCleanStyle.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
+import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
@@ -133,7 +134,10 @@ function App() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => {
+    installRollBurstPersistence();
+    checkAuth();
+  }, []);
 
   const checkAuth = async () => {
     const token = localStorage.getItem('dm_token');
