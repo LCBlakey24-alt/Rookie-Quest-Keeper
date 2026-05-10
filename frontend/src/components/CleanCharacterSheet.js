@@ -405,7 +405,7 @@ export default function CleanCharacterSheet() {
 
   if (loading) {
     return (
-      <div className="clean-sheet-page clean-sheet-loading">
+      <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
         <img src="/images/logo-mini.png" alt="ROOK" />
         <p>Loading character...</p>
       </div>
@@ -414,7 +414,7 @@ export default function CleanCharacterSheet() {
 
   if (!character) {
     return (
-      <div className="clean-sheet-page clean-sheet-loading">
+      <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
         <p>Character could not be loaded.</p>
         <button onClick={() => navigate('/home')}>Back to dashboard</button>
       </div>
@@ -432,7 +432,7 @@ export default function CleanCharacterSheet() {
   const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   return (
-    <div className="clean-sheet-page">
+    <div className="clean-sheet-page character-page-v2">
       {rollBurst && (
         <div key={rollBurst.id} className="clean-sheet-roll-burst" aria-live="polite">
           <span>{rollBurst.label}</span>

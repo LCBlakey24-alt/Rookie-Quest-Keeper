@@ -1,7 +1,16 @@
 .clean-sheet-page {
+  --cs-bg: #0B0B0C;
+  --cs-panel: #141414;
+  --cs-accent: #EF4444;
+  --cs-text: #FFFFFF;
+  --cs-text-soft: #D1D5DB;
+  --cs-border: rgba(255, 255, 255, 0.10);
+  --cs-border-strong: rgba(255, 255, 255, 0.12);
+  --cs-accent-soft: rgba(239, 68, 68, 0.10);
+  --cs-accent-border: rgba(239, 68, 68, 0.35);
   min-height: 100vh;
-  background: radial-gradient(circle at 16% 0%, rgba(239, 68, 68, 0.10), transparent 32%), #0B0B0C;
-  color: #FFFFFF;
+  background: radial-gradient(circle at 16% 0%, var(--cs-accent-soft), transparent 32%), var(--cs-bg);
+  color: var(--cs-text);
   padding: clamp(12px, 3vw, 28px);
   overflow-x: hidden;
 }
@@ -38,8 +47,8 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--cs-panel);
+  border: 1px solid var(--cs-border);
   border-radius: 16px;
   padding: 14px;
 }
@@ -62,16 +71,16 @@
   min-height: 42px;
   padding: 10px 14px;
   background: transparent;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border-strong);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 800;
 }
 
 .clean-sheet-level {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.10);
+  border-color: var(--cs-accent-border);
+  background: var(--cs-accent-soft);
 }
 
 .clean-sheet-back:hover,
@@ -93,11 +102,11 @@
   height: 62px;
   border-radius: 16px;
   border: 1px solid rgba(239, 68, 68, 0.42);
-  background: #0B0B0C;
+  background: var(--cs-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #EF4444;
+  color: var(--cs-accent);
   flex: 0 0 auto;
   overflow: hidden;
 }
@@ -109,7 +118,7 @@
 }
 
 .clean-sheet-kicker {
-  color: #EF4444;
+  color: var(--cs-accent);
   margin: 0 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -119,7 +128,7 @@
 
 .clean-sheet-identity h1 {
   margin: 0;
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: clamp(1.6rem, 4vw, 2.3rem);
   line-height: 1;
   font-weight: 950;
@@ -128,7 +137,7 @@
 }
 
 .clean-sheet-identity p:last-child {
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   margin: 8px 0 0;
   font-weight: 700;
   overflow-wrap: anywhere;
@@ -147,8 +156,8 @@
 .clean-sheet-panel,
 .clean-sheet-empty,
 .clean-sheet-mobile-tools {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--cs-panel);
+  border: 1px solid var(--cs-border);
   border-radius: 16px;
 }
 
@@ -168,7 +177,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -177,17 +186,17 @@
 
 .clean-sheet-hp-top svg,
 .clean-sheet-stat-card svg {
-  color: #EF4444;
+  color: var(--cs-accent);
 }
 
 .clean-sheet-hp-top strong {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: 1.25rem;
 }
 
 .clean-sheet-hp-bar {
   height: 8px;
-  background: #0B0B0C;
+  background: var(--cs-bg);
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -219,8 +228,8 @@
   width: 100%;
   min-height: 42px;
   border: 1px solid rgba(255,255,255,0.12);
-  background: #0B0B0C;
-  color: #FFFFFF;
+  background: var(--cs-bg);
+  color: var(--cs-text);
   border-radius: 10px;
   padding: 8px 10px;
   font-weight: 900;
@@ -233,8 +242,8 @@
 .clean-sheet-slot-actions button {
   min-height: 42px;
   border: 1px solid rgba(239, 68, 68, 0.28);
-  background: rgba(239, 68, 68, 0.10);
-  color: #FFFFFF;
+  background: var(--cs-accent-soft);
+  color: var(--cs-text);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 900;
@@ -261,14 +270,14 @@
 }
 
 .clean-sheet-stat-value {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: 2rem;
   font-weight: 950;
   line-height: 1;
 }
 
 .clean-sheet-stat-label {
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 11px;
@@ -297,7 +306,7 @@
 
 .clean-sheet-roll-controls {
   grid-template-columns: 1.4fr minmax(92px, 0.6fr);
-  background: #0B0B0C;
+  background: var(--cs-bg);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
   padding: 8px;
@@ -313,15 +322,15 @@
   min-height: 38px;
   border: 1px solid rgba(255,255,255,0.10);
   background: transparent;
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   border-radius: 9px;
   font-weight: 900;
 }
 
 .clean-sheet-roll-mode-group button.active {
   background: rgba(239,68,68,0.16);
-  border-color: #EF4444;
-  color: #FFFFFF;
+  border-color: var(--cs-accent);
+  color: var(--cs-text);
 }
 
 .clean-sheet-roll-controls label {
@@ -345,7 +354,7 @@
   min-height: 42px;
   border: 1px solid rgba(239, 68, 68, 0.28);
   background: rgba(239, 68, 68, 0.08);
-  color: #FFFFFF;
+  color: var(--cs-text);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 900;
@@ -356,7 +365,7 @@
 }
 
 .clean-sheet-inspiration.active {
-  background: #EF4444;
+  background: var(--cs-accent);
   border-color: #F87171;
   box-shadow: 0 0 18px rgba(239,68,68,0.22);
 }
@@ -371,7 +380,7 @@
 .clean-sheet-hitdice-row,
 .clean-sheet-roll-history-list div,
 .clean-sheet-death-saves {
-  background: #0B0B0C;
+  background: var(--cs-bg);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
 }
@@ -396,7 +405,7 @@
 .clean-sheet-passives strong {
   display: block;
   margin-top: 4px;
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: 1.35rem;
   font-weight: 950;
 }
@@ -419,11 +428,11 @@
 .clean-sheet-hitdice-row svg,
 .clean-sheet-death-title svg,
 .clean-sheet-roll-history-toggle svg {
-  color: #EF4444;
+  color: var(--cs-accent);
 }
 
 .clean-sheet-hitdice-row strong {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-weight: 950;
 }
 
@@ -456,7 +465,7 @@
   padding: 5px 9px;
   border: 1px solid rgba(239,68,68,0.28);
   background: rgba(239,68,68,0.10);
-  color: #FFFFFF;
+  color: var(--cs-text);
   border-radius: 999px;
   font-size: 11px;
   font-weight: 900;
@@ -479,16 +488,16 @@
 .clean-sheet-condition-picker button {
   min-height: 36px;
   border: 1px solid rgba(255,255,255,0.10);
-  background: #0B0B0C;
-  color: #D1D5DB;
+  background: var(--cs-bg);
+  color: var(--cs-text-soft);
   border-radius: 10px;
   text-transform: capitalize;
   font-weight: 800;
 }
 
 .clean-sheet-condition-picker button.active {
-  color: #FFFFFF;
-  border-color: #EF4444;
+  color: var(--cs-text);
+  border-color: var(--cs-accent);
   background: rgba(239,68,68,0.16);
 }
 
@@ -500,7 +509,7 @@
 }
 
 .clean-sheet-death-title {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-weight: 950;
   display: flex;
   align-items: center;
@@ -532,7 +541,7 @@
 }
 
 .clean-sheet-death-track button.marked {
-  background: #EF4444;
+  background: var(--cs-accent);
   border-color: #F87171;
 }
 
@@ -570,7 +579,7 @@
 }
 
 .clean-sheet-roll-history-list strong {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: 1.1rem;
   font-weight: 950;
 }
@@ -593,8 +602,8 @@
   gap: 8px;
   overflow-x: auto;
   padding: 6px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--cs-panel);
+  border: 1px solid var(--cs-border);
   border-radius: 14px;
 }
 
@@ -607,17 +616,17 @@
   gap: 8px;
   padding: 10px 14px;
   background: transparent;
-  color: #D1D5DB;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--cs-text-soft);
+  border: 1px solid var(--cs-border);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 800;
 }
 
 .clean-sheet-tabs button.active {
-  color: #FFFFFF;
-  border-color: #EF4444;
-  background: rgba(239, 68, 68, 0.10);
+  color: var(--cs-text);
+  border-color: var(--cs-accent);
+  background: var(--cs-accent-soft);
 }
 
 .clean-sheet-content {
@@ -642,7 +651,7 @@
 
 .clean-sheet-panel h2,
 .clean-sheet-empty h3 {
-  color: #FFFFFF;
+  color: var(--cs-text);
   margin: 0 0 14px;
   font-weight: 950;
   letter-spacing: -0.02em;
@@ -650,7 +659,7 @@
 
 .clean-sheet-empty p,
 .clean-sheet-muted {
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   line-height: 1.6;
   margin: 0;
 }
@@ -680,12 +689,12 @@
 .clean-sheet-skill-card,
 .clean-sheet-spell-card,
 .clean-sheet-slot-card {
-  background: #0B0B0C;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--cs-bg);
+  border: 1px solid var(--cs-border);
   border-radius: 12px;
   padding: 14px;
   text-align: center;
-  color: #FFFFFF;
+  color: var(--cs-text);
 }
 
 .clean-sheet-spell-card {
@@ -695,7 +704,7 @@
 }
 
 .clean-sheet-spell-card p {
-  color: #D1D5DB;
+  color: var(--cs-text-soft);
   margin: 8px 0 0;
   line-height: 1.45;
   font-size: 12px;
@@ -703,7 +712,7 @@
 
 .clean-sheet-spell-card small {
   display: block;
-  color: #EF4444;
+  color: var(--cs-accent);
   margin-top: 8px;
   font-weight: 900;
   text-transform: uppercase;
@@ -716,7 +725,7 @@
   padding: 4px 7px;
   border: 1px solid rgba(239,68,68,0.28);
   background: rgba(239,68,68,0.10);
-  color: #EF4444 !important;
+  color: var(--cs-accent) !important;
   border-radius: 999px;
   margin-bottom: 8px;
 }
@@ -743,7 +752,7 @@
 }
 
 .clean-sheet-slot-pips i.filled {
-  background: #EF4444;
+  background: var(--cs-accent);
   border-color: #F87171;
 }
 
@@ -794,7 +803,7 @@
 .clean-sheet-spell-card strong,
 .clean-sheet-spell-summary strong {
   display: block;
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-size: 1.5rem;
   font-weight: 950;
   margin: 6px 0;
@@ -812,7 +821,7 @@
 }
 
 .clean-sheet-spell-summary div {
-  background: #0B0B0C;
+  background: var(--cs-bg);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
   padding: 12px;
@@ -829,7 +838,7 @@
 .clean-sheet-skill-card em,
 .clean-sheet-skill-card small,
 .clean-sheet-spell-card em {
-  color: #EF4444;
+  color: var(--cs-accent);
   font-style: normal;
   font-weight: 900;
 }
@@ -846,8 +855,8 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
-  background: #0B0B0C;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--cs-bg);
+  border: 1px solid var(--cs-border);
   border-radius: 10px;
   padding: 10px 12px;
 }
@@ -858,7 +867,7 @@
 
 .clean-sheet-list strong,
 .clean-sheet-skills strong {
-  color: #FFFFFF;
+  color: var(--cs-text);
   font-weight: 950;
 }
 
