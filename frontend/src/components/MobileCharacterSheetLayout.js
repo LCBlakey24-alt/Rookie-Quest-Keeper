@@ -9,9 +9,10 @@ export default function MobileCharacterSheetLayout({
   children, 
   pages = [], 
   theme,
-  onPageChange 
+  onPageChange,
+  currentPage: controlledPage
 }) {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(controlledPage ?? 0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -201,3 +202,8 @@ export default function MobileCharacterSheetLayout({
     </div>
   );
 }
+  useEffect(() => {
+    if (typeof controlledPage === 'number' && controlledPage !== currentPage) {
+      setCurrentPage(controlledPage);
+    }
+  }, [controlledPage, currentPage]);

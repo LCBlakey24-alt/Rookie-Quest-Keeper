@@ -26,6 +26,7 @@ import CharacterHeader from './CharacterHeader';
 import CharacterLeftPanel from './CharacterLeftPanel';
 import CharacterSkillsPanel from './CharacterSkillsPanel';
 import CharacterTabs from './CharacterTabs';
+import MobileCharacterSheetLayout from './MobileCharacterSheetLayout';
 
 const API = API_BASE;
 
@@ -238,6 +239,7 @@ const DEFAULT_ACTIONS = {
 };
 
 export default function CharacterSheetFull() {
+  const [isMobileSheet, setIsMobileSheet] = useState(() => window.innerWidth <= 720);
   const { characterId } = useParams();
   const navigate = useNavigate();
   const [character, setCharacter] = useState(null);
@@ -384,18 +386,29 @@ export default function CharacterSheetFull() {
     }
   }, [activeTab, canUseSpells]);
 
+  useEffect(() => {
+    const onResize = () => setIsMobileSheet(window.innerWidth <= 720);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const fetchCharacter = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API}/characters/${characterId}`);
-      setCharacter(response.data);
+      const payload = response?.data?.character ?? response?.data;
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('Invalid character payload');
+      }
+      setCharacter(payload);
+      setError(null);
       // Clamp HP to ensure it never exceeds max_hp (fixes bug where HP displays higher than max)
-      const charMaxHp = response.data.max_hit_points ?? response.data.max_hp ?? 10;
-      const charHp = response.data.current_hit_points ?? response.data.hp ?? charMaxHp;
+      const charMaxHp = payload.max_hit_points ?? payload.max_hp ?? 10;
+      const charHp = payload.current_hit_points ?? payload.hp ?? charMaxHp;
       setCurrentHp(Math.min(charHp, charMaxHp));
-      setTempHp(getTempHp(response.data));
+      setTempHp(getTempHp(payload));
       // Hydrate spell slot usage from server so it survives reloads
-      setUsedSlots(response.data.used_spell_slots || {});
+      setUsedSlots(payload.used_spell_slots || {});
     } catch (err) {
       setError('Failed to load character');
       toast.error('Failed to load character');
@@ -423,7 +436,7 @@ export default function CharacterSheetFull() {
   const ac = character?.armor_class ?? character?.ac ?? (10 + getModifier(abilities.dexterity));
   const initiative = getModifier(abilities.dexterity);
   const rawSpeed = character?.speed || 30;
-  const activeConditions = character?.conditions || [];
+  const activeConditions = Array.isArray(character?.conditions) ? character.conditions : [];
   // Conditions that reduce speed to 0 per 5e RAW
   const speedZeroConditions = ['grappled', 'restrained', 'paralyzed', 'petrified', 'stunned', 'unconscious'];
   const hasSpeedZero = speedZeroConditions.some(c => activeConditions.includes(c));
@@ -652,6 +665,94 @@ export default function CharacterSheetFull() {
     }
   };
 
+  const renderTabContent = (tabId) => {
+    if (tabId === 'overview') {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+          <PlayerProgressionDashboard character={character} characterId={characterId} />
+        </div>
+      );
+    }
+
+    if (tabId === 'combat') {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+          <CharacterCombatTab
+            character={character}
+            onUpdateCharacter={handleUpdateCharacter}
+            onUpdateResources={handleUpdateResources}
+            onRest={handleRest}
+            isGMMode={false}
+            rollDice={rollDice}
+          />
+          <div style={{ marginTop: '8px' }}>
+            <RestPanel character={character} theme={theme} onRest={handleRest} onUpdateCharacter={handleUpdateCharacter} />
+          </div>
+          <div style={{ marginTop: '8px' }}>
+            <CombatLog entries={combatLog} onClear={clearCombatLog} theme={theme} characterName={character?.name} />
+          </div>
+        </div>
+      );
+    }
+
+    if (tabId === 'spells' && canUseSpells) {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+          <CharacterSpellbook
+            character={character}
+            usedSlots={usedSlots}
+            setUsedSlots={persistUsedSlots}
+            rollDice={rollDice}
+            onUpdateCharacter={handleUpdateCharacter}
+            onRest={handleRest}
+          />
+        </div>
+      );
+    }
+
+    if (tabId === 'inventory') {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+          <CharacterInventory
+            characterId={characterId}
+            character={character}
+            onUpdate={fetchCharacter}
+          />
+        </div>
+      );
+    }
+
+    if (tabId === 'backstory') {
+      return <BackstoryTab character={character} characterId={characterId} theme={theme} onUpdateCharacter={handleUpdateCharacter} />;
+    }
+
+    if (tabId === 'journal') {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
+          <SessionJournal characterId={characterId} campaignId={character?.campaign_id} />
+        </div>
+      );
+    }
+
+    if (tabId === 'notes') {
+      return (
+        <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <h4 style={{ fontFamily: "'Montserrat', sans-serif", color: theme.text.primary, marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BookOpen size={18} style={{ color: theme.accent.primary }} />
+              Character Notes
+            </h4>
+            <div style={{ whiteSpace: 'pre-wrap', color: theme.text.secondary, lineHeight: '1.7', fontSize: '15px', background: 'rgba(15, 10, 30, 0.5)', borderRadius: '10px', padding: '16px', minHeight: '80px' }}>
+              {character.notes || 'No personal notes yet.'}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // Styles - Electric Tundra (Player Mode)
   const pageStyle = {
     minHeight: '100vh',
@@ -761,9 +862,9 @@ export default function CharacterSheetFull() {
         ))}
       </aside>
       <style>{`
-        .character-sheet-shell {
-          --sheet-panel-gap: 8px;
-        }
+          .character-sheet-shell {
+            --sheet-panel-gap: 8px;
+          }
 
         .character-sheet-shell button,
         .character-sheet-shell input,
@@ -827,6 +928,10 @@ export default function CharacterSheetFull() {
         }
 
         @media (max-width: 720px) {
+          .character-sidebar {
+            display: none !important;
+          }
+
           .character-sheet-header {
             gap: 8px !important;
             margin-bottom: 8px !important;
@@ -923,72 +1028,32 @@ export default function CharacterSheetFull() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'hidden' }}>
 
           {/* Tabs (extracted) */}
-          <CharacterTabs visibleTabs={visibleTabs} activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
+          {!isMobileSheet && <CharacterTabs visibleTabs={visibleTabs} activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />}
 
           {/* ROOK Hints */}
           <RookHints character={character} theme={theme} activeTab={activeTab} />
 
           {/* Tab Content - Scrollable */}
           <div style={{ ...panelStyle, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {activeTab === 'overview' && (
-              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <PlayerProgressionDashboard character={character} characterId={characterId} />
-              </div>
-            )}
+            {isMobileSheet ? (
+              <MobileCharacterSheetLayout
+                theme={{
+                  bg: { primary: '#0a0a0a' },
+                  border: 'rgba(239, 68, 68, 0.45)',
+                  accent: { primary: '#ef4444', highlight: '#ffffff' },
+                  text: { muted: 'rgba(255,255,255,0.75)' }
+                }}
+                currentPage={Math.max(0, visibleTabs.findIndex((tab) => tab.id === activeTab))}
+                pages={visibleTabs.map((tab) => (
+                  <div key={tab.id} style={{ ...panelStyle, color: '#fff', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
+                    {renderTabContent(tab.id)}
+                  </div>
+                ))}
+                onPageChange={(pageIndex) => setActiveTab(visibleTabs[pageIndex]?.id || 'overview')}
+              />
+            ) : renderTabContent(activeTab)}
 
-            {activeTab === 'combat' && (
-              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <CharacterCombatTab
-                  character={character}
-                  onUpdateCharacter={handleUpdateCharacter}
-                  onUpdateResources={handleUpdateResources}
-                  onRest={handleRest}
-                  isGMMode={false}
-                  rollDice={rollDice}
-                />
-                <div style={{ marginTop: '8px' }}>
-                  <RestPanel character={character} theme={theme} onRest={handleRest} onUpdateCharacter={handleUpdateCharacter} />
-                </div>
-                <div style={{ marginTop: '8px' }}>
-                  <CombatLog entries={combatLog} onClear={clearCombatLog} theme={theme} characterName={character?.name} />
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'spells' && canUseSpells && (
-              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <CharacterSpellbook
-                  character={character}
-                  usedSlots={usedSlots}
-                  setUsedSlots={persistUsedSlots}
-                  rollDice={rollDice}
-                  onUpdateCharacter={handleUpdateCharacter}
-                  onRest={handleRest}
-                />
-              </div>
-            )}
-
-            {activeTab === 'inventory' && (
-              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <CharacterInventory 
-                  characterId={characterId}
-                  character={character}
-                  onUpdate={fetchCharacter}
-                />
-              </div>
-            )}
-
-            {activeTab === 'backstory' && (
-              <BackstoryTab character={character} characterId={characterId} theme={theme} onUpdateCharacter={handleUpdateCharacter} />
-            )}
-
-            {activeTab === 'journal' && (
-              <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px' }}>
-                <SessionJournal characterId={characterId} campaignId={character?.campaign_id} />
-              </div>
-            )}
-
-            {activeTab === 'notes' && (
+            {!isMobileSheet && activeTab === 'notes' && (
               <div style={{ ...scrollBoxStyle, flex: 1, padding: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Character Notes Section */}
                 <div>

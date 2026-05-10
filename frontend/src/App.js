@@ -221,6 +221,14 @@ function App() {
               } 
             />
             <Route 
+              path="/characters" 
+              element={
+                isAuthenticated ? 
+                  <Navigate to="/home" replace /> : 
+                  <Navigate to="/auth" replace />
+              } 
+            />
+            <Route 
               path="/characters/new" 
               element={
                 isAuthenticated ? 
@@ -316,6 +324,10 @@ function App() {
                   <Navigate to="/home" replace /> : 
                   <LandingPage />
               } 
+            />
+            <Route 
+              path="*" 
+              element={<Navigate to={isAuthenticated ? "/home" : "/auth"} replace />} 
             />
           </Routes>
           </KeyboardShortcutsProvider>
