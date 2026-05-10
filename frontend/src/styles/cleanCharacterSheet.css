@@ -8,12 +8,6 @@
   --cs-border-strong: rgba(255, 255, 255, 0.12);
   --cs-accent-soft: rgba(239, 68, 68, 0.10);
   --cs-accent-border: rgba(239, 68, 68, 0.35);
-  --cs-muted: #9CA3AF;
-  --cs-success: #22C55E;
-  --cs-danger-soft: #F87171;
-  --cs-accent-hover-bg: rgba(239, 68, 68, 0.08);
-  --cs-accent-hover-border: rgba(239, 68, 68, 0.42);
-  --cs-accent-ghost-border: rgba(239, 68, 68, 0.28);
   min-height: 100vh;
   background: radial-gradient(circle at 16% 0%, var(--cs-accent-soft), transparent 32%), var(--cs-bg);
   color: var(--cs-text);
@@ -107,7 +101,7 @@
   width: 62px;
   height: 62px;
   border-radius: 16px;
-  border: 1px solid var(--cs-accent-hover-border);
+  border: 1px solid rgba(239, 68, 68, 0.42);
   background: var(--cs-bg);
   display: flex;
   align-items: center;
@@ -233,7 +227,7 @@
 .clean-sheet-roll-controls input {
   width: 100%;
   min-height: 42px;
-  border: 1px solid var(--cs-border-strong);
+  border: 1px solid rgba(255,255,255,0.12);
   background: var(--cs-bg);
   color: var(--cs-text);
   border-radius: 10px;
@@ -247,7 +241,7 @@
 .clean-sheet-hitdice-row button,
 .clean-sheet-slot-actions button {
   min-height: 42px;
-  border: 1px solid var(--cs-accent-ghost-border);
+  border: 1px solid rgba(239, 68, 68, 0.28);
   background: var(--cs-accent-soft);
   color: var(--cs-text);
   border-radius: 10px;
@@ -313,7 +307,7 @@
 .clean-sheet-roll-controls {
   grid-template-columns: 1.4fr minmax(92px, 0.6fr);
   background: var(--cs-bg);
-  border: 1px solid var(--cs-border);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
   padding: 8px;
 }
@@ -358,8 +352,8 @@
 .clean-sheet-roll-history-toggle,
 .clean-sheet-death-actions button {
   min-height: 42px;
-  border: 1px solid var(--cs-accent-ghost-border);
-  background: var(--cs-accent-hover-bg);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
   color: var(--cs-text);
   border-radius: 10px;
   cursor: pointer;
@@ -372,7 +366,7 @@
 
 .clean-sheet-inspiration.active {
   background: var(--cs-accent);
-  border-color: var(--cs-danger-soft);
+  border-color: #F87171;
   box-shadow: 0 0 18px rgba(239,68,68,0.22);
 }
 
@@ -387,7 +381,7 @@
 .clean-sheet-roll-history-list div,
 .clean-sheet-death-saves {
   background: var(--cs-bg);
-  border: 1px solid var(--cs-border);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
 }
 
@@ -493,7 +487,7 @@
 
 .clean-sheet-condition-picker button {
   min-height: 36px;
-  border: 1px solid var(--cs-border);
+  border: 1px solid rgba(255,255,255,0.10);
   background: var(--cs-bg);
   color: var(--cs-text-soft);
   border-radius: 10px;
@@ -548,7 +542,7 @@
 
 .clean-sheet-death-track button.marked {
   background: var(--cs-accent);
-  border-color: var(--cs-danger-soft);
+  border-color: #F87171;
 }
 
 .clean-sheet-death-actions {
@@ -731,7 +725,7 @@
   padding: 4px 7px;
   border: 1px solid var(--cs-accent-ghost-border);
   background: rgba(239,68,68,0.10);
-  color: var(--cs-accent);
+  color: var(--cs-accent) !important;
   border-radius: 999px;
   margin-bottom: 8px;
 }
@@ -759,7 +753,7 @@
 
 .clean-sheet-slot-pips i.filled {
   background: var(--cs-accent);
-  border-color: var(--cs-danger-soft);
+  border-color: #F87171;
 }
 
 .clean-sheet-slot-actions {
@@ -828,7 +822,7 @@
 
 .clean-sheet-spell-summary div {
   background: var(--cs-bg);
-  border: 1px solid var(--cs-border);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
   padding: 12px;
   text-align: center;
