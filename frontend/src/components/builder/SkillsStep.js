@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, CheckCircle2 } from 'lucide-react';
+import '@/styles/skillsStep.css';
 
 const ALL_SKILLS = {
   Acrobatics: 'dexterity',
