@@ -5,101 +5,6 @@ from datetime import datetime, timezone
 import uuid
 import secrets
 
-# Subscription pricing tiers - UNIFIED MODEL
-# New model: Free tier has limited access, single "Ultimate DM Screen" Pro tier has everything
-SUBSCRIPTION_PLANS = {
-    'free': {
-        'name': 'Free',
-        'price_monthly': 0.0,
-        'price_yearly': 0.0,
-        'characters': 1,
-        'campaigns': 1,  # Observer only - can join campaigns but not create
-        'ai_calls_per_month': 3,
-        'features': [
-            'basic_character_sheet',
-            'dice_roller',
-            'join_campaigns',
-            'basic_reference_tables',
-            'character_overview'
-        ],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    },
-    'pro': {
-        'name': 'Ultimate DM Screen',
-        'price_monthly': 9.99,
-        'price_yearly': 99.99,
-        'characters': -1,  # Unlimited
-        'campaigns': -1,  # Unlimited
-        'ai_calls_per_month': -1,  # Unlimited
-        'features': [
-            'unlimited_characters',
-            'unlimited_campaigns',
-            'unlimited_ai_calls',
-            'character_journal',
-            'party_inventory',
-            'session_recaps',
-            'portrait_ai',
-            'world_building',
-            'rook_ai_coalescing',
-            'advanced_combat_tracker',
-            'full_reference_tables',
-            'session_mode_with_broadcasting',
-            'npc_network_mapping',
-            'story_arc_tracking',
-            'custom_creatures',
-            'encounter_builder'
-        ],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    },
-    # Legacy tiers kept for backwards compatibility - redirect to 'pro'
-    'player': {
-        'name': 'Hero (Legacy → Pro)',
-        'price_monthly': 9.99,
-        'price_yearly': 99.99,
-        'characters': -1,
-        'campaigns': -1,
-        'ai_calls_per_month': -1,
-        'features': ['legacy_redirect_to_pro'],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    },
-    'gm': {
-        'name': 'Quest Master (Legacy → Pro)',
-        'price_monthly': 9.99,
-        'price_yearly': 99.99,
-        'characters': -1,
-        'campaigns': -1,
-        'ai_calls_per_month': -1,
-        'features': ['legacy_redirect_to_pro'],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    },
-    'legendary': {
-        'name': 'Legendary (Legacy → Pro)',
-        'price_monthly': 9.99,
-        'price_yearly': 99.99,
-        'characters': -1,
-        'campaigns': -1,
-        'ai_calls_per_month': -1,
-        'features': ['legacy_redirect_to_pro'],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    },
-    'adventurer': {
-        'name': 'Adventurer (Internal)',
-        'price_monthly': 0.0,
-        'price_yearly': 0.0,
-        'characters': -1,
-        'campaigns': -1,
-        'ai_calls_per_month': -1,
-        'features': ['all_features', 'early_tester'],
-        'stripe_price_id_monthly': None,
-        'stripe_price_id_yearly': None
-    }
-}
-
 class RulesetUpload(BaseModel):
     """Model for uploading custom rules JSON (used by rulesets system)"""
     name: str  # Name of the ruleset (e.g., "Homebrew Classes v2")
@@ -152,7 +57,6 @@ class UserRegister(BaseModel):
     email: EmailStr
     username: str  # Display name
     password: str
-    referral_code: Optional[str] = None  # Optional referral code from friend
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -1557,51 +1461,6 @@ class CustomItemUpdate(BaseModel):
     image_url: Optional[str] = None
 
 
-class SubscriptionTier(BaseModel):
-    tier: str = 'free'  # free, player, gm, legendary
-    billing_cycle: str = 'monthly'  # monthly, yearly
-    stripe_customer_id: Optional[str] = None
-    stripe_subscription_id: Optional[str] = None
-    subscription_status: str = 'active'  # active, cancelled, past_due, trialing
-    ai_calls_this_month: int = 0
-    ai_calls_reset_date: Optional[str] = None
-    promo_code_used: Optional[str] = None
-    # Referral system
-    referral_code: Optional[str] = None  # User's unique referral code
-    referred_by: Optional[str] = None  # Who referred this user
-    referral_count: int = 0  # How many people they've referred
-    free_months_earned: int = 0  # Months earned from referrals
-    free_months_used: int = 0  # Months already consumed
-    premium_expires_at: Optional[str] = None  # When premium expires (for promo codes)
-    upgraded_from: Optional[str] = None  # Previous tier if upgraded
-
-class PromoCode(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    code: str
-    tier_granted: str = 'legendary'  # player, gm, legendary
-    duration_days: int = -1  # -1 = forever (for testers), otherwise days of access
-    uses_remaining: int = -1  # -1 = unlimited uses
-    max_uses: int = -1  # Original max uses for display (-1 = unlimited)
-    expires_at: Optional[str] = None  # When the code itself expires
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    description: Optional[str] = None  # Internal note about the code
-    is_active: bool = True  # Can be disabled without deleting
-
-class PromoCodeCreate(BaseModel):
-    code: str
-    tier_granted: str = 'legendary'  # player, gm, legendary
-    duration_days: int = -1  # -1 = forever, otherwise days
-    uses_remaining: int = -1  # -1 = unlimited
-    expires_at: Optional[str] = None
-    description: Optional[str] = None
-
-class ApplyPromoCodeRequest(BaseModel):
-    code: str
-
-class ApplyReferralCodeRequest(BaseModel):
-    referral_code: str
-
 class Review(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1643,41 +1502,6 @@ class CustomCreatureCreate(BaseModel):
     speed: str = "30 ft."
     abilities: str = ""
     description: str = ""
-
-class CreateCheckoutRequest(BaseModel):
-    origin_url: str
-    plan_id: str = 'legendary'  # player, gm, legendary
-    billing_cycle: str = 'monthly'  # monthly, yearly
-
-class SubscriptionResponse(BaseModel):
-    tier: str
-    tier_name: str
-    campaigns_limit: int
-    ai_calls_limit: int
-    ai_calls_used: int
-    is_premium: bool
-    subscription_status: str
-    # Referral info
-    referral_code: Optional[str] = None
-    referral_count: int = 0
-    free_months_earned: int = 0
-    free_months_remaining: int = 0
-    premium_expires_at: Optional[str] = None
-
-
-
-class AdminUserUpgrade(BaseModel):
-    """Request model for admin user upgrade"""
-    target_username: str = Field(..., description="Username to upgrade")
-    new_tier: str = Field(..., description="New tier: free, player, gm, legendary")
-    duration_days: int = Field(default=-1, description="-1 for lifetime, otherwise number of days")
-    reason: str = Field(default="", description="Reason for upgrade (optional)")
-
-
-
-class CustomReferralCodeRequest(BaseModel):
-    new_code: str
-
 
 class GenerateNPCRequest(BaseModel):
     prompt: str = ""

@@ -131,8 +131,8 @@ function InGameNotesTab({ campaignId }) {
       setShowRecapDialog(true);
       toast.success(`Recap generated and synced to ${res.data.players_synced} players!`);
     } catch (error) {
-      if (error.response?.status === 402) {
-        toast.error('AI limit reached', { description: 'Upgrade to Adventurer for unlimited AI generations.' });
+      if (error.response?.status === 403) {
+        toast.error('AI recap unavailable', { description: error.response?.data?.detail || 'Please try again later.' });
       } else {
         toast.error('Failed to generate recap');
       }

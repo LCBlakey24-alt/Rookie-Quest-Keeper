@@ -6,7 +6,7 @@ from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from starlette.middleware.cors import CORSMiddleware
 import logging
 
-from config import client, STRIPE_ENABLED, STRIPE_API_KEY, logger, CORS_ORIGIN_LIST
+from config import client, logger, CORS_ORIGIN_LIST
 from utils.ws_manager import ws_manager
 from utils.auth import verify_token, verify_campaign_membership
 from routes import all_routers
@@ -133,11 +133,6 @@ async def websocket_campaign_sync(websocket: WebSocket, campaign_id: str):
 @app.on_event("startup")
 async def startup_event():
     """Initialize systems on startup"""
-    if STRIPE_ENABLED and STRIPE_API_KEY:
-        logger.info("Stripe integration ENABLED - paid subscriptions available")
-    else:
-        logger.info("Stripe integration DISABLED - using promo codes only")
-
     await initialize_rule_systems()
     logger.info("Rule systems initialized")
 

@@ -1,14 +1,12 @@
 """Authentication routes: register, login, password reset, account management."""
 from fastapi import APIRouter, HTTPException, Depends, status
-from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, ADMIN_USERNAMES, logger
+from config import db, RESEND_API_KEY, SENDER_EMAIL, APP_URL, logger
 from utils.auth import (
     get_current_user, hash_password, verify_password, create_token,
-    generate_referral_code
 )
 from models import (
     UserRegister, UserLogin, TokenResponse, ForgotPasswordRequest,
-    ResetPasswordRequest, ChangePasswordRequest, UpdateAccountRequest,
-    SubscriptionTier
+    ResetPasswordRequest, ChangePasswordRequest, UpdateAccountRequest
 )
 import uuid
 import secrets
@@ -19,13 +17,6 @@ if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
     resend.api_key = RESEND_API_KEY
 
 router = APIRouter()
-
-def generate_referral_code(username: str) -> str:
-    """Generate a unique referral code for a user"""
-    import hashlib
-    # Create a short, memorable code based on username + random
-    base = f"{username}-{uuid.uuid4().hex[:4]}"
-    return base.upper()[:12]
 
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
@@ -39,67 +30,16 @@ async def register(user_data: UserRegister):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
     
-    # Generate unique referral code for new user
-    referral_code = generate_referral_code(user_data.username)
-    
-    # Check if they were referred by someone
-    referred_by = None
-    if user_data.referral_code:
-        referrer = await db.users.find_one({'subscription.referral_code': user_data.referral_code.upper()})
-        if referrer:
-            referred_by = referrer['username']
-    
-    # Create subscription with referral code
-    subscription = SubscriptionTier(referral_code=referral_code, referred_by=referred_by)
-    
-    # Auto-upgrade admin user to premium
-    if user_data.username.lower() in ADMIN_USERNAMES:
-        subscription.tier = "legendary"
-        subscription.premium_expires_at = None  # Never expires for admin
-    
     user_doc = {
         'id': str(uuid.uuid4()),
         'email': user_data.email.lower(),
         'username': user_data.username,
         'password_hash': hash_password(user_data.password),
-        'created_at': datetime.now(timezone.utc).isoformat(),
-        'subscription': subscription.model_dump()
+        'created_at': datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
-    
-    # If referred, give the referrer 1 free month!
-    if referred_by:
-        # Calculate new expiration date for referrer
-        referrer_user = await db.users.find_one({'username': referred_by})
-        referrer_sub = referrer_user.get('subscription', {})
-        
-        current_expires = referrer_sub.get('premium_expires_at')
-        if current_expires:
-            expires_dt = datetime.fromisoformat(current_expires.replace('Z', '+00:00'))
-            if expires_dt < datetime.now(timezone.utc):
-                expires_dt = datetime.now(timezone.utc)
-        else:
-            expires_dt = datetime.now(timezone.utc)
-        
-        # Add 30 days
-        new_expires = expires_dt + timedelta(days=30)
-        
-        await db.users.update_one(
-            {'username': referred_by},
-            {
-                '$inc': {
-                    'subscription.referral_count': 1,
-                    'subscription.free_months_earned': 1
-                },
-                '$set': {
-                    'subscription.tier': 'adventurer',
-                    'subscription.subscription_status': 'active',
-                    'subscription.premium_expires_at': new_expires.isoformat()
-                }
-            }
-        )
-    
+
     token = create_token(user_data.username)
     
     return TokenResponse(token=token, username=user_data.username, email=user_data.email.lower())

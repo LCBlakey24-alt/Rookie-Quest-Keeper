@@ -335,25 +335,6 @@ class TestSRDEndpoints:
         print("✓ SRD feats endpoint working")
 
 
-class TestSubscriptionEndpoints:
-    """Test subscription endpoints (routes/subscriptions.py)"""
-    
-    def test_get_subscription_status(self, auth_headers):
-        """GET /api/subscription/status - Get subscription status"""
-        response = requests.get(f"{BASE_URL}/api/subscription/status", headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert "tier" in data
-        print(f"✓ Subscription status: {data.get('tier')}")
-    
-    def test_get_subscription_plans(self, auth_headers):
-        """GET /api/subscription/plans - Get available plans"""
-        response = requests.get(f"{BASE_URL}/api/subscription/plans", headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, dict) or isinstance(data, list)
-        print("✓ Subscription plans endpoint working")
-
 
 class TestAdminEndpoints:
     """Test admin endpoints (routes/admin.py)"""
@@ -415,16 +396,6 @@ class TestProgressionEndpoints:
             print(f"✓ Retrieved {len(data)} progression classes")
 
 
-class TestReferralEndpoints:
-    """Test referral endpoints (routes/subscriptions.py)"""
-    
-    def test_get_referral_code(self, auth_headers):
-        """GET /api/referral/code - Get user's referral code"""
-        response = requests.get(f"{BASE_URL}/api/referral/code", headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert "referral_code" in data
-        print(f"✓ Referral code: {data.get('referral_code')}")
 
 
 if __name__ == "__main__":

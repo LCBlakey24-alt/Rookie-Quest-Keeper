@@ -51,10 +51,8 @@ test.describe('Home Dashboard', () => {
     await expect(page.getByText('MY CAMPAIGNS')).toBeVisible();
   });
 
-  test('displays subscription tier for admin (Legendary)', async ({ page }) => {
-    // Admin should have legendary tier - check subscription indicator
-    // The tier may be displayed in header or elsewhere
-    await expect(page.getByText(/LEGENDARY/i).or(page.getByText('lcblakey24'))).toBeVisible({ timeout: 10000 });
+  test('displays signed-in dashboard identity', async ({ page }) => {
+    await expect(page.getByText(/lcblakey24/i)).toBeVisible({ timeout: 10000 });
   });
 
   test('can navigate to campaign from dashboard', async ({ page }) => {
@@ -285,18 +283,10 @@ test.describe('Player Dashboard', () => {
   });
 });
 
-test.describe('Subscription Display', () => {
+test.describe('Account Settings', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
     await loginAdmin(page);
-  });
-
-  test('admin user can access pricing page', async ({ page }) => {
-    // Navigate to pricing page to see subscription info
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
-    
-    // Should show pricing tiers
-    await expect(page.getByText(/PRICING|TIER|SUBSCRIPTION|PLAN/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('account settings page loads correctly', async ({ page }) => {

@@ -22,11 +22,12 @@ test.describe('Rule System Manager - Admin Page', () => {
     await expect(page.getByRole('heading', { name: /admin panel/i })).toBeVisible({ timeout: 10000 });
   });
 
-  test('Admin page loads with all three tabs', async ({ page }) => {
+  test('Admin page loads with management tabs', async ({ page }) => {
     // Verify all tabs are visible
-    await expect(page.getByRole('button', { name: /promo codes/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /reviews/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /rule systems/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /templates/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /users/i })).toBeVisible();
   });
 
   test('Rule Systems tab shows Rule System Manager', async ({ page }) => {
@@ -197,28 +198,12 @@ test.describe('Stats Cards - Admin Dashboard', () => {
   test('Dashboard shows stats cards', async ({ page }) => {
     // Check for stats cards - use first() to handle multiple matches
     await expect(page.getByText('TOTAL USERS').first()).toBeVisible();
-    await expect(page.getByText('ACTIVE CODES').first()).toBeVisible();
-    await expect(page.getByText('Referrals', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('REVIEWS').first()).toBeVisible();
+    await expect(page.getByText('VISIBLE REVIEWS').first()).toBeVisible();
   });
 
   test('Stats cards show numeric values', async ({ page }) => {
-    // At least one stat should have a number - look for the Total Users card's number
     await expect(page.getByText('TOTAL USERS').first()).toBeVisible();
-    
-    // The number for total users should be present (303 based on screenshot)
-    await expect(page.getByText('303').first()).toBeVisible();
-  });
-});
-
-test.describe('Top Referrers Section', () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-    await page.goto('/admin', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /admin panel/i })).toBeVisible({ timeout: 10000 });
-  });
-
-  test('Top Referrers section is visible', async ({ page }) => {
-    await expect(page.getByText('TOP REFERRERS')).toBeVisible();
+    await expect(page.locator('div').filter({ hasText: /^\d+$/ }).first()).toBeVisible();
   });
 });

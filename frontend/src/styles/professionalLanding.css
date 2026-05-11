@@ -161,7 +161,7 @@
   text-align: left !important;
 }
 
-/* Pricing */
+/* Product preview */
 [data-testid="landing-page"] > section:nth-of-type(3) {
   max-width: 1180px !important;
   padding: 24px clamp(18px, 4vw, 44px) 76px !important;
@@ -172,43 +172,6 @@
   font-size: clamp(28px, 4vw, 42px) !important;
   font-weight: 950 !important;
   letter-spacing: -0.04em !important;
-}
-
-[data-testid^="pricing-tier-"] {
-  background: var(--landing-panel) !important;
-  border: 1px solid var(--landing-border) !important;
-  padding: 26px !important;
-  border-radius: 14px !important;
-}
-
-[data-testid^="pricing-tier-"]:hover {
-  border-color: var(--landing-red-border) !important;
-}
-
-[data-testid="pricing-tier-game master"] {
-  border-color: var(--landing-red-border) !important;
-}
-
-[data-testid^="pricing-tier-"] h3,
-[data-testid^="pricing-tier-"] span {
-  color: var(--landing-white) !important;
-}
-
-[data-testid^="pricing-tier-"] li,
-[data-testid^="pricing-tier-"] li span,
-[data-testid^="pricing-tier-"] p {
-  color: var(--landing-soft) !important;
-}
-
-[data-testid^="pricing-tier-"] button {
-  background: transparent !important;
-  border-color: var(--landing-border) !important;
-  color: var(--landing-white) !important;
-}
-
-[data-testid="pricing-btn-game master"] {
-  background: var(--landing-red) !important;
-  border-color: var(--landing-red) !important;
 }
 
 /* Footer */
@@ -242,5 +205,13 @@
 
   [data-testid="landing-page"] > section:first-of-type > div::after {
     min-height: 220px;
+  }
+
+  [data-testid="landing-page"] > section:nth-of-type(3) > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-testid="landing-page"] > section:nth-of-type(3) > div > div:nth-child(2) {
+    grid-template-columns: 1fr !important;
   }
 }

@@ -3,13 +3,13 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, HIT_DICE, logger, get_subclass_unlock_level
 from utils.auth import (
     get_current_user, verify_campaign_ownership, verify_campaign_membership,
-    check_premium_feature, increment_ai_usage, get_user_subscription,
+    check_ai_access, record_ai_usage,
     get_campaign_rule_system
 )
 from models import (
     PlayerCharacter, PlayerCharacterCreate, PlayerCharacterUpdate,
     LevelUpRequest, CampaignJoinRequest, AICharacterGenerateRequest,
-    JournalEntry, JournalEntryCreate, SUBSCRIPTION_PLANS, TemplateMatchRequest
+    JournalEntry, JournalEntryCreate, TemplateMatchRequest
 )
 from typing import Optional, Dict, Any, List
 import uuid
@@ -40,29 +40,6 @@ async def create_character(
     username: str = Depends(get_current_user)
 ):
     """Create a new player character"""
-    # Check subscription tier limits
-    subscription = await get_user_subscription(username)
-    tier = subscription.get('tier', 'free') if subscription else 'free'
-    tier_limits = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
-    
-    # Count existing characters owned by user
-    character_count = await db.player_characters.count_documents({'user_id': username})
-    
-    # Check character limit (-1 means unlimited)
-    character_limit = tier_limits.get('characters', 1)
-    if character_limit != -1 and character_count >= character_limit:
-        tier_name = tier_limits.get('name', 'Free')
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "error": "character_limit_reached",
-                "message": f"Your {tier_name} plan allows {character_limit} character(s). Upgrade to Hero or Legendary for unlimited characters!",
-                "current_count": character_count,
-                "limit": character_limit,
-                "upgrade_tier": "player"
-            }
-        )
-    
     # Validate subclass selection based on edition and level
     edition = getattr(character, 'edition', '2014')
     ruleset_id = normalize_ruleset_id(edition, getattr(character, 'ruleset_id', ''))
@@ -1162,15 +1139,13 @@ async def ai_generate_character(
     AI Character Generator: Create a complete character from a description.
     The Unseen Servant manifests your character concept into reality.
     """
-    # Check AI usage limits
-    can_use_ai = await check_premium_feature(username, 'ai')
+    can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail={
                 "error": "ai_limit_reached",
-                "message": "You've reached your monthly AI generation limit. Upgrade for more AI calls!",
-                "upgrade_tier": "player"
+                "message": "AI generation is not available for this account."
             }
         )
     
@@ -1252,8 +1227,7 @@ Use point buy values (8-15 before racial modifiers, total around 72 points)."""
         
         character_data = json.loads(response_text)
         
-        # Increment AI usage counter on success
-        await increment_ai_usage(username)
+        await record_ai_usage(username)
         
         return {
             "success": True,

@@ -179,21 +179,6 @@ test.describe('Account Settings Page', () => {
     await page.getByTestId('delete-confirm-input').fill('DELETE');
     await expect(page.getByTestId('confirm-delete-btn')).toBeEnabled();
   });
-
-  test('should show subscription information section', async ({ page }) => {
-    // Login first
-    await loginUser(page, TEST_USER.email, TEST_USER.password);
-    await expect(page).toHaveURL(/\/campaigns/, { timeout: 15000 });
-    
-    // Navigate to account settings
-    await page.goto('/account', { waitUntil: 'domcontentloaded' });
-    await waitForAppReady(page);
-    
-    // Verify subscription section exists
-    await expect(page.getByRole('heading', { name: /subscription/i })).toBeVisible();
-    await expect(page.getByText(/current plan/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /manage subscription/i })).toBeVisible();
-  });
 });
 
 test.describe('Account Settings - Profile Update', () => {

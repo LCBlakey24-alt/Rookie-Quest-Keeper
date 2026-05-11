@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowLeft, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { API_BASE } from '@/lib/api';
 
 const API = API_BASE;
@@ -16,7 +16,7 @@ export default function AuthPage({ onLogin }) {
   
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', username: '', password: '', referral_code: '' });
+  const [registerData, setRegisterData] = useState({ email: '', username: '', password: '' });
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
   const [loading, setLoading] = useState(false);
@@ -360,19 +360,6 @@ export default function AuthPage({ onLogin }) {
                   placeholder="Password"
                   value={registerData.password}
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                  style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(236, 72, 153, 0.6)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(138, 43, 226, 0.3)'}
-                />
-              </div>
-
-              <div style={inputWrapperStyle}>
-                <Sparkles size={18} style={iconStyle} />
-                <input
-                  type="text"
-                  placeholder="Referral code (optional)"
-                  value={registerData.referral_code}
-                  onChange={(e) => setRegisterData({ ...registerData, referral_code: e.target.value })}
                   style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = 'rgba(236, 72, 153, 0.6)'}
                   onBlur={(e) => e.target.style.borderColor = 'rgba(138, 43, 226, 0.3)'}

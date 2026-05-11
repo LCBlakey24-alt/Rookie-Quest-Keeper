@@ -1,6 +1,5 @@
 """Route module - import all routers for inclusion in the main app."""
 from routes.auth import router as auth_router
-from routes.subscriptions import router as subscriptions_router
 from routes.admin import router as admin_router
 from routes.campaigns import router as campaigns_router
 from routes.campaign_content import router as campaign_content_router
@@ -24,7 +23,6 @@ from routes.homebrew import router as homebrew_router
 
 all_routers = [
     auth_router,
-    subscriptions_router,
     admin_router,
     campaigns_router,
     campaign_content_router,

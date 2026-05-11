@@ -178,11 +178,10 @@ export const TIPS = {
     { highlight: 'AI Generation:', text: 'Use the ROOK to auto-generate locations with descriptions!' },
     { highlight: 'Places of Interest:', text: 'Add taverns, shops, temples, and dungeons inside your cities.' },
   ],
-  pricing: [
-    { highlight: 'Free Tier:', text: '2 campaigns and 5 AI generations per month - free forever!' },
-    { highlight: 'Adventurer:', text: 'Unlimited everything for just $3.99/month.' },
-    { highlight: 'Promo Codes:', text: 'Have a code? Enter it above to unlock premium features!' },
-    { highlight: 'Refer Friends:', text: 'Share your referral code - get 1 FREE month for each friend who signs up!' },
+  gettingStarted: [
+    { highlight: 'Create:', text: 'Start with a character or campaign from the home dashboard.' },
+    { highlight: 'Organize:', text: 'Use search, sorting, and source indexes to keep your table materials easy to find.' },
+    { highlight: 'Play:', text: 'Open the GM screen during the session for dice, combat, notes, references, and AI tools.' },
   ],
   players: [
     { highlight: 'Add Players:', text: 'Create character sheets for your party members.' },

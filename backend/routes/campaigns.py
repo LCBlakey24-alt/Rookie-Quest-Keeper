@@ -3,12 +3,11 @@ from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
 from config import db, logger
 from utils.auth import (
     get_current_user, verify_campaign_ownership, verify_campaign_membership,
-    get_user_subscription
 )
 from models import (
     Campaign, CampaignCreate, CampaignSetting, CampaignSettingUpdate,
     CampaignWorldSettingUpdate, CustomRulesUpload, CampaignInvite, CampaignMember,
-    CampaignEnvironmentUpdate, CustomRuleset, SUBSCRIPTION_PLANS
+    CampaignEnvironmentUpdate, CustomRuleset
 )
 from typing import List, Optional, Dict, Any
 import uuid
@@ -26,29 +25,6 @@ router = APIRouter()
 
 @router.post("/campaigns", response_model=Campaign, status_code=status.HTTP_201_CREATED)
 async def create_campaign(campaign_data: CampaignCreate, username: str = Depends(get_current_user)):
-    # Check subscription tier limits
-    subscription = await get_user_subscription(username)
-    tier = subscription.get('tier', 'free') if subscription else 'free'
-    tier_limits = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
-    
-    # Count existing campaigns owned by user
-    campaign_count = await db.campaigns.count_documents({'dm_user_id': username})
-    
-    # Check campaign limit (-1 means unlimited)
-    campaign_limit = tier_limits.get('campaigns', 0)
-    if campaign_limit != -1 and campaign_count >= campaign_limit:
-        tier_name = tier_limits.get('name', 'Free')
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "error": "campaign_limit_reached",
-                "message": f"Your {tier_name} plan allows {campaign_limit} campaign(s). Upgrade to Quest Master or Legendary for unlimited campaigns!",
-                "current_count": campaign_count,
-                "limit": campaign_limit,
-                "upgrade_tier": "gm"
-            }
-        )
-    
     campaign_dict = campaign_data.model_dump()
     campaign_obj = Campaign(dm_user_id=username, **campaign_dict)
     doc = campaign_obj.model_dump()

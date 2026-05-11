@@ -1,7 +1,7 @@
 """NPC routes: CRUD, AI generation, relationship web."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user, verify_campaign_ownership, check_premium_feature, increment_ai_usage
+from utils.auth import get_current_user, verify_campaign_ownership, check_ai_access
 from utils.helpers import get_campaign_context
 from models import (
     NPC, NPCCreate, NPCUpdate, NPCStats, NPCAttack, NPCAbility, NPCSpells,
@@ -89,9 +89,9 @@ async def generate_npc_with_stats(campaign_id: str, request: GenerateNPCRequest,
     """AI-generate a full NPC with stat block, class-appropriate abilities, attacks, and spells."""
     await verify_campaign_ownership(campaign_id, username)
     
-    can_use_ai = await check_premium_feature(username, 'ai')
+    can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation is not available for this account.")
     
     api_key = get_llm_api_key("openai")
     if not api_key:

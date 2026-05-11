@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Download, LogIn, Users as UsersIcon, Search } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 const theme = {
   gold: '#D4A017',
@@ -108,8 +108,7 @@ export default function AdminUsersTab() {
     if (!query) return true;
     const q = query.toLowerCase();
     return (u.username || '').toLowerCase().includes(q) ||
-           (u.email || '').toLowerCase().includes(q) ||
-           (u.tier || '').toLowerCase().includes(q);
+           (u.email || '').toLowerCase().includes(q);
   });
 
   return (
@@ -138,7 +137,7 @@ export default function AdminUsersTab() {
           data-testid="admin-user-search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search by username, email, or tier…"
+          placeholder="Search by username or email..."
           style={{
             width: '100%', padding: '10px 14px 10px 34px',
             background: theme.bg.primary, color: theme.text.primary,
@@ -149,7 +148,7 @@ export default function AdminUsersTab() {
       </div>
 
       {loading ? (
-        <div style={{ color: theme.text.muted, fontSize: 13, padding: 20, textAlign: 'center' }}>Loading users…</div>
+        <div style={{ color: theme.text.muted, fontSize: 13, padding: 20, textAlign: 'center' }}>Loading users...</div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -157,31 +156,17 @@ export default function AdminUsersTab() {
               <tr style={{ color: theme.text.muted, textAlign: 'left', letterSpacing: 1, fontWeight: 700 }}>
                 <th style={{ padding: '8px 10px', borderBottom: `1px solid ${theme.border}` }}>USERNAME</th>
                 <th style={{ padding: '8px 10px', borderBottom: `1px solid ${theme.border}` }}>EMAIL</th>
-                <th style={{ padding: '8px 10px', borderBottom: `1px solid ${theme.border}` }}>TIER</th>
-                <th style={{ padding: '8px 10px', borderBottom: `1px solid ${theme.border}` }}>STATUS</th>
                 <th style={{ padding: '8px 10px', borderBottom: `1px solid ${theme.border}`, width: 150 }}></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="5" style={{ color: theme.text.muted, padding: 20, textAlign: 'center' }}>No users match</td></tr>
+                <tr><td colSpan="3" style={{ color: theme.text.muted, padding: 20, textAlign: 'center' }}>No users match</td></tr>
               ) : (
                 filtered.map(u => (
                   <tr key={u.username} data-testid={`user-row-${u.username}`} style={{ color: theme.text.primary, borderBottom: `1px solid rgba(212,160,23,0.08)` }}>
                     <td style={{ padding: '10px', fontWeight: 700 }}>{u.username}</td>
-                    <td style={{ padding: '10px', color: theme.text.secondary }}>{u.email || '—'}</td>
-                    <td style={{ padding: '10px' }}>
-                      <span style={{
-                        padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
-                        background: 'rgba(212,160,23,0.15)', color: theme.gold,
-                        border: `1px solid ${theme.border}`
-                      }}>
-                        {(u.tier_name || u.tier || 'Free').toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px', color: theme.text.secondary }}>
-                      {u.lifetime_access ? 'Lifetime' : (u.subscription_status || 'inactive')}
-                    </td>
+                    <td style={{ padding: '10px', color: theme.text.secondary }}>{u.email || '-'}</td>
                     <td style={{ padding: '10px', textAlign: 'right' }}>
                       <button
                         type="button"

@@ -11,7 +11,7 @@ Last updated: April 30, 2026.
 - Long character lists have no **search** or **filter**.
 - Campaign cards don't show the **2014 / 2024 rules edition** that's set on the campaign.
 - No **"Resume last character"** or **"Resume last campaign"** quick action.
-- Top-right has 7 buttons (Admin · Review · Upload JSON · Referral · Settings · Logout · …) — feels crowded; some belong inside a profile menu.
+- Top-right has several admin and account actions; some belong inside a profile menu.
 
 ### Improvements
 - **Character cards** — show class icon, current HP/Max, last-played date, class accent dot.

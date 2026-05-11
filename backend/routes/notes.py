@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
 from utils.auth import (
     get_current_user, verify_campaign_ownership, verify_campaign_membership,
-    check_premium_feature, increment_ai_usage
+    check_ai_access, record_ai_usage
 )
 from utils.helpers import get_campaign_context
 from models import (
@@ -90,12 +90,11 @@ Create a vivid, dramatic recap (2-4 paragraphs) that:
 Write the recap now:"""
 
     try:
-        # Check AI usage limit
-        can_use_ai = await check_premium_feature(username, 'ai')
+        can_use_ai = await check_ai_access(username, 'ai')
         if not can_use_ai:
             raise HTTPException(
-                status_code=402, 
-                detail="AI usage limit reached. Upgrade to Adventurer for unlimited AI generations."
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="AI recap generation is not available for this account."
             )
         
         llm_chat = LlmChat(
@@ -109,7 +108,7 @@ Write the recap now:"""
         response = await llm_chat.send_message(user_message)
         recap_content = response
         
-        await increment_ai_usage(username)
+        await record_ai_usage(username)
         
     except HTTPException:
         raise

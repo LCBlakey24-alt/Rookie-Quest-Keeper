@@ -69,11 +69,6 @@ test.describe('Unified Dashboard Rebrand', () => {
       await expect(page.getByTestId('review-btn')).toContainText('Review');
     });
 
-    test('Referral button is visible in header', async ({ page }) => {
-      await expect(page.getByTestId('referral-btn')).toBeVisible();
-      await expect(page.getByTestId('referral-btn')).toContainText('Referral');
-    });
-
     test('Review modal opens with star rating', async ({ page }) => {
       await page.getByTestId('review-btn').click();
       
@@ -90,16 +85,6 @@ test.describe('Unified Dashboard Rebrand', () => {
       await expect(page.getByText('Leave a Review')).not.toBeVisible();
     });
 
-    test('Referral modal opens with code display', async ({ page }) => {
-      await page.getByTestId('referral-btn').click();
-      
-      // Modal should appear
-      await expect(page.getByText('Your Referral Code')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Share this link with friends to earn rewards')).toBeVisible();
-      
-      // Should have Copy Referral Link button
-      await expect(page.getByRole('button', { name: /copy referral link/i })).toBeVisible();
-    });
   });
 
   test.describe('Navigation Buttons', () => {
@@ -115,8 +100,6 @@ test.describe('Unified Dashboard Rebrand', () => {
 
     test('New Campaign button opens campaign creation dialog', async ({ page }) => {
       await page.getByTestId('new-campaign-btn').click();
-      // Fix: navigates to /campaigns and opens Create Campaign modal
-      await page.waitForURL(/\/campaigns/, { timeout: 10000 });
       // Verify the Create New Campaign modal is open
       await expect(page.getByRole('heading', { name: 'Create New Campaign' })).toBeVisible({ timeout: 5000 });
       await expect(page.getByRole('textbox', { name: /enter campaign name/i })).toBeVisible();

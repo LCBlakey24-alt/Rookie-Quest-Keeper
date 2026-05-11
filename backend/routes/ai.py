@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger, ROOT_DIR
 from utils.auth import (
     get_current_user, verify_campaign_ownership, verify_campaign_membership,
-    check_premium_feature, increment_ai_usage, is_admin,
+    check_ai_access, record_ai_usage, is_admin,
     get_campaign_rule_system
 )
 from utils.helpers import get_campaign_context
@@ -158,12 +158,11 @@ async def ai_generate_with_rules(request: Dict[str, Any], username: str = Depend
 async def rook_generate(request: UnseenServantRequest, username: str = Depends(get_current_user)):
     """ROOK AI: Generates and auto-saves fantasy TTRPG content"""
     try:
-        # Check if user can use AI features
-        can_use_ai = await check_premium_feature(username, 'ai')
+        can_use_ai = await check_ai_access(username, 'ai')
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="You've reached your monthly AI generation limit. Upgrade to Adventurer for unlimited access!"
+                detail="AI generation is not available for this account."
             )
         
         # Verify campaign ownership
@@ -403,8 +402,7 @@ IMPORTANT RULES:
             )
             await db.custom_creatures.insert_one(new_creature.model_dump())
         
-        # Increment AI usage for free tier users
-        await increment_ai_usage(username)
+        await record_ai_usage(username)
         
         return UnseenServantResponse(
             success=True,
@@ -427,11 +425,11 @@ IMPORTANT RULES:
 async def generate_ai_content(request: AIGenerationRequest, username: str = Depends(get_current_user)):
     try:
         # Check if user can use AI features
-        can_use_ai = await check_premium_feature(username, 'ai')
+        can_use_ai = await check_ai_access(username, 'ai')
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="You've reached your monthly AI generation limit. Upgrade to Adventurer for unlimited access!"
+                detail="AI generation is not available for this account."
             )
         
         # Get API key from environment
@@ -516,8 +514,7 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         # Get AI response
         response = await chat.send_message(user_message)
         
-        # Increment AI usage for free tier users
-        await increment_ai_usage(username)
+        await record_ai_usage(username)
         
         return AIGenerationResponse(
             content=response,
@@ -532,9 +529,9 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
 @router.post("/rook/chat")
 async def rook_chat(request: RookChatRequest, username: str = Depends(get_current_user)):
     """ROOK AI Co-GM: Context-aware chat assistant for the GM Screen."""
-    can_use_ai = await check_premium_feature(username, 'ai')
+    can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation limit reached. Upgrade for unlimited access!")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation is not available for this account.")
     
     api_key = get_llm_api_key("openai")
     if not api_key:
@@ -564,7 +561,7 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     chat.with_model('openai', 'gpt-4o')
     
     response = await chat.send_message(UserMessage(text=request.message))
-    await increment_ai_usage(username)
+    await record_ai_usage(username)
     
     return {"response": response}
 
@@ -862,14 +859,13 @@ async def ai_generate_portrait(
     Returns base64 encoded image data.
     """
     # Check AI usage limits
-    can_use_ai = await check_premium_feature(username, 'ai')
+    can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail={
                 "error": "ai_limit_reached",
-                "message": "You've reached your monthly AI generation limit. Upgrade for more AI calls!",
-                "upgrade_tier": "player"
+                "message": "AI generation is not available for this account."
             }
         )
     
@@ -901,7 +897,7 @@ No text, no watermarks, professional fantasy art."""
         if images and len(images) > 0:
             image_base64 = base64.b64encode(images[0]).decode('utf-8')
             # Increment AI usage counter on success
-            await increment_ai_usage(username)
+            await record_ai_usage(username)
             return {
                 "success": True,
                 "image_base64": image_base64,

@@ -237,7 +237,6 @@ class TestAccountAPI:
         assert data["username"] == self.username
         assert data["email"] == self.email.lower()
         assert "password_hash" not in data  # Should not expose password hash
-        assert "subscription" in data
     
     def test_get_profile_unauthenticated(self):
         """Test getting profile without auth fails"""
@@ -387,65 +386,3 @@ class TestAuthMeAPI:
         """Test getting current user without auth fails"""
         response = self.session.get(f"{BASE_URL}/api/auth/me")
         assert response.status_code in [401, 403]
-
-
-class TestRegisterWithReferral:
-    """Test registration with referral codes"""
-    
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Setup session"""
-        self.session = requests.Session()
-        self.session.headers.update({"Content-Type": "application/json"})
-    
-    def test_register_with_valid_referral(self):
-        """Test registration with valid referral code"""
-        # Create referrer user
-        referrer_email = generate_test_email()
-        referrer_username = generate_test_username()
-        
-        response = self.session.post(f"{BASE_URL}/api/auth/register", json={
-            "email": referrer_email,
-            "username": referrer_username,
-            "password": "Test123!"
-        })
-        referrer_token = response.json()["token"]
-        
-        # Get referrer's referral code
-        self.session.headers.update({"Authorization": f"Bearer {referrer_token}"})
-        profile = self.session.get(f"{BASE_URL}/api/account/profile").json()
-        referral_code = profile.get("subscription", {}).get("referral_code")
-        
-        if not referral_code:
-            pytest.skip("Referral code not generated")
-        
-        # Register new user with referral code
-        new_session = requests.Session()
-        new_session.headers.update({"Content-Type": "application/json"})
-        
-        new_email = generate_test_email()
-        new_username = generate_test_username()
-        
-        response = new_session.post(f"{BASE_URL}/api/auth/register", json={
-            "email": new_email,
-            "username": new_username,
-            "password": "Test123!",
-            "referral_code": referral_code
-        })
-        
-        assert response.status_code == 201
-    
-    def test_register_with_invalid_referral(self):
-        """Test registration with invalid referral code still works"""
-        email = generate_test_email()
-        username = generate_test_username()
-        
-        response = self.session.post(f"{BASE_URL}/api/auth/register", json={
-            "email": email,
-            "username": username,
-            "password": "Test123!",
-            "referral_code": "INVALID_CODE_XYZ"
-        })
-        
-        # Should still register (invalid referral codes are ignored)
-        assert response.status_code == 201

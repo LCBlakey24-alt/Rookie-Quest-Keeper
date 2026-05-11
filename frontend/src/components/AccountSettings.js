@@ -4,13 +4,13 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { API_BASE } from '@/lib/api';
 import { 
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield, 
-  AlertTriangle, CheckCircle, Eye, EyeOff, Share2, Edit3, Copy, Check
+  AlertTriangle, CheckCircle, Eye, EyeOff
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_BASE;
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
@@ -28,12 +28,6 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  
-  // Referral code states
-  const [editingReferral, setEditingReferral] = useState(false);
-  const [newReferralCode, setNewReferralCode] = useState('');
-  const [savingReferral, setSavingReferral] = useState(false);
-  const [copiedReferral, setCopiedReferral] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -87,47 +81,6 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       toast.error(error.response?.data?.detail || 'Failed to update profile');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleSaveReferralCode = async () => {
-    if (!newReferralCode.trim()) {
-      toast.error('Please enter a referral code');
-      return;
-    }
-    
-    setSavingReferral(true);
-    try {
-      const response = await axios.put(`${API}/referral/code`, {
-        new_code: newReferralCode.trim()
-      });
-      
-      // Update profile with new code
-      setProfile({
-        ...profile,
-        subscription: {
-          ...profile.subscription,
-          referral_code: response.data.referral_code
-        }
-      });
-      
-      setEditingReferral(false);
-      setNewReferralCode('');
-      toast.success('Referral code updated!');
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update referral code');
-    } finally {
-      setSavingReferral(false);
-    }
-  };
-
-  const copyReferralCode = () => {
-    const code = profile?.subscription?.referral_code;
-    if (code) {
-      navigator.clipboard.writeText(code);
-      setCopiedReferral(true);
-      toast.success('Referral code copied!');
-      setTimeout(() => setCopiedReferral(false), 2000);
     }
   };
 
@@ -535,183 +488,6 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           )}
         </div>
 
-        {/* Subscription Info */}
-        {profile?.subscription && (
-          <div className="glow-panel" style={{ padding: '24px', marginTop: '24px' }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '400',
-              color: '#ffffff',
-              fontFamily: "'Montserrat', sans-serif",
-              marginBottom: '16px'
-            }}>
-              Subscription
-            </h2>
-            <div style={{ display: 'grid', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#94a3b8' }}>Current Plan:</span>
-                <span style={{ 
-                  color: profile.subscription.tier === 'adventurer' ? '#14b8a6' : '#ffffff',
-                  fontWeight: '400'
-                }}>
-                  {profile.subscription.tier === 'adventurer' ? 'Adventurer (Premium)' : 'Free'}
-                </span>
-              </div>
-              
-              {/* Customizable Referral Code Section */}
-              <div style={{ 
-                background: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                borderRadius: '12px',
-                padding: '16px',
-                marginTop: '8px'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  marginBottom: '12px'
-                }}>
-                  <Share2 size={18} style={{ color: '#F59E0B' }} />
-                  <span style={{ color: '#F59E0B', fontWeight: '400', fontSize: '14px' }}>
-                    Your Referral Code
-                  </span>
-                </div>
-                
-                {editingReferral ? (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <Input
-                      value={newReferralCode}
-                      onChange={(e) => setNewReferralCode(e.target.value.toUpperCase())}
-                      placeholder="Enter custom code..."
-                      maxLength={20}
-                      data-testid="referral-code-input"
-                      style={{
-                        flex: 1,
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        border: '2px solid #F59E0B',
-                        textTransform: 'uppercase',
-                        fontFamily: 'monospace',
-                        letterSpacing: '1px'
-                      }}
-                    />
-                    <Button
-                      onClick={handleSaveReferralCode}
-                      disabled={savingReferral || !newReferralCode.trim()}
-                      data-testid="save-referral-btn"
-                      style={{
-                        background: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)',
-                        padding: '8px 16px'
-                      }}
-                    >
-                      {savingReferral ? 'Saving...' : 'Save'}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setEditingReferral(false);
-                        setNewReferralCode('');
-                      }}
-                      variant="outline"
-                      style={{ padding: '8px 12px' }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ 
-                      color: '#F59E0B', 
-                      fontFamily: 'monospace',
-                      fontSize: '18px',
-                      fontWeight: '400',
-                      letterSpacing: '2px',
-                      flex: 1
-                    }}>
-                      {profile.subscription.referral_code || 'Not set'}
-                    </span>
-                    <button
-                      onClick={copyReferralCode}
-                      data-testid="copy-referral-btn"
-                      style={{
-                        background: 'rgba(34, 197, 94, 0.2)',
-                        border: '1px solid #F59E0B',
-                        borderRadius: '8px',
-                        padding: '8px 12px',
-                        color: '#F59E0B',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px'
-                      }}
-                      title="Copy code"
-                    >
-                      {copiedReferral ? <Check size={14} /> : <Copy size={14} />}
-                      {copiedReferral ? 'Copied!' : 'Copy'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingReferral(true);
-                        setNewReferralCode(profile.subscription.referral_code || '');
-                      }}
-                      data-testid="edit-referral-btn"
-                      style={{
-                        background: 'rgba(59, 130, 246, 0.2)',
-                        border: '1px solid #3b82f6',
-                        borderRadius: '8px',
-                        padding: '8px 12px',
-                        color: '#3b82f6',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px'
-                      }}
-                      title="Customize code"
-                    >
-                      <Edit3 size={14} />
-                      Customize
-                    </button>
-                  </div>
-                )}
-                
-                <p style={{ 
-                  color: '#64748b', 
-                  fontSize: '11px', 
-                  marginTop: '12px',
-                  lineHeight: '1.4'
-                }}>
-                  Share your code with friends! When they sign up using your code, you both get rewards.
-                  Customize it to something memorable like your username or campaign name.
-                </p>
-                
-                {profile.subscription.referral_count > 0 && (
-                  <div style={{ 
-                    marginTop: '12px',
-                    padding: '8px 12px',
-                    background: 'rgba(34, 197, 94, 0.15)',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}>
-                    <span style={{ color: '#94a3b8', fontSize: '12px' }}>Friends referred:</span>
-                    <span style={{ color: '#F59E0B', fontWeight: '400' }}>
-                      {profile.subscription.referral_count}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              <Button
-                onClick={() => navigate('/pricing')}
-                className="btn-secondary"
-                style={{ marginTop: '8px' }}
-              >
-                Manage Subscription
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

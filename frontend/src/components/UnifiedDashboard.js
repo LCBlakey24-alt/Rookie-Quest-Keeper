@@ -12,7 +12,7 @@ import {
   getSourcesByCategory
 } from '@/data/dndSources5e';
 import { 
-  User, Crown, Plus, ChevronRight, Star, Link2, Settings,
+  User, Crown, Plus, ChevronRight, Star, Settings,
   Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson, Sparkles
 } from 'lucide-react';
 import TronBackground from '@/components/TronBackground';
@@ -84,8 +84,6 @@ function UnifiedDashboard({ username, onLogout }) {
   const [campaignSort, setCampaignSort] = useState(() => localStorage.getItem('rq.campSort') || 'recent');
   const [loading, setLoading] = useState(true);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [showReferralModal, setShowReferralModal] = useState(false);
-  const [referralCode, setReferralCode] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -103,24 +101,10 @@ function UnifiedDashboard({ username, onLogout }) {
   const [selectedEdition, setSelectedEdition] = useState('2014');
   const [contentSummary, setContentSummary] = useState(null);
   
-  // Subscription state for tier limits
-  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
-
   useEffect(() => {
     fetchAllData();
     fetchContentSummary();
-    fetchSubscriptionInfo();
   }, []);
-
-  // Fetch subscription info
-  const fetchSubscriptionInfo = async () => {
-    try {
-      const response = await axios.get(`${API}/subscription/status`);
-      setSubscriptionInfo(response.data);
-    } catch (error) {
-      console.error('Failed to fetch subscription info:', error);
-    }
-  };
 
   useEffect(() => {
     const adminUsers = ['rookiequestadmin', 'criticalfusion', 'admin', 'lcblakey24'];
@@ -129,14 +113,12 @@ function UnifiedDashboard({ username, onLogout }) {
 
   const fetchAllData = async () => {
     try {
-      const [charsRes, campsRes, userRes] = await Promise.all([
+      const [charsRes, campsRes] = await Promise.all([
         axios.get(`${API}/characters`),
-        axios.get(`${API}/campaigns`),
-        axios.get(`${API}/account/profile`).catch(() => ({ data: {} }))
+        axios.get(`${API}/campaigns`)
       ]);
       setCharacters(charsRes.data || []);
       setCampaigns(campsRes.data || []);
-      setReferralCode(userRes.data?.subscription?.referral_code || userRes.data?.referral_code || '');
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -154,7 +136,7 @@ function UnifiedDashboard({ username, onLogout }) {
     try {
       await axios.post(`${API}/reviews`, {
         rating: reviewRating,
-        review_text: reviewText
+        comment: reviewText
       });
       
       toast.success('Thank you for your review!');
@@ -170,12 +152,6 @@ function UnifiedDashboard({ username, onLogout }) {
     } finally {
       setSubmittingReview(false);
     }
-  };
-
-  const copyReferralCode = () => {
-    const url = `${window.location.origin}?ref=${referralCode}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Referral link copied!');
   };
 
   // Delete character handler
@@ -229,11 +205,7 @@ function UnifiedDashboard({ username, onLogout }) {
       navigate(`/campaign/${response.data.id}`);
     } catch (error) {
       const detail = error?.response?.data?.detail;
-      if (typeof detail === 'object' && detail?.error === 'campaign_limit_reached') {
-        toast.error(detail.message || 'Campaign limit reached. Please upgrade your subscription.');
-      } else {
-        toast.error(typeof detail === 'string' ? detail : 'Failed to create campaign');
-      }
+      toast.error(typeof detail === 'string' ? detail : 'Failed to create campaign');
     } finally {
       setCreatingCampaign(false);
     }
@@ -504,23 +476,6 @@ function UnifiedDashboard({ username, onLogout }) {
           </label>
 
           <Button
-            onClick={() => setShowReferralModal(true)}
-            data-testid="referral-btn"
-            style={{
-              background: 'transparent',
-              border: `1px solid ${theme.border}`,
-              color: theme.text.muted,
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Link2 size={16} />
-            Referral
-          </Button>
-
-          <Button
             onClick={() => navigate('/account')}
             style={{
               background: 'transparent',
@@ -568,7 +523,6 @@ function UnifiedDashboard({ username, onLogout }) {
           @media (max-width: 720px) {
             .dashboard-actions [data-testid="review-btn"],
             .dashboard-actions [data-testid="upload-json-btn"],
-            .dashboard-actions [data-testid="referral-btn"],
             .dashboard-actions [data-testid="admin-btn"] {
               display: none !important;
             }
@@ -1021,38 +975,9 @@ function UnifiedDashboard({ username, onLogout }) {
                 }}>
                   My Campaigns
                 </h3>
-                {/* Subscription tier badge */}
-                {subscriptionInfo && (
-                  <span style={{
-                    fontSize: '11px',
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    color: theme.gm.primary,
-                    fontWeight: '800',
-                    marginTop: '4px'
-                  }}>
-                    {subscriptionInfo.campaigns_limit === -1 
-                      ? `${subscriptionInfo.tier_name} · Unlimited` 
-                      : `${subscriptionInfo.tier_name} · ${campaigns.length}/${subscriptionInfo.campaigns_limit} campaigns`}
-                  </span>
-                )}
               </div>
               <Button
-                onClick={() => {
-                  // Check campaign limit before showing modal
-                  const limit = subscriptionInfo?.campaigns_limit ?? 0;
-                  const currentCount = campaigns.length;
-                  if (limit !== -1 && currentCount >= limit) {
-                    toast.error(
-                      `Your ${subscriptionInfo?.tier_name || 'Free'} plan allows ${limit} campaign(s). Upgrade to Quest Master or Legendary for unlimited campaigns!`,
-                      { duration: 5000 }
-                    );
-                    navigate('/pricing');
-                    return;
-                  }
-                  setShowCreateCampaignModal(true);
-                }}
+                onClick={() => setShowCreateCampaignModal(true)}
                 data-testid="new-campaign-btn"
                 style={{
                   background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
@@ -1116,28 +1041,7 @@ function UnifiedDashboard({ username, onLogout }) {
                   <h3 style={{ color: theme.text.primary, margin: '0 0 8px', fontSize: '18px', fontFamily: "'Montserrat', sans-serif" }}>
                     No Campaigns Yet
                   </h3>
-                  {subscriptionInfo && subscriptionInfo.campaigns_limit === 0 ? (
-                    <>
-                      <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
-                        Your {subscriptionInfo.tier_name} plan is for players. Upgrade to Quest Master or Legendary to create campaigns.
-                      </p>
-                      <Button
-                        onClick={() => navigate('/pricing')}
-                        style={{
-                          background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
-                          border: 'none',
-                          padding: '14px 28px',
-                          color: '#1F1F23',
-                          fontWeight: '800',
-                          boxShadow: `0 4px 15px ${theme.gm.glow}`
-                        }}
-                      >
-                        Upgrade to GM
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
+                  <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
                         Create your first campaign to start GMing
                       </p>
                       <Button
@@ -1153,8 +1057,6 @@ function UnifiedDashboard({ username, onLogout }) {
                       >
                         Create Campaign
                       </Button>
-                    </>
-                  )}
                 </div>
               ) : (
                 displayCampaigns.map((campaign, index) => (
@@ -1354,83 +1256,6 @@ function UnifiedDashboard({ username, onLogout }) {
           </div>
         </div>
       )}
-
-      {/* Referral Modal */}
-      {showReferralModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}
-        onClick={() => setShowReferralModal(false)}
-        >
-          <div 
-            style={{
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              padding: '32px',
-              width: '100%',
-              maxWidth: '420px'
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h2 style={{ 
-              color: theme.text.primary, 
-              margin: '0 0 8px',
-              fontWeight: '800',
-              fontSize: '20px'
-            }}>
-              Your Referral Code
-            </h2>
-            <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
-              Share this link with friends to earn rewards
-            </p>
-
-            <div style={{
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              padding: '20px',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              <code style={{ 
-                background: `linear-gradient(90deg, ${theme.gm.primary}, ${theme.player.primary})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: '18px',
-                fontWeight: '800',
-                letterSpacing: 0
-              }}>
-                {referralCode || 'Loading...'}
-              </code>
-            </div>
-
-            <Button
-              onClick={copyReferralCode}
-              style={{
-                width: '100%',
-                background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
-                border: 'none',
-                color: '#1F1F23',
-                padding: '14px',
-                fontWeight: '800',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              <Link2 size={18} />
-              Copy Referral Link
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Create Campaign Modal */}
       {showCreateCampaignModal && (
         <div

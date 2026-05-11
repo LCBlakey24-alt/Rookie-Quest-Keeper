@@ -75,7 +75,7 @@ class TestAuthAndAdminCheck:
 
 # ============ CSV EXPORT ============
 class TestCsvExport:
-    EXPECTED_USERS_HEADER = "username,email,tier,tier_name,subscription_status,lifetime_access,ai_calls_this_month,created_at"
+    EXPECTED_USERS_HEADER = "username,email,created_at"
     EXPECTED_CAMPAIGNS_HEADER = "id,name,dm_user_id,system,rules_edition,setting,player_count,created_at,updated_at"
 
     def test_export_users_csv_ok(self, admin_session):

@@ -100,7 +100,7 @@ Immersive SRD-5.1-compliant TTRPG app with GM tools + a Player experience that m
 - **Tests**: backend 4/4 pass (rules_edition GET/PUT round-trip, helper code review, edition fragment markers verified); frontend 100% on critical flows (toggle visible, PUT fires + toast, gold active state, MapMaker tabs gone, all condition-toggle testids present + persistence). See `/app/test_reports/iteration_84.json`.
 
 ## Phase 24 — Landing/Home Visual Unification + Montserrat Bold (Apr 30)
-- **Landing page rewritten** to match `/home` (UnifiedDashboard) — strict Dark Navy `#0A1628` + Gold `#D4A017` palette. Removed all purple/cyan AI-slop gradients, glow shadows, and `linear-gradient` backgrounds. Hero, features grid, pricing tiers, and footer now use the same flat panel/border conventions as the rest of the app.
+- **Landing page rewritten** to match `/home` (UnifiedDashboard) — strict Dark Navy `#0A1628` + Gold `#D4A017` palette. Removed all purple/cyan AI-slop gradients, glow shadows, and `linear-gradient` backgrounds. Hero, features grid, product previews, and footer now use the same flat panel/border conventions as the rest of the app.
 - **Global Montserrat font lock** (`index.css`): replaced Outfit + Manrope + Cinzel imports with a single Montserrat (400/500/600/700/800) import. Added a `*, *::before, *::after { font-family: 'Montserrat' !important; }` override so every existing inline `fontFamily: 'Cinzel'/'Outfit'` declaration in any component now renders as Montserrat without further code edits. Body weight defaults to 700 (bold) per user spec; Tailwind utility classes (`font-medium`, `font-bold`, etc.) restored to maintain hierarchy.
 
 ## Phase 25 — Audit Fixes Batch 1 (Apr 30 / Iter 85)
@@ -132,7 +132,7 @@ Continued audit polish — heavier touch on character sheet + GM + Live Session:
 ## Phase 27 — Audit Fixes Batch 3 + Session Recap P2 (Apr 30 / Iter 87)
 Ambitious batch — builder, admin, combat polish + first shipped P2 feature:
 - **Character Builder live preview + progress**: new 2-column layout (wizard panel + sticky preview on the right). Preview shows name, race/subrace, class/subclass, edition + background, ability-score grid with modifiers, selected-skills/cantrip/spell counts, and origin feat. Progress bar shows `STEP X OF N` + live percentage — updates on every Next/Previous.
-- **AdminPage testids**: all 4 stat boxes now carry `admin-stat-users / -codes / -referrals / -reviews` for testing stability.
+- **AdminPage testids**: stat boxes and tabs carry stable testing hooks for review, rule, template, and user management.
 - **CombatPage — drag-to-reorder initiative**: HTML5 native drag (no library) — drag any initiative card into a new slot; toast confirms "Initiative reordered"; opacity 0.4 on the dragged card.
 - **CombatPage — Concentration save prompt**: when a combatant with `concentrating_on` takes damage, a long-duration warning toast fires with `DC = max(10, floor(damage/2))` — standard 5e RAW.
 - **[P2 SHIPPED] Session Recap Sharing**: `SHARE RECAP` button in the Combat Log copies a Discord/Slack-friendly markdown summary (`**Session Recap — {characterName}**` + emoji-prefixed entry lines ⚔/💥/💚/✨/🌙/🛡/🎲) to the clipboard via `navigator.clipboard.writeText`. `window.prompt` fallback for locked-down browsers. `rook:toast` CustomEvent + sonner listener shows "Recap copied" confirmation.
@@ -210,7 +210,7 @@ Player and admin polish — all shipped and verified end-to-end:
 - Backend (`routes/admin.py`):
   - `verify_admin` made case-insensitive so `LCBlakey24` matches `lcblakey24`.
   - `POST /api/admin/users/{username}/impersonate` — issues a JWT for the target via `create_token()`; supports username or email lookup; admin-only.
-  - `GET /api/admin/export/users.csv` — streams users CSV with header: `username,email,tier,tier_name,subscription_status,lifetime_access,ai_calls_this_month,created_at`.
+  - `GET /api/admin/export/users.csv` — streams users CSV with header: `username,email,created_at`.
   - `GET /api/admin/export/campaigns.csv` — streams campaigns CSV with header: `id,name,dm_user_id,system,rules_edition,setting,player_count,created_at,updated_at`.
   - Tiny `_csv_escape` helper handles commas/quotes/newlines.
 - Frontend (new files):

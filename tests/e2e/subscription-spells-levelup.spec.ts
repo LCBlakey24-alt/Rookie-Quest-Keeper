@@ -5,23 +5,9 @@ import { loginTestUser, TEST_USER, removeBlockingBadges, dismissToasts } from '.
 const EMAIL = TEST_USER.email;
 const PASSWORD = TEST_USER.password;
 
-test.describe('Subscription Tier Badge and Campaign Limits', () => {
+test.describe('Dashboard Creation Actions', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
-  });
-
-  test('Dashboard shows subscription tier badge with campaign limit info', async ({ page }) => {
-    await loginTestUser(page);
-    await page.waitForTimeout(1500);
-    await removeBlockingBadges(page);
-    
-    // Should see subscription tier badge in GM section
-    // For Legendary tier it shows "Legendary · Unlimited"
-    const tierBadge = page.locator('span:has-text("Legendary")').first();
-    await expect(tierBadge).toBeVisible({ timeout: 10000 });
-    
-    // Verify it says Unlimited for legendary tier
-    await expect(page.getByText(/Legendary.*Unlimited/)).toBeVisible();
   });
 
   test('New Campaign button is visible for users with campaign creation rights', async ({ page }) => {

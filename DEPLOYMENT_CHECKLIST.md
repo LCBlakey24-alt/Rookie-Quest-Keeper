@@ -103,8 +103,8 @@ If critical issues found:
 # Revert to previous commit
 git revert <commit-hash>
 
-# Or restore from backup
-git checkout <previous-tag>
+# Or inspect a previous release tag
+git switch --detach <previous-tag>
 
 # Redeploy
 npm run build && npm run deploy

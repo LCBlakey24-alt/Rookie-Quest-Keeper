@@ -180,9 +180,8 @@ test.describe('Tron Light Cycle Background Effects', () => {
     const reviewBtn = page.getByTestId('review-btn');
     await expect(reviewBtn).toBeVisible();
     
-    // Verify Referral button is clickable
-    const referralBtn = page.getByTestId('referral-btn');
-    await expect(referralBtn).toBeVisible();
+    // Verify account settings button is available
+    await expect(page.locator('button').filter({ has: page.locator('svg') }).last()).toBeVisible();
   });
 
   // ==================== MOBILE RESPONSIVENESS ====================

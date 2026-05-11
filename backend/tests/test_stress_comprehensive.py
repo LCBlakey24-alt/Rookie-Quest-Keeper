@@ -67,9 +67,6 @@ class TestHealthAndAuth:
         assert response.status_code == 200
         data = response.json()
         assert "username" in data
-        # Subscription info is nested under "subscription" key
-        assert "subscription" in data
-        assert data["subscription"]["tier"] in ["free", "adventurer", "hero", "legendary"]
 
 class TestCampaignCRUD:
     """Test Campaign CRUD operations"""
@@ -657,20 +654,6 @@ class TestAIGeneration:
         data = response.json()
         # Should have world setting info for AI to use
         assert "world_setting" in data
-
-class TestSubscription:
-    """Test subscription-related endpoints"""
-    
-    def test_get_subscription_via_auth_me(self, auth_headers):
-        """Test getting user subscription via /auth/me"""
-        response = requests.get(f"{BASE_URL}/api/auth/me", headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        # Subscription is nested in auth/me response
-        assert "subscription" in data
-        assert data["subscription"]["tier"] in ["free", "adventurer", "hero", "legendary"]
-        # Admin should be legendary
-        assert data["subscription"]["tier"] == "legendary"
 
 class TestCustomCreatures:
     """Test Custom Creatures management"""

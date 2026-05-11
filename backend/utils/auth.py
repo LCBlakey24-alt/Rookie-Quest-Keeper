@@ -1,8 +1,6 @@
-"""Authentication and subscription utilities."""
+"""Authentication and access utilities."""
 import jwt
 import bcrypt
-import hashlib
-import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 from fastapi import Depends, HTTPException, status
@@ -82,101 +80,14 @@ async def is_admin(username: str) -> bool:
     return username.lower() in admins
 
 
-def generate_referral_code(username: str) -> str:
-    base = f"{username}-{uuid.uuid4().hex[:4]}"
-    code = hashlib.md5(base.encode()).hexdigest()[:8].upper()
-    return f"ROOK-{code}"
+async def check_ai_access(username: str, feature: str = 'ai') -> bool:
+    """Return whether a user can use AI features while access limits are paused."""
+    return True
 
 
-async def get_user_subscription(username: str) -> dict:
-    """Get user subscription status with expiry checks and AI call resets."""
-    from models import SubscriptionTier
-    user = await db.users.find_one({'username': username})
-    if not user:
-        return None
-
-    subscription = user.get('subscription', SubscriptionTier().model_dump())
-
-    # Check if promo code access has expired
-    promo_expires = subscription.get('promo_expires_at')
-    if promo_expires and subscription.get('promo_code_used'):
-        expires_dt = datetime.fromisoformat(promo_expires.replace('Z', '+00:00'))
-        if datetime.now(timezone.utc) >= expires_dt:
-            subscription['tier'] = 'free'
-            subscription['subscription_status'] = 'expired'
-            await db.users.update_one(
-                {'username': username},
-                {'$set': {
-                    'subscription.tier': 'free',
-                    'subscription.subscription_status': 'expired',
-                    'subscription.promo_expires_at': None
-                }}
-            )
-
-    # Check if referral/other premium has expired
-    premium_expires = subscription.get('premium_expires_at')
-    if premium_expires and not subscription.get('promo_code_used') and subscription.get('tier') != 'free':
-        expires_dt = datetime.fromisoformat(premium_expires.replace('Z', '+00:00'))
-        if datetime.now(timezone.utc) >= expires_dt:
-            subscription['tier'] = 'free'
-            subscription['subscription_status'] = 'expired'
-            await db.users.update_one(
-                {'username': username},
-                {'$set': {
-                    'subscription.tier': 'free',
-                    'subscription.subscription_status': 'expired'
-                }}
-            )
-
-    # Reset AI calls monthly
-    reset_date = subscription.get('ai_calls_reset_date')
-    if reset_date:
-        reset_dt = datetime.fromisoformat(reset_date.replace('Z', '+00:00'))
-        if datetime.now(timezone.utc) >= reset_dt:
-            subscription['ai_calls_this_month'] = 0
-            next_reset = datetime.now(timezone.utc) + timedelta(days=30)
-            subscription['ai_calls_reset_date'] = next_reset.isoformat()
-            await db.users.update_one(
-                {'username': username},
-                {'$set': {'subscription': subscription}}
-            )
-    else:
-        next_reset = datetime.now(timezone.utc) + timedelta(days=30)
-        subscription['ai_calls_reset_date'] = next_reset.isoformat()
-        await db.users.update_one(
-            {'username': username},
-            {'$set': {'subscription': subscription}}
-        )
-
-    return subscription
-
-
-async def check_premium_feature(username: str, feature: str = 'ai') -> bool:
-    """Check if user can access premium features based on subscription."""
-    from models import SUBSCRIPTION_PLANS
-    subscription = await get_user_subscription(username)
-    tier = subscription.get('tier', 'free')
-    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
-
-    if tier == 'adventurer' and subscription.get('subscription_status') == 'active':
-        return True
-
-    if feature == 'ai':
-        limit = plan.get('ai_calls_per_month', 5)
-        used = subscription.get('ai_calls_this_month', 0)
-        return limit == -1 or used < limit
-
-    return False
-
-
-async def increment_ai_usage(username: str):
-    """Increment AI call counter for free tier users."""
-    subscription = await get_user_subscription(username)
-    if subscription.get('tier') == 'free':
-        await db.users.update_one(
-            {'username': username},
-            {'$inc': {'subscription.ai_calls_this_month': 1}}
-        )
+async def record_ai_usage(username: str):
+    """Reserved for future product analytics; currently no-op."""
+    return None
 
 
 async def get_campaign_rule_system(campaign_id: str) -> Dict[str, Any]:

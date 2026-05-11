@@ -7,7 +7,7 @@ test.describe('Theme Redesign - Dual Theme System', () => {
   };
 
   test.describe('Landing Page - Neutral Theme', () => {
-    test('Landing page loads with new purple/cyan gradient theme', async ({ page }) => {
+    test('Landing page loads with product preview theme', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       
       // Verify landing page elements
@@ -20,26 +20,6 @@ test.describe('Theme Redesign - Dual Theme System', () => {
       await expect(page.getByTestId('landing-getstarted-btn')).toBeVisible();
       
       await page.screenshot({ path: 'theme-landing-hero.jpeg', quality: 20, fullPage: false });
-    });
-
-    test('Pricing tiers display correctly on landing page', async ({ page }) => {
-      await page.goto('/', { waitUntil: 'domcontentloaded' });
-      
-      // Scroll to pricing section
-      await page.evaluate(() => window.scrollTo(0, 1500));
-      await page.waitForTimeout(500);
-      
-      // Verify all 4 pricing tiers
-      await expect(page.locator('text=Free').first()).toBeVisible();
-      await expect(page.locator('text=Player').first()).toBeVisible();
-      await expect(page.locator('text=Game Master').first()).toBeVisible();
-      await expect(page.locator('text=Legendary').first()).toBeVisible();
-      
-      // Verify pricing
-      await expect(page.locator('text=$3.99')).toBeVisible();
-      await expect(page.locator('text=$5.99')).toBeVisible();
-      
-      await page.screenshot({ path: 'theme-pricing-tiers.jpeg', quality: 20, fullPage: false });
     });
   });
 

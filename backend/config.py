@@ -48,10 +48,6 @@ if not CORS_ORIGIN_LIST or '*' in CORS_ORIGIN_LIST:
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@rookiequestkeeper.com')
 
-# Stripe
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
-STRIPE_ENABLED = bool(STRIPE_API_KEY)
-
 # Admin
 ADMIN_USERNAMES = [name.strip().lower() for name in os.environ.get('ADMIN_USERNAMES', 'lcblakey24').split(',') if name.strip()]
 RESERVED_USERNAMES = sorted(set(ADMIN_USERNAMES + [

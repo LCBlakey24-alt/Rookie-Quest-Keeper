@@ -1,14 +1,10 @@
-"""Admin routes: user management, promo codes, reviews, custom creatures."""
+"""Admin routes: user management, reviews, custom creatures."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, ADMIN_USERNAMES, logger
-from utils.auth import get_current_user, is_admin
+from utils.auth import get_current_user
 from models import (
-    SUBSCRIPTION_PLANS, PromoCode, PromoCodeCreate, ApplyPromoCodeRequest,
     Review, ReviewCreate, CustomCreature, CustomCreatureCreate,
-    AdminUserUpgrade
 )
-import uuid
-from datetime import datetime, timezone, timedelta
 
 router = APIRouter()
 
@@ -19,69 +15,9 @@ async def verify_admin(username: str):
     if not username or username.lower() not in admins:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
 
-@router.post("/admin/upgrade-user")
-async def admin_upgrade_user(request: AdminUserUpgrade, username: str = Depends(get_current_user)):
-    """Admin endpoint to manually upgrade a user's subscription tier"""
-    await verify_admin(username)
-    
-    # Validate tier
-    valid_tiers = ['free', 'player', 'gm', 'legendary', 'adventurer']
-    if request.new_tier not in valid_tiers:
-        raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {', '.join(valid_tiers)}")
-    
-    # Find target user
-    target_user = await db.users.find_one({'username': request.target_username})
-    if not target_user:
-        # Try by email
-        target_user = await db.users.find_one({'email': request.target_username})
-    
-    if not target_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Calculate expiration
-    if request.duration_days == -1:
-        premium_expires_at = None
-        is_lifetime = True
-    else:
-        premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=request.duration_days)).isoformat()
-        is_lifetime = False
-    
-    # Update user subscription
-    update_data = {
-        'subscription.tier': request.new_tier,
-        'subscription.subscription_status': 'active',
-        'subscription.admin_upgraded': True,
-        'subscription.admin_upgraded_by': username,
-        'subscription.admin_upgraded_at': datetime.now(timezone.utc).isoformat(),
-        'subscription.admin_upgrade_reason': request.reason
-    }
-    
-    if is_lifetime:
-        update_data['subscription.lifetime_access'] = True
-        update_data['subscription.premium_expires_at'] = None
-    else:
-        update_data['subscription.premium_expires_at'] = premium_expires_at
-    
-    await db.users.update_one(
-        {'username': target_user['username']},
-        {'$set': update_data}
-    )
-    
-    plan = SUBSCRIPTION_PLANS.get(request.new_tier, SUBSCRIPTION_PLANS['free'])
-    
-    return {
-        "message": f"User {target_user['username']} upgraded to {plan['name']}",
-        "username": target_user['username'],
-        "email": target_user.get('email'),
-        "new_tier": request.new_tier,
-        "tier_name": plan['name'],
-        "expires_at": premium_expires_at,
-        "is_lifetime": is_lifetime
-    }
-
 @router.get("/admin/users")
 async def admin_get_users(username: str = Depends(get_current_user)):
-    """Admin endpoint to list all users with their subscription status"""
+    """Admin endpoint to list all users."""
     await verify_admin(username)
     
     users = []
@@ -89,171 +25,10 @@ async def admin_get_users(username: str = Depends(get_current_user)):
         users.append({
             'username': user.get('username'),
             'email': user.get('email'),
-            'tier': user.get('subscription', {}).get('tier', 'free'),
-            'tier_name': SUBSCRIPTION_PLANS.get(user.get('subscription', {}).get('tier', 'free'), {}).get('name', 'Free'),
-            'subscription_status': user.get('subscription', {}).get('subscription_status', 'inactive'),
-            'promo_codes_used': user.get('subscription', {}).get('promo_codes_used', []),
-            'lifetime_access': user.get('subscription', {}).get('lifetime_access', False),
             'created_at': user.get('created_at')
         })
     
     return users
-
-@router.post("/promo-codes", status_code=status.HTTP_201_CREATED)
-async def create_promo_code(promo_data: PromoCodeCreate, username: str = Depends(get_current_user)):
-    """Create a new promo code (admin only)"""
-    await verify_admin(username)
-    
-    # Check if code already exists
-    existing = await db.promo_codes.find_one({'code': promo_data.code.upper()})
-    if existing:
-        raise HTTPException(status_code=400, detail="Promo code already exists")
-    
-    promo = PromoCode(
-        code=promo_data.code.upper(),
-        tier_granted=promo_data.tier_granted,
-        duration_days=promo_data.duration_days,
-        uses_remaining=promo_data.uses_remaining,
-        expires_at=promo_data.expires_at
-    )
-    await db.promo_codes.insert_one(promo.model_dump())
-    return {"message": "Promo code created", "code": promo.code, "duration_days": promo.duration_days}
-
-@router.post("/promo-codes/apply")
-async def apply_promo_code(request: ApplyPromoCodeRequest, username: str = Depends(get_current_user)):
-    """Apply a promo code to get free premium access - supports stacking multiple codes"""
-    code = request.code.upper().strip()
-    
-    # Find promo code
-    promo = await db.promo_codes.find_one({'code': code})
-    if not promo:
-        raise HTTPException(status_code=404, detail="Invalid promo code")
-    
-    # Check if code is active
-    if not promo.get('is_active', True):
-        raise HTTPException(status_code=400, detail="This promo code is no longer active")
-    
-    # Check if expired
-    if promo.get('expires_at'):
-        expires = datetime.fromisoformat(promo['expires_at'].replace('Z', '+00:00'))
-        if datetime.now(timezone.utc) > expires:
-            raise HTTPException(status_code=400, detail="Promo code has expired")
-    
-    # Check uses remaining
-    uses = promo.get('uses_remaining', -1)
-    if uses == 0:
-        raise HTTPException(status_code=400, detail="Promo code has no uses remaining")
-    
-    # Get user's current subscription
-    user = await db.users.find_one({'username': username})
-    current_sub = user.get('subscription', {}) if user else {}
-    
-    # Check if user already used THIS SPECIFIC code (prevent re-using same code)
-    used_codes = current_sub.get('promo_codes_used', [])
-    if code in used_codes:
-        raise HTTPException(status_code=400, detail="You have already used this promo code")
-    
-    # Apply promo code with duration - STACKING LOGIC
-    new_tier = promo.get('tier_granted', 'legendary')
-    duration_days = promo.get('duration_days', -1)  # Default to lifetime if not specified
-    
-    # Tier priority: legendary > gm > player > adventurer > free
-    tier_priority = {'free': 0, 'player': 1, 'adventurer': 2, 'gm': 3, 'legendary': 4}
-    current_tier = current_sub.get('tier', 'free')
-    
-    # Use higher tier
-    if tier_priority.get(new_tier, 0) >= tier_priority.get(current_tier, 0):
-        final_tier = new_tier
-    else:
-        final_tier = current_tier
-    
-    # Calculate expiration with stacking
-    current_expires = current_sub.get('premium_expires_at')
-    
-    if duration_days == -1:
-        # Lifetime code - no expiration
-        premium_expires_at = None
-        is_lifetime = True
-    else:
-        is_lifetime = current_sub.get('lifetime_access', False)
-        if is_lifetime:
-            # Already have lifetime, keep it
-            premium_expires_at = None
-        elif current_expires:
-            # Stack: add new days to existing expiration
-            try:
-                existing_expires = datetime.fromisoformat(current_expires.replace('Z', '+00:00'))
-                # If existing is in the future, add to it; otherwise start from now
-                if existing_expires > datetime.now(timezone.utc):
-                    premium_expires_at = (existing_expires + timedelta(days=duration_days)).isoformat()
-                else:
-                    premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
-            except:
-                premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
-        else:
-            # No existing expiration, start fresh
-            premium_expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
-    
-    # Track all used promo codes
-    used_codes.append(code)
-    
-    update_data = {
-        'subscription.tier': final_tier,
-        'subscription.subscription_status': 'active',
-        'subscription.promo_codes_used': used_codes,
-        'subscription.last_promo_applied': code,
-        'subscription.last_promo_applied_at': datetime.now(timezone.utc).isoformat()
-    }
-    
-    if premium_expires_at:
-        update_data['subscription.premium_expires_at'] = premium_expires_at
-        update_data['subscription.promo_expires_at'] = premium_expires_at
-    elif is_lifetime or duration_days == -1:
-        # For lifetime, remove any existing expiration
-        update_data['subscription.premium_expires_at'] = None
-        update_data['subscription.lifetime_access'] = True
-    
-    await db.users.update_one(
-        {'username': username},
-        {'$set': update_data}
-    )
-    
-    # Decrement uses if not unlimited
-    if uses > 0:
-        await db.promo_codes.update_one(
-            {'code': code},
-            {'$inc': {'uses_remaining': -1}}
-        )
-    
-    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS['free'])
-    
-    # Format duration for message
-    if duration_days == -1:
-        duration_text = "lifetime"
-    elif duration_days == 7:
-        duration_text = "1 week"
-    elif duration_days == 14:
-        duration_text = "2 weeks"
-    elif duration_days == 30:
-        duration_text = "1 month"
-    elif duration_days == 60:
-        duration_text = "2 months"
-    elif duration_days == 90:
-        duration_text = "3 months"
-    elif duration_days == 180:
-        duration_text = "6 months"
-    elif duration_days == 365:
-        duration_text = "1 year"
-    else:
-        duration_text = f"{duration_days} days"
-    
-    return {
-        "message": f"Promo code applied! You now have {plan['name']} access for {duration_text}.",
-        "tier": tier,
-        "tier_name": plan['name'],
-        "duration_days": duration_days,
-        "expires_at": premium_expires_at
-    }
 
 # ============== REVIEWS ==============
 
@@ -438,46 +213,12 @@ async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatu
         imported.append(creature.name)
     return {"message": f"Imported {len(imported)} creatures!", "imported": imported}
 
-@router.get("/subscription/plans")
-
 # ==================== ADMIN ROUTES ====================
 
 @router.get("/admin/check")
 async def check_admin_status(username: str = Depends(get_current_user)):
     """Check if current user is admin"""
     return {"is_admin": username.lower() in ADMIN_USERNAMES}
-
-@router.get("/admin/promo-codes")
-async def get_all_promo_codes(username: str = Depends(get_current_user)):
-    """Get all promo codes (admin only)"""
-    await verify_admin(username)
-    
-    codes = await db.promo_codes.find({}, {'_id': 0}).to_list(100)
-    
-    # Get stats
-    total_users = await db.users.count_documents({})
-    total_referrals = await db.users.aggregate([
-        {'$group': {'_id': None, 'total': {'$sum': '$subscription.referral_count'}}}
-    ]).to_list(1)
-    
-    return {
-        'codes': codes,
-        'stats': {
-            'total_users': total_users,
-            'total_referrals': total_referrals[0]['total'] if total_referrals else 0
-        }
-    }
-
-@router.delete("/admin/promo-codes/{code_id}")
-async def delete_promo_code(code_id: str, username: str = Depends(get_current_user)):
-    """Delete a promo code (admin only)"""
-    await verify_admin(username)
-    
-    result = await db.promo_codes.delete_one({'id': code_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Promo code not found")
-    return {"message": "Promo code deleted"}
-
 
 # ==================== IMPERSONATION ====================
 
@@ -516,25 +257,17 @@ def _csv_escape(value) -> str:
 
 @router.get("/admin/export/users.csv")
 async def admin_export_users_csv(username: str = Depends(get_current_user)):
-    """Admin-only: stream a CSV of all users (core profile + subscription)."""
+    """Admin-only: stream a CSV of all users."""
     from fastapi.responses import StreamingResponse
     await verify_admin(username)
 
     async def gen():
-        header = ["username", "email", "tier", "tier_name", "subscription_status",
-                  "lifetime_access", "ai_calls_this_month", "created_at"]
+        header = ["username", "email", "created_at"]
         yield ",".join(header) + "\n"
         async for user in db.users.find({}, {'_id': 0, 'password_hash': 0}):
-            sub = user.get('subscription', {}) or {}
-            tier = sub.get('tier', 'free')
             row = [
                 _csv_escape(user.get('username')),
                 _csv_escape(user.get('email')),
-                _csv_escape(tier),
-                _csv_escape(SUBSCRIPTION_PLANS.get(tier, {}).get('name', 'Free')),
-                _csv_escape(sub.get('subscription_status', 'inactive')),
-                _csv_escape(sub.get('lifetime_access', False)),
-                _csv_escape(sub.get('ai_calls_this_month', 0)),
                 _csv_escape(user.get('created_at')),
             ]
             yield ",".join(row) + "\n"

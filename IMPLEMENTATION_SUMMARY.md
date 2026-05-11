@@ -146,8 +146,7 @@ All 5 fixes have **manual test cases** defined in `TEST_FIXES_MAY_11.md`:
 - ✅ Player management
 - ✅ Campaign management
 - ✅ AI integrations
-- ✅ Subscription system
-
+- Account system`r`n
 **Can defer to post-launch:**
 - ⏭️ Home page polish (search/filter)
 - ⏭️ Starting level support (nice-to-have)
