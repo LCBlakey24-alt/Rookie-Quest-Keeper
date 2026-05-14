@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
+import apiClient from '@/lib/apiClient';
 import { Sparkles, Send, X, Loader, Minimize2, Maximize2, Copy, Trash2 } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const TAB_CONTEXTS = {
   combat: {
@@ -99,12 +96,11 @@ export default function AICoGM({ theme, campaignId, activeTab }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API}/rook/chat`, {
+      const response = await apiClient.post('/rook/chat', {
         message: msg,
         campaign_id: campaignId,
         context: `Active Live Play tab: ${activeTab}. ${ctx.system}`
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
 
       const aiMsg = { role: 'assistant', content: response.data.response || response.data.message || 'No response', timestamp: Date.now() };
       setMessages(prev => [...prev, aiMsg]);

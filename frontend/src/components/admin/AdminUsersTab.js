@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Download, LogIn, Users as UsersIcon, Search } from 'lucide-react';
-import { API_BASE } from '@/lib/api';
-
-const API = API_BASE;
+import apiClient from '@/lib/apiClient';
+import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
 const theme = {
   gold: '#D4A017',
@@ -46,9 +44,7 @@ export default function AdminUsersTab() {
     (async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API}/admin/users`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` }
-        });
+        const res = await apiClient.get('/admin/users');
         setUsers(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         toast.error(err?.response?.data?.detail || 'Failed to load users');
@@ -60,10 +56,7 @@ export default function AdminUsersTab() {
 
   const downloadCsv = async (kind) => {
     try {
-      const res = await axios.get(`${API}/admin/export/${kind}.csv`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` },
-        responseType: 'blob'
-      });
+      const res = await apiClient.get(`/admin/export/${kind}.csv`, { responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -82,20 +75,19 @@ export default function AdminUsersTab() {
   const impersonate = async (targetUsername) => {
     if (!window.confirm(`Impersonate ${targetUsername}? Your current session will be stashed and restorable via the top banner.`)) return;
     try {
-      const res = await axios.post(
-        `${API}/admin/users/${encodeURIComponent(targetUsername)}/impersonate`,
-        {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem('dm_token')}` } }
+      const res = await apiClient.post(
+        `/admin/users/${encodeURIComponent(targetUsername)}/impersonate`,
+        {}
       );
       const { token, username } = res.data || {};
       if (!token) throw new Error('No token returned');
       // Stash admin's own creds for restoration
-      const adminToken = localStorage.getItem('dm_token');
-      const adminUsername = localStorage.getItem('dm_username');
+      const adminToken = getAuthToken();
+      const adminUsername = localStorage.getItem(AUTH_USERNAME_KEY);
       sessionStorage.setItem('rq_admin_token_stash', adminToken || '');
       sessionStorage.setItem('rq_admin_username_stash', adminUsername || '');
-      localStorage.setItem('dm_token', token);
-      localStorage.setItem('dm_username', username);
+      setAuthToken(token);
+      localStorage.setItem(AUTH_USERNAME_KEY, username);
       toast.success(`Now viewing as ${username}`);
       // Reload to home — full app re-renders with the new token
       window.location.assign('/home');

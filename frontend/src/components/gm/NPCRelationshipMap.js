@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
+import apiClient from '@/lib/apiClient';
 import { 
   Users, Plus, Edit2, Trash2, Save, X, Link2, Heart, Swords, 
   Briefcase, Crown, Users2, HelpCircle, ZoomIn, ZoomOut,
   Search, Filter, Eye, EyeOff, Wand2, Shield, Loader, ChevronDown,
   ChevronUp, Scroll, Sparkles, Copy
 } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const RELATIONSHIP_TYPES = {
   ally: { label: 'Ally', color: '#22C55E', icon: Users2 },
@@ -585,8 +582,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
   // Load NPCs from backend
   const fetchNPCs = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/campaigns/${campaignId}/npcs`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiClient.get(`/campaigns/${campaignId}/npcs`);
       setNpcs(res.data);
       // Load positions from localStorage
       const savedPos = localStorage.getItem(`npc-map-pos-${campaignId}`);
@@ -613,8 +609,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
 
   // Create NPC
   const handleCreateNPC = async (formData) => {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`${API}/campaigns/${campaignId}/npcs`, formData, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await apiClient.post(`/campaigns/${campaignId}/npcs`, formData);
     const newNpc = res.data;
     setNpcs(prev => [...prev, newNpc]);
     const newPos = { ...positions, [newNpc.id]: { x: 200 + Math.random() * 200, y: 200 + Math.random() * 200 } };
@@ -626,8 +621,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
 
   // Update NPC
   const handleUpdateNPC = async (formData) => {
-    const token = localStorage.getItem('token');
-    const res = await axios.put(`${API}/campaigns/${campaignId}/npcs/${formData.id}`, formData, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await apiClient.put(`/campaigns/${campaignId}/npcs/${formData.id}`, formData);
     setNpcs(prev => prev.map(n => n.id === formData.id ? res.data : n));
     setShowEditModal(null);
     toast.success(`${res.data.name} updated!`);
@@ -636,8 +630,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
   // Delete NPC
   const handleDeleteNPC = async (npcId) => {
     if (!window.confirm('Delete this NPC?')) return;
-    const token = localStorage.getItem('token');
-    await axios.delete(`${API}/campaigns/${campaignId}/npcs/${npcId}`, { headers: { Authorization: `Bearer ${token}` } });
+    await apiClient.delete(`/campaigns/${campaignId}/npcs/${npcId}`);
     setNpcs(prev => prev.filter(n => n.id !== npcId));
     const newConns = connections.filter(c => c.from !== npcId && c.to !== npcId);
     const newPos = { ...positions }; delete newPos[npcId];
@@ -650,8 +643,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
 
   // AI Generate NPC
   const handleGenerateNPC = async (params) => {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`${API}/campaigns/${campaignId}/npcs/generate`, params, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await apiClient.post(`/campaigns/${campaignId}/npcs/generate`, params);
     const newNpc = res.data;
     setNpcs(prev => [...prev, newNpc]);
     const newPos = { ...positions, [newNpc.id]: { x: 200 + Math.random() * 300, y: 150 + Math.random() * 200 } };

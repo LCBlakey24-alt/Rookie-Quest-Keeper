@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import '@/App.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
@@ -46,7 +45,8 @@ import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { usePlayerOnlyDevice } from '@/hooks/useResponsiveMode';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
-import { API_BASE } from '@/lib/api';
+import apiClient from '@/lib/apiClient';
+import { AUTH_USERNAME_KEY, clearAuthToken, getAuthToken, setAuthToken } from '@/lib/auth';
 
 function ThemeRouter() {
   const location = useLocation();
@@ -65,14 +65,6 @@ function ThemeRouter() {
   
   return null;
 }
-
-const API = API_BASE;
-
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('dm_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   const [showHelp, setShowHelp] = useState(false);
@@ -138,32 +130,32 @@ function App() {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('dm_token');
-    const savedUsername = localStorage.getItem('dm_username');
+    const token = getAuthToken();
+    const savedUsername = localStorage.getItem(AUTH_USERNAME_KEY);
     if (token && savedUsername) {
       try {
-        await axios.get(`${API}/auth/me`);
+        await apiClient.get('/auth/me');
         setIsAuthenticated(true);
         setUsername(savedUsername);
       } catch (error) {
-        localStorage.removeItem('dm_token');
-        localStorage.removeItem('dm_username');
+        clearAuthToken();
+        localStorage.removeItem(AUTH_USERNAME_KEY);
       }
     }
     setLoading(false);
   };
 
   const handleLogin = (token, username) => {
-    localStorage.setItem('dm_token', token);
-    localStorage.setItem('dm_username', username);
+    setAuthToken(token);
+    localStorage.setItem(AUTH_USERNAME_KEY, username);
     setIsAuthenticated(true);
     setUsername(username);
     window.location.href = '/home';
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('dm_token');
-    localStorage.removeItem('dm_username');
+    clearAuthToken();
+    localStorage.removeItem(AUTH_USERNAME_KEY);
     setIsAuthenticated(false);
     setUsername('');
     toast.success('Logged out successfully');

@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
+import apiClient from '@/lib/apiClient';
 import { Copy, Eye, EyeOff, Trash2, RefreshCw } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 /**
  * Admin-only template editor.
@@ -19,10 +16,7 @@ export default function TemplateEditor() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await axios.get(`${API}/admin/character-templates`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient.get('/admin/character-templates');
       setTemplates(res.data.templates || []);
     } catch (err) {
       toast.error('Failed to load templates');
@@ -35,10 +29,7 @@ export default function TemplateEditor() {
 
   const patch = async (id, payload) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await axios.patch(`${API}/admin/character-templates/${id}`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient.patch(`/admin/character-templates/${id}`, payload);
       setTemplates(ts => ts.map(t => t.id === id ? res.data : t));
       toast.success('Template updated');
     } catch (err) {
@@ -48,10 +39,7 @@ export default function TemplateEditor() {
 
   const clone = async (id) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const res = await axios.post(`${API}/admin/character-templates/${id}/clone`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient.post(`/admin/character-templates/${id}/clone`, {});
       setTemplates(ts => [...ts, res.data]);
       toast.success(`Cloned as "${res.data.name}"`);
     } catch (err) {
@@ -66,10 +54,7 @@ export default function TemplateEditor() {
     }
     if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
     try {
-      const token = localStorage.getItem('auth_token');
-      await axios.delete(`${API}/admin/character-templates/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await apiClient.delete(`/admin/character-templates/${id}`);
       setTemplates(ts => ts.filter(t => t.id !== id));
       toast.success('Deleted');
     } catch (err) {
