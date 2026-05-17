@@ -14,6 +14,13 @@ const blankItem = {
   quantity: 1,
   description: '',
   favorite: false,
+  attunement_required: false,
+  attuned: false,
+  attack_bonus: 0,
+  ac_bonus: 0,
+  stat_bonuses: {
+    strength: 0, dexterity: 0, constitution: 0, intelligence: 0, wisdom: 0, charisma: 0,
+  },
 };
 
 function getItemName(item) {
@@ -62,6 +69,18 @@ function normaliseItem(item) {
     type: item?.type || item?.category || item?.item_type || 'Item',
     quantity: Number(getItemQuantity(item) ?? 1) || 1,
     description: item?.description || item?.desc || '',
+    attunement_required: Boolean(item?.attunement_required || item?.requires_attunement),
+    attuned: Boolean(item?.attuned),
+    attack_bonus: Number(item?.attack_bonus ?? 0) || 0,
+    ac_bonus: Number(item?.ac_bonus ?? 0) || 0,
+    stat_bonuses: {
+      strength: Number(item?.stat_bonuses?.strength ?? 0) || 0,
+      dexterity: Number(item?.stat_bonuses?.dexterity ?? 0) || 0,
+      constitution: Number(item?.stat_bonuses?.constitution ?? 0) || 0,
+      intelligence: Number(item?.stat_bonuses?.intelligence ?? 0) || 0,
+      wisdom: Number(item?.stat_bonuses?.wisdom ?? 0) || 0,
+      charisma: Number(item?.stat_bonuses?.charisma ?? 0) || 0,
+    },
   };
 }
 
@@ -73,6 +92,7 @@ function ItemCard({ item, slot, actions }) {
         {slot && <span className="clean-sheet-item-slot">{slot}</span>}
         {isFavorite(item) && <span className="clean-sheet-item-slot favorite">Favourite</span>}
         {isConsumableLike(item) && <span className="clean-sheet-item-slot consumable">Consumable</span>}
+        {item?.attunement_required && <span className="clean-sheet-item-slot">{item?.attuned ? 'Attuned' : 'Needs Attunement'}</span>}
       </div>
       <strong>{getItemName(item)}</strong>
       {getItemDetail(item) && <p>{getItemDetail(item)}</p>}
@@ -114,6 +134,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const equipment = character?.equipment || [];
   const inventory = character?.inventory || [];
   const allCarriedItems = [...equipment, ...inventory];
+  const [recomputingEffects, setRecomputingEffects] = useState(false);
 
   const favoriteItems = useMemo(() => allCarriedItems.filter(isFavorite), [allCarriedItems]);
   const consumables = useMemo(() => allCarriedItems.filter(isConsumableLike), [allCarriedItems]);
@@ -160,6 +181,15 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const equipItem = (slot, item) => {
     const nextEquipped = { ...equipped, [slot]: item };
     saveEquipped(nextEquipped, slot);
+  };
+
+  const inferEquipSlot = (item) => {
+    const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
+    if (text.includes('shield')) return 'shield';
+    if (text.includes('armour') || text.includes('armor')) return 'armor';
+    if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
+    if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger')) return 'mainHand';
+    return null;
   };
 
   const clearSlot = (slot) => {
@@ -276,7 +306,19 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
               <option>Magic Item</option>
             </select>
             <input type="number" min="1" value={newItem.quantity} onChange={e => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) || 1 }))} placeholder="Qty" />
+            <input type="number" value={newItem.attack_bonus} onChange={e => setNewItem(prev => ({ ...prev, attack_bonus: Number(e.target.value) || 0 }))} placeholder="Attack bonus" />
+            <input type="number" value={newItem.ac_bonus} onChange={e => setNewItem(prev => ({ ...prev, ac_bonus: Number(e.target.value) || 0 }))} placeholder="AC bonus" />
             <textarea value={newItem.description} onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))} placeholder="Description or effect" />
+            <label className="clean-sheet-checkbox-row">
+              <input type="checkbox" checked={newItem.attunement_required} onChange={e => setNewItem(prev => ({ ...prev, attunement_required: e.target.checked, attuned: e.target.checked ? prev.attuned : false }))} />
+              Requires attunement
+            </label>
+            {newItem.attunement_required && (
+              <label className="clean-sheet-checkbox-row">
+                <input type="checkbox" checked={newItem.attuned} onChange={e => setNewItem(prev => ({ ...prev, attuned: e.target.checked }))} />
+                Currently attuned
+              </label>
+            )}
             <label className="clean-sheet-checkbox-row">
               <input type="checkbox" checked={newItem.favorite} onChange={e => setNewItem(prev => ({ ...prev, favorite: e.target.checked, favourite: e.target.checked }))} />
               Favourite this item
@@ -289,6 +331,20 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
       <section className="clean-sheet-panel">
         <h2>Currency</h2>
         <CurrencyBlock currency={character?.currency || {}} gold={character?.gold} />
+      </section>
+
+      <section className="clean-sheet-panel">
+        <h2>Active Item Effects</h2>
+        <div className="clean-sheet-currency-grid">
+          <div><span>Atk Bonus</span><strong>{Number(character?.item_effects?.attack_bonus || 0)}</strong></div>
+          <div><span>AC Bonus</span><strong>{Number(character?.item_effects?.ac_bonus || 0)}</strong></div>
+          <div><span>STR</span><strong>{Number(character?.item_effects?.stat_bonuses?.strength || 0)}</strong></div>
+          <div><span>DEX</span><strong>{Number(character?.item_effects?.stat_bonuses?.dexterity || 0)}</strong></div>
+          <div><span>CON</span><strong>{Number(character?.item_effects?.stat_bonuses?.constitution || 0)}</strong></div>
+          <div><span>INT</span><strong>{Number(character?.item_effects?.stat_bonuses?.intelligence || 0)}</strong></div>
+          <div><span>WIS</span><strong>{Number(character?.item_effects?.stat_bonuses?.wisdom || 0)}</strong></div>
+          <div><span>CHA</span><strong>{Number(character?.item_effects?.stat_bonuses?.charisma || 0)}</strong></div>
+        </div>
       </section>
 
       {favoriteItems.length > 0 && (
@@ -322,6 +378,16 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
                 item={item}
                 actions={(
                   <>
+                    {inferEquipSlot(item) && (
+                      <button type="button" onClick={() => equipItem(inferEquipSlot(item), item)} disabled={savingSlot === inferEquipSlot(item)}>
+                        Quick Equip {EQUIP_SLOTS.find(([s]) => s === inferEquipSlot(item))?.[1] || ''}
+                      </button>
+                    )}
+                    {item?.attunement_required && (
+                      <button type="button" onClick={() => updateInventoryItem(item, index, { attuned: !item?.attuned })} disabled={savingItems}>
+                        {item?.attuned ? 'Unattune' : 'Attune'}
+                      </button>
+                    )}
                     {EQUIP_SLOTS.map(([slot, label]) => (
                       <button key={slot} type="button" onClick={() => equipItem(slot, item)} disabled={savingSlot === slot}>
                         Set {label}

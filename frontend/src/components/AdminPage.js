@@ -10,11 +10,11 @@ import AdminSiteControlTab from './admin/AdminSiteControlTab';
 import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: { black: '#0B0F19', panel: '#111827', card: '#0F2440', tab: '#0A1628' },
-  gold: '#D4A017',
-  text: { white: '#FFFFFF', secondary: '#B8B8B8', muted: '#808080' },
-  border: 'rgba(212, 160, 23, 0.25)',
-  borderStrong: 'rgba(212, 160, 23, 0.45)'
+  bg: { black: '#1F1F23', panel: '#27272B', card: '#323235', tab: '#27272B' },
+  gold: '#EF4444',
+  text: { white: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
+  border: 'rgba(239, 68, 68, 0.28)',
+  borderStrong: 'rgba(239, 68, 68, 0.42)'
 };
 
 function AdminPage() {
@@ -23,6 +23,15 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('reviews');
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)');
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     checkAdminAndFetch();
@@ -150,7 +159,23 @@ function AdminPage() {
           <StatCard label="Visible Reviews" value={stats.visibleReviews} icon={Check} />
         </div>
 
-        <div style={{ display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap' }}>
+        {isMobile ? (
+          <div style={{ marginBottom: 16 }}>
+            <label htmlFor="admin-tab-select" style={{ display: 'block', color: theme.text.muted, marginBottom: 6, fontSize: 12 }}>
+              Admin section
+            </label>
+            <select
+              id="admin-tab-select"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              style={{ width: '100%', background: theme.bg.tab, color: theme.text.white, border: `1px solid ${theme.borderStrong}`, padding: '12px 10px' }}
+            >
+              {tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+            </select>
+          </div>
+        ) : null}
+
+        <div style={{ display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap', overflowX: 'auto' }}>
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

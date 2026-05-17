@@ -52,14 +52,14 @@ export default function AdminSiteControlTab() {
     }
   };
 
-  if (loading) return <div style={{ color: '#94A3B8' }}>Loading site controls...</div>;
+  if (loading) return <div style={{ color: '#9CA3AF' }}>Loading site controls...</div>;
 
   return (
-    <div style={{ background: '#14304F', border: '1px solid rgba(212, 160, 23, 0.35)', padding: 24 }}>
-      <h2 style={{ color: '#D4A017', marginTop: 0 }}>Site Control</h2>
-      <p style={{ color: '#94A3B8' }}>Global admin controls and health overview.</p>
+    <div style={{ background: '#27272B', border: '1px solid rgba(239, 68, 68, 0.35)', padding: 'clamp(12px, 3.5vw, 24px)' }}>
+      <h2 style={{ color: '#EF4444', marginTop: 0 }}>Site Control</h2>
+      <p style={{ color: '#9CA3AF' }}>Global admin controls and health overview.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(120px, 1fr))', gap: 8, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
         <Metric label="Users" value={overview.users_count || 0} />
         <Metric label="Campaigns" value={overview.campaigns_count || 0} />
         <Metric label="Characters" value={overview.characters_count || 0} />

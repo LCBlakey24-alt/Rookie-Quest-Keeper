@@ -115,8 +115,8 @@ function ResponsiveCampaignRoute({ username, onLogout }) {
 }
 
 function ResponsiveGMScreenRoute({ username }) {
-  const playerOnlyDevice = usePlayerOnlyDevice();
-  return playerOnlyDevice ? <MobilePlayerCampaignView /> : <DMScreen username={username} />;
+  // GM tools must remain accessible on mobile; do not force player-only fallback here.
+  return <DMScreen username={username} />;
 }
 
 function App() {
@@ -191,6 +191,8 @@ function App() {
       </div>
     );
   }
+
+  const showAnnouncement = siteSettings.announcement_enabled && siteSettings.announcement_text;
 
   return (
     <div className="App">
