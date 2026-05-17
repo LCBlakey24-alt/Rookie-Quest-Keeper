@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -7,16 +6,15 @@ import { ArrowLeft, BookOpen, Check, Shield, Star, Trash2, User, Users, X } from
 import RuleSystemManager from './RuleSystemManager';
 import TemplateEditor from './TemplateEditor';
 import AdminUsersTab from './admin/AdminUsersTab';
-import { API_BASE } from '@/lib/api';
-
-const API = API_BASE;
+import AdminSiteControlTab from './admin/AdminSiteControlTab';
+import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: { black: '#0B0F19', panel: '#111827', card: '#0F2440', tab: '#0A1628' },
-  gold: '#D4A017',
-  text: { white: '#FFFFFF', secondary: '#B8B8B8', muted: '#808080' },
-  border: 'rgba(212, 160, 23, 0.25)',
-  borderStrong: 'rgba(212, 160, 23, 0.45)'
+  bg: { black: '#1F1F23', panel: '#27272B', card: '#323235', tab: '#27272B' },
+  gold: '#EF4444',
+  text: { white: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
+  border: 'rgba(239, 68, 68, 0.28)',
+  borderStrong: 'rgba(239, 68, 68, 0.42)'
 };
 
 function AdminPage() {
@@ -25,6 +23,15 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('reviews');
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)');
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     checkAdminAndFetch();
@@ -32,7 +39,7 @@ function AdminPage() {
 
   const checkAdminAndFetch = async () => {
     try {
-      const adminCheck = await axios.get(`${API}/admin/check`);
+      const adminCheck = await apiClient.get('/admin/check');
       if (!adminCheck.data.is_admin) {
         toast.error('Admin access required');
         navigate('/home');
@@ -48,8 +55,8 @@ function AdminPage() {
   const fetchData = async () => {
     try {
       const [reviewsRes, usersRes] = await Promise.all([
-        axios.get(`${API}/reviews/all`).catch(() => ({ data: [] })),
-        axios.get(`${API}/admin/users`).catch(() => ({ data: [] }))
+        apiClient.get('/reviews/all').catch(() => ({ data: [] })),
+        apiClient.get('/admin/users').catch(() => ({ data: [] }))
       ]);
       setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : []);
       setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
@@ -68,7 +75,7 @@ function AdminPage() {
 
   const handleToggleReview = async (reviewId) => {
     try {
-      const response = await axios.put(`${API}/reviews/${reviewId}/approve`);
+      const response = await apiClient.put(`/reviews/${reviewId}/approve`);
       toast.success(response.data.message);
       fetchData();
     } catch (error) {
@@ -79,7 +86,7 @@ function AdminPage() {
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm('Delete this review?')) return;
     try {
-      await axios.delete(`${API}/reviews/${reviewId}`);
+      await apiClient.delete(`/reviews/${reviewId}`);
       toast.success('Review deleted');
       fetchData();
     } catch (error) {
@@ -91,7 +98,8 @@ function AdminPage() {
     { id: 'reviews', label: `Reviews (${reviews.length})`, icon: Star },
     { id: 'rules', label: 'Rule Systems', icon: BookOpen },
     { id: 'templates', label: 'Templates', icon: Users },
-    { id: 'users', label: 'Users', icon: User }
+    { id: 'users', label: 'Users', icon: User },
+    { id: 'site', label: 'Site Control', icon: Shield }
   ];
 
   if (loading) {
@@ -151,7 +159,23 @@ function AdminPage() {
           <StatCard label="Visible Reviews" value={stats.visibleReviews} icon={Check} />
         </div>
 
-        <div style={{ display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap' }}>
+        {isMobile ? (
+          <div style={{ marginBottom: 16 }}>
+            <label htmlFor="admin-tab-select" style={{ display: 'block', color: theme.text.muted, marginBottom: 6, fontSize: 12 }}>
+              Admin section
+            </label>
+            <select
+              id="admin-tab-select"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              style={{ width: '100%', background: theme.bg.tab, color: theme.text.white, border: `1px solid ${theme.borderStrong}`, padding: '12px 10px' }}
+            >
+              {tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+            </select>
+          </div>
+        ) : null}
+
+        <div style={{ display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap', overflowX: 'auto' }}>
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -210,6 +234,7 @@ function AdminPage() {
         )}
 
         {activeTab === 'users' && <AdminUsersTab />}
+        {activeTab === 'site' && <AdminSiteControlTab />}
       </div>
     </div>
   );

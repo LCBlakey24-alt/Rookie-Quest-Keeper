@@ -356,7 +356,7 @@ body {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-black);
   color: var(--text-primary);
-  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -369,7 +369,10 @@ body {
 
 /* Main App Container */
 .App {
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--bg-black);
 }
 
@@ -378,7 +381,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-black);
 }
 

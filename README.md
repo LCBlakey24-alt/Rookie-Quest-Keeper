@@ -103,7 +103,11 @@ yarn build
 
 ```bash
 cd backend
+# Fast default run (integration tests are opt-in)
 pytest
+
+# Run integration tests explicitly
+pytest --run-integration -m integration
 ```
 
 Manual smoke test:
