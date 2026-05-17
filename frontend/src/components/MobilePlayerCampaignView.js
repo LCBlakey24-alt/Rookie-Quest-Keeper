@@ -213,11 +213,12 @@ function InfoPill({ label, value }) {
 }
 
 const pageStyle = {
-  minHeight: '100vh',
+  minHeight: '100dvh',
   background: theme.bg,
   padding: 12,
   display: 'flex',
   flexDirection: 'column',
+  overflowY: 'auto',
   gap: 12,
 };
 

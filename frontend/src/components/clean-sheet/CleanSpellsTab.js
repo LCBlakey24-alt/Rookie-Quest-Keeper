@@ -13,6 +13,44 @@ function normaliseSpell(spell) {
   };
 }
 
+
+
+function classifySpellRole(spell) {
+  const text = `${spell.name || ''} ${spell.description || ''}`.toLowerCase();
+  if (/heal|cure|restoration|shield|ward|protection|resist/.test(text)) return 'defense';
+  if (/bolt|blast|fire|lightning|thunder|ray|smite|damage/.test(text)) return 'offense';
+  return 'utility';
+}
+
+function getRookSuggestedLoadouts(spells = [], preparedCount = 0) {
+  const normalized = spells.map(normaliseSpell);
+  const nonCantrips = normalized.filter(s => Number(s.level || 0) > 0);
+  const target = Math.max(1, preparedCount || Math.min(6, nonCantrips.length));
+  const byRole = {
+    offense: nonCantrips.filter(s => classifySpellRole(s) === 'offense'),
+    defense: nonCantrips.filter(s => classifySpellRole(s) === 'defense'),
+    utility: nonCantrips.filter(s => classifySpellRole(s) === 'utility'),
+  };
+
+  const balanced = [];
+  const queues = [byRole.offense, byRole.defense, byRole.utility];
+  let idx = 0;
+  while (balanced.length < target && queues.some(q => q.length)) {
+    const q = queues[idx % queues.length];
+    if (q.length) balanced.push(q.shift());
+    idx += 1;
+  }
+
+  const glassCannon = [...(byRole.offense || []), ...(byRole.utility || []), ...(byRole.defense || [])].slice(0, target);
+  const survivor = [...(byRole.defense || []), ...(byRole.utility || []), ...(byRole.offense || [])].slice(0, target);
+
+  return [
+    { id: 'rook-balanced', label: 'Rook Balanced', spells: balanced },
+    { id: 'rook-glass', label: 'Rook Blaster', spells: glassCannon },
+    { id: 'rook-survivor', label: 'Rook Survivor', spells: survivor },
+  ].filter(pack => pack.spells.length > 0);
+}
+
 function spellLevelLabel(level) {
   if (level === 0 || level === '0') return 'Cantrip';
   if (!level && level !== 0) return 'Spell';
@@ -113,9 +151,130 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const spellAbility = character?.spellcasting_ability || '';
   const spellDc = character?.spell_save_dc || '';
   const spellAttack = character?.spell_attack_bonus || '';
+  const [loadoutName, setLoadoutName] = useState('');
 
   const sortedKnown = useMemo(() => [...known].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [known]);
   const sortedPrepared = useMemo(() => [...prepared].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [prepared]);
+
+  const loadoutStorageKey = `rq.spell_loadouts.${character?.id || character?._id || 'unknown'}`;
+  const savedLoadouts = useMemo(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(loadoutStorageKey) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [loadoutStorageKey, sortedPrepared.length]);
+
+  const rookSuggestions = useMemo(() => {
+    const source = sortedKnown.length > 0 ? sortedKnown : sortedPrepared;
+    return getRookSuggestedLoadouts(source, sortedPrepared.length);
+  }, [sortedKnown, sortedPrepared]);
+
+  const applyPreparedSet = async (spells) => {
+    if (!onCharacterUpdate) return false;
+    const ok = await onCharacterUpdate({ spells_prepared: spells.map(normaliseSpell) }, { error: 'Could not apply spell loadout' });
+    if (ok !== false) toast.success('Prepared spells updated');
+    return ok;
+  };
+
+
+
+
+  const exportLoadouts = () => {
+    try {
+      const blob = new Blob([JSON.stringify({ character_id: character?.id, loadouts: savedLoadouts }, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `spell-loadouts-${character?.id || 'character'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Spell setups exported');
+    } catch {
+      toast.error('Failed to export spell setups');
+    }
+  };
+
+  const importLoadouts = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const incoming = Array.isArray(data) ? data : (Array.isArray(data.loadouts) ? data.loadouts : []);
+      if (!incoming.length) {
+        toast.error('No spell setups found in file');
+        return;
+      }
+      const normalized = incoming
+        .filter(l => l && typeof l.name === 'string' && Array.isArray(l.spells))
+        .map(l => ({ name: l.name.trim().slice(0, 40), spells: l.spells.map(normaliseSpell) }))
+        .filter(l => l.name && l.spells.length);
+      if (!normalized.length) {
+        toast.error('No valid spell setups found');
+        return;
+      }
+      const merged = [...savedLoadouts];
+      normalized.forEach((l) => {
+        const idx = merged.findIndex(x => x.name.toLowerCase() === l.name.toLowerCase());
+        if (idx >= 0) merged[idx] = l;
+        else merged.push(l);
+      });
+      localStorage.setItem(loadoutStorageKey, JSON.stringify(merged.slice(-20)));
+      toast.success(`Imported ${normalized.length} spell setups`);
+    } catch {
+      toast.error('Failed to import spell setups');
+    }
+  };
+
+  const deleteLoadout = (name) => {
+    try {
+      const next = savedLoadouts.filter(l => l.name !== name);
+      localStorage.setItem(loadoutStorageKey, JSON.stringify(next));
+      toast.success('Spell setup deleted');
+    } catch {
+      toast.error('Failed to delete setup');
+    }
+  };
+
+
+
+  const applyLoadoutAfterLongRest = async (loadout) => {
+    if (!onCharacterUpdate) return false;
+    const fullSlots = Object.fromEntries(
+      Object.keys(slots || {}).map((k) => [k, Number(slots[k] || 0)])
+    );
+    const ok = await onCharacterUpdate(
+      {
+        spells_prepared: (loadout?.spells || []).map(normaliseSpell),
+        spell_slots_remaining: fullSlots,
+      },
+      { error: 'Could not apply long-rest spell setup' }
+    );
+    if (ok !== false) toast.success(`Applied ${loadout?.name || 'setup'} and restored slots`);
+    return ok;
+  };
+
+  const saveCurrentLoadout = () => {
+    const name = loadoutName.trim();
+    if (!name) { toast.error('Name your spell setup first'); return; }
+    try {
+      const next = [
+        ...savedLoadouts.filter(l => l.name.toLowerCase() !== name.toLowerCase()),
+        { name, spells: sortedPrepared.map(normaliseSpell) }
+      ].slice(-12);
+      localStorage.setItem(loadoutStorageKey, JSON.stringify(next));
+      toast.success('Spell setup saved');
+      setLoadoutName('');
+    } catch {
+      toast.error('Failed to save setup');
+    }
+  };
+
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
@@ -131,6 +290,50 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div><span>Save DC</span><strong>{spellDc || '—'}</strong></div>
           <div><span>Attack</span><strong>{spellAttack ? `+${spellAttack}` : '—'}</strong></div>
         </div>
+      </section>
+
+
+
+      <section className="clean-sheet-panel clean-sheet-wide">
+        <h2>Rook Spell Setups</h2>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          <input
+            value={loadoutName}
+            onChange={(e) => setLoadoutName(e.target.value)}
+            placeholder="Save current prepared spells as..."
+            style={{ flex: '1 1 220px', padding: '8px 10px', background: '#0f172a', color: '#fff', border: '1px solid #334155' }}
+          />
+          <button type="button" onClick={saveCurrentLoadout}>Save Setup</button>
+          <button type="button" onClick={exportLoadouts}>Export Setups</button>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+            Import Setups
+            <input type="file" accept="application/json" onChange={importLoadouts} style={{ display: 'none' }} />
+          </label>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          {rookSuggestions.map(sg => (
+            <button key={sg.id} type="button" onClick={() => applyPreparedSet(sg.spells)}>
+              Apply {sg.label}
+            </button>
+          ))}
+        </div>
+        {savedLoadouts.length > 0 ? (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {savedLoadouts.map((l, idx) => (
+              <div key={`${l.name}-${idx}`} style={{ display: 'inline-flex', gap: 6 }}>
+                <button type="button" onClick={() => applyPreparedSet(l.spells)}>
+                  Load {l.name} ({l.spells?.length || 0})
+                </button>
+                <button type="button" onClick={() => applyLoadoutAfterLongRest(l)} title="Apply setup and restore spell slots">
+                  Rest+Load
+                </button>
+                <button type="button" onClick={() => deleteLoadout(l.name)} title="Delete setup">
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : <p className="clean-sheet-muted">No saved spell setups yet.</p>}
       </section>
 
       <SpellSlots slots={slots} remaining={remaining} onChangeSlots={handleSlotChange} />

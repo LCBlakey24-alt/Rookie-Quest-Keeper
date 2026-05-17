@@ -107,8 +107,16 @@ function UnifiedDashboard({ username, onLogout }) {
   }, []);
 
   useEffect(() => {
-    const adminUsers = ['rookiequestadmin', 'criticalfusion', 'admin', 'lcblakey24'];
-    setIsAdmin(adminUsers.some(admin => username?.toLowerCase().includes(admin)));
+    let alive = true;
+    (async () => {
+      try {
+        const res = await axios.get(`${API}/admin/check`);
+        if (alive) setIsAdmin(!!res.data?.is_admin);
+      } catch {
+        if (alive) setIsAdmin(false);
+      }
+    })();
+    return () => { alive = false; };
   }, [username]);
 
   const fetchAllData = async () => {
@@ -344,7 +352,7 @@ function UnifiedDashboard({ username, onLogout }) {
   if (loading) {
     return (
       <div style={{ 
-        minHeight: '100vh', 
+        minHeight: '100dvh', 
         background: theme.bg.primary,
         display: 'flex',
         alignItems: 'center',
@@ -357,7 +365,7 @@ function UnifiedDashboard({ username, onLogout }) {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      minHeight: '100dvh', 
       background: theme.bg.primary,
       display: 'flex',
       flexDirection: 'column',
@@ -655,7 +663,7 @@ function UnifiedDashboard({ username, onLogout }) {
         flex: 1,
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        minHeight: 'calc(100vh - 70px)',
+        minHeight: 'calc(100dvh - 70px)',
         gap: '0'
       }}>
         {/* LEFT: Characters - Player Section */}

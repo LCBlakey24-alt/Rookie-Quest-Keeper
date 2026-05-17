@@ -492,7 +492,7 @@ function GMScreen({ username }) {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      minHeight: '100dvh', 
       background: '#1F1F23',
       position: 'relative'
     }}>
@@ -664,7 +664,7 @@ function GMScreen({ username }) {
         display: 'flex', 
         flex: 1,
         overflow: 'hidden',
-        height: 'calc(100vh - 60px)'
+        height: 'calc(100dvh - 60px)'
       }}>
         {/* LEFT SIDEBAR - Tab Navigation */}
         <div style={{

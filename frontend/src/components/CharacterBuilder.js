@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../lib/apiClient";
 import { toast } from "sonner";
 import {
   User, Sword, Shield, Sparkles, Dices, ChevronLeft, ChevronRight,
@@ -19,7 +19,6 @@ import {
 import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e";
 import { getFeatsByEdition } from "../data/levelUpData";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
-import { API_BASE } from "../lib/api";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
 
@@ -164,6 +163,8 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const [fightingStyle, setFightingStyle] = useState(initialState.fightingStyle || '');
   const [selectedCantrips, setSelectedCantrips] = useState(initialState.selectedCantrips || []);
   const [selectedSpells, setSelectedSpells] = useState(initialState.selectedSpells || []);
+  const [spellSearch, setSpellSearch] = useState('');
+  const [spellSchoolFilter, setSpellSchoolFilter] = useState('all');
   const [equipmentChoice, setEquipmentChoice] = useState(initialState.equipmentChoice || 'A');
   const [originFeat, setOriginFeat] = useState(initialState.originFeat || ''); // 2024 only
   const [srdSpells, setSrdSpells] = useState([]);
@@ -184,7 +185,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const loadCharacterForEdit = async () => {
     try {
       setLoadingCharacter(true);
-      const { data: char } = await axios.get(`${API_BASE}/characters/${characterId}`);
+      const { data: char } = await apiClient.get(`/characters/${characterId}`);
       setName(char.name || "");
       setRace(char.race || "");
       setSubrace(char.subrace || "");
@@ -211,7 +212,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
       setSelectedSkills(editedSkills);
       setMethod("manual");
     } catch (error) {
-      toast.error("Failed to load character for editing");
+      toast.error(error?.response?.data?.detail || "Failed to load character for editing");
       navigate("/home");
     } finally {
       setLoadingCharacter(false);
@@ -225,7 +226,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const [homebrew, setHomebrew] = useState({ race: [], class: [], background: [] });
   useEffect(() => {
     let cancelled = false;
-    axios.get(`${API_BASE}/homebrew`).then(res => {
+    apiClient.get(`/homebrew`).then(res => {
       if (cancelled) return;
       const hb = res.data?.homebrew || {};
       setHomebrew({
@@ -319,14 +320,19 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
       return;
     }
     setSpellsLoading(true);
-    axios.get(`${API_BASE}/srd/spells`, { params: { class_name: className } })
+    apiClient.get(`/srd/spells`, { params: { class_name: className } })
       .then(res => setSrdSpells(res.data?.spells || []))
-      .catch(() => toast.error('Failed to load spells'))
+      .catch((error) => toast.error(error?.response?.data?.detail || 'Failed to load spells'))
       .finally(() => setSpellsLoading(false));
   }, [className]);
 
   // Reset spell picks when class changes
-  useEffect(() => { setSelectedCantrips([]); setSelectedSpells([]); }, [className]);
+  useEffect(() => {
+    if (!className) { setSelectedCantrips([]); setSelectedSpells([]); return; }
+    const allowed = new Set((srdSpells || []).map(sp => sp.name));
+    setSelectedCantrips(prev => prev.filter(name => allowed.has(name)).slice(0, neededSpells.cantrips || 0));
+    setSelectedSpells(prev => prev.filter(name => allowed.has(name)).slice(0, neededSpells.spells || 0));
+  }, [className, srdSpells, neededSpells.cantrips, neededSpells.spells]);
 
   // Reset fighting style when class changes to non-FS class
   useEffect(() => {
@@ -412,6 +418,11 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
 
   // Spell counts for the current class at level 1
   const spellReq = SPELL_COUNTS_L1[className] || null;
+
+  useEffect(() => {
+    setSpellSearch('');
+    setSpellSchoolFilter('all');
+  }, [className]);
   const wisMod = Math.floor((Number(stats.wisdom || 10) - 10) / 2);
   const intMod = Math.floor((Number(stats.intelligence || 10) - 10) / 2);
   const neededSpells = useMemo(() => {
@@ -515,6 +526,9 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
 
   const handleSubmit = async () => {
     if (!name.trim()) { toast.error('Please enter a character name'); return; }
+    if (!race) { toast.error('Please choose a race'); return; }
+    if (!className) { toast.error('Please choose a class'); return; }
+    if (!background) { toast.error('Please choose a background'); return; }
     if (!validateAbilityScores(stats)) { toast.error(`Scores must be ${MIN_ABILITY_SCORE}-${MAX_ABILITY_SCORE}`); return; }
 
     const finalScores = isEditMode ? stats : finalStats;
@@ -606,11 +620,11 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
         if (selectedSkills.length || backgroundSkills.length) {
           updatePayload.skill_proficiencies = allSkills;
         }
-        await axios.patch(`${API_BASE}/characters/${characterId}`, updatePayload);
+        await apiClient.patch(`/characters/${characterId}`, updatePayload);
         toast.success("Character updated!");
         navigate(`/characters/${characterId}`);
       } else {
-        const response = await axios.post(`${API_BASE}/characters`, payload);
+        const response = await apiClient.post(`/characters`, payload);
         onCreateCharacter?.(response.data?.character);
         localStorage.removeItem(DRAFT_KEY);
         toast.success("Character created!");
@@ -625,7 +639,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
 
   // ============ STYLES ============
   const pageStyle = {
-    minHeight: '100vh',
+    minHeight: '100dvh',
     background: theme.bg.primary,
     padding: '24px',
     color: theme.text.primary
@@ -1159,8 +1173,12 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   );
 
   const renderSpellsStep = () => {
-    const cantrips = srdSpells.filter(s => s.level === 0);
-    const lvl1Spells = srdSpells.filter(s => s.level === 1);
+    const q = spellSearch.trim().toLowerCase();
+    const bySchool = (s) => spellSchoolFilter === 'all' || (s.school || '').toLowerCase() === spellSchoolFilter;
+    const byQuery = (s) => !q || (s.name || '').toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q);
+    const cantrips = srdSpells.filter(s => s.level === 0 && bySchool(s) && byQuery(s));
+    const lvl1Spells = srdSpells.filter(s => s.level === 1 && bySchool(s) && byQuery(s));
+    const schools = Array.from(new Set(srdSpells.map(sp => (sp.school || '').toLowerCase()).filter(Boolean))).sort();
     const toggleCantrip = (name) => {
       setSelectedCantrips(prev => {
         if (prev.includes(name)) return prev.filter(x => x !== name);
@@ -1205,6 +1223,30 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     return (
       <div>
         <StepHeader icon={Wand2} title="Choose Your Spells" subtitle={`${className} gets ${neededSpells.cantrips} cantrips and ${neededSpells.spells} L1 spell${neededSpells.spells === 1 ? '' : 's'} at Level 1`} color={theme.sunset.purple} />
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          <input
+            value={spellSearch}
+            onChange={(e) => setSpellSearch(e.target.value)}
+            placeholder="Search spells by name or text..."
+            style={{ ...inputStyle, maxWidth: 320, padding: '10px 12px', fontSize: 13 }}
+          />
+          <select
+            value={spellSchoolFilter}
+            onChange={(e) => setSpellSchoolFilter(e.target.value)}
+            style={{ ...inputStyle, maxWidth: 220, padding: '10px 12px', fontSize: 13 }}
+          >
+            <option value="all">All schools</option>
+            {schools.map(sc => <option key={sc} value={sc}>{sc[0].toUpperCase() + sc.slice(1)}</option>)}
+          </select>
+          <button
+            type="button"
+            onClick={() => { setSelectedCantrips([]); setSelectedSpells([]); }}
+            style={{ padding: '10px 12px', border: `1px solid ${theme.border}`, background: 'rgba(31, 31, 35, 0.5)', color: theme.text.secondary, cursor: 'pointer' }}
+          >
+            Clear picks
+          </button>
+        </div>
+
         {spellsLoading && <div style={{ color: theme.text.muted, padding: 20 }}>Loading spells…</div>}
         {!spellsLoading && (
           <>

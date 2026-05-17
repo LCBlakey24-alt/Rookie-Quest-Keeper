@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, ADMIN_USERNAMES, logger
 from utils.auth import get_current_user
 from models import (
-    Review, ReviewCreate, CustomCreature, CustomCreatureCreate,
+    Review, ReviewCreate, CustomCreature, CustomCreatureCreate, SiteSettingsUpdate,
 )
 
 router = APIRouter()
@@ -215,10 +215,70 @@ async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatu
 
 # ==================== ADMIN ROUTES ====================
 
+
+
+
+
+@router.get("/site-settings")
+async def get_public_site_settings():
+    """Public subset of site settings for runtime UX controls."""
+    doc = await db.site_settings.find_one({'id': 'global'}, {'_id': 0}) or {}
+    return {
+        'announcement_enabled': bool(doc.get('announcement_enabled', False)),
+        'announcement_text': str(doc.get('announcement_text', ''))[:240],
+        'maintenance_mode': bool(doc.get('maintenance_mode', False)),
+    }
+
+@router.get("/admin/overview")
+async def admin_overview(username: str = Depends(get_current_user)):
+    """Admin-only high-level site metrics for dashboard controls."""
+    await verify_admin(username)
+    users_count = await db.users.count_documents({})
+    campaigns_count = await db.campaigns.count_documents({})
+    characters_count = await db.characters.count_documents({})
+    reviews_count = await db.reviews.count_documents({})
+    approved_reviews_count = await db.reviews.count_documents({'is_approved': True})
+    return {
+        'users_count': users_count,
+        'campaigns_count': campaigns_count,
+        'characters_count': characters_count,
+        'reviews_count': reviews_count,
+        'approved_reviews_count': approved_reviews_count,
+    }
+
+
+@router.get("/admin/site-settings")
+async def get_admin_site_settings(username: str = Depends(get_current_user)):
+    """Admin-only site settings control panel."""
+    await verify_admin(username)
+    doc = await db.site_settings.find_one({'id': 'global'}, {'_id': 0})
+    return doc or {
+        'id': 'global',
+        'announcement_enabled': False,
+        'announcement_text': '',
+        'maintenance_mode': False,
+    }
+
+
+@router.put("/admin/site-settings")
+async def update_admin_site_settings(payload: SiteSettingsUpdate, username: str = Depends(get_current_user)):
+    """Admin-only update for site-level runtime settings."""
+    await verify_admin(username)
+    allowed = {
+        'announcement_enabled': payload.announcement_enabled,
+        'announcement_text': payload.announcement_text.strip()[:240],
+        'maintenance_mode': payload.maintenance_mode,
+        'updated_by': username,
+    }
+    await db.site_settings.update_one({'id': 'global'}, {'$set': allowed, '$setOnInsert': {'id': 'global'}}, upsert=True)
+    doc = await db.site_settings.find_one({'id': 'global'}, {'_id': 0})
+    return {'message': 'Site settings updated', 'settings': doc}
+
 @router.get("/admin/check")
 async def check_admin_status(username: str = Depends(get_current_user)):
     """Check if current user is admin"""
-    return {"is_admin": username.lower() in ADMIN_USERNAMES}
+    admins = {a.lower() for a in ADMIN_USERNAMES}
+    return {"is_admin": username.lower() in admins}
 
 # ==================== IMPERSONATION ====================
 

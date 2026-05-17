@@ -1,9 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { API_BASE } from '@/lib/api';
-
-const API = API_BASE;
 const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
@@ -112,6 +109,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
   const [itemSearch, setItemSearch] = useState('');
+  const [equippedAttackBonus, setEquippedAttackBonus] = useState(0);
   const equipped = character?.equipped || {};
   const equipment = character?.equipment || [];
   const inventory = character?.inventory || [];
@@ -125,14 +123,20 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
     return allCarriedItems.filter(item => `${getItemName(item)} ${getItemDetail(item)}`.toLowerCase().includes(q));
   }, [allCarriedItems, itemSearch]);
 
+  const makeWeaponRoll = (item) => {
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + (Number(equippedAttackBonus) || 0);
+    toast.success(`${getItemName(item)} attack: ${roll}${equippedAttackBonus ? ` + ${equippedAttackBonus}` : ''} = ${total}`);
+  };
+
   const saveEquipped = async (nextEquipped, slotLabel) => {
     setSavingSlot(slotLabel);
     try {
-      await axios.patch(`${API}/characters/${character.id}`, { equipped: nextEquipped });
+      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped });
       onCharacterUpdate?.({ equipped: nextEquipped });
       toast.success('Equipment updated');
     } catch (error) {
-      toast.error('Could not update equipment');
+      toast.error(error?.response?.data?.detail || 'Could not update equipment');
     } finally {
       setSavingSlot('');
     }
@@ -141,12 +145,12 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const saveInventory = async (nextInventory, message = 'Inventory updated') => {
     setSavingItems(true);
     try {
-      await axios.patch(`${API}/characters/${character.id}`, { inventory: nextInventory });
+      await apiClient.patch(`/characters/${character.id}`, { inventory: nextInventory });
       onCharacterUpdate?.({ inventory: nextInventory });
       toast.success(message);
       return true;
     } catch (error) {
-      toast.error('Could not update inventory');
+      toast.error(error?.response?.data?.detail || 'Could not update inventory');
       return false;
     } finally {
       setSavingItems(false);
@@ -228,7 +232,11 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
       <section className="clean-sheet-panel clean-sheet-wide">
         <div className="clean-sheet-inventory-header">
           <h2>Equipped</h2>
-          <button type="button" onClick={() => setShowAddItem(prev => !prev)}>{showAddItem ? 'Close Add Item' : 'Add Item'}</button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label style={{ fontSize: 12 }}>Atk Bonus</label>
+            <input type="number" value={equippedAttackBonus} onChange={e => setEquippedAttackBonus(Number(e.target.value) || 0)} style={{ width: 70 }} />
+            <button type="button" onClick={() => setShowAddItem(prev => !prev)}>{showAddItem ? 'Close Add Item' : 'Add Item'}</button>
+          </div>
         </div>
         <div className="clean-sheet-item-grid">
           {EQUIP_SLOTS.map(([slot, label]) => {
@@ -238,7 +246,10 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
                 key={slot}
                 slot={label}
                 item={item}
-                actions={<button type="button" onClick={() => clearSlot(slot)} disabled={savingSlot === slot}>Clear Slot</button>}
+                actions={(<>
+                  {String(item?.type || '').toLowerCase().includes('weapon') && <button type="button" onClick={() => makeWeaponRoll(item)}>Attack Roll</button>}
+                  <button type="button" onClick={() => clearSlot(slot)} disabled={savingSlot === slot}>Clear Slot</button>
+                </>)}
               />
             ) : (
               <div key={slot} className="clean-sheet-item-card clean-sheet-empty-slot">
