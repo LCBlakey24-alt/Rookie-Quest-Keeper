@@ -326,6 +326,15 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
       .finally(() => setSpellsLoading(false));
   }, [className]);
 
+  const neededSpells = useMemo(() => {
+    if (!spellReq) return { cantrips: 0, spells: 0 };
+    // Cleric/Druid prepare spells: count = casting ability mod + level (min 1)
+    if (className === 'Cleric') return { cantrips: 3, spells: Math.max(1, wisMod + 1) };
+    if (className === 'Druid') return { cantrips: 2, spells: Math.max(1, wisMod + 1) };
+    if (className === 'Wizard') return { cantrips: 3, spells: 6 };
+    return spellReq;
+  }, [className, wisMod, intMod, spellReq]);
+
   // Reset spell picks when class changes
   useEffect(() => {
     if (!className) { setSelectedCantrips([]); setSelectedSpells([]); return; }
@@ -425,14 +434,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   }, [className]);
   const wisMod = Math.floor((Number(stats.wisdom || 10) - 10) / 2);
   const intMod = Math.floor((Number(stats.intelligence || 10) - 10) / 2);
-  const neededSpells = useMemo(() => {
-    if (!spellReq) return { cantrips: 0, spells: 0 };
-    // Cleric/Druid prepare spells: count = casting ability mod + level (min 1)
-    if (className === 'Cleric') return { cantrips: 3, spells: Math.max(1, wisMod + 1) };
-    if (className === 'Druid') return { cantrips: 2, spells: Math.max(1, wisMod + 1) };
-    if (className === 'Wizard') return { cantrips: 3, spells: 6 };
-    return spellReq;
-  }, [className, wisMod, intMod, spellReq]);
+
 
   // Toggle a class skill (cannot exceed count, cannot pick if already from background)
   const toggleSkill = (skill) => {
