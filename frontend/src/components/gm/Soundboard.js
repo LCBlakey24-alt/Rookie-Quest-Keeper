@@ -165,7 +165,7 @@ export default function Soundboard({ theme, campaignId }) {
       // For now, show a placeholder message
       if (!soundUrl) {
         // This is a built-in sound - in production, you'd have actual URLs
-        console.log(`Playing ${soundId} sound (placeholder)`);
+        // Placeholder until audio pipeline is wired for this sound id.
       }
       
       // Create or get audio element

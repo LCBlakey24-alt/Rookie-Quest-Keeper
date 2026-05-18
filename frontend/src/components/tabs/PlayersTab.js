@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo } from 'react';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, ChevronRight, ChevronLeft, Check, User, Dices, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronRight, ChevronLeft, Check, User, Dices, RotateCcw, Upload, Download } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // Fantasy TTRPG 5e 2024 Data
 const DND_DATA = {
@@ -131,17 +129,28 @@ function PlayersTab({ campaignId }) {
   const [rolledStats, setRolledStats] = useState([]);
   const [rolledAssignments, setRolledAssignments] = useState({});
   const [isRolling, setIsRolling] = useState(false);
+  const [playerSearch, setPlayerSearch] = useState(() => { try { return localStorage.getItem('players.search') || ''; } catch { return ''; } });
+  const [playerSort, setPlayerSort] = useState(() => { try { return localStorage.getItem('players.sort') || 'name_asc'; } catch { return 'name_asc'; } });
 
   useEffect(() => {
     fetchPlayers();
   }, [campaignId]);
 
+
+  useEffect(() => {
+    try { localStorage.setItem('players.search', playerSearch); } catch {}
+  }, [playerSearch]);
+
+  useEffect(() => {
+    try { localStorage.setItem('players.sort', playerSort); } catch {}
+  }, [playerSort]);
+
   const fetchPlayers = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/players`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/players`);
       setPlayers(response.data);
     } catch (error) {
-      toast.error('Failed to load players');
+      toast.error(error?.response?.data?.detail || 'Failed to load players');
     } finally {
       setLoading(false);
     }
@@ -149,19 +158,55 @@ function PlayersTab({ campaignId }) {
 
   const calculateModifier = (stat) => Math.floor((stat - 10) / 2);
 
-  const calculateHP = () => {
-    if (!characterData.class) return 10;
-    const classData = DND_DATA.classes.find(c => c.id === characterData.class);
-    const conMod = calculateModifier(characterData.stats.constitution);
-    // HP = Hit Die + CON mod at level 1, then average + CON mod per level
-    const baseHP = classData.hitDie + conMod;
-    const levelHP = characterData.level > 1 ? (characterData.level - 1) * (Math.floor(classData.hitDie / 2) + 1 + conMod) : 0;
-    return Math.max(1, baseHP + levelHP);
+  const normalizeStatValue = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 10;
+    return Math.max(1, Math.min(30, Math.floor(n)));
   };
 
-  const calculateAC = () => {
-    return 10 + calculateModifier(characterData.stats.dexterity);
+  const normalizeStats = (stats) => {
+    const base = {};
+    STAT_NAMES.forEach((stat) => { base[stat] = normalizeStatValue(stats?.[stat]); });
+    return base;
   };
+
+  const getClassById = (classId) => DND_DATA.classes.find(c => c.id === classId) || null;
+
+  const deriveCombatCore = ({ classId, level, stats }) => {
+    const cls = getClassById(classId);
+    const safeLevel = Math.max(1, Math.min(20, Number(level) || 1));
+    const safeStats = normalizeStats(stats);
+    const hitDie = cls?.hitDie || 8;
+    const conMod = calculateModifier(safeStats.constitution);
+    const dexMod = calculateModifier(safeStats.dexterity);
+    const baseHP = hitDie + conMod;
+    const levelHP = safeLevel > 1 ? (safeLevel - 1) * (Math.floor(hitDie / 2) + 1 + conMod) : 0;
+    const maxHP = Math.max(1, baseHP + levelHP);
+    const ac = 10 + dexMod;
+    return { safeLevel, safeStats, maxHP, ac, cls };
+  };
+
+  const calculateHP = () => deriveCombatCore({ classId: characterData.class, level: characterData.level, stats: characterData.stats }).maxHP;
+
+  const calculateAC = () => deriveCombatCore({ classId: characterData.class, level: characterData.level, stats: characterData.stats }).ac;
+
+  const parsePlayerMetadata = (player) => {
+    const notesText = player?.notes || '';
+    const raceMatch = notesText.match(/Race:\s*([^\n]+)/i);
+    const backgroundMatch = notesText.match(/Background:\s*([^\n]+)/i);
+    const raceRaw = raceMatch ? raceMatch[1].trim() : (player?.race || '');
+    const raceBase = raceRaw.split(' (')[0];
+    const classRaw = player?.character_class || '';
+    const classBase = classRaw.split(' (')[0];
+    return {
+      raceLabel: raceRaw || player?.race || 'Unknown Race',
+      classLabel: classRaw || 'Adventurer',
+      backgroundLabel: (backgroundMatch?.[1] || '').trim() || 'Unknown Background',
+      raceData: DND_DATA.races.find(r => r.name === raceBase) || null,
+      classData: DND_DATA.classes.find(c => c.name === classBase) || null,
+    };
+  };
+
 
   // Roll 4d6 drop lowest
   const roll4d6DropLowest = () => {
@@ -194,32 +239,7 @@ function PlayersTab({ campaignId }) {
     }, 100);
   };
 
-  // Apply stats based on method
-  const applyStats = () => {
-    let newStats = { ...characterData.stats };
-    
-    if (statMethod === 'standard') {
-      STAT_NAMES.forEach(stat => {
-        if (standardArrayAssignments[stat] !== undefined) {
-          newStats[stat] = standardArrayAssignments[stat];
-        }
-      });
-    } else if (statMethod === 'suggested') {
-      const classData = DND_DATA.classes.find(c => c.id === characterData.class);
-      if (classData?.suggestedStats) {
-        newStats = { ...classData.suggestedStats };
-      }
-    } else if (statMethod === 'rolled') {
-      STAT_NAMES.forEach(stat => {
-        if (rolledAssignments[stat] !== undefined) {
-          newStats[stat] = rolledStats[rolledAssignments[stat]].total;
-        }
-      });
-    }
-    // 'custom' keeps current stats
-    
-    setCharacterData({ ...characterData, stats: newStats });
-  };
+  // Stat assignment is resolved at submit-time through getResolvedStats().
 
   // Check if all standard array values are assigned
   const isStandardArrayComplete = () => {
@@ -245,55 +265,121 @@ function PlayersTab({ campaignId }) {
     return [0, 1, 2, 3, 4, 5].filter(idx => !assigned.includes(idx));
   };
 
+  const getResolvedStats = () => {
+    let newStats = { ...characterData.stats };
+    if (statMethod === 'standard') {
+      STAT_NAMES.forEach(stat => {
+        if (standardArrayAssignments[stat] !== undefined) newStats[stat] = standardArrayAssignments[stat];
+      });
+    } else if (statMethod === 'suggested') {
+      const classData = DND_DATA.classes.find(c => c.id === characterData.class);
+      if (classData?.suggestedStats) newStats = { ...classData.suggestedStats };
+    } else if (statMethod === 'rolled') {
+      STAT_NAMES.forEach(stat => {
+        if (rolledAssignments[stat] !== undefined && rolledStats[rolledAssignments[stat]]) {
+          newStats[stat] = rolledStats[rolledAssignments[stat]].total;
+        }
+      });
+    }
+    return normalizeStats(newStats);
+  };
+
+  const filteredPlayers = useMemo(() => {
+    const q = playerSearch.trim().toLowerCase();
+    const base = q
+      ? players.filter((p) => [p.name, p.character_class, p.race, p.subclass].filter(Boolean).some(v => String(v).toLowerCase().includes(q)))
+      : [...players];
+
+    base.sort((a, b) => {
+      if (playerSort === 'level_desc') return (b.level || 1) - (a.level || 1);
+      if (playerSort === 'level_asc') return (a.level || 1) - (b.level || 1);
+      if (playerSort === 'hp_desc') return (b.max_hp || 0) - (a.max_hp || 0);
+      return String(a.name || '').localeCompare(String(b.name || ''));
+    });
+    return base;
+  }, [players, playerSearch, playerSort]);
+
   const handleSubmit = async () => {
     if (!characterData.name || !characterData.race || !characterData.class) {
       toast.error('Please complete all required steps');
       return;
     }
 
-    // Apply stats before submitting
-    applyStats();
+    const normalizedName = characterData.name.trim();
+    if (!editingPlayer) {
+      const duplicate = players.some(p => String(p?.name || '').trim().toLowerCase() === normalizedName.toLowerCase());
+      if (duplicate) {
+        toast.error('A player with that name already exists in this campaign');
+        return;
+      }
+    }
 
+    if (statMethod === 'standard' && !isStandardArrayComplete()) {
+      toast.error('Assign all standard array values before saving');
+      return;
+    }
+    if (statMethod === 'rolled' && !isRolledComplete()) {
+      toast.error('Assign all rolled stats before saving');
+      return;
+    }
+
+    const resolvedStats = getResolvedStats();
     const classData = DND_DATA.classes.find(c => c.id === characterData.class);
     const raceData = DND_DATA.races.find(r => r.id === characterData.race);
     const backgroundData = DND_DATA.backgrounds.find(b => b.id === characterData.background);
 
+    const combatCore = deriveCombatCore({ classId: characterData.class, level: characterData.level, stats: resolvedStats });
+
     const formData = {
-      name: characterData.name,
+      name: normalizedName,
       character_class: `${classData.name}${characterData.subclass ? ` (${characterData.subclass})` : ''}`,
-      level: characterData.level,
-      hp: calculateHP(),
-      max_hp: calculateHP(),
-      ac: calculateAC(),
-      stats: characterData.stats,
+      level: combatCore.safeLevel,
+      hp: combatCore.maxHP,
+      max_hp: combatCore.maxHP,
+      ac: combatCore.ac,
+      stats: combatCore.safeStats,
       notes: `Race: ${raceData.name}${characterData.subrace ? ` (${characterData.subrace})` : ''}\nBackground: ${backgroundData?.name || 'None'}\nTraits: ${raceData.traits}`
     };
 
     try {
       if (editingPlayer) {
-        await axios.put(`${API}/campaigns/${campaignId}/players/${editingPlayer.id}`, formData);
+        await apiClient.put(`/campaigns/${campaignId}/players/${editingPlayer.id}`, formData);
         toast.success('Player updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/players`, formData);
+        await apiClient.post(`/campaigns/${campaignId}/players`, formData);
         toast.success('Player created!');
       }
       fetchPlayers();
       resetForm();
     } catch (error) {
-      toast.error('Failed to save player');
+      toast.error(error?.response?.data?.detail || 'Failed to save player');
     }
   };
 
   const handleEdit = (player) => {
     setEditingPlayer(player);
+    const notesText = player.notes || '';
+    const raceMatch = notesText.match(/Race:\s*([^\n]+)/i);
+    const raceRaw = raceMatch ? raceMatch[1].trim() : '';
+    const raceBase = raceRaw.split(' (')[0];
+    const subraceMatch = raceRaw.match(/\(([^)]+)\)/);
+    const classRaw = player.character_class || '';
+    const classBase = classRaw.split(' (')[0];
+    const subclassMatch = classRaw.match(/\(([^)]+)\)/);
+    const backgroundMatch = notesText.match(/Background:\s*([^\n]+)/i);
+
+    const resolvedRace = DND_DATA.races.find(r => r.name === raceBase)?.id || null;
+    const resolvedClass = DND_DATA.classes.find(c => c.name === classBase)?.id || null;
+    const resolvedBackground = DND_DATA.backgrounds.find(b => b.name === (backgroundMatch?.[1] || '').trim())?.id || null;
+
     setCharacterData({
       name: player.name,
       level: player.level,
-      race: null,
-      subrace: null,
-      class: null,
-      subclass: null,
-      background: null,
+      race: resolvedRace,
+      subrace: subraceMatch ? subraceMatch[1] : null,
+      class: resolvedClass,
+      subclass: subclassMatch ? subclassMatch[1] : null,
+      background: resolvedBackground,
       stats: player.stats,
       notes: player.notes
     });
@@ -305,11 +391,11 @@ function PlayersTab({ campaignId }) {
   const handleDelete = async (playerId) => {
     if (!window.confirm('Delete this player?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/players/${playerId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/players/${playerId}`);
       toast.success('Player deleted');
       fetchPlayers();
     } catch (error) {
-      toast.error('Failed to delete player');
+      toast.error(error?.response?.data?.detail || 'Failed to delete player');
     }
   };
 
@@ -339,7 +425,7 @@ function PlayersTab({ campaignId }) {
       case 1: return characterData.name.trim().length > 0;
       case 2: return characterData.race !== null;
       case 3: return characterData.class !== null;
-      case 4: return true;
+      case 4: return characterData.background !== null;
       case 5: return true;
       default: return false;
     }
@@ -347,6 +433,118 @@ function PlayersTab({ campaignId }) {
 
   const selectedRace = DND_DATA.races.find(r => r.id === characterData.race);
   const selectedClass = DND_DATA.classes.find(c => c.id === characterData.class);
+
+  const classReadinessWarning = useMemo(() => {
+    if (!selectedClass) return null;
+    const stats = getResolvedStats();
+    const pa = (selectedClass.primaryAbility || '').toLowerCase();
+    const key = pa.includes('strength') ? 'strength'
+      : pa.includes('dexterity') ? 'dexterity'
+      : pa.includes('constitution') ? 'constitution'
+      : pa.includes('intelligence') ? 'intelligence'
+      : pa.includes('wisdom') ? 'wisdom'
+      : pa.includes('charisma') ? 'charisma'
+      : null;
+    if (!key) return null;
+    if ((stats[key] || 10) < 14) return `Low ${STAT_LABELS[key]} for ${selectedClass.name}. Consider 14+ for stronger early progression.`;
+    return null;
+  }, [selectedClass, statMethod, standardArrayAssignments, rolledAssignments, rolledStats, characterData.stats]);
+
+  const level20Preview = useMemo(() => {
+    if (!characterData.class) return null;
+    const stats = getResolvedStats();
+    return deriveCombatCore({ classId: characterData.class, level: 20, stats });
+  }, [characterData.class, statMethod, standardArrayAssignments, rolledAssignments, rolledStats, characterData.stats]);
+
+  const rosterStats = useMemo(() => {
+    const count = players.length;
+    if (count === 0) return { count: 0, avgLevel: 0, avgHP: 0 };
+    const avgLevel = Math.round(players.reduce((sum, p) => sum + (Number(p.level) || 1), 0) / count);
+    const avgHP = Math.round(players.reduce((sum, p) => sum + (Number(p.max_hp) || 0), 0) / count);
+    return { count, avgLevel, avgHP };
+  }, [players]);
+
+
+
+  const exportRosterJson = () => {
+    try {
+      const payload = {
+        exported_at: new Date().toISOString(),
+        campaign_id: campaignId,
+        players,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `players-${campaignId || 'campaign'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Roster exported');
+    } catch {
+      toast.error('Failed to export roster');
+    }
+  };
+
+  const importRosterJson = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      toast.error('Roster file is too large (max 1MB)');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const incoming = Array.isArray(data) ? data : (Array.isArray(data.players) ? data.players : []);
+      if (incoming.length === 0) {
+        toast.error('No players found in file');
+        return;
+      }
+
+      if (!window.confirm(`Import ${incoming.length} player records into this campaign?`)) return;
+
+      let created = 0;
+      let skipped = 0;
+      const existingNames = new Set(players.map(pl => String(pl?.name || '').trim().toLowerCase()).filter(Boolean));
+      for (const p of incoming) {
+        if (!p?.name || !p?.character_class) { skipped += 1; continue; }
+        const normalizedName = String(p.name).trim();
+        if (!normalizedName) { skipped += 1; continue; }
+        if (existingNames.has(normalizedName.toLowerCase())) { skipped += 1; continue; }
+        const payload = {
+          name: normalizedName,
+          character_class: p.character_class,
+          level: Math.max(1, Math.min(20, Number(p.level) || 1)),
+          hp: Math.max(1, Number(p.hp) || Number(p.max_hp) || 1),
+          max_hp: Math.max(1, Number(p.max_hp) || Number(p.hp) || 1),
+          ac: Number.isFinite(Number(p.ac)) ? Number(p.ac) : 10,
+          stats: normalizeStats(p.stats || {}),
+          notes: String(p.notes || ''),
+        };
+        try {
+          await apiClient.post(`/campaigns/${campaignId}/players`, payload);
+          existingNames.add(normalizedName.toLowerCase());
+          created += 1;
+        } catch {
+          skipped += 1;
+        }
+      }
+
+      await fetchPlayers();
+      if (skipped > 0) {
+        toast.success(`Imported ${created} players (${skipped} skipped)`);
+      } else {
+        toast.success(`Imported ${created} players`);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Failed to import roster file');
+    }
+  };
 
   if (loading) return <div className="loading-spinner"></div>;
 
@@ -356,10 +554,19 @@ function PlayersTab({ campaignId }) {
         <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800' }}>Players</h2>
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
           <DialogTrigger asChild>
-            <Button data-testid="add-player-btn" className="btn-primary" style={{ display: 'flex', gap: '8px' }}>
-              <Plus size={18} />
-              Create Character
-            </Button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Button type="button" onClick={exportRosterJson} className="btn-secondary" style={{ display: 'flex', gap: '8px' }}>
+                <Download size={16} /> Export JSON
+              </Button>
+              <label className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 14px' }}>
+                <Upload size={16} /> Import JSON
+                <input type="file" accept="application/json" onChange={importRosterJson} style={{ display: 'none' }} />
+              </label>
+              <Button data-testid="add-player-btn" className="btn-primary" style={{ display: 'flex', gap: '8px' }}>
+                <Plus size={18} />
+                Create Character
+              </Button>
+            </div>
           </DialogTrigger>
           <DialogContent className="modal" style={{ maxWidth: '900px', maxHeight: '90vh', overflow: 'auto' }}>
             <DialogHeader>
@@ -442,6 +649,19 @@ function PlayersTab({ campaignId }) {
                     ))}
                   </div>
                 </div>
+
+                {classReadinessWarning && (
+                  <div style={{ marginTop: 14, padding: '10px 12px', border: '1px solid rgba(245, 158, 11, 0.6)', background: 'rgba(245, 158, 11, 0.08)', color: '#F59E0B', fontSize: 12, borderRadius: 8 }}>
+                    {classReadinessWarning}
+                  </div>
+                )}
+
+                {level20Preview && (
+                  <div style={{ marginTop: 14, padding: '12px', border: '1px solid rgba(103, 232, 249, 0.45)', background: 'rgba(10, 10, 40, 0.55)', borderRadius: 10 }}>
+                    <div style={{ color: '#67e8f9', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Level 20 Preview</div>
+                    <div style={{ color: '#cbd5e1', fontSize: 12 }}>Projected Max HP: <strong style={{ color: '#fff' }}>{level20Preview.maxHP}</strong> · Projected AC: <strong style={{ color: '#fff' }}>{level20Preview.ac}</strong></div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -600,6 +820,17 @@ function PlayersTab({ campaignId }) {
                 
                 {/* Stat Method Selection */}
                 <div style={{ marginBottom: '24px' }}>
+                  {statMethod === 'standard' && (
+                    <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>
+                      Assigned: {Object.keys(standardArrayAssignments).length}/6 abilities
+                    </div>
+                  )}
+                  {statMethod === 'rolled' && (
+                    <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>
+                      Assigned: {Object.keys(rolledAssignments).length}/6 rolled values
+                    </div>
+                  )}
+
                   <label style={{ display: 'block', marginBottom: '10px', color: '#67e8f9', fontSize: '14px', fontWeight: '600' }}>
                     How do you want to determine stats?
                   </label>
@@ -913,16 +1144,51 @@ function PlayersTab({ campaignId }) {
         </Dialog>
       </div>
 
-      {players.length === 0 ? (
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <Input
+          value={playerSearch}
+          onChange={(e) => setPlayerSearch(e.target.value)}
+          placeholder="Search players by name, class, race..."
+          style={{ maxWidth: 420 }}
+        />
+        <select
+          value={playerSort}
+          onChange={(e) => setPlayerSort(e.target.value)}
+          style={{ background: 'rgba(10, 10, 40, 0.8)', color: '#fff', border: '1px solid #1e40af', borderRadius: 8, padding: '10px 12px', fontSize: 13 }}
+        >
+          <option value="name_asc">Sort: Name</option>
+          <option value="level_desc">Sort: Highest Level</option>
+          <option value="level_asc">Sort: Lowest Level</option>
+          <option value="hp_desc">Sort: Highest HP</option>
+        </select>
+        <div style={{ color: '#94a3b8', fontSize: 12 }}>
+          Roster: <span style={{ color: '#fff' }}>{rosterStats.count}</span> · Showing <span style={{ color: '#fff' }}>{filteredPlayers.length}</span> · Avg Lv <span style={{ color: '#fff' }}>{rosterStats.avgLevel}</span> · Avg HP <span style={{ color: '#fff' }}>{rosterStats.avgHP}</span>
+        </div>
+        <Button
+          type="button"
+          onClick={() => { setPlayerSearch(''); setPlayerSort('name_asc'); }}
+          className="btn-secondary"
+          style={{ fontSize: 12, padding: '8px 10px' }}
+        >
+          Reset Filters
+        </Button>
+      </div>
+
+      {filteredPlayers.length === 0 ? (
         <div className="glow-panel" style={{ padding: '40px', textAlign: 'center' }}>
           <User size={48} style={{ color: '#F59E0B', margin: '0 auto 16px' }} />
-          <p style={{ color: '#ffffff' }}>No players added yet. Create your first character!</p>
+          <p style={{ color: '#ffffff' }}>
+            {players.length === 0
+              ? 'No players added yet. Create your first character!'
+              : 'No players match your search. Try a different term.'}
+          </p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(380px, 100%), 1fr))', gap: '20px' }}>
-          {players.map(player => {
-            const raceData = DND_DATA.races.find(r => r.name === player.race);
-            const classData = DND_DATA.classes.find(c => c.name === player.character_class);
+          {filteredPlayers.map(player => {
+            const meta = parsePlayerMetadata(player);
+            const raceData = meta.raceData;
+            const classData = meta.classData;
             const passivePerception = 10 + Math.floor((player.stats?.wisdom - 10) / 2);
             const initiative = Math.floor((player.stats?.dexterity - 10) / 2);
             const profBonus = Math.floor((player.level - 1) / 4) + 2;
@@ -936,7 +1202,7 @@ function PlayersTab({ campaignId }) {
                     {player.name}
                   </h3>
                   <p style={{ fontSize: '14px', color: '#F59E0B', fontWeight: '600' }}>
-                    Level {player.level} {player.race} {player.character_class}
+                    Level {player.level} {meta.raceLabel} {meta.classLabel}
                   </p>
                   {player.subclass && (
                     <p style={{ fontSize: '12px', color: '#a855f7' }}>{player.subclass}</p>
@@ -989,6 +1255,10 @@ function PlayersTab({ campaignId }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '11px', color: '#67e8f9', fontWeight: '600' }}>Size:</span>
                   <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '700' }}>{raceData?.size || 'Medium'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#67e8f9', fontWeight: '600' }}>Background:</span>
+                  <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '700' }}>{meta.backgroundLabel}</span>
                 </div>
               </div>
               

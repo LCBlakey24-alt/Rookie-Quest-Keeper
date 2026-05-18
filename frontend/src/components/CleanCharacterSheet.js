@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import {
   Activity,
@@ -23,14 +23,11 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import { API_BASE } from '@/lib/api';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import LevelUpWizard from '@/components/LevelUpWizard';
-
-const API = API_BASE;
 
 const ABILITIES = [
   ['strength', 'STR'],
@@ -139,16 +136,17 @@ export default function CleanCharacterSheet() {
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [rollMode, setRollMode] = useState('normal');
   const [rollBonus, setRollBonus] = useState(0);
+  const [reloadingCharacter, setReloadingCharacter] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function loadCharacter() {
       try {
         setLoading(true);
-        const response = await axios.get(`${API}/characters/${characterId}`);
+        const response = await apiClient.get(`/characters/${characterId}`);
         if (!cancelled) setCharacter(response.data);
       } catch (error) {
-        toast.error('Failed to load character');
+        toast.error(error?.response?.data?.detail || 'Failed to load character');
         if (!cancelled) setCharacter(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -202,7 +200,7 @@ export default function CleanCharacterSheet() {
     const previous = character;
     setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
     try {
-      const response = await axios.patch(`${API}/characters/${characterId}`, updates);
+      const response = await apiClient.patch(`/characters/${characterId}`, updates);
       if (response?.data && typeof response.data === 'object') {
         setCharacter(response.data.character || response.data);
       }
@@ -210,8 +208,22 @@ export default function CleanCharacterSheet() {
       return true;
     } catch (error) {
       setCharacter(previous);
-      toast.error(options.error || 'Could not save character update');
+      toast.error(error?.response?.data?.detail || options.error || 'Could not save character update');
       return false;
+    }
+  };
+
+  const reloadCharacter = async () => {
+    if (reloadingCharacter) return;
+    setReloadingCharacter(true);
+    try {
+      const response = await apiClient.get(`/characters/${characterId}`);
+      setCharacter(response.data);
+      toast.success('Character refreshed');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Failed to refresh character');
+    } finally {
+      setReloadingCharacter(false);
     }
   };
 
@@ -379,7 +391,7 @@ export default function CleanCharacterSheet() {
     setSavingQuickState(true);
     const endpoint = restType === 'long' ? 'long-rest' : 'short-rest';
     try {
-      const response = await axios.post(`${API}/characters/${characterId}/${endpoint}`);
+      const response = await apiClient.post(`/characters/${characterId}/${endpoint}`);
       const updated = response.data?.character || response.data;
       if (updated && typeof updated === 'object') setCharacter(updated);
       toast.success(restType === 'long' ? 'Long rest completed' : 'Short rest completed');
@@ -398,7 +410,7 @@ export default function CleanCharacterSheet() {
           { success: 'Long rest applied', error: 'Could not apply long rest' }
         );
       } else {
-        toast.success('Short rest started — spend hit dice if needed.');
+        toast.error(error?.response?.data?.detail || 'Could not complete short rest');
       }
     } finally {
       setSavingQuickState(false);

@@ -4,9 +4,7 @@ import { History, X, Share2, Trophy, Skull, ChevronRight } from 'lucide-react';
 const DiceRollHistory = ({ history = [], theme = 'player', onShare }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const colors = theme === 'player'
-    ? { primary: '#4DD0E1', bg: 'rgba(10, 5, 25, 0.95)', border: 'rgba(77, 208, 225, 0.2)' }
-    : { primary: '#8A2BE2', bg: 'rgba(10, 5, 25, 0.95)', border: 'rgba(138, 43, 226, 0.2)' };
+  const colors = { primary: '#EF4444', bg: 'rgba(31, 31, 35, 0.95)', border: 'rgba(239, 68, 68, 0.25)' };
 
   if (history.length === 0) return null;
 

@@ -1475,6 +1475,12 @@ class ReviewCreate(BaseModel):
     rating: int  # 1-5
     comment: str
 
+
+class SiteSettingsUpdate(BaseModel):
+    announcement_enabled: bool = False
+    announcement_text: str = Field(default="", max_length=240)
+    maintenance_mode: bool = False
+
 class CustomCreature(BaseModel):
     """Custom creature/monster created by users"""
     model_config = ConfigDict(extra="ignore")

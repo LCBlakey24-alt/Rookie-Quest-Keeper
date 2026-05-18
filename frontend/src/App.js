@@ -115,19 +115,40 @@ function ResponsiveCampaignRoute({ username, onLogout }) {
 }
 
 function ResponsiveGMScreenRoute({ username }) {
-  const playerOnlyDevice = usePlayerOnlyDevice();
-  return playerOnlyDevice ? <MobilePlayerCampaignView /> : <DMScreen username={username} />;
+  // GM tools must remain accessible on mobile; do not force player-only fallback here.
+  return <DMScreen username={username} />;
 }
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [siteSettings, setSiteSettings] = useState({ announcement_enabled: false, announcement_text: '', maintenance_mode: false });
 
   useEffect(() => {
     installRollBurstPersistence();
     checkAuth();
+    loadSiteSettings();
+    const interval = window.setInterval(loadSiteSettings, 60000);
+    const onFocus = () => loadSiteSettings();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
+
+
+
+  const loadSiteSettings = async () => {
+    try {
+      const res = await apiClient.get('/site-settings');
+      setSiteSettings(prev => ({ ...prev, ...(res.data || {}) }));
+    } catch {
+      // non-fatal: keep defaults
+    }
+  };
 
   const checkAuth = async () => {
     const token = getAuthToken();
@@ -137,6 +158,12 @@ function App() {
         await apiClient.get('/auth/me');
         setIsAuthenticated(true);
         setUsername(savedUsername);
+        try {
+          const adminRes = await apiClient.get('/admin/check');
+          setIsAdmin(!!adminRes.data?.is_admin);
+        } catch {
+          setIsAdmin(false);
+        }
       } catch (error) {
         clearAuthToken();
         localStorage.removeItem(AUTH_USERNAME_KEY);
@@ -158,6 +185,7 @@ function App() {
     localStorage.removeItem(AUTH_USERNAME_KEY);
     setIsAuthenticated(false);
     setUsername('');
+    setIsAdmin(false);
     toast.success('Logged out successfully');
   };
 
@@ -171,8 +199,23 @@ function App() {
     );
   }
 
+  const showAnnouncement = siteSettings.announcement_enabled && siteSettings.announcement_text;
+
   return (
-    <div className="App">
+    <div className="App" style={{ paddingTop: showAnnouncement ? 40 : 0 }}>
+      {showAnnouncement ? (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1200, background: '#D4A017', color: '#0B0F19', padding: '8px 14px', textAlign: 'center', fontWeight: 800, fontSize: 13 }}>
+          {siteSettings.announcement_text}
+        </div>
+      ) : null}
+      {siteSettings.maintenance_mode && !isAdmin ? (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(11,15,25,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ maxWidth: 520, textAlign: 'center', border: '1px solid rgba(212,160,23,0.45)', background: '#0F2440', padding: 24 }}>
+            <h2 style={{ color: '#D4A017', marginTop: 0 }}>We're performing maintenance</h2>
+            <p style={{ color: '#F8FAFC' }}>Rookie Quest Keeper is temporarily unavailable while we deploy improvements. Please check back shortly.</p>
+          </div>
+        </div>
+      ) : null}
       <BrowserRouter>
         <ThemeProvider>
           <ThemeRouter />
@@ -193,7 +236,7 @@ function App() {
               <Route path="/campaign/:campaignId" element={isAuthenticated ? <ResponsiveCampaignRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
               <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <ResponsiveGMScreenRoute username={username} /> : <Navigate to="/auth" replace />} />
               <Route path="/campaign/:campaignId/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-              <Route path="/admin" element={isAuthenticated ? <AdminPage username={username} /> : <Navigate to="/auth" replace />} />
+              <Route path="/admin" element={isAuthenticated ? (isAdmin ? <AdminPage username={username} /> : <Navigate to="/home" replace />) : <Navigate to="/auth" replace />} />
               <Route path="/account" element={isAuthenticated ? <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : <Navigate to="/auth" replace />} />
               <Route path="/reset-password" element={<AuthPage onLogin={handleLogin} />} />
               <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />

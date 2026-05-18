@@ -62,6 +62,7 @@ function GMScreen({ username }) {
   const [savingNPC, setSavingNPC] = useState(false);
   const [savedNames, setSavedNames] = useState([]);
   const [hoveredTab, setHoveredTab] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 900px)').matches);
   
   // Tab state - single tab for everything
   const [activeTab, setActiveTab] = useState('combat');
@@ -83,6 +84,7 @@ function GMScreen({ username }) {
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
   const [diceHistory, setDiceHistory] = useState([]);
+  const [showMobileDiceTools, setShowMobileDiceTools] = useState(false);
   
   // Live Session Mode state
   const [showLiveSession, setShowLiveSession] = useState(false);
@@ -129,6 +131,13 @@ function GMScreen({ username }) {
   useEffect(() => {
     fetchAllData();
   }, [campaignId]);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 900px)');
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   const fetchAllData = async () => {
     try {
@@ -492,7 +501,7 @@ function GMScreen({ username }) {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      minHeight: '100dvh', 
       background: '#1F1F23',
       position: 'relative'
     }}>
@@ -535,7 +544,7 @@ function GMScreen({ username }) {
         background: theme.bg.panel,
         backdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${theme.border}`,
-        padding: '8px 16px'
+        padding: isMobile ? '8px 10px' : '8px 16px'
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -552,8 +561,8 @@ function GMScreen({ username }) {
               )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <div data-testid="gm-global-search" style={{ position: 'relative', minWidth: 240 }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', width: isMobile ? '100%' : 'auto' }}>
+            <div data-testid="gm-global-search" style={{ position: 'relative', minWidth: isMobile ? '100%' : 240, flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
               <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.text.muted, pointerEvents: 'none' }} />
               <input
                 value={globalSearch}
@@ -576,7 +585,7 @@ function GMScreen({ username }) {
                   position: 'absolute',
                   top: 42,
                   right: 0,
-                  width: 320,
+                  width: isMobile ? '100%' : 320,
                   maxWidth: 'calc(100vw - 24px)',
                   background: theme.bg.panel,
                   border: `1px solid ${theme.border}`,
@@ -664,7 +673,8 @@ function GMScreen({ username }) {
         display: 'flex', 
         flex: 1,
         overflow: 'hidden',
-        height: 'calc(100vh - 60px)'
+        height: isMobile ? 'auto' : 'calc(100dvh - 60px)',
+        flexDirection: isMobile ? 'column' : 'row'
       }}>
         {/* LEFT SIDEBAR - Tab Navigation */}
         <div style={{
@@ -674,7 +684,14 @@ function GMScreen({ username }) {
           backdropFilter: 'blur(16px)',
           borderRight: `1px solid ${theme.border}`,
           padding: '10px 0',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          ...(isMobile ? {
+            width: '100%',
+            minWidth: '100%',
+            borderRight: 'none',
+            borderBottom: `1px solid ${theme.border}`,
+            padding: '8px 12px'
+          } : {})
         }}>
           <h3 style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -688,9 +705,20 @@ function GMScreen({ username }) {
           }}>
             Live Play
           </h3>
+          {isMobile ? (
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              style={{ width: '100%', padding: '10px', background: theme.bg.elevated, color: '#fff', border: `1px solid ${theme.border}` }}
+            >
+              {tabGroups.flatMap(group => group.tabs.map(tab => (
+                <option key={tab.id} value={tab.id}>{group.group} · {tab.label}</option>
+              )))}
+            </select>
+          ) : null}
           
           {/* Grouped Sidebar Tabs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {!isMobile && <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {tabGroups.map(group => {
               const isCollapsed = collapsedGroups[group.group];
               const hasActive = group.tabs.some(t => t.id === activeTab);
@@ -748,15 +776,15 @@ function GMScreen({ username }) {
                 </div>
               );
             })}
-          </div>
+          </div>}
         </div>
 
         {/* MAIN CONTENT AREA */}
         <div style={{ 
           flex: 1, 
           display: 'flex',
-        gap: '10px',
-        overflowY: 'auto',
+          gap: '10px',
+          overflowY: 'auto',
           padding: '14px',
           background: 'transparent'
         }}>
@@ -875,9 +903,71 @@ function GMScreen({ username }) {
             <NPCRelationshipMap theme={theme} campaignId={campaignId} />
           )}
           </div>
+
+          {isMobile && (
+            <div style={{ background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setShowMobileDiceTools(v => !v)}
+                style={{
+                  width: '100%',
+                  background: theme.gradient,
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 12px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Dices size={16} /> Quick Dice</span>
+                <span>{showMobileDiceTools ? 'Hide' : 'Show'}</span>
+              </button>
+
+              {showMobileDiceTools && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 10 }}>
+                    {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
+                      <button
+                        key={die}
+                        onClick={() => rollQuickDice(`1${die}`, die.toUpperCase())}
+                        style={{
+                          padding: '10px 8px',
+                          background: 'rgba(239, 68, 68, 0.18)',
+                          border: `1px solid ${theme.accent.primary}`,
+                          color: theme.accent.primary,
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {die.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  {diceHistory?.length ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {diceHistory.slice(0, 5).map((roll, idx) => (
+                        <div key={`${roll.time}-${idx}`} style={{ border: `1px solid ${theme.border}`, padding: '8px 10px', background: 'rgba(255,255,255,0.02)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                            <span style={{ color: '#fff' }}>{roll.label}</span>
+                            <strong style={{ color: theme.accent.primary }}>{roll.total}</strong>
+                          </div>
+                          <div style={{ fontSize: 10, color: theme.text.muted }}>{roll.time}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ color: theme.text.muted, fontSize: 12, margin: 0 }}>No recent rolls yet.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           
           {/* PERSISTENT DICE ROLLER PANEL */}
-          <div style={{
+          {!isMobile && <div style={{
             width: showDicePanel ? '280px' : '44px',
             minWidth: showDicePanel ? '280px' : '44px',
             transition: 'all 0.3s ease',
@@ -1024,7 +1114,7 @@ function GMScreen({ username }) {
                 </div>
               </div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
 

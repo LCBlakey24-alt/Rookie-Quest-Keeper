@@ -1,11 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import apiClient from '@/lib/apiClient';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, Shield, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, RefreshCw, Shield, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { API_BASE } from '@/lib/api';
-
-const API = API_BASE;
 
 const theme = {
   bg: '#1F1F23',
@@ -26,22 +23,38 @@ export default function MobilePlayerCampaignView() {
   const [players, setPlayers] = useState([]);
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showFullParty, setShowFullParty] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [characterQuery, setCharacterQuery] = useState('');
+  const [partyQuery, setPartyQuery] = useState('');
+  const charactersRef = useRef(null);
+  const partyRef = useRef(null);
+  const environmentRef = useRef(null);
+  const campaignRef = useRef(null);
+
+  async function loadData() {
+    const [campaignRes, playersRes, charactersRes] = await Promise.all([
+      apiClient.get(`/player/campaign/${campaignId}`).catch(() => apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null }))),
+      apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+      apiClient.get(`/characters`).catch(() => ({ data: [] })),
+    ]);
+    return {
+      campaign: campaignRes.data,
+      players: playersRes.data || [],
+      characters: charactersRes.data || [],
+    };
+  }
 
   useEffect(() => {
     let alive = true;
 
     async function load() {
       try {
-        const [campaignRes, playersRes, charactersRes] = await Promise.all([
-          axios.get(`${API}/player/campaign/${campaignId}`).catch(() => axios.get(`${API}/campaigns/${campaignId}`).catch(() => ({ data: null }))),
-          axios.get(`${API}/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-          axios.get(`${API}/characters`).catch(() => ({ data: [] })),
-        ]);
-
+        const data = await loadData();
         if (!alive) return;
-        setCampaign(campaignRes.data);
-        setPlayers(playersRes.data || []);
-        setCharacters(charactersRes.data || []);
+        setCampaign(data.campaign);
+        setPlayers(data.players);
+        setCharacters(data.characters);
       } finally {
         if (alive) setLoading(false);
       }
@@ -68,14 +81,30 @@ export default function MobilePlayerCampaignView() {
   ), [players]);
 
   const myCampaignCharacters = useMemo(() => {
-    return characters.filter(character =>
+    const scoped = characters.filter(character =>
       character.campaign_id === campaignId ||
       character.campaignId === campaignId ||
       linkedCharacterIds.has(character.id)
     );
-  }, [campaignId, characters, linkedCharacterIds]);
+    if (!characterQuery.trim()) return scoped;
+    const q = characterQuery.trim().toLowerCase();
+    return scoped.filter(character =>
+      String(character.name || '').toLowerCase().includes(q) ||
+      String(character.character_class || '').toLowerCase().includes(q)
+    );
+  }, [campaignId, characters, linkedCharacterIds, characterQuery]);
 
   const roster = players.length > 0 ? players : myCampaignCharacters;
+  const filteredRoster = useMemo(() => {
+    if (!partyQuery.trim()) return roster;
+    const q = partyQuery.trim().toLowerCase();
+    return roster.filter((member) => {
+      const name = member.character_name || member.name || member.character?.name || '';
+      const cls = member.character_class || member.class || member.character?.character_class || '';
+      return String(name).toLowerCase().includes(q) || String(cls).toLowerCase().includes(q);
+    });
+  }, [partyQuery, roster]);
+  const visibleRoster = showFullParty ? filteredRoster : filteredRoster.slice(0, 12);
   const environment = campaign?.campaign_environment || {};
   const pageBackgroundStyle = environment.background_image
     ? {
@@ -113,11 +142,43 @@ export default function MobilePlayerCampaignView() {
             {campaign?.name || 'Campaign'}
           </h1>
         </div>
+        <Button
+          onClick={async () => {
+            try {
+              setRefreshing(true);
+              const data = await loadData();
+              setCampaign(data.campaign);
+              setPlayers(data.players);
+              setCharacters(data.characters);
+            } finally {
+              setRefreshing(false);
+            }
+          }}
+          style={{ ...iconButtonStyle, marginLeft: 'auto' }}
+          aria-label="Refresh campaign data"
+        >
+          <RefreshCw size={16} style={{ opacity: refreshing ? 0.6 : 1 }} />
+        </Button>
       </header>
 
+      <section style={{ ...panelStyle, padding: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
+          <NavPill label="Characters" onClick={() => charactersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+          <NavPill label="Party" onClick={() => partyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+          <NavPill label="Environment" onClick={() => environmentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+          <NavPill label="Campaign" onClick={() => campaignRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+        </div>
+      </section>
+
       {myCampaignCharacters.length > 0 && (
-        <section style={panelStyle}>
+        <section ref={charactersRef} style={panelStyle}>
           <h2 style={sectionTitleStyle}><Shield size={15} /> My Characters</h2>
+          <input
+            value={characterQuery}
+            onChange={(e) => setCharacterQuery(e.target.value)}
+            placeholder="Search characters"
+            style={mobileSearchInputStyle}
+          />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {myCampaignCharacters.map(character => (
               <button
@@ -141,13 +202,19 @@ export default function MobilePlayerCampaignView() {
         </section>
       )}
 
-      <section style={panelStyle}>
+      <section ref={partyRef} style={panelStyle}>
         <h2 style={sectionTitleStyle}><Users size={15} /> Party</h2>
-        {roster.length === 0 ? (
+        <input
+          value={partyQuery}
+          onChange={(e) => setPartyQuery(e.target.value)}
+          placeholder="Search party"
+          style={mobileSearchInputStyle}
+        />
+        {filteredRoster.length === 0 ? (
           <div style={{ color: theme.soft, fontSize: 13 }}>No party members linked yet.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {roster.slice(0, 12).map((member, index) => {
+            {visibleRoster.map((member, index) => {
               const name = member.character_name || member.name || member.character?.name || `Player ${index + 1}`;
               const cls = member.character_class || member.class || member.character?.character_class || '';
               const hp = member.current_hit_points ?? member.hp ?? member.character?.current_hit_points;
@@ -167,12 +234,21 @@ export default function MobilePlayerCampaignView() {
                 </div>
               );
             })}
+            {filteredRoster.length > 12 && (
+              <button
+                type="button"
+                onClick={() => setShowFullParty(v => !v)}
+                style={{ ...rowButtonStyle, padding: '8px 10px', justifyContent: 'center', fontSize: 12 }}
+              >
+                {showFullParty ? 'Show fewer' : `Show all (${filteredRoster.length})`}
+              </button>
+            )}
           </div>
         )}
       </section>
 
       {(environment.weather || environment.lighting || environment.mood || environment.location || environment.notes) && (
-        <section style={panelStyle}>
+        <section ref={environmentRef} style={panelStyle}>
           <h2 style={sectionTitleStyle}><CloudRain size={15} /> Environment</h2>
           <div style={environmentGridStyle}>
             <InfoPill label="Weather" value={formatEnvironmentValue(environment.weather)} />
@@ -188,13 +264,21 @@ export default function MobilePlayerCampaignView() {
         </section>
       )}
 
-      <section style={panelStyle}>
+      <section ref={campaignRef} style={panelStyle}>
         <h2 style={sectionTitleStyle}><BookOpen size={15} /> Campaign</h2>
         <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.6 }}>
           {campaign?.description || campaign?.setting || campaign?.world_setting_notes || 'No campaign summary yet.'}
         </div>
       </section>
     </main>
+  );
+}
+
+function NavPill({ label, onClick }) {
+  return (
+    <button type="button" onClick={onClick} style={{ border: `1px solid ${theme.border}`, background: theme.panelAlt, color: theme.muted, padding: '8px 6px', fontSize: 11 }}>
+      {label}
+    </button>
   );
 }
 
@@ -213,11 +297,12 @@ function InfoPill({ label, value }) {
 }
 
 const pageStyle = {
-  minHeight: '100vh',
+  minHeight: '100dvh',
   background: theme.bg,
   padding: 12,
   display: 'flex',
   flexDirection: 'column',
+  overflowY: 'auto',
   gap: 12,
 };
 
@@ -286,4 +371,15 @@ const infoPillStyle = {
   background: 'rgba(31,31,35,0.72)',
   borderRadius: 0,
   padding: '8px 9px',
+};
+
+const mobileSearchInputStyle = {
+  width: '100%',
+  height: 36,
+  border: `1px solid ${theme.border}`,
+  background: 'rgba(31,31,35,0.72)',
+  color: theme.text,
+  padding: '0 10px',
+  marginBottom: 10,
+  outline: 'none',
 };

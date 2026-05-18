@@ -13,10 +13,18 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
-EMAIL = 'lcblakey24@outlook.com'
-PASSWORD = 'LCBlakey24?!'
+BASE_URL = (os.environ.get('REACT_APP_BACKEND_URL') or '').rstrip('/')
+EMAIL = os.environ.get('TEST_LOGIN_EMAIL', '')
+PASSWORD = os.environ.get('TEST_LOGIN_PASSWORD', '')
 WIZARD_ID = 'a1e7babc-c582-48ec-8a64-8c71501fa281'
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(
+        not (BASE_URL and EMAIL and PASSWORD),
+        reason='Requires REACT_APP_BACKEND_URL, TEST_LOGIN_EMAIL, TEST_LOGIN_PASSWORD',
+    ),
+]
 
 
 @pytest.fixture(scope='module')

@@ -153,7 +153,7 @@ function CombatPage() {
       const response = await axios.get(`${API}/campaigns/${campaignId}/maps`);
       setAvailableMaps(response.data || []);
     } catch (error) {
-      console.log('No maps available');
+      toast.info('No maps available for this campaign yet.');
     }
   };
 
