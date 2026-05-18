@@ -201,7 +201,7 @@ function App() {
           {siteSettings.announcement_text}
         </div>
       ) : null}
-      {siteSettings.maintenance_mode && !isAdmin ? (
+      {siteSettings.maintenance_mode && isAuthenticated && !isAdmin ? (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(11,15,25,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ maxWidth: 520, textAlign: 'center', border: '1px solid rgba(212,160,23,0.45)', background: '#0F2440', padding: 24 }}>
             <h2 style={{ color: '#D4A017', marginTop: 0 }}>We're performing maintenance</h2>
