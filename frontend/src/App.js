@@ -130,13 +130,6 @@ function App() {
     installRollBurstPersistence();
     checkAuth();
     loadSiteSettings();
-    const interval = window.setInterval(loadSiteSettings, 60000);
-    const onFocus = () => loadSiteSettings();
-    window.addEventListener('focus', onFocus);
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
-    };
   }, []);
 
 
@@ -202,8 +195,8 @@ function App() {
   const showAnnouncement = siteSettings.announcement_enabled && siteSettings.announcement_text;
 
   return (
-    <div className="App" style={{ paddingTop: showAnnouncement ? 40 : 0 }}>
-      {showAnnouncement ? (
+    <div className="App">
+      {siteSettings.announcement_enabled && siteSettings.announcement_text ? (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1200, background: '#D4A017', color: '#0B0F19', padding: '8px 14px', textAlign: 'center', fontWeight: 800, fontSize: 13 }}>
           {siteSettings.announcement_text}
         </div>

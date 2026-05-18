@@ -370,9 +370,8 @@ body {
 /* Main App Container */
 .App {
   min-height: 100dvh;
-  height: auto;
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg-black);
 }
 

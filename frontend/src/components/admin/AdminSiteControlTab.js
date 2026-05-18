@@ -67,7 +67,7 @@ export default function AdminSiteControlTab() {
         <Metric label="Approved" value={overview.approved_reviews_count || 0} />
       </div>
 
-      <label style={{ display: 'block', color: '#FFFFFF', marginBottom: 10 }}>
+      <label style={{ display: 'block', color: '#F8FAFC', marginBottom: 10 }}>
         <input type="checkbox" checked={!!settings.announcement_enabled} onChange={e => setSettings(s => ({ ...s, announcement_enabled: e.target.checked }))} /> Enable announcement banner
       </label>
       <textarea
@@ -75,13 +75,13 @@ export default function AdminSiteControlTab() {
         onChange={e => setSettings(s => ({ ...s, announcement_text: e.target.value }))}
         maxLength={240}
         placeholder="Announcement text (max 240 chars)"
-        style={{ width: '100%', minHeight: 90, marginBottom: 12, background: '#1F1F23', color: '#FFFFFF', border: '1px solid rgba(239, 68, 68, 0.35)', padding: 10 }}
+        style={{ width: '100%', minHeight: 90, marginBottom: 12, background: '#0A1628', color: '#F8FAFC', border: '1px solid rgba(212, 160, 23, 0.35)', padding: 10 }}
       />
-      <label style={{ display: 'block', color: '#FFFFFF', marginBottom: 16 }}>
+      <label style={{ display: 'block', color: '#F8FAFC', marginBottom: 16 }}>
         <input type="checkbox" checked={!!settings.maintenance_mode} onChange={e => setSettings(s => ({ ...s, maintenance_mode: e.target.checked }))} /> Maintenance mode
       </label>
 
-      <button type="button" onClick={save} disabled={saving} style={{ padding: '10px 16px', background: '#EF4444', color: '#FFFFFF', border: 'none', fontWeight: 800 }}>
+      <button type="button" onClick={save} disabled={saving} style={{ padding: '10px 16px', background: '#D4A017', color: '#0B0F19', border: 'none', fontWeight: 800 }}>
         {saving ? 'Saving...' : 'Save Site Settings'}
       </button>
     </div>
@@ -89,5 +89,5 @@ export default function AdminSiteControlTab() {
 }
 
 function Metric({ label, value }) {
-  return <div style={{ background: '#1F1F23', border: '1px solid rgba(239, 68, 68, 0.2)', padding: 10, textAlign: 'center', color: '#FFFFFF' }}><div style={{ fontSize: 20, fontWeight: 800 }}>{value}</div><div style={{ fontSize: 11, color: '#9CA3AF' }}>{label}</div></div>;
+  return <div style={{ background: '#0A1628', border: '1px solid rgba(212, 160, 23, 0.2)', padding: 10, textAlign: 'center', color: '#F8FAFC' }}><div style={{ fontSize: 20, fontWeight: 800 }}>{value}</div><div style={{ fontSize: 11, color: '#94A3B8' }}>{label}</div></div>;
 }

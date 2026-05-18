@@ -673,8 +673,7 @@ function GMScreen({ username }) {
         display: 'flex', 
         flex: 1,
         overflow: 'hidden',
-        height: isMobile ? 'auto' : 'calc(100dvh - 60px)',
-        flexDirection: isMobile ? 'column' : 'row'
+        height: 'calc(100dvh - 60px)'
       }}>
         {/* LEFT SIDEBAR - Tab Navigation */}
         <div style={{

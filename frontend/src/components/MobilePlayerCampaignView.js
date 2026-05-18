@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import apiClient from '@/lib/apiClient';
+import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, RefreshCw, Shield, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,15 +34,14 @@ export default function MobilePlayerCampaignView() {
 
   async function loadData() {
     const [campaignRes, playersRes, charactersRes] = await Promise.all([
-      apiClient.get(`/player/campaign/${campaignId}`).catch(() => apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null }))),
-      apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-      apiClient.get(`/characters`).catch(() => ({ data: [] })),
+      axios.get(`${API}/player/campaign/${campaignId}`).catch(() => axios.get(`${API}/campaigns/${campaignId}`).catch(() => ({ data: null }))),
+      axios.get(`${API}/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+      axios.get(`${API}/characters`).catch(() => ({ data: [] })),
     ]);
-    return {
-      campaign: campaignRes.data,
-      players: playersRes.data || [],
-      characters: charactersRes.data || [],
-    };
+
+    setCampaign(campaignRes.data);
+    setPlayers(playersRes.data || []);
+    setCharacters(charactersRes.data || []);
   }
 
   useEffect(() => {
@@ -50,11 +49,8 @@ export default function MobilePlayerCampaignView() {
 
     async function load() {
       try {
-        const data = await loadData();
+        await loadData();
         if (!alive) return;
-        setCampaign(data.campaign);
-        setPlayers(data.players);
-        setCharacters(data.characters);
       } finally {
         if (alive) setLoading(false);
       }
@@ -146,10 +142,7 @@ export default function MobilePlayerCampaignView() {
           onClick={async () => {
             try {
               setRefreshing(true);
-              const data = await loadData();
-              setCampaign(data.campaign);
-              setPlayers(data.players);
-              setCharacters(data.characters);
+              await loadData();
             } finally {
               setRefreshing(false);
             }

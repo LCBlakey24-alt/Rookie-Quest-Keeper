@@ -142,10 +142,6 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const inventory = character?.inventory || [];
   const allCarriedItems = [...equipment, ...inventory];
   const [recomputingEffects, setRecomputingEffects] = useState(false);
-  const attunedCount = useMemo(
-    () => allCarriedItems.filter(item => item?.attunement_required && item?.attuned).length,
-    [allCarriedItems]
-  );
 
   const favoriteItems = useMemo(() => allCarriedItems.filter(isFavorite), [allCarriedItems]);
   const consumables = useMemo(() => allCarriedItems.filter(isConsumableLike), [allCarriedItems]);
@@ -156,78 +152,16 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   }, [allCarriedItems, itemSearch]);
 
   const makeWeaponRoll = (item) => {
-    if (item?.attunement_required && !item?.attuned) {
-      toast.error(`${getItemName(item)} must be attuned before you can use its magical attack bonuses.`);
-      return;
-    }
-    const itemBonus = Number(item?.attack_bonus ?? 0) || 0;
     const roll = Math.floor(Math.random() * 20) + 1;
-    const totalBonus = (Number(equippedAttackBonus) || 0) + itemBonus;
-    const total = roll + totalBonus;
-    toast.success(`${getItemName(item)} attack: ${roll}${totalBonus ? ` + ${totalBonus}` : ''} = ${total}`);
-  };
-
-  const recalcCharacterItemEffects = async (nextInventory = inventory, nextEquipped = equipped) => {
-    setRecomputingEffects(true);
-    const baseStats = {
-      strength: Number(character?.stats?.strength || 0),
-      dexterity: Number(character?.stats?.dexterity || 0),
-      constitution: Number(character?.stats?.constitution || 0),
-      intelligence: Number(character?.stats?.intelligence || 0),
-      wisdom: Number(character?.stats?.wisdom || 0),
-      charisma: Number(character?.stats?.charisma || 0),
-    };
-    const allItems = [...(character?.equipment || []), ...nextInventory];
-    const activeItems = allItems.filter(i => !i?.attunement_required || i?.attuned);
-    const equippedItems = EQUIP_SLOTS.map(([slot]) => getEquippedItem(nextEquipped, slot)).filter(Boolean);
-    const bonuses = { strength: 0, dexterity: 0, constitution: 0, intelligence: 0, wisdom: 0, charisma: 0 };
-    let acBonus = 0;
-    let attackBonus = 0;
-    activeItems.forEach((item) => {
-      bonuses.strength += Number(item?.stat_bonuses?.strength || 0);
-      bonuses.dexterity += Number(item?.stat_bonuses?.dexterity || 0);
-      bonuses.constitution += Number(item?.stat_bonuses?.constitution || 0);
-      bonuses.intelligence += Number(item?.stat_bonuses?.intelligence || 0);
-      bonuses.wisdom += Number(item?.stat_bonuses?.wisdom || 0);
-      bonuses.charisma += Number(item?.stat_bonuses?.charisma || 0);
-    });
-    equippedItems.forEach((item) => {
-      if (!item?.attunement_required || item?.attuned) {
-        acBonus += Number(item?.ac_bonus || 0);
-        attackBonus += Number(item?.attack_bonus || 0);
-      }
-    });
-    const payload = {
-      inventory: nextInventory,
-      equipped: nextEquipped,
-      item_effects: {
-        stat_bonuses: bonuses,
-        ac_bonus: acBonus,
-        attack_bonus: attackBonus,
-        updated_at: new Date().toISOString(),
-      },
-      derived_stats_from_items: {
-        ...baseStats,
-        strength: baseStats.strength + bonuses.strength,
-        dexterity: baseStats.dexterity + bonuses.dexterity,
-        constitution: baseStats.constitution + bonuses.constitution,
-        intelligence: baseStats.intelligence + bonuses.intelligence,
-        wisdom: baseStats.wisdom + bonuses.wisdom,
-        charisma: baseStats.charisma + bonuses.charisma,
-      },
-    };
-    try {
-      await apiClient.patch(`/characters/${character.id}`, payload);
-      onCharacterUpdate?.(payload);
-    } finally {
-      setRecomputingEffects(false);
-    }
+    const total = roll + (Number(equippedAttackBonus) || 0);
+    toast.success(`${getItemName(item)} attack: ${roll}${equippedAttackBonus ? ` + ${equippedAttackBonus}` : ''} = ${total}`);
   };
 
   const saveEquipped = async (nextEquipped, slotLabel) => {
     setSavingSlot(slotLabel);
     try {
-      await recalcCharacterItemEffects(inventory, nextEquipped);
+      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped });
+      onCharacterUpdate?.({ equipped: nextEquipped });
       toast.success('Equipment updated');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update equipment');
@@ -239,7 +173,8 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const saveInventory = async (nextInventory, message = 'Inventory updated') => {
     setSavingItems(true);
     try {
-      await recalcCharacterItemEffects(nextInventory, equipped);
+      await apiClient.patch(`/characters/${character.id}`, { inventory: nextInventory });
+      onCharacterUpdate?.({ inventory: nextInventory });
       toast.success(message);
       return true;
     } catch (error) {
@@ -345,7 +280,6 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
             <label style={{ fontSize: 12 }}>Atk Bonus</label>
             <input type="number" value={equippedAttackBonus} onChange={e => setEquippedAttackBonus(Number(e.target.value) || 0)} style={{ width: 70 }} />
             <button type="button" onClick={() => setShowAddItem(prev => !prev)}>{showAddItem ? 'Close Add Item' : 'Add Item'}</button>
-            {recomputingEffects && <span className="clean-sheet-muted">Updating item effects…</span>}
           </div>
         </div>
         <p className="clean-sheet-muted" style={{ marginBottom: 10 }}>
@@ -391,14 +325,6 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
             <input type="number" min="1" value={newItem.quantity} onChange={e => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) || 1 }))} placeholder="Qty" />
             <input type="number" value={newItem.attack_bonus} onChange={e => setNewItem(prev => ({ ...prev, attack_bonus: Number(e.target.value) || 0 }))} placeholder="Attack bonus" />
             <input type="number" value={newItem.ac_bonus} onChange={e => setNewItem(prev => ({ ...prev, ac_bonus: Number(e.target.value) || 0 }))} placeholder="AC bonus" />
-            <div className="clean-sheet-currency-grid" style={{ marginBottom: 8 }}>
-              <input type="number" value={newItem.stat_bonuses?.strength || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), strength: Number(e.target.value) || 0 } }))} placeholder="STR bonus" />
-              <input type="number" value={newItem.stat_bonuses?.dexterity || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), dexterity: Number(e.target.value) || 0 } }))} placeholder="DEX bonus" />
-              <input type="number" value={newItem.stat_bonuses?.constitution || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), constitution: Number(e.target.value) || 0 } }))} placeholder="CON bonus" />
-              <input type="number" value={newItem.stat_bonuses?.intelligence || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), intelligence: Number(e.target.value) || 0 } }))} placeholder="INT bonus" />
-              <input type="number" value={newItem.stat_bonuses?.wisdom || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), wisdom: Number(e.target.value) || 0 } }))} placeholder="WIS bonus" />
-              <input type="number" value={newItem.stat_bonuses?.charisma || 0} onChange={e => setNewItem(prev => ({ ...prev, stat_bonuses: { ...(prev.stat_bonuses || {}), charisma: Number(e.target.value) || 0 } }))} placeholder="CHA bonus" />
-            </div>
             <textarea value={newItem.description} onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))} placeholder="Description or effect" />
             <label className="clean-sheet-checkbox-row">
               <input type="checkbox" checked={newItem.attunement_required} onChange={e => setNewItem(prev => ({ ...prev, attunement_required: e.target.checked, attuned: e.target.checked ? prev.attuned : false }))} />
@@ -464,36 +390,30 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
         {filteredInventory.length > 0 ? (
           <div className="clean-sheet-item-grid">
             {filteredInventory.map((item, index) => (
-              (() => {
-                const inferredSlot = inferEquipSlot(item);
-                const inferredLabel = EQUIP_SLOTS.find(([s]) => s === inferredSlot)?.[1] || '';
-                return (
-                  <ItemCard
-                    key={getItemKey(item, index)}
-                    item={item}
-                    actions={(
-                      <>
-                        {inferredSlot && (
-                          <button type="button" onClick={() => equipItem(inferredSlot, item)} disabled={savingSlot === inferredSlot}>
-                            Quick Equip {inferredLabel}
-                          </button>
-                        )}
-                        {item?.attunement_required && (
-                          <button type="button" onClick={() => updateInventoryItem(item, index, { attuned: !item?.attuned })} disabled={savingItems}>
-                            {item?.attuned ? 'Unattune' : 'Attune'}
-                          </button>
-                        )}
-                        {EQUIP_SLOTS.map(([slot, label]) => (
-                          <button key={slot} type="button" onClick={() => equipItem(slot, item)} disabled={savingSlot === slot}>
-                            Set {label}
-                          </button>
-                        ))}
-                        {quantityActions(item, index)}
-                      </>
+              <ItemCard
+                key={getItemKey(item, index)}
+                item={item}
+                actions={(
+                  <>
+                    {inferEquipSlot(item) && (
+                      <button type="button" onClick={() => equipItem(inferEquipSlot(item), item)} disabled={savingSlot === inferEquipSlot(item)}>
+                        Quick Equip {EQUIP_SLOTS.find(([s]) => s === inferEquipSlot(item))?.[1] || ''}
+                      </button>
                     )}
-                  />
-                );
-              })()
+                    {item?.attunement_required && (
+                      <button type="button" onClick={() => updateInventoryItem(item, index, { attuned: !item?.attuned })} disabled={savingItems}>
+                        {item?.attuned ? 'Unattune' : 'Attune'}
+                      </button>
+                    )}
+                    {EQUIP_SLOTS.map(([slot, label]) => (
+                      <button key={slot} type="button" onClick={() => equipItem(slot, item)} disabled={savingSlot === slot}>
+                        Set {label}
+                      </button>
+                    ))}
+                    {quantityActions(item, index)}
+                  </>
+                )}
+              />
             ))}
           </div>
         ) : (
