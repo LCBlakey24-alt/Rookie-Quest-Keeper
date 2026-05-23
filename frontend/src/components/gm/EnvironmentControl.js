@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { CloudRain, Loader, MapPin, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
+import ImageUploadPanel from '@/components/ImageUploadPanel';
 import { API_BASE } from '@/lib/api';
 
 const API = API_BASE;
@@ -137,9 +137,9 @@ export default function EnvironmentControl({ campaignId, campaign, onEnvironment
           </div>
         </section>
 
-        <AIImageGeneratorPanel
+        <ImageUploadPanel
           title="Environment Backdrop"
-          subtitle="Upload a scene background for the live player view. AI image generation is disabled for now."
+          subtitle="Upload a scene background for the live player view. AI image generation is not available."
           uploadLabel="Upload backdrop"
           selectedImage={draft.background_image}
           onSelectImage={(src) => setDraft(prev => ({ ...prev, background_image: src, background_prompt: '' }))}
