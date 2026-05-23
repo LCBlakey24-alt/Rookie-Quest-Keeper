@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '@/lib/api';
-
-const API = API_BASE;
+import apiClient from '@/lib/apiClient';
 
 function FieldBlock({ label, value }) {
   if (!value) return null;
@@ -93,11 +90,11 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
     if (!character?.id || saving) return;
     setSaving(true);
     try {
-      await axios.patch(`${API}/characters/${character.id}`, { notes });
+      await apiClient.patch(`/characters/${character.id}`, { notes });
       onCharacterUpdate?.({ notes });
       toast.success('Notes saved');
     } catch (error) {
-      toast.error('Could not save notes');
+      toast.error(error?.response?.data?.detail || 'Could not save notes');
     } finally {
       setSaving(false);
     }
