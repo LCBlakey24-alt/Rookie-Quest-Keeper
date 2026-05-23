@@ -32,6 +32,8 @@ frontend/
   src/styles/               # Visual polish and responsive CSS
 
 docs/
+  DESIGN_SYSTEM.md          # Charcoal/red/white visual system and AI UI rules
+  FEATURE_BLUEPRINT.md      # Major product features and long-term direction
   PRODUCT_VISION.md         # What Rookie Quest Keeper is trying to become
   ARCHITECTURE.md           # Technical overview
   ROADMAP.md                # Next feature and cleanup priorities
@@ -127,9 +129,10 @@ Manual smoke test:
 2. Finish mobile character sheet integration and testing.
 3. Keep character save logic consistent between builder, sheet, and combat.
 4. Improve account deletion cleanup so deleted users leave no orphaned data.
-5. Add rate limits and usage limits around login, password reset, AI generation, and file parsing.
+5. Keep auth, password reset, AI generation, and file parsing protected with rate limits and usage controls.
 6. Lazy-load heavy routes and tabs to reduce initial frontend bundle size.
-7. Keep visual style consistent: dark navy base, gold accents, clean flat panels, minimal noisy gradients.
+7. Keep visual style consistent: charcoal base, red accents, white text, sharp-edged minimalist panels.
+8. New frontend API calls should use `apiClient` rather than raw `axios` unless there is a specific reason.
 
 ## Content/IP safety
 
