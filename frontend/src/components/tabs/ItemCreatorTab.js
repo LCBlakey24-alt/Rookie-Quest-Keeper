@@ -7,7 +7,7 @@ import {
   Package, Plus, Trash2, Edit2, Save, X, Sparkles, Loader,
   Sword, Shield, FlaskConical, ScrollText, Gem, Wand2, Search
 } from 'lucide-react';
-import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
+import ImageUploadPanel from '@/components/ImageUploadPanel';
 import { API_BASE } from '@/lib/api';
 
 const API = API_BASE;
@@ -266,22 +266,14 @@ Respond with JSON only:
           </div>
 
           <div style={{ marginTop: '16px' }}>
-            <AIImageGeneratorPanel
-              title="AI Item Artwork"
-              subtitle="Weapons, armor, potions, scrolls, rings, and custom equipment."
-              buttonLabel="Generate 3 Images"
+            <ImageUploadPanel
+              title="Item Artwork Upload"
+              subtitle="Upload artwork for this item. AI image generation is not available."
+              uploadLabel="Upload item image"
               disabled={!newItem.name.trim() && !newItem.description.trim()}
               selectedImage={newItem.image_url}
               onSelectImage={(src) => setNewItem(prev => ({ ...prev, image_url: src }))}
               onClearImage={() => setNewItem(prev => ({ ...prev, image_url: '' }))}
-              payload={{
-                subject_type: 'item',
-                name: newItem.name || 'custom item',
-                item_type: ITEM_TYPES.find(t => t.id === newItem.item_type)?.label || newItem.item_type,
-                rarity: RARITIES.find(r => r.id === newItem.rarity)?.label || newItem.rarity,
-                description: newItem.description,
-                properties: newItem.properties,
-              }}
             />
           </div>
 
