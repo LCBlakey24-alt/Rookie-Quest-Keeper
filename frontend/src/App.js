@@ -26,6 +26,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import AuthPage from '@/components/AuthPage';
 import UnifiedDashboard from '@/components/UnifiedDashboard';
+import PlayerDashboard from '@/components/PlayerDashboard';
 import CampaignDashboard from '@/components/CampaignDashboard';
 import DMScreen from '@/components/GMScreen';
 import MobilePlayerCampaignView from '@/components/MobilePlayerCampaignView';
@@ -56,7 +57,7 @@ function ThemeRouter() {
     const path = location.pathname;
     if (path.startsWith('/gm-screen') || path.startsWith('/campaign/') || path.startsWith('/campaigns')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.LANDING);
@@ -218,6 +219,7 @@ function App() {
               <Route path="/login" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
               <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
               <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+              <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
               <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
