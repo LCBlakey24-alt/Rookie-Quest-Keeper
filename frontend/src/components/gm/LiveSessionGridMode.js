@@ -125,8 +125,8 @@ export default function LiveSessionGridMode({
     <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: '100%' }}>
       <div style={toolbarStyle}>
         <div style={{ minWidth: 0 }}>
-          <h2 style={titleStyle}><Grid3X3 size={22} /> Live Session Grid</h2>
-          <p style={subtitleStyle}>Choose 1–6 panels and keep your core GM tools open at the same time.</p>
+          <h2 style={titleStyle}><Grid3X3 size={22} /> GM Screen</h2>
+          <p style={subtitleStyle}>Choose 1–6 panels and keep your core live-session tools open at the same time.</p>
         </div>
         <div style={toolbarActionsStyle}>
           <div style={countPickerStyle} aria-label="Panel count selector">
@@ -171,7 +171,7 @@ export default function LiveSessionGridMode({
                 {toolId === 'quick-dice' ? (
                   <QuickDicePanel theme={theme} onRollDice={onRollDice} />
                 ) : toolId === 'timer' ? (
-                  <UtilityPlaceholder title="Session Timer" text="Use the timer in the GM header while this mini panel is expanded in a future pass." />
+                  <UtilityPlaceholder title="Session Timer" text="Use this slot for live session timing. Full timer controls can be expanded in a future pass." />
                 ) : toolId === 'sound-mini' ? (
                   <UtilityPlaceholder title="Audio Cue" text="Use this slot for fast sound cues. Full soundboard is available as a panel too." />
                 ) : (
@@ -192,7 +192,7 @@ function GridToolWrapper({ toolId, onOpenSingleTab, children }) {
   return (
     <div style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-        <button type="button" onClick={() => onOpenSingleTab?.(toolId)} style={openButtonStyle}>Open Full Tab</button>
+        <button type="button" onClick={() => onOpenSingleTab?.(toolId)} style={openButtonStyle}>Focus Tool</button>
       </div>
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>{children}</div>
     </div>
@@ -202,7 +202,7 @@ function GridToolWrapper({ toolId, onOpenSingleTab, children }) {
 function QuickDicePanel({ onRollDice }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the live grid.</p>
+      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
           <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>
