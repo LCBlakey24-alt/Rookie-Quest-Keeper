@@ -89,7 +89,7 @@ export default function LiveSessionGridPage() {
       setCalendar(calendarRes.data || null);
       setSessionNotes(Array.isArray(notesRes.data) ? notesRes.data.slice(0, 30) : []);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load Live Grid data');
+      toast.error(error?.response?.data?.detail || 'Failed to load Live Play Mode');
     } finally {
       setLoading(false);
     }
@@ -196,7 +196,7 @@ export default function LiveSessionGridPage() {
         occupation: '',
         description: `A ${generatedName.race} named ${generatedName.fullName}.`,
         personality: '',
-        notes: `Created from Live Grid on ${new Date().toLocaleDateString()}`,
+        notes: `Created from Live Play Mode on ${new Date().toLocaleDateString()}`,
       });
       toast.success(`${generatedName.fullName} saved as NPC!`);
       setSavedNames(prev => [...prev, { ...generatedName, id: response.data.id }]);
@@ -252,16 +252,17 @@ export default function LiveSessionGridPage() {
     <main style={pageStyle}>
       <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-          <Button onClick={() => navigate(`/gm-screen/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> GM Screen</Button>
+          <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Campaign Prep</Button>
           <div style={{ minWidth: 0 }}>
+            <p style={eyebrowStyle}>Live Play Mode</p>
             <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-            <p style={subtitleStyle}>Configurable live play grid. Pick 1–6 panels and keep your GM tools open.</p>
+            <p style={subtitleStyle}>Run the session from your GM Screen. Pick 1–6 panels and keep your table tools open.</p>
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Button onClick={() => rollQuickDice('1d20', 'D20')} className="btn-outline" style={smallButtonStyle}><Dices size={16} /> D20</Button>
-          <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-primary" style={smallButtonStyle}><LogOut size={16} /> Campaign</Button>
+          <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-primary" style={smallButtonStyle}><LogOut size={16} /> Exit to Prep</Button>
         </div>
       </header>
 
@@ -270,7 +271,7 @@ export default function LiveSessionGridPage() {
           campaignId={campaignId}
           theme={theme}
           renderTool={renderTool}
-          onOpenSingleTab={(toolId) => navigate(`/gm-screen/${campaignId}`, { state: { openTab: toolId } })}
+          onOpenSingleTab={() => null}
           onRollDice={rollQuickDice}
         />
       </section>
@@ -291,6 +292,7 @@ export default function LiveSessionGridPage() {
 
 const pageStyle = { minHeight: '100vh', background: theme.bg.primary, color: theme.text.primary, padding: 14, display: 'flex', flexDirection: 'column', gap: 12 };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 12 };
+const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.3, textTransform: 'uppercase', margin: '0 0 4px' };
 const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 9, fontSize: 22, fontWeight: 900, margin: 0 };
 const subtitleStyle = { color: theme.text.secondary, margin: '4px 0 0', fontSize: 13 };
 const calendarStyle = { color: theme.accent.primary, margin: '4px 0 0', fontSize: 12, fontWeight: 800 };
