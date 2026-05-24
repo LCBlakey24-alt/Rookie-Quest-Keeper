@@ -1,5 +1,11 @@
-"""Admin routes: user management, reviews, custom creatures."""
+"""Admin routes: user management, reviews, custom creatures, site controls, and feedback."""
+from datetime import datetime, timezone
+from typing import Optional
+import uuid
+
 from fastapi import APIRouter, HTTPException, Depends, status
+from pydantic import BaseModel, Field
+
 from config import db, ADMIN_USERNAMES, logger
 from utils.auth import get_current_user
 from models import (
@@ -9,11 +15,27 @@ from models import (
 router = APIRouter()
 
 
+class ImprovementFeedbackCreate(BaseModel):
+    category: str = Field(default="improvement", max_length=60)
+    area: str = Field(default="general", max_length=80)
+    title: str = Field(..., min_length=3, max_length=120)
+    message: str = Field(..., min_length=10, max_length=2000)
+    page_path: str = Field(default="", max_length=240)
+    priority: str = Field(default="normal", max_length=20)
+
+
+class ImprovementFeedbackUpdate(BaseModel):
+    status: Optional[str] = Field(default=None, max_length=30)
+    priority: Optional[str] = Field(default=None, max_length=20)
+    admin_notes: Optional[str] = Field(default=None, max_length=2000)
+
+
 async def verify_admin(username: str):
     # Case-insensitive match so capitalized usernames (e.g. "LCBlakey24") still pass
     admins = {a.lower() for a in ADMIN_USERNAMES}
     if not username or username.lower() not in admins:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+
 
 @router.get("/admin/users")
 async def admin_get_users(username: str = Depends(get_current_user)):
@@ -29,6 +51,71 @@ async def admin_get_users(username: str = Depends(get_current_user)):
         })
     
     return users
+
+
+# ============== IMPROVEMENT FEEDBACK ==============
+
+@router.post("/feedback")
+async def create_improvement_feedback(payload: ImprovementFeedbackCreate, username: str = Depends(get_current_user)):
+    """Authenticated users can submit improvement suggestions and bug reports."""
+    now = datetime.now(timezone.utc).isoformat()
+    doc = {
+        'id': str(uuid.uuid4()),
+        'username': username,
+        'category': payload.category.strip() or 'improvement',
+        'area': payload.area.strip() or 'general',
+        'title': payload.title.strip(),
+        'message': payload.message.strip(),
+        'page_path': payload.page_path.strip(),
+        'priority': payload.priority.strip() or 'normal',
+        'status': 'new',
+        'admin_notes': '',
+        'created_at': now,
+        'updated_at': now,
+    }
+    await db.improvement_feedback.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != '_id'}
+
+
+@router.get("/admin/feedback")
+async def admin_get_feedback(status_filter: Optional[str] = None, username: str = Depends(get_current_user)):
+    """Admin-only list of user improvement feedback."""
+    await verify_admin(username)
+    query = {}
+    if status_filter and status_filter != 'all':
+        query['status'] = status_filter
+    items = await db.improvement_feedback.find(query, {'_id': 0}).sort('created_at', -1).to_list(300)
+    return items
+
+
+@router.put("/admin/feedback/{feedback_id}")
+async def admin_update_feedback(feedback_id: str, payload: ImprovementFeedbackUpdate, username: str = Depends(get_current_user)):
+    """Admin-only update for feedback status, priority, and internal notes."""
+    await verify_admin(username)
+    update = {'updated_at': datetime.now(timezone.utc).isoformat(), 'updated_by': username}
+    if payload.status is not None:
+        update['status'] = payload.status.strip() or 'new'
+    if payload.priority is not None:
+        update['priority'] = payload.priority.strip() or 'normal'
+    if payload.admin_notes is not None:
+        update['admin_notes'] = payload.admin_notes.strip()
+
+    result = await db.improvement_feedback.update_one({'id': feedback_id}, {'$set': update})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Feedback item not found")
+    doc = await db.improvement_feedback.find_one({'id': feedback_id}, {'_id': 0})
+    return doc
+
+
+@router.delete("/admin/feedback/{feedback_id}")
+async def admin_delete_feedback(feedback_id: str, username: str = Depends(get_current_user)):
+    """Admin-only delete for spam/duplicate feedback."""
+    await verify_admin(username)
+    result = await db.improvement_feedback.delete_one({'id': feedback_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Feedback item not found")
+    return {"message": "Feedback deleted"}
+
 
 # ============== REVIEWS ==============
 
@@ -216,9 +303,6 @@ async def import_custom_creatures(campaign_id: str, creatures: list[CustomCreatu
 # ==================== ADMIN ROUTES ====================
 
 
-
-
-
 @router.get("/site-settings")
 async def get_public_site_settings():
     """Public subset of site settings for runtime UX controls."""
@@ -238,12 +322,16 @@ async def admin_overview(username: str = Depends(get_current_user)):
     characters_count = await db.player_characters.count_documents({})
     reviews_count = await db.reviews.count_documents({})
     approved_reviews_count = await db.reviews.count_documents({'is_approved': True})
+    feedback_count = await db.improvement_feedback.count_documents({})
+    new_feedback_count = await db.improvement_feedback.count_documents({'status': 'new'})
     return {
         'users_count': users_count,
         'campaigns_count': campaigns_count,
         'characters_count': characters_count,
         'reviews_count': reviews_count,
         'approved_reviews_count': approved_reviews_count,
+        'feedback_count': feedback_count,
+        'new_feedback_count': new_feedback_count,
     }
 
 
@@ -269,6 +357,7 @@ async def update_admin_site_settings(payload: SiteSettingsUpdate, username: str 
         'announcement_text': payload.announcement_text.strip()[:240],
         'maintenance_mode': payload.maintenance_mode,
         'updated_by': username,
+        'updated_at': datetime.now(timezone.utc).isoformat(),
     }
     await db.site_settings.update_one({'id': 'global'}, {'$set': allowed, '$setOnInsert': {'id': 'global'}}, upsert=True)
     doc = await db.site_settings.find_one({'id': 'global'}, {'_id': 0})
@@ -370,3 +459,34 @@ async def admin_export_campaigns_csv(username: str = Depends(get_current_user)):
         headers={"Content-Disposition": 'attachment; filename="rook-campaigns.csv"'}
     )
 
+
+@router.get("/admin/export/feedback.csv")
+async def admin_export_feedback_csv(username: str = Depends(get_current_user)):
+    """Admin-only: stream a CSV of all feedback items."""
+    from fastapi.responses import StreamingResponse
+    await verify_admin(username)
+
+    async def gen():
+        header = ["id", "created_at", "username", "category", "area", "priority", "status", "page_path", "title", "message", "admin_notes"]
+        yield ",".join(header) + "\n"
+        async for item in db.improvement_feedback.find({}, {'_id': 0}).sort('created_at', -1):
+            row = [
+                _csv_escape(item.get('id')),
+                _csv_escape(item.get('created_at')),
+                _csv_escape(item.get('username')),
+                _csv_escape(item.get('category')),
+                _csv_escape(item.get('area')),
+                _csv_escape(item.get('priority')),
+                _csv_escape(item.get('status')),
+                _csv_escape(item.get('page_path')),
+                _csv_escape(item.get('title')),
+                _csv_escape(item.get('message')),
+                _csv_escape(item.get('admin_notes')),
+            ]
+            yield ",".join(row) + "\n"
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="rook-feedback.csv"'}
+    )
