@@ -9,10 +9,12 @@ import {
   ChevronRight,
   FileText,
   Link2,
+  MessageSquare,
   Plus,
   RefreshCw,
   Shield,
   Users,
+  X,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
@@ -48,6 +50,7 @@ export default function PlayerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState('');
 
   const selectedCharacter = useMemo(
@@ -141,13 +144,17 @@ export default function PlayerDashboard() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Player Dashboard</p>
             <h1 style={titleStyle}>Your Characters, Campaigns & Notes</h1>
-            <p style={subtitleStyle}>Create a character, join a GM campaign, and keep track of session recaps and personal notes.</p>
+            <p style={subtitleStyle}>Create a character, join a GM campaign, keep notes, and send improvement ideas straight to the admin backlog.</p>
           </div>
         </div>
         <div style={heroActionsStyle}>
           <Button onClick={refresh} className="btn-outline" style={actionButtonStyle} disabled={refreshing}>
             <RefreshCw size={16} style={{ opacity: refreshing ? 0.6 : 1 }} />
             Refresh
+          </Button>
+          <Button data-testid="suggest-improvement-btn" onClick={() => setFeedbackOpen(true)} className="btn-outline" style={actionButtonStyle}>
+            <MessageSquare size={16} />
+            Suggest Improvement
           </Button>
           <Button data-testid="create-character-btn" onClick={() => navigate('/characters/new')} className="btn-primary" style={actionButtonStyle}>
             <Plus size={16} />
@@ -203,6 +210,8 @@ export default function PlayerDashboard() {
           if (campaign?.id) navigate(`/campaign/${campaign.id}`);
         }}
       />
+
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </main>
   );
 }
@@ -278,6 +287,93 @@ function CampaignsTab({ campaigns, navigate, onJoin }) {
   );
 }
 
+function FeedbackModal({ onClose }) {
+  const [form, setForm] = useState({
+    category: 'improvement',
+    area: 'player dashboard',
+    priority: 'normal',
+    title: '',
+    message: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!form.title.trim() || form.title.trim().length < 3) {
+      toast.error('Please add a short title');
+      return;
+    }
+    if (!form.message.trim() || form.message.trim().length < 10) {
+      toast.error('Please describe the improvement in a bit more detail');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await apiClient.post('/feedback', {
+        ...form,
+        page_path: window.location.pathname,
+      });
+      toast.success('Thanks — your feedback has been sent to admin');
+      onClose();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Failed to send feedback');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={modalBackdropStyle}>
+      <form onSubmit={submit} style={modalStyle} data-testid="feedback-modal">
+        <div style={modalHeaderStyle}>
+          <div>
+            <p style={eyebrowStyle}>Site Feedback</p>
+            <h2 style={{ ...cardTitleStyle, fontSize: 22 }}>Suggest an Improvement</h2>
+          </div>
+          <button type="button" onClick={onClose} style={closeButtonStyle} aria-label="Close feedback form"><X size={18} /></button>
+        </div>
+        <p style={subtitleStyle}>Tell us what feels confusing, broken, missing, or worth improving. It will go straight into the admin feedback list.</p>
+
+        <div style={feedbackGridStyle}>
+          <label style={fieldLabelStyle}>Type
+            <select value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))} style={fieldStyle}>
+              <option value="improvement">Improvement</option>
+              <option value="bug">Bug</option>
+              <option value="feature">Feature request</option>
+              <option value="confusing">Confusing area</option>
+              <option value="design">Design/UI</option>
+            </select>
+          </label>
+          <label style={fieldLabelStyle}>Priority
+            <select value={form.priority} onChange={e => setForm(prev => ({ ...prev, priority: e.target.value }))} style={fieldStyle}>
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
+        </div>
+
+        <label style={fieldLabelStyle}>Area
+          <input value={form.area} onChange={e => setForm(prev => ({ ...prev, area: e.target.value }))} style={fieldStyle} placeholder="e.g. character sheet, campaign view, notes" />
+        </label>
+        <label style={fieldLabelStyle}>Title
+          <input data-testid="feedback-title-input" value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} style={fieldStyle} placeholder="Short summary" maxLength={120} />
+        </label>
+        <label style={fieldLabelStyle}>What needs improving?
+          <textarea data-testid="feedback-message-input" value={form.message} onChange={e => setForm(prev => ({ ...prev, message: e.target.value }))} style={{ ...fieldStyle, minHeight: 130, resize: 'vertical' }} placeholder="Describe what happened, what you expected, or what would make this better..." maxLength={2000} />
+        </label>
+
+        <div style={modalActionsStyle}>
+          <Button type="button" onClick={onClose} className="btn-outline">Cancel</Button>
+          <Button data-testid="submit-feedback-btn" type="submit" disabled={saving} className="btn-primary">{saving ? 'Sending...' : 'Send Feedback'}</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function EmptyPanel({ icon: Icon, title, text, action }) {
   return (
     <section style={emptyPanelStyle}>
@@ -313,3 +409,11 @@ const cardButtonStyle = { display: 'flex', alignItems: 'center', gap: '6px', bor
 const emptyPanelStyle = { background: rq.panel, border: `1px dashed ${rq.border}`, borderRadius: rq.radius, padding: '42px 20px', textAlign: 'center' };
 const emptyTitleStyle = { color: rq.text, fontSize: 22, fontWeight: 900, margin: '14px 0 8px' };
 const emptyTextStyle = { color: rq.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 520, margin: '0 auto 20px' };
+const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1600, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 };
+const modalStyle = { width: 'min(620px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.5)' };
+const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 8 };
+const closeButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, borderRadius: rq.radiusSm, padding: 8, cursor: 'pointer' };
+const feedbackGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginTop: 16 };
+const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: rq.muted, fontSize: 12, fontWeight: 900, marginTop: 12 };
+const fieldStyle = { width: '100%', background: rq.input, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px', outline: 'none' };
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap', marginTop: 18 };
