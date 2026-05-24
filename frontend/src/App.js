@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
@@ -44,7 +44,6 @@ import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
 import CleanCharacterSheet from '@/components/CleanCharacterSheet';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
-import { usePlayerOnlyDevice } from '@/hooks/useResponsiveMode';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, clearAuthToken, getAuthToken, setAuthToken } from '@/lib/auth';
@@ -55,9 +54,9 @@ function ThemeRouter() {
   
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/gm-screen') || path.startsWith('/campaign/') || path.startsWith('/campaigns')) {
+    if (path.startsWith('/gm-screen')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.LANDING);
@@ -110,9 +109,77 @@ function KeyboardShortcutsProvider({ children, isAuthenticated }) {
   );
 }
 
-function ResponsiveCampaignRoute({ username, onLogout }) {
-  const playerOnlyDevice = usePlayerOnlyDevice();
-  return playerOnlyDevice ? <MobilePlayerCampaignView /> : <CampaignDashboard username={username} onLogout={onLogout} />;
+function CampaignAccessRoute({ username, onLogout }) {
+  const { campaignId } = useParams();
+  const { setTheme } = useTheme();
+  const [accessMode, setAccessMode] = useState('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAccess() {
+      setAccessMode('checking');
+      try {
+        await apiClient.get(`/campaigns/${campaignId}`);
+        if (!cancelled) {
+          setTheme(THEMES.GM);
+          setAccessMode('gm');
+        }
+      } catch (gmError) {
+        try {
+          await apiClient.get(`/player/campaign/${campaignId}`);
+          if (!cancelled) {
+            setTheme(THEMES.PLAYER);
+            setAccessMode('player');
+          }
+        } catch (playerError) {
+          if (!cancelled) {
+            setTheme(THEMES.PLAYER);
+            setAccessMode('denied');
+          }
+        }
+      }
+    }
+
+    checkAccess();
+    return () => { cancelled = true; };
+  }, [campaignId, setTheme]);
+
+  if (accessMode === 'checking') {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner">
+          <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
+        </div>
+      </div>
+    );
+  }
+
+  if (accessMode === 'gm') {
+    return <CampaignDashboard username={username} onLogout={onLogout} />;
+  }
+
+  if (accessMode === 'player') {
+    return <MobilePlayerCampaignView />;
+  }
+
+  return <CampaignAccessDenied />;
+}
+
+function CampaignAccessDenied() {
+  return (
+    <main style={{ minHeight: '100vh', background: 'var(--rq-bg-main, #1A1A1A)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <section style={{ maxWidth: 520, width: '100%', textAlign: 'center', background: 'var(--rq-bg-panel, #242424)', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))', borderRadius: 'var(--rq-radius-md, 6px)', padding: 28 }}>
+        <h1 style={{ color: 'var(--rq-text-primary, #FFFFFF)', margin: '0 0 10px', fontSize: 26, fontWeight: 900 }}>Campaign access needed</h1>
+        <p style={{ color: 'var(--rq-text-secondary, #D6D6D6)', margin: '0 0 20px', lineHeight: 1.6 }}>
+          This campaign is not linked to your account. Ask the GM for a join code, then link one of your characters from the player dashboard.
+        </p>
+        <a href="/player" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 40, padding: '0 16px', background: 'var(--rq-accent-primary, #C1121F)', color: '#FFFFFF', borderRadius: 'var(--rq-radius-sm, 4px)', textDecoration: 'none', fontWeight: 900 }}>
+          Go to Player Dashboard
+        </a>
+      </section>
+    </main>
+  );
 }
 
 function ResponsiveGMScreenRoute({ username }) {
@@ -228,7 +295,7 @@ function App() {
               <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode={true} /> : <Navigate to="/auth" replace />} />
-              <Route path="/campaign/:campaignId" element={isAuthenticated ? <ResponsiveCampaignRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+              <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignAccessRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
               <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <ResponsiveGMScreenRoute username={username} /> : <Navigate to="/auth" replace />} />
               <Route path="/campaign/:campaignId/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
               <Route path="/admin" element={isAuthenticated ? (isAdmin ? <AdminPage username={username} /> : <Navigate to="/home" replace />) : <Navigate to="/auth" replace />} />
