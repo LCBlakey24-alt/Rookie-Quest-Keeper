@@ -1,1393 +1,381 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { API_BASE } from '@/lib/api';
 import {
-  DND_5E_SOURCES,
-  SOURCE_CONTENT_LABELS,
-  SOURCE_LEGAL_NOTICE,
-  getReleasedSources,
-  getSourcesByCategory
-} from '@/data/dndSources5e';
-import { 
-  User, Crown, Plus, ChevronRight, Star, Settings,
-  Users, MapPin, LogOut, Shield, Sword, Trash2, Upload, BookOpen, FileJson, Sparkles
+  ChevronRight,
+  Crown,
+  Home,
+  Library,
+  LogOut,
+  Plus,
+  RefreshCw,
+  Settings,
+  Shield,
+  Sword,
+  User,
 } from 'lucide-react';
-import TronBackground from '@/components/TronBackground';
+import apiClient from '@/lib/apiClient';
 
-const API = API_BASE;
-
-// Minimalist dark grey + red linework.
 const theme = {
-  bg: {
-    primary: '#1F1F23',
-    surface: '#27272B',
-    surfaceHover: '#323235',
-    card: '#27272B',
-    hover: 'rgba(239, 68, 68, 0.08)'
-  },
-  sunset: {
-    purple: '#EF4444',
-    pink: '#EF4444'
-  },
-  gm: {
-    primary: '#EF4444',
-    secondary: '#B91C1C',
-    hover: '#F87171',
-    glow: 'transparent',
-    subtle: 'rgba(239, 68, 68, 0.08)',
-    border: 'rgba(239, 68, 68, 0.35)'
-  },
-  player: {
-    primary: '#EF4444',
-    secondary: '#B91C1C',
-    glow: 'transparent',
-    subtle: 'rgba(239, 68, 68, 0.08)',
-    border: 'rgba(239, 68, 68, 0.35)'
-  },
-  accent: {
-    primary: '#EF4444',
-    line: 'rgba(239, 68, 68, 0.28)',
-    pink: '#EF4444',
-    pinkGlow: 'transparent'
-  },
-  text: {
-    primary: '#F8FAFC',
-    secondary: '#94A3B8',
-    muted: '#64748B'
-  },
-  border: 'rgba(239, 68, 68, 0.35)',
-  gradient: '#EF4444'
+  bg: '#1A1A1A',
+  panel: '#242424',
+  panelSoft: '#1F1F1F',
+  elevated: '#2E2E2E',
+  border: 'rgba(193,18,31,0.35)',
+  borderStrong: 'rgba(193,18,31,0.55)',
+  accent: '#C1121F',
+  accentHover: '#D62839',
+  accentSoft: 'rgba(193,18,31,0.12)',
+  text: '#FFFFFF',
+  textSecondary: '#D6D6D6',
+  muted: '#A0A0A0',
 };
 
-// Ember Particles Component
-const EmberParticles = () => (
-  <div className="ember-particles">
-    {[...Array(15)].map((_, i) => (
-      <div 
-        key={i} 
-        className={`ember ${i % 3 === 0 ? 'large' : i % 2 === 0 ? 'medium' : 'small'}`}
-      />
-    ))}
-  </div>
-);
+const defaultSiteSettings = {
+  campaign_creation_enabled: true,
+  character_creation_enabled: true,
+  uploads_enabled: true,
+  reviews_enabled: true,
+  feedback_enabled: true,
+  rook_text_enabled: true,
+  beta_tools_enabled: true,
+};
 
-function UnifiedDashboard({ username, onLogout }) {
+export default function UnifiedDashboard({ username, onLogout }) {
   const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
-  const [characterSearch, setCharacterSearch] = useState('');
-  const [campaignSearch, setCampaignSearch] = useState('');
-  const [characterSort, setCharacterSort] = useState(() => localStorage.getItem('rq.charSort') || 'recent');
-  const [campaignSort, setCampaignSort] = useState(() => localStorage.getItem('rq.campSort') || 'recent');
+  const [siteSettings, setSiteSettings] = useState(defaultSiteSettings);
   const [loading, setLoading] = useState(true);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewRating, setReviewRating] = useState(0);
-  const [reviewText, setReviewText] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // Campaign creation modal state
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState('');
   const [newCampaignDesc, setNewCampaignDesc] = useState('');
   const [creatingCampaign, setCreatingCampaign] = useState(false);
-  
-  // Ruleset upload state
-  const [showRulesetPanel, setShowRulesetPanel] = useState(false);
-  const [uploadingRuleset, setUploadingRuleset] = useState(false);
-  const [selectedEdition, setSelectedEdition] = useState('2014');
-  const [contentSummary, setContentSummary] = useState(null);
-  
+
   useEffect(() => {
-    fetchAllData();
-    fetchContentSummary();
+    loadDashboard();
   }, []);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await axios.get(`${API}/admin/check`);
-        if (alive) setIsAdmin(!!res.data?.is_admin);
-      } catch {
-        if (alive) setIsAdmin(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [username]);
-
-  const fetchAllData = async () => {
+  const loadDashboard = async () => {
     try {
-      const [charsRes, campsRes] = await Promise.all([
-        axios.get(`${API}/characters`),
-        axios.get(`${API}/campaigns`)
+      setRefreshing(true);
+      const [charsRes, campsRes, adminRes, settingsRes] = await Promise.all([
+        apiClient.get('/characters').catch(() => ({ data: [] })),
+        apiClient.get('/campaigns').catch(() => ({ data: [] })),
+        apiClient.get('/admin/check').catch(() => ({ data: { is_admin: false } })),
+        apiClient.get('/site-settings').catch(() => ({ data: {} })),
       ]);
-      setCharacters(charsRes.data || []);
-      setCampaigns(campsRes.data || []);
+      setCharacters(Array.isArray(charsRes.data) ? charsRes.data : []);
+      setCampaigns(Array.isArray(campsRes.data) ? campsRes.data : []);
+      setIsAdmin(!!adminRes.data?.is_admin);
+      setSiteSettings(prev => ({ ...prev, ...(settingsRes.data || {}) }));
     } catch (error) {
-      console.error('Failed to load data:', error);
+      toast.error(error?.response?.data?.detail || 'Failed to load dashboard');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleReviewSubmit = async () => {
-    if (reviewRating === 0) {
-      toast.error('Please select a rating');
+  const recentCharacters = useMemo(() => {
+    return [...characters]
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .slice(0, 4);
+  }, [characters]);
+
+  const recentCampaigns = useMemo(() => {
+    return [...campaigns]
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .slice(0, 4);
+  }, [campaigns]);
+
+  const createCharacter = () => {
+    if (siteSettings.character_creation_enabled === false) {
+      toast.error('Character creation is currently disabled');
       return;
     }
-    
-    setSubmittingReview(true);
-    try {
-      await axios.post(`${API}/reviews`, {
-        rating: reviewRating,
-        comment: reviewText
-      });
-      
-      toast.success('Thank you for your review!');
-      setShowReviewModal(false);
-      
-      if (reviewRating >= 4) {
-        setTimeout(() => {
-          window.open('/', '_blank');
-        }, 1000);
-      }
-    } catch (error) {
-      toast.error('Failed to submit review');
-    } finally {
-      setSubmittingReview(false);
-    }
+    navigate('/characters/new');
   };
 
-  // Delete character handler
-  const handleDeleteCharacter = async (e, charId, charName) => {
-    e.stopPropagation(); // Prevent navigation
-    if (!window.confirm(`Delete character "${charName}"? This cannot be undone.`)) return;
-    
-    try {
-      await axios.delete(`${API}/characters/${charId}`);
-      toast.success(`Character "${charName}" deleted`);
-      setCharacters(prev => prev.filter(c => c.id !== charId));
-    } catch (error) {
-      toast.error('Failed to delete character');
+  const openCampaignCreate = () => {
+    if (siteSettings.campaign_creation_enabled === false) {
+      toast.error('Campaign creation is currently disabled');
+      return;
     }
+    setShowCreateCampaignModal(true);
   };
 
-  // Delete campaign handler
-  const handleDeleteCampaign = async (e, campaignId, campaignName) => {
-    e.stopPropagation(); // Prevent navigation
-    if (!window.confirm(`Delete campaign "${campaignName}" and ALL its data (NPCs, locations, notes, etc.)? This cannot be undone.`)) return;
-    
-    try {
-      await axios.delete(`${API}/campaigns/${campaignId}`);
-      toast.success(`Campaign "${campaignName}" deleted`);
-      setCampaigns(prev => prev.filter(c => c.id !== campaignId));
-    } catch (error) {
-      toast.error('Failed to delete campaign');
-    }
-  };
-
-  // Create campaign handler
-  const handleCreateCampaign = async (e) => {
-    e.preventDefault();
+  const handleCreateCampaign = async (event) => {
+    event.preventDefault();
     if (!newCampaignName.trim()) {
       toast.error('Campaign name is required');
       return;
     }
 
-    setCreatingCampaign(true);
     try {
-      const response = await axios.post(`${API}/campaigns`, {
+      setCreatingCampaign(true);
+      const response = await apiClient.post('/campaigns', {
         name: newCampaignName.trim(),
-        description: newCampaignDesc.trim()
+        description: newCampaignDesc.trim(),
       });
-      toast.success('Campaign created successfully!');
-      setCampaigns(prev => [...prev, response.data]);
+      toast.success('Campaign created');
+      setShowCreateCampaignModal(false);
       setNewCampaignName('');
       setNewCampaignDesc('');
-      setShowCreateCampaignModal(false);
-      // Navigate to the new campaign
       navigate(`/campaign/${response.data.id}`);
     } catch (error) {
-      const detail = error?.response?.data?.detail;
-      toast.error(typeof detail === 'string' ? detail : 'Failed to create campaign');
+      toast.error(error?.response?.data?.detail || 'Failed to create campaign');
     } finally {
       setCreatingCampaign(false);
     }
   };
 
-  // Fetch user's content summary
-  const fetchContentSummary = async () => {
-    try {
-      const response = await axios.get(`${API}/user/content/summary`);
-      setContentSummary(response.data);
-    } catch (error) {
-      console.error('Failed to fetch content summary');
-    }
-  };
-
-  // Handle ruleset upload
-  const handleRulesetUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    if (!file.name.endsWith('.json')) {
-      toast.error('Please upload a JSON file');
-      e.target.value = '';
-      return;
-    }
-    
-    setUploadingRuleset(true);
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      
-      if (!data.ruleset_name) {
-        toast.error('JSON must include "ruleset_name" field');
-        return;
-      }
-      
-      // Add edition to the upload
-      data.edition = selectedEdition;
-      
-      const response = await axios.post(`${API}/user/content/upload`, data);
-      
-      // Build detailed success message
-      const { summary, uploaded, skipped, edition } = response.data;
-      const uploadedItems = [];
-      if (uploaded.races?.length) uploadedItems.push(`${uploaded.races.length} races`);
-      if (uploaded.classes?.length) uploadedItems.push(`${uploaded.classes.length} classes`);
-      if (uploaded.subclasses?.length) uploadedItems.push(`${uploaded.subclasses.length} subclasses`);
-      if (uploaded.backgrounds?.length) uploadedItems.push(`${uploaded.backgrounds.length} backgrounds`);
-      if (uploaded.feats?.length) uploadedItems.push(`${uploaded.feats.length} feats`);
-      
-      toast.success(
-        `✅ Uploaded to ${edition} Character Creator!`,
-        { 
-          description: uploadedItems.length > 0 
-            ? `Added: ${uploadedItems.join(', ')}` 
-            : 'Ruleset created (no new items)',
-          duration: 6000 
-        }
-      );
-      
-      // Show skipped items if any
-      if (skipped && Object.values(skipped).some(arr => arr?.length > 0)) {
-        const skippedItems = [];
-        Object.entries(skipped).forEach(([category, items]) => {
-          if (items?.length) skippedItems.push(...items.map(name => `${name}`));
-        });
-        toast.info(
-          `Skipped ${skippedItems.length} duplicate(s)`,
-          { description: skippedItems.slice(0, 5).join(', ') + (skippedItems.length > 5 ? '...' : ''), duration: 5000 }
-        );
-      }
-      
-      fetchContentSummary();
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        toast.error('Invalid JSON format');
-      } else {
-        toast.error(error.response?.data?.detail || 'Failed to upload ruleset');
-      }
-    } finally {
-      setUploadingRuleset(false);
-      e.target.value = '';
-    }
-  };
-
-  // Persist sort preferences
-  useEffect(() => { localStorage.setItem('rq.charSort', characterSort); }, [characterSort]);
-  useEffect(() => { localStorage.setItem('rq.campSort', campaignSort); }, [campaignSort]);
-
-  // Search + sort pipeline for characters
-  const displayCharacters = useMemo(() => {
-    const q = characterSearch.toLowerCase();
-    const filtered = !q ? [...characters] : characters.filter(c =>
-      (c.name || '').toLowerCase().includes(q) ||
-      (c.character_class || '').toLowerCase().includes(q) ||
-      (c.race || '').toLowerCase().includes(q)
-    );
-    const byRecent = (a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
-    if (characterSort === 'name') filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    else if (characterSort === 'level') filtered.sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0));
-    else if (characterSort === 'class') filtered.sort((a, b) => (a.character_class || '').localeCompare(b.character_class || ''));
-    else filtered.sort(byRecent);
-    return filtered;
-  }, [characters, characterSearch, characterSort]);
-
-  // Search + sort pipeline for campaigns
-  const displayCampaigns = useMemo(() => {
-    const q = campaignSearch.toLowerCase();
-    const filtered = !q ? [...campaigns] : campaigns.filter(c =>
-      (c.name || '').toLowerCase().includes(q) ||
-      (c.setting || '').toLowerCase().includes(q) ||
-      (c.description || '').toLowerCase().includes(q)
-    );
-    const byRecent = (a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
-    if (campaignSort === 'name') filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    else if (campaignSort === 'edition') filtered.sort((a, b) => String(b.rules_edition || '2024').localeCompare(String(a.rules_edition || '2024')));
-    else filtered.sort(byRecent);
-    return filtered;
-  }, [campaigns, campaignSearch, campaignSort]);
-
-  const sourceStats = useMemo(() => {
-    const released = getReleasedSources();
-    const categories = ['core', 'rules-expansion', 'setting', 'adventure', 'anthology', 'starter', 'digital', 'organized-play'];
-    const categoryCounts = categories
-      .map(category => ({ category, count: getSourcesByCategory(category).length }))
-      .filter(item => item.count > 0);
-    return {
-      total: DND_5E_SOURCES.length,
-      released: released.length,
-      announced: DND_5E_SOURCES.length - released.length,
-      years: `${Math.min(...DND_5E_SOURCES.map(s => s.year))}-${Math.max(...DND_5E_SOURCES.map(s => s.year))}`,
-      categoryCounts,
-    };
-  }, []);
-
   if (loading) {
     return (
-      <div style={{ 
-        minHeight: '100dvh', 
-        background: theme.bg.primary,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div className="loading-spinner"></div>
-      </div>
+      <main style={pageStyle}>
+        <div className="loading-spinner" />
+      </main>
     );
   }
 
   return (
-    <div style={{ 
-      minHeight: '100dvh', 
-      background: theme.bg.primary,
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    }}>
-      
-      {/* Header */}
-      <header style={{
-        background: 'rgba(39, 39, 43, 0.95)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: `1px solid ${theme.border}`,
-        padding: '10px 18px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        position: 'relative',
-        zIndex: 10,
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
-        <div className="mobile-stack" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img 
-            src="/images/logo-mini.png" 
-            alt="ROOK" 
-            className="icon-float"
-            style={{ height: '40px', width: 'auto', filter: 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.5))' }}
-          />
-          <h1 className="mobile-hide" style={{
-            fontWeight: '800',
-            fontSize: '22px',
-            background: theme.gradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            margin: 0,
-            fontFamily: "'Montserrat', sans-serif",
-            letterSpacing: 0
-          }}>
-            ROOKIE QUEST KEEPER
-          </h1>
-          <span className="mobile-hide" style={{ 
-            color: theme.text.muted, 
-            fontSize: '13px',
-            borderLeft: `1px solid ${theme.border}`,
-            paddingLeft: '16px'
-          }}>
-            Welcome, <span style={{ color: theme.text.primary }}>{username}</span>
-          </span>
+    <main style={pageStyle}>
+      <header style={headerStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <img src="/images/logo-mini.png" alt="ROOK" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+          <div style={{ minWidth: 0 }}>
+            <p style={eyebrowStyle}>Rookie Quest Keeper</p>
+            <h1 style={titleStyle}>Command Dashboard</h1>
+            <p style={subtitleStyle}>Welcome back, <strong style={{ color: theme.text }}>{username}</strong>. Choose where you want to work.</p>
+          </div>
         </div>
-
-        <div className="dashboard-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {isAdmin && (
-            <Button
-              onClick={() => navigate('/admin')}
-              data-testid="admin-btn"
-              style={{
-                background: theme.bg.surfaceHover,
-                border: `1px solid ${theme.border}`,
-                color: theme.text.primary,
-                padding: '8px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: '800'
-              }}
-            >
-              <Shield size={16} />
-              Admin
-            </Button>
-          )}
-
-          <Button
-            onClick={() => setShowReviewModal(true)}
-            data-testid="review-btn"
-            style={{
-              background: 'transparent',
-              border: `1px solid ${theme.border}`,
-              color: theme.text.muted,
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Star size={16} />
-            Review
-          </Button>
-
-          {/* Upload JSON Button */}
-          <label
-            data-testid="upload-json-btn"
-            style={{
-              background: 'linear-gradient(135deg, #EF4444, #B91C1C)',
-              border: 'none',
-              color: '#1F1F23',
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              borderRadius: '8px',
-              fontWeight: '800',
-              fontSize: '14px',
-              cursor: uploadingRuleset ? 'not-allowed' : 'pointer',
-              opacity: uploadingRuleset ? 0.6 : 1
-            }}
-          >
-            <Upload size={16} />
-            {uploadingRuleset ? 'Uploading...' : 'Upload JSON'}
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleRulesetUpload}
-              disabled={uploadingRuleset}
-              style={{ display: 'none' }}
-            />
-          </label>
-
-          <Button
-            onClick={() => navigate('/account')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: '8px',
-              color: theme.text.muted
-            }}
-          >
-            <Settings size={18} />
-          </Button>
-
-          <Button
-            onClick={onLogout}
-            data-testid="logout-button"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: '8px',
-              color: theme.text.muted
-            }}
-          >
-            <LogOut size={18} />
-          </Button>
+        <div style={headerActionsStyle}>
+          {isAdmin && <HeaderButton icon={Shield} label="Admin" onClick={() => navigate('/admin')} />}
+          <HeaderButton icon={RefreshCw} label={refreshing ? 'Refreshing...' : 'Refresh'} onClick={loadDashboard} disabled={refreshing} />
+          <HeaderButton icon={Settings} label="Account" onClick={() => navigate('/account')} />
+          <HeaderButton icon={LogOut} label="Logout" onClick={onLogout} />
         </div>
       </header>
 
-      {/* Mobile/tablet player hub strip */}
-      <div 
-        className="animate-fade-in"
-        style={{
-          display: 'none',
-          padding: '12px 20px',
-          background: theme.bg.surface,
-          borderBottom: `1px solid ${theme.border}`,
-          gap: '0'
-        }}
-        id="mobile-nav-toggle"
-      >
-        <style>{`
-          @media (max-width: 1024px) {
-            #mobile-nav-toggle { display: flex !important; }
-            #player-section { display: block !important; }
-            #gm-section { display: none !important; }
-          }
-          @media (max-width: 720px) {
-            .dashboard-actions [data-testid="review-btn"],
-            .dashboard-actions [data-testid="upload-json-btn"],
-            .dashboard-actions [data-testid="admin-btn"] {
-              display: none !important;
-            }
-            .dashboard-actions {
-              gap: 4px !important;
-            }
-            header {
-              padding: 10px 12px !important;
-            }
-          }
-          @media (max-width: 520px) {
-            #player-section {
-              padding: 14px !important;
-            }
-          }
-        `}</style>
-        <div style={{
-          width: '100%',
-          padding: '10px 12px',
-          background: 'rgba(239, 68, 68, 0.12)',
-          border: `1px solid ${theme.border}`,
-          borderRadius: 8,
-          color: theme.player.primary,
-          fontSize: 12,
-          fontWeight: 800,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}>
-          <Sword size={15} />
-          Player Hub
-        </div>
-      </div>
-
-      <section
-        data-testid="sourcebook-library"
-        style={{
-          padding: '14px 18px',
-          background: theme.bg.primary,
-          borderBottom: `1px solid ${theme.border}`,
-          color: theme.text.primary,
-          position: 'relative',
-          zIndex: 2
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 240, flex: '1 1 360px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.accent.primary, fontSize: 12, fontWeight: 800, textTransform: 'uppercase' }}>
-              <BookOpen size={16} />
-              D&D 5e Source Index
-            </div>
-            <div style={{ color: theme.text.secondary, fontSize: 12, marginTop: 4, lineHeight: 1.45 }}>
-              {sourceStats.total} official first-party entries tracked across {sourceStats.years}; {sourceStats.released} released, {sourceStats.announced} announced.
-            </div>
-            <div style={{ color: theme.text.muted, fontSize: 11, marginTop: 4, lineHeight: 1.45 }}>
-              {SOURCE_LEGAL_NOTICE}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end', flex: '1 1 320px' }}>
-            {sourceStats.categoryCounts.map(({ category, count }) => (
-              <span
-                key={category}
-                style={{
-                  border: `1px solid ${theme.border}`,
-                  color: theme.text.secondary,
-                  background: theme.bg.surface,
-                  padding: '5px 8px',
-                  fontSize: 10,
-                  textTransform: 'uppercase'
-                }}
-              >
-                {category.replace('-', ' ')}: {count}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <details style={{ marginTop: 10 }}>
-          <summary style={{ cursor: 'pointer', color: theme.accent.primary, fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
-            View source coverage by year and content type
-          </summary>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 10 }}>
-            {DND_5E_SOURCES.map(source => (
-              <div
-                key={source.id}
-                style={{
-                  background: theme.bg.surface,
-                  border: `1px solid ${theme.border}`,
-                  borderLeft: `3px solid ${theme.accent.primary}`,
-                  padding: 10
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-                  <strong style={{ color: theme.text.primary, fontSize: 12 }}>{source.title}</strong>
-                  <span style={{ color: theme.accent.primary, fontSize: 11 }}>{source.year}</span>
-                </div>
-                <div style={{ color: theme.text.muted, fontSize: 10, textTransform: 'uppercase', marginBottom: 6 }}>
-                  {source.rulesEra} rules / {source.category.replace('-', ' ')} / {source.status}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {source.content.slice(0, 6).map(content => (
-                    <span
-                      key={content}
-                      style={{
-                        border: `1px solid ${theme.border}`,
-                        color: theme.text.secondary,
-                        padding: '2px 5px',
-                        fontSize: 10
-                      }}
-                    >
-                      {SOURCE_CONTENT_LABELS[content] || content}
-                    </span>
-                  ))}
-                  {source.content.length > 6 && (
-                    <span style={{ color: theme.text.muted, fontSize: 10 }}>+{source.content.length - 6}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </details>
+      <section style={quickGridStyle}>
+        <ActionCard
+          icon={Sword}
+          title="Player Dashboard"
+          text="Open your characters, joined campaigns, player notes, and join-code tools."
+          meta={`${characters.length} character${characters.length === 1 ? '' : 's'}`}
+          onClick={() => navigate('/player')}
+          primary
+        />
+        <ActionCard
+          icon={Plus}
+          title="Create Character"
+          text="Start a new character using the available character creation flows."
+          meta={siteSettings.character_creation_enabled === false ? 'Disabled by admin' : 'Ready'}
+          onClick={createCharacter}
+          disabled={siteSettings.character_creation_enabled === false}
+        />
+        <ActionCard
+          icon={Crown}
+          title="GM Campaigns"
+          text="Prepare campaigns, manage worldbuilding, players, notes, maps, and session tools."
+          meta={`${campaigns.length} campaign${campaigns.length === 1 ? '' : 's'}`}
+          onClick={() => scrollToSection('campaign-summary')}
+          primary
+        />
+        <ActionCard
+          icon={Plus}
+          title="Create Campaign"
+          text="Create a new campaign prep space and open the GM toolset."
+          meta={siteSettings.campaign_creation_enabled === false ? 'Disabled by admin' : 'Ready'}
+          onClick={openCampaignCreate}
+          disabled={siteSettings.campaign_creation_enabled === false}
+        />
+        <ActionCard
+          icon={Library}
+          title="Homebrew Library"
+          text="Manage custom character options, templates, imports, and reusable homebrew."
+          meta="Library"
+          onClick={() => navigate('/homebrew')}
+        />
+        {isAdmin && (
+          <ActionCard
+            icon={Shield}
+            title="Admin Control"
+            text="Users, feedback, reviews, feature flags, and site controls."
+            meta="Owner tools"
+            onClick={() => navigate('/admin')}
+          />
+        )}
       </section>
 
-      {/* Main Content - Split Design */}
-      <div style={{
-        flex: 1,
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        minHeight: 'calc(100dvh - 70px)',
-        gap: '0'
-      }}>
-        {/* LEFT: Characters - Player Section */}
-        <div 
-          id="player-section"
-          className="animate-fade-in-left"
-          style={{ 
-            background: 'rgba(39, 39, 43, 0.72)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderRight: `1px solid ${theme.border}`,
-            padding: '18px',
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight: '400px'
-          }}
+      <section style={summaryGridStyle}>
+        <SummaryPanel
+          id="character-summary"
+          icon={User}
+          title="Recent Characters"
+          emptyTitle="No characters yet"
+          emptyText="Create a character or open the player dashboard to get started."
+          actionLabel="Open Player Dashboard"
+          onAction={() => navigate('/player')}
         >
-          {/* Player section now OPEN */}
-          
-          {/* Glow effect at top */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '150px',
-            background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%)',
-            pointerEvents: 'none'
-          }} />
-          
-          {/* Vertical accent line */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '3px',
-            height: '100%',
-            background: `linear-gradient(180deg, ${theme.player.primary}, ${theme.player.secondary}, transparent)`,
-            boxShadow: `0 0 20px ${theme.player.glow}`
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-                  marginBottom: '18px'
-            }}>
-              <div>
-                <h2 style={{
-                  fontWeight: '800',
-                  fontSize: '12px',
-                  color: theme.player.primary,
-                  margin: '0 0 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: 0,
-                  textTransform: 'uppercase'
-                }}>
-                  <User size={18} />
-                  PLAYER SIDE
-                </h2>
-                <h3 style={{
-                  fontWeight: '800',
-                  fontSize: '24px',
-                  color: theme.text.primary,
-                  margin: 0,
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: 0
-                }}>
-                  My Characters
-                </h3>
-              </div>
-              <Button
-                onClick={() => navigate('/characters/new')}
-                data-testid="new-character-btn"
-                style={{
-                  background: `linear-gradient(135deg, ${theme.player.primary}, ${theme.player.primary})`,
-                  border: 'none',
-                  color: '#1F1F23',
-                  padding: '9px 16px',
-                  fontWeight: '800',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: theme.player.glow
-                }}
-              >
-                <Plus size={18} />
-                New Character
-              </Button>
-              <Button
-                onClick={() => navigate('/homebrew')}
-                data-testid="homebrew-workshop-btn"
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #EF4444',
-                  color: '#EF4444',
-                  padding: '9px 14px',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginLeft: 8,
-                  letterSpacing: 0.5
-                }}
-              >
-                <Sparkles size={16} />
-                Homebrew Workshop
-              </Button>
-            </div>
-
-            {/* Character List */}
-            {characters.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                <input
-                  data-testid="character-search-input"
-                  type="text"
-                  placeholder="Search characters by name, class, or race…"
-                  value={characterSearch}
-                  onChange={e => setCharacterSearch(e.target.value)}
-                  style={{
-                    flex: 1, minWidth: 220,
-                    background: theme.bg.surface, color: theme.text.primary,
-                    border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '8px 12px', fontSize: 12, outline: 'none',
-                  }}
-                />
-                <select
-                  data-testid="character-sort"
-                  value={characterSort}
-                  onChange={e => setCharacterSort(e.target.value)}
-                  style={{
-                    minWidth: 150,
-                    background: theme.bg.surface, color: theme.text.primary,
-                    border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '8px 12px', fontSize: 12, outline: 'none', cursor: 'pointer'
-                  }}
-                >
-                  <option value="recent">Sort: Recent</option>
-                  <option value="name">Sort: Name (A-Z)</option>
-                  <option value="level">Sort: Level (High→Low)</option>
-                  <option value="class">Sort: Class (A-Z)</option>
-                </select>
-              </div>
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {characters.length === 0 ? (
-                <div style={{
-                  background: theme.bg.surface,
-                  border: `1px solid ${theme.player.border}`,
-                  padding: '60px 40px',
-                  textAlign: 'center'
-                }}>
-                  <User size={56} style={{ color: theme.player.primary, marginBottom: '20px', opacity: 0.5 }} />
-                  <h3 style={{ color: theme.text.primary, margin: '0 0 8px', fontSize: '18px' }}>
-                    No Characters Yet
-                  </h3>
-                  <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
-                    Create your first character to join campaigns
-                  </p>
-                  <Button
-                    onClick={() => navigate('/characters/new')}
-                    style={{
-                      background: theme.player.primary,
-                      border: 'none',
-                      padding: '14px 28px',
-                      color: '#1F1F23',
-                      fontWeight: '800'
-                    }}
-                  >
-                    Create Character
-                  </Button>
-                </div>
-              ) : (
-                displayCharacters.map((char, index) => (
-                  <div
-                    key={char.id}
-                    onClick={() => navigate(`/characters/${char.id}`)}
-                    data-testid={`character-${char.id}`}
-                    className="card-hover"
-                    style={{
-                      background: 'rgba(39, 39, 43, 0.92)',
-                      border: `1px solid ${theme.border}`,
-                      borderLeft: `3px solid ${theme.player.primary}`,
-                      borderRadius: '8px',
-                      padding: '14px 18px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ 
-                        color: theme.text.primary, 
-                        margin: '0 0 6px', 
-                        fontSize: '18px',
-                        fontWeight: '800',
-                        fontFamily: "'Montserrat', sans-serif"
-                      }}>
-                        {char.name}
-                      </h3>
-                      <p style={{ 
-                        color: theme.player.primary, 
-                        margin: 0, 
-                        fontSize: '13px',
-                        textTransform: 'uppercase',
-                        letterSpacing: 0
-                      }}>
-                        Level {char.level} {char.race} {char.character_class}
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <button
-                        onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
-                        data-testid={`delete-character-${char.id}`}
-                        title="Delete character"
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: theme.text.muted,
-                          cursor: 'pointer',
-                          padding: '8px',
-                          borderRadius: '4px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#E05C3D';
-                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = theme.text.muted;
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                      <ChevronRight size={24} style={{ color: theme.player.primary }} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Campaigns - GM Section */}
-        <div 
-          id="gm-section"
-          className="animate-fade-in-right"
-          style={{ 
-            background: 'rgba(39, 39, 43, 0.72)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            padding: '18px',
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight: '400px'
-          }}
-        >
-          {/* Glow effect at top */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '150px',
-            background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%)',
-            pointerEvents: 'none'
-          }} />
-          
-          {/* Vertical accent line */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '3px',
-            height: '100%',
-            background: `linear-gradient(180deg, ${theme.gm.primary}, ${theme.accent.pink}, transparent)`,
-            boxShadow: `0 0 20px ${theme.gm.glow}`
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '18px'
-            }}>
-              <div>
-                <h2 style={{
-                  fontWeight: '800',
-                  fontSize: '12px',
-                  color: theme.gm.primary,
-                  margin: '0 0 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: 0,
-                  textTransform: 'uppercase'
-                }}>
-                  <Sword size={18} />
-                  GM SIDE
-                </h2>
-                <h3 style={{
-                  fontWeight: '800',
-                  fontSize: '26px',
-                  color: theme.text.primary,
-                  margin: 0,
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: 0
-                }}>
-                  My Campaigns
-                </h3>
-              </div>
-              <Button
-                onClick={() => setShowCreateCampaignModal(true)}
-                data-testid="new-campaign-btn"
-                style={{
-                  background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
-                  border: 'none',
-                  color: '#1F1F23',
-                  padding: '9px 16px',
-                  fontWeight: '800',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: `0 4px 15px ${theme.gm.glow}`
-                }}
-              >
-                <Plus size={18} />
-                New Campaign
-              </Button>
-            </div>
-
-            {/* Campaign List */}
-            {campaigns.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                <input
-                  data-testid="campaign-search-input"
-                  type="text"
-                  placeholder="Search campaigns by name, setting, or description…"
-                  value={campaignSearch}
-                  onChange={e => setCampaignSearch(e.target.value)}
-                  style={{
-                    flex: 1, minWidth: 220,
-                    background: theme.bg.surface, color: theme.text.primary,
-                    border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '8px 12px', fontSize: 12, outline: 'none',
-                  }}
-                />
-                <select
-                  data-testid="campaign-sort"
-                  value={campaignSort}
-                  onChange={e => setCampaignSort(e.target.value)}
-                  style={{
-                    minWidth: 150,
-                    background: theme.bg.surface, color: theme.text.primary,
-                    border: `1px solid ${theme.border}`, borderRadius: 8,
-                    padding: '8px 12px', fontSize: 12, outline: 'none', cursor: 'pointer'
-                  }}
-                >
-                  <option value="recent">Sort: Recent</option>
-                  <option value="name">Sort: Name (A-Z)</option>
-                  <option value="edition">Sort: Edition (2024→2014)</option>
-                </select>
-              </div>
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {campaigns.length === 0 ? (
-                <div style={{
-                  background: theme.bg.surface,
-                  border: `1px solid ${theme.gm.border}`,
-                  padding: '60px 40px',
-                  textAlign: 'center'
-                }}>
-                  <Crown size={56} style={{ color: theme.gm.primary, marginBottom: '20px', opacity: 0.5 }} />
-                  <h3 style={{ color: theme.text.primary, margin: '0 0 8px', fontSize: '18px', fontFamily: "'Montserrat', sans-serif" }}>
-                    No Campaigns Yet
-                  </h3>
-                  <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
-                        Create your first campaign to start GMing
-                      </p>
-                      <Button
-                        onClick={() => setShowCreateCampaignModal(true)}
-                        style={{
-                          background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
-                          border: 'none',
-                          padding: '14px 28px',
-                          color: '#1F1F23',
-                          fontWeight: '800',
-                          boxShadow: `0 4px 15px ${theme.gm.glow}`
-                        }}
-                      >
-                        Create Campaign
-                      </Button>
-                </div>
-              ) : (
-                displayCampaigns.map((campaign, index) => (
-                  <div
-                    key={campaign.id}
-                    onClick={() => navigate(`/campaign/${campaign.id}`)}
-                    data-testid={`campaign-${campaign.id}`}
-                    className="card-hover-gm"
-                    style={{
-                      background: theme.bg.surface,
-                      border: `1px solid ${theme.border}`,
-                      borderLeft: `3px solid ${theme.gm.primary}`,
-                      borderRadius: '8px',
-                      padding: '14px 18px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ 
-                        color: theme.text.primary, 
-                        margin: '0 0 6px', 
-                        fontSize: '18px',
-                        fontWeight: '800',
-                        fontFamily: "'Montserrat', sans-serif"
-                      }}>
-                        {campaign.name}
-                      </h3>
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '16px',
-                        color: theme.gm.primary, 
-                        fontSize: '13px',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                      }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Users size={12} /> {campaign.player_count || 0} players
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={12} /> {campaign.setting || 'Fantasy'}
-                        </span>
-                        {/* Rules edition pill */}
-                        <span data-testid={`campaign-edition-${campaign.id}`} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 3,
-                          padding: '2px 8px', borderRadius: 10,
-                          fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
-                          background: 'rgba(239, 68, 68, 0.15)',
-                          border: '1px solid rgba(239, 68, 68, 0.4)',
-                          color: '#EF4444',
-                        }}>
-                          {(campaign.rules_edition === '2014' ? '2014' : '2024')} RULES
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <button
-                        onClick={(e) => handleDeleteCampaign(e, campaign.id, campaign.name)}
-                        data-testid={`delete-campaign-${campaign.id}`}
-                        title="Delete campaign"
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: theme.text.muted,
-                          cursor: 'pointer',
-                          padding: '8px',
-                          borderRadius: '4px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#E05C3D';
-                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = theme.text.muted;
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                      <ChevronRight size={24} style={{ color: theme.gm.primary }} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Review Modal */}
-      {showReviewModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}
-        onClick={() => setShowReviewModal(false)}
-        >
-          <div 
-            style={{
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              padding: '32px',
-              width: '100%',
-              maxWidth: '420px'
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h2 style={{ 
-              color: theme.text.primary, 
-              margin: '0 0 8px',
-              fontWeight: '800',
-              fontSize: '20px'
-            }}>
-              Leave a Review
-            </h2>
-            <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '14px' }}>
-              How would you rate your experience?
-            </p>
-
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', justifyContent: 'center' }}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  onClick={() => setReviewRating(star)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    transition: 'transform 0.1s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <Star 
-                    size={36} 
-                    fill={star <= reviewRating ? theme.gm.primary : 'transparent'}
-                    color={star <= reviewRating ? theme.gm.primary : theme.text.muted}
-                  />
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              value={reviewText}
-              onChange={e => setReviewText(e.target.value)}
-              placeholder="Tell us more about your experience (optional)"
-              style={{
-                width: '100%',
-                minHeight: '100px',
-                padding: '12px',
-                background: theme.bg.surface,
-                border: `1px solid ${theme.border}`,
-                color: theme.text.primary,
-                fontSize: '14px',
-                resize: 'vertical',
-                marginBottom: '20px'
-              }}
+          {recentCharacters.map(character => (
+            <ListItem
+              key={character.id}
+              title={character.name || 'Unnamed Character'}
+              meta={`Level ${character.level || 1} ${character.race || ''} ${character.character_class || 'Adventurer'}`}
+              onClick={() => navigate(`/characters/${character.id}`)}
             />
+          ))}
+        </SummaryPanel>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <Button
-                onClick={() => setShowReviewModal(false)}
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: `1px solid ${theme.border}`,
-                  color: theme.text.muted,
-                  padding: '12px'
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleReviewSubmit}
-                disabled={submittingReview}
-                style={{
-                  flex: 1,
-                  background: `linear-gradient(135deg, ${theme.gm.primary}, ${theme.gm.hover})`,
-                  border: 'none',
-                  color: '#1F1F23',
-                  padding: '12px',
-                  fontWeight: '800'
-                }}
-              >
-                {submittingReview ? 'Submitting...' : 'Submit'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Create Campaign Modal */}
-      {showCreateCampaignModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            backdropFilter: 'blur(4px)'
-          }}
-          onClick={() => setShowCreateCampaignModal(false)}
+        <SummaryPanel
+          id="campaign-summary"
+          icon={Crown}
+          title="GM Campaigns"
+          emptyTitle="No campaigns yet"
+          emptyText="Create your first campaign to start preparing sessions."
+          actionLabel="Create Campaign"
+          onAction={openCampaignCreate}
         >
-          <div
-            style={{
-              background: theme.bg.surface,
-              border: `1px solid ${theme.border}`,
-              borderRadius: '16px',
-              padding: '32px',
-              width: '100%',
-              maxWidth: '480px',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ 
-              fontFamily: "'Montserrat', sans-serif",
-              color: theme.gm.primary, 
-              margin: '0 0 8px',
-              fontSize: '24px',
-              fontWeight: '800'
-            }}>
-              Create New Campaign
-            </h2>
-            <p style={{ color: theme.text.muted, margin: '0 0 24px', fontSize: '15px' }}>
-              Start your new adventure
-            </p>
+          {recentCampaigns.map(campaign => (
+            <ListItem
+              key={campaign.id}
+              title={campaign.name || 'Untitled Campaign'}
+              meta={`${campaign.player_count || 0} players · ${campaign.setting || campaign.system || 'Fantasy'}`}
+              onClick={() => navigate(`/campaign/${campaign.id}`)}
+            />
+          ))}
+        </SummaryPanel>
+      </section>
 
-            <form onSubmit={handleCreateCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', color: theme.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
-                  Campaign Name *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter campaign name"
-                  value={newCampaignName}
-                  onChange={(e) => setNewCampaignName(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px 16px',
-                    borderRadius: '10px',
-                    border: `1px solid ${theme.border}`,
-                    background: 'rgba(10, 22, 40, 0.62)',
-                    color: theme.text.primary,
-                    fontSize: '15px'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', color: theme.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
-                  Description (optional)
-                </label>
-                <textarea
-                  placeholder="Describe your campaign..."
-                  value={newCampaignDesc}
-                  onChange={(e) => setNewCampaignDesc(e.target.value)}
-                  rows={3}
-                  style={{
-                    width: '100%',
-                    padding: '14px 16px',
-                    borderRadius: '10px',
-                    border: `1px solid ${theme.border}`,
-                    background: 'rgba(10, 22, 40, 0.62)',
-                    color: theme.text.primary,
-                    fontSize: '15px',
-                    resize: 'vertical'
-                  }}
-                />
-              </div>
+      <section style={noticeStyle}>
+        <Home size={17} color={theme.accentHover} />
+        <div>
+          <strong style={{ color: theme.text }}>Cleaner flow:</strong>{' '}
+          <span style={{ color: theme.textSecondary }}>Use this page as the launcher. Player work lives in Player Dashboard, GM prep lives inside each campaign, and live sessions launch from Campaign Prep.</span>
+        </div>
+      </section>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                <Button
-                  type="submit"
-                  disabled={creatingCampaign}
-                  style={{
-                    flex: 1,
-                    background: theme.gradient,
-                    border: 'none',
-                    padding: '14px',
-                    borderRadius: '10px',
-                    color: '#1F1F23',
-                    fontWeight: '800',
-                    fontSize: '15px'
-                  }}
-                >
-                  {creatingCampaign ? 'Creating...' : 'Create Campaign'}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setShowCreateCampaignModal(false)}
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    border: `1px solid ${theme.border}`,
-                    padding: '14px',
-                    borderRadius: '10px',
-                    color: theme.text.secondary,
-                    fontWeight: '800',
-                    fontSize: '15px'
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
+      {showCreateCampaignModal && (
+        <div style={modalBackdropStyle} onClick={() => setShowCreateCampaignModal(false)}>
+          <form style={modalStyle} onClick={e => e.stopPropagation()} onSubmit={handleCreateCampaign}>
+            <h2 style={modalTitleStyle}>Create Campaign</h2>
+            <p style={subtitleStyle}>Name the campaign now. You can add setting, players, lore, maps, and session tools after creation.</p>
+            <label style={fieldLabelStyle}>Campaign name
+              <input
+                value={newCampaignName}
+                onChange={e => setNewCampaignName(e.target.value)}
+                autoFocus
+                placeholder="e.g. The Ashen Crown"
+                style={fieldStyle}
+              />
+            </label>
+            <label style={fieldLabelStyle}>Description
+              <textarea
+                value={newCampaignDesc}
+                onChange={e => setNewCampaignDesc(e.target.value)}
+                placeholder="Optional short campaign pitch"
+                style={{ ...fieldStyle, minHeight: 100, resize: 'vertical' }}
+              />
+            </label>
+            <div style={modalActionsStyle}>
+              <Button type="button" onClick={() => setShowCreateCampaignModal(false)} className="btn-outline">Cancel</Button>
+              <Button type="submit" disabled={creatingCampaign} className="btn-primary">{creatingCampaign ? 'Creating...' : 'Create Campaign'}</Button>
+            </div>
+          </form>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
-export default UnifiedDashboard;
+function scrollToSection(id) {
+  const node = document.getElementById(id);
+  if (node) node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function HeaderButton({ icon: Icon, label, onClick, disabled }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} style={headerButtonStyle(disabled)}>
+      <Icon size={16} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function ActionCard({ icon: Icon, title, text, meta, onClick, primary = false, disabled = false }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} style={actionCardStyle(primary, disabled)}>
+      <div style={actionIconStyle(primary)}><Icon size={24} /></div>
+      <div style={{ flex: 1, textAlign: 'left' }}>
+        <div style={actionTitleStyle}>{title}</div>
+        <div style={actionTextStyle}>{text}</div>
+        <div style={actionMetaStyle(disabled)}>{meta}</div>
+      </div>
+      <ChevronRight size={20} color={disabled ? theme.muted : theme.accentHover} />
+    </button>
+  );
+}
+
+function SummaryPanel({ id, icon: Icon, title, emptyTitle, emptyText, actionLabel, onAction, children }) {
+  const hasItems = React.Children.count(children) > 0;
+  return (
+    <section id={id} style={panelStyle}>
+      <div style={panelHeaderStyle}>
+        <h2 style={panelTitleStyle}><Icon size={20} /> {title}</h2>
+        <button type="button" onClick={onAction} style={smallLinkButtonStyle}>{actionLabel}</button>
+      </div>
+      {hasItems ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
+      ) : (
+        <div style={emptyStyle}>
+          <h3 style={{ color: theme.text, margin: '0 0 6px' }}>{emptyTitle}</h3>
+          <p style={{ color: theme.muted, margin: 0 }}>{emptyText}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ListItem({ title, meta, onClick }) {
+  return (
+    <button type="button" onClick={onClick} style={listItemStyle}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ color: theme.text, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+        <div style={{ color: theme.muted, fontSize: 12, marginTop: 4 }}>{meta}</div>
+      </div>
+      <ChevronRight size={18} color={theme.accentHover} />
+    </button>
+  );
+}
+
+const pageStyle = { minHeight: '100dvh', background: theme.bg, color: theme.text, padding: 'clamp(14px, 3vw, 26px)' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: theme.panel, border: `1px solid ${theme.border}`, padding: 14, marginBottom: 16 };
+const eyebrowStyle = { color: theme.accentHover, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: 900, margin: '0 0 4px' };
+const titleStyle = { color: theme.text, fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 900, margin: 0 };
+const subtitleStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.5, margin: '4px 0 0' };
+const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' };
+const headerButtonStyle = (disabled) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 38, background: disabled ? theme.panelSoft : theme.accentSoft, border: `1px solid ${theme.border}`, color: disabled ? theme.muted : theme.textSecondary, padding: '0 11px', fontWeight: 800, cursor: disabled ? 'not-allowed' : 'pointer' });
+const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginBottom: 16 };
+const actionCardStyle = (primary, disabled) => ({ minHeight: 145, display: 'flex', alignItems: 'center', gap: 12, background: primary ? theme.elevated : theme.panel, border: `1px solid ${primary ? theme.borderStrong : theme.border}`, color: theme.text, padding: 16, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, textAlign: 'left' });
+const actionIconStyle = (primary) => ({ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', background: primary ? theme.accent : theme.accentSoft, color: '#FFFFFF', border: `1px solid ${theme.borderStrong}` });
+const actionTitleStyle = { color: theme.text, fontSize: 17, fontWeight: 900, marginBottom: 5 };
+const actionTextStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.45, marginBottom: 10 };
+const actionMetaStyle = (disabled) => ({ display: 'inline-flex', color: disabled ? theme.muted : theme.accentHover, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.8 });
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 12, marginBottom: 16 };
+const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, padding: 14 };
+const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 };
+const panelTitleStyle = { color: theme.text, fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
+const smallLinkButtonStyle = { background: 'transparent', border: `1px solid ${theme.border}`, color: theme.accentHover, padding: '7px 10px', cursor: 'pointer', fontWeight: 800 };
+const listItemStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 12, cursor: 'pointer', textAlign: 'left' };
+const emptyStyle = { background: theme.panelSoft, border: `1px dashed ${theme.border}`, padding: 24, textAlign: 'center' };
+const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 12, fontSize: 13, lineHeight: 1.5 };
+const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 };
+const modalStyle = { width: 'min(520px, 100%)', background: theme.panel, border: `1px solid ${theme.borderStrong}`, padding: 20 };
+const modalTitleStyle = { color: theme.text, fontSize: 23, fontWeight: 900, margin: '0 0 8px' };
+const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: theme.muted, fontSize: 12, fontWeight: 900, marginTop: 14 };
+const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, padding: 10, outline: 'none' };
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, flexWrap: 'wrap' };
