@@ -43,6 +43,7 @@ import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
 import PremadeCharacterBuilder from '@/components/PremadeCharacterBuilder';
 import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
 import CleanCharacterSheet from '@/components/CleanCharacterSheet';
+import PlayerMobileRailSheet from '@/components/PlayerMobileRailSheet';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
@@ -184,8 +185,21 @@ function CampaignAccessDenied() {
 }
 
 function LivePlayModeRoute() {
-  // Live Play Mode is the real session-running area. The configurable GM Screen grid is its default view.
   return <LiveSessionGridPage />;
+}
+
+function ResponsiveCharacterSheetRoute() {
+  const [isMobileSheet, setIsMobileSheet] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 900px)');
+    const onChange = () => setIsMobileSheet(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+
+  return isMobileSheet ? <PlayerMobileRailSheet /> : <CleanCharacterSheet />;
 }
 
 function App() {
@@ -200,8 +214,6 @@ function App() {
     checkAuth();
     loadSiteSettings();
   }, []);
-
-
 
   const loadSiteSettings = async () => {
     try {
@@ -294,7 +306,7 @@ function App() {
               <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
+              <Route path="/characters/:characterId" element={isAuthenticated ? <ResponsiveCharacterSheetRoute /> : <Navigate to="/auth" replace />} />
               <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode={true} /> : <Navigate to="/auth" replace />} />
               <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignAccessRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
               <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LivePlayModeRoute /> : <Navigate to="/auth" replace />} />
