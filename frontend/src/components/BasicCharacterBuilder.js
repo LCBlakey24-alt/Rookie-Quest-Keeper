@@ -15,6 +15,22 @@ const STAT_ARRAYS = {
   charisma:     { charisma: 15, constitution: 14, dexterity: 13, wisdom: 12, intelligence: 10, strength: 8 }
 };
 
+const GLADIATOR_BACKGROUND = {
+  name: 'Gladiator',
+  description: 'Arena performer or pit fighter with a fearsome reputation.',
+  skillProficiencies: ['Athletics', 'Performance'],
+  toolProficiencies: ['Disguise kit', 'Musical instrument'],
+  equipment: ['Costume', 'Arena token', 'Common clothes', '15 gp'],
+  feature: 'Arena Reputation',
+  asi2024: { strength: 2, charisma: 1 },
+  originFeat2024: 'Savage Attacker'
+};
+
+const BACKGROUND_OPTIONS = {
+  ...BACKGROUNDS,
+  Gladiator: BACKGROUNDS.Gladiator || GLADIATOR_BACKGROUND,
+};
+
 const input = {
   width: '100%', padding: '10px 12px', borderRadius: 8,
   background: 'rgba(15,36,64,0.6)', border: '1px solid #D4A017',
@@ -34,14 +50,14 @@ export default function BasicCharacterBuilder() {
 
   const cls = CLASSES[characterClass];
   const raceData = RACES[race];
-  const bgData = BACKGROUNDS[background];
+  const bgData = BACKGROUND_OPTIONS[background];
 
   const statBlock = useMemo(() => {
     return STAT_ARRAYS[cls?.primaryAbility] || STAT_ARRAYS.strength;
   }, [cls]);
 
-  // Reset skills when class changes
-  useEffect(() => { setSelectedSkills([]); }, [characterClass]);
+  // Reset skills when class changes/background changes
+  useEffect(() => { setSelectedSkills([]); }, [characterClass, background]);
 
   const skillOptions = useMemo(() => {
     if (!cls) return [];
@@ -107,7 +123,8 @@ export default function BasicCharacterBuilder() {
         tool_proficiencies: bgData?.toolProficiencies || [],
         languages: baseLanguages,
         class_features: classFeatures,
-        racial_traits: racialTraits
+        racial_traits: racialTraits,
+        starting_equipment: [...(cls?.startingEquipment || []), ...(bgData?.equipment || [])]
       };
       const res = await axios.post(`${API_BASE}/characters`, payload);
       toast.success('Basic character created!');
@@ -157,11 +174,17 @@ export default function BasicCharacterBuilder() {
 
           <label style={{ fontSize: 12, color: '#94A3B8' }}>Background
             <select style={input} value={background} onChange={e => setBackground(e.target.value)} data-testid="basic-background">
-              {Object.keys(BACKGROUNDS).map(b => <option key={b} value={b}>{b}</option>)}
+              {Object.keys(BACKGROUND_OPTIONS).map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </label>
 
-          {/* Skill picker */}
+          {bgData && (
+            <div style={{ padding: 10, border: '1px solid rgba(212,160,23,0.45)', borderRadius: 8, color: '#CBD5E1', fontSize: 12, lineHeight: 1.5 }}>
+              <strong style={{ color: '#D4A017' }}>{bgData.name}</strong>: {bgData.description}<br />
+              Skills: {(bgData.skillProficiencies || []).join(', ') || 'None'}
+            </div>
+          )}
+
           <div style={{ padding: 12, border: '1px solid #D4A017', borderRadius: 8 }}>
             <div style={{ fontSize: 12, color: '#D4A017', fontWeight: 700, marginBottom: 6 }}>
               Pick {skillCount} class skill{skillCount === 1 ? '' : 's'} ({selectedSkills.length}/{skillCount})
