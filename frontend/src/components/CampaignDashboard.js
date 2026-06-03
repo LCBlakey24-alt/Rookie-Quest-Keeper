@@ -1,9 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Monitor, Users, UserCircle, Book, Church, MapPin, FileText, Swords, Calendar, Sparkles, Wand2, ScrollText, Globe, Menu, X, Map, ChevronDown, ChevronRight, Package, Dice6, Clock, Network, Compass, Building, Backpack, Upload } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Backpack,
+  Book,
+  ChevronDown,
+  ChevronRight,
+  Church,
+  Clock,
+  Compass,
+  FileText,
+  Globe,
+  Map,
+  MapPin,
+  Menu,
+  Monitor,
+  RefreshCw,
+  ScrollText,
+  Sparkles,
+  Swords,
+  Upload,
+  UserCircle,
+  Users,
+  Wand2,
+  X,
+} from 'lucide-react';
+import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import GodsTab from '@/components/tabs/GodsTab';
 import LocationsTab from '@/components/tabs/LocationsTab';
@@ -12,8 +37,6 @@ import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
 import SessionRecapAI from '@/components/SessionRecapAI';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
-import TronBackground from '@/components/TronBackground';
-// Consolidated Tabs
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
 import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
 import InventoryConsolidatedTab from '@/components/tabs/InventoryConsolidatedTab';
@@ -21,69 +44,126 @@ import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab
 import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
-import { API_BASE } from '@/lib/api';
 
-const API = API_BASE;
-
-// GM Mode Theme - dark grey, red linework, white text
 const theme = {
   bg: {
     black: '#1F1F23',
-    dark: '#27272B',
-    panel: 'rgba(39, 39, 43, 0.94)',
+    panel: 'rgba(39, 39, 43, 0.96)',
     card: 'rgba(39, 39, 43, 0.96)',
     hover: '#323235',
-    elevated: '#323235',
-    surface: 'rgba(39, 39, 43, 0.90)'
-  },
-  sunset: {
-    purple: '#EF4444',
-    pink: '#F87171',
-    gold: '#EF4444'
   },
   accent: {
     primary: '#EF4444',
-    secondary: '#F87171',
-    tertiary: '#F87171',
     hover: '#F87171',
     subtle: 'rgba(239, 68, 68, 0.12)',
-    glow: 'none',
-    gm: '#EF4444',
     red: '#EF4444',
     redHover: '#F87171',
     redSubtle: 'rgba(239, 68, 68, 0.12)',
-    orange: '#F87171'
+    gm: '#EF4444',
   },
   text: {
     white: '#FFFFFF',
     primary: '#FFFFFF',
     secondary: '#D1D5DB',
-    muted: '#9CA3AF'
+    muted: '#9CA3AF',
   },
   border: 'rgba(239, 68, 68, 0.42)',
-  gradient: '#EF4444'
+  gradient: '#EF4444',
 };
 
-function CampaignDashboard({ username, onLogout }) {
+const tabGroups = [
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: Book,
+    tabs: [
+      { id: 'setting', icon: Book, label: 'Campaign Overview' },
+      { id: 'players', icon: Users, label: 'Players' },
+      { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
+    ],
+  },
+  {
+    id: 'world',
+    label: 'World',
+    icon: Globe,
+    tabs: [
+      { id: 'world', icon: Globe, label: 'World Builder' },
+      { id: 'maps', icon: Compass, label: 'Maps' },
+      { id: 'gods', icon: Church, label: 'Gods & Factions' },
+      { id: 'locations', icon: MapPin, label: 'Locations' },
+      { id: 'chronicle', icon: Clock, label: 'Chronicle' },
+    ],
+  },
+  {
+    id: 'people',
+    label: 'People',
+    icon: UserCircle,
+    tabs: [
+      { id: 'npcs', icon: UserCircle, label: 'NPCs' },
+    ],
+  },
+  {
+    id: 'sessions',
+    label: 'Sessions',
+    icon: Sparkles,
+    tabs: [
+      { id: 'session-recap', icon: Sparkles, label: 'Rook Recap' },
+      { id: 'tools', icon: ScrollText, label: 'Rook Tools' },
+    ],
+  },
+  {
+    id: 'combat',
+    label: 'Combat',
+    icon: Swords,
+    tabs: [
+      { id: 'combat', icon: Swords, label: 'Encounters' },
+      { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
+    ],
+  },
+  {
+    id: 'assets',
+    label: 'Assets',
+    icon: Backpack,
+    tabs: [
+      { id: 'inventory', icon: Backpack, label: 'Inventory' },
+      { id: 'uploads', icon: Upload, label: 'Uploads' },
+    ],
+  },
+];
+
+function CampaignDashboard() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState('setting');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
+  const [collapsedGroups, setCollapsedGroups] = useState({});
+
+  const activeGroupId = useMemo(() => {
+    const group = tabGroups.find(item => item.tabs.some(tab => tab.id === activeTab));
+    return group?.id || null;
+  }, [activeTab]);
 
   useEffect(() => {
     fetchCampaign();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId]);
 
   const fetchCampaign = async () => {
+    setLoading(true);
+    setLoadError('');
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}`);
+      const response = await apiClient.get(`/campaigns/${campaignId}`);
       setCampaign(response.data);
     } catch (error) {
+      const detail = error?.response?.data?.detail;
+      const message = detail || 'Campaign could not be loaded. You may not have access, or the campaign failed to fetch.';
+      setCampaign(null);
+      setLoadError(message);
       toast.error('Failed to load campaign');
-      navigate('/campaigns');
     } finally {
       setLoading(false);
     }
@@ -98,84 +178,15 @@ function CampaignDashboard({ username, onLogout }) {
     setMobileMenuOpen(false);
   };
 
-  // Collapsed groups state
-  const [collapsedGroups, setCollapsedGroups] = useState({});
-  
   const toggleGroup = (groupId) => {
     setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
   };
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
-
-  if (!campaign) return null;
-
-  // Tab Groups with organized structure - CONSOLIDATED
-  const tabGroups = [
-    {
-      id: 'world',
-      label: 'World',
-      icon: Globe,
-      tabs: [
-        { id: 'setting', icon: Book, label: 'Setting' },
-        { id: 'world', icon: Globe, label: 'World Builder' },
-        { id: 'maps', icon: Compass, label: 'Maps' },
-        { id: 'gods', icon: Church, label: 'Gods' },
-        { id: 'locations', icon: MapPin, label: 'Locations' },
-        { id: 'npcs', icon: UserCircle, label: 'NPCs' },
-        { id: 'chronicle', icon: Clock, label: 'Chronicle' },
-      ]
-    },
-    {
-      id: 'combat',
-      label: 'Combat',
-      icon: Swords,
-      tabs: [
-        { id: 'combat', icon: Swords, label: 'Combat' },
-        { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
-      ]
-    },
-    {
-      id: 'tools',
-      label: 'GM Tools',
-      icon: Wand2,
-      tabs: [
-        { id: 'tools', icon: ScrollText, label: 'Tools' },
-        { id: 'inventory', icon: Backpack, label: 'Inventory' },
-        { id: 'uploads', icon: Upload, label: 'Uploads' },
-      ]
-    },
-  ];
-
-  // Standalone tabs (shown individually, not in groups)
-  const standaloneTabs = [
-    { id: 'session-recap', icon: Sparkles, label: 'AI Recap' },
-    { id: 'players', icon: Users, label: 'Players' },
-    { id: 'ingame-notes', icon: FileText, label: 'Notes' },
-  ];
-
-  // Check if active tab is in a group (auto-expand that group)
-  const getActiveGroup = () => {
-    for (const group of tabGroups) {
-      if (group.tabs.some(t => t.id === activeTab)) {
-        return group.id;
-      }
-    }
-    return null;
-  };
-
-  const activeGroupId = getActiveGroup();
-
-  // Render a single tab button
   const renderTabButton = (tab, isNested = false) => {
     const isActive = activeTab === tab.id;
     const isHovered = hoveredTab === tab.id && !isActive;
-    
+    const Icon = tab.icon;
+
     return (
       <button
         key={tab.id}
@@ -183,7 +194,6 @@ function CampaignDashboard({ username, onLogout }) {
         onMouseEnter={() => setHoveredTab(tab.id)}
         onMouseLeave={() => setHoveredTab(null)}
         data-testid={`${tab.id}-tab`}
-        className={`tab-glow press-scale ${isActive ? 'tab-active' : ''}`}
         style={{
           position: 'relative',
           padding: isNested ? '10px 16px 10px 32px' : '12px 16px',
@@ -196,50 +206,33 @@ function CampaignDashboard({ username, onLogout }) {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           textAlign: 'left',
           width: '100%',
           minHeight: isNested ? '40px' : '44px',
           borderRadius: 0,
           margin: '2px 8px',
-          maxWidth: 'calc(100% - 16px)'
+          maxWidth: 'calc(100% - 16px)',
         }}
       >
-        <tab.icon size={isNested ? 16 : 18} style={{ color: isActive ? '#FFFFFF' : theme.sunset.purple }} />
+        <Icon size={isNested ? 16 : 18} style={{ color: isActive ? '#FFFFFF' : theme.accent.primary }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
-        
-        {/* Accent bar on right side when hovered (not active) */}
-        {isHovered && !isActive && (
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            top: '4px',
-            bottom: '4px',
-            width: '3px',
-            borderRadius: 0,
-            background: theme.sunset.purple,
-            animation: 'slideIn 0.15s ease'
-          }} />
-        )}
+        {isHovered && !isActive && <div style={{ position: 'absolute', right: 0, top: 4, bottom: 4, width: 3, background: theme.accent.primary }} />}
       </button>
     );
   };
 
-  // Render group header
   const renderGroupHeader = (group) => {
     const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id;
-    const hasActiveTab = group.tabs.some(t => t.id === activeTab);
-    
+    const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
+    const Icon = group.icon;
+
     return (
       <button
         key={`group-${group.id}`}
         onClick={() => {
-          const hasActiveInGroup = group.tabs.some(t => t.id === activeTab);
-          if (hasActiveInGroup) {
-            // Active tab is in this group - just toggle collapse
+          if (hasActiveTab) {
             toggleGroup(group.id);
           } else {
-            // Navigate to first tab in group and ensure expanded
             setCollapsedGroups(prev => ({ ...prev, [group.id]: false }));
             setActiveTab(group.tabs[0].id);
           }
@@ -259,222 +252,88 @@ function CampaignDashboard({ username, onLogout }) {
           alignItems: 'center',
           gap: '8px',
           width: '100%',
-          marginTop: '8px'
+          marginTop: '8px',
         }}
       >
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        <group.icon size={14} />
+        <Icon size={14} />
         <span>{group.label}</span>
       </button>
     );
   };
 
+  if (loading) {
+    return <div className="loading-screen"><div className="loading-spinner" /></div>;
+  }
+
+  if (!campaign) {
+    return (
+      <main style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <section style={{ maxWidth: 520, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center' }}>
+          <AlertTriangle size={40} color={theme.accent.primary} style={{ marginBottom: 12 }} />
+          <h1 style={{ color: theme.text.primary, fontSize: 24, fontWeight: 900, margin: '0 0 8px' }}>Campaign could not be loaded</h1>
+          <p style={{ color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' }}>{loadError}</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button onClick={fetchCampaign} style={{ background: theme.accent.primary, color: '#FFFFFF', border: 'none', borderRadius: 0, fontWeight: 900 }}>
+              <RefreshCw size={16} /> Retry
+            </Button>
+            <Button onClick={() => navigate('/home')} style={{ background: theme.bg.card, color: theme.text.secondary, border: `1px solid ${theme.border}`, borderRadius: 0, fontWeight: 900 }}>
+              <ArrowLeft size={16} /> Back to Home
+            </Button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#1F1F23',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      {/* Header */}
-      <div style={{
-        background: 'rgba(39, 39, 43, 0.96)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${theme.border}`,
-        padding: '8px 14px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50
-      }}>
-        <div style={{ 
-          maxWidth: '100%', 
-          margin: '0 auto', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap', 
-          gap: '12px' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Mobile Menu Toggle */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="mobile-menu-toggle"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: theme.accent.red,
-                display: 'none',
-                padding: '8px'
-              }}
-            >
+    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column' }}>
+      <header style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '8px 14px', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: theme.accent.red, display: 'none', padding: 8 }}>
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-
-            <Button 
-              data-testid="back-to-campaigns-btn"
-              onClick={() => navigate('/home')} 
-              style={{ 
-                minWidth: '44px', 
-                minHeight: '44px',
-                background: theme.bg.card,
-                border: `1px solid ${theme.border}`
-              }}
-            >
+            <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={{ minWidth: 44, minHeight: 44, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0 }}>
               <ArrowLeft size={20} color={theme.text.secondary} />
             </Button>
-            
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <h1 style={{ 
-                fontSize: 'clamp(18px, 4vw, 24px)', 
-                color: theme.text.primary,
-                marginBottom: '4px',
-                fontWeight: '800',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '200px'
-              }}>
+              <h1 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>
                 {campaign.name}
               </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{
-                  fontSize: '11px',
-                  color: theme.accent.red,
-                  background: theme.accent.redSubtle,
-                  padding: '2px 8px',
-                  fontWeight: '800'
-                }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, color: theme.accent.red, background: theme.accent.redSubtle, padding: '3px 8px', fontWeight: 800 }}>
+                  Campaign Prep
+                </span>
+                <span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 800 }}>
                   {campaign.system || '5e 2024'}
                 </span>
               </div>
             </div>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <Button 
-              data-testid="open-dm-screen-btn"
-              onClick={handleOpenGMScreen}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                background: theme.accent.red,
-                border: 'none',
-                color: theme.text.white,
-                fontSize: 'clamp(12px, 2vw, 14px)',
-                padding: '10px 16px',
-                minHeight: '44px',
-                fontWeight: '800',
-                borderRadius: 0
-              }}
-            >
-              <Monitor size={18} />
-              <span className="desktop-only">Open </span>Live Play Mode
-            </Button>
-          </div>
+          <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={{ display: 'flex', alignItems: 'center', gap: 8, background: theme.accent.red, border: 'none', color: theme.text.white, fontSize: 'clamp(12px, 2vw, 14px)', padding: '10px 16px', minHeight: 44, fontWeight: 800, borderRadius: 0 }}>
+            <Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode
+          </Button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Layout */}
-      <div style={{ 
-        display: 'flex', 
-        flex: 1,
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        {/* LEFT SIDEBAR */}
-        <div 
-          className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}
-          style={{
-            width: '220px',
-            minWidth: '220px',
-            background: 'rgba(39, 39, 43, 0.94)',
-            backdropFilter: 'blur(12px)',
-            borderRight: `1px solid ${theme.border}`,
-            padding: '16px 0',
-            overflowY: 'auto',
-            transition: 'transform 0.3s ease'
-          }}
-        >
-          <h3 style={{
-            color: theme.sunset.gold,
-            fontSize: '11px',
-            fontWeight: '800',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            marginBottom: '12px',
-            paddingLeft: '16px',
-            fontFamily: "'Montserrat', sans-serif"
-          }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 220, minWidth: 220, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '16px 0', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
+          <h3 style={{ color: theme.accent.primary, fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 16 }}>
             Campaign Tools
           </h3>
-          
-          {/* Grouped Tabs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {/* Render tab groups */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {tabGroups.map(group => {
               const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id;
-              return (
-                <div key={group.id}>
-                  {renderGroupHeader(group)}
-                  {isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}
-                </div>
-              );
+              return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>;
             })}
-            
-            {/* Divider */}
-            <div style={{ 
-              height: '1px', 
-              background: theme.border, 
-              margin: '12px 16px' 
-            }} />
-            
-            {/* Ungrouped tabs */}
-            {standaloneTabs.map(tab => renderTabButton(tab, false))}
           </div>
-        </div>
+        </aside>
 
-        {/* Mobile Overlay */}
-        {mobileMenuOpen && (
-          <div 
-            className="mobile-overlay"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0, 0, 0, 0.7)',
-              zIndex: 39,
-              display: 'none'
-            }}
-          />
-        )}
+        {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 39, display: 'none' }} />}
 
-        {/* MAIN CONTENT */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto',
-          padding: 'clamp(8px, 2vw, 16px)',
-          background: 'transparent'
-        }}>
-          {/* Tab Content */}
-          <div style={{
-            background: 'rgba(39, 39, 43, 0.90)',
-            backdropFilter: 'blur(16px)',
-            border: `1px solid ${theme.border}`,
-            borderRadius: 0,
-            padding: '16px',
-            minHeight: '500px',
-            boxShadow: 'none'
-          }}>
-            
+        <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(8px, 2vw, 16px)' }}>
+          <section style={{ background: 'rgba(39, 39, 43, 0.90)', border: `1px solid ${theme.border}`, borderRadius: 0, padding: 16, minHeight: 500 }}>
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
             {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}
@@ -490,49 +349,20 @@ function CampaignDashboard({ username, onLogout }) {
             {activeTab === 'session-recap' && <SessionRecapAI campaignId={campaignId} />}
             {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
             {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
 
-      {/* Responsive Styles */}
       <style>{`
-        @media (max-width: 640px) {
-          .desktop-logos, .desktop-only {
-            display: none !important;
-          }
-        }
-
+        @media (max-width: 640px) { .desktop-only { display: none !important; } }
         @media (max-width: 1024px) {
-          .mobile-menu-toggle {
-            display: block !important;
-          }
-
-          .sidebar {
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 40;
-            transform: translateX(-100%);
-          }
-
-          .sidebar.mobile-open {
-            transform: translateX(0);
-          }
-
-          .mobile-overlay {
-            display: block !important;
-          }
+          .mobile-menu-toggle { display: block !important; }
+          .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 40; transform: translateX(-100%); }
+          .sidebar.mobile-open { transform: translateX(0); }
+          .mobile-overlay { display: block !important; }
         }
-
-        @media (hover: none) and (pointer: coarse) {
-          button, .clickable-box {
-            min-height: 44px !important;
-            min-width: 44px !important;
-          }
-        }
+        @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }
       `}</style>
-      
     </div>
   );
 }
