@@ -31,6 +31,18 @@ const emptyEvent = {
   recurrence_type: 'none',
 };
 
+function getDaysUntil(event, calendar) {
+  if (!calendar) return 0;
+  const currentYear = calendar.current_year;
+  const currentMonth = calendar.current_month;
+  const currentDay = calendar.current_day;
+  if (event.year > currentYear) return 999;
+  if (event.year < currentYear) return -1;
+  if (event.month > currentMonth) return ((event.month - currentMonth) * 30) + (event.day - currentDay);
+  if (event.month < currentMonth) return -1;
+  return event.day - currentDay;
+}
+
 function CalendarTab({ campaignId }) {
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
@@ -66,20 +78,10 @@ function CalendarTab({ campaignId }) {
 
   const currentMonth = calendar?.custom_months?.[Math.max(0, (calendar?.current_month || 1) - 1)] || { name: 'Month', days: 30 };
 
-  const calculateDaysUntil = (event) => {
-    if (!calendar) return 0;
-    const currentDate = { year: calendar.current_year, month: calendar.current_month, day: calendar.current_day };
-    if (event.year > currentDate.year) return 999;
-    if (event.year < currentDate.year) return -1;
-    if (event.month > currentDate.month) return ((event.month - currentDate.month) * 30) + (event.day - currentDate.day);
-    if (event.month < currentDate.month) return -1;
-    return event.day - currentDate.day;
-  };
-
-  const upcomingEvents = useMemo(() => events
-    .map(event => ({ ...event, daysUntil: calculateDaysUntil(event) }))
+  const upcomingEvents = events
+    .map(event => ({ ...event, daysUntil: getDaysUntil(event, calendar) }))
     .filter(event => event.daysUntil >= 0 && event.daysUntil <= 30)
-    .sort((a, b) => a.daysUntil - b.daysUntil), [events, calendar]);
+    .sort((a, b) => a.daysUntil - b.daysUntil);
 
   const sortedEvents = useMemo(() => [...events].sort((a, b) => {
     if (a.year !== b.year) return a.year - b.year;
@@ -269,7 +271,7 @@ function CalendarTab({ campaignId }) {
 
           {sortedEvents.length === 0 ? <p style={{ textAlign: 'center', color: '#D1D5DB', padding: 20 }}>No events scheduled</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {sortedEvents.map(event => <EventRow key={event.id} event={event} calendar={calendar} daysUntil={calculateDaysUntil(event)} onEdit={() => handleEditEvent(event)} onDelete={() => handleDeleteEvent(event.id)} />)}
+              {sortedEvents.map(event => <EventRow key={event.id} event={event} calendar={calendar} daysUntil={getDaysUntil(event, calendar)} onEdit={() => handleEditEvent(event)} onDelete={() => handleDeleteEvent(event.id)} />)}
             </div>
           )}
         </Card>
