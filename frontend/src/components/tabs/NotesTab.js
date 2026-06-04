@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, FileText } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import apiClient from '@/lib/apiClient';
 
 function NotesTab({ campaignId }) {
   const [tabs, setTabs] = useState([]);
@@ -20,11 +17,12 @@ function NotesTab({ campaignId }) {
 
   useEffect(() => {
     fetchTabs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId]);
 
   const fetchTabs = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/tabs`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/tabs`);
       setTabs(response.data);
       if (response.data.length > 0 && !selectedTab) {
         setSelectedTab(response.data[0]);
@@ -40,10 +38,10 @@ function NotesTab({ campaignId }) {
     e.preventDefault();
     try {
       if (editingTab) {
-        await axios.put(`${API}/campaigns/${campaignId}/tabs/${editingTab.id}`, formData);
+        await apiClient.put(`/campaigns/${campaignId}/tabs/${editingTab.id}`, formData);
         toast.success('Note updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/tabs`, formData);
+        await apiClient.post(`/campaigns/${campaignId}/tabs`, formData);
         toast.success('Note added!');
       }
       fetchTabs();
@@ -62,7 +60,7 @@ function NotesTab({ campaignId }) {
   const handleDelete = async (tabId) => {
     if (!window.confirm('Delete this note?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/tabs/${tabId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/tabs/${tabId}`);
       toast.success('Note deleted');
       if (selectedTab?.id === tabId) {
         setSelectedTab(null);
@@ -101,25 +99,11 @@ function NotesTab({ campaignId }) {
             <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Title</label>
-                <Input
-                  data-testid="note-title-input"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="input"
-                  placeholder="e.g., Locations, NPCs, Quests, Lore"
-                  required
-                />
+                <Input data-testid="note-title-input" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="input" placeholder="e.g., Locations, NPCs, Quests, Lore" required />
               </div>
               <div style={{ marginBottom: '24px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Content</label>
-                <textarea
-                  data-testid="note-content-input"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="textarea"
-                  style={{ minHeight: '300px' }}
-                  placeholder="Write your campaign notes, lore, locations, quests, etc..."
-                />
+                <textarea data-testid="note-content-input" value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} className="textarea" style={{ minHeight: '300px' }} placeholder="Write your campaign notes, lore, locations, quests, etc..." />
               </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <Button type="button" className="btn-secondary" onClick={resetForm}>Cancel</Button>
@@ -136,45 +120,17 @@ function NotesTab({ campaignId }) {
         </Card>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
-          {/* Notes List */}
           <div>
             {tabs.map(tab => (
-              <Card
-                key={tab.id}
-                data-testid={`note-item-${tab.id}`}
-                onClick={() => setSelectedTab(tab)}
-                className="card"
-                style={{
-                  cursor: 'pointer',
-                  marginBottom: '12px',
-                  background: selectedTab?.id === tab.id ? 'rgba(212, 175, 55, 0.15)' : 'rgba(45, 36, 22, 0.9)',
-                  border: selectedTab?.id === tab.id ? '1px solid #d4af37' : '1px solid #5a4a2f'
-                }}
-              >
+              <Card key={tab.id} data-testid={`note-item-${tab.id}`} onClick={() => setSelectedTab(tab)} className="card" style={{ cursor: 'pointer', marginBottom: '12px', background: selectedTab?.id === tab.id ? 'rgba(212, 175, 55, 0.15)' : 'rgba(45, 36, 22, 0.9)', border: selectedTab?.id === tab.id ? '1px solid #d4af37' : '1px solid #5a4a2f' }}>
                 <CardContent style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
                     <FileText size={18} style={{ color: '#d4af37', marginTop: '2px' }} />
                     <div style={{ flex: 1 }}>
-                      <h3 className="medieval-heading" style={{ fontSize: '16px', color: '#d4af37', marginBottom: '8px' }}>
-                        {tab.title}
-                      </h3>
+                      <h3 className="medieval-heading" style={{ fontSize: '16px', color: '#d4af37', marginBottom: '8px' }}>{tab.title}</h3>
                       <div style={{ display: 'flex', gap: '4px' }}>
-                        <Button
-                          data-testid={`edit-note-btn-${tab.id}`}
-                          onClick={(e) => { e.stopPropagation(); handleEdit(tab); }}
-                          className="btn-icon"
-                          style={{ padding: '4px' }}
-                        >
-                          <Edit size={14} />
-                        </Button>
-                        <Button
-                          data-testid={`delete-note-btn-${tab.id}`}
-                          onClick={(e) => { e.stopPropagation(); handleDelete(tab.id); }}
-                          className="btn-icon"
-                          style={{ padding: '4px', color: '#dc143c' }}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
+                        <Button data-testid={`edit-note-btn-${tab.id}`} onClick={(e) => { e.stopPropagation(); handleEdit(tab); }} className="btn-icon" style={{ padding: '4px' }}><Edit size={14} /></Button>
+                        <Button data-testid={`delete-note-btn-${tab.id}`} onClick={(e) => { e.stopPropagation(); handleDelete(tab.id); }} className="btn-icon" style={{ padding: '4px', color: '#dc143c' }}><Trash2 size={14} /></Button>
                       </div>
                     </div>
                   </div>
@@ -183,21 +139,11 @@ function NotesTab({ campaignId }) {
             ))}
           </div>
 
-          {/* Note Content */}
           <Card className="parchment-dark" style={{ minHeight: '500px' }}>
             {selectedTab ? (
               <CardContent style={{ padding: '32px' }}>
-                <h2 className="medieval-heading" style={{ fontSize: '32px', color: '#d4af37', marginBottom: '24px' }}>
-                  {selectedTab.title}
-                </h2>
-                <div style={{
-                  color: '#e8dcc4',
-                  fontSize: '16px',
-                  lineHeight: '1.8',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {selectedTab.content || 'No content yet.'}
-                </div>
+                <h2 className="medieval-heading" style={{ fontSize: '32px', color: '#d4af37', marginBottom: '24px' }}>{selectedTab.title}</h2>
+                <div style={{ color: '#e8dcc4', fontSize: '16px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{selectedTab.content || 'No content yet.'}</div>
               </CardContent>
             ) : (
               <CardContent style={{ padding: '32px', textAlign: 'center' }}>
