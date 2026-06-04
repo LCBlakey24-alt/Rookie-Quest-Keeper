@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Swords, Users, Coins, Play, ArrowRight, Zap, Skull, UserCircle, Search, X } from 'lucide-react';
+import { Swords, Users, Coins, Play, ArrowRight, Zap, Skull, UserCircle, Search, X, Save, UserCheck, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
@@ -64,12 +64,13 @@ function creatureToCombatant(creature, index = 0) {
   };
 }
 
-export default function CombatTab({ theme, campaignId, scenarios, selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players, setShowQuickCombat }) {
+export default function CombatTab({ theme, campaignId, scenarios, selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players }) {
   const [npcs, setNpcs] = useState([]);
   const [creatures, setCreatures] = useState([]);
   const [selected, setSelected] = useState({ players: {}, npcs: {}, creatures: {} });
   const [query, setQuery] = useState('');
   const [loadingLists, setLoadingLists] = useState(false);
+  const [savingEncounter, setSavingEncounter] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +100,7 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
   };
 
   const selectedCount = Object.values(selected.players).filter(Boolean).length + Object.values(selected.npcs).filter(Boolean).length + Object.values(selected.creatures).reduce((sum, count) => sum + count, 0);
+  const enemyCount = Object.values(selected.npcs).filter(Boolean).length + Object.values(selected.creatures).reduce((sum, count) => sum + count, 0);
 
   const selectedCombatants = useMemo(() => {
     const combatants = [];
@@ -110,16 +112,15 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     });
     creatures.forEach((creature, index) => {
       const count = selected.creatures[creature.id] || 0;
-      for (let i = 0; i < count; i += 1) combatants.push(creatureToCombatant({ ...creature, name: count > 1 ? `${creature.name || 'Creature'} ${i + 1}` : creature.name }, index + i));
+      for (let i = 0; i < count; i += 1) {
+        combatants.push(creatureToCombatant({ ...creature, name: count > 1 ? `${creature.name || 'Creature'} ${i + 1}` : creature.name }, index + i));
+      }
     });
     return combatants;
   }, [players, npcs, creatures, selected]);
 
   const toggleSelected = (group, id) => {
-    setSelected(prev => ({
-      ...prev,
-      [group]: { ...prev[group], [id]: !prev[group][id] }
-    }));
+    setSelected(prev => ({ ...prev, [group]: { ...prev[group], [id]: !prev[group][id] } }));
   };
 
   const adjustCreatureCount = (id, delta) => {
@@ -129,20 +130,55 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     });
   };
 
+  const selectAllPlayers = () => {
+    const nextPlayers = {};
+    players.forEach(player => { if (player.id) nextPlayers[player.id] = true; });
+    setSelected(prev => ({ ...prev, players: nextPlayers }));
+  };
+
+  const clearPlayers = () => setSelected(prev => ({ ...prev, players: {} }));
+  const clearEnemies = () => setSelected(prev => ({ ...prev, npcs: {}, creatures: {} }));
   const clearQuickCombat = () => setSelected({ players: {}, npcs: {}, creatures: {} });
+
+  const buildQuickScenario = (name = 'Quick Combat') => ({
+    id: `quick-${Date.now()}`,
+    name,
+    combatants: selectedCombatants,
+    show_grid: true,
+    grid_size: 40,
+  });
 
   const runQuickCombat = () => {
     if (selectedCombatants.length === 0) {
       toast.error('Pick at least one fighter first');
       return;
     }
-    launchCombat({
-      id: `quick-${Date.now()}`,
-      name: 'Quick Combat',
-      combatants: selectedCombatants,
-      show_grid: true,
-      grid_size: 40,
-    });
+    launchCombat(buildQuickScenario());
+  };
+
+  const saveQuickEncounter = async () => {
+    if (selectedCombatants.length === 0) {
+      toast.error('Pick fighters before saving an encounter');
+      return;
+    }
+    const defaultName = enemyCount > 0 ? `Quick Encounter (${enemyCount} enemies)` : 'Quick Encounter';
+    const name = window.prompt('Save this encounter as:', defaultName);
+    if (!name) return;
+
+    try {
+      setSavingEncounter(true);
+      const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, {
+        name: name.trim(),
+        description: 'Saved from Quick Combat picker',
+        combatants: selectedCombatants,
+      });
+      setSelectedScenario?.(response.data);
+      toast.success('Encounter saved');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Failed to save encounter');
+    } finally {
+      setSavingEncounter(false);
+    }
   };
 
   return (
@@ -158,9 +194,16 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
             <p style={{ color: theme.text.muted, fontSize: 13, margin: '4px 0 0' }}>Pick players, NPCs and creatures, then run combat. Initiative, HP and AC open in the tracker.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Button onClick={clearQuickCombat} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.secondary, borderRadius: 0 }}><X size={15} /> Clear</Button>
+            <Button onClick={saveQuickEncounter} disabled={savingEncounter || selectedCount === 0} style={{ background: theme.accent.subtle, border: `1px solid ${theme.border}`, color: theme.text.secondary, borderRadius: 0 }}><Save size={15} /> {savingEncounter ? 'Saving...' : 'Save Encounter'}</Button>
+            <Button onClick={clearQuickCombat} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.secondary, borderRadius: 0 }}><X size={15} /> Clear All</Button>
             <Button onClick={runQuickCombat} data-testid="run-quick-combat-btn" style={{ background: theme.accent.primary, color: '#fff', border: 'none', borderRadius: 0, fontWeight: 900 }}><Play size={16} /> Run Combat ({selectedCount})</Button>
           </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          <button type="button" onClick={selectAllPlayers} style={utilityButtonStyle}><UserCheck size={14} /> Select all players</button>
+          <button type="button" onClick={clearPlayers} style={utilityButtonStyle}><Eraser size={14} /> Clear players</button>
+          <button type="button" onClick={clearEnemies} style={utilityButtonStyle}><Skull size={14} /> Clear enemies</button>
         </div>
 
         <div style={{ position: 'relative', marginBottom: 12 }}>
@@ -168,9 +211,16 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search players, NPCs or creatures..." style={{ width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, color: theme.text.primary, padding: '10px 10px 10px 34px', outline: 'none' }} />
         </div>
 
+        {selectedCount > 0 && (
+          <div style={selectedStripStyle}>
+            {selectedCombatants.slice(0, 10).map(combatant => <span key={combatant.id} style={selectedPillStyle(combatant.type)}>{combatant.name}</span>)}
+            {selectedCombatants.length > 10 && <span style={{ color: '#9CA3AF', fontSize: 12 }}>+{selectedCombatants.length - 10} more</span>}
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
-          <PickList title="Players" icon={Users} loading={false} items={filtered(players)} selectedMap={selected.players} onToggle={(id) => toggleSelected('players', id)} type="checkbox" />
-          <PickList title="NPCs" icon={UserCircle} loading={loadingLists} items={filtered(npcs)} selectedMap={selected.npcs} onToggle={(id) => toggleSelected('npcs', id)} type="checkbox" />
+          <PickList title="Players" icon={Users} loading={false} items={filtered(players)} selectedMap={selected.players} onToggle={(id) => toggleSelected('players', id)} />
+          <PickList title="NPCs" icon={UserCircle} loading={loadingLists} items={filtered(npcs)} selectedMap={selected.npcs} onToggle={(id) => toggleSelected('npcs', id)} />
           <CreaturePickList title="Creatures" icon={Skull} loading={loadingLists} items={filtered(creatures)} counts={selected.creatures} onAdjust={adjustCreatureCount} />
         </div>
       </section>
@@ -262,3 +312,6 @@ const emptyTextStyle = { color: '#9CA3AF', fontSize: 12, margin: 0 };
 const pickButtonStyle = (selected) => ({ width: '100%', display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left', background: selected ? '#EF4444' : '#27272B', border: `1px solid ${selected ? '#F87171' : 'rgba(239,68,68,0.28)'}`, color: '#FFFFFF', padding: 9, marginBottom: 6, cursor: 'pointer' });
 const creatureRowStyle = (selected) => ({ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', background: selected ? 'rgba(239,68,68,0.16)' : '#27272B', border: `1px solid ${selected ? '#F87171' : 'rgba(239,68,68,0.28)'}`, color: '#FFFFFF', padding: 9, marginBottom: 6 });
 const countButtonStyle = { width: 28, height: 28, background: '#EF4444', border: 'none', color: '#FFFFFF', cursor: 'pointer', fontWeight: 900 };
+const utilityButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#27272B', border: '1px solid rgba(239,68,68,0.28)', color: '#D1D5DB', padding: '8px 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
+const selectedStripStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(239,68,68,0.28)', padding: 8, marginBottom: 12 };
+const selectedPillStyle = (type) => ({ background: type === 'player' ? 'rgba(74,125,255,0.18)' : 'rgba(239,68,68,0.18)', border: `1px solid ${type === 'player' ? '#4a7dff' : '#EF4444'}`, color: '#FFFFFF', padding: '5px 8px', fontSize: 12, fontWeight: 900 });
