@@ -131,7 +131,7 @@ Please provide a JSON response with this exact structure:
       toast.success('Encounter generated!');
     } catch (error) {
       toast.error('Failed to generate encounter');
-      console.error(error);
+
     } finally {
       setGenerating(false);
     }

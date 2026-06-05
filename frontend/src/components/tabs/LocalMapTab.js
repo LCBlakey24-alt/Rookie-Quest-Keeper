@@ -81,7 +81,7 @@ function LocalMapTab({ campaignId }) {
       setLocations(locsRes.data || []);
       setLocalMaps(mapsRes.data || []);
     } catch (error) {
-      console.error('Failed to load data:', error);
+
     } finally {
       setLoading(false);
     }

@@ -142,7 +142,7 @@ export default function SmartSessionLog({ theme, campaignId, onGenerateRecap }) 
       setSessions(updatedSessions);
       saveSessionData(updatedSessions, notes);
     } catch (error) {
-      console.error('Failed to generate recap:', error);
+
       // Fallback: create simple summary
       const summary = sessionNotes.slice(0, 5).map(n => `• ${n.content.substring(0, 100)}`).join('\n');
       const updatedSessions = sessions.map(s => 

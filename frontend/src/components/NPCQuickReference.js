@@ -47,7 +47,7 @@ function NPCQuickReference({ campaignId, currentLocationId }) {
       setNpcs(npcsRes.data || []);
       setLocations(locsRes.data || []);
     } catch (error) {
-      console.error('Failed to fetch NPCs:', error);
+
     } finally {
       setLoading(false);
     }

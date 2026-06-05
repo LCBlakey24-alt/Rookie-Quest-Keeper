@@ -51,7 +51,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
       const response = await apiClient.get(`/campaigns/${campaignId}/custom-creatures`);
       setCreatures(response.data);
     } catch (error) {
-      console.error('Failed to fetch creatures:', error);
+
     } finally {
       setLoading(false);
     }

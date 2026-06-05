@@ -206,7 +206,7 @@ function CombatTokenGenerator({
         toast.success(`Token generated for ${combatant.name}!`);
       }
     } catch (error) {
-      console.error('Failed to generate token:', error);
+
       toast.error(`Failed to generate token for ${combatant.name}`);
     } finally {
       setGenerating(prev => ({ ...prev, [combatant.id]: false }));

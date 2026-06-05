@@ -61,7 +61,7 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
       const response = await apiClient.get(`/monsters`);
       setMonsters(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch monsters:', error);
+
     } finally {
       setLoading(false);
     }

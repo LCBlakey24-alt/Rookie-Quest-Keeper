@@ -96,7 +96,7 @@ function PartyLocationTracker({ campaignId }) {
         setSelectedWorldMap(worldMapsRes.data[0]);
       }
     } catch (error) {
-      console.error('Failed to load location data:', error);
+
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ function PartyLocationTracker({ campaignId }) {
       );
       setNearbyLocations(response.data.nearby_locations || []);
     } catch (error) {
-      console.error('Failed to fetch nearby locations:', error);
+
       setNearbyLocations([]);
     }
   };

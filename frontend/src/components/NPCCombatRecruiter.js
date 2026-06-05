@@ -29,7 +29,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
       const response = await apiClient.get(`/campaigns/${campaignId}/npcs`);
       setNpcs(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch NPCs:', error);
+
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
       const response = await apiClient.get(`/campaigns/${campaignId}/custom-creatures`);
       setCustomCreatures(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch creatures:', error);
+
     }
   };
   

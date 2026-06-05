@@ -279,7 +279,7 @@ function WorldMapTab({ campaignId }) {
         if (updated) setSelectedMap(updated);
       }
     } catch (error) {
-      console.error('Failed to load world maps:', error);
+
     } finally {
       setLoading(false);
     }
@@ -290,7 +290,7 @@ function WorldMapTab({ campaignId }) {
       const response = await apiClient.get(`/campaigns/${campaignId}/locations`);
       setLocations(response.data || []);
     } catch (error) {
-      console.error('Failed to load locations:', error);
+
     }
   };
 
@@ -574,7 +574,7 @@ function WorldMapTab({ campaignId }) {
     try {
       const response = await apiClient.get(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/nearby?pin_id=${pinId}`);
       setNearbyLocations(response.data.nearby_locations || []);
-    } catch (error) { console.error('Failed to fetch nearby locations:', error); }
+    } catch { }
   };
 
   const calculateTravel = async (fromId, toId) => {

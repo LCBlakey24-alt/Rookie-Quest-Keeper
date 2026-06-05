@@ -99,7 +99,7 @@ function QuickReferenceTab({ campaignId }) {
       const data = await response.json();
       setSpells(data.spells || []);
     } catch (error) {
-      console.error('Failed to fetch spells:', error);
+
     } finally {
       setLoading(prev => ({ ...prev, spells: false }));
     }
@@ -114,7 +114,7 @@ function QuickReferenceTab({ campaignId }) {
       const data = await response.json();
       setClasses(data.classes || []);
     } catch (error) {
-      console.error('Failed to fetch classes:', error);
+
     } finally {
       setLoading(prev => ({ ...prev, classes: false }));
     }
@@ -129,7 +129,7 @@ function QuickReferenceTab({ campaignId }) {
       const data = await response.json();
       setRaces(data.races || []);
     } catch (error) {
-      console.error('Failed to fetch races:', error);
+
     } finally {
       setLoading(prev => ({ ...prev, races: false }));
     }

@@ -143,7 +143,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
       toast.success('Map saved successfully!');
       onMapSaved?.(response.data);
     } catch (error) {
-      console.error('Failed to save map:', error);
+
       toast.error('Failed to save map');
     } finally {
       setSaving(false);

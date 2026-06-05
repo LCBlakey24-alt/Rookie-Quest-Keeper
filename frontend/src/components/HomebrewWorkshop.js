@@ -234,7 +234,7 @@ export default function HomebrewWorkshop() {
       const { data } = await apiClient.get(`/homebrew`);
       setLibrary(data?.homebrew || {});
     } catch (err) {
-      console.error("Failed to load library", err);
+
     }
   };
 

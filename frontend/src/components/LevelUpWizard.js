@@ -351,7 +351,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       }
       onClose();
     } catch (error) {
-      console.error('Level up failed:', error);
+
       toast.error(error?.response?.data?.detail || 'Failed to level up character');
     } finally {
       setLoading(false);

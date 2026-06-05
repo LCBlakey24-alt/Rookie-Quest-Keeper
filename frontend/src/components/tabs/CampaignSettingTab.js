@@ -52,7 +52,7 @@ function CampaignSettingTab({ campaignId }) {
       setWorldSettingNotes(response.data?.world_setting_notes || '');
       setAvailableSettings(response.data?.available_settings || []);
     } catch (error) {
-      console.error('Failed to load world setting');
+
     }
   };
 
@@ -61,7 +61,7 @@ function CampaignSettingTab({ campaignId }) {
       const response = await apiClient.get(`/campaigns/${campaignId}/custom-rules`);
       setCustomRules(response.data?.rules || []);
     } catch (error) {
-      console.error('Failed to load custom rules');
+
     }
   };
 
@@ -135,7 +135,7 @@ function CampaignSettingTab({ campaignId }) {
       const response = await apiClient.get(`/campaigns/${campaignId}/content`);
       setCampaignContent(response.data || { races: [], classes: [], subclasses: [], backgrounds: [], feats: [], rulesets: [] });
     } catch (error) {
-      console.error('Failed to load campaign content');
+
     }
   };
 

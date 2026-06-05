@@ -63,7 +63,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
         setSelectedLocation(locRes.data[0]);
       }
     } catch (err) {
-      console.error('Failed to fetch event data', err);
+
     } finally {
       setLoading(false);
     }

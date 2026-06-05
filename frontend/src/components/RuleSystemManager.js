@@ -72,7 +72,7 @@ function RuleSystemManager() {
         setSelectedSystem(response.data.systems[0]);
       }
     } catch (error) {
-      console.error('Failed to load rule systems:', error);
+
       toast.error('Failed to load rule systems');
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ function RuleSystemManager() {
       const response = await apiClient.get(`/rule-systems/${systemId}`);
       setContentCounts(response.data.content_counts || {});
     } catch (error) {
-      console.error('Failed to load system details:', error);
+
     }
   };
 
@@ -97,7 +97,7 @@ function RuleSystemManager() {
                    response.data.monsters || [];
       setContentList(data);
     } catch (error) {
-      console.error(`Failed to load ${contentType}:`, error);
+
       setContentList([]);
     }
   };
