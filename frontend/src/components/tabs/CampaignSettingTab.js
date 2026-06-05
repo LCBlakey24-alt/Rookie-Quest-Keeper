@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Save, Wand2, Copy, Loader, ArrowDown, Key, Users, Upload, FileText, Trash2, BookOpen } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 function CampaignSettingTab({ campaignId }) {
   const [content, setContent] = useState('');
@@ -38,7 +36,7 @@ function CampaignSettingTab({ campaignId }) {
 
   const fetchSetting = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/setting`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/setting`);
       setContent(response.data?.content || '');
     } catch (error) {
       toast.error('Failed to load campaign setting');
@@ -49,7 +47,7 @@ function CampaignSettingTab({ campaignId }) {
 
   const fetchWorldSetting = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/world-setting`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/world-setting`);
       setWorldSetting(response.data?.world_setting || 'custom');
       setWorldSettingNotes(response.data?.world_setting_notes || '');
       setAvailableSettings(response.data?.available_settings || []);
@@ -60,7 +58,7 @@ function CampaignSettingTab({ campaignId }) {
 
   const fetchCustomRules = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/custom-rules`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/custom-rules`);
       setCustomRules(response.data?.rules || []);
     } catch (error) {
       console.error('Failed to load custom rules');
@@ -76,7 +74,7 @@ function CampaignSettingTab({ campaignId }) {
       const formData = new FormData();
       formData.append('file', file);
       
-      await axios.post(`${API}/campaigns/${campaignId}/custom-rules/upload-file`, formData, {
+      await apiClient.post(`/campaigns/${campaignId}/custom-rules/upload-file`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -98,7 +96,7 @@ function CampaignSettingTab({ campaignId }) {
     
     setUploadingRules(true);
     try {
-      await axios.post(`${API}/campaigns/${campaignId}/custom-rules`, {
+      await apiClient.post(`/campaigns/${campaignId}/custom-rules`, {
         name: manualRulesName,
         content: manualRulesContent,
         source_type: 'manual'
@@ -120,7 +118,7 @@ function CampaignSettingTab({ campaignId }) {
     if (!window.confirm(`Delete "${ruleName}"? This cannot be undone.`)) return;
     
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/custom-rules/${ruleId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/custom-rules/${ruleId}`);
       toast.success('Rules deleted');
       fetchCustomRules();
     } catch (error) {
@@ -134,7 +132,7 @@ function CampaignSettingTab({ campaignId }) {
 
   const fetchCampaignContent = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/content`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/content`);
       setCampaignContent(response.data || { races: [], classes: [], subclasses: [], backgrounds: [], feats: [], rulesets: [] });
     } catch (error) {
       console.error('Failed to load campaign content');
@@ -168,7 +166,7 @@ function CampaignSettingTab({ campaignId }) {
       }
 
       // Upload to API
-      const response = await axios.post(`${API}/campaigns/${campaignId}/content/bulk-upload`, data);
+      const response = await apiClient.post(`/campaigns/${campaignId}/content/bulk-upload`, data);
       
       // Show success message
       toast.success(response.data.message);
@@ -198,7 +196,7 @@ function CampaignSettingTab({ campaignId }) {
     if (!window.confirm(`Delete ruleset "${rulesetName}" and ALL its content (races, classes, etc.)? This cannot be undone.`)) return;
     
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/content/rulesets/${rulesetId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/content/rulesets/${rulesetId}`);
       toast.success('Ruleset deleted');
       fetchCampaignContent();
     } catch (error) {
@@ -209,7 +207,7 @@ function CampaignSettingTab({ campaignId }) {
   const handleSaveWorldSetting = async () => {
     setSavingWorldSetting(true);
     try {
-      await axios.put(`${API}/campaigns/${campaignId}/world-setting`, {
+      await apiClient.put(`/campaigns/${campaignId}/world-setting`, {
         world_setting: worldSetting,
         world_setting_notes: worldSettingNotes
       });
@@ -224,7 +222,7 @@ function CampaignSettingTab({ campaignId }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await axios.put(`${API}/campaigns/${campaignId}/setting`, { content });
+      await apiClient.put(`/campaigns/${campaignId}/setting`, { content });
       toast.success('Campaign setting saved!');
     } catch (error) {
       toast.error('Failed to save');
@@ -240,7 +238,7 @@ function CampaignSettingTab({ campaignId }) {
     }
     setAiGenerating(true);
     try {
-      const response = await axios.post(`${API}/ai/generate`, {
+      const response = await apiClient.post(`/ai/generate`, {
         prompt: aiPrompt,
         generation_type: 'world',
         campaign_id: campaignId
@@ -262,7 +260,7 @@ function CampaignSettingTab({ campaignId }) {
   const fetchJoinCode = async () => {
     setLoadingJoinCode(true);
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/join-code`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/join-code`);
       setJoinCode(response.data.join_code);
     } catch (error) {
       toast.error('Failed to get join code', {

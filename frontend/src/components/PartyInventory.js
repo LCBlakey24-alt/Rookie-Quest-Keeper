@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,7 @@ import {
   Dice5, Split, Wand2
 } from 'lucide-react';
 import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
-import { API_BASE } from '@/lib/api';
 
-const API = API_BASE;
 
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },
@@ -153,8 +151,8 @@ function PartyInventory({ campaignId, players = [] }) {
   const fetchData = async () => {
     try {
       const [itemsRes, currencyRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/inventory`),
-        axios.get(`${API}/campaigns/${campaignId}/currency`)
+        apiClient.get(`/campaigns/${campaignId}/inventory`),
+        apiClient.get(`/campaigns/${campaignId}/currency`)
       ]);
       setItems(itemsRes.data);
       setCurrency(currencyRes.data);
@@ -171,7 +169,7 @@ function PartyInventory({ campaignId, players = [] }) {
       return;
     }
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/inventory`, newItem);
+      const res = await apiClient.post(`/campaigns/${campaignId}/inventory`, newItem);
       setItems([res.data, ...items]);
       setNewItem({
         name: '', quantity: 1, item_type: 'misc', description: '',
@@ -187,7 +185,7 @@ function PartyInventory({ campaignId, players = [] }) {
 
   const handleUpdateItem = async (itemId, updates) => {
     try {
-      const res = await axios.put(`${API}/campaigns/${campaignId}/inventory/${itemId}`, updates);
+      const res = await apiClient.put(`/campaigns/${campaignId}/inventory/${itemId}`, updates);
       setItems(items.map(i => i.id === itemId ? res.data : i));
       setEditingItem(null);
       toast.success('Item updated!');
@@ -199,7 +197,7 @@ function PartyInventory({ campaignId, players = [] }) {
   const handleDeleteItem = async (itemId) => {
     if (!window.confirm('Delete this item?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/inventory/${itemId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/inventory/${itemId}`);
       setItems(items.filter(i => i.id !== itemId));
       toast.success('Item deleted');
     } catch (error) {
@@ -211,7 +209,7 @@ function PartyInventory({ campaignId, players = [] }) {
     const newCurrency = { ...currency, [type]: Math.max(0, parseInt(value) || 0) };
     setCurrency(newCurrency);
     try {
-      await axios.put(`${API}/campaigns/${campaignId}/currency`, { [type]: newCurrency[type] });
+      await apiClient.put(`/campaigns/${campaignId}/currency`, { [type]: newCurrency[type] });
     } catch (error) {
       toast.error('Failed to update currency');
     }
@@ -237,7 +235,7 @@ function PartyInventory({ campaignId, players = [] }) {
       }
       // Add gems
       for (const gem of generatedLoot.gems) {
-        const res = await axios.post(`${API}/campaigns/${campaignId}/inventory`, {
+        const res = await apiClient.post(`/campaigns/${campaignId}/inventory`, {
           name: gem.name, quantity: 1, item_type: 'gem', value: `${gem.value} gp`,
           description: `A ${gem.name} worth ${gem.value} gp`, weight: 0,
         });
@@ -245,7 +243,7 @@ function PartyInventory({ campaignId, players = [] }) {
       }
       // Add items
       for (const item of generatedLoot.items) {
-        const res = await axios.post(`${API}/campaigns/${campaignId}/inventory`, {
+        const res = await apiClient.post(`/campaigns/${campaignId}/inventory`, {
           name: item.name, quantity: 1, item_type: item.type, value: item.value,
           description: `${item.rarity} ${item.type}`, is_magical: item.is_magical || false,
           attunement_required: item.attunement_required || false, weight: 0,
@@ -269,7 +267,7 @@ function PartyInventory({ campaignId, players = [] }) {
     try {
       for (const player of players) {
         if (player.character_id) {
-          await axios.patch(`${API}/characters/${player.character_id}`, {
+          await apiClient.patch(`/characters/${player.character_id}`, {
             gold: (player.gold || 0) + goldPerPlayer
           });
         }
@@ -314,7 +312,7 @@ function PartyInventory({ campaignId, players = [] }) {
     
     // Assign item to player
     try {
-      const res = await axios.put(`${API}/campaigns/${campaignId}/inventory/${draggedItem.id}`, {
+      const res = await apiClient.put(`/campaigns/${campaignId}/inventory/${draggedItem.id}`, {
         attuned_to: player.name
       });
       setItems(items.map(i => i.id === draggedItem.id ? res.data : i));
@@ -328,7 +326,7 @@ function PartyInventory({ campaignId, players = [] }) {
 
   const handleUnassignItem = async (itemId) => {
     try {
-      const res = await axios.put(`${API}/campaigns/${campaignId}/inventory/${itemId}`, {
+      const res = await apiClient.put(`/campaigns/${campaignId}/inventory/${itemId}`, {
         attuned_to: ''
       });
       setItems(items.map(i => i.id === itemId ? res.data : i));

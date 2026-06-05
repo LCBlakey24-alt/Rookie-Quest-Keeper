@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronRight, ChevronLeft, Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
 import { CLASS_FEATURES } from '../data/classFeatures';
 import { FEATURE_TYPE_CONFIG } from '../data/classResources';
@@ -10,8 +10,6 @@ import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, CANTRIPS_KNOWN, SP
 import { HIT_DICE, ASI_LEVELS, FEATS, ABILITIES, ABILITY_SHORT, getFeatsByEdition } from '../data/levelUpData';
 import DiceRollFlicker from './DiceRollFlicker';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // Theme colors matching the character sheet
 const theme = {
@@ -208,7 +206,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   useEffect(() => {
     if (!isOpen || !character?.id) return;
     setPreflightLoading(true);
-    axios.get(`${API}/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
+    apiClient.get(`/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
       .then(res => setPreflight(res.data))
       .catch(() => setPreflight(null))
       .finally(() => setPreflightLoading(false));
@@ -334,11 +332,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         setLoading(false);
         return;
       }
-      const endpoint = isMulticlassing && multiclassClass 
-        ? `${API}/characters/${character.id}/multiclass`
-        : `${API}/characters/${character.id}/level-up`;
-        
-      await axios.post(endpoint, requestData);
+      const endpoint = isMulticlassing && multiclassClass
+        ? `/characters/${character.id}/multiclass`
+        : `/characters/${character.id}/level-up`;
+
+      await apiClient.post(endpoint, requestData);
       
       const levelUpMessage = isMulticlassing 
         ? `${character.name} multiclassed into ${multiclassClass}!`

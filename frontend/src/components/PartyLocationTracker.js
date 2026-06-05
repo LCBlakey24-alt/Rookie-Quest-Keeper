@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,8 +9,6 @@ import {
   Ship, Truck, Plane, ChevronDown, ChevronUp, Map
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Midnight Neon
 const theme = {
@@ -84,9 +82,9 @@ function PartyLocationTracker({ campaignId }) {
   const fetchData = async () => {
     try {
       const [worldMapsRes, localMapsRes, locationsRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/world-maps`),
-        axios.get(`${API}/campaigns/${campaignId}/local-maps`),
-        axios.get(`${API}/campaigns/${campaignId}/locations`)
+        apiClient.get(`/campaigns/${campaignId}/world-maps`),
+        apiClient.get(`/campaigns/${campaignId}/local-maps`),
+        apiClient.get(`/campaigns/${campaignId}/locations`)
       ]);
       
       setWorldMaps(worldMapsRes.data || []);
@@ -116,8 +114,8 @@ function PartyLocationTracker({ campaignId }) {
     if (!selectedWorldMap || !currentLocation) return;
     
     try {
-      const response = await axios.get(
-        `${API}/campaigns/${campaignId}/world-maps/${selectedWorldMap.id}/nearby?pin_id=${currentLocation.id}`
+      const response = await apiClient.get(
+        `/campaigns/${campaignId}/world-maps/${selectedWorldMap.id}/nearby?pin_id=${currentLocation.id}`
       );
       setNearbyLocations(response.data.nearby_locations || []);
     } catch (error) {
@@ -161,8 +159,8 @@ function PartyLocationTracker({ campaignId }) {
     if (!selectedWorldMap || !currentLocation) return;
     
     try {
-      const response = await axios.post(
-        `${API}/campaigns/${campaignId}/world-maps/${selectedWorldMap.id}/calculate-travel`,
+      const response = await apiClient.post(
+        `/campaigns/${campaignId}/world-maps/${selectedWorldMap.id}/calculate-travel`,
         {
           from_pin_id: currentLocation.id,
           to_pin_id: destinationPinId,

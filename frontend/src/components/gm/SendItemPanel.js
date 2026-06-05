@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Gift, Sparkles, Send, Shield } from 'lucide-react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const RARITIES = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Legendary', 'Artifact'];
 const ITEM_TYPES = ['Weapon', 'Armor', 'Wondrous', 'Potion', 'Ring', 'Rod', 'Staff', 'Wand', 'Scroll'];
@@ -29,7 +28,7 @@ export default function SendItemPanel({ theme, partyCharacters = [] }) {
     }
     setSending(true);
     try {
-      const res = await axios.post(`${API}/characters/${selectedChar}/send-item`, {
+      const res = await apiClient.post(`/characters/${selectedChar}/send-item`, {
         name: itemName.trim(),
         type: itemType.toLowerCase(),
         rarity: itemRarity.toLowerCase(),

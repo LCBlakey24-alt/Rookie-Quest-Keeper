@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,6 @@ import {
   Pencil, Play
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Midnight Neon
 const theme = {
@@ -270,7 +268,7 @@ function WorldMapTab({ campaignId }) {
 
   const fetchWorldMaps = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/world-maps`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/world-maps`);
       const maps = response.data || [];
       setWorldMaps(maps);
       if (maps.length > 0 && !selectedMap) {
@@ -289,7 +287,7 @@ function WorldMapTab({ campaignId }) {
 
   const fetchLocations = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/locations`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/locations`);
       setLocations(response.data || []);
     } catch (error) {
       console.error('Failed to load locations:', error);
@@ -308,7 +306,7 @@ function WorldMapTab({ campaignId }) {
   const handleCreateMap = async () => {
     if (!newMapData.name || !newMapData.image_data) { toast.error('Please provide a name and upload an image'); return; }
     try {
-      const response = await axios.post(`${API}/campaigns/${campaignId}/world-maps`, newMapData);
+      const response = await apiClient.post(`/campaigns/${campaignId}/world-maps`, newMapData);
       const newMap = response.data;
       setWorldMaps(prev => [...prev, newMap]);
       setSelectedMap(newMap);
@@ -447,8 +445,8 @@ function WorldMapTab({ campaignId }) {
     
     // Save the new position to backend
     try {
-      await axios.put(
-        `${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${pin.id}`,
+      await apiClient.put(
+        `/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${pin.id}`,
         { x: pin.x, y: pin.y, name: pin.name, pin_type: pin.pin_type, description: pin.description || '' }
       );
       // Also update worldMaps state
@@ -494,7 +492,7 @@ function WorldMapTab({ campaignId }) {
       const pinData = { ...pinForm, color: pinType?.color || '#8A2BE2', icon: pinType?.icon?.name || 'MapPin' };
 
       if (selectedPin) {
-        await axios.put(`${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${selectedPin.id}`, pinData);
+        await apiClient.put(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${selectedPin.id}`, pinData);
         // Update locally without full refetch
         setSelectedMap(prev => ({
           ...prev,
@@ -502,7 +500,7 @@ function WorldMapTab({ campaignId }) {
         }));
         toast.success('Pin updated!');
       } else {
-        const response = await axios.post(`${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins`, pinData);
+        const response = await apiClient.post(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins`, pinData);
         const newPin = response.data;
         // Add pin to local state immediately - no refresh needed
         setSelectedMap(prev => ({
@@ -523,7 +521,7 @@ function WorldMapTab({ campaignId }) {
 
   const handleDeletePin = async (pinId) => {
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${pinId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${pinId}`);
       // Remove locally immediately
       setSelectedMap(prev => ({
         ...prev,
@@ -555,7 +553,7 @@ function WorldMapTab({ campaignId }) {
       if (pathForm.custom_points?.length > 0) {
         payload.custom_points = pathForm.custom_points;
       }
-      const response = await axios.post(`${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/paths`, payload);
+      const response = await apiClient.post(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/paths`, payload);
       // Add path locally
       setSelectedMap(prev => ({
         ...prev,
@@ -574,15 +572,15 @@ function WorldMapTab({ campaignId }) {
 
   const fetchNearbyLocations = async (pinId) => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/nearby?pin_id=${pinId}`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/nearby?pin_id=${pinId}`);
       setNearbyLocations(response.data.nearby_locations || []);
     } catch (error) { console.error('Failed to fetch nearby locations:', error); }
   };
 
   const calculateTravel = async (fromId, toId) => {
     try {
-      const response = await axios.post(
-        `${API}/campaigns/${campaignId}/world-maps/${selectedMap.id}/calculate-travel`,
+      const response = await apiClient.post(
+        `/campaigns/${campaignId}/world-maps/${selectedMap.id}/calculate-travel`,
         { from_pin_id: fromId, to_pin_id: toId, travel_mode: travelMode }
       );
       setTravelResult(response.data);

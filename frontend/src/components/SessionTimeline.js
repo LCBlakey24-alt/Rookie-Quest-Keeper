@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import {
   Calendar, Milestone
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Red (Tron Aries)
 const theme = {
@@ -59,7 +57,7 @@ function SessionTimeline({ campaignId }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/timeline`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/timeline`);
       setEvents(response.data.events || []);
     } catch (error) {
       // If endpoint doesn't exist, use empty array
@@ -82,7 +80,7 @@ function SessionTimeline({ campaignId }) {
         created_at: new Date().toISOString()
       };
       
-      const response = await axios.post(`${API}/campaigns/${campaignId}/timeline`, eventData);
+      const response = await apiClient.post(`/campaigns/${campaignId}/timeline`, eventData);
       setEvents(prev => [...prev, response.data].sort((a, b) => 
         (b.session_number || 0) - (a.session_number || 0)
       ));
@@ -110,7 +108,7 @@ function SessionTimeline({ campaignId }) {
     if (!window.confirm('Delete this timeline event?')) return;
     
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/timeline/${eventId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/timeline/${eventId}`);
       setEvents(prev => prev.filter(e => e.id !== eventId));
       toast.success('Event deleted');
     } catch (error) {

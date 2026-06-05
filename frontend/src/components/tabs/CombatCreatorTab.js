@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { MONSTER_DATABASE, MONSTER_TYPES, CR_OPTIONS, getCRValue, getXPFromCR } 
 import EncounterDifficultyCalculator from '@/components/EncounterDifficultyCalculator';
 import QuickTips, { TIPS } from '@/components/QuickTips';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const TOKEN_COLORS = [
   { id: 'blue', color: '#4a7dff', label: 'Blue (Players)' },
@@ -61,9 +59,9 @@ function CombatCreatorTab({ campaignId }) {
   const fetchData = async () => {
     try {
       const [playersRes, npcsRes, scenariosRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/players`),
-        axios.get(`${API}/campaigns/${campaignId}/npcs`),
-        axios.get(`${API}/campaigns/${campaignId}/combat-scenarios`)
+        apiClient.get(`/campaigns/${campaignId}/players`),
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`)
       ]);
       setPlayers(playersRes.data);
       setNpcs(npcsRes.data);
@@ -243,10 +241,10 @@ function CombatCreatorTab({ campaignId }) {
 
     try {
       if (selectedScenario) {
-        await axios.put(`${API}/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, scenarioData);
+        await apiClient.put(`/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, scenarioData);
         toast.success('Scenario updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, scenarioData);
+        await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, scenarioData);
         toast.success('Scenario saved!');
       }
       fetchData();
@@ -282,7 +280,7 @@ function CombatCreatorTab({ campaignId }) {
   const deleteScenario = async (scenarioId) => {
     if (!window.confirm('Delete this combat scenario?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
       toast.success('Scenario deleted');
       fetchData();
       if (selectedScenario?.id === scenarioId) clearScenario();

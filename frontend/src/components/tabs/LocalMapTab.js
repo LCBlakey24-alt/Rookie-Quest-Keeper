@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import {
   Eye, ZoomIn, ZoomOut, Edit2
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Midnight Neon
 const theme = {
@@ -77,8 +75,8 @@ function LocalMapTab({ campaignId }) {
   const fetchData = async () => {
     try {
       const [locsRes, mapsRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/locations`),
-        axios.get(`${API}/campaigns/${campaignId}/local-maps`)
+        apiClient.get(`/campaigns/${campaignId}/locations`),
+        apiClient.get(`/campaigns/${campaignId}/local-maps`)
       ]);
       setLocations(locsRes.data || []);
       setLocalMaps(mapsRes.data || []);
@@ -112,7 +110,7 @@ function LocalMapTab({ campaignId }) {
     }
 
     try {
-      const response = await axios.post(`${API}/campaigns/${campaignId}/local-maps`, newMapData);
+      const response = await apiClient.post(`/campaigns/${campaignId}/local-maps`, newMapData);
       setLocalMaps([...localMaps, response.data]);
       setSelectedMap(response.data);
       setShowUpload(false);
@@ -164,21 +162,21 @@ function LocalMapTab({ campaignId }) {
       };
 
       if (selectedPin) {
-        await axios.put(
-          `${API}/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins/${selectedPin.id}`,
+        await apiClient.put(
+          `/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins/${selectedPin.id}`,
           pinData
         );
         toast.success('Place updated!');
       } else {
-        await axios.post(
-          `${API}/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins`,
+        await apiClient.post(
+          `/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins`,
           pinData
         );
         toast.success('Place added!');
       }
 
       // Refresh maps
-      const response = await axios.get(`${API}/campaigns/${campaignId}/local-maps`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/local-maps`);
       setLocalMaps(response.data || []);
       setSelectedMap(response.data.find(m => m.id === selectedMap.id));
       
@@ -193,10 +191,10 @@ function LocalMapTab({ campaignId }) {
 
   const handleDeletePin = async (pinId) => {
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins/${pinId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/local-maps/${selectedMap.id}/pins/${pinId}`);
       toast.success('Place deleted');
       
-      const response = await axios.get(`${API}/campaigns/${campaignId}/local-maps`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/local-maps`);
       setLocalMaps(response.data || []);
       setSelectedMap(response.data.find(m => m.id === selectedMap.id));
       setSelectedPin(null);
@@ -212,7 +210,7 @@ function LocalMapTab({ campaignId }) {
     if (!window.confirm('Delete this map? This cannot be undone.')) return;
 
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/local-maps/${selectedMap.id}`);
+      await apiClient.delete(`/campaigns/${campaignId}/local-maps/${selectedMap.id}`);
       setLocalMaps(localMaps.filter(m => m.id !== selectedMap.id));
       setSelectedMap(null);
       toast.success('Map deleted');

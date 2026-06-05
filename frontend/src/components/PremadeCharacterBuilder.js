@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE } from '../lib/api';
 
 export default function PremadeCharacterBuilder() {
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ export default function PremadeCharacterBuilder() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await axios.get(`${API_BASE}/character-templates`, { params: { ruleset_id: rulesetId } });
+      const res = await apiClient.get(`/character-templates`, { params: { ruleset_id: rulesetId } });
       setTemplates(res.data?.templates || []);
     };
     load().catch(() => toast.error('Failed to load templates'));
@@ -31,7 +30,7 @@ export default function PremadeCharacterBuilder() {
   const runMatch = async () => {
     setLoadingMatch(true);
     try {
-      const res = await axios.post(`${API_BASE}/character-templates/ai-match`, { ruleset_id: rulesetId, description });
+      const res = await apiClient.post(`/character-templates/ai-match`, { ruleset_id: rulesetId, description });
       setMatch(res.data);
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Failed to match template');
@@ -45,7 +44,7 @@ export default function PremadeCharacterBuilder() {
     setCreatingTemplateId(template.id);
     try {
       // Fetch full template details (with stats, skills, spells, etc.)
-      const { data: full } = await axios.get(`${API_BASE}/character-templates/${template.id}`);
+      const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
       const abilities = full.ability_scores || {};
       const payload = {
         name: name.trim(),
@@ -68,7 +67,7 @@ export default function PremadeCharacterBuilder() {
         spells_known: (full.spells_known || []).map(s => typeof s === 'string' ? { name: s } : s),
         cantrips_known: (full.cantrips_known || []).map(s => typeof s === 'string' ? { name: s } : s),
       };
-      const res = await axios.post(`${API_BASE}/characters`, payload);
+      const res = await apiClient.post(`/characters`, payload);
       toast.success('Premade character created');
       navigate(`/characters/${res.data?.character_id}`);
     } catch (e) {
