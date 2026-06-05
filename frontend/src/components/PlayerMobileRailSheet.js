@@ -111,7 +111,7 @@ export default function PlayerMobileRailSheet() {
         {activeTab === 'overview' && <Overview character={character} ac={ac} speed={speed} />}
         {activeTab === 'actions' && <GroupedCards groups={[['Actions', [...list(character.attacks), ...list(character.actions)]], ['Bonus Actions', list(character.bonus_actions)], ['Reactions', list(character.reactions)]]} empty="No actions listed yet." {...context} />}
         {activeTab === 'spells' && <GroupedCards groups={[['Cantrips', list(character.cantrips_known)], ['Known Spells', list(character.spells_known)], ['Prepared Spells', list(character.spells_prepared)], ['Other Spells', [...list(character.prepared_spells), ...list(character.known_spells), ...list(character.spells)]]]} empty="No spells listed yet." {...context} />}
-        {activeTab === 'inventory' && <GroupedCards groups={[['Equipped', Object.values(character.equipped || {}).filter(Boolean)], ['Equipment', list(character.equipment)], ['Inventory', list(character.inventory)], ['Magic Items', list(character.magic_items)]]} empty="No inventory listed yet." {...context} />}
+        {activeTab === 'inventory' && <MobileInventoryTab {...context} />}
         {activeTab === 'features' && <GroupedCards groups={[['Class Features', list(character.class_features)], ['Race Traits', [...list(character.racial_traits), ...list(character.race_features)]], ['Feats', list(character.feats)], ['Other Features', list(character.features)]]} empty="No features listed yet." {...context} />}
         {activeTab === 'notes' && <Panel title="Notes"><p style={body}>{character.notes || character.backstory || 'No notes saved yet.'}</p></Panel>}
         {activeTab === 'status' && <Status {...context} />}
@@ -152,6 +152,106 @@ function Status({ character, currentHp, maxHp, hpAmount, setHpAmount, saveCharac
     <Panel title="Status"><button disabled={saving} onClick={toggleInspiration} style={pillButton(character.inspiration || character.has_inspiration)}>Inspiration</button>{character.concentrating_on && <Line label="Concentration" value={character.concentrating_on} />}<Line label="Death save successes" value={character.death_saves_successes || 0} /><Line label="Death save failures" value={character.death_saves_failures || 0} /></Panel>
     <Panel title="Conditions"><div style={conditionGrid}>{CONDITIONS.map(condition => <button disabled={saving} key={condition} onClick={() => toggleCondition(condition)} style={pillButton(conditions.includes(condition))}>{condition}</button>)}</div></Panel>
   </div>;
+}
+
+const EQUIP_SLOTS = [['mainHand', 'Main Hand'], ['offHand', 'Off Hand'], ['armor', 'Armour'], ['shield', 'Shield']];
+
+function getSlottedItem(equipped, slot) {
+  if (slot === 'mainHand') return equipped.mainHand || equipped.main_hand || equipped.weapon;
+  if (slot === 'offHand') return equipped.offHand || equipped.off_hand;
+  if (slot === 'armor') return equipped.armor || equipped.armour;
+  return equipped[slot];
+}
+
+function MobileInventoryTab({ character, saveCharacterPatch, saving }) {
+  const equipped = character?.equipped || {};
+  const allItems = [...list(character.equipment), ...list(character.inventory)];
+  const currency = character?.currency || {};
+
+  const equip = (slot, item) => saveCharacterPatch({ equipped: { ...equipped, [slot]: item } }, 'Equipped');
+  const unequip = (slot) => {
+    const next = { ...equipped };
+    delete next[slot];
+    if (slot === 'mainHand') { delete next.main_hand; delete next.weapon; }
+    if (slot === 'offHand') delete next.off_hand;
+    if (slot === 'armor') delete next.armour;
+    saveCharacterPatch({ equipped: next }, 'Unequipped');
+  };
+
+  const coins = [
+    ['CP', currency.copper ?? currency.cp ?? 0],
+    ['SP', currency.silver ?? currency.sp ?? 0],
+    ['EP', currency.electrum ?? currency.ep ?? 0],
+    ['GP', currency.gold ?? currency.gp ?? character?.gold ?? 0],
+    ['PP', currency.platinum ?? currency.pp ?? 0],
+  ];
+
+  return (
+    <div style={stack}>
+      <Panel title="Equipped">
+        {EQUIP_SLOTS.map(([slot, label]) => {
+          const item = getSlottedItem(equipped, slot);
+          return (
+            <div key={slot} style={{ ...line, alignItems: 'center', gap: 8 }}>
+              <span style={{ color: '#A0A0A0', fontSize: 11, minWidth: 72, flexShrink: 0 }}>{label}</span>
+              <strong style={{ flex: 1, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item ? itemName(item, '–') : <span style={{ color: '#A0A0A0', fontWeight: 400 }}>Empty</span>}
+              </strong>
+              {item && (
+                <button disabled={saving} onClick={() => unequip(slot)}
+                  style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.4)', color: '#f87171', padding: '4px 8px', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
+                  Remove
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </Panel>
+
+      <Panel title="Currency">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, textAlign: 'center' }}>
+          {coins.map(([coin, val]) => (
+            <div key={coin} style={{ background: '#1F1F1F', border: '1px solid rgba(193,18,31,0.35)', padding: '6px 4px' }}>
+              <div style={{ color: '#A0A0A0', fontSize: 10 }}>{coin}</div>
+              <strong style={{ fontSize: 13 }}>{Number(val) || 0}</strong>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      {allItems.length > 0 ? (
+        <Panel title="Carried — tap to equip">
+          {allItems.map((item, index) => {
+            const name = itemName(item, `Item ${index + 1}`);
+            const detail = itemText(item);
+            const dmg = item?.damage_dice ? `${item.damage_dice}${item?.damage_type ? ` ${item.damage_type}` : ''}` : null;
+            const atk = Number(item?.attack_bonus || 0);
+            const ac = Number(item?.ac_bonus || 0);
+            return (
+              <div key={index} style={{ ...expandCard, marginBottom: 7 }}>
+                <div style={{ padding: '8px 10px' }}>
+                  <strong style={{ color: '#FFFFFF', fontSize: 13, display: 'block', marginBottom: 3 }}>{name}</strong>
+                  {dmg && <span style={{ color: '#A0A0A0', fontSize: 11, display: 'block', marginBottom: 3 }}>{dmg}{atk !== 0 ? ` · ${atk >= 0 ? '+' : ''}${atk} to hit` : ''}</span>}
+                  {!dmg && ac !== 0 && <span style={{ color: '#A0A0A0', fontSize: 11, display: 'block', marginBottom: 3 }}>AC {ac >= 0 ? '+' : ''}{ac}</span>}
+                  {detail && detail !== 'Details not saved yet.' && <p style={{ ...body, fontSize: 11, marginBottom: 6, color: '#A0A0A0' }}>{detail}</p>}
+                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 6 }}>
+                    {EQUIP_SLOTS.map(([slot, label]) => (
+                      <button key={slot} disabled={saving} type="button" onClick={() => equip(slot, item)}
+                        style={{ background: '#1F1F1F', border: '1px solid rgba(193,18,31,0.35)', color: '#D6D6D6', padding: '5px 8px', fontSize: 11, cursor: 'pointer' }}>
+                        → {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </Panel>
+      ) : (
+        <Panel title="Carried Items"><p style={body}>No items in inventory yet.</p></Panel>
+      )}
+    </div>
+  );
 }
 
 const page = { minHeight: '100dvh', background: '#1A1A1A', color: '#FFFFFF', display: 'flex', overflowX: 'hidden' };

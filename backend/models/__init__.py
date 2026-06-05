@@ -1376,6 +1376,15 @@ class InventoryItem(BaseModel):
     attuned_to: str = ""  # Player name if attuned
     notes: str = ""
     image_url: str = ""
+    # Equipment/combat stats
+    attack_bonus: int = 0
+    ac_bonus: int = 0
+    damage_dice: str = ""   # e.g. "1d6", "2d8+3"
+    damage_type: str = ""   # e.g. "slashing", "fire"
+    properties: List[str] = []  # e.g. ["versatile", "finesse"]
+    equip_slot: str = ""    # hint: mainHand, offHand, armor, shield
+    claimed_by: str = ""
+    claimed_by_id: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class InventoryItemCreate(BaseModel):
@@ -1390,6 +1399,12 @@ class InventoryItemCreate(BaseModel):
     attuned_to: str = ""
     notes: str = ""
     image_url: str = ""
+    attack_bonus: int = 0
+    ac_bonus: int = 0
+    damage_dice: str = ""
+    damage_type: str = ""
+    properties: List[str] = []
+    equip_slot: str = ""
 
 class InventoryItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -1403,6 +1418,14 @@ class InventoryItemUpdate(BaseModel):
     attuned_to: Optional[str] = None
     notes: Optional[str] = None
     image_url: Optional[str] = None
+    attack_bonus: Optional[int] = None
+    ac_bonus: Optional[int] = None
+    damage_dice: Optional[str] = None
+    damage_type: Optional[str] = None
+    properties: Optional[List[str]] = None
+    equip_slot: Optional[str] = None
+    claimed_by: Optional[str] = None
+    claimed_by_id: Optional[str] = None
 
 class PartyCurrency(BaseModel):
     model_config = ConfigDict(extra="ignore")
