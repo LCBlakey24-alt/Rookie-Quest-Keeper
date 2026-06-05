@@ -739,28 +739,29 @@ async def long_rest(
     level = existing.get('level', 1)
     max_hp = existing.get('max_hit_points', 10)
 
+    restored_dice = min(level, existing.get('hit_dice_remaining', 0) + max(1, level // 2))
+    spell_slots = existing.get('spell_slots', {})
+
     update = {
         'current_hit_points': max_hp,
-        'hit_dice_remaining': min(level, existing.get('hit_dice_remaining', 0) + max(1, level // 2)),
-        'updated_at': datetime.now(timezone.utc).isoformat()
+        'temporary_hit_points': 0,
+        'temp_hp': 0,
+        'hit_dice_remaining': restored_dice,
+        'death_saves_successes': 0,
+        'death_saves_failures': 0,
+        'exhaustion_level': max(0, existing.get('exhaustion_level', 0) - 1),
+        'updated_at': datetime.now(timezone.utc).isoformat(),
     }
 
-    # Cap hit dice at level
-    if update['hit_dice_remaining'] > level:
-        update['hit_dice_remaining'] = level
-
-    # Restore all spell slots
-    spell_slots = existing.get('spell_slots', {})
+    # Restore spell slots — frontend reads spell_slots_remaining as a dict keyed by level
     if spell_slots:
+        update['spell_slots_remaining'] = {str(k): int(v) for k, v in spell_slots.items()}
         for level_str in spell_slots:
             update[f'spell_slots_{level_str}_used'] = 0
-    # Also check individual spell_slots_N fields
     for key in existing:
         if key.startswith('spell_slots_') and key.endswith('_used'):
             update[key] = 0
 
-    # Resources are reset by frontend (sends full resource dict)
-    # But we can clear resources to empty so frontend re-initializes them to max
     update['resources'] = {}
 
     await db.player_characters.update_one(

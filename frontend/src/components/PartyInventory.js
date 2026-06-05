@@ -3,10 +3,10 @@ import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Package, Plus, Trash2, Edit2, Save, X, Coins, Sparkles, 
+import {
+  Package, Plus, Trash2, Edit2, Save, X, Coins, Sparkles,
   Sword, Shield, FlaskConical, ScrollText, Gem, Search, Users, GripVertical, ArrowRight,
-  Dice5, Split, Wand2
+  Dice5, Split, Wand2, Gift
 } from 'lucide-react';
 import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
 
@@ -129,6 +129,9 @@ function PartyInventory({ campaignId, players = [] }) {
   const [treasureTier, setTreasureTier] = useState('0-4');
   const [isHoard, setIsHoard] = useState(false);
   const [generatedLoot, setGeneratedLoot] = useState(null);
+  const [campaignCharacters, setCampaignCharacters] = useState([]);
+  const [grantingItemId, setGrantingItemId] = useState(null);
+  const [grantTargetId, setGrantTargetId] = useState('');
   
   const [newItem, setNewItem] = useState({
     name: '',
@@ -146,6 +149,7 @@ function PartyInventory({ campaignId, players = [] }) {
 
   useEffect(() => {
     fetchData();
+    fetchCampaignCharacters();
   }, [campaignId]);
 
   const fetchData = async () => {
@@ -160,6 +164,31 @@ function PartyInventory({ campaignId, players = [] }) {
       toast.error('Failed to load inventory');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCampaignCharacters = async () => {
+    try {
+      const res = await apiClient.get(`/campaigns/${campaignId}/players`);
+      setCampaignCharacters(res.data?.players || []);
+    } catch {
+      // Not GM — grant UI simply won't appear
+    }
+  };
+
+  const handleGrantItem = async (item) => {
+    if (!grantTargetId) { toast.error('Select a character first'); return; }
+    try {
+      await apiClient.post(`/campaigns/${campaignId}/inventory/${item.id}/grant`, {
+        character_id: grantTargetId,
+      });
+      const target = campaignCharacters.find(c => c.id === grantTargetId);
+      toast.success(`${item.name} sent to ${target?.name || 'character'}'s inventory`);
+      setItems(prev => prev.filter(i => i.id !== item.id));
+      setGrantingItemId(null);
+      setGrantTargetId('');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not grant item');
     }
   };
 
@@ -628,11 +657,50 @@ function PartyInventory({ campaignId, players = [] }) {
                           </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '4px' }}>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        {campaignCharacters.length > 0 && (
+                          <button
+                            onClick={() => { setGrantingItemId(grantingItemId === item.id ? null : item.id); setGrantTargetId(''); }}
+                            title="Give to character"
+                            style={{ background: grantingItemId === item.id ? 'rgba(34,197,94,0.2)' : 'transparent', border: grantingItemId === item.id ? '1px solid #22c55e' : 'none', borderRadius: '4px', color: '#22c55e', cursor: 'pointer', padding: '4px' }}
+                          >
+                            <Gift size={12} />
+                          </button>
+                        )}
                         <button onClick={() => setEditingItem(item)} style={{ background: 'transparent', border: 'none', color: '#4a7dff', cursor: 'pointer', padding: '4px' }}><Edit2 size={12} /></button>
                         <button onClick={() => handleDeleteItem(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}><Trash2 size={12} /></button>
                       </div>
                     </div>
+
+                    {grantingItemId === item.id && (
+                      <div style={{ marginTop: '8px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '8px 10px' }}>
+                        <Gift size={13} style={{ color: '#22c55e' }} />
+                        <select
+                          value={grantTargetId}
+                          onChange={e => setGrantTargetId(e.target.value)}
+                          className="input-glow"
+                          style={{ flex: 1, minWidth: '120px', padding: '4px 8px', fontSize: '11px', height: '28px' }}
+                        >
+                          <option value="">Pick a character…</option>
+                          {campaignCharacters.map(c => (
+                            <option key={c.id} value={c.id}>{c.name} ({c.character_class || 'Unknown'} Lv {c.level || '?'})</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleGrantItem(item)}
+                          disabled={!grantTargetId}
+                          style={{ background: grantTargetId ? 'rgba(34,197,94,0.3)' : 'rgba(100,116,139,0.2)', border: `1px solid ${grantTargetId ? '#22c55e' : '#475569'}`, borderRadius: '4px', color: grantTargetId ? '#22c55e' : '#64748b', cursor: grantTargetId ? 'pointer' : 'default', padding: '4px 10px', fontSize: '11px', fontWeight: '400' }}
+                        >
+                          Send
+                        </button>
+                        <button
+                          onClick={() => { setGrantingItemId(null); setGrantTargetId(''); }}
+                          style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}

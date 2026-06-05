@@ -115,13 +115,75 @@ async def unclaim_inventory_item(
     item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     await db.inventory.update_one(
         {'id': item_id},
         {'$unset': {'claimed_by': '', 'claimed_by_id': '', 'claimed_at': ''}}
     )
-    
+
     return {"message": "Item returned to party inventory"}
+
+
+@router.post("/campaigns/{campaign_id}/inventory/{item_id}/grant")
+async def grant_inventory_item_to_character(
+    campaign_id: str,
+    item_id: str,
+    grant_data: Dict[str, Any],
+    current_user: str = Depends(get_current_user)
+):
+    """GM grants a party inventory item directly into a character's inventory."""
+    await verify_campaign_ownership(campaign_id, current_user)
+
+    item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    character_id = grant_data.get('character_id')
+    if not character_id:
+        raise HTTPException(status_code=400, detail="character_id is required")
+
+    character = await db.player_characters.find_one({'id': character_id, 'campaign_id': campaign_id})
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found in this campaign")
+
+    inventory_entry = {
+        'id': str(uuid.uuid4()),
+        'name': item.get('name', 'Unknown Item'),
+        'quantity': item.get('quantity', 1),
+        'item_type': item.get('item_type', 'misc'),
+        'description': item.get('description', ''),
+        'value': item.get('value', ''),
+        'weight': item.get('weight', 0),
+        'is_magical': item.get('is_magical', False),
+        'attunement_required': item.get('attunement_required', False),
+        'notes': item.get('notes', ''),
+        'attack_bonus': item.get('attack_bonus', 0),
+        'ac_bonus': item.get('ac_bonus', 0),
+        'damage_dice': item.get('damage_dice', ''),
+        'damage_type': item.get('damage_type', ''),
+        'properties': item.get('properties', []),
+        'equip_slot': item.get('equip_slot', ''),
+        'image_url': item.get('image_url', ''),
+        'granted_from_party': True,
+        'granted_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+    await db.player_characters.update_one(
+        {'id': character_id},
+        {
+            '$push': {'inventory': inventory_entry},
+            '$set': {'updated_at': datetime.now(timezone.utc).isoformat()}
+        }
+    )
+
+    # Remove from party pool so it can't be granted twice
+    await db.inventory.delete_one({'id': item_id, 'campaign_id': campaign_id})
+
+    return {
+        "success": True,
+        "message": f"{item.get('name')} granted to {character.get('name', 'character')}",
+        "item": inventory_entry,
+    }
 
 @router.get("/campaigns/{campaign_id}/currency")
 async def get_party_currency(campaign_id: str, current_user: str = Depends(get_current_user)):

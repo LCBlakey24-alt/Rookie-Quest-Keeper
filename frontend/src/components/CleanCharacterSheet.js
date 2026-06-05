@@ -138,6 +138,8 @@ export default function CleanCharacterSheet() {
   const [rollMode, setRollMode] = useState('normal');
   const [rollBonus, setRollBonus] = useState(0);
   const [reloadingCharacter, setReloadingCharacter] = useState(false);
+  const [concentrationInput, setConcentrationInput] = useState('');
+  const [showConcentrationInput, setShowConcentrationInput] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -178,6 +180,8 @@ export default function CleanCharacterSheet() {
   const deathSaveSuccesses = clampDeathCount(character?.death_saves_successes);
   const deathSaveFailures = clampDeathCount(character?.death_saves_failures);
   const hasInspiration = Boolean(character?.inspiration || character?.has_inspiration);
+  const concentratingOn = character?.concentrating_on || character?.concentration || null;
+  const concentratingName = concentratingOn ? (typeof concentratingOn === 'string' ? concentratingOn : concentratingOn?.name || String(concentratingOn)) : null;
   const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
@@ -239,6 +243,13 @@ export default function CleanCharacterSheet() {
     setSavingHp(true);
     await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
+
+    if (delta < 0 && character?.concentrating_on) {
+      const damageTaken = Math.abs(delta);
+      const concentrationDC = Math.max(10, Math.floor(damageTaken / 2));
+      const spellName = character.concentrating_on?.name || character.concentrating_on;
+      toast.warning(`Concentration check! Concentrating on ${spellName} — DC ${concentrationDC} Constitution save`, { duration: 8000 });
+    }
   };
 
   const updateTempHp = async (delta) => {
@@ -573,6 +584,67 @@ export default function CleanCharacterSheet() {
           <span><Activity size={15} /> Hit Dice</span>
           <strong>{hitDiceRemaining} / {hitDice}</strong>
           <button type="button" onClick={spendHitDie} disabled={savingQuickState || hitDiceRemaining <= 0 || currentHp >= maxHp}>Spend</button>
+        </div>
+
+        <div className="clean-sheet-hitdice-row" data-testid="concentration-row" style={{ borderColor: concentratingName ? '#a855f7' : undefined }}>
+          <span><Sparkles size={15} style={{ color: '#a855f7' }} /> Concentration</span>
+          {concentratingName ? (
+            <>
+              <strong style={{ color: '#a855f7', flex: 1 }}>{concentratingName}</strong>
+              <button
+                type="button"
+                onClick={() => patchCharacter({ concentrating_on: null, concentration: null }, { success: 'Concentration ended' })}
+                disabled={savingQuickState}
+                title="End concentration"
+                style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
+              >
+                End
+              </button>
+            </>
+          ) : (
+            <>
+              <strong style={{ color: '#64748b', flex: 1 }}>None</strong>
+              <button
+                type="button"
+                onClick={() => setShowConcentrationInput(prev => !prev)}
+                style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
+              >
+                Set
+              </button>
+            </>
+          )}
+          {showConcentrationInput && !concentratingName && (
+            <div style={{ width: '100%', display: 'flex', gap: '6px', marginTop: '6px' }}>
+              <input
+                type="text"
+                placeholder="Spell name…"
+                value={concentrationInput}
+                onChange={e => setConcentrationInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && concentrationInput.trim()) {
+                    patchCharacter({ concentrating_on: concentrationInput.trim(), concentration: concentrationInput.trim() }, { success: `Concentrating on ${concentrationInput.trim()}` });
+                    setConcentrationInput('');
+                    setShowConcentrationInput(false);
+                  }
+                }}
+                className="clean-sheet-input"
+                style={{ flex: 1, padding: '4px 8px', fontSize: '12px', background: 'rgba(10,10,40,0.8)', border: '1px solid #a855f7', borderRadius: '4px', color: '#fff' }}
+              />
+              <button
+                type="button"
+                disabled={!concentrationInput.trim() || savingQuickState}
+                onClick={() => {
+                  if (!concentrationInput.trim()) return;
+                  patchCharacter({ concentrating_on: concentrationInput.trim(), concentration: concentrationInput.trim() }, { success: `Concentrating on ${concentrationInput.trim()}` });
+                  setConcentrationInput('');
+                  setShowConcentrationInput(false);
+                }}
+                style={{ background: 'rgba(168,85,247,0.3)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '4px 10px', fontSize: '11px' }}
+              >
+                Save
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="clean-sheet-condition-panel" data-testid="conditions-strip">
