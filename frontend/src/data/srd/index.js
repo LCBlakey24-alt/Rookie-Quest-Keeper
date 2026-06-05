@@ -40,7 +40,7 @@ export async function fetchSrdFromBackend(apiBase) {
     if (!res.ok) throw new Error('Failed to fetch SRD');
     return await res.json();
   } catch (err) {
-    console.warn('SRD fetch failed, falling back to sample:', err.message);
+
     return SRD.sample;
   }
 }

@@ -20,6 +20,7 @@ from routes.rule_systems import router as rule_systems_router
 from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
 from routes.homebrew import router as homebrew_router
+from routes.handouts import router as handouts_router
 
 all_routers = [
     auth_router,
@@ -46,4 +47,5 @@ all_routers = [
     character_templates_router,
     # Paid image-generation routes intentionally not registered for now.
     homebrew_router,
+    handouts_router,
 ]

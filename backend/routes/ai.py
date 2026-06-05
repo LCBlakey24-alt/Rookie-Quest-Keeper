@@ -1,4 +1,4 @@
-"""AI routes: ROOK generation, chat, portraits, tokens, session recap, smart notes."""
+"""AI routes: ROOK generation, chat, smart notes, session outline/recap."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger, ROOT_DIR
 from utils.auth import (
@@ -10,7 +10,6 @@ from utils.helpers import get_campaign_context
 from models import (
     UnseenServantRequest, UnseenServantResponse, AIGenerationRequest, AIGenerationResponse,
     RookChatRequest, SmartNoteParseRequest, SmartNoteParseResponse, EntityMention, TimeChange,
-    PortraitGenerateRequest, TokenGenerateRequest, SessionRecapRequest,
     God, GodCreate, NPC, NPCCreate, NPCStats, Location, LocationCreate,
     PlaceOfInterest, PlaceOfInterestCreate, CustomCreature, CustomCreatureCreate
 )
@@ -19,10 +18,9 @@ import uuid
 import json
 import os
 import re
-import base64
 import asyncio
 from datetime import datetime, timezone, timedelta
-from utils.llm_provider import LlmChat, UserMessage, OpenAIImageGeneration, get_llm_api_key
+from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
@@ -162,7 +160,7 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="AI generation is not available for this account."
+                detail="Monthly AI request limit reached. Your usage resets at the start of next month."
             )
         
         # Verify campaign ownership
@@ -429,7 +427,7 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="AI generation is not available for this account."
+                detail="Monthly AI request limit reached. Your usage resets at the start of next month."
             )
         
         # Get API key from environment
@@ -531,7 +529,7 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     """ROOK AI Co-GM: Context-aware chat assistant for the GM Screen."""
     can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation is not available for this account.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI request limit reached. Your usage resets at the start of next month.")
     
     api_key = get_llm_api_key("openai")
     if not api_key:
@@ -848,148 +846,6 @@ Extract and return JSON in this EXACT format:
             detail=f"Failed to parse notes: {str(e)}"
         )
 
-# ==================== USER RULESET ROUTES ====================
-
-async def ai_generate_portrait(
-    request: PortraitGenerateRequest,
-    username: str = Depends(get_current_user)
-):
-    """
-    AI Portrait Generator: Create a character portrait image.
-    Returns base64 encoded image data.
-    """
-    # Check AI usage limits
-    can_use_ai = await check_ai_access(username, 'ai')
-    if not can_use_ai:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail={
-                "error": "ai_limit_reached",
-                "message": "AI generation is not available for this account."
-            }
-        )
-    
-    # Build portrait prompt
-    appearance_desc = request.appearance if request.appearance else "fantasy adventurer"
-    
-    portrait_prompt = f"""Fantasy character portrait, RPG style digital art:
-A {request.gender} {request.race} {request.character_class} named {request.name}.
-{appearance_desc}
-High quality fantasy illustration, detailed face, dramatic lighting, 
-medieval fantasy style, painterly, heroic pose, portrait framing.
-No text, no watermarks, professional fantasy art."""
-
-    try:
-        llm_key = get_llm_api_key("openai")
-        if not llm_key:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="AI service not configured"
-            )
-        
-        image_gen = OpenAIImageGeneration(api_key=llm_key)
-        images = await image_gen.generate_images(
-            prompt=portrait_prompt,
-            model="gpt-image-1",
-            number_of_images=1
-        )
-        
-        if images and len(images) > 0:
-            image_base64 = base64.b64encode(images[0]).decode('utf-8')
-            # Increment AI usage counter on success
-            await record_ai_usage(username)
-            return {
-                "success": True,
-                "image_base64": image_base64,
-                "message": f"Portrait of {request.name} created!"
-            }
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="No image was generated"
-            )
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Portrait generation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate portrait: {str(e)}"
-        )
-
-# ==================== COMBAT TOKEN GENERATION ====================
-
-async def ai_generate_token(
-    request: TokenGenerateRequest,
-    username: str = Depends(get_current_user)
-):
-    """
-    AI Token Generator: Create a circular battle map token for a creature.
-    Stores the token in DB and returns URL.
-    """
-    # Build token prompt
-    token_prompt = request.prompt or f"""Circular fantasy RPG battle map token portrait of {request.entity_name}, 
-    {request.entity_type} creature, dramatic lighting, detailed, dark fantasy style, 
-    facing forward, head and shoulders only, suitable for tabletop RPG battle map token,
-    circular frame, high contrast, no background, professional fantasy game art."""
-
-    try:
-        llm_key = get_llm_api_key("openai")
-        if not llm_key:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="AI service not configured"
-            )
-        
-        image_gen = OpenAIImageGeneration(api_key=llm_key)
-        images = await image_gen.generate_images(
-            prompt=token_prompt,
-            model="gpt-image-1",
-            number_of_images=1
-        )
-        
-        if images and len(images) > 0:
-            image_base64 = base64.b64encode(images[0]).decode('utf-8')
-            
-            # Store token in database
-            token_doc = {
-                'id': str(uuid.uuid4()),
-                'entity_id': request.entity_id,
-                'entity_name': request.entity_name,
-                'entity_type': request.entity_type,
-                'campaign_id': request.campaign_id,
-                'image_base64': image_base64,
-                'created_at': datetime.now(timezone.utc).isoformat(),
-                'created_by': username
-            }
-            
-            # Upsert - update if exists, insert if not
-            await db.combat_tokens.update_one(
-                {'entity_id': request.entity_id, 'campaign_id': request.campaign_id},
-                {'$set': token_doc},
-                upsert=True
-            )
-            
-            return {
-                "success": True,
-                "image_url": f"data:image/png;base64,{image_base64}",
-                "entity_id": request.entity_id,
-                "message": f"Token created for {request.entity_name}!"
-            }
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="No image was generated"
-            )
-            
-    except Exception as e:
-        logger.error(f"Token generation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate token: {str(e)}"
-        )
-
 @router.get("/campaigns/{campaign_id}/tokens")
 async def get_campaign_tokens(
     campaign_id: str,
@@ -1037,73 +893,6 @@ async def get_entity_token(
         del token['image_base64']  # Don't expose raw base64
     
     return token
-
-async def generate_session_recap(request: SessionRecapRequest, username: str = Depends(get_current_user)):
-    """Generate an AI-powered session recap from notes"""
-    
-    # Build prompt based on style and sections
-    sections_text = ", ".join(request.sections)
-    
-    style_instructions = {
-        "narrative": "Write in a flowing narrative style, like a story being told by a bard.",
-        "bullet": "Use concise bullet points for each key element.",
-        "detailed": "Provide a detailed, comprehensive log with timestamps and full descriptions."
-    }
-    
-    prompt = f"""You are a Game Master's assistant. Generate a session recap from the following notes.
-
-{ai_source_boundary_fragment()}
-
-Style: {style_instructions.get(request.style, style_instructions['narrative'])}
-
-Include these sections (if relevant content exists): {sections_text}
-
-Session Notes:
-{request.notes}
-
-Generate a well-formatted recap that captures the key events, NPCs, locations, combat highlights, and any plot developments. Make it useful for both the GM to reference later and to share with players as a "previously on" summary.
-
-Format the output in Markdown."""
-
-    try:
-        llm_api_key = get_llm_api_key("openai")
-        if not llm_api_key:
-            raise Exception("No API key")
-
-        chat = LlmChat(
-            api_key=llm_api_key,
-            session_id=f"session-recap-{request.campaign_id}-{uuid.uuid4().hex[:8]}",
-            system_message=f"You turn tabletop RPG session notes into concise player-facing recaps.\n\n{ai_source_boundary_fragment()}"
-        ).with_model("openai", "gpt-4o-mini")
-
-        content = await chat.send_message(UserMessage(text=prompt))
-        
-    except Exception as e:
-        logger.warning(f"AI recap generation failed: {e}")
-        # Fallback to simple extraction
-        lines = request.notes.split('\n')
-        content = "# Session Recap\n\n"
-        content += "*Auto-generated summary*\n\n"
-        content += "## Key Events\n"
-        for line in lines[:10]:
-            if line.strip():
-                content += f"- {line.strip()}\n"
-        content += "\n## Next Session\n- Continue from current situation\n"
-    
-    recap = {
-        "content": content,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "style": request.style,
-        "word_count": len(content.split())
-    }
-    
-    # Optionally save to database
-    recap['campaign_id'] = request.campaign_id
-    recap['generated_by'] = username
-    recap['id'] = str(uuid.uuid4())
-    await db.session_recaps.insert_one(recap)
-    
-    return recap
 
 @router.get("/ai/session-recaps/{campaign_id}")
 async def get_session_recaps(campaign_id: str, username: str = Depends(get_current_user)):

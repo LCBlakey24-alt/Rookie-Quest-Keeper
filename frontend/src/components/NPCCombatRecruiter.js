@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -8,8 +8,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] }) {
   const [npcs, setNpcs] = useState([]);
@@ -28,10 +26,10 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
   
   const fetchNPCs = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/npcs`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/npcs`);
       setNpcs(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch NPCs:', error);
+
     } finally {
       setLoading(false);
     }
@@ -39,10 +37,10 @@ function NPCCombatRecruiter({ campaignId, onAddNPC, existingCombatantIds = [] })
   
   const fetchCustomCreatures = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/custom-creatures`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/custom-creatures`);
       setCustomCreatures(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch creatures:', error);
+
     }
   };
   

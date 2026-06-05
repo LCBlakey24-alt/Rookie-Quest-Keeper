@@ -64,7 +64,7 @@ function AdminPage() {
       setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
       setOverview(overviewRes.data || {});
     } catch (error) {
-      console.error('Failed to fetch admin data:', error);
+
     } finally {
       setLoading(false);
     }

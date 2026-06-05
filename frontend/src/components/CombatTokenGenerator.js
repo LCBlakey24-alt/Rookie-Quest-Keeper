@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { 
   Image, Loader2, RefreshCw, Download, Check, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // Generate a unique color based on creature name
 function generateCreatureColor(name, type = 'enemy') {
@@ -173,7 +171,7 @@ function CombatTokenGenerator({
   
   const loadExistingTokens = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/tokens`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/tokens`);
       const existingTokens = {};
       (response.data || []).forEach(t => {
         existingTokens[t.entity_id] = t.image_url;
@@ -192,7 +190,7 @@ function CombatTokenGenerator({
       const creatureType = combatant.type || 'creature';
       const prompt = `Fantasy RPG circular token portrait of a ${combatant.name}, ${creatureType}, dramatic lighting, detailed, dark fantasy style, facing forward, head and shoulders, suitable for battle map token`;
       
-      const response = await axios.post(`${API}/ai/generate-token`, {
+      const response = await apiClient.post(`/ai/generate-token`, {
         entity_id: combatant.id,
         entity_name: combatant.name,
         entity_type: combatant.type || 'enemy',
@@ -208,7 +206,7 @@ function CombatTokenGenerator({
         toast.success(`Token generated for ${combatant.name}!`);
       }
     } catch (error) {
-      console.error('Failed to generate token:', error);
+
       toast.error(`Failed to generate token for ${combatant.name}`);
     } finally {
       setGenerating(prev => ({ ...prev, [combatant.id]: false }));

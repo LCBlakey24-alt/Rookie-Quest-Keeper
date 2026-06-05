@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
+import { deriveArmorClass } from '@/data/characterCombatDerivations';
 const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
@@ -18,6 +19,8 @@ const blankItem = {
   attuned: false,
   attack_bonus: 0,
   ac_bonus: 0,
+  damage_dice: '',
+  damage_type: '',
   stat_bonuses: {
     strength: 0, dexterity: 0, constitution: 0, intelligence: 0, wisdom: 0, charisma: 0,
   },
@@ -86,6 +89,10 @@ function normaliseItem(item) {
 
 function ItemCard({ item, slot, actions }) {
   const quantity = getItemQuantity(item);
+  const damageDice = item?.damage_dice;
+  const damageType = item?.damage_type;
+  const attackBonus = Number(item?.attack_bonus || 0);
+  const acBonus = Number(item?.ac_bonus || 0);
   return (
     <div className={`clean-sheet-item-card ${isFavorite(item) ? 'favorite' : ''} ${isConsumableLike(item) ? 'consumable' : ''}`}>
       <div className="clean-sheet-item-card-top">
@@ -96,6 +103,8 @@ function ItemCard({ item, slot, actions }) {
       </div>
       <strong>{getItemName(item)}</strong>
       {getItemDetail(item) && <p>{getItemDetail(item)}</p>}
+      {damageDice && <em>{damageDice}{damageType ? ` ${damageType}` : ''}{attackBonus !== 0 ? ` (${attackBonus >= 0 ? '+' : ''}${attackBonus} to hit)` : ''}</em>}
+      {!damageDice && acBonus !== 0 && <em>AC {acBonus >= 0 ? '+' : ''}{acBonus}</em>}
       {quantity !== null && <em>Qty {quantity}</em>}
       {actions && <div className="clean-sheet-item-actions">{actions}</div>}
     </div>
@@ -153,8 +162,9 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const saveEquipped = async (nextEquipped, slotLabel) => {
     setSavingSlot(slotLabel);
     try {
-      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped });
-      onCharacterUpdate?.({ equipped: nextEquipped });
+      const derivedAc = deriveArmorClass({ ...character, equipped: nextEquipped });
+      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped, armor_class: derivedAc });
+      onCharacterUpdate?.({ equipped: nextEquipped, armor_class: derivedAc });
       toast.success('Equipment updated');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update equipment');
@@ -184,11 +194,14 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   };
 
   const inferEquipSlot = (item) => {
+    if (item?.equip_slot) return item.equip_slot;
     const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
     if (text.includes('shield')) return 'shield';
-    if (text.includes('armour') || text.includes('armor')) return 'armor';
+    if (text.includes('armour') || text.includes('armor') || text.includes('mail') || text.includes('plate') || text.includes('leather') || text.includes('scale') || text.includes('chain') || text.includes('hide')) return 'armor';
     if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
-    if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger')) return 'mainHand';
+    if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('crossbow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger') || text.includes('spear') || text.includes('lance') || text.includes('hammer') || text.includes('rapier') || text.includes('club') || text.includes('flail') || text.includes('halberd') || text.includes('pike') || text.includes('trident') || text.includes('whip')) return 'mainHand';
+    if (item?.damage_dice) return 'mainHand';
+    if (item?.ac_bonus && !item?.attack_bonus) return 'armor';
     return null;
   };
 
@@ -306,8 +319,13 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
               <option>Magic Item</option>
             </select>
             <input type="number" min="1" value={newItem.quantity} onChange={e => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) || 1 }))} placeholder="Qty" />
-            <input type="number" value={newItem.attack_bonus} onChange={e => setNewItem(prev => ({ ...prev, attack_bonus: Number(e.target.value) || 0 }))} placeholder="Attack bonus" />
-            <input type="number" value={newItem.ac_bonus} onChange={e => setNewItem(prev => ({ ...prev, ac_bonus: Number(e.target.value) || 0 }))} placeholder="AC bonus" />
+            <input type="text" value={newItem.damage_dice} onChange={e => setNewItem(prev => ({ ...prev, damage_dice: e.target.value }))} placeholder="Damage dice (e.g. 1d6, 2d8+3)" />
+            <select value={newItem.damage_type} onChange={e => setNewItem(prev => ({ ...prev, damage_type: e.target.value }))}>
+              <option value="">Damage type</option>
+              {['slashing','piercing','bludgeoning','fire','cold','lightning','acid','poison','necrotic','radiant','psychic','thunder','force'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+            </select>
+            <input type="number" value={newItem.attack_bonus} onChange={e => setNewItem(prev => ({ ...prev, attack_bonus: Number(e.target.value) || 0 }))} placeholder="Attack bonus (+1, +2…)" />
+            <input type="number" value={newItem.ac_bonus} onChange={e => setNewItem(prev => ({ ...prev, ac_bonus: Number(e.target.value) || 0 }))} placeholder="AC bonus (+1, +2…)" />
             <textarea value={newItem.description} onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))} placeholder="Description or effect" />
             <label className="clean-sheet-checkbox-row">
               <input type="checkbox" checked={newItem.attunement_required} onChange={e => setNewItem(prev => ({ ...prev, attunement_required: e.target.checked, attuned: e.target.checked ? prev.attuned : false }))} />

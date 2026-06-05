@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Coins, Package, Plus, Trash2, Edit, Save, X, Gem, Sword, ScrollText, Sparkles } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const ITEM_CATEGORIES = [
   { id: 'weapon', label: 'Weapons', icon: Sword, color: '#ef4444' },
@@ -38,7 +36,7 @@ function PartyInventoryTab({ campaignId }) {
 
   const fetchInventory = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/inventory`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/inventory`);
       setInventory(response.data || { gold: 0, silver: 0, copper: 0, platinum: 0, items: [] });
     } catch (error) {
       // Initialize empty inventory if not found
@@ -50,7 +48,7 @@ function PartyInventoryTab({ campaignId }) {
 
   const saveInventory = async (newInventory) => {
     try {
-      await axios.put(`${API}/campaigns/${campaignId}/inventory`, newInventory);
+      await apiClient.put(`/campaigns/${campaignId}/inventory`, newInventory);
       setInventory(newInventory);
     } catch (error) {
       toast.error('Failed to save inventory');
@@ -152,7 +150,7 @@ function PartyInventoryTab({ campaignId }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800' }}>
+          <h2 style={{ fontSize: '26px', color: '#ffffff', fontWeight: '800' }}>
             Party Inventory
           </h2>
           <p style={{ fontSize: '14px', color: '#67e8f9', marginTop: '4px' }}>

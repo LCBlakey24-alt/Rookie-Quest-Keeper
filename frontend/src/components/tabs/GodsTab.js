@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { Plus, Edit, Trash2, Sparkles, Loader, Wand2, Check, Church, Search } fr
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 function GodsTab({ campaignId }) {
   const [gods, setGods] = useState([]);
@@ -37,7 +35,7 @@ function GodsTab({ campaignId }) {
 
   const fetchGods = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/gods`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/gods`);
       setGods(response.data);
     } catch (error) {
       toast.error('Failed to load gods', {
@@ -52,12 +50,12 @@ function GodsTab({ campaignId }) {
     e.preventDefault();
     try {
       if (editingGod) {
-        await axios.put(`${API}/campaigns/${campaignId}/gods/${editingGod.id}`, formData);
+        await apiClient.put(`/campaigns/${campaignId}/gods/${editingGod.id}`, formData);
         toast.success(`${formData.name} updated successfully`, {
           description: 'Changes saved to your pantheon'
         });
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/gods`, formData);
+        await apiClient.post(`/campaigns/${campaignId}/gods`, formData);
         toast.success(`${formData.name} added to pantheon`, {
           description: 'Your deity is now available in your campaign',
           action: {
@@ -94,7 +92,7 @@ function GodsTab({ campaignId }) {
       // User confirmed, actually delete
       try {
         const god = gods.find(g => g.id === godId);
-        await axios.delete(`${API}/campaigns/${campaignId}/gods/${godId}`);
+        await apiClient.delete(`/campaigns/${campaignId}/gods/${godId}`);
         toast.success(`${god.name} removed from pantheon`, {
           description: 'The deity has been deleted'
         });
@@ -138,7 +136,7 @@ function GodsTab({ campaignId }) {
     setAiGenerating(true);
     setLastGenerated(null);
     try {
-      const response = await axios.post(`${API}/rook/generate`, {
+      const response = await apiClient.post(`/rook/generate`, {
         prompt: aiPrompt,
         entity_type: 'god',
         campaign_id: campaignId

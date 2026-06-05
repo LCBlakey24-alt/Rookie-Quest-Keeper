@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { 
   Sword, Users, Shield, Heart, Skull, SkipForward, RotateCcw, 
@@ -16,8 +16,6 @@ import { SimpleToken } from '@/components/CombatTokenGenerator';
 import { RookSuggestionPopup, useRookSuggestions } from '@/components/RookSuggestions';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const CONDITIONS = [
   { id: 'blinded', label: 'Blind', color: '#64748b', desc: 'Can\'t see. Auto-fail sight checks. Attacks have disadvantage, attackers have advantage.' },
@@ -150,10 +148,10 @@ function CombatPage() {
   // Fetch available maps
   const fetchAvailableMaps = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/maps`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/maps`);
       setAvailableMaps(response.data || []);
     } catch (error) {
-      console.log('No maps available');
+      // No maps configured for this campaign — safe to ignore
     }
   };
 
@@ -207,7 +205,7 @@ function CombatPage() {
     try {
       const playerCombatants = combatants.filter(c => c.type === 'player' && c.character_id);
       await Promise.all(playerCombatants.map(c =>
-        axios.patch(`${API}/characters/${c.character_id}`, {
+        apiClient.patch(`/characters/${c.character_id}`, {
           current_hit_points: c.hp,
           temporary_hit_points: c.tempHp || 0,
           conditions: c.conditions || [],
@@ -338,7 +336,7 @@ function CombatPage() {
     try {
       let added = 0;
       for (const loot of collectedLoot) {
-        await axios.post(`${API}/campaigns/${campaignId}/inventory`, {
+        await apiClient.post(`/campaigns/${campaignId}/inventory`, {
           name: loot.name,
           quantity: loot.quantity || 1,
           item_type: loot.item_type || 'misc',

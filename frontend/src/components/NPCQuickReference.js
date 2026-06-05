@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { 
   Users, Search, MapPin, ChevronDown, ChevronUp, 
   User, Scroll, Star, Eye, X
@@ -7,8 +7,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme
 const theme = {
@@ -43,13 +41,13 @@ function NPCQuickReference({ campaignId, currentLocationId }) {
   const fetchData = async () => {
     try {
       const [npcsRes, locsRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/npcs`),
-        axios.get(`${API}/campaigns/${campaignId}/locations`)
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/locations`)
       ]);
       setNpcs(npcsRes.data || []);
       setLocations(locsRes.data || []);
     } catch (error) {
-      console.error('Failed to fetch NPCs:', error);
+
     } finally {
       setLoading(false);
     }

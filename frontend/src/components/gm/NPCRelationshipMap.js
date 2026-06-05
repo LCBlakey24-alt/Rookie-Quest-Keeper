@@ -124,7 +124,7 @@ function StatBlockPanel({ npc, theme, onEdit, onClose }) {
       border: `1px solid ${theme.accent.primary}`, borderRadius: '12px', zIndex: 1000 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div>
-          <h4 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, margin: 0, fontSize: '18px' }}>{npc.name}</h4>
+          <h4 style={{ color: theme.text.primary, margin: 0, fontSize: '18px' }}>{npc.name}</h4>
           <div style={{ fontSize: '12px', color: theme.accent.primary, marginTop: '2px' }}>
             {[npc.race, npc.class_name, npc.level > 1 ? `Level ${npc.level}` : ''].filter(Boolean).join(' ')}
             {npc.alignment && <span style={{ color: theme.text.muted }}> ({npc.alignment})</span>}
@@ -252,7 +252,7 @@ function EditNPCModal({ npc, theme, onSave, onClose, isNew }) {
     hp: 10, max_hp: 10, ac: 10, speed: '30 ft.', proficiency_bonus: 2,
     stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
     saving_throws: [], skills: [], attacks: [], abilities: [], spells: null,
-    location: '', notes: '', color: '#D4A017',
+    location: '', notes: '', color: '#C1121F',
     ...npc
   }));
   const [section, setSection] = useState('basic');
@@ -299,7 +299,7 @@ function EditNPCModal({ npc, theme, onSave, onClose, isNew }) {
         background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '16px' }}>
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, margin: 0, fontSize: '18px' }}>{isNew ? 'Create NPC' : 'Edit NPC'}</h3>
+          <h3 style={{ color: theme.text.primary, margin: 0, fontSize: '18px' }}>{isNew ? 'Create NPC' : 'Edit NPC'}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: theme.text.muted, cursor: 'pointer' }}><X size={20} /></button>
         </div>
 
@@ -511,7 +511,7 @@ function GenerateNPCModal({ theme, onGenerate, onClose }) {
       <div data-testid="generate-npc-modal" onClick={e => e.stopPropagation()} style={{ width: '480px', padding: '24px', background: theme.bg.card, border: `1px solid ${theme.accent.primary}`, borderRadius: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
           <Sparkles size={22} style={{ color: theme.accent.primary }} />
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, margin: 0 }}>AI Generate NPC</h3>
+          <h3 style={{ color: theme.text.primary, margin: 0 }}>AI Generate NPC</h3>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
@@ -694,13 +694,13 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0, flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Link2 size={22} style={{ color: theme.accent.primary }} />
-          <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.text.primary, margin: 0, fontSize: '20px' }}>NPC Network</h3>
+          <h3 style={{ color: theme.text.primary, margin: 0, fontSize: '20px' }}>NPC Network</h3>
           <span style={{ fontSize: '12px', color: theme.text.muted, background: theme.bg.elevated, padding: '3px 8px', borderRadius: '4px' }}>
             {npcs.length} NPCs
           </span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button data-testid="generate-npc-button" onClick={() => setShowGenerateModal(true)} style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #D4A017, #D4A017)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button data-testid="generate-npc-button" onClick={() => setShowGenerateModal(true)} style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #C1121F, #D62839)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Sparkles size={14} /> AI Generate
           </button>
           <button data-testid="add-npc-button" onClick={() => setShowEditModal('new')} style={{ padding: '8px 14px', background: theme.gradient, border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -764,7 +764,7 @@ export default function NPCRelationshipMap({ theme, campaignId }) {
             <Users size={48} style={{ marginBottom: '12px', opacity: 0.5 }} />
             <p style={{ marginBottom: '12px' }}>No NPCs yet</p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <button onClick={() => setShowGenerateModal(true)} style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #D4A017, #D4A017)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button onClick={() => setShowGenerateModal(true)} style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #C1121F, #D62839)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sparkles size={16} /> AI Generate
               </button>
               <button onClick={() => setShowEditModal('new')} style={{ padding: '10px 18px', background: theme.gradient, border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>

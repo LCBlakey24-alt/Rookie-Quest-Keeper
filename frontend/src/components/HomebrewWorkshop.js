@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import apiClient from '@/lib/apiClient';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -7,8 +7,6 @@ import {
   Loader2, BookOpen, Sword, Shield, Wand2, Gem, AlertTriangle, RefreshCw
 } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const theme = {
   gold: "#D4A017",
@@ -233,10 +231,10 @@ export default function HomebrewWorkshop() {
 
   const fetchLibrary = async () => {
     try {
-      const { data } = await axios.get(`${API}/homebrew`);
+      const { data } = await apiClient.get(`/homebrew`);
       setLibrary(data?.homebrew || {});
     } catch (err) {
-      console.error("Failed to load library", err);
+
     }
   };
 
@@ -273,7 +271,7 @@ export default function HomebrewWorkshop() {
       fd.append("content_type", type);
       fd.append("file", file);
       fd.append("edition", edition);
-      const { data } = await axios.post(`${API}/homebrew/parse-docx`, fd, {
+      const { data } = await apiClient.post(`/homebrew/parse-docx`, fd, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       setDraft(data.draft || {});
@@ -300,7 +298,7 @@ export default function HomebrewWorkshop() {
     }
     setParsing(true);
     try {
-      const { data } = await axios.post(`${API}/homebrew/parse-text`, {
+      const { data } = await apiClient.post(`/homebrew/parse-text`, {
         content_type: type,
         edition,
         text: pasteText
@@ -328,7 +326,7 @@ export default function HomebrewWorkshop() {
     }
     setSaving(true);
     try {
-      await axios.post(`${API}/homebrew/save`, {
+      await apiClient.post(`/homebrew/save`, {
         content_type: type,
         edition,
         data: draft,
@@ -354,7 +352,7 @@ export default function HomebrewWorkshop() {
   const handleDelete = async (item) => {
     if (!window.confirm(`Delete homebrew "${item.name}"?`)) return;
     try {
-      await axios.delete(`${API}/homebrew/${type}/${item.id}`);
+      await apiClient.delete(`/homebrew/${type}/${item.id}`);
       toast.success("Deleted");
       fetchLibrary();
       if (editingId === item.id) reset();

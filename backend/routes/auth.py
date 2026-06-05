@@ -47,6 +47,7 @@ async def cleanup_user_account(username: str) -> dict:
     # User-owned records.
     user_owned_collections = [
         'player_characters',
+        'player_journal',
         'custom_creatures',
         'reviews',
         'user_rulesets',
@@ -59,6 +60,7 @@ async def cleanup_user_account(username: str) -> dict:
         'homebrew_items',
         'character_templates',
         'campaign_invites',
+        'ai_usage',
     ]
     user_query = {
         '$or': [
@@ -75,6 +77,12 @@ async def cleanup_user_account(username: str) -> dict:
     # Password reset records can be keyed by email rather than username.
     if email:
         await delete_many('password_resets', {'email': email})
+
+    # Campaign membership records where this user is a player (not the owner).
+    # These are indexed by user_id rather than campaign_id so they need a separate pass.
+    await delete_many('campaign_members', {
+        '$or': [{'user_id': username}, {'username': username}]
+    })
 
     # Campaign-owned records for campaigns created by this user.
     if campaign_ids:

@@ -45,13 +45,18 @@ class ConnectionManager:
 
     async def broadcast_to_campaign(self, campaign_id: str, message: dict, exclude: WebSocket = None):
         """Broadcast message to all connections in a campaign"""
-        if campaign_id in self.campaign_connections:
-            for connection in self.campaign_connections[campaign_id]:
-                if connection != exclude:
-                    try:
-                        await connection.send_json(message)
-                    except Exception:
-                        pass
+        if campaign_id not in self.campaign_connections:
+            return
+        dead: set = set()
+        for connection in self.campaign_connections[campaign_id]:
+            if connection == exclude:
+                continue
+            try:
+                await connection.send_json(message)
+            except Exception:
+                dead.add(connection)
+        if dead:
+            self.campaign_connections[campaign_id] -= dead
 
     async def send_to_user(self, user_id: str, message: dict):
         """Send message to a specific user"""

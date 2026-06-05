@@ -57,7 +57,9 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
   const damageType = item?.damage_type || item?.damageType || rule?.damageType || 'weapon';
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
-  const attackMod = Number(proficiencyBonus || 0) + abilityMod;
+  const itemBonus = Number(item?.attack_bonus || 0);
+  const attackMod = Number(proficiencyBonus || 0) + abilityMod + itemBonus;
+  const totalDamageMod = abilityMod + itemBonus;
 
   return {
     id: `weapon-${String(name).toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
@@ -69,14 +71,14 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
     attackText: fmt(attackMod),
     saveText: null,
     damageText: dice.sides === 1
-      ? `${dice.count}${abilityMod ? ` ${fmt(abilityMod)}` : ''}`
-      : `${dice.count}d${dice.sides}${abilityMod ? ` ${fmt(abilityMod)}` : ''}`,
+      ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
+      : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`,
     damageType,
     damage: {
       label: `${name} Damage`,
       count: dice.count,
       sides: dice.sides,
-      modifier: abilityMod,
+      modifier: totalDamageMod,
       damageType,
     },
     sourceItem: item,
@@ -106,7 +108,12 @@ export function deriveArmorClass(character) {
   const unarmoredAc = explicitAc || 10 + dexMod;
 
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));
-  if (!hasArmorRule) return unarmoredAc;
+  if (!hasArmorRule) {
+    // No named armour rule, but equipped items may still carry ac_bonus
+    const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
+    const shieldBonus = typeof shield === 'object' && shield ? Number(shield.ac_bonus || 0) + 2 : 0;
+    return unarmoredAc + armorBonus + shieldBonus;
+  }
 
   return calculateArmorAc({ armor, shield, dexMod, unarmoredAc });
 }

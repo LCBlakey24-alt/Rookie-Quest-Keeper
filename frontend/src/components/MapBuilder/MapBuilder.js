@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,6 @@ import {
   Layers, Settings, X, Check, ArrowLeft
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // Create empty map
 function createEmptyMap(width = DEFAULT_MAP_WIDTH, height = DEFAULT_MAP_HEIGHT) {
@@ -136,16 +134,16 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
 
       let response;
       if (mapId) {
-        response = await axios.put(`${API}/campaigns/${campaignId}/maps/${mapId}`, mapPayload);
+        response = await apiClient.put(`/campaigns/${campaignId}/maps/${mapId}`, mapPayload);
       } else {
-        response = await axios.post(`${API}/campaigns/${campaignId}/maps`, mapPayload);
+        response = await apiClient.post(`/campaigns/${campaignId}/maps`, mapPayload);
         setMapId(response.data.id);
       }
 
       toast.success('Map saved successfully!');
       onMapSaved?.(response.data);
     } catch (error) {
-      console.error('Failed to save map:', error);
+
       toast.error('Failed to save map');
     } finally {
       setSaving(false);
@@ -302,8 +300,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
           <h1 style={{
             color: '#fff',
             fontSize: '20px',
-            fontWeight: '800',
-            fontFamily: "'Cinzel', serif"
+            fontWeight: '800'
           }}>
             Map Builder
           </h1>

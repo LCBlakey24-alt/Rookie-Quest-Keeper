@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -9,7 +9,6 @@ import {
   Minus, ArrowUpRight, ArrowDownRight, History, Sparkles
 } from 'lucide-react';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // ─── Event Templates ────────────────────────────────────────────
 const MAJOR_TEMPLATES = [
@@ -55,8 +54,8 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   const fetchData = useCallback(async () => {
     try {
       const [locRes, evtRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/event-locations`),
-        axios.get(`${API}/campaigns/${campaignId}/events`),
+        apiClient.get(`/campaigns/${campaignId}/event-locations`),
+        apiClient.get(`/campaigns/${campaignId}/events`),
       ]);
       setLocations(locRes.data);
       setEvents(evtRes.data);
@@ -64,7 +63,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
         setSelectedLocation(locRes.data[0]);
       }
     } catch (err) {
-      console.error('Failed to fetch event data', err);
+
     } finally {
       setLoading(false);
     }
@@ -76,7 +75,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   const createLocation = async () => {
     if (!newLocName.trim()) return;
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/event-locations`, {
+      const res = await apiClient.post(`/campaigns/${campaignId}/event-locations`, {
         name: newLocName, region: newLocRegion, population: newLocPop, gold_treasury: newLocGold,
       });
       setLocations(prev => [...prev, res.data]);
@@ -91,7 +90,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   const deleteLocation = async (locId) => {
     if (!window.confirm('Delete this location and all its events?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/event-locations/${locId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/event-locations/${locId}`);
       setLocations(prev => prev.filter(l => l.location_id !== locId));
       setEvents(prev => prev.filter(e => e.location_id !== locId));
       if (selectedLocation?.location_id === locId) setSelectedLocation(null);
@@ -105,7 +104,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   const createEvent = async () => {
     if (!eventForm || !selectedLocation) return;
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/events`, {
+      const res = await apiClient.post(`/campaigns/${campaignId}/events`, {
         ...eventForm, location: selectedLocation.name,
       });
       setEvents(prev => [...prev, res.data]);
@@ -119,7 +118,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
 
   const deleteEvent = async (eventId) => {
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/events/${eventId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/events/${eventId}`);
       setEvents(prev => prev.filter(e => e.event_id !== eventId));
       toast.success('Event deleted');
     } catch (err) {
@@ -130,7 +129,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   const previewEvent = async (eventId) => {
     setPreviewLoading(true);
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/events/${eventId}/preview`);
+      const res = await apiClient.post(`/campaigns/${campaignId}/events/${eventId}/preview`);
       setPreviewData(res.data);
       setView('preview');
     } catch (err) {
@@ -142,7 +141,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
 
   const runEvent = async (eventId) => {
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/events/${eventId}/run`);
+      const res = await apiClient.post(`/campaigns/${campaignId}/events/${eventId}/run`);
       // Update local state
       setEvents(prev => prev.map(e => e.event_id === eventId ? res.data.event : e));
       setLocations(prev => prev.map(l => l.location_id === res.data.location.location_id ? res.data.location : l));
@@ -165,7 +164,7 @@ export default function EventSystem({ theme, campaignId: propCampaignId }) {
   // ─── Realtime config preview ─────────────────────────────────
   const previewConfigChange = async (eventId, newConfig) => {
     try {
-      const res = await axios.post(`${API}/campaigns/${campaignId}/events/${eventId}/preview-config`, newConfig);
+      const res = await apiClient.post(`/campaigns/${campaignId}/events/${eventId}/preview-config`, newConfig);
       return res.data.projection;
     } catch { return null; }
   };

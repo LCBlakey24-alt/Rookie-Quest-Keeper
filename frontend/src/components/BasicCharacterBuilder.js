@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
-import { API_BASE } from '../lib/api';
 
 // Recommended stat arrays by primary ability
 const STAT_ARRAYS = {
@@ -126,7 +125,7 @@ export default function BasicCharacterBuilder() {
         racial_traits: racialTraits,
         starting_equipment: [...(cls?.startingEquipment || []), ...(bgData?.equipment || [])]
       };
-      const res = await axios.post(`${API_BASE}/characters`, payload);
+      const res = await apiClient.post(`/characters`, payload);
       toast.success('Basic character created!');
       navigate(`/characters/${res.data?.character_id}`);
     } catch (e) {
@@ -139,7 +138,7 @@ export default function BasicCharacterBuilder() {
   return (
     <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{ fontFamily: "'Cinzel', serif", color: '#D4A017', margin: 0 }}>Basic Build</h1>
+        <h1 style={{, color: '#D4A017', margin: 0 }}>Basic Build</h1>
         <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, and traits.</p>
 
         <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>

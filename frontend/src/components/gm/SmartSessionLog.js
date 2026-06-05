@@ -4,9 +4,8 @@ import {
   ChevronDown, ChevronRight, Plus, Trash2, Edit2, Save, X,
   MessageSquare, Bookmark, Star, Filter
 } from 'lucide-react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Tag colors for categorization
 const TAG_COLORS = {
@@ -133,7 +132,7 @@ export default function SmartSessionLog({ theme, campaignId, onGenerateRecap }) 
     
     try {
       // Call AI to generate recap (you'd implement this endpoint)
-      const response = await axios.post(`${API}/campaigns/${campaignId}/generate-recap`, {
+      const response = await apiClient.post(`/campaigns/${campaignId}/generate-recap`, {
         notes: sessionNotes.map(n => n.content).join('\n\n')
       });
       
@@ -143,7 +142,7 @@ export default function SmartSessionLog({ theme, campaignId, onGenerateRecap }) 
       setSessions(updatedSessions);
       saveSessionData(updatedSessions, notes);
     } catch (error) {
-      console.error('Failed to generate recap:', error);
+
       // Fallback: create simple summary
       const summary = sessionNotes.slice(0, 5).map(n => `• ${n.content.substring(0, 100)}`).join('\n');
       const updatedSessions = sessions.map(s => 

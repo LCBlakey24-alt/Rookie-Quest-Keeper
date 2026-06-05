@@ -1,7 +1,7 @@
 /**
  * D&D 5e Condition Effects System
  * Maps each condition to its mechanical effects on rolls.
- * Used by CharacterSheetFull (skills, saves) and CharacterCombatTab (attacks).
+ * Used by UnifiedReferenceCenter, CharacterLeftPanel, and CharacterSkillsPanel.
  */
 
 // Roll contexts that conditions can affect

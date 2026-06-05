@@ -45,6 +45,8 @@ RATE_LIMITS = [
     ("/api/auth/forgot-password", 5, 60 * 60),
     ("/api/auth/reset-password", 8, 60 * 60),
     ("/api/account/change-password", 8, 60 * 60),
+    ("/api/account/update", 10, 60 * 60),
+    ("/api/account/delete", 3, 60 * 60),
     # AI and expensive parsing routes.
     ("/api/ai", 60, 60 * 60),
     ("/api/homebrew/parse", 20, 60 * 60),

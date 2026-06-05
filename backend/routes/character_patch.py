@@ -28,7 +28,7 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "armour_proficiencies", "tool_proficiencies", "languages", "racial_traits", "class_features", "feats",
     "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "spell_slots", "spell_slots_remaining",
     "used_spell_slots", "spells_known", "spells_prepared", "cantrips_known", "prepared_spell_names",
-    "equipment", "inventory", "equipped", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
+    "equipment", "inventory", "equipped", "item_effects", "currency", "gold", "fighting_style", "equipment_choice", "starting_equipment",
     "resources", "class_levels", "multiclass_levels", "level_progression", "asi_increases",
 }
 
@@ -37,6 +37,25 @@ NUMERIC_FIELDS = {
     "armor_class", "initiative_bonus", "speed", "max_hit_points", "current_hit_points", "temporary_hit_points", "temp_hp",
     "hit_dice_remaining", "death_saves_successes", "death_saves_failures", "proficiency_bonus", "exhaustion_level", "gold",
 }
+
+
+def _compute_item_effects(equipped: dict) -> dict:
+    effects = {
+        'attack_bonus': 0,
+        'ac_bonus': 0,
+        'stat_bonuses': {
+            'strength': 0, 'dexterity': 0, 'constitution': 0,
+            'intelligence': 0, 'wisdom': 0, 'charisma': 0,
+        }
+    }
+    for item in (equipped or {}).values():
+        if not isinstance(item, dict):
+            continue
+        effects['attack_bonus'] += int(item.get('attack_bonus') or 0)
+        effects['ac_bonus'] += int(item.get('ac_bonus') or 0)
+        for stat in effects['stat_bonuses']:
+            effects['stat_bonuses'][stat] += int((item.get('stat_bonuses') or {}).get(stat) or 0)
+    return effects
 
 
 def _clean_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -84,6 +103,9 @@ async def patch_character_lenient(character_id: str, payload: Dict[str, Any], us
     update_data = _clean_patch(payload)
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
+
+    if 'equipped' in update_data:
+        update_data['item_effects'] = _compute_item_effects(update_data['equipped'])
 
     await db.player_characters.update_one({"id": character_id, "user_id": username}, {"$set": update_data})
     updated = await db.player_characters.find_one({"id": character_id, "user_id": username}, {"_id": 0})

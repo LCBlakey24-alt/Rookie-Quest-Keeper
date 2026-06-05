@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import {
   Shield, Sparkles, Package, Eye, Edit2, Save, X, Search
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Red (Tron Aries)
 const theme = {
@@ -68,13 +66,13 @@ function RuleSystemManager() {
 
   const fetchSystems = async () => {
     try {
-      const response = await axios.get(`${API}/rule-systems`);
+      const response = await apiClient.get(`/rule-systems`);
       setSystems(response.data.systems || []);
       if (response.data.systems?.length > 0 && !selectedSystem) {
         setSelectedSystem(response.data.systems[0]);
       }
     } catch (error) {
-      console.error('Failed to load rule systems:', error);
+
       toast.error('Failed to load rule systems');
     } finally {
       setLoading(false);
@@ -83,23 +81,23 @@ function RuleSystemManager() {
 
   const fetchSystemDetails = async (systemId) => {
     try {
-      const response = await axios.get(`${API}/rule-systems/${systemId}`);
+      const response = await apiClient.get(`/rule-systems/${systemId}`);
       setContentCounts(response.data.content_counts || {});
     } catch (error) {
-      console.error('Failed to load system details:', error);
+
     }
   };
 
   const fetchContentList = async (contentType) => {
     if (!selectedSystem) return;
     try {
-      const response = await axios.get(`${API}/rule-systems/${selectedSystem.id}/${contentType}`);
+      const response = await apiClient.get(`/rule-systems/${selectedSystem.id}/${contentType}`);
       const data = response.data[contentType] || response.data.classes || response.data.races || 
                    response.data.spells || response.data.items || response.data.feats || 
                    response.data.monsters || [];
       setContentList(data);
     } catch (error) {
-      console.error(`Failed to load ${contentType}:`, error);
+
       setContentList([]);
     }
   };
@@ -123,8 +121,8 @@ function RuleSystemManager() {
 
     setUploading(true);
     try {
-      const response = await axios.post(
-        `${API}/rule-systems/${selectedSystem.id}/upload-file?content_type=${uploadType}&overwrite=false`,
+      const response = await apiClient.post(
+        `/rule-systems/${selectedSystem.id}/upload-file?content_type=${uploadType}&overwrite=false`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
@@ -166,7 +164,7 @@ function RuleSystemManager() {
 
     setUploading(true);
     try {
-      const response = await axios.post(`${API}/rule-systems/${selectedSystem.id}/upload`, {
+      const response = await apiClient.post(`/rule-systems/${selectedSystem.id}/upload`, {
         system_id: selectedSystem.id,
         content_type: uploadType,
         data: data,
@@ -199,7 +197,7 @@ function RuleSystemManager() {
     }
 
     try {
-      const response = await axios.post(`${API}/rule-systems`, newSystem);
+      const response = await apiClient.post(`/rule-systems`, newSystem);
       setSystems([...systems, response.data]);
       setSelectedSystem(response.data);
       setShowCreateSystem(false);

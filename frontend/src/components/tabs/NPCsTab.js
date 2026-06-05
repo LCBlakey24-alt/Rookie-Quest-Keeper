@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } fro
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 function NPCsTab({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
@@ -37,7 +35,7 @@ function NPCsTab({ campaignId }) {
 
   const fetchNPCs = async () => {
     try {
-      const response = await axios.get(`${API}/campaigns/${campaignId}/npcs`);
+      const response = await apiClient.get(`/campaigns/${campaignId}/npcs`);
       setNpcs(response.data);
     } catch (error) {
       toast.error('Failed to load NPCs');
@@ -50,10 +48,10 @@ function NPCsTab({ campaignId }) {
     e.preventDefault();
     try {
       if (editingNPC) {
-        await axios.put(`${API}/campaigns/${campaignId}/npcs/${editingNPC.id}`, formData);
+        await apiClient.put(`/campaigns/${campaignId}/npcs/${editingNPC.id}`, formData);
         toast.success('NPC updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/npcs`, formData);
+        await apiClient.post(`/campaigns/${campaignId}/npcs`, formData);
         toast.success('NPC added!');
       }
       fetchNPCs();
@@ -80,7 +78,7 @@ function NPCsTab({ campaignId }) {
     if (deletingNPC === npcId) {
       try {
         const npc = npcs.find(n => n.id === npcId);
-        await axios.delete(`${API}/campaigns/${campaignId}/npcs/${npcId}`);
+        await apiClient.delete(`/campaigns/${campaignId}/npcs/${npcId}`);
         toast.success(`${npc.name} removed`, {
           description: 'NPC has been deleted'
         });
@@ -118,7 +116,7 @@ function NPCsTab({ campaignId }) {
     setAiGenerating(true);
     setLastGenerated(null);
     try {
-      const response = await axios.post(`${API}/rook/generate`, {
+      const response = await apiClient.post(`/rook/generate`, {
         prompt: aiPrompt,
         entity_type: 'npc',
         campaign_id: campaignId

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,6 @@ import {
   RefreshCw, Zap, AlertTriangle, CheckCircle, Coins
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const DIFFICULTY_LEVELS = [
   { id: 'easy', label: 'Easy', color: '#F59E0B', description: 'Low risk, good for new players or warm-up' },
@@ -53,7 +51,7 @@ function EncounterGeneratorTab({ campaignId }) {
 
   const fetchPlayers = async () => {
     try {
-      const res = await axios.get(`${API}/campaigns/${campaignId}/players`);
+      const res = await apiClient.get(`/campaigns/${campaignId}/players`);
       setPlayers(res.data);
       
       // Auto-calculate party stats
@@ -99,7 +97,7 @@ Please provide a JSON response with this exact structure:
 }`;
 
     try {
-      const res = await axios.post(`${API}/ai/generate`, {
+      const res = await apiClient.post(`/ai/generate`, {
         prompt: prompt,
         generation_type: 'encounter'
       });
@@ -133,7 +131,7 @@ Please provide a JSON response with this exact structure:
       toast.success('Encounter generated!');
     } catch (error) {
       toast.error('Failed to generate encounter');
-      console.error(error);
+
     } finally {
       setGenerating(false);
     }
@@ -188,7 +186,7 @@ Please provide a JSON response with this exact structure:
         grid_size: 40
       };
       
-      await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, scenarioData);
+      await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, scenarioData);
       toast.success('Saved to Combat Creator!');
     } catch (error) {
       toast.error('Failed to save encounter');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { MONSTER_DATABASE, MONSTER_TYPES, CR_OPTIONS, getCRValue, getXPFromCR } 
 import EncounterDifficultyCalculator from '@/components/EncounterDifficultyCalculator';
 import QuickTips, { TIPS } from '@/components/QuickTips';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const TOKEN_COLORS = [
   { id: 'blue', color: '#4a7dff', label: 'Blue (Players)' },
@@ -61,9 +59,9 @@ function CombatCreatorTab({ campaignId }) {
   const fetchData = async () => {
     try {
       const [playersRes, npcsRes, scenariosRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/players`),
-        axios.get(`${API}/campaigns/${campaignId}/npcs`),
-        axios.get(`${API}/campaigns/${campaignId}/combat-scenarios`)
+        apiClient.get(`/campaigns/${campaignId}/players`),
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/combat-scenarios`)
       ]);
       setPlayers(playersRes.data);
       setNpcs(npcsRes.data);
@@ -243,10 +241,10 @@ function CombatCreatorTab({ campaignId }) {
 
     try {
       if (selectedScenario) {
-        await axios.put(`${API}/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, scenarioData);
+        await apiClient.put(`/campaigns/${campaignId}/combat-scenarios/${selectedScenario.id}`, scenarioData);
         toast.success('Scenario updated!');
       } else {
-        await axios.post(`${API}/campaigns/${campaignId}/combat-scenarios`, scenarioData);
+        await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, scenarioData);
         toast.success('Scenario saved!');
       }
       fetchData();
@@ -282,7 +280,7 @@ function CombatCreatorTab({ campaignId }) {
   const deleteScenario = async (scenarioId) => {
     if (!window.confirm('Delete this combat scenario?')) return;
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/combat-scenarios/${scenarioId}`);
       toast.success('Scenario deleted');
       fetchData();
       if (selectedScenario?.id === scenarioId) clearScenario();
@@ -416,7 +414,7 @@ function CombatCreatorTab({ campaignId }) {
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px' }}>
       {/* Saved Scenarios */}
       <div>
-        <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontFamily: "'Cinzel', serif", fontWeight: '700' }}>
+        <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontWeight: '700' }}>
           Saved Encounters
         </h3>
         {scenarios.length === 0 ? (
@@ -464,7 +462,7 @@ function CombatCreatorTab({ campaignId }) {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h2 style={{ fontSize: '26px', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Swords size={28} style={{ color: '#ef4444' }} />
               Encounter Builder
             </h2>
@@ -559,7 +557,7 @@ function CombatCreatorTab({ campaignId }) {
         {/* Battle Map Section */}
         <div className="glow-panel" style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Map size={20} style={{ color: '#F59E0B' }} />
               Battle Map
             </h3>
@@ -772,7 +770,7 @@ function CombatCreatorTab({ campaignId }) {
         {combatants.length === 0 ? (
           <div className="glow-panel" style={{ padding: '50px', textAlign: 'center' }}>
             <Swords size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-            <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: "'Cinzel', serif", fontWeight: '700' }}>No Combatants</h3>
+            <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '700' }}>No Combatants</h3>
             <p style={{ color: '#94a3b8' }}>Add players and enemies to build your encounter</p>
           </div>
         ) : (

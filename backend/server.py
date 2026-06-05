@@ -147,6 +147,34 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"Could not seed character templates: {e}")
 
+    # Ensure indexes exist for the most queried fields.
+    # create_index is a no-op if the index already exists.
+    try:
+        from pymongo import ASCENDING
+        await db.users.create_index([("email", ASCENDING)], unique=True, background=True)
+        await db.users.create_index([("username", ASCENDING)], unique=True, background=True)
+        await db.campaigns.create_index([("dm_user_id", ASCENDING)], background=True)
+        await db.campaigns.create_index([("user_id", ASCENDING)], background=True)
+        await db.player_characters.create_index([("user_id", ASCENDING)], background=True)
+        await db.player_characters.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.campaign_members.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.campaign_members.create_index([("user_id", ASCENDING)], background=True)
+        for col_name in ("npcs", "notes", "ingame_notes", "locations", "maps", "world_maps",
+                         "local_maps", "combat_encounters", "combat_sessions", "inventory",
+                         "party_currency", "custom_items", "campaign_events", "location_economy",
+                         "handouts", "session_recaps", "calendar_events"):
+            col = getattr(db, col_name)
+            await col.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.ai_usage.create_index([("username", ASCENDING), ("month", ASCENDING)], background=True)
+        await db.password_resets.create_index([("token", ASCENDING)], background=True)
+        await db.password_resets.create_index([("email", ASCENDING)], background=True)
+        await db.handouts.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.player_handouts.create_index([("username", ASCENDING)], background=True)
+        await db.player_handouts.create_index([("handout_id", ASCENDING), ("username", ASCENDING)], unique=True, background=True)
+        logger.info("MongoDB indexes ensured")
+    except Exception as e:
+        logger.warning(f"Could not create indexes: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

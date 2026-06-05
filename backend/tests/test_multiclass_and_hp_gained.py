@@ -327,8 +327,7 @@ class TestMulticlassEndpoints:
             # Document the bug - this should be 'fighter' but is 'unknown'
             # Test will fail when bug is fixed - update assertion then
             original_class = next((c for c in updated_char["classes"] if c["name"].lower() != "cleric"), None)
-            # This assertion documents the bug - change to 'fighter' after fix
-            assert original_class["name"].lower() == "unknown", "BUG: Original class shows as 'Unknown' - fix line 6433 to use character.get('character_class')"
+            assert original_class["name"].lower() == "fighter", "Original class should be preserved correctly when multiclassing"
             
         finally:
             authenticated_client.delete(f"{BASE_URL}/api/characters/{character['id']}")
@@ -372,18 +371,11 @@ class TestMulticlassEndpoints:
                 json=multiclass_data
             )
             
-            # BUG: Due to line 6433 bug, this incorrectly succeeds (200) instead of failing (400)
-            # Expected behavior: assert response.status_code == 400
-            # Actual behavior: Returns 200 because original class stored as 'Unknown' not 'Fighter'
-            # This documents the bug - when fixed, update to expect 400
-            assert response.status_code == 200, "BUG: Should return 400 when adding already-held class - fix line 6433"
-            
-            # Document the bug: character now has both 'Unknown' (original Fighter) and 'Fighter' (new)
-            # After fix, this should return 400 and this code won't execute
-            updated_char = response.json()
-            class_names = [c["name"].lower() for c in updated_char.get("classes", [])]
-            assert "fighter" in class_names
-            assert "unknown" in class_names  # Bug: original class stored as Unknown
+            assert response.status_code == 400, "Should return 400 when trying to multiclass into a class already held"
+
+            # 400 response — the error body is {"detail": "..."}, not character data
+            error = response.json()
+            assert "detail" in error
             
         finally:
             authenticated_client.delete(f"{BASE_URL}/api/characters/{character['id']}")

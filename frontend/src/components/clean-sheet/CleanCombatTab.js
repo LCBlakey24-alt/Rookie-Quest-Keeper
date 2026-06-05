@@ -79,10 +79,12 @@ function getWeaponProfile(item, strengthMod, dexterityMod, bestAbilityMod, profi
   const damageType = item?.damage_type || item?.damageType || rule?.damageType || 'weapon';
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
-  const attackMod = proficiencyBonus + abilityMod;
+  const itemBonus = Number(item?.attack_bonus || 0);
+  const attackMod = proficiencyBonus + abilityMod + itemBonus;
+  const totalDamageMod = abilityMod + itemBonus;
   const damageText = dice.sides === 1
-    ? `${dice.count}${abilityMod ? ` ${fmt(abilityMod)}` : ''}`
-    : `${dice.count}d${dice.sides}${abilityMod ? ` ${fmt(abilityMod)}` : ''}`;
+    ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
+    : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
 
   return {
     id: `weapon-${String(name).toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
@@ -94,7 +96,7 @@ function getWeaponProfile(item, strengthMod, dexterityMod, bestAbilityMod, profi
     saveText: null,
     damageText,
     damageType,
-    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: abilityMod, damageType }
+    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType }
   };
 }
 

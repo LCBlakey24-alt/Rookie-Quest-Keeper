@@ -9,7 +9,7 @@ from typing import Optional, List
 from datetime import datetime, timezone
 from bson import ObjectId
 from config import db, logger
-from utils.auth import get_current_user
+from utils.auth import get_current_user, verify_campaign_ownership, verify_campaign_membership
 
 router = APIRouter(tags=["events"])
 
@@ -168,6 +168,7 @@ def calculate_event_economics(config: dict, location_data: dict) -> dict:
 
 @router.get("/campaigns/{campaign_id}/event-locations")
 async def get_locations(campaign_id: str, user=Depends(get_current_user)):
+    await verify_campaign_membership(campaign_id, user)
     locations = await db.location_economy.find(
         {"campaign_id": campaign_id}, {"_id": 0}
     ).to_list(100)
@@ -176,6 +177,7 @@ async def get_locations(campaign_id: str, user=Depends(get_current_user)):
 
 @router.post("/campaigns/{campaign_id}/event-locations")
 async def create_location(campaign_id: str, data: LocationCreate, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     doc = {
         "campaign_id": campaign_id,
         "location_id": str(ObjectId()),
@@ -200,6 +202,7 @@ async def create_location(campaign_id: str, data: LocationCreate, user=Depends(g
 
 @router.patch("/campaigns/{campaign_id}/event-locations/{location_id}")
 async def update_location(campaign_id: str, location_id: str, data: LocationUpdate, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     update_fields = {k: v for k, v in data.dict().items() if v is not None}
     if not update_fields:
         raise HTTPException(400, "No fields to update")
@@ -215,6 +218,7 @@ async def update_location(campaign_id: str, location_id: str, data: LocationUpda
 
 @router.delete("/campaigns/{campaign_id}/event-locations/{location_id}")
 async def delete_location(campaign_id: str, location_id: str, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     result = await db.location_economy.delete_one(
         {"campaign_id": campaign_id, "location_id": location_id}
     )
@@ -231,6 +235,7 @@ async def delete_location(campaign_id: str, location_id: str, user=Depends(get_c
 
 @router.get("/campaigns/{campaign_id}/events")
 async def get_events(campaign_id: str, location_id: Optional[str] = None, user=Depends(get_current_user)):
+    await verify_campaign_membership(campaign_id, user)
     query = {"campaign_id": campaign_id}
     if location_id:
         query["location_id"] = location_id
@@ -240,6 +245,7 @@ async def get_events(campaign_id: str, location_id: Optional[str] = None, user=D
 
 @router.post("/campaigns/{campaign_id}/events")
 async def create_event(campaign_id: str, data: EventCreate, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     # Find the location
     loc = await db.location_economy.find_one(
         {"campaign_id": campaign_id, "name": data.location}, {"_id": 0}
@@ -271,6 +277,7 @@ async def create_event(campaign_id: str, data: EventCreate, user=Depends(get_cur
 
 @router.patch("/campaigns/{campaign_id}/events/{event_id}")
 async def update_event(campaign_id: str, event_id: str, data: EventUpdate, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     update_fields = {}
     if data.config:
         update_fields["config"] = data.config.dict()
@@ -294,6 +301,7 @@ async def update_event(campaign_id: str, event_id: str, data: EventUpdate, user=
 
 @router.delete("/campaigns/{campaign_id}/events/{event_id}")
 async def delete_event(campaign_id: str, event_id: str, user=Depends(get_current_user)):
+    await verify_campaign_ownership(campaign_id, user)
     result = await db.campaign_events.delete_one(
         {"campaign_id": campaign_id, "event_id": event_id}
     )
@@ -305,6 +313,7 @@ async def delete_event(campaign_id: str, event_id: str, user=Depends(get_current
 @router.post("/campaigns/{campaign_id}/events/{event_id}/preview")
 async def preview_event_economics(campaign_id: str, event_id: str, user=Depends(get_current_user)):
     """Preview the financial impact without actually running the event."""
+    await verify_campaign_ownership(campaign_id, user)
     event = await db.campaign_events.find_one(
         {"campaign_id": campaign_id, "event_id": event_id}, {"_id": 0}
     )
@@ -323,6 +332,7 @@ async def preview_event_economics(campaign_id: str, event_id: str, user=Depends(
 @router.post("/campaigns/{campaign_id}/events/{event_id}/run")
 async def run_event(campaign_id: str, event_id: str, user=Depends(get_current_user)):
     """Execute the event: calculate results, update location economy, add to history."""
+    await verify_campaign_ownership(campaign_id, user)
     event = await db.campaign_events.find_one(
         {"campaign_id": campaign_id, "event_id": event_id}, {"_id": 0}
     )
@@ -412,6 +422,7 @@ async def run_event(campaign_id: str, event_id: str, user=Depends(get_current_us
 @router.post("/campaigns/{campaign_id}/events/{event_id}/preview-config")
 async def preview_with_config(campaign_id: str, event_id: str, config: EventConfig, user=Depends(get_current_user)):
     """Preview economics with a modified config (for real-time slider adjustments)."""
+    await verify_campaign_ownership(campaign_id, user)
     event = await db.campaign_events.find_one(
         {"campaign_id": campaign_id, "event_id": event_id}, {"_id": 0}
     )

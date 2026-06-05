@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,6 @@ import {
   Skull, Play, Trash2, Sparkles 
 } from 'lucide-react';
 
-const API = process.env.REACT_APP_BACKEND_URL;
 
 function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreatures, onStartCombat }) {
   const [monsters, setMonsters] = useState([]);
@@ -59,10 +58,10 @@ function QuickCombatModal({ isOpen, onClose, campaignId, players, customCreature
 
   const fetchMonsters = async () => {
     try {
-      const response = await axios.get(`${API}/api/monsters`);
+      const response = await apiClient.get(`/monsters`);
       setMonsters(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch monsters:', error);
+
     } finally {
       setLoading(false);
     }

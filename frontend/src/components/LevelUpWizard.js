@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronRight, ChevronLeft, Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
 import { CLASS_FEATURES } from '../data/classFeatures';
 import { FEATURE_TYPE_CONFIG } from '../data/classResources';
@@ -10,17 +10,15 @@ import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, CANTRIPS_KNOWN, SP
 import { HIT_DICE, ASI_LEVELS, FEATS, ABILITIES, ABILITY_SHORT, getFeatsByEdition } from '../data/levelUpData';
 import DiceRollFlicker from './DiceRollFlicker';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // Theme colors matching the character sheet
 const theme = {
-  bg: { primary: '#0A1628', surface: '#0F2440', elevated: '#14304F', panel: 'rgba(10, 22, 40, 0.98)' },
-  text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-  border: 'rgba(212, 160, 23, 0.35)',
-  sunset: { purple: '#D4A017', pink: '#F5C542', gold: '#F5C542' },
+  bg: { primary: '#1A1A1A', surface: '#242424', elevated: '#2E2E2E', panel: 'rgba(36, 36, 36, 0.98)' },
+  text: { primary: '#FFFFFF', secondary: '#D6D6D6', muted: '#A0A0A0' },
+  border: 'rgba(193, 18, 31, 0.35)',
+  sunset: { purple: '#C1121F', pink: '#D62839', gold: '#C1121F' },
   success: '#22C55E',
-  gradient: 'linear-gradient(135deg, #D4A017 0%, #F5C542 100%)'
+  gradient: 'linear-gradient(135deg, #C1121F 0%, #D62839 100%)'
 };
 
 export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp }) {
@@ -208,7 +206,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   useEffect(() => {
     if (!isOpen || !character?.id) return;
     setPreflightLoading(true);
-    axios.get(`${API}/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
+    apiClient.get(`/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
       .then(res => setPreflight(res.data))
       .catch(() => setPreflight(null))
       .finally(() => setPreflightLoading(false));
@@ -334,11 +332,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         setLoading(false);
         return;
       }
-      const endpoint = isMulticlassing && multiclassClass 
-        ? `${API}/characters/${character.id}/multiclass`
-        : `${API}/characters/${character.id}/level-up`;
-        
-      await axios.post(endpoint, requestData);
+      const endpoint = isMulticlassing && multiclassClass
+        ? `/characters/${character.id}/multiclass`
+        : `/characters/${character.id}/level-up`;
+
+      await apiClient.post(endpoint, requestData);
       
       const levelUpMessage = isMulticlassing 
         ? `${character.name} multiclassed into ${multiclassClass}!`
@@ -353,7 +351,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       }
       onClose();
     } catch (error) {
-      console.error('Level up failed:', error);
+
       toast.error(error?.response?.data?.detail || 'Failed to level up character');
     } finally {
       setLoading(false);
@@ -427,7 +425,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               <Sparkles size={32} color="#fff" />
             </div>
             <div>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '24px', color: '#fff', margin: 0, fontWeight: '600' }}>
+              <h2 style={{ fontSize: '24px', color: '#fff', margin: 0, fontWeight: '600' }}>
                 Level Up!
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0', fontSize: '15px' }}>
@@ -474,7 +472,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Step 0: Class Choice (Continue or Multiclass) */}
           {step === 0 && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
                 Level Up: Choose Your Path
               </h3>
               <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '14px' }}>
@@ -636,7 +634,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Step 1: HP Method Selection */}
           {step === 1 && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
                 Choose Hit Point Method
               </h3>
               <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '14px' }}>
@@ -728,7 +726,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Step 2: HP Result */}
           {step === 2 && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
                 {hpMethod === 'roll' ? 'Roll Your Hit Dice' : hpMethod === 'manual' ? 'Enter Your Physical Roll' : 'HP Increase Confirmed'}
               </h3>
               
@@ -954,7 +952,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Step: Class-Specific Choices (Fighting Style, Subclass, Maneuvers) */}
           {step === classChoiceStep && hasClassChoiceStep && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
                 {hasSubclassChoice ? `Choose Your ${classData?.subclass_label || 'Subclass'}` : hasFightingStyleChoice ? 'Choose Fighting Style' : 'Martial Choices'}
               </h3>
 
@@ -1080,7 +1078,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Spellcasting Progression Step */}
           {step === spellcastingStep && isSpellcaster && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: '#F5C542', fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: '#F5C542', fontSize: '18px', marginBottom: '8px' }}>
                 Spellcasting Progression
               </h3>
               <p style={{ color: theme.text.secondary, marginBottom: '16px', fontSize: '14px' }}>
@@ -1282,7 +1280,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Step 3: ASI or Feat (if applicable) */}
           {step === asiStepPos && isAsiLevel && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
                 Ability Score Improvement
               </h3>
               <p style={{ color: theme.text.secondary, marginBottom: '20px', fontSize: '14px' }}>
@@ -1448,7 +1446,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Final Step: Confirmation */}
           {step === confirmStepPos && (
             <div>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
+              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
                 Confirm Level Up
               </h3>
               

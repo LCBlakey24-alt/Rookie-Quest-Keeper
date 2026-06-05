@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import {
   AlertCircle, HandshakeIcon, HelpCircle, Crown, Shield
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 // GM Theme - Red (Tron Aries)
 const theme = {
@@ -64,8 +62,8 @@ function NPCRelationshipWeb({ campaignId }) {
   const fetchData = async () => {
     try {
       const [npcsRes, relRes] = await Promise.all([
-        axios.get(`${API}/campaigns/${campaignId}/npcs`),
-        axios.get(`${API}/campaigns/${campaignId}/npc-relationships`).catch(() => ({ data: [] }))
+        apiClient.get(`/campaigns/${campaignId}/npcs`),
+        apiClient.get(`/campaigns/${campaignId}/npc-relationships`).catch(() => ({ data: [] }))
       ]);
       
       const npcData = npcsRes.data || [];
@@ -88,7 +86,7 @@ function NPCRelationshipWeb({ campaignId }) {
       
       setNodePositions(positions);
     } catch (error) {
-      console.error('Failed to load data:', error);
+
     } finally {
       setLoading(false);
     }
@@ -108,8 +106,8 @@ function NPCRelationshipWeb({ campaignId }) {
     };
 
     try {
-      const response = await axios.post(
-        `${API}/campaigns/${campaignId}/npc-relationships`, 
+      const response = await apiClient.post(
+        `/campaigns/${campaignId}/npc-relationships`, 
         relationData
       );
       setRelationships(prev => [...prev, response.data]);
@@ -131,7 +129,7 @@ function NPCRelationshipWeb({ campaignId }) {
 
   const handleDeleteRelationship = async (relationId) => {
     try {
-      await axios.delete(`${API}/campaigns/${campaignId}/npc-relationships/${relationId}`);
+      await apiClient.delete(`/campaigns/${campaignId}/npc-relationships/${relationId}`);
       setRelationships(prev => prev.filter(r => r.id !== relationId));
       toast.success('Relationship removed');
     } catch (error) {
