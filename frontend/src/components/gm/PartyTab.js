@@ -5,7 +5,7 @@ import SendItemPanel from './SendItemPanel';
 export default function PartyTab({ theme, players }) {
   return (
     <div>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{, fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Users size={24} style={{ color: theme.accent.primary }} /> Party Overview
       </h2>
       
@@ -20,11 +20,11 @@ export default function PartyTab({ theme, players }) {
           {players.map(player => (
             <div key={player.id} style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: theme.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: theme.text.primary, fontSize: '20px', fontFamily: "'Cinzel', serif" }}>
+                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: theme.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: theme.text.primary, fontSize: '20px' }}>
                   {player.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '17px', fontFamily: "'Cinzel', serif" }}>{player.name}</div>
+                  <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '17px' }}>{player.name}</div>
                   <div style={{ color: theme.accent.secondary, fontSize: '14px' }}>
                     {player.race || 'Unknown'} {player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}
                   </div>

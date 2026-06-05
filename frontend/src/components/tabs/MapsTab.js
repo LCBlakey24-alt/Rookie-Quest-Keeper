@@ -96,7 +96,6 @@ function MapsTab({ campaignId }) {
           <h2 style={{ 
             fontSize: '24px', 
             color: rq.text, 
-            fontFamily: "'Cinzel', serif", 
             fontWeight: '900',
             display: 'flex',
             alignItems: 'center',

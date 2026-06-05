@@ -300,8 +300,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
           <h1 style={{
             color: '#fff',
             fontSize: '20px',
-            fontWeight: '800',
-            fontFamily: "'Cinzel', serif"
+            fontWeight: '800'
           }}>
             Map Builder
           </h1>

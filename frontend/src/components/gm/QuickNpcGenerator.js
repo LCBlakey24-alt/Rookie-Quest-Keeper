@@ -110,7 +110,7 @@ export default function QuickNpcGenerator({ theme }) {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: '17px', fontWeight: 700, color: theme.text.primary }}>{npc.name}</div>
+              <div style={{, fontSize: '17px', fontWeight: 700, color: theme.text.primary }}>{npc.name}</div>
               <div style={{ fontSize: '12px', color: theme.accent?.gm || theme.accent?.primary, fontWeight: 600 }}>{npc.race} {npc.occupation}</div>
             </div>
             <Dices size={16} color={theme.text.muted} style={{ opacity: 0.3 }} />

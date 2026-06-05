@@ -291,7 +291,7 @@ function FormLabel({ text }) {
   return <label style={formLabelStyle}>{text}</label>;
 }
 
-const titleStyle = { fontSize: '22px', fontFamily: "'Cinzel', serif", fontWeight: 900, color: rq.text, display: 'flex', alignItems: 'center', gap: '12px' };
+const titleStyle = { fontSize: '22px', fontWeight: 900, color: rq.text, display: 'flex', alignItems: 'center', gap: '12px' };
 const countStyle = { fontSize: '14px', color: rq.muted, fontWeight: 700 };
 const cardStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, overflow: 'hidden' };
 const topBarStyle = { height: '4px', background: rq.accent };
@@ -305,13 +305,13 @@ const previewTextStyle = { marginTop: '12px', color: rq.muted, fontSize: '14px',
 const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: 16, flexWrap: 'wrap' };
 const addButtonStyle = { padding: '10px 20px', background: rq.accent, border: `1px solid ${rq.accent}`, borderRadius: rq.radiusSm, display: 'flex', alignItems: 'center', gap: '8px', color: rq.text, fontWeight: 900, fontSize: '14px', cursor: 'pointer' };
 const emptyCardStyle = { background: rq.panel, border: `2px dashed ${rq.borderDefault}`, borderRadius: rq.radius, padding: '40px', textAlign: 'center' };
-const emptyTitleStyle = { color: rq.textSecondary, fontSize: '18px', marginBottom: '8px', fontFamily: "'Cinzel', serif", fontWeight: 900 };
+const emptyTitleStyle = { color: rq.textSecondary, fontSize: '18px', marginBottom: '8px', fontWeight: 900 };
 const emptyTextStyle = { color: rq.muted, maxWidth: '400px', margin: '0 auto 20px' };
 const notesGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' };
-const noteTitleStyle = { fontSize: '16px', fontFamily: "'Cinzel', serif", fontWeight: 900, color: rq.text, marginBottom: '6px' };
+const noteTitleStyle = { fontSize: '16px', fontWeight: 900, color: rq.text, marginBottom: '6px' };
 const notePreviewStyle = { color: rq.muted, fontSize: '14px', lineHeight: '1.6', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', whiteSpace: 'pre-wrap' };
 const updatedStyle = { marginTop: '12px', fontSize: '11px', color: rq.muted };
-const dialogTitleStyle = { fontSize: '24px', fontFamily: "'Cinzel', serif", fontWeight: 900, color: rq.text };
+const dialogTitleStyle = { fontSize: '24px', fontWeight: 900, color: rq.text };
 const formLabelStyle = { display: 'block', marginBottom: '8px', color: rq.accentHover, fontSize: '14px', fontWeight: 900 };
 const selectStyle = { width: '100%', padding: '10px 12px', borderRadius: rq.radiusSm };
 const textareaStyle = { minHeight: '200px', resize: 'vertical', lineHeight: '1.6', borderRadius: rq.radiusSm };

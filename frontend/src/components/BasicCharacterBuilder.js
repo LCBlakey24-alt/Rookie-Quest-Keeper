@@ -138,7 +138,7 @@ export default function BasicCharacterBuilder() {
   return (
     <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{ fontFamily: "'Cinzel', serif", color: '#D4A017', margin: 0 }}>Basic Build</h1>
+        <h1 style={{, color: '#D4A017', margin: 0 }}>Basic Build</h1>
         <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, and traits.</p>
 
         <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>

@@ -30,13 +30,13 @@ export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, p
 
   return (
     <div>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '22px', color: textPrimary, fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{, fontSize: '22px', color: textPrimary, fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <FileText size={24} style={{ color: accent }} /> Session Notes
       </h2>
 
       <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div>
-          <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Quick Note</h3>
+          <h3 style={{, fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Quick Note</h3>
           <textarea
             value={quickNote}
             onChange={(e) => setQuickNote(e.target.value)}
@@ -64,7 +64,7 @@ export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, p
         </div>
 
         <div>
-          <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
+          <h3 style={{, fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
           <div className="scroll-smooth" style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {sessionNotes.length === 0 ? (
               <div className="card-hover" style={{ background: cardBg, border: `2px dashed ${border}`, padding: '30px', textAlign: 'center', borderRadius: 'var(--rq-radius-sm, 4px)' }}>

@@ -150,7 +150,7 @@ function PartyInventoryTab({ campaignId }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800' }}>
+          <h2 style={{ fontSize: '26px', color: '#ffffff', fontWeight: '800' }}>
             Party Inventory
           </h2>
           <p style={{ fontSize: '14px', color: '#67e8f9', marginTop: '4px' }}>

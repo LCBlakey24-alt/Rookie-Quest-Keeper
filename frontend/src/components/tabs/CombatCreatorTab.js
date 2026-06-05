@@ -414,7 +414,7 @@ function CombatCreatorTab({ campaignId }) {
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px' }}>
       {/* Saved Scenarios */}
       <div>
-        <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontFamily: "'Cinzel', serif", fontWeight: '700' }}>
+        <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontWeight: '700' }}>
           Saved Encounters
         </h3>
         {scenarios.length === 0 ? (
@@ -462,7 +462,7 @@ function CombatCreatorTab({ campaignId }) {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '26px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h2 style={{ fontSize: '26px', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Swords size={28} style={{ color: '#ef4444' }} />
               Encounter Builder
             </h2>
@@ -557,7 +557,7 @@ function CombatCreatorTab({ campaignId }) {
         {/* Battle Map Section */}
         <div className="glow-panel" style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: "'Cinzel', serif", fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Map size={20} style={{ color: '#F59E0B' }} />
               Battle Map
             </h3>
@@ -770,7 +770,7 @@ function CombatCreatorTab({ campaignId }) {
         {combatants.length === 0 ? (
           <div className="glow-panel" style={{ padding: '50px', textAlign: 'center' }}>
             <Swords size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-            <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: "'Cinzel', serif", fontWeight: '700' }}>No Combatants</h3>
+            <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '700' }}>No Combatants</h3>
             <p style={{ color: '#94a3b8' }}>Add players and enemies to build your encounter</p>
           </div>
         ) : (
