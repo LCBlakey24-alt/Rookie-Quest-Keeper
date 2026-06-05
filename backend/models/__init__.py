@@ -1605,29 +1605,6 @@ class JournalEntryCreate(BaseModel):
     tags: List[str] = []
 
 
-class PortraitGenerateRequest(BaseModel):
-    name: str
-    race: str
-    character_class: str
-    gender: str = "neutral"
-    appearance: str = ""
-
-
-class TokenGenerateRequest(BaseModel):
-    entity_id: str
-    entity_name: str
-    entity_type: str = "enemy"  # player, ally, enemy
-    campaign_id: str
-    prompt: Optional[str] = None
-
-
-class SessionRecapRequest(BaseModel):
-    campaign_id: str
-    notes: str
-    style: str = "narrative"  # narrative, bullet, detailed
-    sections: List[str] = ["summary", "keyEvents", "npcsEncountered", "combatHighlights", "lootObtained", "nextSessionHooks"]
-
-
 class NPCRelationship(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
