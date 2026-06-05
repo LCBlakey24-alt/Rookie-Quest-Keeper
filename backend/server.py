@@ -168,6 +168,9 @@ async def startup_event():
         await db.ai_usage.create_index([("username", ASCENDING), ("month", ASCENDING)], background=True)
         await db.password_resets.create_index([("token", ASCENDING)], background=True)
         await db.password_resets.create_index([("email", ASCENDING)], background=True)
+        await db.handouts.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.player_handouts.create_index([("username", ASCENDING)], background=True)
+        await db.player_handouts.create_index([("handout_id", ASCENDING), ("username", ASCENDING)], unique=True, background=True)
         logger.info("MongoDB indexes ensured")
     except Exception as e:
         logger.warning(f"Could not create indexes: {e}")

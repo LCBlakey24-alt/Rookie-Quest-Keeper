@@ -29,6 +29,7 @@ import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import LevelUpWizard from '@/components/LevelUpWizard';
+import RookPlayerSuggestions from '@/components/RookPlayerSuggestions';
 
 const ABILITIES = [
   ['strength', 'STR'],
@@ -781,6 +782,8 @@ export default function CleanCharacterSheet() {
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
+
+      <RookPlayerSuggestions character={character} />
     </div>
   );
 }

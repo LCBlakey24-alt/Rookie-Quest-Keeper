@@ -19,6 +19,43 @@ from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
 router = APIRouter()
 
+# ── Spell slot helpers ────────────────────────────────────────────────────────
+
+_FULL_CASTER_SLOTS = {
+    1: {1: 2}, 2: {1: 3}, 3: {1: 4, 2: 2}, 4: {1: 4, 2: 3},
+    5: {1: 4, 2: 3, 3: 2}, 6: {1: 4, 2: 3, 3: 3}, 7: {1: 4, 2: 3, 3: 3, 4: 1},
+    8: {1: 4, 2: 3, 3: 3, 4: 2}, 9: {1: 4, 2: 3, 3: 3, 4: 3, 5: 1},
+    10: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2}, 11: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1},
+    12: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1}, 13: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1},
+    14: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1}, 15: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1},
+    16: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1},
+    18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1},
+    20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1},
+}
+
+_FULL_CASTERS = {'bard', 'cleric', 'druid', 'sorcerer', 'wizard'}
+_HALF_CASTERS = {'paladin', 'ranger'}
+_PACT_MAGIC = {'warlock'}
+
+
+def compute_multiclass_spell_slots(classes: list) -> dict:
+    """D&D 5e combined multiclass spell slot table.
+
+    Full-caster levels count fully; half-caster levels count as half (floor);
+    Warlock uses its own Pact Magic table separately and does not combine.
+    Returns {'1': n, '2': n, ...} matching spell_slots field format.
+    """
+    combined_level = 0
+    for cls in classes:
+        name = cls.get('name', '').lower()
+        level = int(cls.get('level', 0))
+        if name in _FULL_CASTERS:
+            combined_level += level
+        elif name in _HALF_CASTERS:
+            combined_level += level // 2
+    slots = _FULL_CASTER_SLOTS.get(combined_level, {})
+    return {str(k): int(v) for k, v in slots.items()}
+
 
 def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
     if explicit_ruleset_id:
@@ -1312,17 +1349,41 @@ async def add_multiclass(character_id: str, class_data: Dict[str, Any], username
     for cls in classes:
         multiclass_levels[cls['name']] = cls['level']
     
-    await collection.update_one(
-        {'id': character_id},
-        {'$set': {
-            'classes': classes, 
-            'level': total_level, 
-            'proficiencies': updated_proficiencies,
-            'multiclass_levels': multiclass_levels,
-            'updated_at': datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
+    # Grant HP from new class's hit die (average + CON modifier, min 1)
+    new_hit_die = HIT_DICE.get(new_class_name.title(), 8)
+    con_score = character.get('constitution', character.get('ability_scores', {}).get('con', 10))
+    con_mod = (int(con_score) - 10) // 2
+    hp_gain = max(1, (new_hit_die // 2 + 1) + con_mod)
+    new_max_hp = character.get('max_hit_points', character.get('max_hp', 10)) + hp_gain
+    new_current_hp = character.get('current_hit_points', character.get('hp', new_max_hp)) + hp_gain
+
+    # Recalculate combined multiclass spell slots
+    combined_slots = compute_multiclass_spell_slots(classes)
+
+    # Determine if the new class has a spellcasting ability
+    new_class_spellcasting = {
+        'bard': 'charisma', 'cleric': 'wisdom', 'druid': 'wisdom',
+        'paladin': 'charisma', 'ranger': 'wisdom', 'sorcerer': 'charisma',
+        'warlock': 'charisma', 'wizard': 'intelligence',
+    }.get(new_class_name.lower())
+
+    multiclass_set = {
+        'classes': classes,
+        'level': total_level,
+        'proficiencies': updated_proficiencies,
+        'multiclass_levels': multiclass_levels,
+        'max_hit_points': new_max_hp,
+        'current_hit_points': new_current_hp,
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }
+    if combined_slots:
+        multiclass_set['spell_slots'] = combined_slots
+        multiclass_set['spell_slots_remaining'] = combined_slots.copy()
+    if new_class_spellcasting and not character.get('spellcasting_ability'):
+        multiclass_set['spellcasting_ability'] = new_class_spellcasting
+
+    await collection.update_one({'id': character_id}, {'$set': multiclass_set})
+
     updated = await collection.find_one({'id': character_id}, {'_id': 0})
     return updated
 

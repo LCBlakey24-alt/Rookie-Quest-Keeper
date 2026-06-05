@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Minus, Trash2, Play, Pause, SkipForward, ChevronDown, ChevronUp, Dices, Shield } from 'lucide-react';
+import apiClient from '@/lib/apiClient';
 
 export default function InitiativeTracker({ theme, campaignId, combatants = [] }) {
   const [entries, setEntries] = useState([]);
@@ -15,12 +16,13 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
     if (combatants.length > 0 && entries.length === 0) {
       setEntries(combatants.map((c, i) => ({
         id: `c-${i}-${Date.now()}`,
+        character_id: c.type === 'player' ? (c.id || null) : null,
         name: c.name || `Creature ${i + 1}`,
         initiative: 0,
-        hp: c.hit_points || c.hp || 10,
-        maxHp: c.hit_points || c.hp || 10,
+        hp: c.hit_points || c.hp || c.maxHp || 10,
+        maxHp: c.hit_points || c.hp || c.maxHp || 10,
         ac: c.armor_class || c.ac || 10,
-        isNpc: c.is_npc ?? true,
+        isNpc: c.is_npc ?? (c.type !== 'player'),
         conditions: [],
       })));
     }
@@ -73,12 +75,18 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
     setIsActive(true);
   };
 
-  const adjustHp = (id, delta) => {
-    setEntries(prev => prev.map(e => e.id === id
-      ? { ...e, hp: Math.max(0, Math.min(e.maxHp, e.hp + delta)) }
-      : e
-    ));
-  };
+  const adjustHp = useCallback((id, delta) => {
+    setEntries(prev => prev.map(e => {
+      if (e.id !== id) return e;
+      const nextHp = Math.max(0, Math.min(e.maxHp, e.hp + delta));
+      // Sync back to character sheet for player characters
+      if (e.character_id && nextHp !== e.hp) {
+        apiClient.patch(`/characters/${e.character_id}`, { current_hit_points: nextHp })
+          .catch(() => {}); // fire-and-forget; local UI stays accurate
+      }
+      return { ...e, hp: nextHp };
+    }));
+  }, []);
 
   const updateInitiative = (id, val) => {
     setEntries(prev =>
