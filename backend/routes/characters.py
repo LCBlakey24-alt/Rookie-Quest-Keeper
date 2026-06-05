@@ -1347,8 +1347,9 @@ async def level_up_specific_class(character_id: str, class_data: Dict[str, Any],
     
     classes = character.get('classes', [])
     if not classes:
-        if character.get('class', '').lower() == class_name.lower():
-            classes = [{'name': character['class'], 'level': character.get('level', 1)}]
+        current_class = character.get('character_class', character.get('class', ''))
+        if current_class.lower() == class_name.lower():
+            classes = [{'name': current_class, 'level': character.get('level', 1)}]
         else:
             raise HTTPException(status_code=400, detail=f"Character doesn't have levels in {class_name}")
     

@@ -221,6 +221,10 @@
   .clean-sheet-add-item-form {
     grid-template-columns: 1fr;
   }
+
+  .clean-sheet-currency-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 520px) {

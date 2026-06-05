@@ -55,7 +55,7 @@ export default function PlayerMobileRailSheet() {
     setCharacter(optimistic);
     setSaving(true);
     try {
-      const response = await apiClient.put(`/characters/${characterId}`, updates);
+      const response = await apiClient.patch(`/characters/${characterId}`, updates);
       setCharacter(response.data || optimistic);
       if (successMessage) toast.success(successMessage);
     } catch (error) {

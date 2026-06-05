@@ -367,11 +367,14 @@ body {
   font-weight: 600;
 }
 
-/* Main App Container */
+/* Main App Container
+   Use min-height (not a fixed height) and only clip the horizontal axis so the
+   document can grow and scroll vertically. A fixed `height: 100dvh; overflow: hidden`
+   here clips any page taller than the viewport (most visible on mobile/tablet,
+   where content stacks into a single tall column) with no way to scroll to it. */
 .App {
   min-height: 100dvh;
-  height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
   background: var(--bg-black);
 }
 
