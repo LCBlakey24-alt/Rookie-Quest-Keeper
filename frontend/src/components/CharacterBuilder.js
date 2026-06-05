@@ -1212,7 +1212,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
         title={spell.description?.slice(0, 240) || ''}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong style={{ fontFamily: "'Cinzel', serif", fontSize: 13 }}>{picked ? '✓ ' : ''}{spell.name}</strong>
+          <strong style={{ fontSize: 13 }}>{picked ? '✓ ' : ''}{spell.name}</strong>
           <span style={{ fontSize: 10, color: theme.text.muted }}>{spell.school}</span>
         </div>
         <div style={{ fontSize: 10, color: theme.text.muted, marginTop: 3 }}>
@@ -1302,7 +1302,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
                   border: `2px solid ${active ? theme.sunset.gold : theme.border}`,
                   color: theme.text.primary, cursor: 'pointer'
                 }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, marginBottom: 6, fontSize: 14 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 14 }}>
                   {choice === 'A' ? 'Option A — Adventurer Package' : 'Option B — Starting Gold'}
                 </div>
                 <div style={{ fontSize: 12, color: theme.text.secondary, lineHeight: 1.5 }}>
@@ -1443,7 +1443,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
             </div>
           )}
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: '1.3rem', fontWeight: 700 }}>{name || 'Unnamed Hero'}</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>{name || 'Unnamed Hero'}</div>
             <div style={{ color: theme.text.secondary, fontSize: '14px' }}>
               {race}{subrace && ` (${subrace})`} • {className}{subclass && ` (${subclass})`} • {background}
             </div>
@@ -1509,7 +1509,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
             style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: theme.text.secondary, cursor: 'pointer', fontSize: '14px' }}>
             <ChevronLeft size={18} /> Dashboard
           </button>
-          <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.4rem', margin: 0, color: theme.sunset.gold }}>
+          <h1 style={{ fontSize: '1.4rem', margin: 0, color: theme.sunset.gold }}>
             {isEditMode ? 'Edit Hero' : 'Forge Your Hero'}
           </h1>
           {!isEditMode ? (
@@ -1732,7 +1732,7 @@ function Stepper({ steps, current, onJump }) {
 function StepHeader({ icon: Icon, title, subtitle, color }) {
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.4rem', margin: 0, color, display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{ fontSize: '1.4rem', margin: 0, color, display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Icon size={20} /> {title}
       </h2>
       <p style={{ color: theme.text.muted, fontSize: '13px', margin: '4px 0 0 0' }}>{subtitle}</p>
@@ -1752,7 +1752,7 @@ function SelectCard({ active, onClick, color, title, subtitle, footer, ...rest }
         color: theme.text.primary, transition: 'all 0.2s ease',
         outline: 'none'
       }}>
-      <div style={{ fontFamily: "'Cinzel', serif", fontSize: '1rem', fontWeight: 700, marginBottom: '2px' }}>{title}</div>
+      <div style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '2px' }}>{title}</div>
       <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.4 }}>{subtitle}</div>
       {footer}
     </button>
@@ -1766,7 +1766,7 @@ function DetailPanel({ title, color, children }) {
       background: 'rgba(31, 31, 35, 0.65)', border: `1px solid ${theme.border}`,
       borderLeft: `3px solid ${color}`
     }}>
-      <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.95rem', color, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ fontSize: '0.95rem', color, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <Eye size={14} /> {title}
       </div>
       {children}

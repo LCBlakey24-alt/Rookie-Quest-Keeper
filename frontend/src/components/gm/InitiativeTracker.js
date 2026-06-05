@@ -101,12 +101,12 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
     <div data-testid="initiative-tracker" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: '16px', color: theme.accent?.gm || theme.accent?.primary, fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: '16px', color: theme.accent?.gm || theme.accent?.primary, fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Shield size={18} /> Initiative Order
         </h3>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           {isActive && (
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#F59E0B', padding: '3px 8px', background: 'rgba(245,158,11,0.1)', borderRadius: '6px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#C1121F', padding: '3px 8px', background: 'rgba(193,18,31,0.1)', borderRadius: '6px' }}>
               Round {round}
             </span>
           )}
@@ -157,9 +157,9 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px',
                 borderRadius: '8px', transition: 'all 0.2s',
-                background: isCurrent ? 'rgba(245,158,11,0.1)' : entry.hp === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${isCurrent ? 'rgba(245,158,11,0.4)' : theme.border}`,
-                borderLeft: isCurrent ? '3px solid #F59E0B' : `1px solid ${theme.border}`,
+                background: isCurrent ? 'rgba(193,18,31,0.1)' : entry.hp === 0 ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${isCurrent ? 'rgba(193,18,31,0.4)' : theme.border}`,
+                borderLeft: isCurrent ? '3px solid #C1121F' : `1px solid ${theme.border}`,
                 opacity: entry.hp === 0 ? 0.5 : 1,
               }}>
               {/* Initiative */}
@@ -208,13 +208,13 @@ export default function InitiativeTracker({ theme, campaignId, combatants = [] }
         <div style={{ display: 'flex', gap: '6px' }}>
           {!isActive ? (
             <button data-testid="start-initiative-btn" onClick={startCombat}
-              style={{ flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: theme.gradient || 'linear-gradient(135deg, #D4A017, #F59E0B)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: theme.gradient || 'linear-gradient(135deg, #C1121F, #D62839)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
               <Play size={14} /> Start Combat
             </button>
           ) : (
             <>
               <button data-testid="next-turn-btn" onClick={nextTurn}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: `1px solid rgba(245,158,11,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: 'rgba(193,18,31,0.15)', color: '#C1121F', border: `1px solid rgba(193,18,31,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <SkipForward size={14} /> Next Turn
               </button>
               <button data-testid="end-combat-btn" onClick={() => { setIsActive(false); setCurrentTurn(0); setRound(1); }}
