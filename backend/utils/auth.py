@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, ADMIN_USERNAMES
+from config import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, security, ADMIN_USERNAMES, AI_MONTHLY_LIMIT
 
 
 def create_token(username: str) -> str:
@@ -81,13 +81,28 @@ async def is_admin(username: str) -> bool:
 
 
 async def check_ai_access(username: str, feature: str = 'ai') -> bool:
-    """Return whether a user can use AI features while access limits are paused."""
-    return True
+    """Return whether this user is under their monthly AI request cap.
+
+    Admins are always allowed. If AI_MONTHLY_LIMIT is 0 the cap is disabled.
+    The counter is stored in the `ai_usage` collection, one document per request.
+    """
+    if AI_MONTHLY_LIMIT == 0:
+        return True
+    if await is_admin(username):
+        return True
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    count = await db.ai_usage.count_documents({"username": username, "month": current_month})
+    return count < AI_MONTHLY_LIMIT
 
 
 async def record_ai_usage(username: str):
-    """Reserved for future product analytics; currently no-op."""
-    return None
+    """Insert one usage record for the current month."""
+    now = datetime.now(timezone.utc)
+    await db.ai_usage.insert_one({
+        "username": username,
+        "month": now.strftime("%Y-%m"),
+        "timestamp": now.isoformat(),
+    })
 
 
 async def get_campaign_rule_system(campaign_id: str) -> Dict[str, Any]:

@@ -162,7 +162,7 @@ async def rook_generate(request: UnseenServantRequest, username: str = Depends(g
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="AI generation is not available for this account."
+                detail="Monthly AI request limit reached. Your usage resets at the start of next month."
             )
         
         # Verify campaign ownership
@@ -429,7 +429,7 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
         if not can_use_ai:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="AI generation is not available for this account."
+                detail="Monthly AI request limit reached. Your usage resets at the start of next month."
             )
         
         # Get API key from environment
@@ -531,7 +531,7 @@ async def rook_chat(request: RookChatRequest, username: str = Depends(get_curren
     """ROOK AI Co-GM: Context-aware chat assistant for the GM Screen."""
     can_use_ai = await check_ai_access(username, 'ai')
     if not can_use_ai:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI generation is not available for this account.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI request limit reached. Your usage resets at the start of next month.")
     
     api_key = get_llm_api_key("openai")
     if not api_key:
@@ -865,7 +865,7 @@ async def ai_generate_portrait(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail={
                 "error": "ai_limit_reached",
-                "message": "AI generation is not available for this account."
+                "message": "Monthly AI request limit reached. Your usage resets at the start of next month."
             }
         )
     

@@ -50,6 +50,9 @@ SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@rookiequestkeeper.com')
 
 # Admin
 ADMIN_USERNAMES = [name.strip().lower() for name in os.environ.get('ADMIN_USERNAMES', 'lcblakey24').split(',') if name.strip()]
+
+# AI usage limits (monthly per-user cap; 0 = unlimited)
+AI_MONTHLY_LIMIT = int(os.environ.get('AI_MONTHLY_LIMIT', '200'))
 RESERVED_USERNAMES = sorted(set(ADMIN_USERNAMES + [
     'admin',
     'administrator',
