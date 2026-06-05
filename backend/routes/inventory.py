@@ -1,7 +1,7 @@
 """Inventory routes: party inventory, currency, custom items."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user, verify_campaign_ownership
+from utils.auth import get_current_user, verify_campaign_ownership, verify_campaign_membership
 from models import (
     InventoryItem, InventoryItemCreate, InventoryItemUpdate,
     PartyCurrency, PartyCurrencyUpdate,
@@ -16,6 +16,7 @@ router = APIRouter()
 @router.get("/campaigns/{campaign_id}/inventory")
 async def get_inventory(campaign_id: str, current_user: str = Depends(get_current_user)):
     """Get all items in party inventory"""
+    await verify_campaign_membership(campaign_id, current_user)
     items = await db.inventory.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
@@ -29,6 +30,7 @@ async def add_inventory_item(
     current_user: str = Depends(get_current_user)
 ):
     """Add item to party inventory"""
+    await verify_campaign_ownership(campaign_id, current_user)
     new_item = InventoryItem(
         campaign_id=campaign_id,
         **item.model_dump()
@@ -44,6 +46,7 @@ async def update_inventory_item(
     current_user: str = Depends(get_current_user)
 ):
     """Update inventory item"""
+    await verify_campaign_ownership(campaign_id, current_user)
     update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
@@ -65,6 +68,7 @@ async def delete_inventory_item(
     current_user: str = Depends(get_current_user)
 ):
     """Remove item from inventory"""
+    await verify_campaign_ownership(campaign_id, current_user)
     result = await db.inventory.delete_one({'id': item_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
@@ -78,6 +82,7 @@ async def claim_inventory_item(
     current_user: str = Depends(get_current_user)
 ):
     """Claim an item from party inventory for a character"""
+    await verify_campaign_membership(campaign_id, current_user)
     item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -106,6 +111,7 @@ async def unclaim_inventory_item(
     current_user: str = Depends(get_current_user)
 ):
     """Return an item to party inventory (unclaim)"""
+    await verify_campaign_membership(campaign_id, current_user)
     item = await db.inventory.find_one({'id': item_id, 'campaign_id': campaign_id})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -120,6 +126,7 @@ async def unclaim_inventory_item(
 @router.get("/campaigns/{campaign_id}/currency")
 async def get_party_currency(campaign_id: str, current_user: str = Depends(get_current_user)):
     """Get party currency"""
+    await verify_campaign_membership(campaign_id, current_user)
     currency = await db.party_currency.find_one({'campaign_id': campaign_id}, {'_id': 0})
     if not currency:
         # Initialize currency if not exists
@@ -135,6 +142,7 @@ async def update_party_currency(
     current_user: str = Depends(get_current_user)
 ):
     """Update party currency"""
+    await verify_campaign_ownership(campaign_id, current_user)
     update_data = {k: v for k, v in currency_update.model_dump().items() if v is not None}
     
     existing = await db.party_currency.find_one({'campaign_id': campaign_id})
@@ -155,6 +163,7 @@ async def update_party_currency(
 @router.get("/campaigns/{campaign_id}/custom-items")
 async def get_custom_items(campaign_id: str, current_user: str = Depends(get_current_user)):
     """Get all custom items for campaign"""
+    await verify_campaign_membership(campaign_id, current_user)
     items = await db.custom_items.find(
         {'campaign_id': campaign_id},
         {'_id': 0}
@@ -168,6 +177,7 @@ async def create_custom_item(
     current_user: str = Depends(get_current_user)
 ):
     """Create custom item"""
+    await verify_campaign_ownership(campaign_id, current_user)
     new_item = CustomItem(campaign_id=campaign_id, **item.model_dump())
     await db.custom_items.insert_one(new_item.model_dump())
     return new_item.model_dump()
@@ -180,6 +190,7 @@ async def update_custom_item(
     current_user: str = Depends(get_current_user)
 ):
     """Update custom item"""
+    await verify_campaign_ownership(campaign_id, current_user)
     update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
@@ -201,6 +212,7 @@ async def delete_custom_item(
     current_user: str = Depends(get_current_user)
 ):
     """Delete custom item"""
+    await verify_campaign_ownership(campaign_id, current_user)
     result = await db.custom_items.delete_one({'id': item_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")

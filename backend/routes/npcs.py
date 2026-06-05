@@ -8,6 +8,7 @@ from models import (
     GenerateNPCRequest, NPCRelationship, NPCRelationshipCreate
 )
 from typing import Optional, List
+import re
 import uuid
 import json
 from datetime import datetime, timezone
