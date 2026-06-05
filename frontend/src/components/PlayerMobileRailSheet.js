@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Backpack, ChevronDown, ChevronRight, FileText, Heart, Shield, Star, Swords, User, Wand2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { deriveArmorClass } from '@/data/characterCombatDerivations';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: Shield },
@@ -73,7 +74,7 @@ export default function PlayerMobileRailSheet() {
 
   const maxHp = Number(character.max_hit_points || character.max_hp || 10);
   const currentHp = Math.max(0, Math.min(maxHp, Number(character.current_hit_points || character.hp || maxHp)));
-  const ac = Number(character.armor_class || character.ac || 10 + mod(character.dexterity));
+  const ac = deriveArmorClass(character);
   const speed = Number(character.speed || 30);
   const subtitle = [character.race, character.character_class, `Lv ${character.level || 1}`].filter(Boolean).join(' • ');
   const context = { character, expanded, toggleExpanded, saveCharacterPatch, currentHp, maxHp, hpAmount, setHpAmount, saving };
@@ -168,14 +169,19 @@ function MobileInventoryTab({ character, saveCharacterPatch, saving }) {
   const allItems = [...list(character.equipment), ...list(character.inventory)];
   const currency = character?.currency || {};
 
-  const equip = (slot, item) => saveCharacterPatch({ equipped: { ...equipped, [slot]: item } }, 'Equipped');
+  const equip = (slot, item) => {
+    const nextEquipped = { ...equipped, [slot]: item };
+    const derivedAc = deriveArmorClass({ ...character, equipped: nextEquipped });
+    saveCharacterPatch({ equipped: nextEquipped, armor_class: derivedAc }, 'Equipped');
+  };
   const unequip = (slot) => {
     const next = { ...equipped };
     delete next[slot];
     if (slot === 'mainHand') { delete next.main_hand; delete next.weapon; }
     if (slot === 'offHand') delete next.off_hand;
     if (slot === 'armor') delete next.armour;
-    saveCharacterPatch({ equipped: next }, 'Unequipped');
+    const derivedAc = deriveArmorClass({ ...character, equipped: next });
+    saveCharacterPatch({ equipped: next, armor_class: derivedAc }, 'Unequipped');
   };
 
   const coins = [

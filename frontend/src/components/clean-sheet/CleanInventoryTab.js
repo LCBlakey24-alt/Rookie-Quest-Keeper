@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
+import { deriveArmorClass } from '@/data/characterCombatDerivations';
 const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
@@ -161,8 +162,9 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const saveEquipped = async (nextEquipped, slotLabel) => {
     setSavingSlot(slotLabel);
     try {
-      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped });
-      onCharacterUpdate?.({ equipped: nextEquipped });
+      const derivedAc = deriveArmorClass({ ...character, equipped: nextEquipped });
+      await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped, armor_class: derivedAc });
+      onCharacterUpdate?.({ equipped: nextEquipped, armor_class: derivedAc });
       toast.success('Equipment updated');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update equipment');

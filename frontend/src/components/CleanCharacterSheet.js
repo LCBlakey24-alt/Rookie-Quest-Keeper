@@ -24,6 +24,7 @@ import {
   Zap,
 } from 'lucide-react';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
+import { deriveArmorClass } from '@/data/characterCombatDerivations';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
@@ -168,7 +169,7 @@ export default function CleanCharacterSheet() {
   const dexMod = mod(character?.dexterity);
   const conMod = mod(character?.constitution);
   const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
-  const ac = Number(character?.armor_class ?? character?.ac ?? (10 + dexMod));
+  const ac = deriveArmorClass(character);
   const speed = Number(character?.speed ?? 30);
   const skillProficiencies = character?.skill_proficiencies || [];
   const saveProficiencies = character?.saving_throw_proficiencies || [];

@@ -47,5 +47,10 @@ export function calculateArmorAc({ armor, shield, dexMod = 0, unarmoredAc = 10 }
   else if (armorRule?.category === 'heavy') ac = armorRule.baseAc;
 
   if (shieldRule?.category === 'shield') ac += shieldRule.acBonus || 2;
+
+  // Add magic item bonuses (+1 Armour of Protection, +2 Shield, etc.)
+  if (typeof armor === 'object' && armor !== null) ac += Number(armor.ac_bonus || 0);
+  if (typeof shield === 'object' && shield !== null) ac += Number(shield.ac_bonus || 0);
+
   return ac;
 }
