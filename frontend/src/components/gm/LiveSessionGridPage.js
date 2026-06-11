@@ -29,22 +29,22 @@ const theme = {
     elevated: '#323235',
     panel: '#27272B',
     card: '#27272B',
-    hover: 'rgba(239, 68, 68, 0.12)',
+    hover: 'rgba(124, 58, 237, 0.12)',
   },
   accent: {
-    primary: '#EF4444',
+    primary: '#7C3AED',
     secondary: '#B91C1C',
-    gold: '#EF4444',
-    orange: '#F87171',
-    hover: '#F87171',
-    subtle: 'rgba(239, 68, 68, 0.12)',
+    gold: '#7C3AED',
+    orange: '#A78BFA',
+    hover: '#A78BFA',
+    subtle: 'rgba(124, 58, 237, 0.12)',
     glow: 'none',
-    gm: '#EF4444',
-    gmSubtle: 'rgba(239, 68, 68, 0.12)',
+    gm: '#7C3AED',
+    gmSubtle: 'rgba(124, 58, 237, 0.12)',
   },
   text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.42)',
-  gradient: '#EF4444',
+  border: 'rgba(124, 58, 237, 0.42)',
+  gradient: '#7C3AED',
 };
 
 export default function LiveSessionGridPage() {
@@ -290,11 +290,11 @@ export default function LiveSessionGridPage() {
   );
 }
 
-const pageStyle = { minHeight: '100vh', background: theme.bg.primary, color: theme.text.primary, padding: 14, display: 'flex', flexDirection: 'column', gap: 12 };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 12 };
+const pageStyle = { height: '100dvh', maxHeight: '100dvh', background: theme.bg.primary, color: theme.text.primary, padding: 'clamp(8px, 1.1vw, 12px)', display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '8px 10px', flexShrink: 0 };
 const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.3, textTransform: 'uppercase', margin: '0 0 4px' };
-const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 9, fontSize: 22, fontWeight: 900, margin: 0 };
-const subtitleStyle = { color: theme.text.secondary, margin: '4px 0 0', fontSize: 13 };
-const calendarStyle = { color: theme.accent.primary, margin: '4px 0 0', fontSize: 12, fontWeight: 800 };
-const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 0, fontWeight: 900 };
-const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
+const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(17px, 1.5vw, 20px)', fontWeight: 900, margin: 0, minWidth: 0 };
+const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
+const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
+const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
+const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };

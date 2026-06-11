@@ -14,10 +14,10 @@ import RookFormFillPanel from '@/components/RookFormFillPanel';
 
 const ITEM_TYPES = [
   { id: 'weapon', label: 'Weapon', icon: Sword, color: '#ef4444' },
-  { id: 'armor', label: 'Armor', icon: Shield, color: '#4a7dff' },
-  { id: 'potion', label: 'Potion', icon: FlaskConical, color: '#F59E0B' },
-  { id: 'scroll', label: 'Scroll', icon: ScrollText, color: '#a855f7' },
-  { id: 'magic_item', label: 'Magic Item', icon: Sparkles, color: '#eab308' },
+  { id: 'armor', label: 'Armor', icon: Shield, color: '#38BDF8' },
+  { id: 'potion', label: 'Potion', icon: FlaskConical, color: '#7C3AED' },
+  { id: 'scroll', label: 'Scroll', icon: ScrollText, color: '#A855F7' },
+  { id: 'magic_item', label: 'Magic Item', icon: Sparkles, color: '#14B8A6' },
   { id: 'gem', label: 'Gem/Art', icon: Gem, color: '#22c55e' },
   { id: 'misc', label: 'Misc', icon: Package, color: '#64748b' },
 ];
@@ -388,22 +388,22 @@ function PartyInventory({ campaignId, players = [] }) {
       {/* Currency Section */}
       <div className="glow-panel" style={{ padding: '16px' }}>
         <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '400', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Coins size={18} style={{ color: '#eab308' }} /> Party Treasury
+          <Coins size={18} style={{ color: '#A78BFA' }} /> Party Treasury
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
           {[
             { key: 'platinum', label: 'PP', color: '#e5e7eb' },
-            { key: 'gold', label: 'GP', color: '#eab308' },
+            { key: 'gold', label: 'GP', color: '#A78BFA' },
             { key: 'electrum', label: 'EP', color: '#94a3b8' },
             { key: 'silver', label: 'SP', color: '#cbd5e1' },
             { key: 'copper', label: 'CP', color: '#f97316' }
           ].map(coin => (
-            <div key={coin.key} style={{ background: 'rgba(10, 10, 40, 0.5)', border: '2px solid #1e40af', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
+            <div key={coin.key} style={{ background: 'rgba(31, 31, 35, 0.86)', border: '2px solid rgba(124,58,237,0.28)', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: '10px', color: coin.color, fontWeight: '400', marginBottom: '4px' }}>{coin.label}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px', justifyContent: 'center' }}>
-                <button onClick={() => adjustCurrency(coin.key, -1)} style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: '400' }}>-</button>
-                <input type="number" value={currency[coin.key] || 0} onChange={(e) => handleCurrencyChange(coin.key, e.target.value)} style={{ width: '50px', textAlign: 'center', background: 'rgba(10, 10, 40, 0.6)', border: '1px solid #1e40af', borderRadius: '4px', color: '#fff', padding: '2px', fontSize: '12px', fontWeight: '400' }} />
-                <button onClick={() => adjustCurrency(coin.key, 1)} style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid #F59E0B', borderRadius: '4px', color: '#F59E0B', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: '400' }}>+</button>
+                <button onClick={() => adjustCurrency(coin.key, -1)} style={{ background: 'rgba(124, 58, 237, 0.2)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: '400' }}>-</button>
+                <input type="number" value={currency[coin.key] || 0} onChange={(e) => handleCurrencyChange(coin.key, e.target.value)} style={{ width: '50px', textAlign: 'center', background: 'rgba(10, 10, 40, 0.6)', border: '1px solid rgba(124,58,237,0.28)', borderRadius: '4px', color: '#fff', padding: '2px', fontSize: '12px', fontWeight: '400' }} />
+                <button onClick={() => adjustCurrency(coin.key, 1)} style={{ background: 'rgba(34, 197, 94, 0.2)', border: '1px solid #7C3AED', borderRadius: '4px', color: '#7C3AED', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: '400' }}>+</button>
               </div>
             </div>
           ))}
@@ -436,7 +436,7 @@ function PartyInventory({ campaignId, players = [] }) {
           }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
               <div>
-                <label style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>CR TIER</label>
+                <label style={{ fontSize: '10px', color: '#7C3AED', fontWeight: 600 }}>CR TIER</label>
                 <select
                   value={treasureTier}
                   onChange={(e) => setTreasureTier(e.target.value)}
@@ -452,7 +452,7 @@ function PartyInventory({ campaignId, players = [] }) {
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: '#fff' }}>
                 <input type="checkbox" checked={isHoard} onChange={(e) => setIsHoard(e.target.checked)} />
-                <Wand2 size={14} color="#F59E0B" /> Treasure Hoard
+                <Wand2 size={14} color="#7C3AED" /> Treasure Hoard
               </label>
               <Button
                 onClick={handleGenerateTreasure}
@@ -467,13 +467,13 @@ function PartyInventory({ campaignId, players = [] }) {
             {generatedLoot && (
               <div style={{
                 padding: '12px', background: 'rgba(10,10,40,0.6)',
-                border: '1px solid #F59E0B', borderRadius: '8px',
+                border: '1px solid #7C3AED', borderRadius: '8px',
               }}>
-                <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700, marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', color: '#7C3AED', fontWeight: 700, marginBottom: '8px' }}>
                   Generated Loot ({isHoard ? 'Hoard' : 'Individual'})
                 </div>
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#eab308' }}>{generatedLoot.gold} GP</span>
+                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#A78BFA' }}>{generatedLoot.gold} GP</span>
                   {generatedLoot.gems.length > 0 && (
                     <span style={{ fontSize: '12px', color: '#22c55e' }}>
                       <Gem size={12} style={{ display: 'inline', marginRight: 4 }} />
@@ -482,7 +482,7 @@ function PartyInventory({ campaignId, players = [] }) {
                     </span>
                   )}
                   {generatedLoot.items.length > 0 && (
-                    <span style={{ fontSize: '12px', color: '#a855f7' }}>
+                    <span style={{ fontSize: '12px', color: '#A855F7' }}>
                       <Sparkles size={12} style={{ display: 'inline', marginRight: 4 }} />
                       {generatedLoot.items.map(i => i.name).join(', ')}
                     </span>
@@ -510,9 +510,9 @@ function PartyInventory({ campaignId, players = [] }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <h3 style={{ fontSize: '16px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '400', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Package size={18} style={{ color: '#F59E0B' }} /> Party Loot
+                <Package size={18} style={{ color: '#7C3AED' }} /> Party Loot
               </h3>
-              <p style={{ fontSize: '11px', color: '#67e8f9', marginTop: '2px' }}>
+              <p style={{ fontSize: '11px', color: '#D1D5DB', marginTop: '2px' }}>
                 {partyItems.length} unassigned • {totalWeight.toFixed(1)} lbs total
               </p>
             </div>
@@ -523,10 +523,10 @@ function PartyInventory({ campaignId, players = [] }) {
 
           {/* Drag hint */}
           {players.length > 0 && (
-            <div style={{ background: 'rgba(74, 125, 255, 0.1)', border: '1px dashed #4a7dff', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <GripVertical size={14} style={{ color: '#4a7dff' }} />
-              <span style={{ fontSize: '11px', color: '#67e8f9' }}>Drag items to players on the right to assign them</span>
-              <ArrowRight size={14} style={{ color: '#4a7dff' }} />
+            <div style={{ background: 'rgba(124, 58, 237, 0.10)', border: '1px dashed #7C3AED', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <GripVertical size={14} style={{ color: '#7C3AED' }} />
+              <span style={{ fontSize: '11px', color: '#D1D5DB' }}>Drag items to players on the right to assign them</span>
+              <ArrowRight size={14} style={{ color: '#7C3AED' }} />
             </div>
           )}
 
@@ -537,9 +537,9 @@ function PartyInventory({ campaignId, players = [] }) {
               <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." className="input-glow" style={{ paddingLeft: '32px', fontSize: '12px', height: '32px' }} />
             </div>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              <button onClick={() => setFilterType('all')} style={{ padding: '6px 10px', borderRadius: '6px', border: `2px solid ${filterType === 'all' ? '#F59E0B' : '#1e40af'}`, background: filterType === 'all' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(10, 10, 40, 0.5)', color: filterType === 'all' ? '#F59E0B' : '#94a3b8', fontSize: '11px', fontWeight: '400', cursor: 'pointer' }}>All</button>
+              <button onClick={() => setFilterType('all')} style={{ padding: '6px 10px', borderRadius: '6px', border: `2px solid ${filterType === 'all' ? '#7C3AED' : 'rgba(124,58,237,0.28)'}`, background: filterType === 'all' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(31, 31, 35, 0.86)', color: filterType === 'all' ? '#7C3AED' : '#94a3b8', fontSize: '11px', fontWeight: '400', cursor: 'pointer' }}>All</button>
               {ITEM_TYPES.map(type => (
-                <button key={type.id} onClick={() => setFilterType(type.id)} style={{ padding: '6px 8px', borderRadius: '6px', border: `2px solid ${filterType === type.id ? type.color : '#1e40af'}`, background: filterType === type.id ? `${type.color}30` : 'rgba(10, 10, 40, 0.5)', color: filterType === type.id ? type.color : '#94a3b8', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <button key={type.id} onClick={() => setFilterType(type.id)} style={{ padding: '6px 8px', borderRadius: '6px', border: `2px solid ${filterType === type.id ? type.color : 'rgba(124,58,237,0.28)'}`, background: filterType === type.id ? `${type.color}30` : 'rgba(31, 31, 35, 0.86)', color: filterType === type.id ? type.color : '#94a3b8', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                   <type.icon size={12} />
                 </button>
               ))}
@@ -548,30 +548,30 @@ function PartyInventory({ campaignId, players = [] }) {
 
           {/* Add Item Form */}
           {showAddForm && (
-            <div className="glow-panel" style={{ marginBottom: '12px', borderColor: '#8A2BE2', padding: '12px' }}>
-              <h4 style={{ color: '#F59E0B', fontSize: '13px', fontWeight: '400', marginBottom: '12px' }}>Add New Item</h4>
+            <div className="glow-panel" style={{ marginBottom: '12px', borderColor: '#7C3AED', padding: '12px' }}>
+              <h4 style={{ color: '#7C3AED', fontSize: '13px', fontWeight: '400', marginBottom: '12px' }}>Add New Item</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Name *</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>Name *</label>
                   <Input value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} className="input-glow" placeholder="Item name" style={{ fontSize: '12px', height: '32px' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Type</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>Type</label>
                   <select value={newItem.item_type} onChange={(e) => setNewItem({ ...newItem, item_type: e.target.value })} className="input-glow" style={{ width: '100%', padding: '6px', fontSize: '12px', height: '32px' }}>
                     {ITEM_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Qty</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>Qty</label>
                   <Input type="number" value={newItem.quantity} onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })} className="input-glow" min="1" style={{ fontSize: '12px', height: '32px' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Value</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>Value</label>
                   <Input value={newItem.value} onChange={(e) => setNewItem({ ...newItem, value: e.target.value })} className="input-glow" placeholder="50 gp" style={{ fontSize: '12px', height: '32px' }} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '16px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={newItem.is_magical} onChange={(e) => setNewItem({ ...newItem, is_magical: e.target.checked })} style={{ accentColor: '#eab308' }} />
+                    <input type="checkbox" checked={newItem.is_magical} onChange={(e) => setNewItem({ ...newItem, is_magical: e.target.checked })} style={{ accentColor: '#A78BFA' }} />
                     Magic
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer' }}>
@@ -627,7 +627,7 @@ function PartyInventory({ campaignId, players = [] }) {
           {/* Items List */}
           {partyItems.length === 0 ? (
             <div className="glow-panel" style={{ padding: '30px', textAlign: 'center' }}>
-              <Package size={36} style={{ color: '#1e40af', margin: '0 auto 12px' }} />
+              <Package size={36} style={{ color: 'rgba(124,58,237,0.28)', margin: '0 auto 12px' }} />
               <h4 style={{ fontSize: '14px', color: '#ffffff', marginBottom: '6px', fontFamily: 'Montserrat', fontWeight: '400' }}>
                 {items.length === 0 ? 'Inventory Empty' : 'All Items Assigned'}
               </h4>
@@ -651,7 +651,7 @@ function PartyInventory({ campaignId, players = [] }) {
                     className="card-glow"
                     style={{
                       padding: '10px 12px',
-                      borderColor: item.is_magical ? '#eab308' : typeInfo.color,
+                      borderColor: item.is_magical ? '#A78BFA' : typeInfo.color,
                       background: item.is_magical ? 'rgba(234, 179, 8, 0.05)' : 'rgba(10, 10, 60, 0.7)',
                       cursor: isEditing ? 'default' : 'grab',
                       transition: 'transform 0.15s, box-shadow 0.15s'
@@ -659,7 +659,7 @@ function PartyInventory({ campaignId, players = [] }) {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <GripVertical size={14} style={{ color: '#4a7dff', cursor: 'grab' }} />
+                        <GripVertical size={14} style={{ color: '#7C3AED', cursor: 'grab' }} />
                         <div style={{ width: '32px', height: '32px', borderRadius: 0, background: `${typeInfo.color}30`, border: `2px solid ${typeInfo.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                           {item.image_url ? (
                             <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -670,11 +670,11 @@ function PartyInventory({ campaignId, players = [] }) {
                         <div>
                           <div style={{ color: '#ffffff', fontWeight: '400', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             {item.name}
-                            {item.is_magical && <Sparkles size={10} style={{ color: '#eab308' }} />}
+                            {item.is_magical && <Sparkles size={10} style={{ color: '#A78BFA' }} />}
                           </div>
-                          <div style={{ fontSize: '10px', color: '#67e8f9' }}>
+                          <div style={{ fontSize: '10px', color: '#D1D5DB' }}>
                             {typeInfo.label} • Qty: {item.quantity}
-                            {item.value && <span style={{ color: '#eab308' }}> • {item.value}</span>}
+                            {item.value && <span style={{ color: '#A78BFA' }}> • {item.value}</span>}
                           </div>
                         </div>
                       </div>
@@ -688,7 +688,7 @@ function PartyInventory({ campaignId, players = [] }) {
                             <Gift size={12} />
                           </button>
                         )}
-                        <button onClick={() => setEditingItem(item)} style={{ background: 'transparent', border: 'none', color: '#4a7dff', cursor: 'pointer', padding: '4px' }}><Edit2 size={12} /></button>
+                        <button onClick={() => setEditingItem(item)} style={{ background: 'transparent', border: 'none', color: '#7C3AED', cursor: 'pointer', padding: '4px' }}><Edit2 size={12} /></button>
                         <button onClick={() => handleDeleteItem(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}><Trash2 size={12} /></button>
                       </div>
                     </div>
@@ -733,7 +733,7 @@ function PartyInventory({ campaignId, players = [] }) {
         {players.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <h4 style={{ fontSize: '14px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '400', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <Users size={16} style={{ color: '#4a7dff' }} /> Assign to Player
+              <Users size={16} style={{ color: '#7C3AED' }} /> Assign to Player
             </h4>
             
             {players.map(player => {
@@ -748,7 +748,7 @@ function PartyInventory({ campaignId, players = [] }) {
                   onDrop={(e) => handleDrop(e, player)}
                   style={{
                     background: isDropTarget ? 'rgba(34, 197, 94, 0.15)' : 'rgba(10, 10, 40, 0.6)',
-                    border: `2px ${isDropTarget ? 'solid' : 'dashed'} ${isDropTarget ? '#F59E0B' : '#1e40af'}`,
+                    border: `2px ${isDropTarget ? 'solid' : 'dashed'} ${isDropTarget ? '#7C3AED' : 'rgba(124,58,237,0.28)'}`,
                     borderRadius: '10px',
                     padding: '10px',
                     transition: 'all 0.2s',
@@ -757,12 +757,12 @@ function PartyInventory({ campaignId, players = [] }) {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: playerItems.length > 0 ? '8px' : '0' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #4a7dff 0%, #F59E0B 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '400', color: '#fff', fontSize: '13px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #7C3AED 0%, #7C3AED 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '400', color: '#fff', fontSize: '13px' }}>
                       {player.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div style={{ color: '#fff', fontWeight: '400', fontSize: '13px' }}>{player.name}</div>
-                      <div style={{ fontSize: '10px', color: '#67e8f9' }}>{player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}</div>
+                      <div style={{ fontSize: '10px', color: '#D1D5DB' }}>{player.class || 'Adventurer'} {player.level ? `Lv.${player.level}` : ''}</div>
                     </div>
                     <div style={{ marginLeft: 'auto', fontSize: '10px', color: '#64748b' }}>
                       {playerItems.length} items
@@ -771,12 +771,12 @@ function PartyInventory({ campaignId, players = [] }) {
                   
                   {/* Player's assigned items */}
                   {playerItems.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid #1e40af', paddingTop: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(124,58,237,0.28)', paddingTop: '8px' }}>
                       {playerItems.map(item => {
                         const typeInfo = getItemTypeInfo(item.item_type);
                         const TypeIcon = typeInfo.icon;
                         return (
-                          <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(10, 10, 40, 0.5)', borderRadius: '6px', padding: '6px 8px' }}>
+                          <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(31, 31, 35, 0.86)', borderRadius: '6px', padding: '6px 8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               {item.image_url ? (
                                 <img src={item.image_url} alt={item.name} style={{ width: 18, height: 18, objectFit: 'cover', border: `1px solid ${typeInfo.color}` }} />
@@ -784,7 +784,7 @@ function PartyInventory({ campaignId, players = [] }) {
                                 <TypeIcon size={12} style={{ color: typeInfo.color }} />
                               )}
                               <span style={{ fontSize: '11px', color: '#fff' }}>{item.name}</span>
-                              {item.is_magical && <Sparkles size={8} style={{ color: '#eab308' }} />}
+                              {item.is_magical && <Sparkles size={8} style={{ color: '#A78BFA' }} />}
                             </div>
                             <button
                               onClick={() => handleUnassignItem(item.id)}

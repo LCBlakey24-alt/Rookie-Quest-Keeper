@@ -398,19 +398,26 @@ img, video, canvas, svg {
 
 :root {
   /* Core Colors - Dark Minimalist Palette */
-  --bg-black: #0B0B0C;
-  --bg-dark: #141414;
-  --bg-panel: #27272B;
-  --bg-card: #27272B;
-  --bg-hover: #323235;
-  --bg-elevated: #323235;
-  --bg-light: #404040;
+  --bg-black: #080B1A;
+  --rq-bg-main: #080B1A;
+  --bg-dark: #0F1430;
+  --bg-panel: #12172A;
+  --rq-bg-panel: #12172A;
+  --rq-bg-input: #0D1224;
+  --bg-card: #171E33;
+  --bg-hover: #202A46;
+  --bg-elevated: #202A46;
+  --bg-light: #2D3A62;
   
-  /* Accent Colors - NEW RED #E11D48 */
-  --accent-red: #EF4444;
-  --accent-red-hover: #F87171;
-  --accent-red-subtle: rgba(239, 68, 68, 0.12);
-  --accent-red-border: rgba(239, 68, 68, 0.28);
+  /* Accent Colors - Mystic Blue/Purple (legacy variable names kept for compatibility) */
+  --accent-red: #7C3AED;
+  --accent-red-hover: #A78BFA;
+  --accent-red-subtle: rgba(124, 58, 237, 0.14);
+  --accent-red-border: rgba(124, 58, 237, 0.32);
+  --rq-accent-primary: #7C3AED;
+  --rq-accent-hover: #A78BFA;
+  --rq-accent-soft: rgba(124, 58, 237, 0.14);
+  --rq-accent-border: rgba(124, 58, 237, 0.32);
   
   /* Text Colors - WHITE ONLY */
   --text-primary: #FFFFFF;
@@ -425,7 +432,8 @@ img, video, canvas, svg {
   
   /* Borders */
   --border-dark: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
+  --border-default: rgba(191, 219, 254, 0.14);
+  --rq-border-default: rgba(191, 219, 254, 0.14);
   --border-hover: rgba(255, 255, 255, 0.15);
   
   /* Shadows */

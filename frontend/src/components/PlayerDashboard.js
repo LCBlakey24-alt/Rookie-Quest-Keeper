@@ -21,14 +21,14 @@ import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
 import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 
 const rq = {
-  bg: 'var(--rq-bg-main, #1A1A1A)',
-  panel: 'var(--rq-bg-panel, #242424)',
-  input: 'var(--rq-bg-input, #1F1F1F)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
+  bg: 'var(--rq-bg-main, #080B1A)',
+  panel: 'var(--rq-bg-panel, #12172A)',
+  input: 'var(--rq-bg-input, #0D1224)',
+  border: 'var(--rq-accent-border, rgba(124,58,237,0.32))',
+  borderDefault: 'var(--rq-border-default, rgba(191,219,254,0.14))',
+  accent: 'var(--rq-accent-primary, #7C3AED)',
+  accentHover: 'var(--rq-accent-hover, #A78BFA)',
+  accentSoft: 'var(--rq-accent-soft, rgba(124,58,237,0.14))',
   text: 'var(--rq-text-primary, #FFFFFF)',
   textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
   muted: 'var(--rq-text-muted, #A0A0A0)',
@@ -176,7 +176,7 @@ export default function PlayerDashboard() {
 
       {characters.length > 0 && (
         <section style={joinStripStyle}>
-          <label style={joinLabelStyle}>Character for joining campaigns</label>
+          <label style={joinLabelStyle}>Join as</label>
           <select value={selectedCharacterId} onChange={(event) => setSelectedCharacterId(event.target.value)} style={selectStyle} aria-label="Select character for campaign join">
             {characters.map(character => (
               <option key={character.id} value={character.id}>{character.name || 'Unnamed Character'}</option>
@@ -224,6 +224,29 @@ export default function PlayerDashboard() {
           );
         })}
       </nav>
+
+
+      <section className="player-desktop-context" style={desktopContextStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Current Space</p>
+          <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
+        </div>
+        <div style={summaryGridStyle}>
+          {playerSummaryCards.map(card => {
+            const Icon = card.icon;
+            return (
+              <div key={card.label} style={summaryCardStyle}>
+                <Icon size={16} color={rq.accentHover} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={summaryLabelStyle}>{card.label}</p>
+                  <strong style={summaryValueStyle}>{card.value}</strong>
+                  <span style={summaryDetailStyle}>{card.detail}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {activeTab === 'characters' && <CharactersTab characters={characters} navigate={navigate} onCreate={() => navigate('/characters/new')} onJoin={openJoinFlow} />}
       {activeTab === 'campaigns' && <CampaignsTab campaigns={linkedCampaigns} navigate={navigate} onJoin={openJoinFlow} />}
@@ -357,7 +380,7 @@ const cardTitleStyle = { color: rq.text, fontSize: 18, fontWeight: 900, margin: 
 const cardMetaStyle = { color: rq.textSecondary, fontSize: 13, lineHeight: 1.5, margin: 0 };
 const linkedTextStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, margin: '8px 0 0' };
 const cardActionsStyle = { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: 'auto' };
-const cardButtonStyle = { display: 'flex', alignItems: 'center', gap: '6px', borderRadius: rq.radiusSm };
-const emptyPanelStyle = { background: rq.panel, border: `1px dashed ${rq.border}`, borderRadius: rq.radius, padding: '42px 20px', textAlign: 'center' };
-const emptyTitleStyle = { color: rq.text, fontSize: 22, fontWeight: 900, margin: '14px 0 8px' };
-const emptyTextStyle = { color: rq.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 520, margin: '0 auto 20px' };
+const cardButtonStyle = { display: 'flex', alignItems: 'center', gap: '6px', borderRadius: rq.radiusSm, minHeight: 34, padding: '7px 11px', fontSize: 12 };
+const emptyPanelStyle = { background: rq.panel, border: `1px dashed ${rq.border}`, borderRadius: rq.radius, padding: '30px 18px', textAlign: 'center' };
+const emptyTitleStyle = { color: rq.text, fontSize: 19, fontWeight: 900, margin: '12px 0 7px' };
+const emptyTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 520, margin: '0 auto 16px' };

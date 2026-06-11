@@ -12,8 +12,8 @@ import {
 
 // GM Theme - Red (Tron Aries)
 const theme = {
-  primary: '#F59E0B',
-  hover: '#D97706',
+  primary: '#7C3AED',
+  hover: '#A78BFA',
   subtle: 'rgba(225, 29, 72, 0.15)',
   glow: '0 0 20px rgba(225, 29, 72, 0.3)',
   bg: '#0B0F19',
@@ -22,19 +22,19 @@ const theme = {
   text: '#FFFFFF',
   textSecondary: '#B3B3B3',
   muted: '#808080',
-  border: 'rgba(212, 175, 55, 0.15)'
+  border: 'rgba(124, 58, 237, 0.22)'
 };
 
 const EVENT_TYPES = [
   { id: 'session', label: 'Session', icon: Calendar, color: '#06B6D4' },
   { id: 'combat', label: 'Combat', icon: Swords, color: '#D97706' },
-  { id: 'npc_met', label: 'NPC Met', icon: Users, color: '#8A2BE2' },
+  { id: 'npc_met', label: 'NPC Met', icon: Users, color: '#38BDF8' },
   { id: 'location', label: 'Location', icon: MapPin, color: '#22C55E' },
-  { id: 'quest', label: 'Quest', icon: Flag, color: '#F59E0B' },
+  { id: 'quest', label: 'Quest', icon: Flag, color: '#14B8A6' },
   { id: 'death', label: 'Death', icon: Skull, color: '#6B7280' },
   { id: 'level_up', label: 'Level Up', icon: Star, color: '#06B6D4' },
-  { id: 'major', label: 'Major Event', icon: Crown, color: '#F59E0B' },
-  { id: 'milestone', label: 'Milestone', icon: Milestone, color: '#4DD0E1' }
+  { id: 'major', label: 'Major Event', icon: Crown, color: '#7C3AED' },
+  { id: 'milestone', label: 'Milestone', icon: Milestone, color: '#38BDF8' }
 ];
 
 function SessionTimeline({ campaignId }) {

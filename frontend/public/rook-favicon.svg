@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rook">
+  <rect width="64" height="64" rx="14" fill="#0B0B0C"/>
+  <path d="M17 14h8v7h5v-7h4v7h5v-7h8v17l-6 6v12h6v6H17v-6h6V37l-6-6V14Z" fill="#7C3AED"/>
+  <path d="M24 29h16l-4 5h-8l-4-5Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M25 40h14v9H25v-9Z" fill="#111827" opacity="0.55"/>
+</svg>

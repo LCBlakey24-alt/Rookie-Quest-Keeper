@@ -122,7 +122,7 @@ export default function LiveSessionGridMode({
   const gridStyle = getGridStyle(panelCount);
 
   return (
-    <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: '100%' }}>
+    <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
       <div style={toolbarStyle}>
         <div style={{ minWidth: 0 }}>
           <h2 style={titleStyle}><Grid3X3 size={22} /> GM Screen</h2>
@@ -229,9 +229,11 @@ function UtilityPlaceholder({ title, text }) {
 function getGridStyle(panelCount) {
   const base = {
     display: 'grid',
-    gap: 10,
+    gap: 8,
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
+    gridAutoRows: 'minmax(0, 1fr)',
   };
   if (panelCount === 1) return { ...base, gridTemplateColumns: '1fr' };
   if (panelCount === 2) return { ...base, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' };
@@ -241,18 +243,18 @@ function getGridStyle(panelCount) {
   return { ...base, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' };
 }
 
-const toolbarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, padding: 12 };
-const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 9, margin: 0 };
-const subtitleStyle = { color: rq.muted, fontSize: 12, margin: '5px 0 0' };
-const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
+const toolbarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, padding: '8px 10px', flexShrink: 0 };
+const titleStyle = { color: rq.text, fontSize: 17, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
+const subtitleStyle = { color: rq.muted, fontSize: 11, margin: '2px 0 0' };
+const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' };
 const countPickerStyle = { display: 'flex', border: `1px solid ${rq.border}`, background: rq.input, borderRadius: 0, overflow: 'hidden' };
-const countButtonStyle = (active) => ({ minWidth: 34, height: 34, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? '#FFFFFF' : rq.textSecondary, fontWeight: 900, cursor: 'pointer' });
-const resetButtonStyle = { minHeight: 36, display: 'inline-flex', alignItems: 'center', gap: 7, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 11px', borderRadius: 0, fontWeight: 900, cursor: 'pointer' };
-const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 220, height: 'minmax(220px, 1fr)', minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
-const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', padding: '8px 10px', borderBottom: `1px solid ${rq.border}`, background: rq.input };
-const panelTitleStyle = { color: rq.text, fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' };
-const selectStyle = { minWidth: 130, maxWidth: '58%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: 0, padding: '6px 8px', fontSize: 11, outline: 'none' };
-const panelBodyStyle = { flex: 1, minHeight: 0, overflow: 'auto', padding: 10 };
-const openButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '5px 8px', borderRadius: 0, fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' };
+const countButtonStyle = (active) => ({ minWidth: 30, height: 30, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? '#FFFFFF' : rq.textSecondary, fontWeight: 900, cursor: 'pointer', fontSize: 12 });
+const resetButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 9px', borderRadius: 0, fontWeight: 900, cursor: 'pointer', fontSize: 12 };
+const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', padding: '6px 8px', borderBottom: `1px solid ${rq.border}`, background: rq.input, flexShrink: 0 };
+const panelTitleStyle = { color: rq.text, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' };
+const selectStyle = { minWidth: 118, maxWidth: '58%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: 0, padding: '5px 7px', fontSize: 10, outline: 'none' };
+const panelBodyStyle = { flex: 1, minHeight: 0, overflow: 'auto', padding: 8 };
+const openButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '4px 7px', borderRadius: 0, fontSize: 9, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' };
 const diceButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, minHeight: 42, borderRadius: 0, fontWeight: 900, cursor: 'pointer' };
 const placeholderStyle = { height: '100%', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: rq.input, border: `1px dashed ${rq.borderDefault}`, padding: 16 };

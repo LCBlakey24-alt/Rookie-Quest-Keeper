@@ -25,11 +25,11 @@ import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
 const theme = {
-  bg: { black: '#1F1F23', panel: 'rgba(39,39,43,0.96)', card: 'rgba(39,39,43,0.96)' },
-  accent: { primary: '#EF4444', subtle: 'rgba(239,68,68,0.12)', red: '#EF4444', redSubtle: 'rgba(239,68,68,0.12)' },
+  bg: { black: '#080B1A', panel: 'rgba(18,23,42,0.96)', card: 'rgba(23,30,51,0.96)' },
+  accent: { primary: '#7C3AED', subtle: 'rgba(124,58,237,0.12)', red: '#7C3AED', redSubtle: 'rgba(124,58,237,0.12)' },
   text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239,68,68,0.42)',
-  gradient: '#EF4444',
+  border: 'rgba(124,58,237,0.42)',
+  gradient: '#7C3AED',
 };
 
 
@@ -210,7 +210,7 @@ function CampaignDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible' }}>
       <header style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '8px 14px', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>

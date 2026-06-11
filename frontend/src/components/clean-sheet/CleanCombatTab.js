@@ -45,9 +45,15 @@ function getItemQuantity(item) {
 }
 
 function isWeaponLike(item) {
-  const name = normaliseName(getItemName(item));
   const type = normaliseName(item?.type || item?.category || item?.item_type || '');
-  return type.includes('weapon') || Boolean(findWeaponRule(item)) || Boolean(name);
+  return Boolean(
+    type.includes('weapon')
+    || findWeaponRule(item)
+    || item?.damage
+    || item?.damage_dice
+    || item?.dice
+    || item?.damageDice
+  );
 }
 
 function isConsumableLike(item) {

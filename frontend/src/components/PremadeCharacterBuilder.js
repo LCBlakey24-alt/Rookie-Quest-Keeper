@@ -77,10 +77,10 @@ export default function PremadeCharacterBuilder() {
     }
   };
 
-  const NAVY = '#0A1628';
-  const PANEL = '#0F2440';
-  const GOLD = '#D4A017';
-  const GOLD_BRIGHT = '#F5C542';
+  const NAVY = '#1F1F23';
+  const PANEL = '#27272B';
+  const GOLD = '#7C3AED';
+  const GOLD_BRIGHT = '#A78BFA';
   const TEXT = '#F8FAFC';
   const TEXT_MUTED = '#94A3B8';
   const inputStyle = {
@@ -139,7 +139,7 @@ export default function PremadeCharacterBuilder() {
           return (
             <div key={t.id} data-testid={`template-${t.id}`} style={{
               border: `1px solid ${isBest ? GOLD_BRIGHT : GOLD}`,
-              boxShadow: isBest ? `0 0 0 2px rgba(212, 160, 23, 0.2)` : 'none',
+              boxShadow: isBest ? `0 0 0 2px rgba(124, 58, 237, 0.20)` : 'none',
               borderRadius: 10, padding: 14, background: PANEL,
               display: 'flex', flexDirection: 'column', gap: 6
             }}>
