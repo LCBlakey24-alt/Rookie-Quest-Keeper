@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 
 // Recommended stat arrays by primary ability
@@ -67,6 +68,17 @@ export default function BasicCharacterBuilder() {
 
   const skillCount = cls?.skillCount || 2;
   const bgSkills = bgData?.skillProficiencies || [];
+
+  const applyRookBuild = (patch = {}) => {
+    if (patch.name !== undefined) setName(String(patch.name));
+    if (patch.character_class && CLASSES[patch.character_class]) setCharacterClass(patch.character_class);
+    if (patch.race && RACES[patch.race]) setRace(patch.race);
+    if (patch.background && BACKGROUND_OPTIONS[patch.background]) setBackground(patch.background);
+    if (patch.level !== undefined) {
+      const nextLevel = Math.min(20, Math.max(1, Number.parseInt(patch.level, 10) || 1));
+      setLevel(nextLevel);
+    }
+  };
 
   const toggleSkill = (skill) => {
     if (bgSkills.includes(skill)) return;
@@ -138,8 +150,24 @@ export default function BasicCharacterBuilder() {
   return (
     <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{, color: '#D4A017', margin: 0 }}>Basic Build</h1>
+        <h1 style={{ color: '#D4A017', margin: 0 }}>Basic Build</h1>
         <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, and traits.</p>
+
+        <RookFormFillPanel
+          title="Describe the character you want to play"
+          helperText="Rook can suggest a starter build, then import the class/race/background/level/name into these boxes."
+          section="player basic character build"
+          fields={[
+            { name: 'name', label: 'Character name', field_type: 'text' },
+            { name: 'character_class', label: 'Class', field_type: 'select', choices: Object.keys(CLASSES) },
+            { name: 'race', label: 'Race/species', field_type: 'select', choices: Object.keys(RACES) },
+            { name: 'background', label: 'Background', field_type: 'select', choices: Object.keys(BACKGROUND_OPTIONS) },
+            { name: 'level', label: 'Starting level', field_type: 'number' },
+          ]}
+          currentValues={{ name, character_class: characterClass, race, background, level }}
+          onApply={applyRookBuild}
+          placeholder="Example: I want to play a sneaky archer who avoids direct fights and talks their way out of trouble."
+        />
 
         <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
           <label style={{ fontSize: 12, color: '#94A3B8' }}>Character Name

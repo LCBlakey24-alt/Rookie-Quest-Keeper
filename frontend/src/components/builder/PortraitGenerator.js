@@ -57,7 +57,7 @@ export default function PortraitGenerator({ portrait = "", onChange }) {
       </div>
 
       <div style={{ color: theme.text.secondary, fontSize: 13, lineHeight: 1.55, marginBottom: 12 }}>
-        AI image generation is disabled for now to keep site costs under control. You can still upload a portrait, or create the character without one and add it later.
+        AI image generation has been removed from Rookie Quest Keeper. Upload a portrait, or create the character without one and add it later.
       </div>
 
       <label

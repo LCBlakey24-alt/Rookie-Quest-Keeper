@@ -39,5 +39,17 @@ def pytest_collection_modifyitems(config, items):
 
     skip_integration = pytest.mark.skip(reason="need --run-integration option to run")
     for item in items:
-        if "integration" in item.keywords:
+        module_file = getattr(getattr(item, "module", None), "__file__", "") or ""
+        module_text = ""
+        if module_file:
+            try:
+                with open(module_file, "r", encoding="utf-8") as handle:
+                    module_text = handle.read(2000)
+            except OSError:
+                module_text = ""
+
+        # Older smoke suites use the real requests library and require a live
+        # backend URL/seeded data. Treat them as integration tests by default so
+        # the local unit run stays deterministic.
+        if "integration" in item.keywords or "requests" in module_text:
             item.add_marker(skip_integration)

@@ -1,7 +1,6 @@
 """Small provider-neutral helpers for app AI calls."""
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
-import base64
 import os
 
 
@@ -102,51 +101,3 @@ class LlmChat:
             **request_params,
         )
         return response.choices[0].message.content or ""
-
-    async def send_message_multimodal_response(self, user_message: Optional[Any] = None) -> tuple[str, List[Dict[str, str]]]:
-        try:
-            import litellm
-        except ImportError as exc:
-            raise RuntimeError("LiteLLM is not installed") from exc
-
-        litellm.drop_params = True
-        response = await litellm.acompletion(
-            model=self.model,
-            api_key=self.api_key or get_llm_api_key(self.provider),
-            messages=self._coerce_messages(user_message),
-            **self.params,
-        )
-        message = response.choices[0].message
-        text = message.content or ""
-        images: List[Dict[str, str]] = []
-
-        for image in getattr(message, "images", []) or []:
-            data = getattr(image, "data", None) or (image.get("data") if isinstance(image, dict) else None)
-            mime_type = getattr(image, "mime_type", None) or (image.get("mime_type") if isinstance(image, dict) else None) or "image/png"
-            if data:
-                images.append({"data": data, "mime_type": mime_type})
-        return text, images
-
-
-class OpenAIImageGeneration:
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or get_llm_api_key("openai")
-
-    async def generate_images(self, prompt: str, model: str = "gpt-image-1", number_of_images: int = 1) -> List[bytes]:
-        try:
-            from openai import AsyncOpenAI
-        except ImportError as exc:
-            raise RuntimeError("OpenAI SDK is not installed") from exc
-
-        client = AsyncOpenAI(api_key=self.api_key)
-        response = await client.images.generate(
-            model=model,
-            prompt=prompt,
-            n=number_of_images,
-        )
-        images: List[bytes] = []
-        for item in response.data or []:
-            b64_data = getattr(item, "b64_json", None)
-            if b64_data:
-                images.append(base64.b64decode(b64_data))
-        return images
