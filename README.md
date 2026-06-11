@@ -9,7 +9,7 @@ The project started as **Ultimate DM Screen** and is now being shaped into **Roo
 - **Frontend:** React, React Router, CRACO, Tailwind/CSS modules, Radix UI components, Lucide icons, Sonner toasts
 - **Backend:** FastAPI, Pydantic, MongoDB via Motor, JWT authentication, WebSockets for live campaign sync
 - **Database:** MongoDB
-- **AI features:** Text-based Rook helpers, homebrew parsing, portrait-generation routes intentionally disabled unless registered
+- **AI features:** Text-based Rook helpers, homebrew parsing, structured form-fill suggestions; AI image generation is removed and visuals use manual uploads
 - **Rules direction:** SRD-safe / public-domain-friendly / homebrew-friendly content only. Do not paste protected publisher text into code.
 
 ## Project structure

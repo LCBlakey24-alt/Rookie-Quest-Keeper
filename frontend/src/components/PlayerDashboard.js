@@ -8,6 +8,7 @@ import {
   BookOpen,
   ChevronRight,
   FileText,
+  Mail,
   Link2,
   Plus,
   RefreshCw,
@@ -17,6 +18,7 @@ import {
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
+import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 
 const rq = {
   bg: 'var(--rq-bg-main, #1A1A1A)',
@@ -38,6 +40,7 @@ const tabs = [
   { id: 'characters', label: 'Characters', icon: Shield, testId: 'tab-characters' },
   { id: 'campaigns', label: 'Campaigns', icon: BookOpen, testId: 'tab-campaigns' },
   { id: 'notes', label: 'Notes', icon: FileText, testId: 'tab-notes' },
+  { id: 'handouts', label: 'Received', icon: Mail, testId: 'tab-handouts' },
 ];
 
 export default function PlayerDashboard() {
@@ -54,6 +57,38 @@ export default function PlayerDashboard() {
     () => characters.find(character => character.id === selectedCharacterId) || characters[0] || null,
     [characters, selectedCharacterId]
   );
+
+  const activeTabMeta = useMemo(
+    () => tabs.find(tab => tab.id === activeTab) || tabs[0],
+    [activeTab]
+  );
+
+  const linkedCampaigns = useMemo(() => {
+    const campaignMap = new Map();
+
+    campaigns.forEach(campaign => {
+      if (campaign?.id) campaignMap.set(campaign.id, campaign);
+    });
+
+    characters.forEach(character => {
+      const id = character.campaign_id || character.campaignId;
+      if (!id || campaignMap.has(id)) return;
+      campaignMap.set(id, {
+        id,
+        name: character.campaign_name || 'Linked Campaign',
+        description: character.campaign_description || '',
+        from_character: character.name,
+      });
+    });
+
+    return Array.from(campaignMap.values());
+  }, [campaigns, characters]);
+
+  const playerSummaryCards = useMemo(() => ([
+    { label: 'Characters', value: characters.length, icon: Shield, detail: characters.length === 1 ? 'ready hero' : 'ready heroes' },
+    { label: 'Campaigns', value: linkedCampaigns.length, icon: BookOpen, detail: linkedCampaigns.length === 1 ? 'linked table' : 'linked tables' },
+    { label: 'Active Character', value: selectedCharacter?.name || 'None yet', icon: Users, detail: selectedCharacter ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}` : 'Create one to begin' },
+  ]), [characters.length, linkedCampaigns.length, selectedCharacter]);
 
   useEffect(() => {
     loadPlayerData();
@@ -102,27 +137,6 @@ export default function PlayerDashboard() {
     setJoinOpen(true);
   };
 
-  const linkedCampaigns = useMemo(() => {
-    const campaignMap = new Map();
-
-    campaigns.forEach(campaign => {
-      if (campaign?.id) campaignMap.set(campaign.id, campaign);
-    });
-
-    characters.forEach(character => {
-      const id = character.campaign_id || character.campaignId;
-      if (!id || campaignMap.has(id)) return;
-      campaignMap.set(id, {
-        id,
-        name: character.campaign_name || 'Linked Campaign',
-        description: character.campaign_description || '',
-        from_character: character.name,
-      });
-    });
-
-    return Array.from(campaignMap.values());
-  }, [campaigns, characters]);
-
   if (loading) {
     return (
       <main style={pageStyle}>
@@ -144,7 +158,7 @@ export default function PlayerDashboard() {
             <p style={subtitleStyle}>Create a character, join a GM campaign, and keep player-facing notes in one place.</p>
           </div>
         </div>
-        <div style={heroActionsStyle}>
+        <div className="player-dashboard-actions" style={heroActionsStyle}>
           <Button onClick={refresh} className="btn-outline" style={actionButtonStyle} disabled={refreshing}>
             <RefreshCw size={16} style={{ opacity: refreshing ? 0.6 : 1 }} />
             Refresh
@@ -175,6 +189,29 @@ export default function PlayerDashboard() {
         </section>
       )}
 
+      <section className="player-desktop-context" style={desktopContextStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Current Player Space</p>
+          <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
+          <p style={desktopTextStyle}>Desktop gives players a quick command centre for sheets, linked campaigns, notes, and GM handouts without squeezing everything into a phone layout.</p>
+        </div>
+        <div style={summaryGridStyle}>
+          {playerSummaryCards.map(card => {
+            const Icon = card.icon;
+            return (
+              <div key={card.label} style={summaryCardStyle}>
+                <Icon size={18} color={rq.accentHover} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={summaryLabelStyle}>{card.label}</p>
+                  <strong style={summaryValueStyle}>{card.value}</strong>
+                  <span style={summaryDetailStyle}>{card.detail}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <nav style={tabBarStyle} aria-label="Player dashboard tabs">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -191,6 +228,9 @@ export default function PlayerDashboard() {
       {activeTab === 'characters' && <CharactersTab characters={characters} navigate={navigate} onCreate={() => navigate('/characters/new')} onJoin={openJoinFlow} />}
       {activeTab === 'campaigns' && <CampaignsTab campaigns={linkedCampaigns} navigate={navigate} onJoin={openJoinFlow} />}
       {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
+      {activeTab === 'handouts' && <PlayerHandoutsPanel />}
+
+      <style>{`@media (max-width: 1024px) { .player-desktop-context { display: none !important; } } @media (max-width: 720px) { .player-dashboard-actions { width: 100%; } }`}</style>
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
@@ -289,20 +329,28 @@ function EmptyPanel({ icon: Icon, title, text, action }) {
   );
 }
 
-const pageStyle = { minHeight: '100vh', background: rq.bg, padding: '24px', color: rq.text };
+const pageStyle = { minHeight: '100vh', background: rq.bg, padding: 'var(--rq-space-page, 24px)', color: rq.text, maxWidth: 1680, margin: '0 auto' };
 const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '20px', flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '20px' };
 const iconButtonStyle = { minWidth: 40, height: 40, padding: 0, borderRadius: rq.radiusSm };
 const eyebrowStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 4px' };
 const titleStyle = { color: rq.text, fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
 const subtitleStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.5, margin: '8px 0 0', maxWidth: 720 };
 const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' };
+const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(420px, 0.9fr)', gap: '18px', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(56,189,248,0.10), rgba(193,18,31,0.06))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '18px', marginBottom: '18px', boxShadow: '0 18px 50px rgba(0,0,0,0.20)' };
+const desktopTitleStyle = { color: rq.text, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
+const desktopTextStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.55, margin: '8px 0 0', maxWidth: 760 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px', minWidth: 0 };
+const summaryCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, background: 'rgba(255,255,255,0.055)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '12px' };
+const summaryLabelStyle = { color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, margin: '0 0 4px' };
+const summaryValueStyle = { display: 'block', color: rq.text, fontSize: 16, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const summaryDetailStyle = { display: 'block', color: rq.textSecondary, fontSize: 12, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const actionButtonStyle = { display: 'flex', alignItems: 'center', gap: '8px', borderRadius: rq.radiusSm, fontWeight: 900 };
 const joinStripStyle = { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '12px', marginBottom: '18px' };
 const joinLabelStyle = { color: rq.textSecondary, fontSize: 13, fontWeight: 900 };
 const selectStyle = { minWidth: 220, flex: '1 1 220px', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px' };
-const tabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '20px' };
+const tabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '8px', marginBottom: '20px' };
 const tabButtonStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: active ? rq.accentSoft : rq.panel, border: `1px solid ${active ? rq.accent : rq.border}`, color: active ? rq.accentHover : rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer', fontWeight: 900 });
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' };
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '16px' };
 const cardStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius };
 const cardContentStyle = { padding: '18px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' };
 const cardTitleStyle = { color: rq.text, fontSize: 18, fontWeight: 900, margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };

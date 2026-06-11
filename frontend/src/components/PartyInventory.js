@@ -8,7 +8,8 @@ import {
   Sword, Shield, FlaskConical, ScrollText, Gem, Search, Users, GripVertical, ArrowRight,
   Dice5, Split, Wand2, Gift
 } from 'lucide-react';
-import AIImageGeneratorPanel from '@/components/AIImageGeneratorPanel';
+import ImageUploadPanel from '@/components/ImageUploadPanel';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 
 
 const ITEM_TYPES = [
@@ -573,25 +574,45 @@ function PartyInventory({ campaignId, players = [] }) {
                     <input type="checkbox" checked={newItem.is_magical} onChange={(e) => setNewItem({ ...newItem, is_magical: e.target.checked })} style={{ accentColor: '#eab308' }} />
                     Magic
                   </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={newItem.attunement_required} onChange={(e) => setNewItem({ ...newItem, attunement_required: e.target.checked })} style={{ accentColor: '#eab308' }} />
+                    Attunement
+                  </label>
                 </div>
               </div>
-              <div style={{ marginTop: '10px' }}>
-                <AIImageGeneratorPanel
-                  title="AI Item Image"
-                  subtitle="Inventory item, armor, weapon, or equipment art."
-                  buttonLabel="Generate 3 Images"
-                  disabled={!newItem.name.trim()}
+              <RookFormFillPanel
+                title="Ask Rook to fill this item"
+                helperText="Describe the loot, clue, reward, or shop item. Import Rook's suggestions into the item boxes instead of copying one big text block."
+                section="GM party inventory item"
+                campaignId={campaignId}
+                fields={[
+                  { name: 'name', label: 'Item name', field_type: 'text' },
+                  { name: 'item_type', label: 'Item type', field_type: 'select', choices: ITEM_TYPES.map(type => type.id) },
+                  { name: 'value', label: 'Value', field_type: 'text' },
+                  { name: 'description', label: 'Description', field_type: 'textarea' },
+                  { name: 'notes', label: 'GM notes', field_type: 'textarea' },
+                  { name: 'is_magical', label: 'Magical?', field_type: 'boolean' },
+                  { name: 'attunement_required', label: 'Requires attunement?', field_type: 'boolean' },
+                ]}
+                currentValues={newItem}
+                onApply={(patch) => setNewItem(prev => ({ ...prev, ...patch }))}
+                placeholder="Example: Create a low-level magic dagger from a thieves guild cache, useful but not overpowered."
+              />
+              <div style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Description</label>
+                  <textarea value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="input-glow" placeholder="What does this item do or look like?" style={{ width: '100%', minHeight: '62px', fontSize: '12px', padding: '8px', resize: 'vertical' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>GM Notes</label>
+                  <textarea value={newItem.notes} onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })} className="input-glow" placeholder="Secret properties, origin, or who wants it back..." style={{ width: '100%', minHeight: '52px', fontSize: '12px', padding: '8px', resize: 'vertical' }} />
+                </div>
+                <ImageUploadPanel
+                  title="Item image upload"
+                  subtitle="Upload your own item artwork. AI image generation is not available."
                   selectedImage={newItem.image_url}
                   onSelectImage={(src) => setNewItem(prev => ({ ...prev, image_url: src }))}
                   onClearImage={() => setNewItem(prev => ({ ...prev, image_url: '' }))}
-                  payload={{
-                    subject_type: 'item',
-                    name: newItem.name || 'inventory item',
-                    item_type: ITEM_TYPES.find(t => t.id === newItem.item_type)?.label || newItem.item_type,
-                    rarity: newItem.is_magical ? 'magical' : 'common',
-                    description: newItem.description || newItem.notes || '',
-                    properties: newItem.attunement_required ? 'requires attunement' : '',
-                  }}
                 />
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>

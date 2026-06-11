@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Swords, Users, Coins, Play, ArrowRight, Zap, Skull, UserCircle, Search, X, Save, UserCheck, Eraser } from 'lucide-react';
+import { Swords, Users, Coins, Play, ArrowRight, Zap, Skull, UserCircle, Search, X, Save, UserCheck, Eraser, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
@@ -44,6 +44,51 @@ function npcToCombatant(npc, index = 0) {
   };
 }
 
+
+function playtestCreatureToCreature(record, index = 0) {
+  const data = record?.data || {};
+  const stats = data.stats || data.abilities || {};
+  return {
+    ...data,
+    id: `playtest-${record.id || data.id || data.name || index}`,
+    name: data.name || record.name || 'Imported Creature',
+    ac: data.ac ?? data.armor_class,
+    armor_class: data.armor_class ?? data.ac,
+    hp: data.hp ?? data.hit_points ?? data.max_hp ?? data.maxHitPoints,
+    hit_points: data.hit_points ?? data.hp ?? data.max_hp ?? data.maxHitPoints,
+    abilities: data.abilities || stats,
+    stats,
+    actions: data.actions || data.attacks || [],
+    description: data.description || data.notes || '',
+    source: data.source || record.source_type || 'Private playtest pack',
+    sourceLabel: `Private ${record.edition || ''} playtest`,
+    is_playtest_import: true,
+  };
+}
+
+function combatReadinessWarnings(combatants = []) {
+  const warnings = [];
+  if (combatants.length === 0) {
+    warnings.push('No combatants selected.');
+    return warnings;
+  }
+  if (!combatants.some(combatant => combatant.type === 'player')) warnings.push('No player characters selected.');
+  if (!combatants.some(combatant => combatant.type !== 'player')) warnings.push('No enemies selected.');
+
+  const missingHp = combatants.filter(combatant => !Number.isFinite(Number(combatant.hp ?? combatant.maxHp))).map(combatant => combatant.name);
+  if (missingHp.length) warnings.push(`Missing HP for ${missingHp.slice(0, 3).join(', ')}${missingHp.length > 3 ? '…' : ''}.`);
+
+  const missingAc = combatants.filter(combatant => !Number.isFinite(Number(combatant.ac))).map(combatant => combatant.name);
+  if (missingAc.length) warnings.push(`Missing AC for ${missingAc.slice(0, 3).join(', ')}${missingAc.length > 3 ? '…' : ''}.`);
+
+  const enemiesWithoutActions = combatants
+    .filter(combatant => combatant.type !== 'player' && !combatant.actions?.length && !combatant.description)
+    .map(combatant => combatant.name);
+  if (enemiesWithoutActions.length) warnings.push(`No actions/description for ${enemiesWithoutActions.slice(0, 3).join(', ')}${enemiesWithoutActions.length > 3 ? '…' : ''}.`);
+
+  return warnings;
+}
+
 function creatureToCombatant(creature, index = 0) {
   const maxHp = toNumber(creature.hp ?? creature.maxHp ?? creature.hit_points, 10);
   return {
@@ -77,13 +122,16 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     async function loadQuickLists() {
       try {
         setLoadingLists(true);
-        const [npcRes, creatureRes] = await Promise.all([
+        const [npcRes, creatureRes, playtestCreatureRes] = await Promise.all([
           apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
           apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
+          apiClient.get(`/user/content/playtest-content?${new URLSearchParams({ content_type: 'creatures', campaign_id: campaignId }).toString()}`).catch(() => ({ data: { records: [] } })),
         ]);
         if (!cancelled) {
+          const customCreatures = Array.isArray(creatureRes.data) ? creatureRes.data : creatureRes.data?.creatures || [];
+          const playtestCreatures = (playtestCreatureRes.data?.records || []).map(playtestCreatureToCreature);
           setNpcs(Array.isArray(npcRes.data) ? npcRes.data : npcRes.data?.npcs || []);
-          setCreatures(Array.isArray(creatureRes.data) ? creatureRes.data : creatureRes.data?.creatures || []);
+          setCreatures([...customCreatures, ...playtestCreatures]);
         }
       } finally {
         if (!cancelled) setLoadingLists(false);
@@ -119,6 +167,9 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     return combatants;
   }, [players, npcs, creatures, selected]);
 
+  const quickCombatWarnings = useMemo(() => combatReadinessWarnings(selectedCombatants), [selectedCombatants]);
+  const savedEncounterWarnings = useMemo(() => combatReadinessWarnings(selectedScenario?.combatants || []), [selectedScenario]);
+
   const toggleSelected = (group, id) => {
     setSelected(prev => ({ ...prev, [group]: { ...prev[group], [id]: !prev[group][id] } }));
   };
@@ -153,6 +204,7 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
       toast.error('Pick at least one fighter first');
       return;
     }
+    if (quickCombatWarnings.length > 0) toast.warning(`Combat readiness: ${quickCombatWarnings[0]}`);
     launchCombat(buildQuickScenario());
   };
 
@@ -218,6 +270,8 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
           </div>
         )}
 
+        {quickCombatWarnings.length > 0 && selectedCount > 0 && <ReadinessWarnings warnings={quickCombatWarnings} />}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
           <PickList title="Players" icon={Users} loading={false} items={filtered(players)} selectedMap={selected.players} onToggle={(id) => toggleSelected('players', id)} />
           <PickList title="NPCs" icon={UserCircle} loading={loadingLists} items={filtered(npcs)} selectedMap={selected.npcs} onToggle={(id) => toggleSelected('npcs', id)} />
@@ -266,6 +320,7 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
           {selectedScenario && (
             <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, padding: '14px' }}>
               <h4 style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '800', marginBottom: '10px' }}>{selectedScenario.name}</h4>
+              {savedEncounterWarnings.length > 0 && <ReadinessWarnings warnings={savedEncounterWarnings} />}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {selectedScenario.combatants?.slice(0, 6).map(c => <div key={c.id} style={{ background: c.type === 'player' ? 'rgba(74,125,255,0.18)' : 'rgba(239,68,68,0.18)', border: `1px solid ${c.type === 'player' ? '#4a7dff' : '#EF4444'}`, padding: '6px 10px', borderRadius: 0, fontSize: '13px', color: theme.text.primary }}>{c.name}{c.loot?.length > 0 && <Coins size={10} style={{ marginLeft: '4px', color: '#F59E0B' }} />}</div>)}
                 {selectedScenario.combatants?.length > 6 && <div style={{ padding: '6px 10px', fontSize: '13px', color: theme.text.muted }}>+{selectedScenario.combatants.length - 6} more</div>}
@@ -277,6 +332,19 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
 
       <div style={{ marginTop: '24px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, padding: '16px' }}>
         <InitiativeTracker theme={theme} campaignId={campaignId} combatants={selectedCombatants.length ? selectedCombatants : selectedScenario?.combatants || []} />
+      </div>
+    </div>
+  );
+}
+
+function ReadinessWarnings({ warnings }) {
+  if (!warnings?.length) return null;
+  return (
+    <div style={readinessWarningStyle} data-testid="combat-readiness-warnings">
+      <AlertTriangle size={15} color="#F59E0B" />
+      <div style={{ display: 'grid', gap: 3 }}>
+        <strong>Readiness warnings</strong>
+        {warnings.map((warning, index) => <span key={`${warning}-${index}`}>{warning}</span>)}
       </div>
     </div>
   );
@@ -298,14 +366,15 @@ function CreaturePickList({ title, icon: Icon, loading, items, counts, onAdjust 
   return (
     <div style={listWrapStyle}>
       <h4 style={listTitleStyle}><Icon size={16} /> {title}</h4>
-      {loading ? <p style={emptyTextStyle}>Loading...</p> : items.length === 0 ? <p style={emptyTextStyle}>No custom creatures found.</p> : items.slice(0, 60).map(item => {
+      {loading ? <p style={emptyTextStyle}>Loading...</p> : items.length === 0 ? <p style={emptyTextStyle}>No custom or private playtest creatures found.</p> : items.slice(0, 60).map(item => {
         const count = counts[item.id] || 0;
-        return <div key={item.id || item.name} style={creatureRowStyle(count > 0)}><div style={{ minWidth: 0 }}><strong>{item.name || 'Creature'}</strong><small>AC {item.ac || item.armor_class || '—'} · HP {item.hp || item.maxHp || item.hit_points || '—'}</small></div><div style={{ display: 'flex', gap: 4, alignItems: 'center' }}><button type="button" onClick={() => onAdjust(item.id, -1)} style={countButtonStyle}>−</button><span style={{ minWidth: 18, textAlign: 'center' }}>{count}</span><button type="button" onClick={() => onAdjust(item.id, 1)} style={countButtonStyle}>+</button></div></div>;
+        return <div key={item.id || item.name} style={creatureRowStyle(count > 0)}><div style={{ minWidth: 0 }}><strong>{item.name || 'Creature'}</strong><small>AC {item.ac || item.armor_class || '—'} · HP {item.hp || item.maxHp || item.hit_points || '—'}{item.is_playtest_import ? ' · Playtest' : ''}</small></div><div style={{ display: 'flex', gap: 4, alignItems: 'center' }}><button type="button" onClick={() => onAdjust(item.id, -1)} style={countButtonStyle}>−</button><span style={{ minWidth: 18, textAlign: 'center' }}>{count}</span><button type="button" onClick={() => onAdjust(item.id, 1)} style={countButtonStyle}>+</button></div></div>;
       })}
     </div>
   );
 }
 
+const readinessWarningStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)', color: '#FDE68A', padding: 10, marginBottom: 12, fontSize: 12, lineHeight: 1.45 };
 const listWrapStyle = { background: 'rgba(0,0,0,0.16)', border: '1px solid rgba(239,68,68,0.28)', padding: 10, minHeight: 160 };
 const listTitleStyle = { color: '#FFFFFF', fontSize: 14, fontWeight: 900, margin: '0 0 8px', display: 'flex', gap: 7, alignItems: 'center' };
 const emptyTextStyle = { color: '#9CA3AF', fontSize: 12, margin: 0 };

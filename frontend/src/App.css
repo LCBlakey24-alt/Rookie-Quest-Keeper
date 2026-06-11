@@ -8,6 +8,101 @@
   box-sizing: border-box;
 }
 
+
+/* ===== RESPONSIVE SAFETY & DESIGN TOKENS ===== */
+:root {
+  --rq-role-gm: #EF4444;
+  --rq-role-player: #38BDF8;
+  --rq-role-rook: #A855F7;
+  --rq-role-homebrew: #14B8A6;
+  --rq-role-lore: #F59E0B;
+  --rq-surface-soft: rgba(255,255,255,0.06);
+  --rq-space-page: clamp(12px, 4vw, 24px);
+  --rq-touch-target: 44px;
+}
+
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+.rq-page-shell {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--rq-space-page);
+  min-width: 0;
+}
+
+.rq-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: clamp(12px, 3vw, 20px);
+  min-width: 0;
+}
+
+.rq-scroll-x {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rq-role-rook { border-color: rgba(168,85,247,0.38) !important; }
+.rq-role-homebrew { border-color: rgba(20,184,166,0.38) !important; }
+.rq-role-player { border-color: rgba(56,189,248,0.38) !important; }
+.rq-role-lore { border-color: rgba(245,158,11,0.38) !important; }
+
+
+@media (min-width: 1025px) {
+  :root {
+    --rq-space-page: clamp(20px, 2.4vw, 40px);
+  }
+
+  .rq-page-shell {
+    max-width: 1680px;
+  }
+
+  .rq-responsive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .card,
+  .glow-card,
+  .glow-panel {
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 720px) {
+  body {
+    font-size: 15px;
+  }
+
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline {
+    min-height: var(--rq-touch-target);
+  }
+
+
+  .card,
+  .glow-card,
+  .glow-panel,
+  .parchment-dark {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* ==================== SMOKEY BACKGROUND EFFECT ==================== */
 .smokey-bg {
   position: fixed;
@@ -1551,4 +1646,14 @@ select option {
     animation: none;
     opacity: 0;
   }
+}
+
+@keyframes rookSharePulse {
+  0% { transform: translateY(-4px) scale(0.98); opacity: 0; box-shadow: 0 0 0 rgba(168,85,247,0); }
+  45% { transform: translateY(0) scale(1.01); opacity: 1; box-shadow: 0 0 28px rgba(168,85,247,0.28); }
+  100% { transform: translateY(0) scale(1); opacity: 1; box-shadow: 0 0 10px rgba(168,85,247,0.12); }
+}
+
+.rook-share-alert {
+  animation: rookSharePulse 650ms ease-out both;
 }

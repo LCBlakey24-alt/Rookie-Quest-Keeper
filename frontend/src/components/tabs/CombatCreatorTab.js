@@ -411,7 +411,7 @@ function CombatCreatorTab({ campaignId }) {
         title="Combat Creator Tips"
       />
       
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 'clamp(14px, 4vw, 24px)', minWidth: 0 }}>
       {/* Saved Scenarios */}
       <div>
         <h3 style={{ fontSize: '18px', color: '#ffffff', marginBottom: '16px', fontWeight: '700' }}>

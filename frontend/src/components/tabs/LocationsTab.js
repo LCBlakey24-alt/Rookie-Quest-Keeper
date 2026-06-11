@@ -621,7 +621,7 @@ function ToggleButton({ active, onClick, icon: Icon, label }) {
   );
 }
 
-const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 400px)', gap: '24px' };
+const layoutStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 'clamp(14px, 4vw, 24px)', minWidth: 0 };
 const topBarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' };
 const headingStyle = { fontSize: '28px', color: rq.text, marginBottom: '24px' };
 const countStyle = { fontSize: '18px', color: rq.muted };
