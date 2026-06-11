@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { deriveArmorClass, deriveWeaponAttack } from '@/data/characterCombatDerivations';
+import { ALL_ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
 const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
@@ -62,6 +63,24 @@ function getEquippedItem(equipped = {}, slot) {
 
 function getItemKey(item, index = '') {
   return `${getItemName(item).toLowerCase()}-${index}`;
+}
+
+
+function normaliseReferenceItem(item) {
+  const isArmor = ['light', 'medium', 'heavy', 'shield'].includes(String(item?.category || '').toLowerCase()) || item?.ac || item?.acBonus;
+  const isShield = String(item?.category || '').toLowerCase() === 'shield' || String(item?.name || '').toLowerCase().includes('shield');
+  const damageParts = String(item?.damage || '').match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
+  return normaliseItem({
+    name: item?.name || 'Equipment',
+    type: isShield ? 'Shield' : isArmor ? 'Armour' : 'Weapon',
+    quantity: 1,
+    description: [item?.category, Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties, item?.cost ? `Cost: ${item.cost}` : ''].filter(Boolean).join(' • '),
+    damage_dice: damageParts && !isArmor ? damageParts[1] : '',
+    damage_type: damageParts && !isArmor ? (item?.damageType || damageParts[2] || '') : '',
+    range: item?.range || '',
+    properties: Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties || '',
+    ac_bonus: 0,
+  });
 }
 
 function normaliseItem(item) {
@@ -138,7 +157,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
   const [itemSearch, setItemSearch] = useState('');
-  const [equippedAttackBonus, setEquippedAttackBonus] = useState(0);
+
   const equipped = character?.equipped || {};
   const equipment = character?.equipment || [];
   const inventory = character?.inventory || [];
@@ -153,16 +172,29 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
     return allCarriedItems.filter(item => `${getItemName(item)} ${getItemDetail(item)}`.toLowerCase().includes(q));
   }, [allCarriedItems, itemSearch]);
 
+  const referenceMatches = useMemo(() => {
+    const q = itemSearch.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return [...ALL_WEAPONS, ...ALL_ARMOR]
+      .filter(item => `${item.name} ${item.category || ''} ${item.damage || ''}`.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [itemSearch]);
+
+  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+
   const makeWeaponRoll = (item) => {
+    const attack = deriveWeaponAttack(item, character, proficiencyBonus);
     const roll = Math.floor(Math.random() * 20) + 1;
-    const total = roll + (Number(equippedAttackBonus) || 0);
-    toast.success(`${getItemName(item)} attack: ${roll}${equippedAttackBonus ? ` + ${equippedAttackBonus}` : ''} = ${total}`);
+    const total = roll + Number(attack.attackMod || 0);
+    toast.success(`${attack.title} attack: ${roll} ${attack.attackText} = ${total}`, {
+      description: `${attack.damageText} ${attack.damageType || ''} damage if it hits`,
+    });
   };
 
   const saveEquipped = async (nextEquipped, slotLabel) => {
     setSavingSlot(slotLabel);
     try {
-      const derivedAc = deriveArmorClass({ ...character, equipped: nextEquipped });
+      const derivedAc = deriveArmorClass({ ...character, equipped: nextEquipped }, { ignoreStoredAc: true });
       await apiClient.patch(`/characters/${character.id}`, { equipped: nextEquipped, armor_class: derivedAc });
       onCharacterUpdate?.({ equipped: nextEquipped, armor_class: derivedAc });
       toast.success('Equipment updated');
@@ -189,7 +221,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   };
 
   const equipItem = (slot, item) => {
-    const nextEquipped = { ...equipped, [slot]: item };
+    const nextEquipped = { ...equipped, [slot]: normaliseItem({ ...normaliseItem(item), equip_slot: slot }) };
     saveEquipped(nextEquipped, slot);
   };
 
@@ -228,6 +260,26 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
     if (ok) {
       setNewItem(blankItem);
       setShowAddItem(false);
+    }
+  };
+
+  const addReferenceItem = async (referenceItem, shouldEquip = false) => {
+    const item = normaliseReferenceItem(referenceItem);
+    const nextInventory = [...inventory, item];
+    const slot = inferEquipSlot(item);
+    const nextEquipped = shouldEquip && slot ? { ...equipped, [slot]: { ...item, equip_slot: slot } } : equipped;
+    const updates = shouldEquip && slot
+      ? { inventory: nextInventory, equipped: nextEquipped, armor_class: deriveArmorClass({ ...character, equipped: nextEquipped }, { ignoreStoredAc: true }) }
+      : { inventory: nextInventory };
+    setSavingItems(true);
+    try {
+      await apiClient.patch(`/characters/${character.id}`, updates);
+      onCharacterUpdate?.(updates);
+      toast.success(shouldEquip && slot ? `${item.name} added and equipped` : `${item.name} added`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not add equipment');
+    } finally {
+      setSavingItems(false);
     }
   };
 
@@ -276,8 +328,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
         <div className="clean-sheet-inventory-header">
           <h2>Equipped</h2>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <label style={{ fontSize: 12 }}>Atk Bonus</label>
-            <input type="number" value={equippedAttackBonus} onChange={e => setEquippedAttackBonus(Number(e.target.value) || 0)} style={{ width: 70 }} />
+            <span style={{ fontSize: 12, color: 'var(--cs-text-soft)' }}>Equipping armour recalculates AC. Equipping weapons adds combat attacks.</span>
             <button type="button" onClick={() => setShowAddItem(prev => !prev)}>{showAddItem ? 'Close Add Item' : 'Add Item'}</button>
           </div>
         </div>
@@ -290,7 +341,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
                 slot={label}
                 item={item}
                 actions={(<>
-                  {String(item?.type || '').toLowerCase().includes('weapon') && <button type="button" onClick={() => makeWeaponRoll(item)}>Attack Roll</button>}
+                  {(['mainHand', 'offHand'].includes(slot) || item?.damage_dice || item?.damage || String(item?.type || '').toLowerCase().includes('weapon')) && <button type="button" onClick={() => makeWeaponRoll(item)}>Attack Roll</button>}
                   <button type="button" onClick={() => clearSlot(slot)} disabled={savingSlot === slot}>Clear Slot</button>
                 </>)}
               />
@@ -388,6 +439,21 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
           <h2>Carried Items</h2>
           <input value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder="Search items…" />
         </div>
+        {referenceMatches.length > 0 && (
+          <div className="clean-sheet-reference-match-grid">
+            {referenceMatches.map(item => {
+              const refItem = normaliseReferenceItem(item);
+              const slot = inferEquipSlot(refItem);
+              return (
+                <div key={`${item.category || item.type || 'gear'}-${item.name}`} className="clean-sheet-reference-match">
+                  <div><strong>{item.name}</strong><span>{item.damage || item.ac ? `${item.damage || `AC ${item.ac}`}` : item.category}</span></div>
+                  <button type="button" onClick={() => addReferenceItem(item, false)} disabled={savingItems}>Add</button>
+                  {slot && <button type="button" onClick={() => addReferenceItem(item, true)} disabled={savingItems}>Add & Equip</button>}
+                </div>
+              );
+            })}
+          </div>
+        )}
         {filteredInventory.length > 0 ? (
           <div className="clean-sheet-item-grid">
             {filteredInventory.map((item, index) => (

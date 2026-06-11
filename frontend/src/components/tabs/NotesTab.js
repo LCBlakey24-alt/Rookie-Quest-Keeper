@@ -119,14 +119,14 @@ function NotesTab({ campaignId }) {
           <p style={{ color: '#8b7355' }}>No notes yet. Add your campaign notes, lore, locations, and quests!</p>
         </Card>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: 'clamp(14px, 4vw, 24px)', minWidth: 0 }}>
           <div>
             {tabs.map(tab => (
               <Card key={tab.id} data-testid={`note-item-${tab.id}`} onClick={() => setSelectedTab(tab)} className="card" style={{ cursor: 'pointer', marginBottom: '12px', background: selectedTab?.id === tab.id ? 'rgba(212, 175, 55, 0.15)' : 'rgba(45, 36, 22, 0.9)', border: selectedTab?.id === tab.id ? '1px solid #d4af37' : '1px solid #5a4a2f' }}>
                 <CardContent style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
                     <FileText size={18} style={{ color: '#d4af37', marginTop: '2px' }} />
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <h3 className="medieval-heading" style={{ fontSize: '16px', color: '#d4af37', marginBottom: '8px' }}>{tab.title}</h3>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <Button data-testid={`edit-note-btn-${tab.id}`} onClick={(e) => { e.stopPropagation(); handleEdit(tab); }} className="btn-icon" style={{ padding: '4px' }}><Edit size={14} /></Button>
@@ -139,10 +139,10 @@ function NotesTab({ campaignId }) {
             ))}
           </div>
 
-          <Card className="parchment-dark" style={{ minHeight: '500px' }}>
+          <Card className="parchment-dark" style={{ minHeight: 'min(500px, 70vh)', minWidth: 0, overflowWrap: 'anywhere' }}>
             {selectedTab ? (
-              <CardContent style={{ padding: '32px' }}>
-                <h2 className="medieval-heading" style={{ fontSize: '32px', color: '#d4af37', marginBottom: '24px' }}>{selectedTab.title}</h2>
+              <CardContent style={{ padding: 'clamp(18px, 5vw, 32px)' }}>
+                <h2 className="medieval-heading" style={{ fontSize: 'clamp(22px, 8vw, 32px)', color: '#d4af37', marginBottom: '24px', overflowWrap: 'anywhere' }}>{selectedTab.title}</h2>
                 <div style={{ color: '#e8dcc4', fontSize: '16px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{selectedTab.content || 'No content yet.'}</div>
               </CardContent>
             ) : (

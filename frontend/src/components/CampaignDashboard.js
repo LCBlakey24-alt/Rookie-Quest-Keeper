@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, ArrowLeft, Backpack, Book, ChevronDown, ChevronRight, Church, Clock, Compass, FileText, Globe, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Sparkles, Swords, Upload, UserCircle, Users, Wand2, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Sparkles, Swords, Upload, UserCircle, Users, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import GodsTab from '@/components/tabs/GodsTab';
@@ -11,6 +11,7 @@ import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
 import SessionRecapAI from '@/components/SessionRecapAI';
+import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
 import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
@@ -19,14 +20,70 @@ import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab
 import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
+import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
+import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
+import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
 const theme = {
-  bg: { black: '#1F1F23', panel: 'rgba(39,39,43,0.96)', card: 'rgba(39,39,43,0.96)' },
-  accent: { primary: '#EF4444', subtle: 'rgba(239,68,68,0.12)', red: '#EF4444', redSubtle: 'rgba(239,68,68,0.12)' },
+  bg: { black: '#080B1A', panel: 'rgba(18,23,42,0.96)', card: 'rgba(23,30,51,0.96)' },
+  accent: { primary: '#7C3AED', subtle: 'rgba(124,58,237,0.12)', red: '#7C3AED', redSubtle: 'rgba(124,58,237,0.12)' },
   text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239,68,68,0.42)',
-  gradient: '#EF4444',
+  border: 'rgba(124,58,237,0.42)',
+  gradient: '#7C3AED',
 };
+
+
+const sessionPrepTheme = {
+  bg: {
+    primary: '#080B1A',
+    surface: '#12172A',
+    elevated: '#202A46',
+    panel: '#12172A',
+    card: '#171E33',
+    hover: 'rgba(124, 58, 237, 0.12)',
+  },
+  accent: {
+    primary: '#7C3AED',
+    secondary: '#B91C1C',
+    gold: '#7C3AED',
+    orange: '#A78BFA',
+    hover: '#A78BFA',
+    subtle: 'rgba(124, 58, 237, 0.12)',
+    glow: 'none',
+    gm: '#7C3AED',
+    gmSubtle: 'rgba(124, 58, 237, 0.12)',
+  },
+  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
+  border: 'rgba(124, 58, 237, 0.42)',
+  gradient: '#7C3AED',
+};
+
+
+const workspacePanelStyle = {
+  background: 'linear-gradient(180deg, rgba(18,23,42,0.94), rgba(8,11,26,0.96))',
+  border: `1px solid ${theme.border}`,
+  borderRadius: 8,
+  padding: 'clamp(14px, 2vw, 24px)',
+  minHeight: 500,
+  minWidth: 0,
+  boxShadow: '0 18px 50px rgba(0,0,0,0.28)',
+};
+
+const desktopContextStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 16,
+  marginBottom: 14,
+  padding: '14px 16px',
+  background: 'rgba(255,255,255,0.035)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 8,
+  minWidth: 0,
+};
+const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase' };
+const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, overflowWrap: 'anywhere' };
+const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.accent.subtle, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' };
 
 const tabGroups = [
   { id: 'overview', label: 'Overview', icon: Book, tabs: [
@@ -45,7 +102,10 @@ const tabGroups = [
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
   ] },
   { id: 'sessions', label: 'Sessions', icon: Sparkles, tabs: [
+    { id: 'tonight', icon: CalendarDays, label: "Tonight's Session" },
+    { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
     { id: 'session-recap', icon: Sparkles, label: 'Rook Recap' },
+    { id: 'handouts', icon: Mail, label: 'Handouts' },
     { id: 'tools', icon: ScrollText, label: 'Rook Tools' },
   ] },
   { id: 'combat', label: 'Combat', icon: Swords, tabs: [
@@ -55,6 +115,7 @@ const tabGroups = [
   { id: 'assets', label: 'Assets', icon: Backpack, tabs: [
     { id: 'inventory', icon: Backpack, label: 'Inventory' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
+    { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
   ] },
 ];
 
@@ -72,6 +133,14 @@ function CampaignDashboard() {
   const activeGroupId = useMemo(() => {
     const group = tabGroups.find(item => item.tabs.some(tab => tab.id === activeTab));
     return group?.id || null;
+  }, [activeTab]);
+
+  const activeTabMeta = useMemo(() => {
+    for (const group of tabGroups) {
+      const tab = group.tabs.find(item => item.id === activeTab);
+      if (tab) return { group, tab };
+    }
+    return null;
   }, [activeTab]);
 
   const fetchCampaign = useCallback(async () => {
@@ -141,14 +210,14 @@ function CampaignDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible' }}>
       <header style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '8px 14px', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: theme.accent.red, display: 'none', padding: 8 }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
             <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={{ minWidth: 44, minHeight: 44, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0 }}><ArrowLeft size={20} color={theme.text.secondary} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <h1 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>{campaign.name}</h1>
+              <h1 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)' }}>{campaign.name}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={{ fontSize: 11, color: theme.accent.red, background: theme.accent.redSubtle, padding: '3px 8px', fontWeight: 800 }}>Campaign Prep</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 800 }}>{campaign.system || '5e 2024'}</span></div>
             </div>
           </div>
@@ -156,14 +225,23 @@ function CampaignDashboard() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 220, minWidth: 220, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '16px 0', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 260, minWidth: 260, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '16px 0', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
           <h3 style={{ color: theme.accent.primary, fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 16 }}>Campaign Tools</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
         </aside>
         {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 39, display: 'none' }} />}
-        <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(8px, 2vw, 16px)' }}>
-          <section style={{ background: 'rgba(39,39,43,0.90)', border: `1px solid ${theme.border}`, borderRadius: 0, padding: 16, minHeight: 500 }}>
+        <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(10px, 1.8vw, 22px)', minWidth: 0 }}>
+          {activeTabMeta && (
+            <div className="desktop-context" style={desktopContextStyle}>
+              <div style={{ minWidth: 0 }}>
+                <p style={desktopEyebrowStyle}>{activeTabMeta.group.label}</p>
+                <h2 style={desktopTitleStyle}>{activeTabMeta.tab.label}</h2>
+              </div>
+              <span style={desktopPillStyle}>Desktop workspace</span>
+            </div>
+          )}
+          <section style={workspacePanelStyle}>
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
             {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}
@@ -175,15 +253,19 @@ function CampaignDashboard() {
             {activeTab === 'battle-maps' && <MapsTab campaignId={campaignId} />}
             {activeTab === 'tools' && <ToolsConsolidatedTab campaignId={campaignId} />}
             {activeTab === 'uploads' && <UploadTab theme={theme} campaignId={campaignId} />}
+            {activeTab === 'playtest-packs' && <PrivatePlaytestPacksTab campaignId={campaignId} />}
             {activeTab === 'inventory' && <InventoryConsolidatedTab campaignId={campaignId} />}
+            {activeTab === 'tonight' && <TonightsSessionTab campaignId={campaignId} onOpenTab={handleTabClick} />}
+            {activeTab === 'session-prep' && <AISessionPlanner theme={sessionPrepTheme} campaignId={campaignId} />}
             {activeTab === 'session-recap' && <SessionRecapAI campaignId={campaignId} />}
+            {activeTab === 'handouts' && <GMHandoutsTab campaignId={campaignId} />}
             {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
             {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
           </section>
         </main>
       </div>
 
-      <style>{`@media (max-width: 640px) { .desktop-only { display: none !important; } } @media (max-width: 1024px) { .mobile-menu-toggle { display: block !important; } .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 40; transform: translateX(-100%); } .sidebar.mobile-open { transform: translateX(0); } .mobile-overlay { display: block !important; } } @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }`}</style>
+      <style>{`@media (max-width: 640px) { .desktop-only { display: none !important; } } @media (max-width: 1024px) { .desktop-context { display: none !important; } .mobile-menu-toggle { display: block !important; } .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 40; transform: translateX(-100%); } .sidebar { width: min(88vw, 280px) !important; min-width: min(88vw, 280px) !important; } .sidebar.mobile-open { transform: translateX(0); } .mobile-overlay { display: block !important; } } @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }`}</style>
     </div>
   );
 }

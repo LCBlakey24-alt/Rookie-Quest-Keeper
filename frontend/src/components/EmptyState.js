@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
-function EmptyState({ icon: Icon, title, description, actionLabel, onAction, color = '#4a7dff' }) {
+function EmptyState({ icon: Icon, title, description, actionLabel, onAction, color = '#7C3AED' }) {
   return (
     <div style={{
       display: 'flex',

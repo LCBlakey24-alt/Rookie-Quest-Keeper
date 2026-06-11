@@ -1,14 +1,15 @@
 """User content routes: personal rulesets with edition tagging."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user
+from utils.auth import get_current_user, verify_campaign_membership
 from models import (
     UserRuleset, UserRace, UserClass, UserSubclass, UserBackground, UserFeat,
-    UserBulkContentUpload
+    UserBulkContentUpload, PlaytestContentPackUpload
 )
-from typing import Optional
+from typing import Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
+from utils.playtest_import import iter_supported_records, validate_playtest_pack
 
 router = APIRouter()
 
@@ -258,6 +259,192 @@ async def get_user_content_summary(username: str = Depends(get_current_user)):
         summary[edition]["feats"] = await db.user_feats.count_documents(query)
     
     return summary
+
+
+# ==================== PRIVATE PLAYTEST CONTENT PACKS ====================
+
+@router.post("/user/content/playtest-packs/validate")
+async def validate_playtest_content_pack(data: PlaytestContentPackUpload, username: str = Depends(get_current_user)):
+    """Validate a private playtest content pack without saving it."""
+    payload = data.model_dump()
+    validation = validate_playtest_pack(payload)
+    return {
+        "pack_name": data.pack_name,
+        "edition": data.edition,
+        "campaign_id": data.campaign_id,
+        **validation,
+    }
+
+
+@router.post("/user/content/playtest-packs/import")
+async def import_playtest_content_pack(data: PlaytestContentPackUpload, username: str = Depends(get_current_user)):
+    """Import a private playtest content pack owned by the current user.
+
+    Packs are intentionally stored as private user/campaign data. They are not
+    bundled rules text and can be deleted after a playtest.
+    """
+    payload = data.model_dump()
+    validation = validate_playtest_pack(payload)
+    if not validation["valid"]:
+        raise HTTPException(status_code=400, detail={
+            "message": "Playtest pack failed validation",
+            "errors": validation["errors"],
+            "warnings": validation["warnings"],
+        })
+
+    if data.campaign_id:
+        await verify_campaign_membership(data.campaign_id, username)
+
+    if data.replace_existing:
+        existing = await db.user_playtest_packs.find({
+            "user_id": username,
+            "edition": data.edition,
+            "campaign_id": data.campaign_id,
+            "pack_name": data.pack_name,
+        }, {"_id": 0, "id": 1}).to_list(100)
+        existing_ids = [pack["id"] for pack in existing if pack.get("id")]
+        if existing_ids:
+            await db.user_playtest_content.delete_many({"user_id": username, "pack_id": {"$in": existing_ids}})
+            await db.user_playtest_packs.delete_many({"user_id": username, "id": {"$in": existing_ids}})
+
+    pack_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    pack_doc = {
+        "id": pack_id,
+        "user_id": username,
+        "campaign_id": data.campaign_id,
+        "pack_name": data.pack_name,
+        "description": data.description,
+        "edition": data.edition,
+        "source_type": "private_playtest_upload",
+        "is_active": True,
+        "created_at": now,
+        "updated_at": now,
+        "validation": validation,
+    }
+    await db.user_playtest_packs.insert_one(pack_doc)
+
+    inserted_by_type: Dict[str, int] = {key: 0 for key in validation["counts"].keys()}
+    content_docs = []
+    for content_type, record in iter_supported_records(payload):
+        record_name = str(record.get("name", "")).strip()
+        doc = {
+            "id": str(uuid.uuid4()),
+            "pack_id": pack_id,
+            "user_id": username,
+            "campaign_id": data.campaign_id,
+            "edition": data.edition,
+            "content_type": content_type,
+            "name": record_name,
+            "name_key": record_name.lower(),
+            "source_type": "private_playtest_upload",
+            "data": record,
+            "created_at": now,
+            "updated_at": now,
+        }
+        content_docs.append(doc)
+        inserted_by_type[content_type] = inserted_by_type.get(content_type, 0) + 1
+
+    if content_docs:
+        await db.user_playtest_content.insert_many(content_docs)
+
+    return {
+        "message": f"Imported private playtest pack '{data.pack_name}'",
+        "pack_id": pack_id,
+        "edition": data.edition,
+        "campaign_id": data.campaign_id,
+        "inserted": inserted_by_type,
+        "summary": {
+            "total_inserted": len(content_docs),
+            "warnings": len(validation["warnings"]),
+        },
+        "warnings": validation["warnings"],
+    }
+
+
+@router.get("/user/content/playtest-packs")
+async def list_playtest_content_packs(edition: Optional[str] = None, campaign_id: Optional[str] = None, username: str = Depends(get_current_user)):
+    """List private playtest packs for the current user."""
+    query: Dict[str, Any] = {"user_id": username}
+    if edition:
+        if edition not in ["2014", "2024"]:
+            raise HTTPException(status_code=400, detail="Edition must be '2014' or '2024'")
+        query["edition"] = edition
+    if campaign_id is not None:
+        query["campaign_id"] = campaign_id
+
+    packs = await db.user_playtest_packs.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"packs": packs, "count": len(packs)}
+
+
+@router.get("/user/content/playtest-packs/summary")
+async def get_playtest_content_summary(username: str = Depends(get_current_user)):
+    """Return counts of private playtest content by edition and type."""
+    summary: Dict[str, Dict[str, int]] = {"2014": {}, "2024": {}}
+    for edition in ["2014", "2024"]:
+        packs = await db.user_playtest_packs.count_documents({"user_id": username, "edition": edition})
+        summary[edition]["packs"] = packs
+        pipeline = [
+            {"$match": {"user_id": username, "edition": edition}},
+            {"$group": {"_id": "$content_type", "count": {"$sum": 1}}},
+        ]
+        async for row in db.user_playtest_content.aggregate(pipeline):
+            summary[edition][row["_id"]] = row["count"]
+    return summary
+
+
+@router.get("/user/content/playtest-content")
+async def list_playtest_content_records(
+    content_type: Optional[str] = None,
+    edition: Optional[str] = None,
+    campaign_id: Optional[str] = None,
+    username: str = Depends(get_current_user)
+):
+    """List private playtest records for current user, optionally by type/edition/campaign.
+
+    Campaign-scoped lookups include both global user packs and packs tied to the
+    requested campaign so GMs can share a reusable private test pack across games.
+    """
+    query: Dict[str, Any] = {"user_id": username}
+    if content_type:
+        query["content_type"] = content_type
+    if edition:
+        if edition not in ["2014", "2024"]:
+            raise HTTPException(status_code=400, detail="Edition must be '2014' or '2024'")
+        query["edition"] = edition
+    if campaign_id:
+        await verify_campaign_membership(campaign_id, username)
+        query["$or"] = [{"campaign_id": campaign_id}, {"campaign_id": None}, {"campaign_id": ""}]
+
+    records = await db.user_playtest_content.find(query, {"_id": 0}).sort("name_key", 1).to_list(1000)
+    return {"records": records, "count": len(records)}
+
+
+@router.get("/user/content/playtest-packs/{pack_id}")
+async def get_playtest_content_pack(pack_id: str, username: str = Depends(get_current_user)):
+    """Get a private playtest pack and its imported records."""
+    pack = await db.user_playtest_packs.find_one({"id": pack_id, "user_id": username}, {"_id": 0})
+    if not pack:
+        raise HTTPException(status_code=404, detail="Playtest pack not found")
+    records = await db.user_playtest_content.find({"pack_id": pack_id, "user_id": username}, {"_id": 0}).sort("content_type", 1).to_list(5000)
+    return {"pack": pack, "records": records, "count": len(records)}
+
+
+@router.delete("/user/content/playtest-packs/{pack_id}")
+async def delete_playtest_content_pack(pack_id: str, username: str = Depends(get_current_user)):
+    """Delete a private playtest content pack and all imported records."""
+    pack = await db.user_playtest_packs.find_one({"id": pack_id, "user_id": username}, {"_id": 0, "id": 1})
+    if not pack:
+        raise HTTPException(status_code=404, detail="Playtest pack not found")
+    content_result = await db.user_playtest_content.delete_many({"pack_id": pack_id, "user_id": username})
+    pack_result = await db.user_playtest_packs.delete_one({"id": pack_id, "user_id": username})
+    return {
+        "message": "Playtest pack deleted successfully",
+        "deleted": {
+            "packs": pack_result.deleted_count,
+            "records": content_result.deleted_count,
+        }
+    }
 
 
 # ==================== PLAYER CHARACTER ROUTES ====================

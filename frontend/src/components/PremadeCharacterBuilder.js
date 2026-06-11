@@ -77,10 +77,10 @@ export default function PremadeCharacterBuilder() {
     }
   };
 
-  const NAVY = '#0A1628';
-  const PANEL = '#0F2440';
-  const GOLD = '#D4A017';
-  const GOLD_BRIGHT = '#F5C542';
+  const NAVY = '#1F1F23';
+  const PANEL = '#27272B';
+  const GOLD = '#7C3AED';
+  const GOLD_BRIGHT = '#A78BFA';
   const TEXT = '#F8FAFC';
   const TEXT_MUTED = '#94A3B8';
   const inputStyle = {
@@ -92,7 +92,7 @@ export default function PremadeCharacterBuilder() {
   return <div style={{ padding: 32, color: TEXT, background: NAVY, minHeight: '100vh' }}>
     <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       <button onClick={() => navigate('/characters/new')} style={{ background: 'none', border: 'none', color: TEXT_MUTED, cursor: 'pointer', marginBottom: 14, fontSize: 13 }}>← Back to Modes</button>
-      <h1 style={{, fontSize: 28, color: GOLD, margin: 0 }}>Premade Characters</h1>
+      <h1 style={{ fontSize: 28, color: GOLD, margin: 0 }}>Premade Characters</h1>
       <p style={{ color: TEXT_MUTED, marginTop: 4, marginBottom: 20, fontSize: 14 }}>
         Pick a ready-to-play hero. We'll apply their stats, skills, and spells in one click.
       </p>
@@ -121,7 +121,7 @@ export default function PremadeCharacterBuilder() {
         {match?.best_match && (
           <div style={{ padding: 14, borderRadius: 10, background: PANEL, border: `1px solid ${GOLD}` }}>
             <div style={{ fontSize: 11, color: TEXT_MUTED, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Best Match</div>
-            <div style={{, fontSize: 17, color: GOLD, fontWeight: 700 }}>
+            <div style={{ fontSize: 17, color: GOLD, fontWeight: 700 }}>
               {match.best_match.name} <span style={{ fontSize: 13, color: TEXT_MUTED, fontWeight: 400 }}>· {match.best_match.character_class}</span>
             </div>
             {match.rationale && <div style={{ fontSize: 13, color: TEXT, marginTop: 6, lineHeight: 1.5 }}>{match.rationale}</div>}
@@ -129,7 +129,7 @@ export default function PremadeCharacterBuilder() {
         )}
       </div>
 
-      <h2 style={{, fontSize: 18, color: GOLD, marginBottom: 10, borderBottom: `1px solid ${GOLD}`, paddingBottom: 6 }}>
+      <h2 style={{ fontSize: 18, color: GOLD, marginBottom: 10, borderBottom: `1px solid ${GOLD}`, paddingBottom: 6 }}>
         All Templates
       </h2>
       {templates.length === 0 && <div style={{ color: TEXT_MUTED, padding: 20 }}>Loading templates…</div>}
@@ -139,11 +139,11 @@ export default function PremadeCharacterBuilder() {
           return (
             <div key={t.id} data-testid={`template-${t.id}`} style={{
               border: `1px solid ${isBest ? GOLD_BRIGHT : GOLD}`,
-              boxShadow: isBest ? `0 0 0 2px rgba(212, 160, 23, 0.2)` : 'none',
+              boxShadow: isBest ? `0 0 0 2px rgba(124, 58, 237, 0.20)` : 'none',
               borderRadius: 10, padding: 14, background: PANEL,
               display: 'flex', flexDirection: 'column', gap: 6
             }}>
-              <div style={{, fontSize: 15, fontWeight: 700, color: GOLD }}>{t.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: GOLD }}>{t.name}</div>
               <div style={{ color: TEXT_MUTED, fontSize: 12, lineHeight: 1.4, flex: 1 }}>{t.pitch}</div>
               <div style={{ fontSize: 11, color: TEXT_MUTED, letterSpacing: 0.5 }}>
                 {t.character_class}{t.subrace ? ` · ${t.subrace} ${t.race}` : ` · ${t.race}`}{t.background ? ` · ${t.background}` : ''}

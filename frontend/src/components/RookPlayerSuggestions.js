@@ -152,8 +152,12 @@ export default function RookPlayerSuggestions({ character }) {
         `Top ability: ${Object.entries({ STR: character?.strength, DEX: character?.dexterity, CON: character?.constitution, INT: character?.intelligence, WIS: character?.wisdom, CHA: character?.charisma }).sort((a, b) => b[1] - a[1])[0]?.[0]}`,
         `Give ONE short, practical, interesting suggestion for this character right now. Keep it under 3 sentences. Focus on something surprising or non-obvious they might not have thought of.`,
       ].join('\n');
-      const res = await apiClient.post('/ai/generate', { prompt, context_type: 'player_tip', character_name: character.name });
-      setAiSuggestion(res.data?.response || res.data?.text || res.data?.content || null);
+      const res = await apiClient.post('/rook/chat', {
+        message: prompt,
+        campaign_id: character?.campaign_id || '',
+        context: 'You are ROOK, a text-only player-side TTRPG helper. Give concise, actionable play tips and character-building advice. Never suggest AI images or artwork.'
+      });
+      setAiSuggestion(res.data?.response || null);
     } catch {
       toast.error('Rook could not generate a suggestion right now');
     } finally {

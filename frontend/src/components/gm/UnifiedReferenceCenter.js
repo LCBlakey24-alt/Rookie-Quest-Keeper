@@ -6,10 +6,10 @@ import { CONDITION_EFFECTS } from '@/data/conditionEffects';
 import { SPELL_DATABASE } from '@/data/spellDatabase';
 
 const theme = {
-  bg: { primary: '#0A1628', surface: '#0F2440', elevated: '#14304F' },
-  accent: { primary: '#D4A017', secondary: '#F5C542' },
-  text: { primary: '#F8FAFC', secondary: '#94A3B8', muted: '#64748B' },
-  border: 'rgba(212, 160, 23, 0.35)'
+  bg: { primary: '#080B1A', surface: '#12172A', elevated: '#171E33' },
+  accent: { primary: '#7C3AED', secondary: '#A78BFA' },
+  text: { primary: '#F8FAFC', secondary: '#D1D5DB', muted: '#9CA3AF' },
+  border: 'rgba(124, 58, 237, 0.38)'
 };
 
 const searchableText = (value) => {
@@ -19,6 +19,7 @@ const searchableText = (value) => {
 };
 
 const getRollNotation = (item) => {
+  if (!['weapon', 'potion'].includes(String(item?.type || '').toLowerCase())) return null;
   const source = searchableText(item.damage || item.healing || item.versatileDamage);
   const match = source.match(/\d+d\d+(?:\s*[+-]\s*\d+)?/i);
   return match ? match[0].replace(/\s+/g, '') : null;
@@ -148,7 +149,7 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
                   padding: '5px 8px',
                   borderRadius: '5px',
                   border: `1px solid ${theme.accent.primary}`,
-                  background: 'rgba(212, 160, 23, 0.14)',
+                  background: 'rgba(124, 58, 237, 0.14)',
                   color: theme.accent.secondary,
                   fontSize: '11px',
                   fontWeight: 700,
