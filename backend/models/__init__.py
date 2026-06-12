@@ -54,18 +54,19 @@ class CampaignMember(BaseModel):
 
 
 class UserRegister(BaseModel):
-    email: EmailStr
-    username: str  # Display name
+    username: str  # Display name / login name
     password: str
+    email: Optional[EmailStr] = None  # Optional recovery email for adult/parent-managed accounts
 
 class UserLogin(BaseModel):
-    email: EmailStr
     password: str
+    username: Optional[str] = None
+    email: Optional[str] = None  # Backward-compatible identifier; may be an email or username
 
 class TokenResponse(BaseModel):
     token: str
     username: str
-    email: str
+    email: Optional[str] = None
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -546,6 +547,21 @@ class UserBulkContentUpload(BaseModel):
     subclasses: List[CampaignSubclassCreate] = []
     backgrounds: List[CampaignBackgroundCreate] = []
     feats: List[CampaignFeatCreate] = []
+
+
+class PlaytestContentPackUpload(BaseModel):
+    """Private user/campaign-scoped playtest pack.
+
+    This is intentionally generic so users can privately upload owned playtest
+    content for classes, subclasses, creatures, spells, items, and related data
+    without committing protected text into this repository.
+    """
+    pack_name: str
+    description: str = ""
+    edition: str = "2014"
+    campaign_id: Optional[str] = None
+    content: Dict[str, Any] = {}
+    replace_existing: bool = False
 
 
 class PlayerCharacter(BaseModel):
@@ -1836,3 +1852,24 @@ class RookChatRequest(BaseModel):
     message: str
     campaign_id: str = ""
     context: str = ""
+
+
+class RookFormField(BaseModel):
+    name: str
+    label: str = ""
+    field_type: str = "text"
+    choices: List[Any] = []
+    description: str = ""
+
+
+class RookFormFillRequest(BaseModel):
+    section: str
+    prompt: str
+    fields: List[RookFormField]
+    current_values: Dict[str, Any] = {}
+    campaign_id: str = ""
+
+
+class RookFormFillResponse(BaseModel):
+    suggestions: Dict[str, Any]
+    summary: str = ""

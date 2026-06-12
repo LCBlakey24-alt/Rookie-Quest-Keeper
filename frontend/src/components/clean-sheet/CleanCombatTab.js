@@ -45,9 +45,15 @@ function getItemQuantity(item) {
 }
 
 function isWeaponLike(item) {
-  const name = normaliseName(getItemName(item));
   const type = normaliseName(item?.type || item?.category || item?.item_type || '');
-  return type.includes('weapon') || Boolean(findWeaponRule(item)) || Boolean(name);
+  return Boolean(
+    type.includes('weapon')
+    || findWeaponRule(item)
+    || item?.damage
+    || item?.damage_dice
+    || item?.dice
+    || item?.damageDice
+  );
 }
 
 function isConsumableLike(item) {
@@ -160,7 +166,7 @@ function ActionSection({ title, children }) {
   );
 }
 
-export default function CleanCombatTab({ character, ac, speed, proficiencyBonus, onRoll, onCharacterUpdate }) {
+export default function CleanCombatTab({ character, ac, speed, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult }) {
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
   const [resourceDrafts, setResourceDrafts] = useState({});
@@ -210,6 +216,16 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     const result = rollDice(damage.count, damage.sides, damage.modifier);
     setLastDamage({ ...damage, ...result });
     setPendingDamage(null);
+    onDiceResult?.({
+      id: `${Date.now()}-damage`,
+      label: damage.label || 'Damage',
+      rolls: result.rolls,
+      sides: damage.sides,
+      modifier: damage.modifier,
+      total: result.total,
+      mode: 'damage',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
   };
 
   const rollConcentrationSave = () => onRoll('Concentration Save', concentrationMod);

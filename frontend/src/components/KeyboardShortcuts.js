@@ -2,7 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 
 const theme = {
-  accent: '#F59E0B',
+  accent: '#7C3AED',
   bg: { dark: '#111827', card: '#111827', panel: '#111827' },
   text: { white: '#FFFFFF', secondary: '#9CA3AF', muted: '#6B7280' },
   border: '#374151'

@@ -5,7 +5,7 @@ import SendItemPanel from './SendItemPanel';
 export default function PartyTab({ theme, players }) {
   return (
     <div>
-      <h2 style={{, fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{ fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Users size={24} style={{ color: theme.accent.primary }} /> Party Overview
       </h2>
       

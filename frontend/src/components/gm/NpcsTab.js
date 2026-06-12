@@ -7,21 +7,21 @@ import QuickNpcGenerator from './QuickNpcGenerator';
 export default function NpcsTab({ theme, campaignId, nameRace, setNameRace, nameGender, setNameGender, generatedName, generateRandomName, saveNameAsNPC, savingNPC, savedNames }) {
   return (
     <div>
-      <h2 style={{, fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{ fontSize: '22px', color: theme.text.primary, fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <UserCircle size={24} style={{ color: theme.accent.orange }} /> NPCs & Name Generator
       </h2>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
         {/* Left: Saved NPCs */}
         <div style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
-          <h3 style={{, fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Saved NPCs</h3>
+          <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Saved NPCs</h3>
           <NPCQuickReference campaignId={campaignId} />
         </div>
         
         {/* Right: Name Generator */}
         <div>
           <div style={{ background: theme.bg.card, border: `1px solid ${theme.accent.orange}`, borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
-            <h3 style={{, fontSize: '16px', color: theme.accent.orange, fontWeight: '600', marginBottom: '20px' }}>Generate NPC Name</h3>
+            <h3 style={{ fontSize: '16px', color: theme.accent.orange, fontWeight: '600', marginBottom: '20px' }}>Generate NPC Name</h3>
             
             {/* Race Selection */}
             <div style={{ marginBottom: '16px' }}>
@@ -60,7 +60,7 @@ export default function NpcsTab({ theme, campaignId, nameRace, setNameRace, name
           {generatedName && (
             <div style={{ background: 'rgba(212, 160, 23, 0.1)', border: `1px solid ${theme.accent.primary}`, borderRadius: '12px', padding: '24px', textAlign: 'center', marginBottom: '20px' }}>
               <p style={{ color: theme.text.secondary, fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Generated Name</p>
-              <h3 style={{, fontSize: '28px', color: theme.text.primary, fontWeight: '600', marginBottom: '8px', background: theme.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 style={{ fontSize: '28px', color: theme.text.primary, fontWeight: '600', marginBottom: '8px', background: theme.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {generatedName.fullName}
               </h3>
               <p style={{ color: theme.accent.secondary, fontSize: '15px', marginBottom: '20px' }}>
@@ -81,7 +81,7 @@ export default function NpcsTab({ theme, campaignId, nameRace, setNameRace, name
           {/* Saved Names This Session */}
           {savedNames.length > 0 && (
             <div style={{ background: theme.bg.card, border: `1px solid ${theme.accent.primary}`, borderRadius: '12px', padding: '20px' }}>
-              <h3 style={{, fontSize: '14px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '14px', color: theme.accent.gm, fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <UserPlus size={16} /> Saved This Session ({savedNames.length})
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto' }}>
@@ -102,7 +102,7 @@ export default function NpcsTab({ theme, campaignId, nameRace, setNameRace, name
 
       {/* Quick NPC Generator */}
       <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{, fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Quick NPC Generator</h3>
+        <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Quick NPC Generator</h3>
         <QuickNpcGenerator theme={theme} />
       </div>
     </div>

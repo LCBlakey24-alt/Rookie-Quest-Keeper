@@ -21,6 +21,7 @@ import EventSystem from '@/components/gm/EventSystem';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 import EnvironmentControl from '@/components/gm/EnvironmentControl';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
+import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 
 const theme = {
   bg: {
@@ -29,22 +30,22 @@ const theme = {
     elevated: '#323235',
     panel: '#27272B',
     card: '#27272B',
-    hover: 'rgba(239, 68, 68, 0.12)',
+    hover: 'rgba(124, 58, 237, 0.12)',
   },
   accent: {
-    primary: '#EF4444',
+    primary: '#7C3AED',
     secondary: '#B91C1C',
-    gold: '#EF4444',
-    orange: '#F87171',
-    hover: '#F87171',
-    subtle: 'rgba(239, 68, 68, 0.12)',
+    gold: '#7C3AED',
+    orange: '#A78BFA',
+    hover: '#A78BFA',
+    subtle: 'rgba(124, 58, 237, 0.12)',
     glow: 'none',
-    gm: '#EF4444',
-    gmSubtle: 'rgba(239, 68, 68, 0.12)',
+    gm: '#7C3AED',
+    gmSubtle: 'rgba(124, 58, 237, 0.12)',
   },
   text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.42)',
-  gradient: '#EF4444',
+  border: 'rgba(124, 58, 237, 0.42)',
+  gradient: '#7C3AED',
 };
 
 export default function LiveSessionGridPage() {
@@ -71,6 +72,7 @@ export default function LiveSessionGridPage() {
   const [diceTotal, setDiceTotal] = useState(0);
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
+  const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
   useEffect(() => { fetchAllData(); }, [campaignId]);
 
@@ -139,16 +141,32 @@ export default function LiveSessionGridPage() {
     setShowDiceFlicker(true);
   };
 
+  const syncNoteIntoCampaignState = async (noteId) => {
+    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
+    const applied = syncRes.data?.applied_updates || [];
+    setSessionRefreshKey(prev => prev + 1);
+    await fetchAllData();
+
+    if (applied.length > 0) {
+      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
+        description: applied.slice(0, 2).map(update => update.summary).join(' '),
+      });
+    } else {
+      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
+    }
+  };
+
   const handleSubmitNote = async () => {
     if (!quickNote.trim()) return;
     setProcessingNote(true);
     try {
-      const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: quickNote });
-      setSessionNotes(prev => [{ id: noteRes.data.id, content: quickNote, created_at: new Date().toISOString() }, ...prev]);
+      const noteContent = quickNote.trim();
+      const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: noteContent });
+      setSessionNotes(prev => [{ ...noteRes.data, content: noteContent }, ...prev]);
       setQuickNote('');
-      toast.success('Note saved!');
+      await syncNoteIntoCampaignState(noteRes.data.id);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to save note');
+      toast.error(error?.response?.data?.detail || 'Failed to save and sync note');
     } finally {
       setProcessingNote(false);
     }
@@ -215,6 +233,8 @@ export default function LiveSessionGridPage() {
         return <PartyTab theme={theme} players={players} />;
       case 'notes':
         return <NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />;
+      case 'handouts':
+        return <GMHandoutsTab campaignId={campaignId} />;
       case 'npcs':
         return <NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />;
       case 'monsters':
@@ -256,7 +276,7 @@ export default function LiveSessionGridPage() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Live Play Mode</p>
             <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-            <p style={subtitleStyle}>Run the session from your GM Screen. Pick 1–6 panels and keep your table tools open.</p>
+            <p style={subtitleStyle}>Run the session from a focused GM Screen. Pick 1–4 panels and keep only your table-critical tools open.</p>
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
@@ -273,6 +293,7 @@ export default function LiveSessionGridPage() {
           renderTool={renderTool}
           onOpenSingleTab={() => null}
           onRollDice={rollQuickDice}
+          refreshKey={sessionRefreshKey}
         />
       </section>
 
@@ -290,11 +311,11 @@ export default function LiveSessionGridPage() {
   );
 }
 
-const pageStyle = { minHeight: '100vh', background: theme.bg.primary, color: theme.text.primary, padding: 14, display: 'flex', flexDirection: 'column', gap: 12 };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 12 };
+const pageStyle = { height: '100dvh', maxHeight: '100dvh', background: theme.bg.primary, color: theme.text.primary, padding: 'clamp(8px, 1.1vw, 12px)', display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '8px 10px', flexShrink: 0 };
 const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.3, textTransform: 'uppercase', margin: '0 0 4px' };
-const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 9, fontSize: 22, fontWeight: 900, margin: 0 };
-const subtitleStyle = { color: theme.text.secondary, margin: '4px 0 0', fontSize: 13 };
-const calendarStyle = { color: theme.accent.primary, margin: '4px 0 0', fontSize: 12, fontWeight: 800 };
-const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 0, fontWeight: 900 };
-const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' };
+const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(17px, 1.5vw, 20px)', fontWeight: 900, margin: 0, minWidth: 0 };
+const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
+const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
+const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
+const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
