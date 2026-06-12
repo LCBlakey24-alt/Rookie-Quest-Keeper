@@ -10,9 +10,8 @@ import {
   FileText,
   Grid3X3,
   Link2,
-  Music,
+  Mail,
   RefreshCw,
-  Shield,
   Skull,
   Sparkles,
   Swords,
@@ -27,11 +26,11 @@ const rq = {
   panel: 'var(--rq-bg-panel, #242424)',
   input: 'var(--rq-bg-input, #1F1F1F)',
   elevated: 'var(--rq-bg-elevated, #323232)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
+  border: 'var(--rq-accent-border, rgba(124,58,237,0.42))',
   borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
+  accent: 'var(--rq-accent-primary, #7C3AED)',
+  accentHover: 'var(--rq-accent-hover, #A78BFA)',
+  accentSoft: 'var(--rq-accent-soft, rgba(124,58,237,0.12))',
   text: 'var(--rq-text-primary, #FFFFFF)',
   textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
   muted: 'var(--rq-text-muted, #A0A0A0)',
@@ -39,34 +38,33 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-export const LIVE_GRID_DEFAULTS = ['combat', 'party', 'notes', 'npcs', 'reference-hub', 'environment'];
+export const LIVE_GRID_DEFAULTS = ['combat', 'party', 'notes', 'handouts'];
 
 export const LIVE_GRID_TOOLS = [
   { id: 'combat', label: 'Combat', icon: Swords, group: 'Core' },
   { id: 'party', label: 'Party', icon: Users, group: 'Core' },
   { id: 'notes', label: 'Notes', icon: FileText, group: 'Core' },
+  { id: 'handouts', label: 'Handouts', icon: Mail, group: 'Core' },
+  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Core' },
+  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Core' },
   { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Characters' },
   { id: 'monsters', label: 'Monsters', icon: Skull, group: 'Characters' },
   { id: 'network', label: 'NPC Network', icon: Link2, group: 'Characters' },
   { id: 'location', label: 'Location', icon: Compass, group: 'World' },
   { id: 'environment', label: 'Environment', icon: CloudRain, group: 'World' },
   { id: 'events', label: 'Events', icon: BarChart3, group: 'World' },
-  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Reference' },
   { id: 'tables', label: 'Random Tables', icon: Wand2, group: 'Reference' },
   { id: 'loot', label: 'Loot', icon: Coins, group: 'Reference' },
   { id: 'story', label: 'Story Arcs', icon: Target, group: 'Session' },
   { id: 'planner', label: 'Rook Planner', icon: Sparkles, group: 'Session' },
   { id: 'sound', label: 'Soundboard', icon: Volume2, group: 'Session' },
-  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Utility' },
-  { id: 'timer', label: 'Session Timer', icon: Shield, group: 'Utility' },
-  { id: 'sound-mini', label: 'Audio Cue', icon: Music, group: 'Utility' },
 ];
 
 function getDefaultPanelCount() {
-  if (typeof window === 'undefined') return 6;
+  if (typeof window === 'undefined') return 4;
   if (window.matchMedia('(max-width: 640px)').matches) return 1;
-  if (window.matchMedia('(max-width: 1100px)').matches) return 4;
-  return 6;
+  if (window.matchMedia('(max-width: 1100px)').matches) return 2;
+  return 4;
 }
 
 function getStoredLayout(storageKey) {
@@ -75,7 +73,11 @@ function getStoredLayout(storageKey) {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.panels)) return null;
-    return parsed;
+    const allowed = new Set(LIVE_GRID_TOOLS.map(tool => tool.id));
+    return {
+      panelCount: Math.min(4, Math.max(1, Number(parsed.panelCount) || getDefaultPanelCount())),
+      panels: parsed.panels.filter(panel => allowed.has(panel)),
+    };
   } catch {
     return null;
   }
@@ -87,6 +89,7 @@ export default function LiveSessionGridMode({
   renderTool,
   onOpenSingleTab,
   onRollDice,
+  refreshKey = 0,
 }) {
   const storageKey = `gm.liveGrid.layout.${campaignId || 'default'}`;
   const stored = useMemo(() => getStoredLayout(storageKey), [storageKey]);
@@ -126,11 +129,11 @@ export default function LiveSessionGridMode({
       <div style={toolbarStyle}>
         <div style={{ minWidth: 0 }}>
           <h2 style={titleStyle}><Grid3X3 size={22} /> GM Screen</h2>
-          <p style={subtitleStyle}>Choose 1–6 panels and keep your core live-session tools open at the same time.</p>
+          <p style={subtitleStyle}>Focused table layout: 1–4 panels for combat, party, notes, handouts, dice, and reference.</p>
         </div>
         <div style={toolbarActionsStyle}>
           <div style={countPickerStyle} aria-label="Panel count selector">
-            {[1, 2, 3, 4, 5, 6].map(count => {
+            {[1, 2, 3, 4].map(count => {
               const active = panelCount === count;
               return (
                 <button key={count} type="button" data-testid={`live-grid-count-${count}`} onClick={() => setPanelCount(count)} style={countButtonStyle(active)}>
@@ -150,7 +153,7 @@ export default function LiveSessionGridMode({
           const tool = LIVE_GRID_TOOLS.find(item => item.id === toolId) || LIVE_GRID_TOOLS[0];
           const Icon = tool.icon;
           return (
-            <section key={`${index}-${toolId}`} data-testid={`live-grid-panel-${index + 1}`} style={panelStyle}>
+            <section key={`${refreshKey}-${index}-${toolId}`} data-testid={`live-grid-panel-${index + 1}`} style={panelStyle}>
               <div style={panelHeaderStyle}>
                 <div style={panelTitleStyle}>
                   <Icon size={15} style={{ color: rq.accentHover }} />
@@ -170,10 +173,6 @@ export default function LiveSessionGridMode({
               <div style={panelBodyStyle}>
                 {toolId === 'quick-dice' ? (
                   <QuickDicePanel theme={theme} onRollDice={onRollDice} />
-                ) : toolId === 'timer' ? (
-                  <UtilityPlaceholder title="Session Timer" text="Use this slot for live session timing. Full timer controls can be expanded in a future pass." />
-                ) : toolId === 'sound-mini' ? (
-                  <UtilityPlaceholder title="Audio Cue" text="Use this slot for fast sound cues. Full soundboard is available as a panel too." />
                 ) : (
                   <GridToolWrapper toolId={toolId} onOpenSingleTab={onOpenSingleTab}>
                     {renderTool?.(toolId, { compact: true }) || <UtilityPlaceholder title={tool.label} text="This panel is ready for this tool." />}
@@ -209,8 +208,8 @@ function QuickDicePanel({ onRollDice }) {
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-        <button type="button" onClick={() => onRollDice?.('2d20', 'Adv/Dis check')} style={diceButtonStyle}>2D20</button>
-        <button type="button" onClick={() => onRollDice?.('2d6', 'Damage')} style={diceButtonStyle}>2D6</button>
+        <button type="button" onClick={() => onRollDice?.('2d20', 'Two d20s')} style={diceButtonStyle}>2D20</button>
+        <button type="button" onClick={() => onRollDice?.('2d6', 'Two d6s')} style={diceButtonStyle}>2D6</button>
       </div>
     </div>
   );

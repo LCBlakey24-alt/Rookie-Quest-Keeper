@@ -130,6 +130,19 @@ function ItemCard({ item, slot, actions }) {
   );
 }
 
+
+function inferEquipSlot(item) {
+  if (item?.equip_slot) return item.equip_slot;
+  const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
+  if (text.includes('shield')) return 'shield';
+  if (text.includes('armour') || text.includes('armor') || text.includes('mail') || text.includes('plate') || text.includes('leather') || text.includes('scale') || text.includes('chain') || text.includes('hide')) return 'armor';
+  if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
+  if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('crossbow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger') || text.includes('spear') || text.includes('lance') || text.includes('hammer') || text.includes('rapier') || text.includes('club') || text.includes('flail') || text.includes('halberd') || text.includes('pike') || text.includes('trident') || text.includes('whip')) return 'mainHand';
+  if (item?.damage_dice) return 'mainHand';
+  if (item?.ac_bonus && !item?.attack_bonus) return 'armor';
+  return null;
+}
+
 function CurrencyBlock({ currency = {}, gold }) {
   const values = {
     cp: currency.copper ?? currency.cp ?? 0,
@@ -151,7 +164,7 @@ function CurrencyBlock({ currency = {}, gold }) {
   );
 }
 
-export default function CleanInventoryTab({ character, onCharacterUpdate }) {
+export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll }) {
   const [savingSlot, setSavingSlot] = useState('');
   const [savingItems, setSavingItems] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -223,18 +236,6 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const equipItem = (slot, item) => {
     const nextEquipped = { ...equipped, [slot]: normaliseItem({ ...normaliseItem(item), equip_slot: slot }) };
     saveEquipped(nextEquipped, slot);
-  };
-
-  const inferEquipSlot = (item) => {
-    if (item?.equip_slot) return item.equip_slot;
-    const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
-    if (text.includes('shield')) return 'shield';
-    if (text.includes('armour') || text.includes('armor') || text.includes('mail') || text.includes('plate') || text.includes('leather') || text.includes('scale') || text.includes('chain') || text.includes('hide')) return 'armor';
-    if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
-    if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('crossbow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger') || text.includes('spear') || text.includes('lance') || text.includes('hammer') || text.includes('rapier') || text.includes('club') || text.includes('flail') || text.includes('halberd') || text.includes('pike') || text.includes('trident') || text.includes('whip')) return 'mainHand';
-    if (item?.damage_dice) return 'mainHand';
-    if (item?.ac_bonus && !item?.attack_bonus) return 'armor';
-    return null;
   };
 
   const clearSlot = (slot) => {
@@ -433,6 +434,44 @@ export default function CleanInventoryTab({ character, onCharacterUpdate }) {
           </div>
         </section>
       )}
+
+      <section className="clean-sheet-panel clean-sheet-wide">
+        <div className="clean-sheet-inventory-header">
+          <h2>Add Equipment from List</h2>
+          <span style={{ fontSize: 12, color: 'var(--cs-text-soft)' }}>Pick a weapon, armour, or shield and add it straight to this character.</span>
+        </div>
+        <div className="clean-sheet-equipment-tools">
+          <input value={equipmentSearch} onChange={event => setEquipmentSearch(event.target.value)} placeholder="Search weapons, armour, shields…" />
+          <select value={equipmentTypeFilter} onChange={event => setEquipmentTypeFilter(event.target.value)} aria-label="Filter equipment type">
+            <option value="all">All equipment</option>
+            <option value="weapon">Weapons</option>
+            <option value="armor">Armour</option>
+            <option value="shield">Shields</option>
+          </select>
+        </div>
+        <div className="clean-sheet-equipment-picker">
+          <select value={selectedReferenceKey} onChange={event => setSelectedReferenceKey(event.target.value)}>
+            <option value="">Select equipment…</option>
+            {filteredReferenceCatalog.map(entry => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+          </select>
+          <button type="button" disabled={!selectedReference || savingItems} onClick={() => selectedReference && addReferenceItem(selectedReference, false)}>Add to Inventory</button>
+          <button type="button" disabled={!selectedReference || savingItems || !selectedReferenceSlot} onClick={() => selectedReference && addReferenceItem(selectedReference, true)}>Add & Equip</button>
+        </div>
+        {selectedReferenceItem && (
+          <div className="clean-sheet-equipment-preview">
+            <div>
+              <span>Selected</span>
+              <strong>{selectedReferenceItem.name}</strong>
+              <em>{selectedReferenceItem.description || selectedReferenceEntry?.kind}</em>
+            </div>
+            <div>
+              <span>Will use</span>
+              <strong>{selectedReferenceSlot ? (EQUIP_SLOTS.find(([slot]) => slot === selectedReferenceSlot)?.[1] || selectedReferenceSlot) : 'Inventory only'}</strong>
+              <em>{selectedReferenceAttack ? `${selectedReferenceAttack.attackText} to hit • ${selectedReferenceAttack.damageText} ${selectedReferenceAttack.damageType}` : selectedReferenceAc ? `AC becomes ${selectedReferenceAc}` : 'No slot detected'}</em>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section className="clean-sheet-panel clean-sheet-wide">
         <div className="clean-sheet-inventory-header">

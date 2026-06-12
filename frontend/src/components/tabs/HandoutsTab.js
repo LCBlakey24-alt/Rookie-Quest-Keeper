@@ -189,6 +189,11 @@ function GMHandoutsTab({ campaignId }) {
                     Shared
                   </span>
                 )}
+                {h.allow_player_sharing === false && (
+                  <span style={{ fontSize: 10, background: 'rgba(148,163,184,0.12)', border: '1px solid rgba(148,163,184,0.32)', borderRadius: 999, padding: '1px 7px', color: '#cbd5e1' }}>
+                    Re-share locked
+                  </span>
+                )}
               </div>
               {getAttachmentUrl(h) && <AttachmentPreview handout={h} compact />}
               {h.content && <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>{h.content.slice(0, 200)}{h.content.length > 200 ? '…' : ''}</p>}
@@ -294,8 +299,9 @@ function GMHandoutsTab({ campaignId }) {
 
 // ── Player View ───────────────────────────────────────────────────────────────
 
-function PlayerHandoutsPanel() {
+function PlayerHandoutsPanel({ onSummaryChange } = {}) {
   const [handouts, setHandouts] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [shareOptions, setShareOptions] = useState({});
@@ -308,6 +314,16 @@ function PlayerHandoutsPanel() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+
+  useEffect(() => {
+    if (!onSummaryChange) return;
+    onSummaryChange({
+      total: handouts.length,
+      unread: handouts.filter(handout => !handout.read).length,
+      saved: handouts.filter(handout => handout.saved).length,
+    });
+  }, [handouts, onSummaryChange]);
 
   const markRead = async (handout) => {
     if (handout.read) return;
@@ -404,7 +420,35 @@ function PlayerHandoutsPanel() {
           <span style={{ background: 'rgba(74,125,255,0.16)', color: '#bfdbfe', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>{savedCount} saved</span>
         )}
       </h4>
-      {handouts.map(h => (
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', padding: '2px 0 4px' }}>
+        <Filter size={12} style={{ color: '#93c5fd' }} />
+        {filterOptions.map(option => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setActiveFilter(option.id)}
+            style={{
+              background: activeFilter === option.id ? 'rgba(168,85,247,0.24)' : 'rgba(15,23,42,0.72)',
+              border: `1px solid ${activeFilter === option.id ? '#a855f7' : 'rgba(74,125,255,0.22)'}`,
+              borderRadius: 999,
+              color: activeFilter === option.id ? '#f5f3ff' : '#cbd5e1',
+              cursor: 'pointer',
+              fontSize: 10,
+              fontWeight: 800,
+              padding: '4px 8px',
+              textTransform: 'capitalize',
+            }}
+          >
+            {option.label} {option.count > 0 ? `(${option.count})` : ''}
+          </button>
+        ))}
+      </div>
+      {visibleHandouts.length === 0 && (
+        <div style={{ padding: 14, color: '#94a3b8', border: '1px dashed rgba(148,163,184,0.25)', borderRadius: 8, textAlign: 'center', fontSize: 12 }}>
+          No handouts match this filter.
+        </div>
+      )}
+      {visibleHandouts.map(h => (
         <div
           key={h.id}
           onClick={() => handleExpand(h)}

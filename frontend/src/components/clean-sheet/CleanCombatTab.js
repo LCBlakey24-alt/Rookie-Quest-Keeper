@@ -166,7 +166,7 @@ function ActionSection({ title, children }) {
   );
 }
 
-export default function CleanCombatTab({ character, ac, speed, proficiencyBonus, onRoll, onCharacterUpdate }) {
+export default function CleanCombatTab({ character, ac, speed, proficiencyBonus, onRoll, onCharacterUpdate, onDiceResult }) {
   const [pendingDamage, setPendingDamage] = useState(null);
   const [lastDamage, setLastDamage] = useState(null);
   const [resourceDrafts, setResourceDrafts] = useState({});
@@ -216,6 +216,16 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     const result = rollDice(damage.count, damage.sides, damage.modifier);
     setLastDamage({ ...damage, ...result });
     setPendingDamage(null);
+    onDiceResult?.({
+      id: `${Date.now()}-damage`,
+      label: damage.label || 'Damage',
+      rolls: result.rolls,
+      sides: damage.sides,
+      modifier: damage.modifier,
+      total: result.total,
+      mode: 'damage',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
   };
 
   const rollConcentrationSave = () => onRoll('Concentration Save', concentrationMod);

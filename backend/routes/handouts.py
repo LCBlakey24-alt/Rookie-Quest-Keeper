@@ -160,7 +160,8 @@ async def delete_handout(campaign_id: str, handout_id: str, current_user: str = 
     result = await db.handouts.delete_one({'id': handout_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Handout not found")
-    return {"message": "Handout deleted"}
+    deliveries = await db.player_handouts.delete_many({'handout_id': handout_id, 'campaign_id': campaign_id})
+    return {"message": "Handout deleted", "deleted_deliveries": deliveries.deleted_count}
 
 
 @router.post("/campaigns/{campaign_id}/handouts/{handout_id}/share")

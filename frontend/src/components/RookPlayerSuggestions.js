@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { CLASS_FEATURES } from '@/data/classFeatures';
+
+const ROOK_MARK_SRC = '/images/logo-mini.png';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 
@@ -122,23 +124,164 @@ function generateSuggestions(character) {
 }
 
 const TYPE_COLOR = {
-  combat: '#C1121F',
-  roleplay: '#4a7dff',
+  combat: '#A78BFA',
+  roleplay: '#60A5FA',
   survival: '#F59E0B',
+  facts: '#22D3EE',
 };
+
+const ABILITY_LABELS = {
+  strength: 'Strength', dexterity: 'Dexterity', constitution: 'Constitution',
+  intelligence: 'Intelligence', wisdom: 'Wisdom', charisma: 'Charisma',
+};
+
+function asArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return String(value).split(/[;,]/).map(item => item.trim()).filter(Boolean);
+}
+
+function getCharacterClassName(character) {
+  return character?.character_class || character?.class_name || character?.class || 'adventurer';
+}
+
+function buildPlayerAdvice(character) {
+  const className = getCharacterClassName(character);
+  const level = Number(character?.level || 1);
+  const scores = {
+    strength: Number(character?.strength || 10),
+    dexterity: Number(character?.dexterity || 10),
+    constitution: Number(character?.constitution || 10),
+    intelligence: Number(character?.intelligence || 10),
+    wisdom: Number(character?.wisdom || 10),
+    charisma: Number(character?.charisma || 10),
+  };
+  const topAbility = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  const skills = asArray(character?.skill_proficiencies || character?.skills || character?.proficiencies?.skills);
+  const feats = asArray(character?.feats || character?.feat_names);
+  const features = asArray(character?.features || character?.class_features);
+  const knownHooks = [
+    ...skills.slice(0, 3).map(skill => ({
+      id: `skill-${skill}`,
+      emoji: '🎯',
+      title: `${skill} Spotlight`,
+      type: 'facts',
+      text: `You are trained in ${skill}. Look for moments to volunteer that skill: ask to use it when scouting, negotiating, investigating clues, or setting up another party member's plan.`,
+    })),
+    ...feats.slice(0, 2).map(feat => ({
+      id: `feat-${feat}`,
+      emoji: '⭐',
+      title: `${feat} Combo`,
+      type: 'combat',
+      text: `${feat} is one of your special edges. Before each turn, ask: “Can this feat help an ally, improve my position, or turn this roll into a bigger moment?”`,
+    })),
+    ...features.slice(0, 2).map(feature => ({
+      id: `feature-fact-${feature}`,
+      emoji: '🐉',
+      title: `${feature} Reminder`,
+      type: 'facts',
+      text: `${feature} is part of your identity at the table. Keep it in mind when the party is stuck; class features often solve problems without spending gold or spell slots.`,
+    })),
+  ];
+
+  return [
+    {
+      id: 'party-help',
+      emoji: '🤝',
+      title: 'Help the Party Shine',
+      type: 'roleplay',
+      text: `As a level ${level} ${className}, try setting up another player this round: Help, distract, block a doorway, share information, or draw danger away from someone fragile.`,
+    },
+    {
+      id: 'top-stat-fact',
+      emoji: '✨',
+      title: `${ABILITY_LABELS[topAbility?.[0]] || 'Best Ability'} Advantage`,
+      type: 'facts',
+      text: `${ABILITY_LABELS[topAbility?.[0]] || 'Your best ability'} is your standout stat. When you describe a plan, frame it around that strength so the GM has a clear reason to call for a roll you are good at.`,
+    },
+    {
+      id: 'action-economy',
+      emoji: '⏱️',
+      title: 'Use Every Part of Your Turn',
+      type: 'combat',
+      text: 'On your turn, think Action, Bonus Action, Movement, Reaction. Even if you cannot attack, you can often Help, Dodge, Disengage, Hide, Ready, or move into a safer/supporting position.',
+    },
+    ...knownHooks,
+  ];
+}
 
 export default function RookPlayerSuggestions({ character }) {
   const [open, setOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState([]);
+  const [adviceCards, setAdviceCards] = useState([]);
 
   const suggestions = useMemo(() => generateSuggestions(character), [character]);
+  const adviceDeck = useMemo(() => buildPlayerAdvice(character), [character]);
+  const visibleSuggestions = useMemo(
+    () => suggestions.filter(item => !dismissedSuggestionIds.includes(item.id)),
+    [dismissedSuggestionIds, suggestions]
+  );
+
+  const storageKey = character?.id ? `rook.player.dismissed.${character.id}` : '';
+
+  useEffect(() => {
+    if (!storageKey) {
+      setDismissedSuggestionIds([]);
+      return;
+    }
+    try {
+      setDismissedSuggestionIds(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+    } catch {
+      setDismissedSuggestionIds([]);
+    }
+  }, [storageKey]);
+
+  const saveDismissed = useCallback((next) => {
+    setDismissedSuggestionIds(next);
+    if (storageKey) {
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ignore */ }
+    }
+  }, [storageKey]);
+
+  const dismissSuggestion = useCallback((id) => {
+    saveDismissed(Array.from(new Set([...dismissedSuggestionIds, id])));
+  }, [dismissedSuggestionIds, saveDismissed]);
+
+  const clearNotifications = useCallback(() => {
+    saveDismissed(suggestions.map(item => item.id));
+    toast.success('Rook notifications cleared');
+  }, [saveDismissed, suggestions]);
+
+  const restoreNotifications = useCallback(() => {
+    saveDismissed([]);
+    toast.success('Rook notifications restored');
+  }, [saveDismissed]);
+
+  const addAdviceCard = useCallback((mode = 'advice') => {
+    if (adviceDeck.length === 0) return;
+    const used = new Set(adviceCards.map(card => card.sourceId));
+    const pool = adviceDeck.filter(card => !used.has(card.id));
+    const card = pool.length > 0 ? pool[0] : adviceDeck[Math.floor(Math.random() * adviceDeck.length)];
+    const nextCard = {
+      ...card,
+      id: `generated-${mode}-${Date.now()}`,
+      sourceId: card.id,
+      title: mode === 'fact' ? `Cool Fact: ${card.title}` : `Advice: ${card.title}`,
+    };
+    setAdviceCards(prev => [nextCard, ...prev].slice(0, 4));
+  }, [adviceCards, adviceDeck]);
+
+  const dismissAdvice = useCallback((id) => {
+    setAdviceCards(prev => prev.filter(card => card.id !== id));
+  }, []);
 
   const maxHp = Number(character?.max_hit_points || character?.max_hp || 10);
   const currentHp = Number(character?.current_hit_points || character?.hp || maxHp);
   const isLowHp = currentHp <= maxHp * 0.5;
-  const hasCombat = suggestions.some(s => s.type === 'combat');
-  const glowColor = isLowHp ? '#F59E0B' : hasCombat ? '#C1121F' : '#4a7dff';
+  const hasCombat = visibleSuggestions.some(s => s.type === 'combat');
+  const glowColor = isLowHp ? '#F59E0B' : hasCombat ? '#A78BFA' : '#60A5FA';
 
   const askRook = useCallback(async () => {
     if (aiLoading || !character) return;
@@ -149,8 +292,10 @@ export default function RookPlayerSuggestions({ character }) {
         `Character: ${character.name}, ${character.character_class || 'unknown class'} level ${character.level || 1}`,
         `HP: ${currentHp}/${maxHp}`,
         `Conditions: ${(character.conditions || []).join(', ') || 'none'}`,
+        `Skills: ${asArray(character?.skill_proficiencies || character?.skills || character?.proficiencies?.skills).join(', ') || 'unknown'}`,
+        `Feats: ${asArray(character?.feats || character?.feat_names).join(', ') || 'none listed'}`,
         `Top ability: ${Object.entries({ STR: character?.strength, DEX: character?.dexterity, CON: character?.constitution, INT: character?.intelligence, WIS: character?.wisdom, CHA: character?.charisma }).sort((a, b) => b[1] - a[1])[0]?.[0]}`,
-        `Give ONE short, practical, interesting suggestion for this character right now. Keep it under 3 sentences. Focus on something surprising or non-obvious they might not have thought of.`,
+        `Give ONE short, practical, interesting suggestion for this character right now. Keep it under 3 sentences. Focus on their skills, feats, action economy, or a useful party-support move.`,
       ].join('\n');
       const res = await apiClient.post('/rook/chat', {
         message: prompt,
@@ -192,20 +337,20 @@ export default function RookPlayerSuggestions({ character }) {
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '22px',
-          animation: suggestions.length > 0 && !open ? 'rookPulse 2.5s ease-in-out infinite' : 'none',
+          animation: visibleSuggestions.length > 0 && !open ? 'rookPulse 2.5s ease-in-out infinite' : 'none',
           transition: 'box-shadow 0.3s, transform 0.2s',
           transform: open ? 'scale(1.1)' : 'scale(1)',
         }}
       >
-        ♜
-        {suggestions.length > 0 && !open && (
+        <img src={ROOK_MARK_SRC} alt="Rook" style={{ width: 30, height: 30, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.65))' }} />
+        {visibleSuggestions.length > 0 && !open && (
           <span style={{
             position: 'absolute', top: '-4px', right: '-4px',
             background: glowColor, color: '#fff',
             width: '16px', height: '16px', borderRadius: '50%',
             fontSize: '9px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            {suggestions.length}
+            {visibleSuggestions.length}
           </span>
         )}
       </button>
@@ -231,10 +376,10 @@ export default function RookPlayerSuggestions({ character }) {
         >
           {/* Header */}
           <div style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>♜</span>
+            <img src={ROOK_MARK_SRC} alt="Rook" style={{ width: 26, height: 26, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.55))' }} />
             <div>
               <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>Rook Suggestions</div>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>Tips for {character.name}</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8' }}>Tips, facts, and reminders for {character.name}</div>
             </div>
             <button
               type="button"
@@ -245,7 +390,20 @@ export default function RookPlayerSuggestions({ character }) {
 
           {/* Suggestions */}
           <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {suggestions.map(s => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              <button type="button" onClick={() => addAdviceCard('advice')} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.35)', color: '#bfdbfe', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>Suggest advice</button>
+              <button type="button" onClick={() => addAdviceCard('fact')} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(34,211,238,0.10)', border: '1px solid rgba(34,211,238,0.35)', color: '#a5f3fc', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>Cool fact</button>
+            </div>
+            {(visibleSuggestions.length > 0 || dismissedSuggestionIds.length > 0) && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>{visibleSuggestions.length} active notification{visibleSuggestions.length === 1 ? '' : 's'}</span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {visibleSuggestions.length > 0 && <button type="button" onClick={clearNotifications} style={{ background: 'transparent', border: 'none', color: '#a78bfa', cursor: 'pointer', fontSize: '10px', fontWeight: 800 }}>Clear all</button>}
+                  {dismissedSuggestionIds.length > 0 && <button type="button" onClick={restoreNotifications} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '10px', fontWeight: 800 }}>Restore</button>}
+                </div>
+              </div>
+            )}
+            {[...adviceCards, ...visibleSuggestions].map(s => (
               <div
                 key={s.id}
                 style={{
@@ -257,7 +415,13 @@ export default function RookPlayerSuggestions({ character }) {
               >
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
                   <span style={{ fontSize: '14px' }}>{s.emoji}</span>
-                  <strong style={{ fontSize: '11px', color: TYPE_COLOR[s.type] || '#4a7dff', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.title}</strong>
+                  <strong style={{ fontSize: '11px', color: TYPE_COLOR[s.type] || '#60A5FA', textTransform: 'uppercase', letterSpacing: '0.5px', flex: 1 }}>{s.title}</strong>
+                  <button
+                    type="button"
+                    onClick={() => s.sourceId ? dismissAdvice(s.id) : dismissSuggestion(s.id)}
+                    aria-label={`Dismiss ${s.title}`}
+                    style={{ background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(148,163,184,0.18)', color: '#94a3b8', borderRadius: '999px', width: '20px', height: '20px', cursor: 'pointer', lineHeight: 1 }}
+                  >×</button>
                 </div>
                 <p style={{ fontSize: '11px', color: '#cbd5e1', margin: 0, lineHeight: '1.5' }}>{s.text}</p>
               </div>
@@ -268,7 +432,8 @@ export default function RookPlayerSuggestions({ character }) {
               <div style={{ padding: '10px 12px', background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
                   <span style={{ fontSize: '14px' }}>✨</span>
-                  <strong style={{ fontSize: '11px', color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rook says</strong>
+                  <strong style={{ fontSize: '11px', color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.5px', flex: 1 }}>Rook says</strong>
+                  <button type="button" onClick={() => setAiSuggestion(null)} aria-label="Dismiss Rook suggestion" style={{ background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(168,85,247,0.25)', color: '#c4b5fd', borderRadius: '999px', width: '20px', height: '20px', cursor: 'pointer', lineHeight: 1 }}>×</button>
                 </div>
                 <p style={{ fontSize: '11px', color: '#cbd5e1', margin: 0, lineHeight: '1.5' }}>{aiSuggestion}</p>
               </div>
@@ -288,7 +453,12 @@ export default function RookPlayerSuggestions({ character }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               }}
             >
-              {aiLoading ? '♜ Rook is thinking…' : '✨ Ask Rook for a personalised tip'}
+              {aiLoading ? (
+                <>
+                  <img src={ROOK_MARK_SRC} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                  Rook is thinking…
+                </>
+              ) : '✨ Ask Rook for a personalised tip'}
             </button>
           </div>
         </div>

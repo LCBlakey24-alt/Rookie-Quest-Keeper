@@ -21,6 +21,7 @@ import EventSystem from '@/components/gm/EventSystem';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 import EnvironmentControl from '@/components/gm/EnvironmentControl';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
+import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 
 const theme = {
   bg: {
@@ -71,6 +72,7 @@ export default function LiveSessionGridPage() {
   const [diceTotal, setDiceTotal] = useState(0);
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
+  const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
   useEffect(() => { fetchAllData(); }, [campaignId]);
 
@@ -139,16 +141,32 @@ export default function LiveSessionGridPage() {
     setShowDiceFlicker(true);
   };
 
+  const syncNoteIntoCampaignState = async (noteId) => {
+    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
+    const applied = syncRes.data?.applied_updates || [];
+    setSessionRefreshKey(prev => prev + 1);
+    await fetchAllData();
+
+    if (applied.length > 0) {
+      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
+        description: applied.slice(0, 2).map(update => update.summary).join(' '),
+      });
+    } else {
+      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
+    }
+  };
+
   const handleSubmitNote = async () => {
     if (!quickNote.trim()) return;
     setProcessingNote(true);
     try {
-      const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: quickNote });
-      setSessionNotes(prev => [{ id: noteRes.data.id, content: quickNote, created_at: new Date().toISOString() }, ...prev]);
+      const noteContent = quickNote.trim();
+      const noteRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: noteContent });
+      setSessionNotes(prev => [{ ...noteRes.data, content: noteContent }, ...prev]);
       setQuickNote('');
-      toast.success('Note saved!');
+      await syncNoteIntoCampaignState(noteRes.data.id);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to save note');
+      toast.error(error?.response?.data?.detail || 'Failed to save and sync note');
     } finally {
       setProcessingNote(false);
     }
@@ -215,6 +233,8 @@ export default function LiveSessionGridPage() {
         return <PartyTab theme={theme} players={players} />;
       case 'notes':
         return <NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />;
+      case 'handouts':
+        return <GMHandoutsTab campaignId={campaignId} />;
       case 'npcs':
         return <NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />;
       case 'monsters':
@@ -256,7 +276,7 @@ export default function LiveSessionGridPage() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Live Play Mode</p>
             <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-            <p style={subtitleStyle}>Run the session from your GM Screen. Pick 1–6 panels and keep your table tools open.</p>
+            <p style={subtitleStyle}>Run the session from a focused GM Screen. Pick 1–4 panels and keep only your table-critical tools open.</p>
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
@@ -273,6 +293,7 @@ export default function LiveSessionGridPage() {
           renderTool={renderTool}
           onOpenSingleTab={() => null}
           onRollDice={rollQuickDice}
+          refreshKey={sessionRefreshKey}
         />
       </section>
 

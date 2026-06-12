@@ -52,6 +52,7 @@ export default function PlayerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [handoutSummary, setHandoutSummary] = useState({ total: 0, unread: 0, saved: 0 });
 
   const selectedCharacter = useMemo(
     () => characters.find(character => character.id === selectedCharacterId) || characters[0] || null,
@@ -102,13 +103,20 @@ export default function PlayerDashboard() {
 
   const loadPlayerData = async () => {
     try {
-      const [charactersRes, campaignsRes] = await Promise.all([
+      const [charactersRes, campaignsRes, handoutsRes] = await Promise.all([
         apiClient.get('/characters').catch(() => ({ data: [] })),
         apiClient.get('/campaigns').catch(() => ({ data: [] })),
+        apiClient.get('/player/handouts').catch(() => ({ data: [] })),
       ]);
 
+      const handouts = Array.isArray(handoutsRes.data) ? handoutsRes.data : [];
       setCharacters(Array.isArray(charactersRes.data) ? charactersRes.data : charactersRes.data?.characters || []);
       setCampaigns(Array.isArray(campaignsRes.data) ? campaignsRes.data : campaignsRes.data?.campaigns || []);
+      setHandoutSummary({
+        total: handouts.length,
+        unread: handouts.filter(handout => !handout.read).length,
+        saved: handouts.filter(handout => handout.saved).length,
+      });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to load player dashboard');
     } finally {
@@ -219,7 +227,12 @@ export default function PlayerDashboard() {
           return (
             <button key={tab.id} data-testid={tab.testId} type="button" onClick={() => setActiveTab(tab.id)} style={tabButtonStyle(active)}>
               <Icon size={16} />
-              {tab.label}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {tab.label}
+                {tab.id === 'handouts' && handoutSummary.unread > 0 && (
+                  <span style={tabBadgeStyle}>{handoutSummary.unread}</span>
+                )}
+              </span>
             </button>
           );
         })}
