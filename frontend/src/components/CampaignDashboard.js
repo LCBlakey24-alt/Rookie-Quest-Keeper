@@ -35,32 +35,32 @@ const theme = {
 
 const sessionPrepTheme = {
   bg: {
-    primary: '#080B1A',
-    surface: '#12172A',
-    elevated: '#202A46',
-    panel: '#12172A',
-    card: '#171E33',
-    hover: 'rgba(124, 58, 237, 0.12)',
+    primary: '#1F1F23',
+    surface: '#27272B',
+    elevated: '#323235',
+    panel: '#27272B',
+    card: '#27272B',
+    hover: 'rgba(239, 68, 68, 0.12)',
   },
   accent: {
-    primary: '#7C3AED',
+    primary: '#EF4444',
     secondary: '#B91C1C',
-    gold: '#7C3AED',
-    orange: '#A78BFA',
-    hover: '#A78BFA',
-    subtle: 'rgba(124, 58, 237, 0.12)',
+    gold: '#EF4444',
+    orange: '#F87171',
+    hover: '#F87171',
+    subtle: 'rgba(239, 68, 68, 0.12)',
     glow: 'none',
-    gm: '#7C3AED',
-    gmSubtle: 'rgba(124, 58, 237, 0.12)',
+    gm: '#EF4444',
+    gmSubtle: 'rgba(239, 68, 68, 0.12)',
   },
   text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124, 58, 237, 0.42)',
-  gradient: '#7C3AED',
+  border: 'rgba(239, 68, 68, 0.42)',
+  gradient: '#EF4444',
 };
 
 
 const workspacePanelStyle = {
-  background: 'linear-gradient(180deg, rgba(18,23,42,0.94), rgba(8,11,26,0.96))',
+  background: 'linear-gradient(180deg, rgba(39,39,43,0.94), rgba(31,31,35,0.96))',
   border: `1px solid ${theme.border}`,
   borderRadius: 8,
   padding: 'clamp(14px, 2vw, 24px)',
@@ -225,13 +225,13 @@ function CampaignDashboard() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 260, minWidth: 260, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '16px 0', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
           <h3 style={{ color: theme.accent.primary, fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 16 }}>Campaign Tools</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
         </aside>
         {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 39, display: 'none' }} />}
-        <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(10px, 1.8vw, 22px)', minWidth: 0 }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
           {activeTabMeta && (
             <div className="desktop-context" style={desktopContextStyle}>
               <div style={{ minWidth: 0 }}>

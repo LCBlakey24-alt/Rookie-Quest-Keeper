@@ -575,7 +575,7 @@ function PartyInventory({ campaignId, players = [] }) {
                     Magic
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={newItem.attunement_required} onChange={(e) => setNewItem({ ...newItem, attunement_required: e.target.checked })} style={{ accentColor: '#A78BFA' }} />
+                    <input type="checkbox" checked={newItem.attunement_required} onChange={(e) => setNewItem({ ...newItem, attunement_required: e.target.checked })} style={{ accentColor: '#eab308' }} />
                     Attunement
                   </label>
                 </div>
@@ -600,11 +600,11 @@ function PartyInventory({ campaignId, players = [] }) {
               />
               <div style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>Description</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>Description</label>
                   <textarea value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="input-glow" placeholder="What does this item do or look like?" style={{ width: '100%', minHeight: '62px', fontSize: '12px', padding: '8px', resize: 'vertical' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '10px', color: '#D1D5DB', marginBottom: '2px' }}>GM Notes</label>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#67e8f9', marginBottom: '2px' }}>GM Notes</label>
                   <textarea value={newItem.notes} onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })} className="input-glow" placeholder="Secret properties, origin, or who wants it back..." style={{ width: '100%', minHeight: '52px', fontSize: '12px', padding: '8px', resize: 'vertical' }} />
                 </div>
                 <ImageUploadPanel

@@ -9,10 +9,10 @@ const rq = {
   panel: 'rgba(39,39,43,0.96)',
   card: 'rgba(31,31,35,0.92)',
   elevated: '#323235',
-  border: 'rgba(124,58,237,0.36)',
+  border: 'rgba(239,68,68,0.36)',
   borderSoft: 'rgba(255,255,255,0.10)',
-  accent: '#7C3AED',
-  accentSoft: 'rgba(124,58,237,0.12)',
+  accent: '#EF4444',
+  accentSoft: 'rgba(239,68,68,0.12)',
   good: '#22C55E',
   warn: '#F59E0B',
   text: '#FFFFFF',
@@ -164,7 +164,7 @@ export default function TonightsSessionTab({ campaignId, onOpenTab }) {
   if (loading) return <div style={loadingStyle}>Loading tonight's session sheet…</div>;
 
   return (
-    <div data-testid="tonights-session-tab" style={tonightPageStyle}>
+    <div data-testid="tonights-session-tab" style={{ display: 'grid', gap: 16 }}>
       <section style={heroStyle}>
         <div>
           <p style={eyebrowStyle}>Friday table cockpit</p>
@@ -328,35 +328,34 @@ function QuickAction({ icon: Icon, label, onClick }) {
   return <button type="button" onClick={onClick} style={quickActionStyle}><Icon size={16} /> {label}</button>;
 }
 
-const loadingStyle = { padding: 18, color: rq.secondary, background: rq.panel, border: `1px solid ${rq.border}` };
-const tonightPageStyle = { display: 'grid', gap: 10, alignContent: 'start' };
-const heroStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '12px 14px', border: `1px solid ${rq.border}`, background: rq.panel, flexWrap: 'wrap' };
+const loadingStyle = { padding: 24, color: rq.secondary, background: rq.panel, border: `1px solid ${rq.border}` };
+const heroStyle = { display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', padding: 18, border: `1px solid ${rq.border}`, background: rq.panel, flexWrap: 'wrap' };
 const eyebrowStyle = { margin: '0 0 6px', color: rq.accent, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.4 };
-const titleStyle = { margin: 0, color: rq.text, fontSize: 'clamp(19px, 3vw, 22px)', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
-const subtitleStyle = { margin: '5px 0 0', color: rq.secondary, fontSize: 12, lineHeight: 1.4, maxWidth: 760 };
-const primaryButtonStyle = { background: rq.accent, color: '#fff', border: 'none', borderRadius: 0, fontWeight: 900, display: 'inline-flex', gap: 7, alignItems: 'center', minHeight: 34, padding: '7px 11px', fontSize: 12 };
-const secondaryButtonStyle = { background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, borderRadius: 0, fontWeight: 900, display: 'inline-flex', gap: 7, alignItems: 'center', minHeight: 34, padding: '7px 11px', fontSize: 12 };
-const quickNoteStyle = { display: 'grid', gridTemplateColumns: 'minmax(190px, 0.8fr) minmax(260px, 1.7fr) auto', gap: 10, alignItems: 'center', padding: 10, background: rq.panel, border: `1px solid ${rq.borderSoft}`, minWidth: 0 };
-const quickNoteTitleStyle = { margin: 0, color: rq.text, fontSize: 13, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 7 };
-const quickNoteHelpStyle = { margin: '3px 0 0', color: rq.muted, fontSize: 11, lineHeight: 1.35 };
-const quickNoteInputStyle = { minHeight: 42, maxHeight: 84, width: '100%', resize: 'vertical', background: rq.bg, color: rq.text, border: `1px solid ${rq.borderSoft}`, padding: 8, fontSize: 12, lineHeight: 1.35, outline: 'none' };
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 };
-const metricCardStyle = { background: rq.card, border: `1px solid ${rq.borderSoft}`, padding: 10, textAlign: 'left' };
+const titleStyle = { margin: 0, color: rq.text, fontSize: 'clamp(21px, 7vw, 24px)', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' };
+const subtitleStyle = { margin: '8px 0 0', color: rq.secondary, fontSize: 14, lineHeight: 1.55, maxWidth: 760 };
+const primaryButtonStyle = { background: rq.accent, color: '#fff', border: 'none', borderRadius: 0, fontWeight: 900, display: 'inline-flex', gap: 8, alignItems: 'center' };
+const secondaryButtonStyle = { background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, borderRadius: 0, fontWeight: 900, display: 'inline-flex', gap: 8, alignItems: 'center' };
+const quickNoteStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, alignItems: 'center', padding: 14, background: rq.panel, border: `1px solid ${rq.borderSoft}`, minWidth: 0 };
+const quickNoteTitleStyle = { margin: 0, color: rq.text, fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 };
+const quickNoteHelpStyle = { margin: '5px 0 0', color: rq.muted, fontSize: 12, lineHeight: 1.45 };
+const quickNoteInputStyle = { minHeight: 68, width: '100%', resize: 'vertical', background: rq.bg, color: rq.text, border: `1px solid ${rq.borderSoft}`, padding: 10, fontSize: 13, lineHeight: 1.45, outline: 'none' };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 };
+const metricCardStyle = { background: rq.card, border: `1px solid ${rq.borderSoft}`, padding: 14, textAlign: 'left' };
 const metricButtonStyle = { ...metricCardStyle, cursor: 'pointer', color: 'inherit' };
 const metricLabelStyle = { color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.8 };
-const metricValueStyle = { display: 'block', color: rq.text, fontSize: 22, fontWeight: 950, marginTop: 6 };
+const metricValueStyle = { display: 'block', color: rq.text, fontSize: 28, fontWeight: 950, marginTop: 10 };
 const metricHelperStyle = { display: 'block', color: rq.secondary, fontSize: 12, marginTop: 4 };
-const mainGridStyle = { display: 'grid', gridTemplateColumns: '1.15fr 0.85fr', gap: 10, minWidth: 0 };
-const fourGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, minWidth: 0 };
-const panelStyle = { background: rq.panel, border: `1px solid ${rq.borderSoft}`, padding: 10, minWidth: 0 };
-const panelHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 };
-const panelTitleStyle = { margin: 0, color: rq.text, fontSize: 13, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 7 };
+const mainGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, minWidth: 0 };
+const fourGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, minWidth: 0 };
+const panelStyle = { background: rq.panel, border: `1px solid ${rq.borderSoft}`, padding: 14, minWidth: 0 };
+const panelHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 };
+const panelTitleStyle = { margin: 0, color: rq.text, fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 };
 const linkButtonStyle = { background: 'transparent', color: rq.accent, border: `1px solid ${rq.border}`, padding: '5px 8px', cursor: 'pointer', fontSize: 11, fontWeight: 900 };
-const healthRowStyle = (done) => ({ display: 'grid', gridTemplateColumns: '16px minmax(0, 1fr) auto', gap: 7, alignItems: 'center', padding: '6px 8px', background: done ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${done ? 'rgba(34,197,94,0.22)' : 'rgba(245,158,11,0.22)'}`, color: rq.secondary, fontSize: 12 });
-const prepBoxStyle = { marginTop: 8, padding: 8, background: rq.bg, border: `1px solid ${rq.borderSoft}`, color: rq.secondary, display: 'grid', gap: 6, fontSize: 11 };
+const healthRowStyle = (done) => ({ display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', background: done ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${done ? 'rgba(34,197,94,0.22)' : 'rgba(245,158,11,0.22)'}`, color: rq.secondary, fontSize: 13 });
+const prepBoxStyle = { marginTop: 12, padding: 10, background: rq.bg, border: `1px solid ${rq.borderSoft}`, color: rq.secondary, display: 'grid', gap: 8, fontSize: 12 };
 const prepChecklistListStyle = { display: 'grid', gap: 6, marginTop: 4 };
-const prepChecklistItemStyle = (completed) => ({ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', gap: 7, alignItems: 'center', textAlign: 'left', background: completed ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.04)', color: completed ? rq.secondary : rq.text, border: `1px solid ${completed ? 'rgba(34,197,94,0.25)' : rq.borderSoft}`, padding: '5px 7px', cursor: 'pointer', fontSize: 11 });
-const emptyStyle = { margin: 0, color: rq.muted, fontSize: 12, padding: 9, border: `1px dashed ${rq.borderSoft}` };
-const previewRowStyle = { display: 'grid', gap: 3, padding: 8, background: rq.bg, border: `1px solid ${rq.borderSoft}`, color: rq.text, fontSize: 12 };
-const quickActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', padding: 10, background: rq.panel, border: `1px solid ${rq.borderSoft}` };
-const quickActionStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, padding: '7px 10px', cursor: 'pointer', fontWeight: 900, fontSize: 12 };
+const prepChecklistItemStyle = (completed) => ({ display: 'grid', gridTemplateColumns: '16px minmax(0, 1fr) auto', gap: 8, alignItems: 'center', textAlign: 'left', background: completed ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.04)', color: completed ? rq.secondary : rq.text, border: `1px solid ${completed ? 'rgba(34,197,94,0.25)' : rq.borderSoft}`, padding: '7px 8px', cursor: 'pointer', fontSize: 12 });
+const emptyStyle = { margin: 0, color: rq.muted, fontSize: 13, padding: 12, border: `1px dashed ${rq.borderSoft}` };
+const previewRowStyle = { display: 'grid', gap: 4, padding: 10, background: rq.bg, border: `1px solid ${rq.borderSoft}`, color: rq.text, fontSize: 13 };
+const quickActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', padding: 12, background: rq.panel, border: `1px solid ${rq.borderSoft}` };
+const quickActionStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, padding: '9px 12px', cursor: 'pointer', fontWeight: 900, fontSize: 12 };

@@ -1,9 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rook dragon mark">
-  <rect width="64" height="64" rx="14" fill="#080B1A"/>
-  <circle cx="32" cy="32" r="25" fill="none" stroke="#A78BFA" stroke-width="3"/>
-  <circle cx="32" cy="32" r="20" fill="none" stroke="#60A5FA" stroke-width="2" opacity="0.75"/>
-  <path d="M45 20c-8-6-22-3-28 8 7-5 16-6 23-1-5 0-10 2-13 6 7-2 12-1 16 3-4 0-8 1-11 4 6 0 11-1 15-5 4-4 5-10-2-15Z" fill="#F8FAFC"/>
-  <path d="M17 29c-3 7 1 15 8 19 8 4 18 1 23-7-8 5-18 5-25-1-4-3-6-7-6-11Z" fill="#F8FAFC" opacity="0.95"/>
-  <path d="M41 25l8-8-1 10" fill="#F8FAFC"/>
-  <circle cx="42" cy="27" r="1.2" fill="#080B1A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rook">
+  <rect width="64" height="64" rx="14" fill="#0B0B0C"/>
+  <path d="M17 14h8v7h5v-7h4v7h5v-7h8v17l-6 6v12h6v6H17v-6h6V37l-6-6V14Z" fill="#7C3AED"/>
+  <path d="M24 29h16l-4 5h-8l-4-5Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M25 40h14v9H25v-9Z" fill="#111827" opacity="0.55"/>
 </svg>
