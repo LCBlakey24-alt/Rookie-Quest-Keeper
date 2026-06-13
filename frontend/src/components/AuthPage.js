@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowLeft, ShieldCheck } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 export default function AuthPage({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -39,7 +40,7 @@ export default function AuthPage({ onLogin }) {
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Login failed');
+      toast.error(getErrorMessage(error, 'Login failed'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ export default function AuthPage({ onLogin }) {
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Registration failed');
+      toast.error(getErrorMessage(error, 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ export default function AuthPage({ onLogin }) {
       toast.success('Password reset email sent!');
       setMode('login');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to send reset email');
+      toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ export default function AuthPage({ onLogin }) {
       setMode('login');
       navigate('/auth');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Password reset failed');
+      toast.error(getErrorMessage(error, 'Password reset failed'));
     } finally {
       setLoading(false);
     }
