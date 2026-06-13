@@ -9,6 +9,9 @@ import "@/index.css";
 import "@/styles/mobileUsabilityFix.css";
 import App from "@/App";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import { installSafeToasts } from "@/utils/safeToast";
+
+installSafeToasts();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
