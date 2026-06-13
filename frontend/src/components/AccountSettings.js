@@ -35,7 +35,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       const response = await apiClient.get('/account/profile');
       setProfile(response.data);
       setNewUsername(response.data.username);
-      setNewEmail(response.data.email);
+      setNewEmail(response.data.email || '');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to load profile');
     } finally {
@@ -50,7 +50,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
     try {
       const updates = {};
       if (newUsername !== profile.username) updates.username = newUsername;
-      if (newEmail !== profile.email) updates.email = newEmail;
+      if (newEmail.trim() && newEmail.trim() !== (profile.email || '')) updates.email = newEmail.trim();
 
       if (Object.keys(updates).length === 0) {
         toast.info('No changes to save');
@@ -69,7 +69,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       setProfile({
         ...profile,
         username: response.data.username,
-        email: response.data.email,
+        email: response.data.email || '',
       });
 
       toast.success('Profile updated successfully!');
@@ -160,11 +160,12 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           <SectionHeader icon={User} title="Profile Information" />
           <form onSubmit={handleUpdateProfile}>
             <div style={{ display: 'grid', gap: '20px' }}>
-              <FieldLabel icon={User} text="Display Name" />
-              <Input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Your display name" data-testid="profile-username" />
+              <FieldLabel icon={User} text="Username" />
+              <Input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Username: letters, numbers, _ or -" data-testid="profile-username" />
 
-              <FieldLabel icon={Mail} text="Email Address" />
-              <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="your@email.com" data-testid="profile-email" />
+              <FieldLabel icon={Mail} text="Recovery Email (optional)" />
+              <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
+              <p style={helpTextStyle}>Existing accounts can keep using their original email to sign in. New accounts can leave this blank unless they want password recovery.</p>
 
               <Button type="submit" disabled={saving} className="btn-primary" style={buttonFitStyle} data-testid="save-profile-btn">
                 <Save size={16} style={{ marginRight: '8px' }} />
@@ -278,6 +279,7 @@ const panelStyle = { background: 'var(--rq-bg-panel, #242424)', border: '1px sol
 const sectionHeaderStyle = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' };
 const sectionTitleStyle = { fontSize: '20px', fontWeight: 900, fontFamily: "'Montserrat', sans-serif", margin: 0 };
 const labelStyle = { color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', fontWeight: 800 };
+const helpTextStyle = { margin: '-10px 0 0', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45 };
 const buttonFitStyle = { width: 'fit-content', borderRadius: 'var(--rq-radius-sm, 4px)' };
 const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--rq-text-muted, #A0A0A0)', cursor: 'pointer' };
 const dangerPanelStyle = { ...panelStyle, background: 'var(--rq-accent-soft, rgba(193,18,31,0.12))', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))' };

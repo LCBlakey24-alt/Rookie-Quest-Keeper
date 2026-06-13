@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
+import {
   Zap, Dices, Users, Swords, BookOpen, Clock, Sparkles,
   Volume2, FileText, ChevronRight
 } from 'lucide-react';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 
 // Quick access panel for fast session control
-export default function LiveSessionMode({ 
-  theme, 
-  players, 
+export default function LiveSessionMode({
+  theme,
+  players,
   calendar,
   onRollDice,
   onQuickCombat,
@@ -18,34 +18,34 @@ export default function LiveSessionMode({
   onToggle
 }) {
   const [quickNotes, setQuickNotes] = useState('');
-  
+
   // Quick action buttons
   const quickActions = [
-    { 
-      id: 'roll-d20', 
-      icon: Dices, 
-      label: 'd20', 
+    {
+      id: 'roll-d20',
+      icon: Dices,
+      label: 'd20',
       color: theme.accent.primary,
       action: () => onRollDice?.('1d20')
     },
-    { 
-      id: 'roll-damage', 
-      icon: Swords, 
-      label: '2d6', 
-      color: '#ef4444',
-      action: () => onRollDice?.('2d6')
+    {
+      id: 'roll-2d6',
+      icon: Dices,
+      label: '2d6',
+      color: theme.accent.hover,
+      action: () => onRollDice?.('2d6', 'Two d6s')
     },
-    { 
-      id: 'quick-combat', 
-      icon: Swords, 
-      label: 'Combat', 
+    {
+      id: 'quick-combat',
+      icon: Swords,
+      label: 'Combat',
       color: theme.accent.gold,
       action: onQuickCombat
     },
-    { 
-      id: 'generate-npc', 
-      icon: Sparkles, 
-      label: 'NPC', 
+    {
+      id: 'generate-npc',
+      icon: Sparkles,
+      label: 'NPC',
       color: '#10b981',
       action: () => onGenerateContent?.('npc')
     },
@@ -54,10 +54,10 @@ export default function LiveSessionMode({
   // Player quick view
   const PlayerQuickView = () => (
     <div style={{ marginBottom: '16px' }}>
-      <div style={{ 
-        fontSize: '11px', 
-        fontWeight: '600', 
-        color: theme.text.muted, 
+      <div style={{
+        fontSize: '11px',
+        fontWeight: '600',
+        color: theme.text.muted,
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
         marginBottom: '8px'
@@ -66,7 +66,7 @@ export default function LiveSessionMode({
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {players?.slice(0, 5).map(player => (
-          <div 
+          <div
             key={player.id}
             style={{
               display: 'flex',
@@ -182,10 +182,10 @@ export default function LiveSessionMode({
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
         {/* Quick Actions */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ 
-            fontSize: '11px', 
-            fontWeight: '600', 
-            color: theme.text.muted, 
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: theme.text.muted,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             marginBottom: '10px'
@@ -246,10 +246,10 @@ export default function LiveSessionMode({
 
         {/* Quick Note Input */}
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ 
-            fontSize: '11px', 
-            fontWeight: '600', 
-            color: theme.text.muted, 
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: theme.text.muted,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             marginBottom: '8px'
@@ -277,10 +277,10 @@ export default function LiveSessionMode({
 
         {/* Navigation Shortcuts */}
         <div>
-          <div style={{ 
-            fontSize: '11px', 
-            fontWeight: '600', 
-            color: theme.text.muted, 
+          <div style={{
+            fontSize: '11px',
+            fontWeight: '600',
+            color: theme.text.muted,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             marginBottom: '10px'

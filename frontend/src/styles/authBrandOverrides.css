@@ -2,19 +2,19 @@
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="min-height: 100vh"],
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="minHeight: 100vh"] {
-  background: #0B0B0C !important;
+  background: #070B18 !important;
   color: #FFFFFF !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="position: fixed"] {
-  background: radial-gradient(circle at 20% 10%, rgba(239, 68, 68, 0.18), transparent 34%), #0B0B0C !important;
+  background: radial-gradient(circle at 20% 10%, rgba(124, 58, 237, 0.18), transparent 34%), #070B18 !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="max-width: 420px"],
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="maxWidth: 420px"] {
   background: rgba(20, 20, 20, 0.94) !important;
-  border: 1px solid rgba(239, 68, 68, 0.35) !important;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5), 0 0 36px rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgba(124, 58, 237, 0.35) !important;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5), 0 0 36px rgba(124, 58, 237, 0.12) !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) h1,
@@ -30,15 +30,15 @@
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) input {
-  background: #0B0B0C !important;
+  background: #070B18 !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   color: #FFFFFF !important;
   border-radius: 10px !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) input:focus {
-  border-color: #EF4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14) !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14) !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) input::placeholder {
@@ -46,12 +46,12 @@
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) svg {
-  color: #EF4444 !important;
+  color: #7C3AED !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) button[type="submit"] {
-  background: #EF4444 !important;
-  border: 1px solid #EF4444 !important;
+  background: #7C3AED !important;
+  border: 1px solid #7C3AED !important;
   color: #FFFFFF !important;
   box-shadow: none !important;
 }
@@ -61,11 +61,11 @@
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) button[type="button"]:hover {
-  color: #EF4444 !important;
+  color: #7C3AED !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) img[src="/images/logo-mini.png"] {
-  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.45)) !important;
+  filter: drop-shadow(0 0 16px rgba(124, 58, 237, 0.45)) !important;
 }
 
 .App:has(input[placeholder="Email address"]):has(input[type="password"]) span[style*="WebkitTextFillColor"],

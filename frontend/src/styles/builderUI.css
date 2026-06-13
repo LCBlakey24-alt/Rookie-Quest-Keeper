@@ -3,12 +3,12 @@
 }
 
 .rq-builder-option-card:hover:not(:disabled) {
-  border-color: #EF4444 !important;
-  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: #7C3AED !important;
+  background: rgba(124, 58, 237, 0.12) !important;
 }
 
 .rq-builder-option-card.selected {
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.18);
 }
 
 .rq-builder-option-grid {

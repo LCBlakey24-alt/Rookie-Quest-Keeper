@@ -81,9 +81,9 @@ Gradually replace scattered direct axios calls with a small shared API helper th
 
 ### 4. NPC, monster, item image support
 
-- Reuse the portrait upload/generator style component.
+- Reuse the upload-only image component.
 - Mount it into NPC, monster, item, and inventory editors.
-- Keep paid AI image generation behind budget controls.
+- Do not reintroduce AI image generation; visual assets should come from manual uploads only.
 
 ### 5. GM/player live sync
 

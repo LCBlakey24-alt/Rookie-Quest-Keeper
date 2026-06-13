@@ -31,6 +31,7 @@ function InGameNotesTab({ campaignId }) {
   const [processingNote, setProcessingNote] = useState(null);
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [showSuggestionsDialog, setShowSuggestionsDialog] = useState(false);
+  const [syncingNote, setSyncingNote] = useState(null);
   
   const [generatingRecap, setGeneratingRecap] = useState(false);
   const [sessionRecap, setSessionRecap] = useState('');
@@ -51,6 +52,26 @@ function InGameNotesTab({ campaignId }) {
     }
   };
 
+  const syncNoteIntoCampaignState = async (noteId, showEmptyToast = true) => {
+    setSyncingNote(noteId);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
+      const applied = response.data?.applied_updates || [];
+      if (applied.length > 0) {
+        toast.success(`${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
+          description: applied.slice(0, 2).map(update => update.summary).join(' '),
+        });
+      } else if (showEmptyToast) {
+        toast.info('Note saved', { description: 'No clear player, NPC, or location changes were detected automatically.' });
+      }
+      fetchNotes();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Failed to sync note into campaign state');
+    } finally {
+      setSyncingNote(null);
+    }
+  };
+
   const handleAddNote = async (e) => {
     e.preventDefault();
     if (!newNote.trim()) {
@@ -59,10 +80,11 @@ function InGameNotesTab({ campaignId }) {
     }
 
     try {
-      await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: newNote });
+      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: newNote });
       toast.success('Note added!');
       setNewNote('');
       setShowDialog(false);
+      await syncNoteIntoCampaignState(response.data.id, false);
       fetchNotes();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to add note');
@@ -257,6 +279,16 @@ function InGameNotesTab({ campaignId }) {
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <Button
+                        data-testid={`sync-note-btn-${note.id}`}
+                        onClick={() => syncNoteIntoCampaignState(note.id)}
+                        disabled={syncingNote === note.id}
+                        className="btn-outline"
+                        style={{ display: 'flex', gap: '8px', fontSize: '12px', padding: '6px 12px' }}
+                      >
+                        {syncingNote === note.id ? <Loader size={14} className="loading-spinner" /> : <CheckCircle size={14} />}
+                        Sync Tabs
+                      </Button>
                       {!note.ai_processed && (
                         <Button
                           data-testid={`process-note-btn-${note.id}`}

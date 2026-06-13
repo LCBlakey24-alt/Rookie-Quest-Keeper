@@ -87,4 +87,4 @@ Dark navy and gold are the intended visual direction. Some older components may 
 - Do not replace the working character builder in one large edit.
 - Do not remove old backend routes until the frontend has definitely migrated away from them.
 - Do not add protected publisher rules text into the codebase.
-- Do not enable paid image generation routes without budget controls.
+- Do not reintroduce AI image generation; use manual upload support for portraits, maps, items, and other visuals.

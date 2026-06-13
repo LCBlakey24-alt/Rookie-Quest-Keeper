@@ -12,7 +12,7 @@
 .clean-sheet-spell-summary div,
 .clean-sheet-slot-card,
 .clean-sheet-spell-card {
-  background: #0B0B0C;
+  background: #070B18;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   padding: 14px;
@@ -62,7 +62,7 @@
 }
 
 .clean-sheet-spell-card em {
-  color: #EF4444;
+  color: #7C3AED;
   font-style: normal;
   font-size: 12px;
   font-weight: 900;

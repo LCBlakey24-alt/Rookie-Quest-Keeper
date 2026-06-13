@@ -6,10 +6,41 @@ import { ChevronRight, Crown, Home, Library, LogOut, Plus, RefreshCw, Settings, 
 import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: '#1A1A1A', panel: '#242424', panelSoft: '#1F1F1F', elevated: '#2E2E2E',
-  border: 'rgba(193,18,31,0.35)', borderStrong: 'rgba(193,18,31,0.55)',
-  accent: '#C1121F', accentHover: '#D62839', accentSoft: 'rgba(193,18,31,0.12)',
-  text: '#FFFFFF', textSecondary: '#D6D6D6', muted: '#A0A0A0',
+  bg: '#070B18',
+  panel: 'rgba(13,19,38,0.96)',
+  panelSoft: 'rgba(18,26,49,0.9)',
+  elevated: 'rgba(27,37,67,0.96)',
+  border: 'rgba(124,58,237,0.32)',
+  borderStrong: 'rgba(124,58,237,0.52)',
+  accent: '#7C3AED',
+  accentHover: '#A78BFA',
+  accentSoft: 'rgba(124,58,237,0.14)',
+  player: '#38BDF8',
+  text: '#FFFFFF',
+  textSecondary: '#D1D5DB',
+  muted: '#94A3B8',
+};
+
+const CLASS_OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
+const GENRE_OPTIONS = [
+  ['fantasy', 'Fantasy'],
+  ['medieval', 'Medieval'],
+  ['sci_fi', 'Sci-fi'],
+  ['modern', 'Modern'],
+  ['horror', 'Horror'],
+  ['custom', 'Custom'],
+];
+
+const defaultCampaignForm = {
+  name: '',
+  description: '',
+  world_name: '',
+  world_genre: 'fantasy',
+  rules_edition: '2024',
+  allow_exploding_dice: false,
+  allow_epic_levels: false,
+  max_character_level: 20,
+  available_classes: [],
 };
 
 const defaultSiteSettings = {
@@ -33,16 +64,25 @@ export default function UnifiedDashboard({ username, onLogout }) {
   const [campaigns, setCampaigns] = useState([]);
   const [siteSettings, setSiteSettings] = useState(defaultSiteSettings);
   const [loading, setLoading] = useState(true);
+  const [slowLoad, setSlowLoad] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
-  const [newCampaignName, setNewCampaignName] = useState('');
-  const [newCampaignDesc, setNewCampaignDesc] = useState('');
+  const [campaignForm, setCampaignForm] = useState(defaultCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [smallScreen, setSmallScreen] = useState(getSmallScreen);
   const [mobileTab, setMobileTab] = useState('player');
 
   useEffect(() => { loadDashboard(); }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setSlowLoad(false);
+      return undefined;
+    }
+    const timeoutId = window.setTimeout(() => setSlowLoad(true), 4500);
+    return () => window.clearTimeout(timeoutId);
+  }, [loading]);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 900px)');
@@ -91,16 +131,34 @@ export default function UnifiedDashboard({ username, onLogout }) {
     setShowCreateCampaignModal(true);
   };
 
+  const updateCampaignForm = (field, value) => setCampaignForm(prev => ({ ...prev, [field]: value }));
+
+  const toggleCampaignClass = (className) => {
+    setCampaignForm(prev => {
+      const current = new Set(prev.available_classes || []);
+      if (current.has(className)) current.delete(className);
+      else current.add(className);
+      return { ...prev, available_classes: Array.from(current) };
+    });
+  };
+
   const handleCreateCampaign = async (event) => {
     event.preventDefault();
-    if (!newCampaignName.trim()) return toast.error('Campaign name is required');
+    if (!campaignForm.name.trim()) return toast.error('Campaign name is required');
     try {
       setCreatingCampaign(true);
-      const response = await apiClient.post('/campaigns', { name: newCampaignName.trim(), description: newCampaignDesc.trim() });
+      const payload = {
+        ...campaignForm,
+        name: campaignForm.name.trim(),
+        description: campaignForm.description.trim(),
+        world_name: campaignForm.world_name.trim(),
+        system: campaignForm.rules_edition === '2024' ? '5e 2024 Compatible' : '5e 2014 Compatible',
+        max_character_level: campaignForm.allow_epic_levels ? Number(campaignForm.max_character_level) || 20 : 20,
+      };
+      const response = await apiClient.post('/campaigns', payload);
       toast.success('Campaign created');
       setShowCreateCampaignModal(false);
-      setNewCampaignName('');
-      setNewCampaignDesc('');
+      setCampaignForm(defaultCampaignForm);
       navigate(`/campaign/${response.data.id}`);
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to create campaign');
@@ -109,7 +167,18 @@ export default function UnifiedDashboard({ username, onLogout }) {
     }
   };
 
-  if (loading) return <main style={pageStyle}><div className="loading-spinner" /></main>;
+  if (loading) return (
+    <main style={{ ...pageStyle, display: 'grid', placeItems: 'center' }}>
+      <section style={loadingPanelStyle}>
+        <img src="/images/logo-mini.png" alt="ROOK loading" style={{ width: 58, height: 58, objectFit: 'contain' }} />
+        <div className="loading-spinner" />
+        <h1 style={{ color: theme.text, margin: '8px 0 4px', fontSize: 22 }}>Loading your command dashboard…</h1>
+        <p style={{ color: theme.textSecondary, margin: 0, lineHeight: 1.5 }}>
+          {slowLoad ? 'This is taking longer than expected. The app will stop waiting if the server does not respond, then you can retry from here.' : 'Checking your characters, campaigns, and account settings.'}
+        </p>
+      </section>
+    </main>
+  );
 
   return (
     <main style={pageStyle}>
@@ -167,9 +236,22 @@ export default function UnifiedDashboard({ username, onLogout }) {
         <div style={modalBackdropStyle} onClick={() => setShowCreateCampaignModal(false)}>
           <form style={modalStyle} onClick={e => e.stopPropagation()} onSubmit={handleCreateCampaign}>
             <h2 style={modalTitleStyle}>Create Campaign</h2>
-            <p style={subtitleStyle}>Name the campaign now. You can add setting, players, lore, maps, and session tools after creation.</p>
-            <label style={fieldLabelStyle}>Campaign name<input value={newCampaignName} onChange={e => setNewCampaignName(e.target.value)} autoFocus placeholder="e.g. The Ashen Crown" style={fieldStyle} /></label>
-            <label style={fieldLabelStyle}>Description<textarea value={newCampaignDesc} onChange={e => setNewCampaignDesc(e.target.value)} placeholder="Optional short campaign pitch" style={{ ...fieldStyle, minHeight: 100, resize: 'vertical' }} /></label>
+            <p style={subtitleStyle}>Set the table rules now so players joining with your code build characters that fit this campaign.</p>
+            <div style={compactFormGridStyle}>
+              <label style={fieldLabelStyle}>Campaign name<input value={campaignForm.name} onChange={e => updateCampaignForm('name', e.target.value)} autoFocus placeholder="e.g. The Ashen Crown" style={fieldStyle} /></label>
+              <label style={fieldLabelStyle}>World name<input value={campaignForm.world_name} onChange={e => updateCampaignForm('world_name', e.target.value)} placeholder="e.g. Veyr" style={fieldStyle} /></label>
+              <label style={fieldLabelStyle}>Genre<select value={campaignForm.world_genre} onChange={e => updateCampaignForm('world_genre', e.target.value)} style={fieldStyle}>{GENRE_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <label style={fieldLabelStyle}>Rules edition<select value={campaignForm.rules_edition} onChange={e => updateCampaignForm('rules_edition', e.target.value)} style={fieldStyle}><option value="2024">2024 rules</option><option value="2014">2014 rules</option></select></label>
+            </div>
+            <label style={fieldLabelStyle}>Description<textarea value={campaignForm.description} onChange={e => updateCampaignForm('description', e.target.value)} placeholder="Optional short campaign pitch" style={{ ...fieldStyle, minHeight: 74, resize: 'vertical' }} /></label>
+            <div style={toggleGridStyle}>
+              <label style={toggleCardStyle}><input type="checkbox" checked={campaignForm.allow_exploding_dice} onChange={e => updateCampaignForm('allow_exploding_dice', e.target.checked)} /><span><strong>Exploding dice</strong><small>Non-d20 max rolls roll again and add.</small></span></label>
+              <label style={toggleCardStyle}><input type="checkbox" checked={campaignForm.allow_epic_levels} onChange={e => updateCampaignForm('allow_epic_levels', e.target.checked)} /><span><strong>Beyond level 20</strong><small>Allow epic multiclass progression.</small></span></label>
+              <label style={{ ...fieldLabelStyle, marginTop: 0 }}>Max level<input type="number" min="1" max="60" disabled={!campaignForm.allow_epic_levels} value={campaignForm.max_character_level} onChange={e => updateCampaignForm('max_character_level', e.target.value)} style={fieldStyle} /></label>
+            </div>
+            <div style={fieldLabelStyle}>Allowed classes <span style={{ color: theme.textSecondary, fontWeight: 600 }}>Leave all unticked to allow every class.</span>
+              <div style={classGridStyle}>{CLASS_OPTIONS.map(className => <label key={className} style={classPillStyle(campaignForm.available_classes.includes(className))}><input type="checkbox" checked={campaignForm.available_classes.includes(className)} onChange={() => toggleCampaignClass(className)} />{className}</label>)}</div>
+            </div>
             <div style={modalActionsStyle}>
               <Button type="button" onClick={() => setShowCreateCampaignModal(false)} className="btn-outline">Cancel</Button>
               <Button type="submit" disabled={creatingCampaign} className="btn-primary">{creatingCampaign ? 'Creating...' : 'Create Campaign'}</Button>
@@ -239,33 +321,39 @@ function ActionCard({ icon: Icon, title, text, meta, onClick, primary = false, d
 function SummaryPanel({ id, icon: Icon, title, emptyTitle, emptyText, actionLabel, onAction, children }) { const hasItems = React.Children.count(children) > 0; return <section id={id} style={panelStyle}><div style={panelHeaderStyle}><h2 style={panelTitleStyle}><Icon size={20} /> {title}</h2><button type="button" onClick={onAction} style={smallLinkButtonStyle}>{actionLabel}</button></div>{hasItems ? <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div> : <div style={emptyStyle}><h3 style={{ color: theme.text, margin: '0 0 6px' }}>{emptyTitle}</h3><p style={{ color: theme.muted, margin: 0 }}>{emptyText}</p></div>}</section>; }
 function ListItem({ title, meta, onClick }) { return <button type="button" onClick={onClick} style={listItemStyle}><div style={{ minWidth: 0 }}><div style={{ color: theme.text, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div><div style={{ color: theme.muted, fontSize: 12, marginTop: 4 }}>{meta}</div></div><ChevronRight size={18} color={theme.accentHover} /></button>; }
 
-const pageStyle = { minHeight: '100dvh', background: theme.bg, color: theme.text, padding: 'clamp(14px, 3vw, 26px)', overflowY: 'auto' };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: theme.panel, border: `1px solid ${theme.border}`, padding: 14, marginBottom: 16 };
+const pageStyle = { minHeight: '100dvh', background: `radial-gradient(circle at top left, rgba(124,58,237,0.16), transparent 34%), radial-gradient(circle at top right, rgba(56,189,248,0.10), transparent 30%), ${theme.bg}`, color: theme.text, padding: 'clamp(12px, 2vw, 22px)', overflowY: 'auto' };
+const loadingPanelStyle = { width: 'min(520px, calc(100vw - 32px))', background: theme.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center', display: 'grid', justifyItems: 'center', gap: 10, boxShadow: '0 18px 48px rgba(0,0,0,0.35)' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '12px 14px', marginBottom: 12, boxShadow: '0 18px 50px rgba(0,0,0,0.22)' };
 const eyebrowStyle = { color: theme.accentHover, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: 900, margin: '0 0 4px' };
 const titleStyle = { color: theme.text, fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 900, margin: 0 };
 const subtitleStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.5, margin: '4px 0 0' };
 const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' };
 const headerButtonStyle = (disabled) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 38, background: disabled ? theme.panelSoft : theme.accentSoft, border: `1px solid ${theme.border}`, color: disabled ? theme.muted : theme.textSecondary, padding: '0 11px', fontWeight: 800, cursor: disabled ? 'not-allowed' : 'pointer' });
-const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginBottom: 16 };
-const actionCardStyle = (primary, disabled) => ({ minHeight: 145, display: 'flex', alignItems: 'center', gap: 12, background: primary ? theme.elevated : theme.panel, border: `1px solid ${primary ? theme.borderStrong : theme.border}`, color: theme.text, padding: 16, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, textAlign: 'left' });
-const actionIconStyle = (primary) => ({ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', background: primary ? theme.accent : theme.accentSoft, color: '#FFFFFF', border: `1px solid ${theme.borderStrong}` });
-const actionTitleStyle = { color: theme.text, fontSize: 17, fontWeight: 900, marginBottom: 5 };
-const actionTextStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.45, marginBottom: 10 };
+const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginBottom: 12 };
+const actionCardStyle = (primary, disabled) => ({ minHeight: 116, display: 'flex', alignItems: 'center', gap: 12, background: primary ? `linear-gradient(135deg, ${theme.elevated}, rgba(13,19,38,0.96))` : theme.panel, border: `1px solid ${primary ? theme.borderStrong : theme.border}`, borderRadius: 12, color: theme.text, padding: 14, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, textAlign: 'left', boxShadow: primary ? '0 14px 36px rgba(0,0,0,0.22)' : 'none' });
+const actionIconStyle = (primary) => ({ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: primary ? 'linear-gradient(135deg, #7C3AED, #38BDF8)' : theme.accentSoft, color: '#FFFFFF', border: `1px solid ${theme.borderStrong}`, flexShrink: 0 });
+const actionTitleStyle = { color: theme.text, fontSize: 16, fontWeight: 900, marginBottom: 4 };
+const actionTextStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.38, marginBottom: 8 };
 const actionMetaStyle = (disabled) => ({ display: 'inline-flex', color: disabled ? theme.muted : theme.accentHover, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.8 });
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 12, marginBottom: 16 };
-const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, padding: 14 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 10, marginBottom: 12 };
+const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 12 };
 const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 };
 const panelTitleStyle = { color: theme.text, fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
 const smallLinkButtonStyle = { background: 'transparent', border: `1px solid ${theme.border}`, color: theme.accentHover, padding: '7px 10px', cursor: 'pointer', fontWeight: 800 };
-const listItemStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 12, cursor: 'pointer', textAlign: 'left' };
+const listItemStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 10, cursor: 'pointer', textAlign: 'left' };
 const emptyStyle = { background: theme.panelSoft, border: `1px dashed ${theme.border}`, padding: 24, textAlign: 'center' };
-const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 12, fontSize: 13, lineHeight: 1.5 };
+const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 12, fontSize: 12, lineHeight: 1.45 };
 const mobileTabsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 };
 const mobileTabButtonStyle = (active) => ({ minHeight: 44, background: active ? theme.accent : theme.panel, color: active ? '#FFFFFF' : theme.textSecondary, border: `1px solid ${active ? theme.accentHover : theme.border}`, fontWeight: 900, cursor: 'pointer' });
 const mobileSectionStyle = { display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 16 };
 const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 };
-const modalStyle = { width: 'min(520px, 100%)', background: theme.panel, border: `1px solid ${theme.borderStrong}`, padding: 20 };
+const modalStyle = { width: 'min(820px, 100%)', maxHeight: 'calc(100dvh - 36px)', overflowY: 'auto', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 14, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,0.45)' };
 const modalTitleStyle = { color: theme.text, fontSize: 23, fontWeight: 900, margin: '0 0 8px' };
 const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: theme.muted, fontSize: 12, fontWeight: 900, marginTop: 14 };
 const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, padding: 10, outline: 'none' };
+const compactFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 };
+const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginTop: 14 };
+const toggleCardStyle = { display: 'flex', alignItems: 'center', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 10, color: theme.textSecondary, fontSize: 12, cursor: 'pointer' };
+const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(112px, 1fr))', gap: 8, marginTop: 8 };
+const classPillStyle = (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, background: active ? theme.accentSoft : theme.panelSoft, border: `1px solid ${active ? theme.borderStrong : theme.border}`, color: active ? theme.text : theme.textSecondary, padding: '8px 9px', fontSize: 12, fontWeight: 800, cursor: 'pointer' });
 const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, flexWrap: 'wrap' };

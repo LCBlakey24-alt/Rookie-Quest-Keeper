@@ -9,7 +9,7 @@ from utils.auth import (
 from utils.helpers import get_campaign_context
 from models import (
     UnseenServantRequest, UnseenServantResponse, AIGenerationRequest, AIGenerationResponse,
-    RookChatRequest, SmartNoteParseRequest, SmartNoteParseResponse, EntityMention, TimeChange,
+    RookChatRequest, RookFormFillRequest, RookFormFillResponse, SmartNoteParseRequest, SmartNoteParseResponse, EntityMention, TimeChange,
     God, GodCreate, NPC, NPCCreate, NPCStats, Location, LocationCreate,
     PlaceOfInterest, PlaceOfInterestCreate, CustomCreature, CustomCreatureCreate
 )
@@ -523,6 +523,109 @@ async def generate_ai_content(request: AIGenerationRequest, username: str = Depe
     except Exception as e:
         logger.error(f"AI generation error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI generation failed: {str(e)}")
+
+def _extract_json_object(raw: str) -> Dict[str, Any]:
+    """Best-effort extraction of the first JSON object from an LLM response."""
+    if not raw:
+        return {}
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?", "", cleaned, flags=re.IGNORECASE).strip()
+        cleaned = re.sub(r"```$", "", cleaned).strip()
+    start = cleaned.find("{")
+    end = cleaned.rfind("}") + 1
+    if start < 0 or end <= start:
+        return {}
+    return json.loads(cleaned[start:end])
+
+
+@router.post("/rook/form-fill", response_model=RookFormFillResponse)
+async def rook_form_fill(request: RookFormFillRequest, username: str = Depends(get_current_user)):
+    """Return structured text suggestions that the UI can import into form fields.
+
+    This keeps Rook focused on text assistance only: it suggests values for
+    existing fields and never creates images or visual assets.
+    """
+    can_use_ai = await check_ai_access(username, 'ai')
+    if not can_use_ai:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Monthly AI request limit reached. Your usage resets at the start of next month.")
+
+    api_key = get_llm_api_key("openai")
+    if not api_key:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI key not configured")
+
+    if request.campaign_id:
+        await verify_campaign_membership(request.campaign_id, username)
+
+    field_names = [field.name for field in request.fields if field.name]
+    if not field_names:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least one field is required")
+
+    campaign_context = await get_campaign_context(request.campaign_id) if request.campaign_id else ""
+    fields_payload = [field.model_dump() for field in request.fields]
+
+    system_message = f"""You are ROOK, a text-only TTRPG assistant for Rookie Quest Keeper.
+
+{ai_source_boundary_fragment()}
+
+You help users fill existing GM-side and player-side form fields.
+Rules:
+- Return ONLY valid JSON. No markdown.
+- Do not generate or suggest AI images, portraits, tokens, maps, artwork, or visual assets.
+- Suggest concise text that can be imported into boxes in the app.
+- Only use keys from this allowed field list: {field_names}.
+- Respect field choices exactly when choices are provided.
+- Leave a field out if you do not have a useful suggestion.
+
+JSON shape:
+{{
+  "summary": "short explanation of what you filled",
+  "suggestions": {{ "field_name": "suggested value" }}
+}}"""
+
+    user_prompt = f"""Section: {request.section}
+User request: {request.prompt}
+Current values: {json.dumps(request.current_values, ensure_ascii=False)}
+Fields: {json.dumps(fields_payload, ensure_ascii=False)}
+Campaign context: {campaign_context or 'No campaign context supplied.'}"""
+
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"{username}-form-fill-{datetime.now(timezone.utc).timestamp()}",
+        system_message=system_message
+    )
+    chat.with_model('openai', 'gpt-4o-mini')
+
+    response = await chat.send_message(UserMessage(text=user_prompt))
+    try:
+        parsed = _extract_json_object(response)
+    except Exception as exc:
+        logger.warning(f"Rook form-fill JSON parse failed: {exc}; response={response[:300]}")
+        parsed = {}
+
+    raw_suggestions = parsed.get("suggestions") if isinstance(parsed, dict) else {}
+    if not isinstance(raw_suggestions, dict):
+        raw_suggestions = {}
+
+    allowed = {field.name: field for field in request.fields}
+    sanitized: Dict[str, Any] = {}
+    for key, value in raw_suggestions.items():
+        if key not in allowed:
+            continue
+        field = allowed[key]
+        if field.choices and value not in field.choices:
+            str_choices = {str(choice): choice for choice in field.choices}
+            value = str_choices.get(str(value), value)
+            if value not in field.choices:
+                continue
+        sanitized[key] = value
+
+    await record_ai_usage(username)
+    return RookFormFillResponse(
+        suggestions=sanitized,
+        summary=str(parsed.get("summary") or "Rook drafted importable field suggestions.") if isinstance(parsed, dict) else "Rook drafted importable field suggestions."
+    )
+
 
 @router.post("/rook/chat")
 async def rook_chat(request: RookChatRequest, username: str = Depends(get_current_user)):

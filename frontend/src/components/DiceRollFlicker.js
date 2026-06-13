@@ -5,15 +5,15 @@ import { Dices } from 'lucide-react';
 const palette = {
   player: {
     bg: 'rgba(10, 22, 40, 0.96)',
-    border: 'rgba(212, 160, 23, 0.42)',
-    accent: '#D4A017',
+    border: 'rgba(124, 58, 237, 0.46)',
+    accent: '#A78BFA',
     text: '#F8FAFC',
     muted: '#94A3B8',
   },
   gm: {
     bg: 'rgba(10, 22, 40, 0.97)',
-    border: 'rgba(212, 160, 23, 0.5)',
-    accent: '#D4A017',
+    border: 'rgba(124, 58, 237, 0.52)',
+    accent: '#A78BFA',
     text: '#F8FAFC',
     muted: '#CBD5E1',
   },
@@ -27,63 +27,79 @@ const formatModifier = (modifier) => {
 
 export default function DiceRollFlicker({
   isOpen,
+  show,
   onClose,
+  onComplete,
   rolls = [],
   label,
   modifier = 0,
   total = 0,
+  animationValue,
   isCrit = false,
   isFumble = false,
   theme = 'player',
 }) {
   const colors = palette[theme] || palette.player;
-  const onCloseRef = useRef(onClose);
-  const [displayValue, setDisplayValue] = useState(total);
+  const visible = Boolean(isOpen ?? show);
+  const onCloseRef = useRef(onClose || onComplete);
+  const [displayValue, setDisplayValue] = useState(Number(animationValue ?? total) || 0);
   const [settled, setSettled] = useState(true);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+    onCloseRef.current = onClose || onComplete;
+  }, [onClose, onComplete]);
 
   const rollDetail = useMemo(() => {
-    const base = rolls.map((roll) => `d${roll.sides}: ${roll.result}`).join(' + ');
-    return `${base}${formatModifier(modifier)}`;
+    const base = rolls.map((roll) => `${roll.exploded ? '↳ ' : ''}d${roll.sides}: ${roll.result}`).join(' + ');
+    const explosionText = rolls.some((roll) => roll.exploded) ? ' • exploding dice' : '';
+    return `${base}${formatModifier(modifier)}${explosionText}`;
   }, [modifier, rolls]);
 
+  const finalDisplayValue = Number(animationValue ?? total) || 0;
+
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!visible) return undefined;
 
     const highestSide = rolls.reduce((max, roll) => Math.max(max, roll.sides || 0), 20);
-    const ceiling = Math.max(highestSide, Number(total) + 12, 20);
-    let ticks = 0;
+    const ceiling = Math.max(highestSide, finalDisplayValue || Number(total) || 0, 20);
+    const timeouts = [];
+    const flickerDuration = 4000;
+    const holdDuration = 5000;
+    const tickCount = 34;
 
     setSettled(false);
-    setDisplayValue(Math.max(1, Math.floor(Math.random() * ceiling) + 1));
+    setFading(false);
+    setDisplayValue(1);
 
-    const flickerId = window.setInterval(() => {
-      ticks += 1;
-      setDisplayValue(Math.max(1, Math.floor(Math.random() * ceiling) + 1));
-      if (ticks >= 12) {
-        window.clearInterval(flickerId);
-        setDisplayValue(total);
-        setSettled(true);
-      }
-    }, 36);
+    for (let tick = 1; tick <= tickCount; tick += 1) {
+      const progress = tick / tickCount;
+      const delay = Math.round(flickerDuration * Math.pow(progress, 1.85));
+      timeouts.push(window.setTimeout(() => {
+        if (tick === tickCount) {
+          setDisplayValue(finalDisplayValue || total);
+          setSettled(true);
+        } else {
+          setDisplayValue(((tick - 1) % ceiling) + 1);
+        }
+      }, delay));
+    }
 
-    const closeId = window.setTimeout(() => {
+    timeouts.push(window.setTimeout(() => setFading(true), flickerDuration + holdDuration - 650));
+    timeouts.push(window.setTimeout(() => {
       onCloseRef.current?.();
-    }, 1900);
+    }, flickerDuration + holdDuration));
 
     return () => {
-      window.clearInterval(flickerId);
-      window.clearTimeout(closeId);
+      timeouts.forEach(id => window.clearTimeout(id));
     };
-  }, [isOpen, label, rolls, total]);
+  }, [visible, label, rolls, total, finalDisplayValue]);
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
-  const status = isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label;
-  const statusColor = isCrit ? '#22C55E' : isFumble ? '#EF4444' : colors.accent;
+  const resolvedStatus = isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label;
+  const status = settled ? resolvedStatus : 'Rolling…';
+  const statusColor = settled && isCrit ? '#22C55E' : settled && isFumble ? '#EF4444' : colors.accent;
 
   return createPortal(
     <div
@@ -92,32 +108,34 @@ export default function DiceRollFlicker({
         position: 'fixed',
         left: '50%',
         bottom: '58px',
-        transform: 'translateX(-50%)',
+        transform: `translateX(-50%) scale(${settled ? 1 : 1.03})`,
         zIndex: 3000,
         pointerEvents: 'none',
         fontFamily: "'Montserrat', sans-serif",
+        opacity: fading ? 0 : 1,
+        transition: 'opacity 650ms ease, transform 360ms ease',
       }}
     >
       <div
         style={{
-          minWidth: 220,
+          minWidth: 280,
           maxWidth: 'calc(100vw - 32px)',
-          padding: '10px 14px',
-          borderRadius: 8,
+          padding: '18px 20px',
+          borderRadius: 18,
           background: colors.bg,
           border: `1px solid ${isCrit || isFumble ? statusColor : colors.border}`,
           boxShadow: `0 12px 36px rgba(0,0,0,0.35), 0 0 0 1px ${isCrit || isFumble ? `${statusColor}33` : 'transparent'}`,
           display: 'grid',
-          gridTemplateColumns: '36px 1fr',
-          gap: 10,
+          gridTemplateColumns: '52px 1fr',
+          gap: 14,
           alignItems: 'center',
         }}
       >
         <div
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
+            width: 52,
+            height: 52,
+            borderRadius: 16,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -126,14 +144,14 @@ export default function DiceRollFlicker({
             color: statusColor,
           }}
         >
-          <Dices size={18} />
+          <Dices size={24} />
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
             <div
               style={{
                 color: colors.text,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: 800,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -145,12 +163,13 @@ export default function DiceRollFlicker({
             <div
               style={{
                 color: statusColor,
-                fontSize: settled ? 26 : 24,
+                fontSize: settled ? 48 : 42,
                 lineHeight: 1,
                 fontWeight: 900,
-                minWidth: 52,
+                minWidth: 82,
                 textAlign: 'right',
-                transition: 'font-size 80ms ease',
+                transition: 'font-size 220ms ease, text-shadow 220ms ease',
+                textShadow: settled ? `0 0 22px ${statusColor}66` : 'none',
               }}
             >
               {displayValue}
@@ -159,7 +178,7 @@ export default function DiceRollFlicker({
           <div
             style={{
               color: colors.muted,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               marginTop: 3,
               whiteSpace: 'nowrap',
@@ -167,7 +186,7 @@ export default function DiceRollFlicker({
               textOverflow: 'ellipsis',
             }}
           >
-            {rollDetail || label}
+            {settled ? (rollDetail || label) : 'The dice are still tumbling…'}
           </div>
         </div>
       </div>

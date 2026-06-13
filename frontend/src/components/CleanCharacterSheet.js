@@ -30,6 +30,7 @@ import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerSuggestions from '@/components/RookPlayerSuggestions';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 
 const ABILITIES = [
   ['strength', 'STR'],
@@ -162,7 +163,7 @@ export default function CleanCharacterSheet() {
 
   useEffect(() => {
     if (!rollBurst) return undefined;
-    const timeout = setTimeout(() => setRollBurst(null), 6000);
+    const timeout = setTimeout(() => setRollBurst(null), 9000);
     return () => clearTimeout(timeout);
   }, [rollBurst]);
 
@@ -473,15 +474,21 @@ export default function CleanCharacterSheet() {
       )}
 
       {rollBurst && (
-        <div key={rollBurst.id} className="clean-sheet-roll-burst" aria-live="polite">
-          <span>{rollBurst.label}</span>
-          <strong>{rollBurst.total}</strong>
-          <em>
-            {rollBurst.mode === 'hit-die'
-              ? `d${hitDieInfo.sides} ${rollBurst.d20} ${fmt(rollBurst.modifier)}`
-              : `d20 ${rollBurst.d20} ${fmt(rollBurst.modifier)}${rollBurst.mode && rollBurst.mode !== 'normal' ? ` • ${rollBurst.mode}` : ''}`}
-          </em>
-        </div>
+        <DiceRollFlicker
+          isOpen={Boolean(rollBurst)}
+          onClose={() => setRollBurst(null)}
+          label={rollBurst.label}
+          rolls={(rollBurst.rolls || rollBurst.allRolls || [rollBurst.d20]).filter(value => value !== undefined).map(value => ({
+            sides: rollBurst.sides || (rollBurst.mode === 'hit-die' ? hitDieInfo.sides : 20),
+            result: typeof value === 'object' ? value.result : value,
+          }))}
+          modifier={rollBurst.modifier}
+          total={rollBurst.total}
+          animationValue={rollBurst.mode !== 'hit-die' && rollBurst.d20 ? rollBurst.d20 : rollBurst.total}
+          isCrit={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 20}
+          isFumble={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 1}
+          theme="player"
+        />
       )}
 
       <header className="clean-sheet-header">
@@ -777,9 +784,9 @@ export default function CleanCharacterSheet() {
           </div>
         )}
 
-        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} />}
+        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} onCharacterUpdate={patchCharacter} onDiceResult={(entry) => { setRollBurst(entry); setRollHistory(prev => [entry, ...prev].slice(0, 12)); }} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
-        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} />}
+        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
 
