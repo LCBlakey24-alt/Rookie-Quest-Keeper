@@ -3,6 +3,7 @@ import { FileText, Send, Users, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 
 export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, processingNote, handleSubmitNote, sessionNotes, setSessionNotes }) {
   const syncNote = async () => {
@@ -30,13 +31,23 @@ export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, p
 
   return (
     <div>
-      <h2 style={{, fontSize: '22px', color: textPrimary, fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h2 style={{ fontSize: '22px', color: textPrimary, fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <FileText size={24} style={{ color: accent }} /> Session Notes
       </h2>
 
       <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div>
-          <h3 style={{, fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Quick Note</h3>
+          <h3 style={{ fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Quick Note</h3>
+          <RookFormFillPanel
+            title="Ask Rook to draft a note"
+            helperText="Describe the moment, clue, NPC reveal, or recap you need. Import the result straight into the note box."
+            section="GM quick session note"
+            campaignId={campaignId}
+            fields={[{ name: 'quick_note', label: 'Quick note', field_type: 'textarea' }]}
+            currentValues={{ quick_note: quickNote }}
+            onApply={(patch) => { if (patch.quick_note !== undefined) setQuickNote(String(patch.quick_note)); }}
+            placeholder="Example: Draft a short recap that the party found a coded map in the smugglers' warehouse."
+          />
           <textarea
             value={quickNote}
             onChange={(e) => setQuickNote(e.target.value)}
@@ -64,7 +75,7 @@ export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, p
         </div>
 
         <div>
-          <h3 style={{, fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
+          <h3 style={{ fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
           <div className="scroll-smooth" style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {sessionNotes.length === 0 ? (
               <div className="card-hover" style={{ background: cardBg, border: `2px dashed ${border}`, padding: '30px', textAlign: 'center', borderRadius: 'var(--rq-radius-sm, 4px)' }}>

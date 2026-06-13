@@ -10,6 +10,7 @@ from models import (
 )
 import uuid
 import secrets
+import re
 from datetime import datetime, timezone, timedelta
 import resend
 
@@ -17,6 +18,21 @@ if RESEND_API_KEY and RESEND_API_KEY != 'your_resend_api_key_here':
     resend.api_key = RESEND_API_KEY
 
 router = APIRouter()
+
+SAFE_USERNAME_RE = re.compile(r"^[A-Za-z0-9_-]{3,24}$")
+
+
+def normalize_username_for_auth(username: str) -> str:
+    """Trim and validate usernames for kid-friendly, email-free auth."""
+    normalized = (username or "").strip()
+    if not normalized:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required")
+    if "@" in normalized or not SAFE_USERNAME_RE.fullmatch(normalized):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username must be 3-24 characters and use only letters, numbers, underscores, or hyphens",
+        )
+    return normalized
 
 
 async def cleanup_user_account(username: str) -> dict:
@@ -51,6 +67,8 @@ async def cleanup_user_account(username: str) -> dict:
         'custom_creatures',
         'reviews',
         'user_rulesets',
+        'user_playtest_packs',
+        'user_playtest_content',
         'user_races',
         'user_classes',
         'user_subclasses',
@@ -141,38 +159,51 @@ async def cleanup_user_account(username: str) -> dict:
 
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
-    # Check if email already exists
-    existing_email = await db.users.find_one({'email': user_data.email.lower()})
-    if existing_email:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    normalized_username = normalize_username_for_auth(user_data.username)
+    normalized_email = user_data.email.lower() if user_data.email else None
+
+    if normalized_email:
+        existing_email = await db.users.find_one({'email': normalized_email})
+        if existing_email:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     
     # Check if username already exists
-    existing_user = await db.users.find_one({'username': user_data.username})
+    existing_user = await db.users.find_one({'username': normalized_username})
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
     
     user_doc = {
         'id': str(uuid.uuid4()),
-        'email': user_data.email.lower(),
-        'username': user_data.username,
+        'username': normalized_username,
         'password_hash': hash_password(user_data.password),
         'created_at': datetime.now(timezone.utc).isoformat()
     }
+    if normalized_email:
+        user_doc['email'] = normalized_email
     
     await db.users.insert_one(user_doc)
 
-    token = create_token(user_data.username)
+    token = create_token(normalized_username)
     
-    return TokenResponse(token=token, username=user_data.username, email=user_data.email.lower())
+    return TokenResponse(token=token, username=normalized_username, email=normalized_email)
 
 @router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
-    user = await db.users.find_one({'email': user_data.email.lower()})
+    identifier = (user_data.username or user_data.email or '').strip()
+    if not identifier:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    lookup = {'email': identifier.lower()} if '@' in identifier else {'username': identifier}
+    user = await db.users.find_one(lookup)
+    if not user and '@' not in identifier:
+        # Compatibility for older clients that may still send an email in a generic field.
+        user = await db.users.find_one({'email': identifier.lower()})
+
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
     token = create_token(user['username'])
-    return TokenResponse(token=token, username=user['username'], email=user['email'])
+    return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
 # ==================== PASSWORD RESET ====================
 
@@ -279,20 +310,21 @@ async def update_account(request: UpdateAccountRequest, username: str = Depends(
     updates = {}
     
     if request.username and request.username != username:
+        new_username = normalize_username_for_auth(request.username)
         # Check if new username is taken
-        existing = await db.users.find_one({'username': request.username})
+        existing = await db.users.find_one({'username': new_username})
         if existing:
             raise HTTPException(status_code=400, detail="Username already taken")
-        updates['username'] = request.username
+        updates['username'] = new_username
         
         # Also update username in campaigns
         await db.campaigns.update_many(
             {'user_id': username},
-            {'$set': {'user_id': request.username}}
+            {'$set': {'user_id': new_username}}
         )
         await db.campaigns.update_many(
             {'dm_user_id': username},
-            {'$set': {'dm_user_id': request.username}}
+            {'$set': {'dm_user_id': new_username}}
         )
     
     if request.email:
@@ -316,7 +348,7 @@ async def update_account(request: UpdateAccountRequest, username: str = Depends(
         "message": "Account updated successfully",
         "token": token,
         "username": new_username,
-        "email": user['email']
+        "email": user.get('email')
     }
 
 @router.get("/account/profile")

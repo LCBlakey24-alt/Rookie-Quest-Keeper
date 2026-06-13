@@ -8,8 +8,8 @@
 
 /* Level-up modal card */
 .App div[style*="max-width: 600px"][style*="max-height: 90vh"] {
-  background: #141414 !important;
-  border: 1px solid rgba(239, 68, 68, 0.32) !important;
+  background: #0D1326 !important;
+  border: 1px solid rgba(124, 58, 237, 0.32) !important;
   border-radius: 18px !important;
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58) !important;
   max-width: min(680px, calc(100vw - 24px)) !important;
@@ -17,7 +17,7 @@
 
 /* Header area */
 .App div[style*="linear-gradient(135deg, #D4A017"] {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(153, 27, 27, 0.95)) !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(56, 189, 248, 0.72)) !important;
 }
 
 .App div[style*="linear-gradient(135deg, #D4A017"] h2,
@@ -46,25 +46,25 @@
 }
 
 .App div[style*="max-width: 600px"] button:hover:not(:disabled) {
-  border-color: rgba(239, 68, 68, 0.48) !important;
+  border-color: rgba(124, 58, 237, 0.48) !important;
 }
 
 /* General card-like blocks with legacy gold borders */
 .App div[style*="max-width: 600px"] div[style*="rgba(212, 160, 23"],
 .App div[style*="max-width: 600px"] button[style*="rgba(212, 160, 23"] {
-  background: rgba(239, 68, 68, 0.08) !important;
-  border-color: rgba(239, 68, 68, 0.28) !important;
+  background: rgba(124, 58, 237, 0.08) !important;
+  border-color: rgba(124, 58, 237, 0.28) !important;
 }
 
 .App div[style*="max-width: 600px"] svg {
-  color: #EF4444 !important;
+  color: #7C3AED !important;
 }
 
 /* Inputs/selects */
 .App div[style*="max-width: 600px"] input,
 .App div[style*="max-width: 600px"] select,
 .App div[style*="max-width: 600px"] textarea {
-  background: #0B0B0C !important;
+  background: #070B18 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #FFFFFF !important;
   border-radius: 10px !important;
@@ -73,15 +73,15 @@
 .App div[style*="max-width: 600px"] input:focus,
 .App div[style*="max-width: 600px"] select:focus,
 .App div[style*="max-width: 600px"] textarea:focus {
-  border-color: #EF4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14) !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14) !important;
   outline: none !important;
 }
 
 /* Footer actions */
 .App div[style*="max-width: 600px"] button[style*="linear-gradient"] {
-  background: #EF4444 !important;
-  border-color: #EF4444 !important;
+  background: #7C3AED !important;
+  border-color: #7C3AED !important;
   color: #FFFFFF !important;
 }
 

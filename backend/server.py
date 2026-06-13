@@ -151,7 +151,16 @@ async def startup_event():
     # create_index is a no-op if the index already exists.
     try:
         from pymongo import ASCENDING
-        await db.users.create_index([("email", ASCENDING)], unique=True, background=True)
+        existing_user_indexes = await db.users.index_information()
+        email_index = existing_user_indexes.get("email_1")
+        if email_index and not email_index.get("partialFilterExpression"):
+            await db.users.drop_index("email_1")
+        await db.users.create_index(
+            [("email", ASCENDING)],
+            unique=True,
+            background=True,
+            partialFilterExpression={"email": {"$exists": True, "$type": "string"}},
+        )
         await db.users.create_index([("username", ASCENDING)], unique=True, background=True)
         await db.campaigns.create_index([("dm_user_id", ASCENDING)], background=True)
         await db.campaigns.create_index([("user_id", ASCENDING)], background=True)
@@ -166,6 +175,11 @@ async def startup_event():
             col = getattr(db, col_name)
             await col.create_index([("campaign_id", ASCENDING)], background=True)
         await db.ai_usage.create_index([("username", ASCENDING), ("month", ASCENDING)], background=True)
+        await db.user_playtest_packs.create_index([("user_id", ASCENDING), ("edition", ASCENDING)], background=True)
+        await db.user_playtest_packs.create_index([("campaign_id", ASCENDING)], background=True)
+        await db.user_playtest_content.create_index([("user_id", ASCENDING), ("edition", ASCENDING), ("content_type", ASCENDING)], background=True)
+        await db.user_playtest_content.create_index([("pack_id", ASCENDING)], background=True)
+        await db.user_playtest_content.create_index([("campaign_id", ASCENDING)], background=True)
         await db.password_resets.create_index([("token", ASCENDING)], background=True)
         await db.password_resets.create_index([("email", ASCENDING)], background=True)
         await db.handouts.create_index([("campaign_id", ASCENDING)], background=True)

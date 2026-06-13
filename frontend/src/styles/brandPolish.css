@@ -1,20 +1,20 @@
 /* Brand polish: auth page, landing text and ROOK logo loader */
 
 :root {
-  --rook-black: #0B0B0C;
-  --rook-panel: #141414;
-  --rook-card: #1F1F23;
-  --rook-red: #EF4444;
-  --rook-red-soft: rgba(239, 68, 68, 0.14);
-  --rook-red-border: rgba(239, 68, 68, 0.35);
+  --rook-black: #070B18;
+  --rook-panel: #0D1326;
+  --rook-card: #121A31;
+  --rook-red: #7C3AED;
+  --rook-red-soft: rgba(124, 58, 237, 0.14);
+  --rook-red-border: rgba(124, 58, 237, 0.35);
   --rook-white: #FFFFFF;
   --rook-soft-white: #D1D5DB;
   --rook-muted: #9CA3AF;
 }
 
-/* Loading screen: black/red branded background. The logo image is rendered by React, not CSS. */
+/* Loading screen: navy/purple branded background. The logo image is rendered by React, not CSS. */
 .loading-screen {
-  background: radial-gradient(circle at 50% 38%, rgba(239, 68, 68, 0.16), transparent 32%), var(--rook-black) !important;
+  background: radial-gradient(circle at 50% 38%, rgba(124, 58, 237, 0.16), transparent 32%), var(--rook-black) !important;
 }
 
 .loading-spinner {
@@ -23,7 +23,7 @@
   border: none !important;
   border-radius: 0 !important;
   background: transparent !important;
-  filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.55));
+  filter: drop-shadow(0 0 18px rgba(124, 58, 237, 0.55));
   animation: rookLogoPulse 1.25s ease-in-out infinite !important;
 }
 
@@ -39,7 +39,7 @@
   50% { opacity: 1; transform: scale(1.06); }
 }
 
-/* Landing page: text should read white, with red kept as accent only. */
+/* Landing page: text should read white, with purple kept as the primary accent. */
 [data-testid="landing-page"] {
   background: var(--rook-black) !important;
   color: var(--rook-white) !important;
@@ -68,8 +68,8 @@
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at 20% 10%, rgba(239, 68, 68, 0.18), transparent 34%),
-              radial-gradient(circle at 80% 80%, rgba(127, 29, 29, 0.22), transparent 38%),
+  background: radial-gradient(circle at 20% 10%, rgba(124, 58, 237, 0.18), transparent 34%),
+              radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.13), transparent 38%),
               var(--rook-black);
   color: var(--rook-white);
 }

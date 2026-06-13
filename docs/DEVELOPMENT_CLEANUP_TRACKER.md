@@ -77,7 +77,6 @@ These files have been updated recently and should be treated as closer to the ta
 - `frontend/src/components/AccountSettings.js`
 - `frontend/src/components/JoinCampaignModal.js`
 - `frontend/src/components/ImageUploadPanel.js`
-- `frontend/src/components/AIImageGeneratorPanel.js` upload-only compatibility wrapper
 - `frontend/src/components/SessionRecapAI.js`
 - `frontend/src/components/SmartNoteParser.js`
 - `frontend/src/components/tabs/InGameNotesTab.js`
@@ -214,12 +213,9 @@ Reason: these files are large, feature-dense, and more likely to break during fu
 Current state:
 
 - `ImageUploadPanel.js` is the correct upload-only component.
-- `AIImageGeneratorPanel.js` remains temporarily as a deprecated upload-only compatibility wrapper.
-- The wrapper intentionally ignores legacy image-generation props such as `buttonLabel` and `payload`.
-- The wrapper must not call any image-generation service.
-- The final cleanup is to replace the remaining `PartyInventory.js` import with `ImageUploadPanel` and then delete `AIImageGeneratorPanel.js`.
-
-Do not delete `AIImageGeneratorPanel.js` until no active imports remain.
+- The deprecated `AIImageGeneratorPanel.js` compatibility wrapper has been removed.
+- Active UI must use manual image upload components only.
+- No frontend component should mention generating AI images or send image-generation payloads.
 
 ## Recommended next mini-sprints
 
@@ -270,7 +266,7 @@ Patch small sections at a time.
 - removable by the campaign owner
 - usable by maps/portraits/documents/audio tools
 
-Until then, the UI should clearly communicate manual upload behaviour and should not imply AI image generation.
+The UI should clearly communicate manual upload behaviour and should not imply AI image generation.
 
 ## Flow checklist for every future change
 

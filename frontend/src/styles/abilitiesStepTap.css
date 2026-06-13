@@ -39,7 +39,7 @@
 .ability-method-grid button {
   min-height: 86px;
   text-align: left;
-  background: #141414;
+  background: #0D1326;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
   border-radius: 12px;
@@ -52,8 +52,8 @@
 }
 
 .ability-method-grid button.active {
-  border-color: #EF4444;
-  background: rgba(239, 68, 68, 0.12);
+  border-color: #7C3AED;
+  background: rgba(124, 58, 237, 0.12);
   box-shadow: 0 0 0 1px rgba(239,68,68,0.10);
 }
 
@@ -77,8 +77,8 @@
 .ability-budget {
   margin-bottom: 14px;
   padding: 10px 12px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.25);
   border-radius: 10px;
   font-weight: 800;
 }
@@ -121,7 +121,7 @@
 
 .ability-score-pool button {
   min-height: 58px;
-  background: #0B0B0C;
+  background: #070B18;
   color: #FFFFFF;
   border: 2px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
@@ -131,8 +131,8 @@
 }
 
 .ability-score-pool button.selected {
-  border-color: #EF4444;
-  background: rgba(239, 68, 68, 0.14);
+  border-color: #7C3AED;
+  background: rgba(124, 58, 237, 0.14);
   transform: translateY(-1px);
 }
 
@@ -144,7 +144,7 @@
 
 .ability-score-card {
   min-height: 158px;
-  background: #141414;
+  background: #0D1326;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 14px;
@@ -156,7 +156,7 @@
 }
 
 .ability-score-card.primary {
-  border-color: rgba(239, 68, 68, 0.45);
+  border-color: rgba(124, 58, 237, 0.45);
 }
 
 .ability-score-card > span {
@@ -178,8 +178,8 @@
 .ability-assignment {
   min-height: 44px;
   min-width: 44px;
-  background: rgba(239, 68, 68, 0.10);
-  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(124, 58, 237, 0.10);
+  border: 1px solid rgba(124, 58, 237, 0.28);
   color: #FFFFFF;
   border-radius: 10px;
   cursor: pointer;
@@ -206,15 +206,15 @@
 }
 
 .ability-assignment.filled {
-  border-color: #EF4444;
-  background: rgba(239, 68, 68, 0.14);
+  border-color: #7C3AED;
+  background: rgba(124, 58, 237, 0.14);
 }
 
 .ability-score-card input {
   width: 100%;
   min-height: 50px;
-  background: #0B0B0C;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: #070B18;
+  border: 1px solid rgba(124, 58, 237, 0.35);
   color: #FFFFFF;
   border-radius: 10px;
   text-align: center;
@@ -231,7 +231,7 @@
 }
 
 .ability-modifier {
-  color: #EF4444;
+  color: #7C3AED;
   font-size: 16px;
   font-weight: 950;
 }
@@ -239,7 +239,7 @@
 .ability-preview {
   margin-top: 18px;
   padding: 14px;
-  background: #141414;
+  background: #0D1326;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
 }
@@ -264,14 +264,14 @@
   grid-template-columns: auto 1fr;
   gap: 4px 8px;
   align-items: center;
-  background: #0B0B0C;
+  background: #070B18;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 10px;
   padding: 10px;
 }
 
 .ability-preview-stat svg {
-  color: #EF4444;
+  color: #7C3AED;
 }
 
 .ability-preview-stat span {

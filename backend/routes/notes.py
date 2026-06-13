@@ -14,6 +14,7 @@ from typing import Optional, List
 import uuid
 from datetime import datetime, timezone
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
+from utils.session_note_sync import apply_session_note_world_sync
 
 router = APIRouter()
 
@@ -36,6 +37,23 @@ async def get_ingame_notes(campaign_id: str, username: str = Depends(get_current
     
     notes = await db.ingame_notes.find({'campaign_id': campaign_id}, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return notes
+
+
+@router.post("/campaigns/{campaign_id}/ingame-notes/{note_id}/sync")
+async def sync_ingame_note_world_state(campaign_id: str, note_id: str, username: str = Depends(get_current_user)):
+    """Apply high-confidence live-session note changes to campaign state.
+
+    The sync is deterministic and safe: it updates explicitly named existing
+    player characters/NPCs and creates only clearly referenced NPC destination
+    locations. It does not require AI access, so it works during live play.
+    """
+    await verify_campaign_ownership(campaign_id, username)
+
+    note = await db.ingame_notes.find_one({'id': note_id, 'campaign_id': campaign_id}, {'_id': 0})
+    if not note:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+
+    return await apply_session_note_world_sync(db, campaign_id, note)
 
 @router.delete("/campaigns/{campaign_id}/ingame-notes/{note_id}")
 async def delete_ingame_note(campaign_id: str, note_id: str, username: str = Depends(get_current_user)):

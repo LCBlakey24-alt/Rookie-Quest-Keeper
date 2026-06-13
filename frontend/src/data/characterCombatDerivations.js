@@ -13,7 +13,7 @@ function getItemName(item) {
   return item.name || item.item_name || item.label || item.title || '';
 }
 
-function parseDamageDice(value) {
+export function parseDamageDice(value) {
   if (!value) return null;
   const text = String(value);
   const match = text.match(/(\d+)d(\d+)/i);
@@ -22,6 +22,18 @@ function parseDamageDice(value) {
     return flat > 0 ? { count: flat, sides: 1 } : null;
   }
   return { count: Number(match[1]), sides: Number(match[2]) };
+}
+
+function isWeaponLike(item) {
+  const type = typeof item === 'string' ? '' : String(item?.type || item?.category || item?.item_type || '').toLowerCase();
+  return Boolean(
+    findWeaponRule(item)
+    || type.includes('weapon')
+    || item?.damage
+    || item?.damage_dice
+    || item?.dice
+    || item?.damageDice
+  );
 }
 
 function getEquippedCandidates(character) {
@@ -89,7 +101,7 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
 export function deriveEquippedWeaponAttacks(character, proficiencyBonus = 2) {
   const seen = new Set();
   return getEquippedCandidates(character)
-    .filter(item => findWeaponRule(item) || String(getItemName(item)).trim())
+    .filter(isWeaponLike)
     .map(item => deriveWeaponAttack(item, character, proficiencyBonus))
     .filter(attack => {
       const key = attack.title.toLowerCase();
@@ -99,12 +111,12 @@ export function deriveEquippedWeaponAttacks(character, proficiencyBonus = 2) {
     });
 }
 
-export function deriveArmorClass(character) {
+export function deriveArmorClass(character, options = {}) {
   const dexMod = mod(character?.dexterity);
   const equipped = character?.equipped || {};
   const armor = equipped.armor || equipped.armour;
   const shield = equipped.shield;
-  const explicitAc = Number(character?.armor_class ?? character?.ac ?? 0);
+  const explicitAc = options.ignoreStoredAc ? 0 : Number(character?.armor_class ?? character?.ac ?? 0);
   const unarmoredAc = explicitAc || 10 + dexMod;
 
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));

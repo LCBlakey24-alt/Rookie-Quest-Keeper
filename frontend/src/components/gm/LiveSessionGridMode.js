@@ -10,9 +10,8 @@ import {
   FileText,
   Grid3X3,
   Link2,
-  Music,
+  Mail,
   RefreshCw,
-  Shield,
   Skull,
   Sparkles,
   Swords,
@@ -27,11 +26,11 @@ const rq = {
   panel: 'var(--rq-bg-panel, #242424)',
   input: 'var(--rq-bg-input, #1F1F1F)',
   elevated: 'var(--rq-bg-elevated, #323232)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
+  border: 'var(--rq-accent-border, rgba(124,58,237,0.42))',
   borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
+  accent: 'var(--rq-accent-primary, #7C3AED)',
+  accentHover: 'var(--rq-accent-hover, #A78BFA)',
+  accentSoft: 'var(--rq-accent-soft, rgba(124,58,237,0.12))',
   text: 'var(--rq-text-primary, #FFFFFF)',
   textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
   muted: 'var(--rq-text-muted, #A0A0A0)',
@@ -39,34 +38,33 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-export const LIVE_GRID_DEFAULTS = ['combat', 'party', 'notes', 'npcs', 'reference-hub', 'environment'];
+export const LIVE_GRID_DEFAULTS = ['combat', 'party', 'notes', 'handouts'];
 
 export const LIVE_GRID_TOOLS = [
   { id: 'combat', label: 'Combat', icon: Swords, group: 'Core' },
   { id: 'party', label: 'Party', icon: Users, group: 'Core' },
   { id: 'notes', label: 'Notes', icon: FileText, group: 'Core' },
+  { id: 'handouts', label: 'Handouts', icon: Mail, group: 'Core' },
+  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Core' },
+  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Core' },
   { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Characters' },
   { id: 'monsters', label: 'Monsters', icon: Skull, group: 'Characters' },
   { id: 'network', label: 'NPC Network', icon: Link2, group: 'Characters' },
   { id: 'location', label: 'Location', icon: Compass, group: 'World' },
   { id: 'environment', label: 'Environment', icon: CloudRain, group: 'World' },
   { id: 'events', label: 'Events', icon: BarChart3, group: 'World' },
-  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Reference' },
   { id: 'tables', label: 'Random Tables', icon: Wand2, group: 'Reference' },
   { id: 'loot', label: 'Loot', icon: Coins, group: 'Reference' },
   { id: 'story', label: 'Story Arcs', icon: Target, group: 'Session' },
   { id: 'planner', label: 'Rook Planner', icon: Sparkles, group: 'Session' },
   { id: 'sound', label: 'Soundboard', icon: Volume2, group: 'Session' },
-  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Utility' },
-  { id: 'timer', label: 'Session Timer', icon: Shield, group: 'Utility' },
-  { id: 'sound-mini', label: 'Audio Cue', icon: Music, group: 'Utility' },
 ];
 
 function getDefaultPanelCount() {
-  if (typeof window === 'undefined') return 6;
+  if (typeof window === 'undefined') return 4;
   if (window.matchMedia('(max-width: 640px)').matches) return 1;
-  if (window.matchMedia('(max-width: 1100px)').matches) return 4;
-  return 6;
+  if (window.matchMedia('(max-width: 1100px)').matches) return 2;
+  return 4;
 }
 
 function getStoredLayout(storageKey) {
@@ -75,7 +73,11 @@ function getStoredLayout(storageKey) {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.panels)) return null;
-    return parsed;
+    const allowed = new Set(LIVE_GRID_TOOLS.map(tool => tool.id));
+    return {
+      panelCount: Math.min(4, Math.max(1, Number(parsed.panelCount) || getDefaultPanelCount())),
+      panels: parsed.panels.filter(panel => allowed.has(panel)),
+    };
   } catch {
     return null;
   }
@@ -87,6 +89,7 @@ export default function LiveSessionGridMode({
   renderTool,
   onOpenSingleTab,
   onRollDice,
+  refreshKey = 0,
 }) {
   const storageKey = `gm.liveGrid.layout.${campaignId || 'default'}`;
   const stored = useMemo(() => getStoredLayout(storageKey), [storageKey]);
@@ -122,15 +125,15 @@ export default function LiveSessionGridMode({
   const gridStyle = getGridStyle(panelCount);
 
   return (
-    <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: '100%' }}>
+    <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
       <div style={toolbarStyle}>
         <div style={{ minWidth: 0 }}>
           <h2 style={titleStyle}><Grid3X3 size={22} /> GM Screen</h2>
-          <p style={subtitleStyle}>Choose 1–6 panels and keep your core live-session tools open at the same time.</p>
+          <p style={subtitleStyle}>Focused table layout: 1–4 panels for combat, party, notes, handouts, dice, and reference.</p>
         </div>
         <div style={toolbarActionsStyle}>
           <div style={countPickerStyle} aria-label="Panel count selector">
-            {[1, 2, 3, 4, 5, 6].map(count => {
+            {[1, 2, 3, 4].map(count => {
               const active = panelCount === count;
               return (
                 <button key={count} type="button" data-testid={`live-grid-count-${count}`} onClick={() => setPanelCount(count)} style={countButtonStyle(active)}>
@@ -150,7 +153,7 @@ export default function LiveSessionGridMode({
           const tool = LIVE_GRID_TOOLS.find(item => item.id === toolId) || LIVE_GRID_TOOLS[0];
           const Icon = tool.icon;
           return (
-            <section key={`${index}-${toolId}`} data-testid={`live-grid-panel-${index + 1}`} style={panelStyle}>
+            <section key={`${refreshKey}-${index}-${toolId}`} data-testid={`live-grid-panel-${index + 1}`} style={panelStyle}>
               <div style={panelHeaderStyle}>
                 <div style={panelTitleStyle}>
                   <Icon size={15} style={{ color: rq.accentHover }} />
@@ -170,10 +173,6 @@ export default function LiveSessionGridMode({
               <div style={panelBodyStyle}>
                 {toolId === 'quick-dice' ? (
                   <QuickDicePanel theme={theme} onRollDice={onRollDice} />
-                ) : toolId === 'timer' ? (
-                  <UtilityPlaceholder title="Session Timer" text="Use this slot for live session timing. Full timer controls can be expanded in a future pass." />
-                ) : toolId === 'sound-mini' ? (
-                  <UtilityPlaceholder title="Audio Cue" text="Use this slot for fast sound cues. Full soundboard is available as a panel too." />
                 ) : (
                   <GridToolWrapper toolId={toolId} onOpenSingleTab={onOpenSingleTab}>
                     {renderTool?.(toolId, { compact: true }) || <UtilityPlaceholder title={tool.label} text="This panel is ready for this tool." />}
@@ -202,15 +201,15 @@ function GridToolWrapper({ toolId, onOpenSingleTab, children }) {
 function QuickDicePanel({ onRollDice }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen.</p>
+      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen. If the GM enables exploding dice, non-d20 maximum rolls add another die.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
           <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-        <button type="button" onClick={() => onRollDice?.('2d20', 'Adv/Dis check')} style={diceButtonStyle}>2D20</button>
-        <button type="button" onClick={() => onRollDice?.('2d6', 'Damage')} style={diceButtonStyle}>2D6</button>
+        <button type="button" onClick={() => onRollDice?.('2d20', 'Two d20s')} style={diceButtonStyle}>2D20</button>
+        <button type="button" onClick={() => onRollDice?.('2d6', 'Two d6s')} style={diceButtonStyle}>2D6</button>
       </div>
     </div>
   );
@@ -229,9 +228,11 @@ function UtilityPlaceholder({ title, text }) {
 function getGridStyle(panelCount) {
   const base = {
     display: 'grid',
-    gap: 10,
+    gap: 8,
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
+    gridAutoRows: 'minmax(0, 1fr)',
   };
   if (panelCount === 1) return { ...base, gridTemplateColumns: '1fr' };
   if (panelCount === 2) return { ...base, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' };
@@ -241,18 +242,18 @@ function getGridStyle(panelCount) {
   return { ...base, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' };
 }
 
-const toolbarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, padding: 12 };
-const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 9, margin: 0 };
-const subtitleStyle = { color: rq.muted, fontSize: 12, margin: '5px 0 0' };
-const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
+const toolbarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, padding: '8px 10px', flexShrink: 0 };
+const titleStyle = { color: rq.text, fontSize: 17, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
+const subtitleStyle = { color: rq.muted, fontSize: 11, margin: '2px 0 0' };
+const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' };
 const countPickerStyle = { display: 'flex', border: `1px solid ${rq.border}`, background: rq.input, borderRadius: 0, overflow: 'hidden' };
-const countButtonStyle = (active) => ({ minWidth: 34, height: 34, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? '#FFFFFF' : rq.textSecondary, fontWeight: 900, cursor: 'pointer' });
-const resetButtonStyle = { minHeight: 36, display: 'inline-flex', alignItems: 'center', gap: 7, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 11px', borderRadius: 0, fontWeight: 900, cursor: 'pointer' };
-const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 220, height: 'minmax(220px, 1fr)', minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
-const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', padding: '8px 10px', borderBottom: `1px solid ${rq.border}`, background: rq.input };
-const panelTitleStyle = { color: rq.text, fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' };
-const selectStyle = { minWidth: 130, maxWidth: '58%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: 0, padding: '6px 8px', fontSize: 11, outline: 'none' };
-const panelBodyStyle = { flex: 1, minHeight: 0, overflow: 'auto', padding: 10 };
-const openButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '5px 8px', borderRadius: 0, fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' };
+const countButtonStyle = (active) => ({ minWidth: 30, height: 30, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? '#FFFFFF' : rq.textSecondary, fontWeight: 900, cursor: 'pointer', fontSize: 12 });
+const resetButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 9px', borderRadius: 0, fontWeight: 900, cursor: 'pointer', fontSize: 12 };
+const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', padding: '6px 8px', borderBottom: `1px solid ${rq.border}`, background: rq.input, flexShrink: 0 };
+const panelTitleStyle = { color: rq.text, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' };
+const selectStyle = { minWidth: 118, maxWidth: '58%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: 0, padding: '5px 7px', fontSize: 10, outline: 'none' };
+const panelBodyStyle = { flex: 1, minHeight: 0, overflow: 'auto', padding: 8 };
+const openButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '4px 7px', borderRadius: 0, fontSize: 9, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' };
 const diceButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, minHeight: 42, borderRadius: 0, fontWeight: 900, cursor: 'pointer' };
 const placeholderStyle = { height: '100%', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: rq.input, border: `1px dashed ${rq.borderDefault}`, padding: 16 };

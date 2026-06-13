@@ -8,6 +8,7 @@ import {
   Crown,
   HelpCircle,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Users,
   Wand2,
@@ -109,6 +110,24 @@ export default function CharacterCreationModePicker() {
           ))}
         </section>
 
+        <section className="character-mode-flow" data-testid="mode-picker-flow">
+          <div>
+            <SlidersHorizontal size={18} />
+            <strong>Campaign-aware setup</strong>
+            <span>Join-code campaigns can lock rules edition, allowed classes, and table options before a sheet is finalized.</span>
+          </div>
+          <div>
+            <ShieldCheck size={18} />
+            <strong>Safe defaults first</strong>
+            <span>Every path starts playable, then lets you add deeper rules, spells, gear, and ROOK text help when needed.</span>
+          </div>
+          <div>
+            <Clock size={18} />
+            <strong>Less scrolling</strong>
+            <span>Pick the fastest builder for tonight, then polish the details from the character sheet later.</span>
+          </div>
+        </section>
+
         <section className="character-mode-summary" data-testid="mode-picker-summary">
           <div>
             <ShieldCheck size={18} />
@@ -175,17 +194,20 @@ function ModeCard({ mode, onChoose }) {
 
 const pageCss = `
 .character-mode-page {
-  min-height: 100vh;
+  min-height: 100dvh;
+  max-height: none;
+  overflow-y: auto;
   background:
-    radial-gradient(circle at top left, rgba(212,160,23,0.15), transparent 34%),
-    linear-gradient(180deg, rgba(10,22,40,0.98), rgba(10,22,40,1));
+    radial-gradient(circle at top left, rgba(124,58,237,0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(34,211,238,0.10), transparent 28%),
+    linear-gradient(180deg, var(--bg-black), var(--bg-dark));
   color: var(--text-primary);
   font-family: var(--font-sans);
-  padding: 28px 18px 44px;
+  padding: clamp(12px, 2vh, 20px) 18px clamp(18px, 3vh, 28px);
 }
 
 .character-mode-shell {
-  width: min(1120px, 100%);
+  width: min(1240px, 100%);
   margin: 0 auto;
 }
 
@@ -199,44 +221,45 @@ const pageCss = `
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
-  margin-bottom: 18px;
-  padding: 8px 11px;
-  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
 .character-mode-back:hover {
-  border-color: var(--rq-gold-bright);
-  color: var(--rq-gold-bright);
-  background: var(--rq-gold-soft);
+  border-color: rgba(124,58,237,0.55);
+  color: #c4b5fd;
+  background: rgba(124,58,237,0.14);
 }
 
 .character-mode-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  gap: 12px;
   align-items: stretch;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .character-mode-hero-copy,
 .character-mode-tip,
 .character-mode-summary {
-  background: rgba(16, 33, 58, 0.76);
+  background: var(--bg-panel);
   border: 1px solid var(--border-default);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
+  border-radius: 10px;
 }
 
 .character-mode-hero-copy {
-  padding: 24px 22px;
+  padding: clamp(14px, 2vh, 18px) 18px;
 }
 
 .character-mode-kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--rq-gold-bright);
+  color: #c4b5fd;
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
@@ -247,34 +270,34 @@ const pageCss = `
 .character-mode-hero h1 {
   margin: 0;
   color: var(--text-primary);
-  font-size: clamp(30px, 5vw, 52px);
-  line-height: 0.96;
+  font-size: clamp(26px, 3.6vw, 40px);
+  line-height: 1;
   font-weight: 900;
   letter-spacing: -1.4px;
 }
 
 .character-mode-hero p {
   color: var(--text-secondary);
-  margin: 14px 0 0;
+  margin: 9px 0 0;
   max-width: 760px;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .character-mode-tip {
-  background: rgba(212,160,23,0.10);
-  border-color: var(--rq-gold-border);
-  padding: 18px;
+  background: rgba(124,58,237,0.12);
+  border-color: rgba(124,58,237,0.32);
+  padding: 14px;
   display: flex;
   gap: 14px;
   align-items: flex-start;
 }
 
 .character-mode-tip-icon {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--rq-gold-border-strong);
-  color: var(--rq-gold-bright);
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(124,58,237,0.32);
+  color: #c4b5fd;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -283,7 +306,7 @@ const pageCss = `
 
 .character-mode-tip h2 {
   margin: 0 0 6px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   color: var(--text-primary);
 }
@@ -291,14 +314,14 @@ const pageCss = `
 .character-mode-tip p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .character-mode-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .character-mode-card {
@@ -307,28 +330,28 @@ const pageCss = `
   border: 1px solid var(--border-default);
   background: var(--bg-card);
   color: var(--text-primary);
-  border-radius: var(--radius-none);
-  padding: 18px;
+  border-radius: 10px;
+  padding: 13px;
   text-align: left;
   cursor: pointer;
-  min-height: 360px;
+  min-height: 245px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 9px;
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
   box-shadow: var(--shadow-md);
 }
 
 .character-mode-card:hover {
   transform: translateY(-3px);
-  border-color: var(--rq-gold-bright);
+  border-color: #c4b5fd;
   background: var(--bg-elevated);
   box-shadow: 0 22px 52px rgba(0,0,0,0.38);
 }
 
 .character-mode-card.is-featured {
-  border-color: var(--rq-gold-bright);
-  box-shadow: 0 22px 48px rgba(212,160,23,0.16);
+  border-color: #c4b5fd;
+  box-shadow: 0 18px 38px rgba(124,58,237,0.18);
 }
 
 .character-mode-card-topline {
@@ -351,7 +374,7 @@ const pageCss = `
   border: 1px solid var(--border-subtle);
   background: rgba(255,255,255,0.04);
   padding: 4px 7px;
-  border-radius: var(--radius-none);
+  border-radius: 999px;
   font-style: normal;
   font-size: 10px;
   font-weight: 900;
@@ -360,9 +383,9 @@ const pageCss = `
 }
 
 .character-mode-card.is-featured .character-mode-card-topline em {
-  color: var(--rq-navy);
-  border-color: var(--rq-gold-bright);
-  background: var(--rq-gold-bright);
+  color: var(--text-primary);
+  border-color: rgba(124,58,237,0.8);
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
 }
 
 .character-mode-card-header {
@@ -372,27 +395,27 @@ const pageCss = `
 }
 
 .character-mode-icon-box {
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--rq-gold-border-strong);
-  color: var(--rq-gold-bright);
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(124,58,237,0.32);
+  color: #c4b5fd;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  background: var(--rq-gold-soft);
+  background: rgba(124,58,237,0.12);
 }
 
 .character-mode-card h2 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
   letter-spacing: -0.4px;
 }
 
 .character-mode-time {
-  margin-top: 5px;
+  margin-top: 3px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -404,25 +427,25 @@ const pageCss = `
 .character-mode-description {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.42;
 }
 
 .character-mode-best-for {
   border: 1px solid var(--border-subtle);
   background: rgba(0,0,0,0.12);
-  padding: 10px 11px;
+  padding: 8px 9px;
   color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .character-mode-includes {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 16px;
   color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.75;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .character-mode-choose {
@@ -432,17 +455,54 @@ const pageCss = `
   justify-content: space-between;
   gap: 12px;
   border-top: 1px solid var(--border-subtle);
-  padding-top: 13px;
-  color: var(--rq-gold-bright);
+  padding-top: 9px;
+  color: #c4b5fd;
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 
+.character-mode-flow {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.character-mode-flow div {
+  background: rgba(17,24,39,0.74);
+  border: 1px solid rgba(124,58,237,0.24);
+  border-radius: 10px;
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 9px;
+  align-items: start;
+}
+
+.character-mode-flow svg {
+  color: #22d3ee;
+  grid-row: span 2;
+  margin-top: 2px;
+}
+
+.character-mode-flow strong {
+  color: var(--text-primary);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.character-mode-flow span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .character-mode-summary {
-  margin-top: 16px;
-  padding: 14px;
+  margin-top: 10px;
+  padding: 10px 12px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
@@ -459,11 +519,30 @@ const pageCss = `
 }
 
 .character-mode-summary svg {
-  color: var(--rq-gold-bright);
+  color: #c4b5fd;
+}
+
+@media (max-height: 760px) and (min-width: 900px) {
+  .character-mode-tip { display: none; }
+  .character-mode-hero { grid-template-columns: 1fr; }
+  .character-mode-flow, .character-mode-summary { display: none; }
+}
+
+@media (max-width: 1100px) {
+  .character-mode-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 820px) {
-  .character-mode-hero {
+  .character-mode-hero,
+  .character-mode-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .character-mode-grid {
     grid-template-columns: 1fr;
   }
 }
