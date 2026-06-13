@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Sword } from 'lucide-react';
@@ -79,25 +79,7 @@ export default function LiveSessionGridPage() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
-  useEffect(() => { fetchAllData(); }, [campaignId]);
-
-  useEffect(() => {
-    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
-  }, [campaignId, explodingDiceEnabled]);
-
-  useEffect(() => {
-    if (!campaign) return;
-    try {
-      const key = `gm.explodingDice.${campaignId}`;
-      if (localStorage.getItem(key) === null) {
-        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-      }
-    } catch {
-      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-    }
-  }, [campaign, campaignId]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       const [campaignRes, playersRes, scenariosRes, calendarRes, notesRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}`),
@@ -116,7 +98,25 @@ export default function LiveSessionGridPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+
+  useEffect(() => {
+    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
+  }, [campaignId, explodingDiceEnabled]);
+
+  useEffect(() => {
+    if (!campaign) return;
+    try {
+      const key = `gm.explodingDice.${campaignId}`;
+      if (localStorage.getItem(key) === null) {
+        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+      }
+    } catch {
+      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+    }
+  }, [campaign, campaignId]);
 
   const rollQuickDice = (notation, label = '', rollType = 'normal') => {
     const result = rollDiceNotation(notation, {
@@ -138,21 +138,6 @@ export default function LiveSessionGridPage() {
       toast.success(`Exploding dice! +${result.explosionCount} extra roll${result.explosionCount === 1 ? '' : 's'}`, {
         description: `${label || notation} kept rolling because a die hit its maximum.`,
       });
-    }
-  };
-
-  const syncNoteIntoCampaignState = async (noteId) => {
-    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
-    const applied = syncRes.data?.applied_updates || [];
-    setSessionRefreshKey(prev => prev + 1);
-    await fetchAllData();
-
-    if (applied.length > 0) {
-      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
-        description: applied.slice(0, 2).map(update => update.summary).join(' '),
-      });
-    } else {
-      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
     }
   };
 
@@ -339,3 +324,4 @@ const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
 const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer' };
