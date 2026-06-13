@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import LootGenerator from '@/components/LootGenerator';
 import RandomTables from '@/components/RandomTables';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
@@ -70,13 +71,15 @@ export default function LiveSessionGridPage() {
   const [diceLabel, setDiceLabel] = useState('');
   const [diceModifier, setDiceModifier] = useState(0);
   const [diceTotal, setDiceTotal] = useState(0);
+  const [diceAnimationValue, setDiceAnimationValue] = useState(0);
+  const [explodingDiceEnabled, setExplodingDiceEnabled] = useState(() => {
+    try { return localStorage.getItem(`gm.explodingDice.${campaignId}`) === 'true'; } catch { return false; }
+  });
   const [diceCrit, setDiceCrit] = useState(false);
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
-  useEffect(() => { fetchAllData(); }, [campaignId]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       const [campaignRes, playersRes, scenariosRes, calendarRes, notesRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}`),
@@ -95,50 +98,47 @@ export default function LiveSessionGridPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+
+  useEffect(() => {
+    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
+  }, [campaignId, explodingDiceEnabled]);
+
+  useEffect(() => {
+    if (!campaign) return;
+    try {
+      const key = `gm.explodingDice.${campaignId}`;
+      if (localStorage.getItem(key) === null) {
+        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+      }
+    } catch {
+      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+    }
+  }, [campaign, campaignId]);
 
   const rollQuickDice = (notation, label = '', rollType = 'normal') => {
-    const diceGroups = notation.match(/(\d+)?d(\d+)/gi) || [];
-    if (diceGroups.length === 0) return;
+    const result = rollDiceNotation(notation, {
+      rollType,
+      exploding: explodingDiceEnabled,
+    });
+    if (!result.rolls.length) return;
 
-    const rolls = [];
-    let total = 0;
-    const isAdvRoll = (rollType === 'advantage' || rollType === 'disadvantage') && notation.match(/^(\d+)?d20$/i);
-
-    if (isAdvRoll) {
-      const r1 = Math.floor(Math.random() * 20) + 1;
-      const r2 = Math.floor(Math.random() * 20) + 1;
-      const kept = rollType === 'advantage' ? Math.max(r1, r2) : Math.min(r1, r2);
-      rolls.push({ sides: 20, result: r1, dropped: r1 !== kept });
-      rolls.push({ sides: 20, result: r2, dropped: r2 !== kept });
-      total = kept;
-    } else {
-      for (const group of diceGroups) {
-        const match = group.match(/(\d+)?d(\d+)/i);
-        if (!match) continue;
-        const count = parseInt(match[1]) || 1;
-        const sides = parseInt(match[2]);
-        for (let i = 0; i < count; i++) {
-          const result = Math.floor(Math.random() * sides) + 1;
-          rolls.push({ sides, result });
-          total += result;
-        }
-      }
-    }
-
-    const inlineMod = notation.replace(/(\d+)?d(\d+)/gi, '').match(/([+-]\d+)/g);
-    let modifier = 0;
-    if (inlineMod) inlineMod.forEach(m => { modifier += parseInt(m); });
-    total += modifier;
-
-    const keptRoll = isAdvRoll ? rolls.find(r => !r.dropped) : rolls[0];
-    setDiceRolls(isAdvRoll ? rolls.filter(r => !r.dropped) : rolls);
+    setDiceRolls(result.visibleRolls);
     setDiceLabel(label || notation);
-    setDiceModifier(modifier);
-    setDiceTotal(total);
-    setDiceCrit(!!(keptRoll && keptRoll.sides === 20 && keptRoll.result === 20));
-    setDiceFumble(!!(keptRoll && keptRoll.sides === 20 && keptRoll.result === 1));
+    setDiceModifier(result.modifier);
+    setDiceTotal(result.total);
+    setDiceAnimationValue(getAnimationTarget(result));
+    setDiceCrit(result.isCrit);
+    setDiceFumble(result.isFumble);
     setShowDiceFlicker(true);
+
+    if (result.explosionCount > 0) {
+      toast.success(`Exploding dice! +${result.explosionCount} extra roll${result.explosionCount === 1 ? '' : 's'}`, {
+        description: `${label || notation} kept rolling because a die hit its maximum.`,
+      });
+    }
   };
 
   const syncNoteIntoCampaignState = async (noteId) => {
@@ -280,7 +280,11 @@ export default function LiveSessionGridPage() {
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={explodingToggleStyle} title="When enabled, non-d20 dice that roll their maximum roll again and add the extra result.">
+            <input type="checkbox" checked={explodingDiceEnabled} onChange={(event) => setExplodingDiceEnabled(event.target.checked)} />
+            Exploding dice
+          </label>
           <Button onClick={() => rollQuickDice('1d20', 'D20')} className="btn-outline" style={smallButtonStyle}><Dices size={16} /> D20</Button>
           <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-primary" style={smallButtonStyle}><LogOut size={16} /> Exit to Prep</Button>
         </div>
@@ -303,6 +307,7 @@ export default function LiveSessionGridPage() {
         label={diceLabel}
         modifier={diceModifier}
         total={diceTotal}
+        animationValue={diceAnimationValue}
         isCrit={diceCrit}
         isFumble={diceFumble}
         onComplete={() => setShowDiceFlicker(false)}
@@ -319,3 +324,4 @@ const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
 const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer' };

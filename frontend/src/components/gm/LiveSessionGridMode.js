@@ -201,7 +201,7 @@ function GridToolWrapper({ toolId, onOpenSingleTab, children }) {
 function QuickDicePanel({ onRollDice }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen.</p>
+      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen. If the GM enables exploding dice, non-d20 maximum rolls add another die.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
           <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>

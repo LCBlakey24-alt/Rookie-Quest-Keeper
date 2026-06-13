@@ -28,7 +28,8 @@ export function DiceRollButton({
   disadvantage = false,
   showDice = true,
   size = 'default',  // 'small', 'default', 'large'
-  color = theme.cyan
+  color = theme.cyan,
+  allowExploding = false
 }) {
   const [rolling, setRolling] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -39,28 +40,14 @@ export function DiceRollButton({
   const handleRoll = (e) => {
     e.stopPropagation();
     setRolling(true);
-    
-    let roll1, roll2, finalRoll;
-    const sides = parseInt(diceType.replace('d', '')) || 20;
-    
-    if (advantage || disadvantage) {
-      roll1 = rollDice(sides);
-      roll2 = rollDice(sides);
-      finalRoll = advantage ? Math.max(roll1, roll2) : Math.min(roll1, roll2);
-    } else {
-      finalRoll = rollDice(sides);
-    }
-    
-    const total = finalRoll + modifier;
-    
-    // Determine roll type for styling
-    let rollType = 'normal';
-    if (sides === 20) {
-      if (finalRoll === 20) rollType = 'crit';
-      else if (finalRoll === 1) rollType = 'fail';
-    }
-    
-    // Build message
+
+    const numericModifier = Number(modifier) || 0;
+    const notation = `${diceType}${numericModifier >= 0 ? `+${numericModifier}` : numericModifier}`;
+    const result = rollDiceNotation(notation, {
+      rollType: advantage ? 'advantage' : disadvantage ? 'disadvantage' : 'normal',
+      exploding: allowExploding,
+    });
+
     let message = `${label}: ${diceType}`;
     if (modifier >= 0) message += ` + ${modifier}`;
     else message += ` - ${Math.abs(modifier)}`;

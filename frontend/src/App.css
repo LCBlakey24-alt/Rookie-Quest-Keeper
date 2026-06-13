@@ -123,15 +123,15 @@ img, video, canvas, svg {
   height: 200%;
   top: -50%;
   left: -50%;
-  background: radial-gradient(ellipse at center, rgba(122, 31, 31, 0.15) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(197, 75, 44, 0.1) 0%, transparent 40%),
-              radial-gradient(ellipse at 80% 20%, rgba(242, 165, 65, 0.08) 0%, transparent 40%);
+  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.14) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+              radial-gradient(ellipse at 80% 20%, rgba(192, 132, 252, 0.08) 0%, transparent 40%);
   animation: smokeFloat 30s ease-in-out infinite;
 }
 
 .smokey-bg::after {
-  background: radial-gradient(ellipse at 70% 70%, rgba(43, 15, 15, 0.2) 0%, transparent 50%),
-              radial-gradient(ellipse at 30% 30%, rgba(45, 42, 58, 0.15) 0%, transparent 45%);
+  background: radial-gradient(ellipse at 70% 70%, rgba(30, 41, 59, 0.20) 0%, transparent 50%),
+              radial-gradient(ellipse at 30% 30%, rgba(88, 28, 135, 0.14) 0%, transparent 45%);
   animation: smokeFloat 40s ease-in-out infinite reverse;
 }
 

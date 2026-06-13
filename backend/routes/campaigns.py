@@ -36,6 +36,12 @@ async def create_campaign(campaign_data: CampaignCreate, username: str = Depends
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Campaign creation is currently disabled")
 
     campaign_dict = campaign_data.model_dump()
+    if campaign_dict.get('rules_edition') not in {'2014', '2024'}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Rules edition must be 2014 or 2024')
+    campaign_dict['max_character_level'] = max(1, min(int(campaign_dict.get('max_character_level') or 20), 60))
+    if not campaign_dict.get('allow_epic_levels'):
+        campaign_dict['max_character_level'] = min(campaign_dict['max_character_level'], 20)
+    campaign_dict['available_classes'] = [str(cls).strip() for cls in campaign_dict.get('available_classes', []) if str(cls).strip()]
     campaign_obj = Campaign(dm_user_id=username, **campaign_dict)
     doc = campaign_obj.model_dump()
     await db.campaigns.insert_one(doc)
@@ -55,9 +61,16 @@ async def get_campaign(campaign_id: str, username: str = Depends(get_current_use
 
 @router.put("/campaigns/{campaign_id}", response_model=Campaign)
 async def update_campaign(campaign_id: str, campaign_data: CampaignCreate, username: str = Depends(get_current_user)):
+    update_data = campaign_data.model_dump()
+    if update_data.get('rules_edition') not in {'2014', '2024'}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Rules edition must be 2014 or 2024')
+    update_data['max_character_level'] = max(1, min(int(update_data.get('max_character_level') or 20), 60))
+    if not update_data.get('allow_epic_levels'):
+        update_data['max_character_level'] = min(update_data['max_character_level'], 20)
+    update_data['available_classes'] = [str(cls).strip() for cls in update_data.get('available_classes', []) if str(cls).strip()]
     result = await db.campaigns.update_one(
         {'id': campaign_id, 'dm_user_id': username},
-        {'$set': campaign_data.model_dump()}
+        {'$set': update_data}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")

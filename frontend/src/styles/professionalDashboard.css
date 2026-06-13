@@ -4,12 +4,12 @@
 #player-section,
 #gm-section,
 [data-testid="sourcebook-library"] {
-  --dash-black: #0B0B0C;
-  --dash-panel: #141414;
-  --dash-card: #1F1F23;
-  --dash-red: #EF4444;
-  --dash-red-border: rgba(239, 68, 68, 0.32);
-  --dash-border: rgba(255, 255, 255, 0.10);
+  --dash-black: #070B18;
+  --dash-panel: #0D1326;
+  --dash-card: #121A31;
+  --dash-red: #7C3AED;
+  --dash-red-border: rgba(124, 58, 237, 0.32);
+  --dash-border: rgba(148, 163, 184, 0.16);
   --dash-white: #FFFFFF;
   --dash-soft: #D1D5DB;
   --dash-muted: #9CA3AF;
@@ -17,7 +17,7 @@
 
 /* Dashboard header only: avoid styling every header in the app. */
 .App:has(#player-section) header {
-  background: rgba(11, 11, 12, 0.9) !important;
+  background: rgba(7, 11, 24, 0.9) !important;
   border-bottom: 1px solid var(--dash-border) !important;
   backdrop-filter: blur(16px) !important;
   padding: 14px clamp(14px, 3vw, 28px) !important;
@@ -31,7 +31,7 @@
 }
 
 .App:has(#player-section) header img[src="/images/logo-mini.png"] {
-  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.38)) !important;
+  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.38)) !important;
 }
 
 .App:has(#player-section) header button,

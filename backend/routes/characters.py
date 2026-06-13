@@ -53,7 +53,11 @@ def compute_multiclass_spell_slots(classes: list) -> dict:
             combined_level += level
         elif name in _HALF_CASTERS:
             combined_level += level // 2
-    slots = _FULL_CASTER_SLOTS.get(combined_level, {})
+    # Epic / beyond-20 campaigns can keep adding class levels, but the
+    # standard 5e multiclass spell-slot table tops out at caster level 20.
+    # Cap the lookup so a level 21+ combined caster does not lose spell slots.
+    capped_level = min(max(combined_level, 0), 20)
+    slots = _FULL_CASTER_SLOTS.get(capped_level, {})
     return {str(k): int(v) for k, v in slots.items()}
 
 
@@ -968,12 +972,24 @@ async def join_campaign_with_code(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Character is already linked to another campaign. Unlink first."
         )
-    
-    # Link character to campaign
+
+    available_classes = [str(cls).lower() for cls in campaign.get('available_classes', []) if str(cls).strip()]
+    character_class = str(character.get('character_class') or character.get('class') or '').lower()
+    if available_classes and character_class and character_class not in available_classes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{character.get('character_class') or 'This class'} is not available in {campaign['name']}. Ask the GM to allow it or choose another character."
+        )
+
+    campaign_edition = campaign.get('rules_edition', '2024')
+    # Link character to campaign and lock the character to the campaign rules edition.
     await db.player_characters.update_one(
         {'id': request.character_id},
         {'$set': {
             'campaign_id': campaign['id'],
+            'edition': campaign_edition,
+            'rules_edition': campaign_edition,
+            'ruleset_id': normalize_ruleset_id(campaign_edition),
             'updated_at': datetime.now(timezone.utc).isoformat()
         }}
     )
@@ -985,6 +1001,11 @@ async def join_campaign_with_code(
             "id": campaign['id'],
             "name": campaign['name'],
             "system": campaign.get('system', '5e 2024'),
+            "rules_edition": campaign_edition,
+            "allow_exploding_dice": campaign.get('allow_exploding_dice', False),
+            "allow_epic_levels": campaign.get('allow_epic_levels', False),
+            "max_character_level": campaign.get('max_character_level', 20),
+            "available_classes": campaign.get('available_classes', []),
             "dm": campaign.get('dm_user_id')
         }
     }

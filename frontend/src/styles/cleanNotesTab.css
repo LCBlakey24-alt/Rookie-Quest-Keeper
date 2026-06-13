@@ -2,7 +2,7 @@
   width: 100%;
   min-height: 220px;
   resize: vertical;
-  background: #0B0B0C;
+  background: #070B18;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   color: #FFFFFF;
@@ -13,8 +13,8 @@
 }
 
 .clean-sheet-notes-textarea:focus {
-  border-color: rgba(239, 68, 68, 0.55);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+  border-color: rgba(124, 58, 237, 0.55);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
 }
 
 .clean-sheet-notes-textarea::placeholder {
@@ -30,8 +30,8 @@
 .clean-sheet-notes-actions button {
   min-height: 42px;
   padding: 10px 16px;
-  background: #EF4444;
-  border: 1px solid #EF4444;
+  background: #7C3AED;
+  border: 1px solid #7C3AED;
   color: #FFFFFF;
   border-radius: 10px;
   cursor: pointer;
@@ -45,7 +45,7 @@
 }
 
 .clean-sheet-note-field {
-  background: #0B0B0C;
+  background: #070B18;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   padding: 12px;
@@ -54,7 +54,7 @@
 
 .clean-sheet-note-field span {
   display: block;
-  color: #EF4444;
+  color: #7C3AED;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -79,7 +79,7 @@
 .clean-sheet-feature-card {
   width: 100%;
   text-align: left;
-  background: #0B0B0C;
+  background: #070B18;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   color: #FFFFFF;
@@ -92,8 +92,8 @@
 
 .clean-sheet-feature-card:hover,
 .clean-sheet-feature-card.expanded {
-  border-color: rgba(239, 68, 68, 0.42);
-  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(124, 58, 237, 0.42);
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .clean-sheet-feature-topline {
@@ -105,9 +105,9 @@
 
 .clean-sheet-feature-topline span,
 .clean-sheet-feature-topline em {
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  background: rgba(239, 68, 68, 0.08);
+  color: #7C3AED;
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: rgba(124, 58, 237, 0.08);
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 10px;
@@ -142,8 +142,8 @@
   min-height: 32px;
   align-items: center;
   color: #FFFFFF;
-  background: #0B0B0C;
-  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: #070B18;
+  border: 1px solid rgba(124, 58, 237, 0.28);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;

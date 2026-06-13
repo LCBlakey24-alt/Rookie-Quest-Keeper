@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Sparkles, Swords, Upload, UserCircle, Users, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
+import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
 import GodsTab from '@/components/tabs/GodsTab';
 import LocationsTab from '@/components/tabs/LocationsTab';
 import PlayersTab from '@/components/tabs/PlayersTab';
@@ -86,19 +87,24 @@ const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'cla
 const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.accent.subtle, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' };
 
 const tabGroups = [
-  { id: 'overview', label: 'Overview', icon: Book, tabs: [
-    { id: 'setting', icon: Book, label: 'Campaign Overview' },
-    { id: 'players', icon: Users, label: 'Players' },
+  { id: 'prep', label: 'Prep', icon: CalendarDays, tabs: [
+    { id: 'tonight', icon: CalendarDays, label: "Tonight's Session" },
+    { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
     { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
+    { id: 'handouts', icon: Mail, label: 'Handouts' },
+    { id: 'session-recap', icon: Sparkles, label: 'Rook Recap' },
   ] },
   { id: 'world', label: 'World', icon: Globe, tabs: [
+    { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
+    { id: 'setting', icon: Book, label: 'World Overview' },
     { id: 'world', icon: Globe, label: 'World Builder' },
-    { id: 'maps', icon: Compass, label: 'Maps' },
-    { id: 'gods', icon: Church, label: 'Gods & Factions' },
     { id: 'locations', icon: MapPin, label: 'Locations' },
+    { id: 'maps', icon: Compass, label: 'Maps' },
     { id: 'chronicle', icon: Clock, label: 'Chronicle' },
+    { id: 'gods', icon: Church, label: 'Gods & Factions' },
   ] },
-  { id: 'people', label: 'People', icon: UserCircle, tabs: [
+  { id: 'cast', label: 'Cast', icon: UserCircle, tabs: [
+    { id: 'players', icon: Users, label: 'Players' },
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
   ] },
   { id: 'sessions', label: 'Sessions', icon: Sparkles, tabs: [
@@ -111,8 +117,9 @@ const tabGroups = [
   { id: 'combat', label: 'Combat', icon: Swords, tabs: [
     { id: 'combat', icon: Swords, label: 'Encounters' },
     { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
+    { id: 'tools', icon: ScrollText, label: 'Rook Tools' },
   ] },
-  { id: 'assets', label: 'Assets', icon: Backpack, tabs: [
+  { id: 'library', label: 'Library', icon: Backpack, tabs: [
     { id: 'inventory', icon: Backpack, label: 'Inventory' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
     { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
@@ -125,7 +132,7 @@ function CampaignDashboard() {
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [activeTab, setActiveTab] = useState('setting');
+  const [activeTab, setActiveTab] = useState('tonight');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [collapsedGroups, setCollapsedGroups] = useState({});

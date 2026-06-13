@@ -125,21 +125,22 @@ function gatherConsumables(character) {
   return [...(character?.equipment || []), ...(character?.inventory || [])].filter(isConsumableLike).slice(0, 6);
 }
 
-function AttackCard({ action, onClick, children, active }) {
+function AttackCard({ action, onAttack, onDamage, children, active }) {
+  const isSave = Boolean(action.saveText);
   return (
     <div className={`clean-sheet-action-card-shell ${active ? 'active' : ''}`}>
-      <button type="button" className="clean-sheet-action-card clean-sheet-attack-card" onClick={onClick}>
+      <article className="clean-sheet-action-card clean-sheet-attack-card">
         <div className="clean-sheet-attack-card-top">
           <span className="clean-sheet-action-type">{action.type || 'Action'}</span>
           <strong>{action.title}</strong>
           {action.details && <span className="clean-sheet-attack-details">{action.details}</span>}
         </div>
         <div className="clean-sheet-attack-stat-row">
-          <div><span>{action.saveText ? 'Save' : 'To Hit'}</span><strong>{action.saveText || fmt(action.attackMod || 0)}</strong></div>
-          <div><span>Damage</span><strong>{action.damageText || '—'}</strong></div>
-          <div><span>Type</span><strong>{action.damageType || '—'}</strong></div>
+          <button type="button" onClick={onAttack} className="clean-sheet-attack-stat-box clean-sheet-attack-roll-box"><span>{isSave ? 'Save DC' : 'To Hit'}</span><strong>{action.saveText || fmt(action.attackMod || 0)}</strong></button>
+          <button type="button" onClick={onDamage} className="clean-sheet-attack-stat-box clean-sheet-damage-roll-box" disabled={!action.damage}><span>Damage</span><strong>{action.damageText || '—'}</strong></button>
+          <div className="clean-sheet-attack-stat-box clean-sheet-attack-detail-box"><span>Details</span><strong>{action.damageType || action.conditionText || 'No extra effect'}</strong></div>
         </div>
-      </button>
+      </article>
       {children}
     </div>
   );
@@ -269,7 +270,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
         {consumables.length > 0 && <div className="clean-sheet-consumable-strip"><span>Quick Consumables</span>{consumables.map((item, index) => <button key={`${getItemName(item)}-${index}`} type="button" onClick={() => useConsumable(item)}>{getItemName(item)}{getItemQuantity(item) ? ` x${getItemQuantity(item)}` : ''}</button>)}</div>}
       </div></section>
 
-      <ActionSection title="Attacks / Spells">{attackOptions.map(attack => <AttackCard key={attack.id} action={attack} onClick={() => rollAttack(attack)} active={pendingDamage?.label === attack.damage.label}>{pendingDamage?.label === attack.damage.label && <div className="clean-sheet-pending-damage"><span>Attack rolled. If it hits:</span><button type="button" className="clean-sheet-damage-button" onClick={() => rollDamage(attack.damage)}>Roll Damage</button><button type="button" onClick={() => setPendingDamage(null)}>Cancel</button></div>}</AttackCard>)}</ActionSection>
+      <ActionSection title="Attacks / Spells">{attackOptions.map(attack => <AttackCard key={attack.id} action={attack} onAttack={() => rollAttack(attack)} onDamage={() => rollDamage(attack.damage)} active={pendingDamage?.label === attack.damage.label}>{pendingDamage?.label === attack.damage.label && <div className="clean-sheet-pending-damage"><span>Attack rolled. If it hits, use the damage box on this card.</span><button type="button" onClick={() => setPendingDamage(null)}>Cancel</button></div>}</AttackCard>)}</ActionSection>
       <ActionSection title="Actions"><SimpleActionCard title="Dash" description="Gain extra movement equal to your speed this turn." /><SimpleActionCard title="Disengage" description="Your movement does not provoke opportunity attacks this turn." /><SimpleActionCard title="Dodge" description="Attack rolls against you have disadvantage until your next turn." /><SimpleActionCard title="Help" description="Give an ally advantage on a relevant check or attack." /><SimpleActionCard title="Ready" description="Prepare an action to trigger later this round." /></ActionSection>
       <ActionSection title="Bonus Actions"><SimpleActionCard title="Off-hand Attack" type="Bonus" description="Use when dual-wielding after taking the Attack action." onClick={() => onRoll('Off-hand Attack', bestAttackMod)} />{className === 'Rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}{className === 'Monk' && <SimpleActionCard title="Martial Arts" type="Bonus" description="Make one unarmed strike after attacking with a monk weapon or unarmed strike." onClick={() => onRoll('Martial Arts', bestAttackMod)} />}{className === 'Barbarian' && <SimpleActionCard title="Rage" type="Bonus" description="Enter a rage if you have uses remaining." />}{className === 'Fighter' && <SimpleActionCard title="Second Wind" type="Bonus" description="Regain hit points once per rest if available." />}<SimpleActionCard title="Use Class Feature" type="Bonus" description="Use any bonus action feature granted by class, race, feat, spell, or item." /></ActionSection>
       <ActionSection title="Reactions"><SimpleActionCard title="Opportunity Attack" type="Reaction" description="Attack a creature that leaves your reach." onClick={() => onRoll('Opportunity Attack', bestAttackMod)} /><SimpleActionCard title="Readied Action" type="Reaction" description="Use your reaction to trigger a previously readied action." /><SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, race, feat, spell, or item." /></ActionSection>

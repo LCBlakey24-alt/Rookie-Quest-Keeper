@@ -493,8 +493,9 @@ export const getMulticlassSpellSlots = (classLevels = {}, character = null) => {
 
   return {
     multiclassLevel,
-    slots: SPELL_SLOTS[multiclassLevel] || {},
-    pactMagic: warlockLevel > 0 ? (PACT_MAGIC_SLOTS[warlockLevel] || null) : null
+    cappedMulticlassLevel: Math.min(Math.max(multiclassLevel, 0), 20),
+    slots: SPELL_SLOTS[Math.min(Math.max(multiclassLevel, 0), 20)] || {},
+    pactMagic: warlockLevel > 0 ? (PACT_MAGIC_SLOTS[Math.min(Math.max(warlockLevel, 0), 20)] || null) : null
   };
 };
 

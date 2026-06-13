@@ -4,6 +4,7 @@ import { clearAuthToken, getAuthToken } from '@/lib/auth';
 
 const apiClient = axios.create({
   baseURL: API_BASE,
+  timeout: 20000,
 });
 
 apiClient.interceptors.request.use((config) => {

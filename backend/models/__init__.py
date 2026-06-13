@@ -91,8 +91,14 @@ class Campaign(BaseModel):
     description: str = ""
     system: str = "5e 2024 Compatible"  # TTRPG system
     rules_edition: str = "2024"  # "2014" or "2024" — controls AI prompts + class rules across the GM screen
+    world_name: str = ""
+    world_genre: str = "fantasy"  # fantasy, sci_fi, modern, medieval, horror, custom
     world_setting: str = "custom"  # Tone label only; concrete lore must come from GM-saved content
     world_setting_notes: str = ""  # GM-provided notes about the setting for AI context
+    allow_exploding_dice: bool = False
+    allow_epic_levels: bool = False
+    max_character_level: int = 20
+    available_classes: List[str] = []  # Empty means all supported classes are available
     campaign_environment: Dict[str, Any] = Field(default_factory=dict)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -101,8 +107,14 @@ class CampaignCreate(BaseModel):
     description: str = ""
     system: str = "5e 2024 Compatible"
     rules_edition: str = "2024"
+    world_name: str = ""
+    world_genre: str = "fantasy"
     world_setting: str = "custom"
     world_setting_notes: str = ""
+    allow_exploding_dice: bool = False
+    allow_epic_levels: bool = False
+    max_character_level: int = 20
+    available_classes: List[str] = []
 
 class CampaignSetting(BaseModel):
     model_config = ConfigDict(extra="ignore")

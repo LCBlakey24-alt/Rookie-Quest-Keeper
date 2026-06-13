@@ -34,6 +34,7 @@ export default function DiceRollFlicker({
   label,
   modifier = 0,
   total = 0,
+  animationValue,
   isCrit = false,
   isFumble = false,
   theme = 'player',
@@ -50,9 +51,12 @@ export default function DiceRollFlicker({
   }, [onClose, onComplete]);
 
   const rollDetail = useMemo(() => {
-    const base = rolls.map((roll) => `d${roll.sides}: ${roll.result}`).join(' + ');
-    return `${base}${formatModifier(modifier)}`;
+    const base = rolls.map((roll) => `${roll.exploded ? '↳ ' : ''}d${roll.sides}: ${roll.result}`).join(' + ');
+    const explosionText = rolls.some((roll) => roll.exploded) ? ' • exploding dice' : '';
+    return `${base}${formatModifier(modifier)}${explosionText}`;
   }, [modifier, rolls]);
+
+  const finalDisplayValue = Number(animationValue ?? total) || 0;
 
   useEffect(() => {
     if (!visible) return undefined;
@@ -93,8 +97,9 @@ export default function DiceRollFlicker({
 
   if (!visible) return null;
 
-  const status = isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label;
-  const statusColor = isCrit ? '#22C55E' : isFumble ? '#EF4444' : colors.accent;
+  const resolvedStatus = isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label;
+  const status = settled ? resolvedStatus : 'Rolling…';
+  const statusColor = settled && isCrit ? '#22C55E' : settled && isFumble ? '#EF4444' : colors.accent;
 
   return createPortal(
     <div
@@ -181,7 +186,7 @@ export default function DiceRollFlicker({
               textOverflow: 'ellipsis',
             }}
           >
-            {rollDetail || label}
+            {settled ? (rollDetail || label) : 'The dice are still tumbling…'}
           </div>
         </div>
       </div>
