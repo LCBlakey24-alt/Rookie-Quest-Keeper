@@ -8,10 +8,13 @@ import '@fontsource/manrope/700.css';
 import "@/index.css";
 import "@/styles/mobileUsabilityFix.css";
 import App from "@/App";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </React.StrictMode>,
 );
