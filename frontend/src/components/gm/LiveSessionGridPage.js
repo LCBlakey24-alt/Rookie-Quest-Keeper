@@ -156,6 +156,21 @@ export default function LiveSessionGridPage() {
     }
   };
 
+  const syncNoteIntoCampaignState = async (noteId) => {
+    const syncRes = await apiClient.post(`/campaigns/${campaignId}/ingame-notes/${noteId}/sync`);
+    const applied = syncRes.data?.applied_updates || [];
+    setSessionRefreshKey(prev => prev + 1);
+    await fetchAllData();
+
+    if (applied.length > 0) {
+      toast.success(`Note saved and ${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
+        description: applied.slice(0, 2).map(update => update.summary).join(' '),
+      });
+    } else {
+      toast.success('Note saved', { description: 'No clear character, NPC, or location changes were detected automatically.' });
+    }
+  };
+
   const handleSubmitNote = async () => {
     if (!quickNote.trim()) return;
     setProcessingNote(true);
@@ -323,5 +338,4 @@ const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'ce
 const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
-const explodingToggleStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 6, background: theme.accent.subtle, border: `1px solid ${theme.border}`, color: theme.text.secondary, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.5, cursor: 'pointer' };
 const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };

@@ -6,6 +6,7 @@ import '@fontsource/manrope/400.css';
 import '@fontsource/manrope/600.css';
 import '@fontsource/manrope/700.css';
 import "@/index.css";
+import "@/styles/mobileUsabilityFix.css";
 import App from "@/App";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

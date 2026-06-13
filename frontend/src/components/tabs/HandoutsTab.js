@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import {
-  Plus, Trash2, Send, BookOpen, Mail, MailOpen, Users, Image as ImageIcon, Edit3, Bookmark, Share2, FileText, Volume2, Filter
+  Plus, Trash2, Send, BookOpen, Mail, MailOpen, Users, Image as ImageIcon, Edit3, Bookmark, Share2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,6 @@ function GMHandoutsTab({ campaignId }) {
       attachment_url: handout.attachment_url || handout.image_url || '',
       attachment_type: handout.attachment_type || (handout.image_url ? 'image/upload' : ''),
       attachment_name: handout.attachment_name || '',
-      allow_player_sharing: handout.allow_player_sharing !== false,
     });
   };
 
@@ -162,7 +161,6 @@ function GMHandoutsTab({ campaignId }) {
               value={draft}
               onChange={setDraft}
             />
-            <HandoutSharingToggle value={draft.allow_player_sharing} onChange={(value) => setDraft(d => ({ ...d, allow_player_sharing: value }))} />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Button onClick={create} className="btn-primary" style={{ fontSize: 12, padding: '6px 14px' }}>Save</Button>
               <Button onClick={() => setShowCreate(false)} className="btn-outline" style={{ fontSize: 12, padding: '6px 14px' }}>Cancel</Button>
@@ -185,7 +183,7 @@ function GMHandoutsTab({ campaignId }) {
               <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', display: 'flex', gap: 6, alignItems: 'center' }}>
                 {h.title}
                 <span style={{ fontSize: 10, background: 'rgba(74,125,255,0.12)', border: '1px solid rgba(74,125,255,0.35)', borderRadius: 999, padding: '1px 7px', color: '#bfdbfe', textTransform: 'capitalize' }}>{h.category || 'clue'}</span>
-                {getAttachmentUrl(h) && <span title="Attachment included" style={{ display: 'inline-flex', alignItems: 'center', color: '#93c5fd' }}><AttachmentIcon handout={h} size={12} /></span>}
+                {getAttachmentUrl(h) && <span title="Attachment included" style={{ display: 'inline-flex', alignItems: 'center', color: '#93c5fd' }}><ImageIcon size={12} /></span>}
                 {h.shared_with?.length > 0 && (
                   <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.2)', border: '1px solid #22c55e', borderRadius: 4, padding: '1px 6px', color: '#22c55e' }}>
                     Shared
@@ -250,7 +248,6 @@ function GMHandoutsTab({ campaignId }) {
                   value={editDraft}
                   onChange={setEditDraft}
                 />
-                <HandoutSharingToggle value={editDraft.allow_player_sharing} onChange={(value) => setEditDraft(d => ({ ...d, allow_player_sharing: value }))} />
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Button onClick={() => saveEdit(h)} className="btn-primary" style={{ fontSize: 12, padding: '6px 14px' }}>Save changes</Button>
                   <Button onClick={cancelEditing} className="btn-outline" style={{ fontSize: 12, padding: '6px 14px' }}>Cancel</Button>
@@ -394,8 +391,6 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
 
   const unreadCount = handouts.filter(h => !h.read).length;
   const savedCount = handouts.filter(h => h.saved).length;
-  const filterOptions = buildHandoutFilters(handouts);
-  const visibleHandouts = filterPlayerHandouts(handouts, activeFilter);
 
   if (loading) return null;
   if (handouts.length === 0) return (
@@ -464,7 +459,7 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
             {h.read ? <MailOpen size={13} style={{ color: '#64748b', flexShrink: 0 }} /> : <Mail size={13} style={{ color: '#4a7dff', flexShrink: 0 }} />}
             <span style={{ fontSize: 12, fontWeight: h.read ? 400 : 600, color: h.read ? '#94a3b8' : '#fff', flex: 1 }}>{h.title}</span>
             {h.category && <span style={{ fontSize: 9, color: '#bfdbfe', border: '1px solid rgba(74,125,255,0.25)', borderRadius: 999, padding: '1px 6px', textTransform: 'capitalize' }}>{h.category}</span>}
-            {getAttachmentUrl(h) && <AttachmentIcon handout={h} size={12} style={{ color: '#93c5fd', flexShrink: 0 }} />}
+            {getAttachmentUrl(h) && <ImageIcon size={12} style={{ color: '#93c5fd', flexShrink: 0 }} />}
             {h.saved && <Bookmark size={12} style={{ color: '#fbbf24', fill: '#fbbf24', flexShrink: 0 }} />}
             {h.shared_by && <span style={{ fontSize: 9, color: '#bbf7d0' }}>from {h.shared_by}</span>}
           </div>
@@ -480,15 +475,13 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
                 <button type="button" onClick={(event) => toggleSaved(h, event)} style={{ background: h.saved ? 'rgba(251,191,36,0.18)' : 'rgba(74,125,255,0.12)', border: `1px solid ${h.saved ? '#fbbf24' : '#4a7dff'}`, borderRadius: 4, color: h.saved ? '#fde68a' : '#bfdbfe', cursor: 'pointer', padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <Bookmark size={12} /> {h.saved ? 'Saved' : 'Save clue'}
                 </button>
-                {h.allow_player_sharing === false ? (
-                  <span style={{ border: '1px solid rgba(148,163,184,0.25)', borderRadius: 999, color: '#94a3b8', fontSize: 11, padding: '4px 8px' }}>GM locked sharing</span>
-                ) : (shareOptions[h.handout_id] || []).length > 0 && (
+                {(shareOptions[h.handout_id] || []).length > 0 && (
                   <button type="button" onClick={(event) => shareWithPlayers(h, event)} disabled={sharingHandout === h.handout_id || !(selectedShares[h.handout_id] || []).length} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid #22c55e', borderRadius: 4, color: '#bbf7d0', cursor: (selectedShares[h.handout_id] || []).length ? 'pointer' : 'not-allowed', padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Share2 size={12} /> {sharingHandout === h.handout_id ? 'Sharing…' : 'Share selected'}
                   </button>
                 )}
               </div>
-              {h.allow_player_sharing !== false && (shareOptions[h.handout_id] || []).length > 0 && (
+              {(shareOptions[h.handout_id] || []).length > 0 && (
                 <div onClick={(event) => event.stopPropagation()} style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {(shareOptions[h.handout_id] || []).map(recipient => (
                     <label key={recipient.username} style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#cbd5e1', fontSize: 11, border: '1px solid rgba(74,125,255,0.25)', borderRadius: 999, padding: '3px 8px', background: 'rgba(74,125,255,0.06)' }}>
@@ -512,39 +505,7 @@ function PlayerHandoutsPanel({ onSummaryChange } = {}) {
 
 
 function emptyHandoutDraft() {
-  return { title: '', content: '', category: 'clue', image_url: '', attachment_url: '', attachment_type: '', attachment_name: '', allow_player_sharing: true };
-}
-
-function filterPlayerHandouts(handouts, activeFilter) {
-  if (activeFilter === 'all') return handouts;
-  if (activeFilter === 'unread') return handouts.filter(h => !h.read);
-  if (activeFilter === 'saved') return handouts.filter(h => h.saved);
-  if (activeFilter === 'shared') return handouts.filter(h => h.shared_by);
-  if (activeFilter === 'images') return handouts.filter(h => getAttachmentType(h).startsWith('image/'));
-  if (activeFilter === 'pdfs') return handouts.filter(h => getAttachmentType(h) === 'application/pdf');
-  if (activeFilter === 'audio') return handouts.filter(h => getAttachmentType(h).startsWith('audio/'));
-  return handouts.filter(h => (h.category || 'clue') === activeFilter);
-}
-
-function buildHandoutFilters(handouts) {
-  const base = [
-    { id: 'all', label: 'All', count: handouts.length },
-    { id: 'unread', label: 'Unread', count: handouts.filter(h => !h.read).length },
-    { id: 'saved', label: 'Saved', count: handouts.filter(h => h.saved).length },
-  ];
-  const categoryCounts = handouts.reduce((acc, handout) => {
-    const category = handout.category || 'clue';
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {});
-  const categories = Object.entries(categoryCounts).map(([id, count]) => ({ id, label: id, count }));
-  const media = [
-    { id: 'images', label: 'Images', count: handouts.filter(h => getAttachmentType(h).startsWith('image/')).length },
-    { id: 'pdfs', label: 'PDFs', count: handouts.filter(h => getAttachmentType(h) === 'application/pdf').length },
-    { id: 'audio', label: 'Audio', count: handouts.filter(h => getAttachmentType(h).startsWith('audio/')).length },
-    { id: 'shared', label: 'Shared by players', count: handouts.filter(h => h.shared_by).length },
-  ].filter(option => option.count > 0);
-  return [...base, ...categories, ...media];
+  return { title: '', content: '', category: 'clue', image_url: '', attachment_url: '', attachment_type: '', attachment_name: '' };
 }
 
 function getAttachmentUrl(handout) {
@@ -553,26 +514,6 @@ function getAttachmentUrl(handout) {
 
 function getAttachmentType(handout) {
   return handout?.attachment_type || (handout?.image_url ? 'image/upload' : '');
-}
-
-
-function HandoutSharingToggle({ value, onChange }) {
-  return (
-    <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: 10, border: '1px solid rgba(74,125,255,0.24)', borderRadius: 8, background: 'rgba(15,23,42,0.62)', color: '#cbd5e1', fontSize: 12, lineHeight: 1.45 }}>
-      <input
-        type="checkbox"
-        checked={value !== false}
-        onChange={(event) => onChange(event.target.checked)}
-        style={{ marginTop: 2 }}
-      />
-      <span>
-        <strong style={{ color: '#fff' }}>Allow players to re-share this handout</strong>
-        <span style={{ display: 'block', color: '#94a3b8', fontSize: 11 }}>
-          Turn this off for private secrets, dreams, backstory reveals, or clues that should stay with the original recipient.
-        </span>
-      </span>
-    </label>
-  );
 }
 
 function HandoutAttachmentPanel({ title, helperText, value, onChange }) {
@@ -619,13 +560,6 @@ function HandoutAttachmentPanel({ title, helperText, value, onChange }) {
       )}
     </section>
   );
-}
-
-function AttachmentIcon({ handout, size = 12, style = {} }) {
-  const type = getAttachmentType(handout);
-  if (type.startsWith('audio/')) return <Volume2 size={size} style={style} />;
-  if (type === 'application/pdf') return <FileText size={size} style={style} />;
-  return <ImageIcon size={size} style={style} />;
 }
 
 function AttachmentPreview({ handout, compact = false }) {
