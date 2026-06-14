@@ -3,6 +3,8 @@ import { Check, Loader, Sparkles, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
+const MAX_PROMPT_LENGTH = 2000;
+
 const panelStyle = {
   border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))',
   borderRadius: 'var(--rq-radius-sm, 4px)',
@@ -65,15 +67,20 @@ export default function RookFormFillPanel({
   const suggestionEntries = Object.entries(suggestions).filter(([key]) => fieldMap[key]);
 
   const askRook = async () => {
-    if (!prompt.trim()) {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
       toast.error('Tell Rook what you want help creating first');
+      return;
+    }
+    if (trimmedPrompt.length > MAX_PROMPT_LENGTH) {
+      toast.error(`Keep the request under ${MAX_PROMPT_LENGTH} characters so Rook can respond reliably.`);
       return;
     }
     setLoading(true);
     try {
       const res = await apiClient.post('/rook/form-fill', {
         section,
-        prompt,
+        prompt: trimmedPrompt,
         campaign_id: campaignId,
         fields,
         current_values: currentValues,
@@ -86,7 +93,7 @@ export default function RookFormFillPanel({
         toast.success('Rook drafted field suggestions');
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Rook could not draft suggestions right now');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Rook could not draft suggestions right now');
     } finally {
       setLoading(false);
     }
@@ -110,8 +117,12 @@ export default function RookFormFillPanel({
         onChange={(event) => setPrompt(event.target.value)}
         placeholder={placeholder}
         style={inputStyle}
+        maxLength={MAX_PROMPT_LENGTH + 250}
         data-testid="rook-form-fill-prompt"
       />
+      <div style={{ marginTop: 4, color: 'var(--rq-text-muted, #A8A8A8)', fontSize: 11 }}>
+        {prompt.trim().length}/{MAX_PROMPT_LENGTH} suggested characters
+      </div>
       <button type="button" onClick={askRook} disabled={loading || !prompt.trim()} style={{ ...buttonStyle(loading || !prompt.trim()), marginTop: 8 }} data-testid="rook-form-fill-generate">
         {loading ? <Loader size={14} className="animate-spin" /> : <Wand2 size={14} />}
         {loading ? 'Rook is drafting…' : 'Draft importable fields'}
