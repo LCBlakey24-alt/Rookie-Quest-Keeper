@@ -1,22 +1,81 @@
 import React from 'react';
 import { AUTH_TOKEN_KEY, AUTH_USERNAME_KEY } from '@/lib/auth';
+import apiClient from '@/lib/apiClient';
+
+function createErrorReference(error) {
+  const raw = `${error?.message || 'unknown'}-${Date.now()}-${Math.random()}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash |= 0;
+  }
+  return `RQK-${Math.abs(hash).toString(36).toUpperCase().slice(0, 8)}`;
+}
+
+function truncate(value = '', maxLength = 1900) {
+  const text = String(value || '');
+  return text.length > maxLength ? `${text.slice(0, maxLength)}\n\n[Report truncated]` : text;
+}
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorReference: '',
+      reportStatus: 'idle',
+      reportMessage: '',
+    };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    return { hasError: true, error, errorReference: createErrorReference(error) };
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({ errorInfo });
+    this.setState(prev => ({ errorInfo, errorReference: prev.errorReference || createErrorReference(error) }));
     // Keep this visible in browser dev tools without depending on any logging service.
     // eslint-disable-next-line no-console
     console.error('Rookie Quest Keeper render error:', error, errorInfo);
   }
+
+  handleSendReport = async () => {
+    const { error, errorInfo, errorReference } = this.state;
+    const message = error?.message || 'Unknown render error';
+    const username = localStorage.getItem(AUTH_USERNAME_KEY) || localStorage.getItem('username') || 'Unknown';
+    const pagePath = `${window.location.pathname}${window.location.search}`;
+    const reportText = [
+      `Error code: ${errorReference}`,
+      `Message: ${message}`,
+      `Page: ${window.location.href}`,
+      `User: ${username}`,
+      `Browser: ${navigator.userAgent}`,
+      'Component stack:',
+      errorInfo?.componentStack || 'No component stack available.',
+      'JavaScript stack:',
+      error?.stack || 'No JavaScript stack available.',
+    ].join('\n\n');
+
+    this.setState({ reportStatus: 'sending', reportMessage: '' });
+    try {
+      await apiClient.post('/feedback', {
+        category: 'bug',
+        area: 'app-error-boundary',
+        title: `App error ${errorReference}`,
+        message: truncate(reportText),
+        page_path: pagePath.slice(0, 240),
+        priority: 'urgent',
+      });
+      this.setState({ reportStatus: 'sent', reportMessage: 'Report sent to admin.' });
+    } catch (sendError) {
+      this.setState({
+        reportStatus: 'failed',
+        reportMessage: sendError?.response?.data?.detail || 'Could not send report. Please copy the error code and send it to admin.',
+      });
+    }
+  };
 
   handleReload = () => {
     window.location.reload();
@@ -44,6 +103,8 @@ class AppErrorBoundary extends React.Component {
     if (!this.state.hasError) return this.props.children;
 
     const message = this.state.error?.message || 'Unknown render error';
+    const isSending = this.state.reportStatus === 'sending';
+    const isSent = this.state.reportStatus === 'sent';
 
     return (
       <main style={styles.shell} data-testid="app-error-boundary">
@@ -54,16 +115,26 @@ class AppErrorBoundary extends React.Component {
             The app hit a screen error instead of showing the page. Use one of the buttons below to recover. This prevents the blank-screen problem while we track the exact page causing it.
           </p>
 
+          <div style={styles.referenceBox}>
+            <strong style={styles.referenceLabel}>Error code</strong>
+            <code style={styles.referenceText}>{this.state.errorReference}</code>
+          </div>
+
           <div style={styles.errorBox}>
             <strong style={styles.errorLabel}>Error</strong>
             <code style={styles.errorText}>{message}</code>
           </div>
 
           <div style={styles.actions}>
+            <button type="button" onClick={this.handleSendReport} disabled={isSending || isSent} style={styles.reportButton}>
+              {isSent ? 'Report sent' : isSending ? 'Sending...' : 'Send report to admin'}
+            </button>
             <button type="button" onClick={this.handleReload} style={styles.primaryButton}>Reload page</button>
             <button type="button" onClick={this.handleHome} style={styles.secondaryButton}>Go Home</button>
             <button type="button" onClick={this.handleLogout} style={styles.dangerButton}>Log out</button>
           </div>
+
+          {this.state.reportMessage && <p style={this.state.reportStatus === 'sent' ? styles.successText : styles.warningText}>{this.state.reportMessage}</p>}
 
           <details style={styles.details}>
             <summary style={styles.summary}>Technical details</summary>
@@ -118,6 +189,27 @@ const styles = {
     margin: '0 0 18px',
     fontSize: 15,
   },
+  referenceBox: {
+    background: 'rgba(124,58,237,0.12)',
+    border: '1px solid rgba(192,132,252,0.28)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    overflowX: 'auto',
+  },
+  referenceLabel: {
+    display: 'block',
+    color: '#C084FC',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  referenceText: {
+    color: '#FFFFFF',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    fontWeight: 900,
+  },
   errorBox: {
     background: 'rgba(0,0,0,0.24)',
     border: '1px solid rgba(239,68,68,0.28)',
@@ -143,6 +235,15 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
     gap: 10,
     marginBottom: 16,
+  },
+  reportButton: {
+    minHeight: 46,
+    border: '1px solid rgba(192,132,252,0.35)',
+    borderRadius: 8,
+    background: 'rgba(124,58,237,0.18)',
+    color: '#FFFFFF',
+    fontWeight: 900,
+    cursor: 'pointer',
   },
   primaryButton: {
     minHeight: 46,
@@ -170,6 +271,16 @@ const styles = {
     color: '#FCA5A5',
     fontWeight: 900,
     cursor: 'pointer',
+  },
+  successText: {
+    color: '#86EFAC',
+    fontWeight: 800,
+    margin: '-4px 0 14px',
+  },
+  warningText: {
+    color: '#FCA5A5',
+    fontWeight: 800,
+    margin: '-4px 0 14px',
   },
   details: {
     color: '#CBD5E1',
