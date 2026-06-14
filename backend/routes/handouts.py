@@ -66,6 +66,7 @@ async def create_handout(
         'attachment_url': data.get('attachment_url', data.get('image_url', '')),
         'attachment_type': data.get('attachment_type', 'image/upload' if data.get('image_url') else ''),
         'attachment_name': data.get('attachment_name', ''),
+        'allow_player_sharing': bool(data.get('allow_player_sharing', True)),
         'shared_with': [],   # list of usernames; empty = not yet shared
         'created_by': current_user,
         'created_at': datetime.now(timezone.utc).isoformat(),
@@ -135,6 +136,7 @@ async def update_handout(
         'attachment_url': data.get('attachment_url', data.get('image_url', '')),
         'attachment_type': data.get('attachment_type', 'image/upload' if data.get('image_url') else ''),
         'attachment_name': data.get('attachment_name', ''),
+        'allow_player_sharing': bool(data.get('allow_player_sharing', True)),
         'updated_at': now,
     }
     result = await db.handouts.update_one(
@@ -188,27 +190,33 @@ async def share_handout(
     if not recipients:
         raise HTTPException(status_code=400, detail="No eligible players found to receive this handout")
 
-    # Create delivery records
+    # Create or refresh delivery records
     now = datetime.now(timezone.utc).isoformat()
     for username in recipients:
-        existing = await db.player_handouts.find_one({'handout_id': handout_id, 'username': username})
-        if not existing:
-            await db.player_handouts.insert_one({
-                'id': str(uuid.uuid4()),
-                'handout_id': handout_id,
-                'campaign_id': campaign_id,
-                'username': username,
-                'title': handout['title'],
-                'content': handout.get('content', ''),
-                'category': handout.get('category', 'clue'),
-                'image_url': handout.get('image_url', ''),
-                'attachment_url': handout.get('attachment_url', handout.get('image_url', '')),
-                'attachment_type': handout.get('attachment_type', 'image/upload' if handout.get('image_url') else ''),
-                'attachment_name': handout.get('attachment_name', ''),
-                'read': False,
-                'saved': False,
-                'sent_at': now,
-            })
+        delivery_patch = {
+            'handout_id': handout_id,
+            'campaign_id': campaign_id,
+            'username': username,
+            'title': handout['title'],
+            'content': handout.get('content', ''),
+            'category': handout.get('category', 'clue'),
+            'image_url': handout.get('image_url', ''),
+            'attachment_url': handout.get('attachment_url', handout.get('image_url', '')),
+            'attachment_type': handout.get('attachment_type', 'image/upload' if handout.get('image_url') else ''),
+            'attachment_name': handout.get('attachment_name', ''),
+            'allow_player_sharing': bool(handout.get('allow_player_sharing', True)),
+            'read': False,
+            'sent_at': now,
+        }
+        await db.player_handouts.update_one(
+            {'handout_id': handout_id, 'username': username},
+            {
+                '$set': delivery_patch,
+                '$setOnInsert': {'id': str(uuid.uuid4()), 'saved': False},
+                '$unset': {'read_at': ''},
+            },
+            upsert=True,
+        )
 
     await db.handouts.update_one(
         {'id': handout_id},
@@ -233,6 +241,9 @@ async def get_player_handout_share_options(handout_id: str, current_user: str = 
     handout = await db.player_handouts.find_one({'handout_id': handout_id, 'username': current_user})
     if not handout:
         raise HTTPException(status_code=404, detail="Handout not found")
+
+    if handout.get('allow_player_sharing') is False:
+        raise HTTPException(status_code=403, detail="The GM has disabled player sharing for this handout")
 
     recipients = await _get_handout_recipients(handout.get('campaign_id', ''))
     visible = [item for item in recipients if item.get('username') != current_user]
@@ -267,6 +278,9 @@ async def share_player_handout(
     if not handout:
         raise HTTPException(status_code=404, detail="Handout not found")
 
+    if handout.get('allow_player_sharing') is False:
+        raise HTTPException(status_code=403, detail="The GM has disabled player sharing for this handout")
+
     requested = [str(item).strip() for item in data.get('recipients', []) if str(item).strip()]
     if not requested:
         raise HTTPException(status_code=400, detail="Choose at least one player to share with")
@@ -295,6 +309,7 @@ async def share_player_handout(
             'attachment_url': handout.get('attachment_url', handout.get('image_url', '')),
             'attachment_type': handout.get('attachment_type', 'image/upload' if handout.get('image_url') else ''),
             'attachment_name': handout.get('attachment_name', ''),
+            'allow_player_sharing': bool(handout.get('allow_player_sharing', True)),
             'read': False,
             'saved': False,
             'sent_at': now,
