@@ -59,3 +59,37 @@ def test_iter_supported_records_ignores_unknown_sections():
     records = list(iter_supported_records(payload))
 
     assert records == [("classes", {"name": "Known Class"})]
+
+
+def test_validate_playtest_pack_accepts_legacy_top_level_sections():
+    payload = {
+        "pack_name": "Legacy Format Pack",
+        "edition": "2014",
+        "classes": [{"name": "Top Level Class", "hit_die": "d8", "features": [{"name": "Start", "level": 1}]}],
+    }
+
+    result = validate_playtest_pack(payload)
+
+    assert result["valid"] is True
+    assert result["total_records"] == 1
+    assert result["counts"]["classes"] == 1
+
+
+def test_validate_playtest_pack_warns_for_duplicate_names_case_insensitive():
+    payload = {
+        "pack_name": "Duplicate Pack",
+        "edition": "2024",
+        "content": {
+            "items": [
+                {"name": "Mirror Coin", "item_type": "wondrous", "description": "First version"},
+                {"name": "mirror coin", "item_type": "wondrous", "description": "Second version"},
+            ],
+        },
+    }
+
+    result = validate_playtest_pack(payload)
+
+    assert result["valid"] is True
+    assert result["counts"]["items"] == 2
+    warning_messages = [warning["message"] for warning in result["warnings"]]
+    assert "Duplicate name in section: mirror coin" in warning_messages
