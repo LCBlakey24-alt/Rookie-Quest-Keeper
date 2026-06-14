@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getClassResourceRules } from '@/data/classResourceRules';
 import { CLASS_FEATURES } from '@/data/classFeatures';
+import { getFighterProgressionSummary } from '@/data/fighterProgression';
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
@@ -40,7 +41,6 @@ function getItemName(item) {
   return item.name || item.item_name || item.label || item.title || '';
 }
 
-
 function isFighter(character) {
   return normaliseName(character?.character_class) === 'fighter';
 }
@@ -54,13 +54,6 @@ function getFighterLevel(character) {
 
 function getFighterSubclassKey(character) {
   return normaliseName(character?.subclass || '').replace('battlemaster', 'battle_master').replace('eldritchknight', 'eldritch_knight');
-}
-
-function getFighterExtraAttackCount(level) {
-  if (level >= 20) return 4;
-  if (level >= 11) return 3;
-  if (level >= 5) return 2;
-  return 1;
 }
 
 function getFighterCriticalRange(character, level) {
@@ -196,6 +189,26 @@ function SimpleActionCard({ title, description, type = 'Action', onClick }) {
   );
 }
 
+function FeatureList({ title, features }) {
+  if (!features?.length) return null;
+  return (
+    <div className="clean-sheet-maneuver-panel">
+      <div className="clean-sheet-maneuver-header">
+        <strong>{title}</strong>
+        <span>{features.length} item{features.length === 1 ? '' : 's'}</span>
+      </div>
+      <div className="clean-sheet-maneuver-grid">
+        {features.map(feature => (
+          <div key={`${feature.level}-${feature.key || feature.name}`} className="clean-sheet-action-card">
+            <span className="clean-sheet-action-type">Level {feature.level}</span>
+            <strong>{feature.name}</strong>
+            <span>{feature.choiceType ? `Choice: ${feature.choiceType.replace(/_/g, ' ')}` : feature.type}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, maneuvers, resources, onSecondWind, onActionSurge, onIndomitable, onManeuver }) {
   if (!fighterLevel) return null;
@@ -217,7 +230,11 @@ function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, maneuve
         <div><span>Critical range</span><strong>{fighterPlan.criticalRange === 20 ? '20' : `${fighterPlan.criticalRange}–20`}</strong><em>{fighterSubclass === 'champion' ? 'Champion improved criticals.' : 'Standard critical range.'}</em></div>
         <div><span>Fighting style</span><strong>{fighterPlan.fightingStyle || 'Pick/record'}</strong><em>Shown from the sheet if saved.</em></div>
         <div><span>Subclass</span><strong>{fighterPlan.subclassLabel}</strong><em>{fighterPlan.rulesEdition} rules.</em></div>
+        <div><span>Action Surge uses</span><strong>{fighterPlan.actionSurgeUses}</strong><em>From Fighter progression.</em></div>
+        <div><span>Indomitable uses</span><strong>{fighterPlan.indomitableUses}</strong><em>From Fighter progression.</em></div>
       </div>
+      <FeatureList title="This level" features={fighterPlan.currentLevelFeatures} />
+      <FeatureList title="Coming next" features={fighterPlan.nextFeatures} />
       <div className="clean-sheet-fighter-buttons">
         <button type="button" onClick={onSecondWind} disabled={!secondWind || secondWind.current <= 0}>Second Wind {secondWind ? `${secondWind.current}/${secondWind.max}` : ''}</button>
         <button type="button" onClick={onActionSurge} disabled={!actionSurge || actionSurge.current <= 0}>Action Surge {actionSurge ? `${actionSurge.current}/${actionSurge.max}` : ''}</button>
@@ -273,13 +290,19 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
   const fighterLevel = getFighterLevel(character);
   const fighterSubclass = getFighterSubclassKey(character);
   const fighterData = CLASS_FEATURES.fighter;
+  const fighterRulesEdition = String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+  const fighterProgression = getFighterProgressionSummary(fighterLevel || 1, fighterRulesEdition);
   const fighterPlan = {
-    attacksPerAction: getFighterExtraAttackCount(fighterLevel),
+    attacksPerAction: fighterProgression.attacksPerAction,
     criticalRange: getFighterCriticalRange(character, fighterLevel),
     fightingStyle: character?.fighting_style || character?.fightingStyle || '',
     subclassLabel: fighterData?.subclasses?.[fighterSubclass]?.name || (fighterLevel >= 3 ? 'Choose/record subclass' : 'None yet'),
-    rulesEdition: String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014',
+    rulesEdition: fighterRulesEdition,
     superiorityDie: getSuperiorityDie(fighterLevel),
+    actionSurgeUses: fighterProgression.actionSurgeUses,
+    indomitableUses: fighterProgression.indomitableUses,
+    currentLevelFeatures: fighterProgression.currentLevelFeatures,
+    nextFeatures: fighterProgression.nextFeatures,
   };
   const fighterManeuvers = [
     ...(character?.maneuvers || []),
