@@ -7,6 +7,27 @@ const levelOf = (character) => Math.max(1, Number(character?.level || 1));
 const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
+const classLevelOf = (character, className) => {
+  const key = normalizeName(className);
+  const directKey = `${key}_level`;
+  const camelKey = `${key}Level`;
+  const directLevel = Number(character?.[directKey] || character?.[camelKey] || 0);
+  if (directLevel > 0) return directLevel;
+
+  const classLevels = character?.class_levels || character?.classLevels || {};
+  const mappedLevel = Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0);
+  if (mappedLevel > 0) return mappedLevel;
+
+  const entries = Array.isArray(character?.classes) ? character.classes : [];
+  const entry = entries.find(item => normalizeName(item?.name || item?.class_name || item?.className || item?.class) === key);
+  const entryLevel = Number(entry?.level || entry?.class_level || entry?.classLevel || 0);
+  if (entryLevel > 0) return entryLevel;
+
+  return levelOf(character);
+};
+
+const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
+
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
   if (explicitBonus > 0) return explicitBonus;
@@ -63,9 +84,9 @@ export const CLASS_RESOURCE_RULES = {
   ],
   Fighter: [
     { key: 'second_wind', label: 'Second Wind', minLevel: 1, restore: (character) => is2024Rules(character) ? 'long-rest' : 'short-rest', max: (character) => is2024Rules(character) ? proficiencyBonusOf(character) : 1 },
-    { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) >= 17 ? 2 : 1 },
-    { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => levelOf(character) >= 17 ? 3 : levelOf(character) >= 13 ? 2 : 1 },
-    { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = levelOf(character); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
+    { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => fighterLevelOf(character) >= 17 ? 2 : 1 },
+    { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => fighterLevelOf(character) >= 17 ? 3 : fighterLevelOf(character) >= 13 ? 2 : 1 },
+    { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = fighterLevelOf(character); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
   ],
   Monk: [
     { key: 'ki', label: 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) },
@@ -89,7 +110,7 @@ export const CLASS_RESOURCE_RULES = {
 
 export function getClassResourceRules(character) {
   const className = character?.character_class || character?.className || '';
-  const level = levelOf(character);
+  const level = normalizeName(className) === 'fighter' ? fighterLevelOf(character) : levelOf(character);
   return (CLASS_RESOURCE_RULES[className] || [])
     .filter(rule => level >= (rule.minLevel || 1))
     .map(rule => {
