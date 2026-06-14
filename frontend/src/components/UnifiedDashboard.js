@@ -31,6 +31,45 @@ const defaultSiteSettings = {
   beta_tools_enabled: true,
 };
 
+const defaultCampaignForm = {
+  name: '',
+  description: '',
+  system: '5e 2024 Compatible',
+  rules_edition: '2024',
+  world_name: '',
+  world_genre: 'fantasy',
+  world_setting: 'custom',
+  world_setting_notes: '',
+  allow_exploding_dice: false,
+  allow_epic_levels: false,
+  max_character_level: 20,
+  available_classes: [],
+};
+
+const GENRE_OPTIONS = [
+  ['fantasy', 'Fantasy'],
+  ['sci_fi', 'Science fiction'],
+  ['modern', 'Modern'],
+  ['medieval', 'Medieval'],
+  ['horror', 'Horror'],
+  ['custom', 'Custom'],
+];
+
+const CLASS_OPTIONS = [
+  'Barbarian',
+  'Bard',
+  'Cleric',
+  'Druid',
+  'Fighter',
+  'Monk',
+  'Paladin',
+  'Ranger',
+  'Rogue',
+  'Sorcerer',
+  'Warlock',
+  'Wizard',
+];
+
 function getSmallScreen() {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(max-width: 900px)').matches;
@@ -328,4 +367,10 @@ const modalStyle = { width: 'min(520px, 100%)', maxHeight: 'calc(100dvh - 36px)'
 const modalTitleStyle = { color: theme.text, fontSize: 23, fontWeight: 900, margin: '0 0 8px' };
 const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: theme.muted, fontSize: 12, fontWeight: 900, marginTop: 14 };
 const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, outline: 'none' };
+const compactFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 12 };
+const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 10, marginTop: 14 };
+const toggleCardStyle = { display: 'flex', alignItems: 'flex-start', gap: 9, background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, color: theme.textSecondary, fontSize: 13, lineHeight: 1.4 };
+const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginTop: 8 };
+const classPillStyle = (active) => ({ display: 'flex', alignItems: 'center', gap: 7, background: active ? theme.accentSoft : theme.panelSoft, border: `1px solid ${active ? theme.borderStrong : theme.border}`, borderRadius: 8, padding: '8px 9px', color: active ? theme.text : theme.textSecondary, fontSize: 12, fontWeight: 800, cursor: 'pointer' });
 const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, flexWrap: 'wrap' };
+const loadingPanelStyle = { width: 'min(420px, 100%)', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 24, textAlign: 'center', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
