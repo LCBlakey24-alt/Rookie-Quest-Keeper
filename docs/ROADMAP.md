@@ -46,16 +46,16 @@ Use `React.lazy` and `Suspense` for admin, homebrew, character builder, combat, 
 
 ### 3. Extract repeated inline styles
 
-Move repeated style objects to shared constants or CSS classes. Keep the existing dark navy and gold style direction.
+Move repeated style objects to shared constants or CSS classes. Keep the existing charcoal, red, and white visual direction.
 
 ### 4. Shared API client
 
-Gradually replace scattered direct axios calls with a small shared API helper that handles:
+Keep frontend API calls routed through the shared `apiClient` helper so every request gets:
 
-- Base URL.
-- Auth token.
-- Common error handling.
-- Toast-friendly error messages.
+- Base URL handling.
+- Auth token handling.
+- Common 401 handling.
+- Toast-friendly formatted error messages.
 
 ## P2 — User-facing improvements
 
@@ -64,6 +64,7 @@ Gradually replace scattered direct axios calls with a small shared API helper th
 - GM can create/share a handout with selected players or whole campaign.
 - Player dashboard shows unread handouts.
 - MVP can poll before WebSocket push.
+- Next pass: add tests for GM re-share controls, read/unread status, and locked player sharing.
 
 ### 2. World map travel overlay
 
