@@ -330,3 +330,168 @@ button.clean-sheet-attack-stat-box:disabled {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.clean-sheet-fighter-panel {
+  border-color: rgba(34, 211, 238, 0.24);
+  background: linear-gradient(135deg, rgba(13, 18, 36, 0.96), rgba(30, 41, 59, 0.72));
+}
+
+.clean-sheet-fighter-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.clean-sheet-fighter-heading h2 {
+  margin-bottom: 3px;
+}
+
+.clean-sheet-fighter-heading p {
+  margin: 0;
+  color: #D1D5DB;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.clean-sheet-fighter-heading > span {
+  border: 1px solid rgba(34, 211, 238, 0.34);
+  background: rgba(34, 211, 238, 0.10);
+  color: #C4B5FD;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.clean-sheet-fighter-stat-grid,
+.clean-sheet-fighter-buttons,
+.clean-sheet-maneuver-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.clean-sheet-fighter-stat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.clean-sheet-fighter-stat-grid div,
+.clean-sheet-maneuver-panel {
+  border: 1px solid rgba(191, 219, 254, 0.10);
+  background: rgba(8, 11, 26, 0.70);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.clean-sheet-fighter-stat-grid span,
+.clean-sheet-maneuver-header span {
+  display: block;
+  color: #9CA3AF;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clean-sheet-fighter-stat-grid strong {
+  display: block;
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 950;
+  margin-top: 4px;
+}
+
+.clean-sheet-fighter-stat-grid em {
+  display: block;
+  color: #D1D5DB;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+
+.clean-sheet-fighter-buttons {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+.clean-sheet-fighter-buttons button,
+.clean-sheet-maneuver-grid button {
+  min-height: 42px;
+  border: 1px solid rgba(124, 58, 237, 0.30);
+  background: rgba(124, 58, 237, 0.12);
+  color: #FFFFFF;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 950;
+  font: inherit;
+}
+
+.clean-sheet-fighter-buttons button:disabled,
+.clean-sheet-maneuver-grid button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.clean-sheet-maneuver-panel {
+  margin-top: 10px;
+}
+
+.clean-sheet-maneuver-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.clean-sheet-maneuver-header strong {
+  color: #FFFFFF;
+}
+
+.clean-sheet-maneuver-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.clean-sheet-maneuver-grid button {
+  text-align: left;
+  display: grid;
+  gap: 5px;
+  min-height: 86px;
+  padding: 10px;
+}
+
+.clean-sheet-maneuver-grid button strong {
+  color: #FFFFFF;
+  font-size: 12px;
+}
+
+.clean-sheet-maneuver-grid button span {
+  color: #D1D5DB;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+@media (max-width: 860px) {
+  .clean-sheet-fighter-heading,
+  .clean-sheet-maneuver-header {
+    flex-direction: column;
+  }
+
+  .clean-sheet-fighter-stat-grid,
+  .clean-sheet-fighter-buttons {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .clean-sheet-fighter-stat-grid,
+  .clean-sheet-fighter-buttons,
+  .clean-sheet-maneuver-grid {
+    grid-template-columns: 1fr;
+  }
+}

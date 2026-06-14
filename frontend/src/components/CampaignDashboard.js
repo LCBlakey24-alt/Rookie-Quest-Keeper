@@ -177,7 +177,7 @@ function CampaignDashboard() {
     const isHovered = hoveredTab === tab.id && !isActive;
     const Icon = tab.icon;
     return (
-      <button key={tab.id} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => setHoveredTab(tab.id)} onMouseLeave={() => setHoveredTab(null)} data-testid={`${tab.id}-tab`} style={{ position: 'relative', padding: isNested ? '10px 16px 10px 32px' : '12px 16px', border: 'none', background: isActive ? theme.gradient : (isHovered ? theme.accent.subtle : 'transparent'), color: isActive ? '#FFFFFF' : (isHovered ? theme.text.white : theme.text.secondary), fontWeight: 800, fontSize: isNested ? 13 : 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', minHeight: isNested ? 40 : 44, borderRadius: 0, margin: '2px 8px', maxWidth: 'calc(100% - 16px)' }}>
+      <button key={tab.id} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => setHoveredTab(tab.id)} onMouseLeave={() => setHoveredTab(null)} data-testid={`${tab.id}-tab`} style={{ position: 'relative', padding: isNested ? '10px 16px 10px 32px' : '12px 16px', border: 'none', background: isActive ? theme.gradient : (isHovered ? theme.accent.subtle : 'transparent'), color: isActive ? '#FFFFFF' : (isHovered ? theme.text.white : theme.text.secondary), fontWeight: 800, fontSize: isNested ? 13 : 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', minHeight: isNested ? 40 : 44, borderRadius: 10, margin: '2px 8px', maxWidth: 'calc(100% - 16px)' }}>
         <Icon size={isNested ? 16 : 18} style={{ color: isActive ? '#FFFFFF' : theme.accent.primary }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
         {isHovered && !isActive && <div style={{ position: 'absolute', right: 0, top: 4, bottom: 4, width: 3, background: theme.accent.primary }} />}
@@ -190,7 +190,7 @@ function CampaignDashboard() {
     const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
     const Icon = group.icon;
     return (
-      <button key={`group-${group.id}`} onClick={() => { if (hasActiveTab) toggleGroup(group.id); else { setCollapsedGroups(prev => ({ ...prev, [group.id]: false })); setActiveTab(group.tabs[0].id); } }} data-testid={`group-${group.id}`} style={{ padding: '10px 16px', border: 'none', background: hasActiveTab ? theme.accent.redSubtle : 'transparent', color: hasActiveTab ? theme.accent.red : theme.text.muted, fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 8 }}>
+      <button key={`group-${group.id}`} onClick={() => { if (hasActiveTab) toggleGroup(group.id); else { setCollapsedGroups(prev => ({ ...prev, [group.id]: false })); setActiveTab(group.tabs[0].id); } }} data-testid={`group-${group.id}`} style={{ padding: '10px 16px', border: 'none', background: hasActiveTab ? theme.accent.redSubtle : 'transparent', color: hasActiveTab ? theme.accent.hover : theme.text.muted, fontWeight: 800, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 8 }}>
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         <Icon size={14} />
         <span>{group.label}</span>
@@ -208,8 +208,8 @@ function CampaignDashboard() {
           <h1 style={{ color: theme.text.primary, fontSize: 24, fontWeight: 900, margin: '0 0 8px' }}>Campaign could not be loaded</h1>
           <p style={{ color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' }}>{loadError}</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button onClick={fetchCampaign} style={{ background: theme.accent.primary, color: '#FFFFFF', border: 'none', borderRadius: 0, fontWeight: 900 }}><RefreshCw size={16} /> Retry</Button>
-            <Button onClick={() => navigate('/home')} style={{ background: theme.bg.card, color: theme.text.secondary, border: `1px solid ${theme.border}`, borderRadius: 0, fontWeight: 900 }}><ArrowLeft size={16} /> Back to Home</Button>
+            <Button onClick={fetchCampaign} style={{ background: theme.accent.primary, color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 900 }}><RefreshCw size={16} /> Retry</Button>
+            <Button onClick={() => navigate('/home')} style={{ background: theme.bg.card, color: theme.text.secondary, border: `1px solid ${theme.border}`, borderRadius: 10, fontWeight: 900 }}><ArrowLeft size={16} /> Back to Home</Button>
           </div>
         </section>
       </main>
@@ -222,13 +222,13 @@ function CampaignDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: theme.accent.red, display: 'none', padding: 8 }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
-            <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={{ minWidth: 44, minHeight: 44, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0 }}><ArrowLeft size={20} color={theme.text.secondary} /></Button>
+            <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={{ minWidth: 44, minHeight: 44, background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 10 }}><ArrowLeft size={20} color={theme.text.secondary} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <h1 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)' }}>{campaign.name}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={{ fontSize: 11, color: theme.accent.red, background: theme.accent.redSubtle, padding: '3px 8px', fontWeight: 800 }}>Campaign Prep</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 800 }}>{campaign.system || '5e 2024'}</span></div>
             </div>
           </div>
-          <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={{ display: 'flex', alignItems: 'center', gap: 8, background: theme.accent.red, border: 'none', color: theme.text.white, fontSize: 'clamp(12px, 2vw, 14px)', padding: '10px 16px', minHeight: 44, fontWeight: 800, borderRadius: 0 }}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
+          <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={{ display: 'flex', alignItems: 'center', gap: 8, background: theme.accent.red, border: 'none', color: theme.text.white, fontSize: 'clamp(12px, 2vw, 14px)', padding: '10px 16px', minHeight: 44, fontWeight: 800, borderRadius: 10, boxShadow: '0 12px 30px rgba(124,58,237,0.22)' }}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
         </div>
       </header>
 

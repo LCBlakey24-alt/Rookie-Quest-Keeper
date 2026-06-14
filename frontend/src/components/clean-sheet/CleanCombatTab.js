@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getClassResourceRules } from '@/data/classResourceRules';
+import { CLASS_FEATURES } from '@/data/classFeatures';
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
@@ -37,6 +38,43 @@ function getItemName(item) {
   if (!item) return '';
   if (typeof item === 'string') return item;
   return item.name || item.item_name || item.label || item.title || '';
+}
+
+
+function isFighter(character) {
+  return normaliseName(character?.character_class) === 'fighter';
+}
+
+function getFighterLevel(character) {
+  const classLevels = character?.multiclass_levels || character?.class_levels || {};
+  const fighterEntry = Object.entries(classLevels).find(([cls]) => normaliseName(cls) === 'fighter');
+  if (fighterEntry) return Number(fighterEntry[1]) || 0;
+  return isFighter(character) ? Number(character?.level || 1) || 1 : 0;
+}
+
+function getFighterSubclassKey(character) {
+  return normaliseName(character?.subclass || '').replace('battlemaster', 'battle_master').replace('eldritchknight', 'eldritch_knight');
+}
+
+function getFighterExtraAttackCount(level) {
+  if (level >= 20) return 4;
+  if (level >= 11) return 3;
+  if (level >= 5) return 2;
+  return 1;
+}
+
+function getFighterCriticalRange(character, level) {
+  const subclass = getFighterSubclassKey(character);
+  if (subclass !== 'champion') return 20;
+  if (level >= 15) return 18;
+  if (level >= 3) return 19;
+  return 20;
+}
+
+function getSuperiorityDie(level) {
+  if (level >= 18) return 12;
+  if (level >= 10) return 10;
+  return 8;
 }
 
 function getItemQuantity(item) {
@@ -158,6 +196,59 @@ function SimpleActionCard({ title, description, type = 'Action', onClick }) {
   );
 }
 
+
+function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, maneuvers, resources, onSecondWind, onActionSurge, onIndomitable, onManeuver }) {
+  if (!fighterLevel) return null;
+  const actionSurge = resources.find(resource => resource.key === 'action_surge');
+  const secondWind = resources.find(resource => resource.key === 'second_wind');
+  const indomitable = resources.find(resource => resource.key === 'indomitable');
+  const superiority = resources.find(resource => resource.key === 'superiority_dice');
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide clean-sheet-fighter-panel" data-testid="fighter-focus-panel">
+      <div className="clean-sheet-fighter-heading">
+        <div>
+          <h2>Fighter Command</h2>
+          <p>Track your core fighter loop: attacks, Action Surge, Second Wind, Indomitable, fighting style, and subclass tools.</p>
+        </div>
+        <span>Fighter {fighterLevel}</span>
+      </div>
+      <div className="clean-sheet-fighter-stat-grid">
+        <div><span>Attacks/action</span><strong>{fighterPlan.attacksPerAction}</strong><em>Extra Attack included.</em></div>
+        <div><span>Critical range</span><strong>{fighterPlan.criticalRange === 20 ? '20' : `${fighterPlan.criticalRange}–20`}</strong><em>{fighterSubclass === 'champion' ? 'Champion improved criticals.' : 'Standard critical range.'}</em></div>
+        <div><span>Fighting style</span><strong>{fighterPlan.fightingStyle || 'Pick/record'}</strong><em>Shown from the sheet if saved.</em></div>
+        <div><span>Subclass</span><strong>{fighterPlan.subclassLabel}</strong><em>{fighterPlan.rulesEdition} rules.</em></div>
+      </div>
+      <div className="clean-sheet-fighter-buttons">
+        <button type="button" onClick={onSecondWind} disabled={!secondWind || secondWind.current <= 0}>Second Wind {secondWind ? `${secondWind.current}/${secondWind.max}` : ''}</button>
+        <button type="button" onClick={onActionSurge} disabled={!actionSurge || actionSurge.current <= 0}>Action Surge {actionSurge ? `${actionSurge.current}/${actionSurge.max}` : ''}</button>
+        <button type="button" onClick={onIndomitable} disabled={!indomitable || indomitable.current <= 0}>Indomitable {indomitable ? `${indomitable.current}/${indomitable.max}` : ''}</button>
+      </div>
+      {fighterSubclass === 'battle_master' && (
+        <div className="clean-sheet-maneuver-panel">
+          <div className="clean-sheet-maneuver-header">
+            <strong>Battle Master Maneuvers</strong>
+            <span>{superiority ? `${superiority.current}/${superiority.max}` : 'No'} superiority dice • d{fighterPlan.superiorityDie}</span>
+          </div>
+          <div className="clean-sheet-maneuver-grid">
+            {(maneuvers.length ? maneuvers : (CLASS_FEATURES.fighter?.subclasses?.battle_master?.maneuvers || []).slice(0, 6)).map((maneuver) => {
+              const name = typeof maneuver === 'string' ? maneuver : maneuver.name;
+              const description = typeof maneuver === 'string'
+                ? (CLASS_FEATURES.fighter?.subclasses?.battle_master?.maneuvers || []).find(item => item.name === maneuver)?.description || 'Spend a superiority die when the maneuver applies.'
+                : maneuver.description;
+              return (
+                <button key={name} type="button" onClick={() => onManeuver(name)} disabled={!superiority || superiority.current <= 0}>
+                  <strong>{name}</strong>
+                  <span>{description}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ActionSection({ title, children }) {
   return (
     <section className="clean-sheet-panel clean-sheet-wide">
@@ -179,6 +270,21 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
   const bestAttackMod = proficiencyBonus + bestAbilityMod;
   const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
+  const fighterLevel = getFighterLevel(character);
+  const fighterSubclass = getFighterSubclassKey(character);
+  const fighterData = CLASS_FEATURES.fighter;
+  const fighterPlan = {
+    attacksPerAction: getFighterExtraAttackCount(fighterLevel),
+    criticalRange: getFighterCriticalRange(character, fighterLevel),
+    fightingStyle: character?.fighting_style || character?.fightingStyle || '',
+    subclassLabel: fighterData?.subclasses?.[fighterSubclass]?.name || (fighterLevel >= 3 ? 'Choose/record subclass' : 'None yet'),
+    rulesEdition: String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014',
+    superiorityDie: getSuperiorityDie(fighterLevel),
+  };
+  const fighterManeuvers = [
+    ...(character?.maneuvers || []),
+    ...(character?.battle_master_maneuvers || []),
+  ];
   const concentratingOn = character?.concentrating_on || character?.concentration || '';
 
   const equippedWeaponAttacks = useMemo(() => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus), [character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus]);
@@ -245,6 +351,48 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     if (ok !== false) toast.success(`${resource.label}: ${next}/${resource.max}`);
   };
 
+  const spendResourceAndPatch = async (resourceKey, updates, label) => {
+    const resource = classResources.find(item => item.key === resourceKey);
+    if (!resource || resource.current <= 0 || !onCharacterUpdate) return false;
+    const next = Math.max(0, resource.current - 1);
+    setResourceDrafts(prev => ({ ...prev, [resource.key]: next }));
+    const nextResources = { ...(character?.resources || {}), [resource.key]: { ...(character?.resources?.[resource.key] || {}), current: next, remaining: next, max: resource.max } };
+    const ok = await onCharacterUpdate({ ...updates, resources: nextResources }, { error: `Could not use ${label}` });
+    if (ok !== false) toast.success(`${label}: ${next}/${resource.max} remaining`);
+    return ok !== false;
+  };
+
+  const handleSecondWind = async () => {
+    const heal = rollDice(1, 10, fighterLevel);
+    const maxHp = Number(character?.max_hit_points || character?.max_hp || 10);
+    const currentHp = Number(character?.current_hit_points ?? character?.hp ?? maxHp);
+    const nextHp = Math.min(maxHp, currentHp + heal.total);
+    onDiceResult?.({
+      id: `${Date.now()}-second-wind`,
+      label: 'Second Wind',
+      rolls: heal.rolls,
+      sides: 10,
+      modifier: fighterLevel,
+      total: heal.total,
+      mode: 'healing',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+    await spendResourceAndPatch('second_wind', { current_hit_points: nextHp }, 'Second Wind');
+  };
+
+  const handleActionSurge = async () => {
+    await spendResourceAndPatch('action_surge', {}, 'Action Surge');
+  };
+
+  const handleIndomitable = async () => {
+    await spendResourceAndPatch('indomitable', {}, 'Indomitable');
+  };
+
+  const handleManeuver = async (name) => {
+    const ok = await spendResourceAndPatch('superiority_dice', {}, name);
+    if (ok) toast.info(`Apply ${name}: add d${fighterPlan.superiorityDie} superiority die where the maneuver says.`);
+  };
+
   const useConsumable = async (item) => {
     const heal = getPotionHealing(item);
     const result = rollDice(heal.count, heal.sides, heal.modifier);
@@ -270,9 +418,11 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
         {consumables.length > 0 && <div className="clean-sheet-consumable-strip"><span>Quick Consumables</span>{consumables.map((item, index) => <button key={`${getItemName(item)}-${index}`} type="button" onClick={() => useConsumable(item)}>{getItemName(item)}{getItemQuantity(item) ? ` x${getItemQuantity(item)}` : ''}</button>)}</div>}
       </div></section>
 
+      <FighterFocusPanel fighterLevel={fighterLevel} fighterSubclass={fighterSubclass} fighterPlan={fighterPlan} maneuvers={fighterManeuvers} resources={classResources} onSecondWind={handleSecondWind} onActionSurge={handleActionSurge} onIndomitable={handleIndomitable} onManeuver={handleManeuver} />
+
       <ActionSection title="Attacks / Spells">{attackOptions.map(attack => <AttackCard key={attack.id} action={attack} onAttack={() => rollAttack(attack)} onDamage={() => rollDamage(attack.damage)} active={pendingDamage?.label === attack.damage.label}>{pendingDamage?.label === attack.damage.label && <div className="clean-sheet-pending-damage"><span>Attack rolled. If it hits, use the damage box on this card.</span><button type="button" onClick={() => setPendingDamage(null)}>Cancel</button></div>}</AttackCard>)}</ActionSection>
       <ActionSection title="Actions"><SimpleActionCard title="Dash" description="Gain extra movement equal to your speed this turn." /><SimpleActionCard title="Disengage" description="Your movement does not provoke opportunity attacks this turn." /><SimpleActionCard title="Dodge" description="Attack rolls against you have disadvantage until your next turn." /><SimpleActionCard title="Help" description="Give an ally advantage on a relevant check or attack." /><SimpleActionCard title="Ready" description="Prepare an action to trigger later this round." /></ActionSection>
-      <ActionSection title="Bonus Actions"><SimpleActionCard title="Off-hand Attack" type="Bonus" description="Use when dual-wielding after taking the Attack action." onClick={() => onRoll('Off-hand Attack', bestAttackMod)} />{className === 'Rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}{className === 'Monk' && <SimpleActionCard title="Martial Arts" type="Bonus" description="Make one unarmed strike after attacking with a monk weapon or unarmed strike." onClick={() => onRoll('Martial Arts', bestAttackMod)} />}{className === 'Barbarian' && <SimpleActionCard title="Rage" type="Bonus" description="Enter a rage if you have uses remaining." />}{className === 'Fighter' && <SimpleActionCard title="Second Wind" type="Bonus" description="Regain hit points once per rest if available." />}<SimpleActionCard title="Use Class Feature" type="Bonus" description="Use any bonus action feature granted by class, race, feat, spell, or item." /></ActionSection>
+      <ActionSection title="Bonus Actions"><SimpleActionCard title="Off-hand Attack" type="Bonus" description="Use when dual-wielding after taking the Attack action." onClick={() => onRoll('Off-hand Attack', bestAttackMod)} />{className === 'Rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}{className === 'Monk' && <SimpleActionCard title="Martial Arts" type="Bonus" description="Make one unarmed strike after attacking with a monk weapon or unarmed strike." onClick={() => onRoll('Martial Arts', bestAttackMod)} />}{className === 'Barbarian' && <SimpleActionCard title="Rage" type="Bonus" description="Enter a rage if you have uses remaining." />}{isFighter(character) && <SimpleActionCard title="Second Wind" type="Bonus" description={`Regain 1d10 + ${fighterLevel} HP if you have a use remaining.`} onClick={handleSecondWind} />}<SimpleActionCard title="Use Class Feature" type="Bonus" description="Use any bonus action feature granted by class, race, feat, spell, or item." /></ActionSection>
       <ActionSection title="Reactions"><SimpleActionCard title="Opportunity Attack" type="Reaction" description="Attack a creature that leaves your reach." onClick={() => onRoll('Opportunity Attack', bestAttackMod)} /><SimpleActionCard title="Readied Action" type="Reaction" description="Use your reaction to trigger a previously readied action." /><SimpleActionCard title="Use Reaction Feature" type="Reaction" description="Use a reaction from a class feature, race, feat, spell, or item." /></ActionSection>
       <section className="clean-sheet-panel clean-sheet-wide"><h2>Combat Summary</h2><div className="clean-sheet-combat-summary"><div><span>Armor Class</span><strong>{ac}</strong></div><div><span>Speed</span><strong>{speed}ft</strong></div><div><span>Proficiency</span><strong>{fmt(proficiencyBonus)}</strong></div><div><span>Best Attack</span><strong>{fmt(bestAttackMod)}</strong></div></div>{lastDamage && <div className="clean-sheet-damage-result"><span>{lastDamage.label}</span><strong>{lastDamage.total}</strong><em>{lastDamage.notation} ({lastDamage.rolls.join(' + ')}) {lastDamage.damageType || ''}</em></div>}</section>
     </div></div>

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { API_BASE } from '@/lib/api';
 import { clearAuthToken, getAuthToken } from '@/lib/auth';
 
+import { formatApiErrorDetail } from '@/lib/apiErrors';
 const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 20000,
@@ -16,6 +17,9 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error?.response?.data?.detail) {
+      error.response.data.detail = formatApiErrorDetail(error.response.data.detail);
+    }
     if (error?.response?.status === 401) {
       clearAuthToken();
       localStorage.removeItem('dm_username');

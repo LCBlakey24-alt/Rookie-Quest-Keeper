@@ -8,6 +8,7 @@ import {
   Crown,
   HelpCircle,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Users,
   Wand2,
@@ -107,6 +108,24 @@ export default function CharacterCreationModePicker() {
           {modes.map((mode) => (
             <ModeCard key={mode.key} mode={mode} onChoose={() => navigate(mode.route)} />
           ))}
+        </section>
+
+        <section className="character-mode-flow" data-testid="mode-picker-flow">
+          <div>
+            <SlidersHorizontal size={18} />
+            <strong>Campaign-aware setup</strong>
+            <span>Join-code campaigns can lock rules edition, allowed classes, and table options before a sheet is finalized.</span>
+          </div>
+          <div>
+            <ShieldCheck size={18} />
+            <strong>Safe defaults first</strong>
+            <span>Every path starts playable, then lets you add deeper rules, spells, gear, and ROOK text help when needed.</span>
+          </div>
+          <div>
+            <Clock size={18} />
+            <strong>Less scrolling</strong>
+            <span>Pick the fastest builder for tonight, then polish the details from the character sheet later.</span>
+          </div>
         </section>
 
         <section className="character-mode-summary" data-testid="mode-picker-summary">
@@ -443,6 +462,43 @@ const pageCss = `
   letter-spacing: 0.8px;
 }
 
+.character-mode-flow {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.character-mode-flow div {
+  background: rgba(17,24,39,0.74);
+  border: 1px solid rgba(124,58,237,0.24);
+  border-radius: 10px;
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 9px;
+  align-items: start;
+}
+
+.character-mode-flow svg {
+  color: #22d3ee;
+  grid-row: span 2;
+  margin-top: 2px;
+}
+
+.character-mode-flow strong {
+  color: var(--text-primary);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.character-mode-flow span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .character-mode-summary {
   margin-top: 10px;
   padding: 10px 12px;
@@ -478,7 +534,14 @@ const pageCss = `
 }
 
 @media (max-width: 820px) {
-  .character-mode-hero {
+  .character-mode-hero,
+  .character-mode-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .character-mode-grid {
     grid-template-columns: 1fr;
   }
 }

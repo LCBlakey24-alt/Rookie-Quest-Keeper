@@ -283,6 +283,47 @@ export default function PlayerDashboard() {
   );
 }
 
+
+function ActiveCharacterPanel({ character, navigate, onJoin, onOpenHandouts, handoutSummary }) {
+  const hp = character.current_hp ?? character.hit_points ?? character.hp ?? '—';
+  const maxHp = character.max_hp ?? character.max_hit_points ?? character.hit_points_max ?? null;
+  const ac = character.armor_class ?? character.ac ?? '—';
+  const campaignName = character.campaign_name || 'Not linked yet';
+  const subtitle = [`Level ${character.level || 1}`, character.race, character.character_class || character.class_name || 'Adventurer']
+    .filter(Boolean)
+    .join(' • ');
+
+  return (
+    <section className="player-active-panel-fix" style={activeCharacterStyle}>
+      <div style={{ minWidth: 0 }}>
+        <p style={eyebrowStyle}>Active Character</p>
+        <h2 style={activeCharacterTitleStyle}>{character.name || 'Unnamed Character'}</h2>
+        <p style={activeCharacterSubtitleStyle}>{subtitle}</p>
+        <p style={linkedTextStyle}>Campaign: {campaignName}</p>
+      </div>
+      <div style={activeCharacterStatsStyle} aria-label="Active character quick stats">
+        <MiniStat label="HP" value={maxHp ? `${hp}/${maxHp}` : hp} />
+        <MiniStat label="AC" value={ac} />
+        <MiniStat label="Clues" value={handoutSummary.unread ? `${handoutSummary.unread} new` : handoutSummary.saved || handoutSummary.total || 0} />
+      </div>
+      <div style={activeCharacterActionsStyle}>
+        <Button onClick={() => navigate(`/characters/${character.id}`)} className="btn-primary" style={actionButtonStyle}>Open Sheet</Button>
+        <Button onClick={onOpenHandouts} className="btn-outline" style={actionButtonStyle}>Clues</Button>
+        <Button onClick={onJoin} className="btn-outline" style={actionButtonStyle}>Join Code</Button>
+      </div>
+    </section>
+  );
+}
+
+function MiniStat({ label, value }) {
+  return (
+    <div style={miniStatStyle}>
+      <span style={miniStatLabelStyle}>{label}</span>
+      <strong style={miniStatValueStyle}>{value}</strong>
+    </div>
+  );
+}
+
 function CharactersTab({ characters, navigate, onCreate, onJoin }) {
   if (characters.length === 0) {
     return (
@@ -303,10 +344,15 @@ function CharactersTab({ characters, navigate, onCreate, onJoin }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ minWidth: 0 }}>
                 <h2 style={cardTitleStyle}>{character.name || 'Unnamed Character'}</h2>
-                <p style={cardMetaStyle}>Level {character.level || 1} {character.character_class || 'Adventurer'}</p>
+                <p style={cardMetaStyle}>Level {character.level || 1} {character.race ? `${character.race} ` : ''}{character.character_class || character.class_name || 'Adventurer'}</p>
                 {character.campaign_name && <p style={linkedTextStyle}>Linked to {character.campaign_name}</p>}
               </div>
               <Shield size={24} color={rq.accent} />
+            </div>
+            <div style={characterCardStatsStyle}>
+              <CharacterCardStat label="HP" value={formatCharacterHp(character)} />
+              <CharacterCardStat label="AC" value={character.armor_class ?? character.ac ?? '—'} />
+              <CharacterCardStat label="Campaign" value={character.campaign_name ? 'Linked' : 'Solo'} />
             </div>
             <div style={cardActionsStyle}>
               <Button onClick={() => navigate(`/characters/${character.id}`)} className="btn-primary" style={cardButtonStyle}>Open Sheet <ChevronRight size={14} /></Button>
@@ -316,6 +362,22 @@ function CharactersTab({ characters, navigate, onCreate, onJoin }) {
         </Card>
       ))}
     </section>
+  );
+}
+
+
+function formatCharacterHp(character) {
+  const current = character.current_hp ?? character.hit_points ?? character.hp ?? '—';
+  const max = character.max_hp ?? character.max_hit_points ?? character.hit_points_max;
+  return max ? `${current}/${max}` : current;
+}
+
+function CharacterCardStat({ label, value }) {
+  return (
+    <div style={characterCardStatStyle}>
+      <span style={characterCardStatLabelStyle}>{label}</span>
+      <strong style={characterCardStatValueStyle}>{value}</strong>
+    </div>
   );
 }
 

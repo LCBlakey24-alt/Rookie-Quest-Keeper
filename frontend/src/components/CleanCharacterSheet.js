@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { getClassFeatures } from '@/data/classFeatures';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
@@ -87,6 +88,21 @@ const getMaxHp = (c) => Number(c?.max_hit_points ?? c?.max_hp ?? 10) || 10;
 const getCurrentHp = (c) => Number(c?.current_hit_points ?? c?.hp ?? getMaxHp(c)) || getMaxHp(c);
 const getTempHp = (c) => Number(c?.temporary_hit_points ?? c?.temp_hp ?? 0) || 0;
 const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
+const toArray = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  if (typeof value === 'string') return value.split(',').map(item => item.trim()).filter(Boolean);
+  return [];
+};
+
+const featureTypeLabel = (type) => {
+  if (type === 'bonus_action') return 'Bonus action';
+  if (type === 'reaction') return 'Reaction';
+  if (type === 'action_modifier') return 'Attack modifier';
+  if (type === 'action') return 'Action';
+  if (type === 'special') return 'Special';
+  return 'Passive';
+};
 
 function parseHitDie(hitDice = '1d8') {
   const match = String(hitDice).match(/(\d+)d(\d+)/i);
@@ -199,6 +215,54 @@ export default function CleanCharacterSheet() {
       return [skill, 10 + mod(character?.[ability]) + (proficient ? proficiencyBonus : 0)];
     });
   }, [character, proficiencyBonus, skillProficiencies]);
+
+  const rulesEdition = String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+
+  const classFeatureSummary = useMemo(() => {
+    const className = character?.character_class;
+    const level = Number(character?.level || 1);
+    const tableFeatures = getClassFeatures(className, level, rulesEdition);
+    const characterFeatures = toArray(character?.features || character?.class_features).map((feature, index) => (
+      typeof feature === 'string'
+        ? { name: feature, description: 'Saved on this character sheet.', type: 'passive', level: null, source: 'sheet' }
+        : { ...feature, name: feature?.name || `Feature ${index + 1}`, source: 'sheet' }
+    ));
+    const merged = [...tableFeatures, ...characterFeatures];
+    const seen = new Set();
+    return merged
+      .filter(feature => feature?.name && !feature.isChoice)
+      .filter(feature => {
+        const key = `${feature.name}-${feature.level || ''}`.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => Number(a.level || 999) - Number(b.level || 999));
+  }, [character, rulesEdition]);
+
+  const actionEconomyGroups = useMemo(() => {
+    const groups = {
+      Action: [],
+      'Bonus action': [],
+      Reaction: [],
+      Passive: [],
+    };
+    classFeatureSummary.forEach(feature => {
+      const label = featureTypeLabel(feature.type);
+      if (label === 'Action' || label === 'Special') groups.Action.push(feature);
+      else if (label === 'Bonus action') groups['Bonus action'].push(feature);
+      else if (label === 'Reaction') groups.Reaction.push(feature);
+      else groups.Passive.push(feature);
+    });
+    return groups;
+  }, [classFeatureSummary]);
+
+  const proficiencySummary = useMemo(() => ([
+    ['Armor', toArray(character?.armor_proficiencies || character?.proficiencies?.armor)],
+    ['Weapons', toArray(character?.weapon_proficiencies || character?.proficiencies?.weapons)],
+    ['Tools', toArray(character?.tool_proficiencies || character?.proficiencies?.tools)],
+    ['Languages', toArray(character?.languages || character?.proficiencies?.languages)],
+  ]), [character]);
 
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
@@ -554,6 +618,39 @@ export default function CleanCharacterSheet() {
         <StatCard icon={User} label="Speed" value={`${speed}ft`} />
       </section>
 
+      <section className="clean-sheet-table-focus" data-testid="player-table-focus">
+        <div className="clean-sheet-table-focus-copy">
+          <span><Sparkles size={16} /> At the table</span>
+          <strong>Everything you need on your turn, with fewer taps.</strong>
+          <p>Jump straight to attacks, spells, items, notes, or level-up without hunting through the full sheet.</p>
+        </div>
+        <div className="clean-sheet-table-focus-actions">
+          <button type="button" onClick={() => setActiveTab('combat')}>
+            <Swords size={17} /> Combat
+          </button>
+          <button type="button" onClick={() => setActiveTab('spells')}>
+            <BookOpen size={17} /> Spells
+          </button>
+          <button type="button" onClick={() => setActiveTab('inventory')}>
+            <Backpack size={17} /> Items
+          </button>
+          <button type="button" onClick={() => setActiveTab('notes')}>
+            <Edit3 size={17} /> Notes
+          </button>
+          <button type="button" onClick={() => setShowLevelUpWizard(true)}>
+            <TrendingUp size={17} /> Level Up
+          </button>
+        </div>
+      </section>
+
+      <section className="clean-sheet-turn-strip" data-testid="player-turn-strip">
+        <div><span>Roll mode</span><strong>{rollMode === 'normal' ? 'Normal' : rollMode === 'advantage' ? 'Advantage' : 'Disadvantage'}</strong></div>
+        <div><span>Passive Perception</span><strong>{passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10}</strong></div>
+        <div><span>Conditions</span><strong>{activeConditions.length ? activeConditions.length : 'None'}</strong></div>
+        <div><span>Hit Dice</span><strong>{hitDiceRemaining}/{hitDice}</strong></div>
+        <div><span>Concentration</span><strong>{concentratingName || 'None'}</strong></div>
+      </section>
+
       <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
         <div className="clean-sheet-status-row">
           <button type="button" className={`clean-sheet-inspiration ${hasInspiration ? 'active' : ''}`} onClick={toggleInspiration} disabled={savingQuickState} data-testid="inspiration-toggle">
@@ -778,6 +875,59 @@ export default function CleanCharacterSheet() {
                     </button>
                   );
                 })}
+              </div>
+            </section>
+
+            <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-feature-action-economy">
+              <div className="clean-sheet-panel-heading">
+                <div>
+                  <h2>Class Features & Turn Options</h2>
+                  <p>{rulesEdition} rules • {character.character_class || 'Class'} level {character.level || 1}</p>
+                </div>
+                <span>{classFeatureSummary.length} features</span>
+              </div>
+              <div className="clean-sheet-feature-lanes">
+                {Object.entries(actionEconomyGroups).map(([label, features]) => (
+                  <div key={label} className="clean-sheet-feature-lane">
+                    <h3>{label}</h3>
+                    {features.slice(0, 5).length ? features.slice(0, 5).map((feature) => (
+                      <article key={`${label}-${feature.name}-${feature.level || 'sheet'}`} className="clean-sheet-feature-card">
+                        <div>
+                          <strong>{feature.name}</strong>
+                          {feature.level && <span>Level {feature.level}</span>}
+                        </div>
+                        {feature.uses && <em>{feature.uses}</em>}
+                        {feature.description && <p>{feature.description}</p>}
+                      </article>
+                    )) : (
+                      <p className="clean-sheet-feature-empty">No {label.toLowerCase()} features found yet.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="clean-sheet-panel clean-sheet-wide" data-testid="proficiency-equipment-summary">
+              <div className="clean-sheet-panel-heading">
+                <div>
+                  <h2>Proficiencies & Equipment Readiness</h2>
+                  <p>Quick checks for armour, weapons, tools, languages, AC, speed, and multiclass readiness.</p>
+                </div>
+                <button type="button" onClick={() => setActiveTab('inventory')}>Open inventory</button>
+              </div>
+              <div className="clean-sheet-readiness-grid">
+                <div><span>Armour Class</span><strong>{ac}</strong><em>Derived from equipped armour, shield, and stats.</em></div>
+                <div><span>Speed</span><strong>{speed}ft</strong><em>Check class, race/species, armour, and conditions.</em></div>
+                <div><span>Exhaustion</span><strong>{exhaustionLevel}</strong><em>{exhaustionLevel ? 'Apply condition penalties at the table.' : 'No exhaustion marked.'}</em></div>
+                <div><span>Proficiency</span><strong>{fmt(proficiencyBonus)}</strong><em>Total character level based.</em></div>
+              </div>
+              <div className="clean-sheet-proficiency-lists">
+                {proficiencySummary.map(([label, items]) => (
+                  <div key={label}>
+                    <h3>{label}</h3>
+                    <p>{items.length ? items.slice(0, 10).join(', ') : 'None recorded yet'}</p>
+                  </div>
+                ))}
               </div>
             </section>
           </div>

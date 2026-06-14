@@ -1,5 +1,52 @@
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { SPELLCASTING_CLASSES, getMulticlassSpellSlots } from '@/data/spellDatabase';
+
+
+const ABILITY_LABELS = {
+  strength: 'STR',
+  dexterity: 'DEX',
+  constitution: 'CON',
+  intelligence: 'INT',
+  wisdom: 'WIS',
+  charisma: 'CHA',
+};
+
+const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
+const formatBonus = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
+
+function getClassLevels(character = {}) {
+  const fromMap = character?.multiclass_levels || character?.class_levels || {};
+  const entries = Object.entries(fromMap).filter(([, level]) => Number(level) > 0);
+  if (entries.length) return Object.fromEntries(entries.map(([cls, level]) => [cls, Number(level) || 0]));
+
+  const fromArray = (character?.classes || [])
+    .map(cls => [cls?.name || cls?.class_name || cls?.character_class, Number(cls?.level) || 0])
+    .filter(([cls, level]) => cls && level > 0);
+  if (fromArray.length) return Object.fromEntries(fromArray);
+
+  return character?.character_class ? { [character.character_class]: Number(character?.level || 1) || 1 } : {};
+}
+
+function canonicalSpellClass(className = '') {
+  return Object.keys(SPELLCASTING_CLASSES).find(cls => normalizeName(cls) === normalizeName(className)) || className;
+}
+
+function classHasSpellcasting(character = {}, className = '') {
+  const canonical = canonicalSpellClass(className);
+  const info = SPELLCASTING_CLASSES[canonical];
+  if (!info) return false;
+  const classLevels = getClassLevels(character);
+  const level = Number(classLevels[className] ?? classLevels[canonical] ?? 0);
+  if (level <= 0) return false;
+  if (info.halfCaster && level < 2) return false;
+  if (info.subclassOnly) {
+    const subclass = character?.subclass || (character?.classes || []).find(cls => normalizeName(cls?.name || cls?.class_name || cls?.character_class) === normalizeName(canonical))?.subclass || '';
+    return level >= 3 && normalizeName(subclass) === normalizeName(info.subclassOnly);
+  }
+  return true;
+}
 
 function normaliseSpell(spell) {
   if (!spell) return { name: 'Unknown Spell', level: null, school: '' };
@@ -142,6 +189,63 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
   );
 }
 
+
+function SpellcastingMathPanel({ character, classLevels, spellcastingRows, slotMath }) {
+  const pact = slotMath?.pactMagic;
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide">
+      <div className="clean-sheet-spellcasting-heading">
+        <div>
+          <h2>Spellcasting Math</h2>
+          <p>Shows the class, spellcasting ability, save DC, spell attack, preparation style, and multiclass slot math used by this sheet.</p>
+        </div>
+        <span>{Object.keys(classLevels).length > 1 ? 'Multiclass' : 'Single class'}</span>
+      </div>
+
+      {spellcastingRows.length > 0 ? (
+        <div className="clean-sheet-caster-grid">
+          {spellcastingRows.map((row) => (
+            <article key={row.className} className="clean-sheet-caster-card">
+              <div className="clean-sheet-caster-card-title">
+                <strong>{row.className}</strong>
+                <span>Level {row.level}</span>
+              </div>
+              <div className="clean-sheet-caster-stats">
+                <div><span>Ability</span><strong>{row.abilityLabel}</strong><em>{formatBonus(row.modifier)}</em></div>
+                <div><span>Save DC</span><strong>{row.saveDc}</strong><em>8 + prof + mod</em></div>
+                <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong><em>prof + mod</em></div>
+                <div><span>Prep/Known</span><strong>{row.prepLabel}</strong><em>{row.castingType}</em></div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="clean-sheet-muted">This character does not currently have a spellcasting class, subclass, or recorded spellcasting data.</p>
+      )}
+
+      <div className="clean-sheet-slot-math-grid">
+        <div><span>Combined caster level</span><strong>{slotMath?.multiclassLevel || 0}</strong><em>Used for shared non-warlock spell slots.</em></div>
+        <div><span>Capped slot level</span><strong>{slotMath?.cappedMulticlassLevel || 0}</strong><em>Epic characters keep slots capped at table level 20.</em></div>
+        <div><span>Pact magic</span><strong>{pact ? `${pact.slots}×L${pact.level}` : 'None'}</strong><em>Warlock slots stay separate.</em></div>
+      </div>
+    </section>
+  );
+}
+
+function PactMagicSlots({ pactMagic }) {
+  if (!pactMagic) return null;
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide">
+      <h2>Pact Magic</h2>
+      <div className="clean-sheet-pact-card">
+        <div><span>Slots</span><strong>{pactMagic.slots}</strong></div>
+        <div><span>Slot level</span><strong>{pactMagic.level}</strong></div>
+        <p>Track these separately from normal spell slots. They usually refresh on a short rest.</p>
+      </div>
+    </section>
+  );
+}
+
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const cantrips = character?.cantrips_known || [];
   const known = character?.spells_known || [];
@@ -151,6 +255,38 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const spellAbility = character?.spellcasting_ability || '';
   const spellDc = character?.spell_save_dc || '';
   const spellAttack = character?.spell_attack_bonus || '';
+  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const classLevels = useMemo(() => getClassLevels(character), [character]);
+  const slotMath = useMemo(() => getMulticlassSpellSlots(classLevels, character), [classLevels, character]);
+  const effectiveSlots = Object.keys(slots || {}).length ? slots : (slotMath?.slots || {});
+  const effectiveRemaining = Object.keys(remaining || {}).length ? remaining : effectiveSlots;
+  const spellcastingRows = useMemo(() => Object.entries(classLevels)
+    .map(([className, level]) => {
+      const canonical = canonicalSpellClass(className);
+      const info = SPELLCASTING_CLASSES[canonical];
+      if (!info || !classHasSpellcasting(character, className)) return null;
+      const ability = info.ability;
+      const modifier = abilityMod(character?.[ability]);
+      const saveDc = 8 + proficiencyBonus + modifier;
+      const attackBonus = proficiencyBonus + modifier;
+      const preparedLimit = info.type === 'prepared' ? Math.max(1, level + modifier) : null;
+      return {
+        className: canonical,
+        level,
+        ability,
+        abilityLabel: ABILITY_LABELS[ability] || ability,
+        modifier,
+        saveDc,
+        attackBonus,
+        castingType: info.pactMagic ? 'Pact magic' : info.type === 'prepared' ? 'Prepared caster' : 'Known caster',
+        prepLabel: preparedLimit ? `${prepared.length}/${preparedLimit}` : `${known.length} known`,
+      };
+    })
+    .filter(Boolean), [character, classLevels, known.length, prepared.length, proficiencyBonus]);
+  const primaryCaster = spellcastingRows[0];
+  const displayedSpellAbility = spellAbility || primaryCaster?.abilityLabel || '';
+  const displayedSpellDc = spellDc || primaryCaster?.saveDc || '';
+  const displayedSpellAttack = spellAttack || (primaryCaster ? primaryCaster.attackBonus : '');
   const [loadoutName, setLoadoutName] = useState('');
 
   const sortedKnown = useMemo(() => [...known].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [known]);
@@ -286,13 +422,14 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       <section className="clean-sheet-panel clean-sheet-wide">
         <h2>Spellcasting</h2>
         <div className="clean-sheet-spell-summary">
-          <div><span>Ability</span><strong>{spellAbility || '—'}</strong></div>
-          <div><span>Save DC</span><strong>{spellDc || '—'}</strong></div>
-          <div><span>Attack</span><strong>{spellAttack ? `+${spellAttack}` : '—'}</strong></div>
+          <div><span>Ability</span><strong>{displayedSpellAbility || '—'}</strong></div>
+          <div><span>Save DC</span><strong>{displayedSpellDc || '—'}</strong></div>
+          <div><span>Attack</span><strong>{displayedSpellAttack !== '' ? formatBonus(displayedSpellAttack) : '—'}</strong></div>
+          <div><span>Prepared</span><strong>{prepared.length}</strong></div>
         </div>
       </section>
 
-
+      <SpellcastingMathPanel character={character} classLevels={classLevels} spellcastingRows={spellcastingRows} slotMath={slotMath} />
 
       <section className="clean-sheet-panel clean-sheet-wide">
         <h2>Rook Spell Setups</h2>
@@ -336,7 +473,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         ) : <p className="clean-sheet-muted">No saved spell setups yet.</p>}
       </section>
 
-      <SpellSlots slots={slots} remaining={remaining} onChangeSlots={handleSlotChange} />
+      <SpellSlots slots={effectiveSlots} remaining={effectiveRemaining} onChangeSlots={handleSlotChange} />
+      <PactMagicSlots pactMagic={slotMath?.pactMagic} />
       <SpellList title="Cantrips" spells={cantrips} emptyText="No cantrips found." tag="Cantrip" />
       <SpellList title="Known Spells" spells={sortedKnown} emptyText="No known spells found." />
       <SpellList title="Prepared Spells" spells={sortedPrepared} emptyText="No prepared spells found." />
