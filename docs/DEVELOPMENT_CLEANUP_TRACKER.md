@@ -79,19 +79,27 @@ These files have been updated recently and should be treated as closer to the ta
 - `frontend/src/components/ImageUploadPanel.js`
 - `frontend/src/components/SessionRecapAI.js`
 - `frontend/src/components/SmartNoteParser.js`
+- `frontend/src/components/RookFormFillPanel.js`
+- `frontend/src/components/builder/PortraitGenerator.js`
+- `frontend/src/components/tabs/HandoutsTab.js`
 - `frontend/src/components/tabs/InGameNotesTab.js`
 - `frontend/src/components/tabs/ItemCreatorTab.js`
 - `frontend/src/components/tabs/PlayerNotesTab.js`
+- `frontend/src/components/tabs/PrivatePlaytestPacksTab.js`
 - `frontend/src/components/clean-sheet/CleanNotesTab.js`
 - `frontend/src/components/gm/AISessionPlanner.js`
 - `frontend/src/components/gm/EnvironmentControl.js`
 - `frontend/src/components/gm/NotesTab.js`
 - `frontend/src/components/gm/UploadTab.js`
+- `backend/routes/handouts.py`
 
 ## Backend/data safety work already started
 
 - `backend/tests/test_campaign_permissions.py` was added as integration coverage for campaign ownership and custom-rule access boundaries.
 - `docs/AI_SAFE_RULES.md` clarifies text AI is allowed and image AI is not allowed.
+- Private playtest pack import now has validation, structured error details, and a client-side JSON size guard.
+- Handout sharing now includes GM-controlled re-share settings across backend delivery records and frontend UI.
+- In-game notes can update campaign tabs and now show note-level update feedback.
 
 ## Current flow audit notes
 
@@ -131,155 +139,28 @@ It controls:
 - ruleset JSON upload
 - source index panel
 
-This file still uses raw `axios` and contains several local UI flows. It should be cleaned carefully in smaller passes, not as one giant rewrite.
+This file should be cleaned carefully in smaller passes, not as one giant rewrite.
 
 Recommended UnifiedDashboard cleanup order:
 
-1. Convert `axios` import/API constant to `apiClient`.
-2. Keep all existing route targets unchanged.
-3. Replace the local review modal with `ReviewModal.js`, or remove the unused `ReviewModal.js` if the local modal is intentionally kept.
-4. Check create campaign still navigates to `/campaign/:campaignId`.
-5. Check character cards still navigate to `/characters/:characterId`.
-6. Check admin button still routes to `/admin` only for admins.
-7. Check account button still routes to `/account`.
-8. Check logout clears auth and returns the user to a logged-out state.
+1. Keep all existing route targets unchanged.
+2. Replace the local review modal with `ReviewModal.js`, or remove the unused `ReviewModal.js` if the local modal is intentionally kept.
+3. Check create campaign still navigates to `/campaign/:campaignId`.
+4. Check character cards still navigate to `/characters/:characterId`.
+5. Check admin button still routes to `/admin` only for admins.
+6. Check account button still routes to `/account`.
+7. Check logout clears auth and returns the user to a logged-out state.
+8. Avoid mixing big dashboard layout changes with data/API changes.
 
-## Files still using raw axios
+## API client cleanup status
 
-These still need conversion to `apiClient`, preferably in small batches:
+Code search now only finds direct `axios` imports in the shared `frontend/src/lib/apiClient.js` wrapper and documentation references. New frontend API work should continue using `apiClient` so auth headers, timeouts, 401 handling, and formatted error details stay consistent.
 
-- `frontend/src/components/UnifiedDashboard.js`
-- `frontend/src/components/CampaignDashboard.js`
-- `frontend/src/components/GMScreen.js`
-- `frontend/src/components/CombatPage.js`
-- `frontend/src/components/MobilePlayerCampaignView.js`
-- `frontend/src/components/BasicCharacterBuilder.js`
-- `frontend/src/components/PremadeCharacterBuilder.js`
-- `frontend/src/components/LevelUpWizard.js`
-- `frontend/src/components/CharacterSheetFull.js`
-- `frontend/src/components/CharacterSpellbook.js`
-- `frontend/src/components/CharacterInventory.js`
-- `frontend/src/components/PartyInventory.js`
-- `frontend/src/components/PlayerPartyLoot.js`
-- `frontend/src/components/PlayerProgressionDashboard.js`
-- `frontend/src/components/PartyLocationTracker.js`
-- `frontend/src/components/NPCCombatRecruiter.js`
-- `frontend/src/components/NPCRelationshipWeb.js`
-- `frontend/src/components/NPCQuickReference.js`
-- `frontend/src/components/QuickCombatModal.js`
-- `frontend/src/components/CustomCreatureManager.js`
-- `frontend/src/components/CombatTokenGenerator.js`
-- `frontend/src/components/MapBuilder/MapBuilder.js`
-- `frontend/src/components/gm/EventSystem.js`
-- `frontend/src/components/gm/SendItemPanel.js`
-- `frontend/src/components/gm/SmartSessionLog.js`
-- `frontend/src/components/tabs/MapsTab.js`
-- `frontend/src/components/tabs/WorldBuilderTab.js`
-- `frontend/src/components/tabs/LocationsTab.js`
-- `frontend/src/components/tabs/NPCsTab.js`
-- `frontend/src/components/tabs/LocalMapTab.js`
-- `frontend/src/components/tabs/GodsTab.js`
-- `frontend/src/components/tabs/EncounterGeneratorTab.js`
-- `frontend/src/components/tabs/PartyInventoryTab.js`
-- `frontend/src/components/tabs/CombatCreatorTab.js`
-- `frontend/src/components/tabs/CalendarTab.js`
-- `frontend/src/components/tabs/NotesTab.js`
-- `frontend/src/components/tabs/WorldMapTab.js`
-- `frontend/src/components/tabs/CampaignSettingTab.js`
-- `frontend/src/components/SessionJournal.js`
-- `frontend/src/components/SessionTimeline.js`
-- `frontend/src/components/RuleSystemManager.js`
+## Recommended next small cleanup passes
 
-`frontend/src/lib/apiClient.js` correctly imports axios because it is the shared API wrapper.
+Prefer one focused PR at a time:
 
-## Risky files: patch in small sections only
-
-Do not full-rewrite these unless absolutely necessary:
-
-- `frontend/src/components/PartyInventory.js`
-- `frontend/src/components/CombatPage.js`
-- `frontend/src/components/GMScreen.js`
-- `frontend/src/components/CampaignDashboard.js`
-- `frontend/src/components/CalendarTab.js`
-- `frontend/src/components/SessionTimeline.js`
-- `frontend/src/components/SessionJournal.js`
-- `frontend/src/components/RuleSystemManager.js`
-- `frontend/src/components/CharacterSheetFull.js`
-
-Reason: these files are large, feature-dense, and more likely to break during full-file replacement.
-
-## Image-generation cleanup status
-
-Current state:
-
-- `ImageUploadPanel.js` is the correct upload-only component.
-- The deprecated `AIImageGeneratorPanel.js` compatibility wrapper has been removed.
-- Active UI must use manual image upload components only.
-- No frontend component should mention generating AI images or send image-generation payloads.
-
-## Recommended next mini-sprints
-
-### Sprint A: dashboard flow cleanup
-
-- Convert `UnifiedDashboard.js` to `apiClient`.
-- Keep navigation behaviour identical.
-- Do not redesign the whole dashboard in the same commit.
-- Check Vercel after the commit.
-
-### Sprint B: safe tab API cleanup
-
-Convert one at a time:
-
-1. `MapsTab.js`
-2. `WorldBuilderTab.js`
-3. `LocationsTab.js`
-4. `CampaignSettingTab.js`
-5. `GodsTab.js`
-
-Check Vercel after each file.
-
-### Sprint C: old-theme pockets
-
-Search and remove old theme drift:
-
-- `#D4A017`
-- `#F59E0B`
-- `#8A2BE2`
-- `#4DD0E1`
-- `#06B6D4`
-- `#3B82F6`
-- `#8B5CF6`
-- `#14304F`
-- `#0A1628`
-- `gold-text`
-- `parchment-dark`
-
-Patch small sections at a time.
-
-### Sprint D: real upload flow
-
-`UploadTab.js` currently simulates uploads. Future work should decide whether uploads should be:
-
-- stored in backend/database
-- stored in object storage
-- scoped per campaign
-- removable by the campaign owner
-- usable by maps/portraits/documents/audio tools
-
-The UI should clearly communicate manual upload behaviour and should not imply AI image generation.
-
-## Flow checklist for every future change
-
-Before merging a change, check:
-
-1. Can a logged-out user reach landing and auth?
-2. Can a logged-in user reach `/home`?
-3. Can a user create/open a character?
-4. Can a user create/open a campaign?
-5. Can GM tools open from the campaign flow?
-6. Can player campaign view still open safely?
-7. Does mobile routing still make sense?
-8. Are auth tokens handled through `apiClient`?
-9. Is Rook described as text-only?
-10. Is there no AI image-generation UI or behaviour?
-11. Does Vercel pass?
+1. Improve remaining toast/catch blocks so they prefer `error.formattedDetail` before raw backend details.
+2. Remove or update stale docs that still refer to old AI-image flows.
+3. Add focused tests around handout sharing, private playtest imports, and note-to-tab updates.
+4. Split any large dashboard or character-sheet UI polish into tiny visual-only PRs.
