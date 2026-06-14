@@ -9,6 +9,8 @@ const supportedTypes = [
   'features', 'spells', 'creatures', 'items', 'conditions', 'rules_references',
 ];
 
+const MAX_PLAYTEST_JSON_CHARS = 250000;
+
 const samplePack = {
   pack_name: 'Friday Private Playtest Pack',
   description: 'Private campaign test content. Delete or replace before public/shared release.',
@@ -68,8 +70,12 @@ function PrivatePlaytestPacksTab({ campaignId }) {
     if (scope === 'campaign') return pack.campaign_id === campaignId;
     return !pack.campaign_id;
   }), [packs, campaignId, scope]);
+  const jsonTooLarge = jsonText.length > MAX_PLAYTEST_JSON_CHARS;
 
   const parsePayload = useCallback(() => {
+    if (jsonText.length > MAX_PLAYTEST_JSON_CHARS) {
+      throw new Error(`Pack JSON is too large. Keep it under ${MAX_PLAYTEST_JSON_CHARS.toLocaleString()} characters.`);
+    }
     let parsed;
     try {
       parsed = JSON.parse(jsonText);
@@ -92,7 +98,7 @@ function PrivatePlaytestPacksTab({ campaignId }) {
       setPacks(packsRes.data?.packs || []);
       setSummary(summaryRes.data || null);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load private playtest packs');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load private playtest packs');
     } finally {
       setLoading(false);
     }
@@ -103,8 +109,17 @@ function PrivatePlaytestPacksTab({ campaignId }) {
   const handleFileUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_PLAYTEST_JSON_CHARS) {
+      toast.error(`That JSON file is too large. Keep imports under ${MAX_PLAYTEST_JSON_CHARS.toLocaleString()} characters.`);
+      event.target.value = '';
+      return;
+    }
     try {
       const text = await file.text();
+      if (text.length > MAX_PLAYTEST_JSON_CHARS) {
+        toast.error(`That JSON file is too large. Keep imports under ${MAX_PLAYTEST_JSON_CHARS.toLocaleString()} characters.`);
+        return;
+      }
       JSON.parse(text);
       setJsonText(text);
       setValidation(null);
@@ -125,7 +140,7 @@ function PrivatePlaytestPacksTab({ campaignId }) {
       if (res.data?.valid) toast.success('Pack is valid and ready to import');
       else toast.error('Pack needs fixes before import');
     } catch (error) {
-      toast.error(error.message || error?.response?.data?.detail || 'Validation failed');
+      toast.error(error.message || error?.formattedDetail || error?.response?.data?.detail || 'Validation failed');
     } finally {
       setValidating(false);
     }
@@ -145,7 +160,7 @@ function PrivatePlaytestPacksTab({ campaignId }) {
         setValidation({ valid: false, errors: detail.errors, warnings: detail.warnings || [] });
         toast.error(detail.message || 'Pack failed validation');
       } else {
-        toast.error(detail || error.message || 'Import failed');
+        toast.error(error?.formattedDetail || detail || error.message || 'Import failed');
       }
     } finally {
       setImporting(false);
@@ -158,7 +173,7 @@ function PrivatePlaytestPacksTab({ campaignId }) {
       setSelectedPack(res.data?.pack || null);
       setSelectedRecords(res.data?.records || []);
     } catch (error) {
-      toast.error('Failed to open playtest pack');
+      toast.error(error?.formattedDetail || 'Failed to open playtest pack');
     }
   };
 
@@ -173,7 +188,7 @@ function PrivatePlaytestPacksTab({ campaignId }) {
       }
       await loadPacks();
     } catch (error) {
-      toast.error('Failed to delete private playtest pack');
+      toast.error(error?.formattedDetail || 'Failed to delete private playtest pack');
     }
   };
 
@@ -240,13 +255,16 @@ function PrivatePlaytestPacksTab({ campaignId }) {
             onChange={(event) => { setJsonText(event.target.value); setValidation(null); }}
             spellCheck={false}
             data-testid="playtest-pack-json"
-            style={textareaStyle}
+            style={{ ...textareaStyle, borderColor: jsonTooLarge ? 'rgba(239,68,68,0.75)' : textareaStyle.borderColor }}
           />
+          <p style={{ ...smallTextStyle, color: jsonTooLarge ? '#FCA5A5' : smallTextStyle.color }}>
+            {jsonText.length.toLocaleString()} / {MAX_PLAYTEST_JSON_CHARS.toLocaleString()} characters
+          </p>
           <div style={buttonRowStyle}>
-            <Button onClick={handleValidate} disabled={validating || importing} style={secondaryButtonStyle} data-testid="validate-playtest-pack">
+            <Button onClick={handleValidate} disabled={validating || importing || jsonTooLarge} style={secondaryButtonStyle} data-testid="validate-playtest-pack">
               {validating ? 'Validating…' : 'Validate pack'}
             </Button>
-            <Button onClick={handleImport} disabled={importing || validating} style={primaryButtonStyle} data-testid="import-playtest-pack">
+            <Button onClick={handleImport} disabled={importing || validating || jsonTooLarge} style={primaryButtonStyle} data-testid="import-playtest-pack">
               {importing ? 'Importing…' : 'Import private pack'}
             </Button>
           </div>
