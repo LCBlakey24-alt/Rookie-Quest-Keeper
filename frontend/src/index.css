@@ -41,30 +41,30 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 /* ===== CSS VARIABLES - DUAL THEME SYSTEM ===== */
 :root {
   /* === ROOK APP THEME === */
-  --background: #1F1F23;
+  --background: #080B1A;
   --foreground: #FFFFFF;
-  --card: #27272B;
+  --card: #171E33;
   --card-foreground: #FFFFFF;
-  --popover: #27272B;
+  --popover: #171E33;
   --popover-foreground: #FFFFFF;
-  --primary: #EF4444;
-  --primary-foreground: #1F1F23;
-  --secondary: #F87171;
+  --primary: #7C3AED;
+  --primary-foreground: #FFFFFF;
+  --secondary: #38BDF8;
   --secondary-foreground: #1F1F23;
-  --muted: #27272B;
+  --muted: #12172A;
   --muted-foreground: #D1D5DB;
-  --accent: rgba(239,68,68,0.12);
+  --accent: rgba(124,58,237,0.14);
   --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(239,68,68,0.28);
-  --input: #27272B;
-  --ring: #EF4444;
+  --border: rgba(124,58,237,0.32);
+  --input: #0D1224;
+  --ring: #A78BFA;
   --radius: 0.5rem;
   
   /* Theme-specific colors */
-  --theme-glow: rgba(239, 68, 68, 0.18);
-  --theme-glow-secondary: rgba(248, 113, 113, 0.18);
+  --theme-glow: rgba(124, 58, 237, 0.24);
+  --theme-glow-secondary: rgba(56, 189, 248, 0.18);
   
   /* Status Colors */
   --success: #10B981;
@@ -73,8 +73,8 @@ strong, b, h1, h2, h3, h4, h5, h6 {
   --info: #3B82F6;
   
   /* Glass Panel */
-  --glass-bg: rgba(39, 39, 43, 0.72);
-  --glass-border: rgba(239, 68, 68, 0.28);
+  --glass-bg: rgba(18, 23, 42, 0.76);
+  --glass-border: rgba(124, 58, 237, 0.32);
   --glass-blur: 16px;
   
   /* Shadows */
@@ -84,54 +84,54 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 
 /* === GM MODE THEME (Midnight Neon) === */
 [data-theme="gm"] {
-  --background: #1F1F23;
+  --background: #080B1A;
   --foreground: #FFFFFF;
-  --card: #27272B;
+  --card: #171E33;
   --card-foreground: #FFFFFF;
-  --popover: #27272B;
+  --popover: #171E33;
   --popover-foreground: #FFFFFF;
-  --primary: #EF4444;
-  --primary-foreground: #1F1F23;
-  --secondary: #F87171;
+  --primary: #7C3AED;
+  --primary-foreground: #FFFFFF;
+  --secondary: #38BDF8;
   --secondary-foreground: #1F1F23;
-  --muted: #27272B;
+  --muted: #12172A;
   --muted-foreground: #D1D5DB;
-  --accent: rgba(239,68,68,0.12);
+  --accent: rgba(124,58,237,0.14);
   --accent-foreground: #FFFFFF;
-  --border: rgba(239,68,68,0.28);
-  --input: #27272B;
-  --ring: #EF4444;
+  --border: rgba(124,58,237,0.32);
+  --input: #0D1224;
+  --ring: #A78BFA;
   
   --theme-glow: rgba(239, 68, 68, 0.12);
   --theme-glow-secondary: rgba(248, 113, 113, 0.12);
   --glass-bg: rgba(39, 39, 43, 0.86);
-  --glass-border: rgba(239, 68, 68, 0.28);
+  --glass-border: rgba(124, 58, 237, 0.32);
 }
 
 /* === PLAYER MODE THEME (Electric Tundra) === */
 [data-theme="player"] {
-  --background: #1F1F23;
+  --background: #080B1A;
   --foreground: #FFFFFF;
-  --card: #27272B;
+  --card: #171E33;
   --card-foreground: #FFFFFF;
-  --popover: #27272B;
+  --popover: #171E33;
   --popover-foreground: #FFFFFF;
-  --primary: #EF4444;
-  --primary-foreground: #1F1F23;
-  --secondary: #F87171;
+  --primary: #7C3AED;
+  --primary-foreground: #FFFFFF;
+  --secondary: #38BDF8;
   --secondary-foreground: #1F1F23;
-  --muted: #27272B;
+  --muted: #12172A;
   --muted-foreground: #D1D5DB;
-  --accent: rgba(239,68,68,0.12);
+  --accent: rgba(124,58,237,0.14);
   --accent-foreground: #FFFFFF;
-  --border: rgba(239,68,68,0.28);
-  --input: #27272B;
-  --ring: #EF4444;
+  --border: rgba(124,58,237,0.32);
+  --input: #0D1224;
+  --ring: #A78BFA;
   
   --theme-glow: rgba(239, 68, 68, 0.12);
   --theme-glow-secondary: rgba(248, 113, 113, 0.12);
   --glass-bg: rgba(39, 39, 43, 0.86);
-  --glass-border: rgba(239, 68, 68, 0.28);
+  --glass-border: rgba(124, 58, 237, 0.32);
 }
 
 /* ===== BASE STYLES ===== */
@@ -239,26 +239,26 @@ p, span, div, label, button, input, textarea, select {
 
 /* ===== GRADIENT UTILITIES ===== */
 .gradient-gm {
-  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
 }
 
 .gradient-player {
-  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
 }
 
 .gradient-landing {
-  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
 }
 
 .text-gradient-gm {
-  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-player {
-  background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

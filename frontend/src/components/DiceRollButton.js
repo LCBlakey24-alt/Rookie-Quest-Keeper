@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Dice6 } from 'lucide-react';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
+import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 
-// Player theme - Blue (Tron Legacy)
+// Mystic tabletop dice theme
 const theme = {
-  primary: '#F2A541',
-  cyan: '#F2A541',
-  hover: '#FFB855',
-  subtle: 'rgba(59, 130, 246, 0.15)',
-  border: 'rgba(6, 182, 212, 0.4)',
+  primary: '#7C3AED',
+  cyan: '#A78BFA',
+  hover: '#C084FC',
+  subtle: 'rgba(124, 58, 237, 0.16)',
+  border: 'rgba(124, 58, 237, 0.42)',
   crit: '#22C55E',
-  fail: '#E05C3D',
+  fail: '#EF4444',
   text: '#FFFFFF'
 };
 
@@ -27,65 +29,39 @@ export function DiceRollButton({
   disadvantage = false,
   showDice = true,
   size = 'default',  // 'small', 'default', 'large'
-  color = theme.cyan
+  color = theme.cyan,
+  allowExploding = false
 }) {
   const [rolling, setRolling] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-
-  const rollDice = (sides) => Math.floor(Math.random() * sides) + 1;
+  const [rollResult, setRollResult] = useState(null);
 
   const handleRoll = (e) => {
     e.stopPropagation();
     setRolling(true);
-    
-    let roll1, roll2, finalRoll;
-    const sides = parseInt(diceType.replace('d', '')) || 20;
-    
-    if (advantage || disadvantage) {
-      roll1 = rollDice(sides);
-      roll2 = rollDice(sides);
-      finalRoll = advantage ? Math.max(roll1, roll2) : Math.min(roll1, roll2);
-    } else {
-      finalRoll = rollDice(sides);
-    }
-    
-    const total = finalRoll + modifier;
-    
-    // Determine roll type for styling
-    let rollType = 'normal';
-    if (sides === 20) {
-      if (finalRoll === 20) rollType = 'crit';
-      else if (finalRoll === 1) rollType = 'fail';
-    }
-    
-    // Build message
+
+    const numericModifier = Number(modifier) || 0;
+    const notation = `${diceType}${numericModifier >= 0 ? `+${numericModifier}` : numericModifier}`;
+    const result = rollDiceNotation(notation, {
+      rollType: advantage ? 'advantage' : disadvantage ? 'disadvantage' : 'normal',
+      exploding: allowExploding,
+    });
+
     let message = `${label}: ${diceType}`;
-    if (modifier >= 0) message += ` + ${modifier}`;
-    else message += ` - ${Math.abs(modifier)}`;
-    
-    let description = `Rolled ${finalRoll}`;
-    if (advantage) description += ` (Advantage: ${roll1}, ${roll2})`;
-    if (disadvantage) description += ` (Disadvantage: ${roll1}, ${roll2})`;
-    description += ` = ${total}`;
-    
-    // Show toast
-    if (rollType === 'crit') {
-      toast.success(`CRITICAL! ${message}`, { 
-        description,
-        style: { background: '#166534', border: '2px solid #22C55E' }
-      });
-    } else if (rollType === 'fail') {
-      toast.error(`NAT 1! ${message}`, { 
-        description,
-        style: { background: '#A03D24', border: '2px solid #E05C3D' }
-      });
-    } else {
-      toast(message, { 
-        description,
-        icon: <Dice6 size={18} color={color} />
-      });
-    }
-    
+    if (numericModifier >= 0) message += ` + ${numericModifier}`;
+    else message += ` - ${Math.abs(numericModifier)}`;
+
+    setRollResult({
+      label: message,
+      rolls: result.visibleRolls,
+      modifier: result.modifier,
+      total: result.total,
+      animationValue: getAnimationTarget(result),
+      isCrit: result.isCrit,
+      isFumble: result.isFumble,
+    });
+    toast(message, { description: 'Rolling…', icon: <Dice6 size={18} color={color} />, duration: 1200 });
+
     setTimeout(() => setRolling(false), 300);
   };
 
@@ -100,34 +76,50 @@ export function DiceRollButton({
   const displayModifier = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
   return (
-    <button
-      onClick={handleRoll}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      data-testid={`dice-roll-${label.toLowerCase().replace(/\s+/g, '-')}`}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: s.gap,
-        padding: s.padding,
-        background: rolling ? theme.subtle : isHovered ? theme.subtle : 'rgba(6, 182, 212, 0.08)',
-        border: `1px solid ${isHovered || rolling ? theme.cyan : theme.border}`,
-        borderRadius: '4px',
-        color: isHovered ? theme.cyan : theme.text,
-        fontSize: s.fontSize,
-        fontWeight: '400',
-        cursor: 'pointer',
-        transition: 'all 0.15s ease',
-        transform: rolling ? 'scale(1.05)' : 'scale(1)',
-        minWidth: size === 'small' ? '36px' : '44px',
-        boxShadow: isHovered ? `0 0 8px ${theme.border}` : 'none'
-      }}
-      title={`Click to roll ${diceType}${displayModifier} for ${label}`}
-    >
-      {showDice && <Dice6 size={s.iconSize} color={isHovered ? theme.cyan : color} style={{ flexShrink: 0 }} />}
-      <span>{displayModifier}</span>
-    </button>
+    <>
+      <button
+        onClick={handleRoll}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        data-testid={`dice-roll-${label.toLowerCase().replace(/\s+/g, '-')}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: s.gap,
+          padding: s.padding,
+          background: rolling ? theme.subtle : isHovered ? theme.subtle : 'rgba(6, 182, 212, 0.08)',
+          border: `1px solid ${isHovered || rolling ? theme.cyan : theme.border}`,
+          borderRadius: '4px',
+          color: isHovered ? theme.cyan : theme.text,
+          fontSize: s.fontSize,
+          fontWeight: '400',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+          transform: rolling ? 'scale(1.05)' : 'scale(1)',
+          minWidth: size === 'small' ? '36px' : '44px',
+          boxShadow: isHovered ? `0 0 8px ${theme.border}` : 'none'
+        }}
+        title={`Click to roll ${diceType}${displayModifier} for ${label}`}
+      >
+        {showDice && <Dice6 size={s.iconSize} color={isHovered ? theme.cyan : color} style={{ flexShrink: 0 }} />}
+        <span>{displayModifier}</span>
+      </button>
+      {rollResult && (
+        <DiceRollFlicker
+          isOpen={Boolean(rollResult)}
+          onClose={() => setRollResult(null)}
+          label={rollResult.label}
+          rolls={rollResult.rolls}
+          modifier={rollResult.modifier}
+          total={rollResult.total}
+          animationValue={rollResult.animationValue}
+          isCrit={rollResult.isCrit}
+          isFumble={rollResult.isFumble}
+          theme="player"
+        />
+      )}
+    </>
   );
 }
 
@@ -158,10 +150,12 @@ export function DamageRollButton({
   diceFormula,  // e.g., "2d6+3"
   label = 'Damage',
   damageType = 'slashing',
-  color = '#E05C3D'
+  color = '#A78BFA',
+  allowExploding = false
 }) {
   const [rolling, setRolling] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [rollResult, setRollResult] = useState(null);
 
   const parseDiceFormula = (formula) => {
     // Parse formulas like "2d6+3", "1d8", "3d6-1"
@@ -178,42 +172,31 @@ export function DamageRollButton({
     e.stopPropagation();
     setRolling(true);
     
-    const { count, sides, modifier } = parseDiceFormula(diceFormula);
-    const rolls = [];
-    let total = 0;
-    
-    for (let i = 0; i < count; i++) {
-      const roll = Math.floor(Math.random() * sides) + 1;
-      rolls.push(roll);
-      total += roll;
-    }
-    
-    total += modifier;
-    
-    const rollsStr = rolls.join(' + ');
-    let description = `${rollsStr}`;
-    if (modifier !== 0) {
-      description += modifier > 0 ? ` + ${modifier}` : ` - ${Math.abs(modifier)}`;
-    }
-    description += ` = ${total} ${damageType}`;
-    
-    toast(`${label}: ${diceFormula}`, {
-      description,
-      icon: <Dice6 size={18} color={color} />
+    const { modifier } = parseDiceFormula(diceFormula);
+    const result = rollDiceNotation(diceFormula, { exploding: allowExploding });
+
+    setRollResult({
+      label: `${label}: ${diceFormula}`,
+      rolls: result.visibleRolls,
+      modifier,
+      total: result.total,
+      animationValue: getAnimationTarget(result),
     });
+    toast(`${label}: ${diceFormula}`, { description: 'Rolling damage…', icon: <Dice6 size={18} color={color} />, duration: 1200 });
     
     setTimeout(() => setRolling(false), 300);
   };
 
   // Damage button uses red theme
   const damageTheme = {
-    subtle: 'rgba(239, 68, 68, 0.08)',
-    border: 'rgba(239, 68, 68, 0.4)',
-    hover: 'rgba(239, 68, 68, 0.15)'
+    subtle: 'rgba(124, 58, 237, 0.10)',
+    border: 'rgba(124, 58, 237, 0.38)',
+    hover: 'rgba(124, 58, 237, 0.18)'
   };
 
   return (
-    <button
+    <>
+      <button
       onClick={handleRoll}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -235,9 +218,22 @@ export function DamageRollButton({
       }}
       title={`Click to roll ${diceFormula} ${damageType} damage`}
     >
-      <Dice6 size={12} color={isHovered ? color : '#E05C3D'} style={{ flexShrink: 0 }} />
+      <Dice6 size={12} color={isHovered ? color : '#A78BFA'} style={{ flexShrink: 0 }} />
       <span>{diceFormula}</span>
     </button>
+      {rollResult && (
+        <DiceRollFlicker
+          isOpen={Boolean(rollResult)}
+          onClose={() => setRollResult(null)}
+          label={rollResult.label}
+          rolls={rollResult.rolls}
+          modifier={rollResult.modifier}
+          total={rollResult.total}
+          animationValue={rollResult.animationValue}
+          theme="player"
+        />
+      )}
+    </>
   );
 }
 

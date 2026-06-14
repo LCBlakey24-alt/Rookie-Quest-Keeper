@@ -25,11 +25,13 @@ import {
 } from 'lucide-react';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { getClassFeatures } from '@/data/classFeatures';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerSuggestions from '@/components/RookPlayerSuggestions';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 
 const ABILITIES = [
   ['strength', 'STR'],
@@ -86,6 +88,81 @@ const getMaxHp = (c) => Number(c?.max_hit_points ?? c?.max_hp ?? 10) || 10;
 const getCurrentHp = (c) => Number(c?.current_hit_points ?? c?.hp ?? getMaxHp(c)) || getMaxHp(c);
 const getTempHp = (c) => Number(c?.temporary_hit_points ?? c?.temp_hp ?? 0) || 0;
 const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
+const toArray = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  if (typeof value === 'string') return value.split(',').map(item => item.trim()).filter(Boolean);
+  return [];
+};
+
+const featureTypeLabel = (type) => {
+  if (type === 'bonus_action') return 'Bonus action';
+  if (type === 'reaction') return 'Reaction';
+  if (type === 'action_modifier') return 'Attack modifier';
+  if (type === 'action') return 'Action';
+  if (type === 'special') return 'Special';
+  return 'Passive';
+};
+
+const normalizeName = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const getClassLevel = (character, className) => {
+  const target = normalizeName(className);
+  const sources = [character?.multiclass_levels, character?.class_levels, character?.classes];
+  for (const source of sources) {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) continue;
+    const entry = Object.entries(source).find(([name]) => normalizeName(name) === target);
+    if (entry) return Number(entry[1]) || 0;
+  }
+  if (normalizeName(character?.character_class) === target) return Number(character?.level) || 1;
+  return 0;
+};
+
+const getFighterExtraAttacks = (level = 1) => {
+  if (level >= 20) return 4;
+  if (level >= 11) return 3;
+  if (level >= 5) return 2;
+  return 1;
+};
+
+const getFighterNextMilestone = (level = 1, edition = '2014') => {
+  const milestones = edition === '2024'
+    ? [
+      [2, 'Action Surge and Tactical Mind'],
+      [3, 'Fighter subclass'],
+      [5, 'Extra Attack and Tactical Shift'],
+      [6, 'Ability Score Improvement / feat'],
+      [9, 'Indomitable and Tactical Master'],
+      [11, 'Extra Attack (2)'],
+      [13, 'Studied Attacks'],
+      [17, 'second Action Surge and third Indomitable'],
+      [20, 'Extra Attack (3)'],
+    ]
+    : [
+      [2, 'Action Surge'],
+      [3, 'Martial Archetype'],
+      [5, 'Extra Attack'],
+      [6, 'Ability Score Improvement / feat'],
+      [9, 'Indomitable'],
+      [11, 'Extra Attack (2)'],
+      [17, 'second Action Surge and third Indomitable'],
+      [20, 'Extra Attack (3)'],
+    ];
+  const next = milestones.find(([milestoneLevel]) => Number(level || 1) < milestoneLevel);
+  return next ? `Level ${next[0]}: ${next[1]}` : 'Level 20 Fighter capstone reached';
+};
+
+const getFighterSubclassNote = (subclass, level = 1) => {
+  const key = normalizeName(subclass);
+  if (key === 'champion') {
+    if (level >= 18) return 'Champion: Survivor is online; heal at the start of your turn when below half HP and above 0.';
+    if (level >= 7) return 'Champion: Remarkable Athlete / initiative reminder is online.';
+    if (level >= 3) return 'Champion: Improved Critical reminder is active.';
+  }
+  if (key === 'battlemaster') return 'Battle Master: track superiority dice and selected maneuvers on the Combat tab.';
+  if (key === 'eldritchknight') return 'Eldritch Knight: manage spellcasting on the Spells tab and weapon tactics on Combat.';
+  return level >= 3 ? 'Subclass chosen — review its feature cards below.' : 'Choose a Fighter subclass at level 3.';
+};
 
 function parseHitDie(hitDice = '1d8') {
   const match = String(hitDice).match(/(\d+)d(\d+)/i);
@@ -162,7 +239,7 @@ export default function CleanCharacterSheet() {
 
   useEffect(() => {
     if (!rollBurst) return undefined;
-    const timeout = setTimeout(() => setRollBurst(null), 6000);
+    const timeout = setTimeout(() => setRollBurst(null), 9000);
     return () => clearTimeout(timeout);
   }, [rollBurst]);
 
@@ -198,6 +275,73 @@ export default function CleanCharacterSheet() {
       return [skill, 10 + mod(character?.[ability]) + (proficient ? proficiencyBonus : 0)];
     });
   }, [character, proficiencyBonus, skillProficiencies]);
+
+  const rulesEdition = String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+  const fighterOverview = useMemo(() => {
+    const fighterLevel = getClassLevel(character, 'Fighter');
+    if (!fighterLevel) return null;
+    const subclass = character?.subclass || character?.martial_archetype || character?.fighter_subclass || '';
+    const subclassKey = normalizeName(subclass);
+    const maneuvers = toArray(character?.battle_master_maneuvers || character?.maneuvers);
+    return {
+      level: fighterLevel,
+      attacksPerAction: getFighterExtraAttacks(fighterLevel),
+      critRange: subclassKey === 'champion' && fighterLevel >= 15 ? '18–20' : subclassKey === 'champion' && fighterLevel >= 3 ? '19–20' : '20',
+      fightingStyle: character?.fighting_style || character?.fightingStyle || 'Not selected',
+      subclass: subclass || (fighterLevel >= 3 ? 'Not selected' : 'Choose at level 3'),
+      subclassNote: getFighterSubclassNote(subclass, fighterLevel),
+      nextMilestone: getFighterNextMilestone(fighterLevel, rulesEdition),
+      actionSurges: fighterLevel >= 17 ? 2 : fighterLevel >= 2 ? 1 : 0,
+      indomitable: fighterLevel >= 17 ? 3 : fighterLevel >= 13 ? 2 : fighterLevel >= 9 ? 1 : 0,
+      maneuversKnown: subclassKey === 'battlemaster' ? maneuvers.length : null,
+    };
+  }, [character, rulesEdition]);
+
+  const classFeatureSummary = useMemo(() => {
+    const className = character?.character_class;
+    const level = Number(character?.level || 1);
+    const tableFeatures = getClassFeatures(className, level, rulesEdition);
+    const characterFeatures = toArray(character?.features || character?.class_features).map((feature, index) => (
+      typeof feature === 'string'
+        ? { name: feature, description: 'Saved on this character sheet.', type: 'passive', level: null, source: 'sheet' }
+        : { ...feature, name: feature?.name || `Feature ${index + 1}`, source: 'sheet' }
+    ));
+    const merged = [...tableFeatures, ...characterFeatures];
+    const seen = new Set();
+    return merged
+      .filter(feature => feature?.name && !feature.isChoice)
+      .filter(feature => {
+        const key = `${feature.name}-${feature.level || ''}`.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => Number(a.level || 999) - Number(b.level || 999));
+  }, [character, rulesEdition]);
+
+  const actionEconomyGroups = useMemo(() => {
+    const groups = {
+      Action: [],
+      'Bonus action': [],
+      Reaction: [],
+      Passive: [],
+    };
+    classFeatureSummary.forEach(feature => {
+      const label = featureTypeLabel(feature.type);
+      if (label === 'Action' || label === 'Special') groups.Action.push(feature);
+      else if (label === 'Bonus action') groups['Bonus action'].push(feature);
+      else if (label === 'Reaction') groups.Reaction.push(feature);
+      else groups.Passive.push(feature);
+    });
+    return groups;
+  }, [classFeatureSummary]);
+
+  const proficiencySummary = useMemo(() => ([
+    ['Armor', toArray(character?.armor_proficiencies || character?.proficiencies?.armor)],
+    ['Weapons', toArray(character?.weapon_proficiencies || character?.proficiencies?.weapons)],
+    ['Tools', toArray(character?.tool_proficiencies || character?.proficiencies?.tools)],
+    ['Languages', toArray(character?.languages || character?.proficiencies?.languages)],
+  ]), [character]);
 
   const getSafeAmount = (value) => Math.max(1, Math.min(999, Number(value) || 1));
   const getRollBonus = () => Number(rollBonus) || 0;
@@ -473,15 +617,21 @@ export default function CleanCharacterSheet() {
       )}
 
       {rollBurst && (
-        <div key={rollBurst.id} className="clean-sheet-roll-burst" aria-live="polite">
-          <span>{rollBurst.label}</span>
-          <strong>{rollBurst.total}</strong>
-          <em>
-            {rollBurst.mode === 'hit-die'
-              ? `d${hitDieInfo.sides} ${rollBurst.d20} ${fmt(rollBurst.modifier)}`
-              : `d20 ${rollBurst.d20} ${fmt(rollBurst.modifier)}${rollBurst.mode && rollBurst.mode !== 'normal' ? ` • ${rollBurst.mode}` : ''}`}
-          </em>
-        </div>
+        <DiceRollFlicker
+          isOpen={Boolean(rollBurst)}
+          onClose={() => setRollBurst(null)}
+          label={rollBurst.label}
+          rolls={(rollBurst.rolls || rollBurst.allRolls || [rollBurst.d20]).filter(value => value !== undefined).map(value => ({
+            sides: rollBurst.sides || (rollBurst.mode === 'hit-die' ? hitDieInfo.sides : 20),
+            result: typeof value === 'object' ? value.result : value,
+          }))}
+          modifier={rollBurst.modifier}
+          total={rollBurst.total}
+          animationValue={rollBurst.mode !== 'hit-die' && rollBurst.d20 ? rollBurst.d20 : rollBurst.total}
+          isCrit={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 20}
+          isFumble={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 1}
+          theme="player"
+        />
       )}
 
       <header className="clean-sheet-header">
@@ -546,6 +696,39 @@ export default function CleanCharacterSheet() {
         <StatCard icon={Zap} label="Initiative" value={fmt(dexMod)} onClick={() => makeRoll('Initiative', dexMod)} />
         <StatCard icon={Dices} label="Proficiency" value={fmt(proficiencyBonus)} />
         <StatCard icon={User} label="Speed" value={`${speed}ft`} />
+      </section>
+
+      <section className="clean-sheet-table-focus" data-testid="player-table-focus">
+        <div className="clean-sheet-table-focus-copy">
+          <span><Sparkles size={16} /> At the table</span>
+          <strong>Everything you need on your turn, with fewer taps.</strong>
+          <p>Jump straight to attacks, spells, items, notes, or level-up without hunting through the full sheet.</p>
+        </div>
+        <div className="clean-sheet-table-focus-actions">
+          <button type="button" onClick={() => setActiveTab('combat')}>
+            <Swords size={17} /> Combat
+          </button>
+          <button type="button" onClick={() => setActiveTab('spells')}>
+            <BookOpen size={17} /> Spells
+          </button>
+          <button type="button" onClick={() => setActiveTab('inventory')}>
+            <Backpack size={17} /> Items
+          </button>
+          <button type="button" onClick={() => setActiveTab('notes')}>
+            <Edit3 size={17} /> Notes
+          </button>
+          <button type="button" onClick={() => setShowLevelUpWizard(true)}>
+            <TrendingUp size={17} /> Level Up
+          </button>
+        </div>
+      </section>
+
+      <section className="clean-sheet-turn-strip" data-testid="player-turn-strip">
+        <div><span>Roll mode</span><strong>{rollMode === 'normal' ? 'Normal' : rollMode === 'advantage' ? 'Advantage' : 'Disadvantage'}</strong></div>
+        <div><span>Passive Perception</span><strong>{passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10}</strong></div>
+        <div><span>Conditions</span><strong>{activeConditions.length ? activeConditions.length : 'None'}</strong></div>
+        <div><span>Hit Dice</span><strong>{hitDiceRemaining}/{hitDice}</strong></div>
+        <div><span>Concentration</span><strong>{concentratingName || 'None'}</strong></div>
       </section>
 
       <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
@@ -774,12 +957,91 @@ export default function CleanCharacterSheet() {
                 })}
               </div>
             </section>
+
+            {fighterOverview && (
+              <section className="clean-sheet-panel clean-sheet-wide clean-sheet-fighter-overview" data-testid="fighter-overview-panel">
+                <div className="clean-sheet-panel-heading">
+                  <div>
+                    <h2>Fighter Readiness</h2>
+                    <p>{rulesEdition} Fighter level {fighterOverview.level} • {fighterOverview.subclass}</p>
+                  </div>
+                  <button type="button" onClick={() => setActiveTab('combat')}>Open Fighter tools</button>
+                </div>
+                <div className="clean-sheet-fighter-overview-grid">
+                  <div><span>Attacks / Action</span><strong>{fighterOverview.attacksPerAction}</strong><em>Includes Fighter Extra Attack scaling.</em></div>
+                  <div><span>Critical Range</span><strong>{fighterOverview.critRange}</strong><em>Champion bonuses are mirrored here.</em></div>
+                  <div><span>Fighting Style</span><strong>{fighterOverview.fightingStyle}</strong><em>Used by AC, attack, and damage helpers where possible.</em></div>
+                  <div><span>Action Surge</span><strong>{fighterOverview.actionSurges || '—'}</strong><em>{fighterOverview.actionSurges ? 'Short-rest resource.' : 'Unlocks at Fighter 2.'}</em></div>
+                  <div><span>Indomitable</span><strong>{fighterOverview.indomitable || '—'}</strong><em>{fighterOverview.indomitable ? 'Long-rest save reroll resource.' : 'Unlocks at Fighter 9.'}</em></div>
+                  {fighterOverview.maneuversKnown !== null && (
+                    <div><span>Maneuvers</span><strong>{fighterOverview.maneuversKnown}</strong><em>Edit Battle Master maneuvers on Combat.</em></div>
+                  )}
+                </div>
+                <div className="clean-sheet-fighter-callouts">
+                  <p><strong>Subclass reminder:</strong> {fighterOverview.subclassNote}</p>
+                  <p><strong>Next Fighter milestone:</strong> {fighterOverview.nextMilestone}</p>
+                </div>
+              </section>
+            )}
+
+            <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-feature-action-economy">
+              <div className="clean-sheet-panel-heading">
+                <div>
+                  <h2>Class Features & Turn Options</h2>
+                  <p>{rulesEdition} rules • {character.character_class || 'Class'} level {character.level || 1}</p>
+                </div>
+                <span>{classFeatureSummary.length} features</span>
+              </div>
+              <div className="clean-sheet-feature-lanes">
+                {Object.entries(actionEconomyGroups).map(([label, features]) => (
+                  <div key={label} className="clean-sheet-feature-lane">
+                    <h3>{label}</h3>
+                    {features.slice(0, 5).length ? features.slice(0, 5).map((feature) => (
+                      <article key={`${label}-${feature.name}-${feature.level || 'sheet'}`} className="clean-sheet-feature-card">
+                        <div>
+                          <strong>{feature.name}</strong>
+                          {feature.level && <span>Level {feature.level}</span>}
+                        </div>
+                        {feature.uses && <em>{feature.uses}</em>}
+                        {feature.description && <p>{feature.description}</p>}
+                      </article>
+                    )) : (
+                      <p className="clean-sheet-feature-empty">No {label.toLowerCase()} features found yet.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="clean-sheet-panel clean-sheet-wide" data-testid="proficiency-equipment-summary">
+              <div className="clean-sheet-panel-heading">
+                <div>
+                  <h2>Proficiencies & Equipment Readiness</h2>
+                  <p>Quick checks for armour, weapons, tools, languages, AC, speed, and multiclass readiness.</p>
+                </div>
+                <button type="button" onClick={() => setActiveTab('inventory')}>Open inventory</button>
+              </div>
+              <div className="clean-sheet-readiness-grid">
+                <div><span>Armour Class</span><strong>{ac}</strong><em>Derived from equipped armour, shield, and stats.</em></div>
+                <div><span>Speed</span><strong>{speed}ft</strong><em>Check class, race/species, armour, and conditions.</em></div>
+                <div><span>Exhaustion</span><strong>{exhaustionLevel}</strong><em>{exhaustionLevel ? 'Apply condition penalties at the table.' : 'No exhaustion marked.'}</em></div>
+                <div><span>Proficiency</span><strong>{fmt(proficiencyBonus)}</strong><em>Total character level based.</em></div>
+              </div>
+              <div className="clean-sheet-proficiency-lists">
+                {proficiencySummary.map(([label, items]) => (
+                  <div key={label}>
+                    <h3>{label}</h3>
+                    <p>{items.length ? items.slice(0, 10).join(', ') : 'None recorded yet'}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         )}
 
-        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} />}
+        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} onCharacterUpdate={patchCharacter} onDiceResult={(entry) => { setRollBurst(entry); setRollHistory(prev => [entry, ...prev].slice(0, 12)); }} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
-        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} />}
+        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
 

@@ -153,6 +153,7 @@ function CampaignAccessRoute({ username, onLogout }) {
         <div className="loading-spinner">
           <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
         </div>
+        <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
       </div>
     );
   }
@@ -251,7 +252,6 @@ function App() {
     localStorage.setItem(AUTH_USERNAME_KEY, username);
     setIsAuthenticated(true);
     setUsername(username);
-    window.location.href = '/home';
   };
 
   const handleLogout = () => {
@@ -269,6 +269,7 @@ function App() {
         <div className="loading-spinner">
           <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
         </div>
+        <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
       </div>
     );
   }

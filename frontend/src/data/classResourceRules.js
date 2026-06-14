@@ -4,6 +4,15 @@
 
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const levelOf = (character) => Math.max(1, Number(character?.level || 1));
+const classLevelOf = (character, className) => {
+  const target = normalizeName(className);
+  const classLevels = character?.multiclass_levels || character?.class_levels || {};
+  const entry = Object.entries(classLevels).find(([name]) => normalizeName(name) === target);
+  if (entry) return Math.max(0, Number(entry[1]) || 0);
+  return normalizeName(character?.character_class || character?.className || '') === target ? levelOf(character) : 0;
+};
+const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
+const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 export const CLASS_RESOURCE_RULES = {
   Barbarian: [
@@ -49,9 +58,10 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'wild_shape', label: 'Wild Shape', minLevel: 2, restore: 'short-rest', max: () => 2 },
   ],
   Fighter: [
-    { key: 'second_wind', label: 'Second Wind', minLevel: 1, restore: 'short-rest', max: () => 1 },
-    { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) >= 17 ? 2 : 1 },
-    { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => levelOf(character) >= 17 ? 3 : levelOf(character) >= 13 ? 2 : 1 },
+    { key: 'second_wind', label: 'Second Wind', minLevel: 1, restore: (character) => is2024Rules(character) ? 'long-rest' : 'short-rest', max: (character) => is2024Rules(character) ? Math.max(2, Number(character?.proficiency_bonus || 2)) : 1 },
+    { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => classLevelOf(character, 'Fighter') >= 17 ? 2 : 1 },
+    { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => classLevelOf(character, 'Fighter') >= 17 ? 3 : classLevelOf(character, 'Fighter') >= 13 ? 2 : 1 },
+    { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = classLevelOf(character, 'Fighter'); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
   ],
   Monk: [
     { key: 'ki', label: 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) },
@@ -75,7 +85,7 @@ export const CLASS_RESOURCE_RULES = {
 
 export function getClassResourceRules(character) {
   const className = character?.character_class || character?.className || '';
-  const level = levelOf(character);
+  const level = classLevelOf(character, className) || levelOf(character);
   return (CLASS_RESOURCE_RULES[className] || [])
     .filter(rule => level >= (rule.minLevel || 1))
     .map(rule => {

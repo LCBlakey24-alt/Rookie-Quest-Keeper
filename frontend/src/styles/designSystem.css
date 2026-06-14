@@ -1,39 +1,39 @@
 /* ============================================
    ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.2
-   Current app-wide direction: Charcoal + Red + White
-   Clean surfaces, sharp corners, Montserrat typography
+   Current app-wide direction: Mystic Professional
+   Navy surfaces, purple primary actions, cyan player/shared accents
    ============================================ */
 
 :root {
   /* ============ DOCUMENTED RQ TOKENS ============ */
-  --rq-bg-main: #1A1A1A;
-  --rq-bg-page: #181818;
-  --rq-bg-panel: #242424;
-  --rq-bg-panel-alt: #2B2B2B;
-  --rq-bg-elevated: #323232;
-  --rq-bg-input: #1F1F1F;
+  --rq-bg-main: #070B18;
+  --rq-bg-page: #080D1F;
+  --rq-bg-panel: #0D1326;
+  --rq-bg-panel-alt: #121A31;
+  --rq-bg-elevated: #1B2543;
+  --rq-bg-input: #0A1022;
 
-  --rq-accent-primary: #C1121F;
-  --rq-accent-hover: #D62839;
-  --rq-accent-active: #A30F1A;
-  --rq-accent-soft: rgba(193, 18, 31, 0.12);
-  --rq-accent-border: rgba(193, 18, 31, 0.35);
-  --rq-accent-strong-border: rgba(193, 18, 31, 0.62);
+  --rq-accent-primary: #7C3AED;
+  --rq-accent-hover: #A78BFA;
+  --rq-accent-active: #6D28D9;
+  --rq-accent-soft: rgba(124, 58, 237, 0.14);
+  --rq-accent-border: rgba(124, 58, 237, 0.34);
+  --rq-accent-strong-border: rgba(124, 58, 237, 0.56);
 
   --rq-text-primary: #FFFFFF;
-  --rq-text-secondary: #D6D6D6;
-  --rq-text-muted: #A0A0A0;
+  --rq-text-secondary: #D1D5DB;
+  --rq-text-muted: #94A3B8;
   --rq-text-disabled: #6F6F6F;
   --rq-text-inverse: #111111;
 
-  --rq-border-default: #3A3A3A;
-  --rq-border-strong: #4A4A4A;
-  --rq-border-accent: #C1121F;
+  --rq-border-default: rgba(148, 163, 184, 0.18);
+  --rq-border-strong: rgba(124, 58, 237, 0.42);
+  --rq-border-accent: #7C3AED;
 
-  --rq-success: #2E8B57;
-  --rq-warning: #F2A900;
-  --rq-danger: #C1121F;
-  --rq-info: #4F8EF7;
+  --rq-success: #10B981;
+  --rq-warning: #F59E0B;
+  --rq-danger: #EF4444;
+  --rq-info: #38BDF8;
 
   --rq-radius-sm: 4px;
   --rq-radius-md: 6px;
@@ -56,8 +56,8 @@
   --bg-secondary: var(--rq-bg-panel-alt);
   --bg-card: var(--rq-bg-panel);
   --bg-elevated: var(--rq-bg-elevated);
-  --bg-hover: #3A3A3F;
-  --bg-overlay: rgba(26, 26, 26, 0.88);
+  --bg-hover: rgba(124, 58, 237, 0.12);
+  --bg-overlay: rgba(7, 11, 24, 0.88);
 
   --text-primary: var(--rq-text-primary);
   --text-secondary: var(--rq-text-secondary);
@@ -89,30 +89,30 @@
   --gm-active: var(--rq-red-dark);
   --gm-subtle: var(--rq-red-soft);
   --gm-border: var(--rq-red-border);
-  --gm-glow: rgba(193, 18, 31, 0.18);
+  --gm-glow: rgba(124, 58, 237, 0.18);
 
   /* ============ PLAYER THEME ============ */
-  --player-primary: var(--rq-red);
-  --player-hover: var(--rq-red-bright);
-  --player-active: var(--rq-red-dark);
-  --player-subtle: var(--rq-red-soft);
-  --player-border: var(--rq-red-border);
-  --player-glow: rgba(193, 18, 31, 0.18);
+  --player-primary: #38BDF8;
+  --player-hover: #7DD3FC;
+  --player-active: #0284C7;
+  --player-subtle: rgba(56, 189, 248, 0.12);
+  --player-border: rgba(56, 189, 248, 0.34);
+  --player-glow: rgba(56, 189, 248, 0.18);
 
   /* ============ STATUS COLORS ============ */
   --success: var(--rq-success);
-  --success-subtle: rgba(46, 139, 87, 0.15);
+  --success-subtle: rgba(16, 185, 129, 0.15);
   --warning: var(--rq-warning);
-  --warning-subtle: rgba(242, 169, 0, 0.15);
+  --warning-subtle: rgba(245, 158, 11, 0.15);
   --danger: var(--rq-danger);
-  --danger-subtle: rgba(193, 18, 31, 0.15);
+  --danger-subtle: rgba(239, 68, 68, 0.15);
   --info: var(--rq-info);
-  --info-subtle: rgba(79, 142, 247, 0.12);
+  --info-subtle: rgba(56, 189, 248, 0.12);
 
   /* ============ BORDERS & SHADOWS ============ */
-  --border-subtle: rgba(193, 18, 31, 0.14);
-  --border-default: rgba(193, 18, 31, 0.24);
-  --border-strong: rgba(193, 18, 31, 0.42);
+  --border-subtle: rgba(148, 163, 184, 0.12);
+  --border-default: rgba(124, 58, 237, 0.24);
+  --border-strong: rgba(124, 58, 237, 0.42);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.38);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.48);

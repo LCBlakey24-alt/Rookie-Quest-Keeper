@@ -6,6 +6,7 @@ import { calculateArmorAc, findArmorRule } from './armorRules5e';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
+const normalise = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 function getItemName(item) {
   if (!item) return '';
@@ -13,7 +14,7 @@ function getItemName(item) {
   return item.name || item.item_name || item.label || item.title || '';
 }
 
-function parseDamageDice(value) {
+export function parseDamageDice(value) {
   if (!value) return null;
   const text = String(value);
   const match = text.match(/(\d+)d(\d+)/i);
@@ -22,6 +23,18 @@ function parseDamageDice(value) {
     return flat > 0 ? { count: flat, sides: 1 } : null;
   }
   return { count: Number(match[1]), sides: Number(match[2]) };
+}
+
+function isWeaponLike(item) {
+  const type = typeof item === 'string' ? '' : String(item?.type || item?.category || item?.item_type || '').toLowerCase();
+  return Boolean(
+    findWeaponRule(item)
+    || type.includes('weapon')
+    || item?.damage
+    || item?.damage_dice
+    || item?.dice
+    || item?.damageDice
+  );
 }
 
 function getEquippedCandidates(character) {
@@ -57,16 +70,31 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
   const damageType = item?.damage_type || item?.damageType || rule?.damageType || 'weapon';
   const range = item?.range || rule?.range || 'Melee or ranged';
   const properties = item?.properties || item?.property || item?.notes || (rule?.properties || []).join(', ');
+  const propertyText = Array.isArray(properties) ? properties.join(', ') : String(properties || '');
+  const fightingStyle = normalise(character?.fighting_style || character?.fightingStyle || '');
+  const isRangedWeapon = String(rule?.category || item?.category || '').toLowerCase().includes('ranged')
+    || /(^|\s|\/)\d+\/\d+/.test(String(range));
+  const isMeleeWeapon = String(rule?.category || item?.category || '').toLowerCase().includes('melee')
+    || String(range).toLowerCase().includes('melee');
+  const isTwoHanded = propertyText.toLowerCase().includes('two-handed');
+  const offHand = character?.equipped?.offHand || character?.equipped?.off_hand;
+  const offHandIsWeapon = Boolean(offHand && (findWeaponRule(offHand) || String(offHand?.type || offHand?.category || '').toLowerCase().includes('weapon') || offHand?.damage || offHand?.damage_dice));
   const itemBonus = Number(item?.attack_bonus || 0);
-  const attackMod = Number(proficiencyBonus || 0) + abilityMod + itemBonus;
-  const totalDamageMod = abilityMod + itemBonus;
+  const styleAttackBonus = fightingStyle.includes('archery') && isRangedWeapon ? 2 : 0;
+  const styleDamageBonus = fightingStyle.includes('dueling') && isMeleeWeapon && !isTwoHanded && !offHandIsWeapon ? 2 : 0;
+  const attackMod = Number(proficiencyBonus || 0) + abilityMod + itemBonus + styleAttackBonus;
+  const totalDamageMod = abilityMod + itemBonus + styleDamageBonus;
+  const styleNotes = [
+    styleAttackBonus ? 'Archery +2 to hit' : '',
+    styleDamageBonus ? 'Dueling +2 damage' : '',
+  ].filter(Boolean);
 
   return {
     id: `weapon-${String(name).toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
     title: name,
     type: 'Action',
     attackLabel: `${name} Attack`,
-    details: properties ? `${range} • ${properties}` : range,
+    details: [propertyText ? `${range} • ${propertyText}` : range, ...styleNotes].filter(Boolean).join(' • '),
     attackMod,
     attackText: fmt(attackMod),
     saveText: null,
@@ -89,7 +117,7 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
 export function deriveEquippedWeaponAttacks(character, proficiencyBonus = 2) {
   const seen = new Set();
   return getEquippedCandidates(character)
-    .filter(item => findWeaponRule(item) || String(getItemName(item)).trim())
+    .filter(isWeaponLike)
     .map(item => deriveWeaponAttack(item, character, proficiencyBonus))
     .filter(attack => {
       const key = attack.title.toLowerCase();
@@ -99,21 +127,23 @@ export function deriveEquippedWeaponAttacks(character, proficiencyBonus = 2) {
     });
 }
 
-export function deriveArmorClass(character) {
+export function deriveArmorClass(character, options = {}) {
   const dexMod = mod(character?.dexterity);
   const equipped = character?.equipped || {};
   const armor = equipped.armor || equipped.armour;
   const shield = equipped.shield;
-  const explicitAc = Number(character?.armor_class ?? character?.ac ?? 0);
+  const explicitAc = options.ignoreStoredAc ? 0 : Number(character?.armor_class ?? character?.ac ?? 0);
   const unarmoredAc = explicitAc || 10 + dexMod;
 
   const hasArmorRule = Boolean(findArmorRule(armor) || findArmorRule(shield));
+  const defenseBonus = normalise(character?.fighting_style || character?.fightingStyle || '').includes('defense') && armor ? 1 : 0;
+
   if (!hasArmorRule) {
     // No named armour rule, but equipped items may still carry ac_bonus
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
     const shieldBonus = typeof shield === 'object' && shield ? Number(shield.ac_bonus || 0) + 2 : 0;
-    return unarmoredAc + armorBonus + shieldBonus;
+    return unarmoredAc + armorBonus + shieldBonus + defenseBonus;
   }
 
-  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc });
+  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + defenseBonus;
 }

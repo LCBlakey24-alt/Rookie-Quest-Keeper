@@ -1,5 +1,52 @@
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { SPELLCASTING_CLASSES, getMulticlassSpellSlots, getSpellsForClass } from '@/data/spellDatabase';
+
+
+const ABILITY_LABELS = {
+  strength: 'STR',
+  dexterity: 'DEX',
+  constitution: 'CON',
+  intelligence: 'INT',
+  wisdom: 'WIS',
+  charisma: 'CHA',
+};
+
+const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
+const formatBonus = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
+
+function getClassLevels(character = {}) {
+  const fromMap = character?.multiclass_levels || character?.class_levels || {};
+  const entries = Object.entries(fromMap).filter(([, level]) => Number(level) > 0);
+  if (entries.length) return Object.fromEntries(entries.map(([cls, level]) => [cls, Number(level) || 0]));
+
+  const fromArray = (character?.classes || [])
+    .map(cls => [cls?.name || cls?.class_name || cls?.character_class, Number(cls?.level) || 0])
+    .filter(([cls, level]) => cls && level > 0);
+  if (fromArray.length) return Object.fromEntries(fromArray);
+
+  return character?.character_class ? { [character.character_class]: Number(character?.level || 1) || 1 } : {};
+}
+
+function canonicalSpellClass(className = '') {
+  return Object.keys(SPELLCASTING_CLASSES).find(cls => normalizeName(cls) === normalizeName(className)) || className;
+}
+
+function classHasSpellcasting(character = {}, className = '') {
+  const canonical = canonicalSpellClass(className);
+  const info = SPELLCASTING_CLASSES[canonical];
+  if (!info) return false;
+  const classLevels = getClassLevels(character);
+  const level = Number(classLevels[className] ?? classLevels[canonical] ?? 0);
+  if (level <= 0) return false;
+  if (info.halfCaster && level < 2) return false;
+  if (info.subclassOnly) {
+    const subclass = character?.subclass || (character?.classes || []).find(cls => normalizeName(cls?.name || cls?.class_name || cls?.character_class) === normalizeName(canonical))?.subclass || '';
+    return level >= 3 && normalizeName(subclass) === normalizeName(info.subclassOnly);
+  }
+  return true;
+}
 
 function normaliseSpell(spell) {
   if (!spell) return { name: 'Unknown Spell', level: null, school: '' };
@@ -142,6 +189,208 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
   );
 }
 
+
+
+function getEldritchKnightLevel(character = {}) {
+  const classLevels = getClassLevels(character);
+  const fighterEntry = Object.entries(classLevels).find(([className]) => normalizeName(className) === 'fighter');
+  const fighterLevel = Number(fighterEntry?.[1] || 0);
+  const subclass = character?.subclass || (character?.classes || []).find(cls => normalizeName(cls?.name || cls?.class_name || cls?.character_class) === 'fighter')?.subclass || '';
+  return fighterLevel >= 3 && normalizeName(subclass) === 'eldritchknight' ? fighterLevel : 0;
+}
+
+function getEldritchKnightSpellTargets(level) {
+  if (level >= 20) return { cantrips: 3, spells: 13, maxLevel: 4 };
+  if (level >= 19) return { cantrips: 3, spells: 12, maxLevel: 4 };
+  if (level >= 17) return { cantrips: 3, spells: 11, maxLevel: 4 };
+  if (level >= 16) return { cantrips: 3, spells: 11, maxLevel: 3 };
+  if (level >= 14) return { cantrips: 3, spells: 10, maxLevel: 3 };
+  if (level >= 13) return { cantrips: 3, spells: 9, maxLevel: 3 };
+  if (level >= 11) return { cantrips: 3, spells: 8, maxLevel: 2 };
+  if (level >= 10) return { cantrips: 3, spells: 7, maxLevel: 2 };
+  if (level >= 8) return { cantrips: 2, spells: 6, maxLevel: 2 };
+  if (level >= 7) return { cantrips: 2, spells: 5, maxLevel: 2 };
+  return { cantrips: 2, spells: 3, maxLevel: 1 };
+}
+
+function EldritchKnightPanel({ character, level, cantripCount, knownCount, proficiencyBonus, onCharacterUpdate }) {
+  const [selectedCantrip, setSelectedCantrip] = useState('');
+  const [selectedSpell, setSelectedSpell] = useState('');
+  const [saving, setSaving] = useState(false);
+  const targets = getEldritchKnightSpellTargets(level);
+  const intMod = abilityMod(character?.intelligence);
+  const currentCantrips = (character?.cantrips_known || []).map(normaliseSpell);
+  const currentSpells = (character?.spells_known || []).map(normaliseSpell);
+  const wizardSpells = useMemo(() => getSpellsForClass('Wizard'), []);
+  const cantripOptions = useMemo(() => (wizardSpells.cantrips || [])
+    .filter(spell => !currentCantrips.some(known => normalizeName(known.name) === normalizeName(spell.name)))
+    .sort((a, b) => a.name.localeCompare(b.name)), [currentCantrips, wizardSpells]);
+  const spellOptions = useMemo(() => Object.entries(wizardSpells)
+    .filter(([spellLevel]) => Number(spellLevel) > 0 && Number(spellLevel) <= targets.maxLevel)
+    .flatMap(([spellLevel, spells]) => spells.map(spell => ({ ...spell, level: Number(spellLevel) })))
+    .filter(spell => !currentSpells.some(known => normalizeName(known.name) === normalizeName(spell.name)))
+    .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name)), [currentSpells, targets.maxLevel, wizardSpells]);
+
+  const saveSpellList = async (key, nextList, success) => {
+    if (!onCharacterUpdate || saving) return;
+    setSaving(true);
+    const ok = await onCharacterUpdate({ [key]: nextList.map(normaliseSpell) }, { error: 'Could not save Eldritch Knight spells' });
+    if (ok !== false) toast.success(success);
+    setSaving(false);
+  };
+
+  const addCantrip = async () => {
+    const spell = cantripOptions.find(option => option.name === selectedCantrip);
+    if (!spell) return;
+    if (currentCantrips.length >= targets.cantrips) {
+      toast.error(`Eldritch Knight cantrip target is ${targets.cantrips}. Remove one before adding another.`);
+      return;
+    }
+    await saveSpellList('cantrips_known', [...currentCantrips, { ...spell, level: 0 }], `${spell.name} added`);
+    setSelectedCantrip('');
+  };
+
+  const addSpell = async () => {
+    const spell = spellOptions.find(option => option.name === selectedSpell);
+    if (!spell) return;
+    if (currentSpells.length >= targets.spells) {
+      toast.error(`Eldritch Knight known-spell target is ${targets.spells}. Remove one before adding another.`);
+      return;
+    }
+    await saveSpellList('spells_known', [...currentSpells, spell], `${spell.name} added`);
+    setSelectedSpell('');
+  };
+
+  const removeCantrip = (spellName) => {
+    saveSpellList('cantrips_known', currentCantrips.filter(spell => normalizeName(spell.name) !== normalizeName(spellName)), `${spellName} removed`);
+  };
+
+  const removeSpell = (spellName) => {
+    saveSpellList('spells_known', currentSpells.filter(spell => normalizeName(spell.name) !== normalizeName(spellName)), `${spellName} removed`);
+  };
+
+  if (!level) return null;
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide clean-sheet-ek-panel">
+      <div className="clean-sheet-spellcasting-heading">
+        <div>
+          <h2>Eldritch Knight Spellcasting</h2>
+          <p>Fighter spell support for Weapon Bond, War Magic, Intelligence DCs, and known spell targets.</p>
+        </div>
+        <span>Fighter {level}</span>
+      </div>
+      <div className="clean-sheet-ek-grid">
+        <div><span>Spell DC</span><strong>{8 + proficiencyBonus + intMod}</strong><em>8 + prof + INT</em></div>
+        <div><span>Spell attack</span><strong>{formatBonus(proficiencyBonus + intMod)}</strong><em>prof + INT</em></div>
+        <div><span>Cantrips</span><strong>{cantripCount}/{targets.cantrips}</strong><em>Known target</em></div>
+        <div><span>Spells known</span><strong>{knownCount}/{targets.spells}</strong><em>Max spell L{targets.maxLevel}</em></div>
+      </div>
+      <div className="clean-sheet-ek-reminders">
+        <span>Weapon Bond: keep key weapons available and hard to disarm.</span>
+        {level >= 7 && <span>{level >= 18 ? 'Improved War Magic: after casting a spell, make a weapon attack as a bonus action.' : 'War Magic: after casting a cantrip, make a weapon attack as a bonus action.'}</span>}
+      </div>
+      <div className="clean-sheet-ek-manager">
+        <div className="clean-sheet-ek-manager-column">
+          <div className="clean-sheet-ek-manager-heading">
+            <strong>Cantrips</strong>
+            <span>{currentCantrips.length}/{targets.cantrips}</span>
+          </div>
+          <div className="clean-sheet-ek-known-list">
+            {currentCantrips.length ? currentCantrips.map(spell => (
+              <button key={spell.name} type="button" onClick={() => removeCantrip(spell.name)} disabled={saving}>
+                {spell.name}<span>Remove</span>
+              </button>
+            )) : <p>No Eldritch Knight cantrips recorded.</p>}
+          </div>
+          <div className="clean-sheet-ek-picker">
+            <select value={selectedCantrip} onChange={event => setSelectedCantrip(event.target.value)} disabled={saving || currentCantrips.length >= targets.cantrips}>
+              <option value="">Add Wizard cantrip…</option>
+              {cantripOptions.map(spell => <option key={spell.name} value={spell.name}>{spell.name}</option>)}
+            </select>
+            <button type="button" onClick={addCantrip} disabled={saving || !selectedCantrip || currentCantrips.length >= targets.cantrips}>Add</button>
+          </div>
+        </div>
+        <div className="clean-sheet-ek-manager-column">
+          <div className="clean-sheet-ek-manager-heading">
+            <strong>Known spells</strong>
+            <span>{currentSpells.length}/{targets.spells} • max L{targets.maxLevel}</span>
+          </div>
+          <div className="clean-sheet-ek-known-list">
+            {currentSpells.length ? currentSpells.map(spell => (
+              <button key={spell.name} type="button" onClick={() => removeSpell(spell.name)} disabled={saving}>
+                {spell.name}<span>{spellLevelLabel(spell.level)} • Remove</span>
+              </button>
+            )) : <p>No Eldritch Knight spells recorded.</p>}
+          </div>
+          <div className="clean-sheet-ek-picker">
+            <select value={selectedSpell} onChange={event => setSelectedSpell(event.target.value)} disabled={saving || currentSpells.length >= targets.spells}>
+              <option value="">Add Wizard spell…</option>
+              {spellOptions.map(spell => <option key={`${spell.level}-${spell.name}`} value={spell.name}>L{spell.level} — {spell.name}</option>)}
+            </select>
+            <button type="button" onClick={addSpell} disabled={saving || !selectedSpell || currentSpells.length >= targets.spells}>Add</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SpellcastingMathPanel({ character, classLevels, spellcastingRows, slotMath }) {
+  const pact = slotMath?.pactMagic;
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide">
+      <div className="clean-sheet-spellcasting-heading">
+        <div>
+          <h2>Spellcasting Math</h2>
+          <p>Shows the class, spellcasting ability, save DC, spell attack, preparation style, and multiclass slot math used by this sheet.</p>
+        </div>
+        <span>{Object.keys(classLevels).length > 1 ? 'Multiclass' : 'Single class'}</span>
+      </div>
+
+      {spellcastingRows.length > 0 ? (
+        <div className="clean-sheet-caster-grid">
+          {spellcastingRows.map((row) => (
+            <article key={row.className} className="clean-sheet-caster-card">
+              <div className="clean-sheet-caster-card-title">
+                <strong>{row.className}</strong>
+                <span>Level {row.level}</span>
+              </div>
+              <div className="clean-sheet-caster-stats">
+                <div><span>Ability</span><strong>{row.abilityLabel}</strong><em>{formatBonus(row.modifier)}</em></div>
+                <div><span>Save DC</span><strong>{row.saveDc}</strong><em>8 + prof + mod</em></div>
+                <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong><em>prof + mod</em></div>
+                <div><span>Prep/Known</span><strong>{row.prepLabel}</strong><em>{row.castingType}</em></div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="clean-sheet-muted">This character does not currently have a spellcasting class, subclass, or recorded spellcasting data.</p>
+      )}
+
+      <div className="clean-sheet-slot-math-grid">
+        <div><span>Combined caster level</span><strong>{slotMath?.multiclassLevel || 0}</strong><em>Used for shared non-warlock spell slots.</em></div>
+        <div><span>Capped slot level</span><strong>{slotMath?.cappedMulticlassLevel || 0}</strong><em>Epic characters keep slots capped at table level 20.</em></div>
+        <div><span>Pact magic</span><strong>{pact ? `${pact.slots}×L${pact.level}` : 'None'}</strong><em>Warlock slots stay separate.</em></div>
+      </div>
+    </section>
+  );
+}
+
+function PactMagicSlots({ pactMagic }) {
+  if (!pactMagic) return null;
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide">
+      <h2>Pact Magic</h2>
+      <div className="clean-sheet-pact-card">
+        <div><span>Slots</span><strong>{pactMagic.slots}</strong></div>
+        <div><span>Slot level</span><strong>{pactMagic.level}</strong></div>
+        <p>Track these separately from normal spell slots. They usually refresh on a short rest.</p>
+      </div>
+    </section>
+  );
+}
+
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const cantrips = character?.cantrips_known || [];
   const known = character?.spells_known || [];
@@ -151,6 +400,39 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const spellAbility = character?.spellcasting_ability || '';
   const spellDc = character?.spell_save_dc || '';
   const spellAttack = character?.spell_attack_bonus || '';
+  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const classLevels = useMemo(() => getClassLevels(character), [character]);
+  const slotMath = useMemo(() => getMulticlassSpellSlots(classLevels, character), [classLevels, character]);
+  const effectiveSlots = Object.keys(slots || {}).length ? slots : (slotMath?.slots || {});
+  const effectiveRemaining = Object.keys(remaining || {}).length ? remaining : effectiveSlots;
+  const eldritchKnightLevel = useMemo(() => getEldritchKnightLevel(character), [character]);
+  const spellcastingRows = useMemo(() => Object.entries(classLevels)
+    .map(([className, level]) => {
+      const canonical = canonicalSpellClass(className);
+      const info = SPELLCASTING_CLASSES[canonical];
+      if (!info || !classHasSpellcasting(character, className)) return null;
+      const ability = info.ability;
+      const modifier = abilityMod(character?.[ability]);
+      const saveDc = 8 + proficiencyBonus + modifier;
+      const attackBonus = proficiencyBonus + modifier;
+      const preparedLimit = info.type === 'prepared' ? Math.max(1, level + modifier) : null;
+      return {
+        className: canonical,
+        level,
+        ability,
+        abilityLabel: ABILITY_LABELS[ability] || ability,
+        modifier,
+        saveDc,
+        attackBonus,
+        castingType: info.pactMagic ? 'Pact magic' : info.type === 'prepared' ? 'Prepared caster' : 'Known caster',
+        prepLabel: preparedLimit ? `${prepared.length}/${preparedLimit}` : `${known.length} known`,
+      };
+    })
+    .filter(Boolean), [character, classLevels, known.length, prepared.length, proficiencyBonus]);
+  const primaryCaster = spellcastingRows[0];
+  const displayedSpellAbility = spellAbility || primaryCaster?.abilityLabel || '';
+  const displayedSpellDc = spellDc || primaryCaster?.saveDc || '';
+  const displayedSpellAttack = spellAttack || (primaryCaster ? primaryCaster.attackBonus : '');
   const [loadoutName, setLoadoutName] = useState('');
 
   const sortedKnown = useMemo(() => [...known].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [known]);
@@ -286,13 +568,22 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       <section className="clean-sheet-panel clean-sheet-wide">
         <h2>Spellcasting</h2>
         <div className="clean-sheet-spell-summary">
-          <div><span>Ability</span><strong>{spellAbility || '—'}</strong></div>
-          <div><span>Save DC</span><strong>{spellDc || '—'}</strong></div>
-          <div><span>Attack</span><strong>{spellAttack ? `+${spellAttack}` : '—'}</strong></div>
+          <div><span>Ability</span><strong>{displayedSpellAbility || '—'}</strong></div>
+          <div><span>Save DC</span><strong>{displayedSpellDc || '—'}</strong></div>
+          <div><span>Attack</span><strong>{displayedSpellAttack !== '' ? formatBonus(displayedSpellAttack) : '—'}</strong></div>
+          <div><span>Prepared</span><strong>{prepared.length}</strong></div>
         </div>
       </section>
 
-
+      <SpellcastingMathPanel character={character} classLevels={classLevels} spellcastingRows={spellcastingRows} slotMath={slotMath} />
+      <EldritchKnightPanel
+        character={character}
+        level={eldritchKnightLevel}
+        cantripCount={cantrips.length}
+        knownCount={known.length}
+        proficiencyBonus={proficiencyBonus}
+        onCharacterUpdate={onCharacterUpdate}
+      />
 
       <section className="clean-sheet-panel clean-sheet-wide">
         <h2>Rook Spell Setups</h2>
@@ -336,7 +627,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         ) : <p className="clean-sheet-muted">No saved spell setups yet.</p>}
       </section>
 
-      <SpellSlots slots={slots} remaining={remaining} onChangeSlots={handleSlotChange} />
+      <SpellSlots slots={effectiveSlots} remaining={effectiveRemaining} onChangeSlots={handleSlotChange} />
+      <PactMagicSlots pactMagic={slotMath?.pactMagic} />
       <SpellList title="Cantrips" spells={cantrips} emptyText="No cantrips found." tag="Cantrip" />
       <SpellList title="Known Spells" spells={sortedKnown} emptyText="No known spells found." />
       <SpellList title="Prepared Spells" spells={sortedPrepared} emptyText="No prepared spells found." />

@@ -47,6 +47,16 @@ export default function AdminUsersTab() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const media = window.matchMedia('(max-width: 720px)');
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   const loadUsers = async () => {
     try {
@@ -156,9 +166,41 @@ export default function AdminUsersTab() {
 
       {loading ? (
         <div style={emptyStyle}>Loading users...</div>
+      ) : isMobile ? (
+        <div style={mobileListStyle}>
+          {filtered.length === 0 ? (
+            <div style={emptyStyle}>No users match</div>
+          ) : filtered.map(user => (
+            <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle}>
+              <div style={userCardHeaderStyle}>
+                <div style={{ minWidth: 0 }}>
+                  <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
+                  <span style={userMetaStyle}>{user.email || 'No recovery email'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => impersonate(user.username)}
+                  data-testid={`impersonate-${user.username}`}
+                  style={subtleButtonStyle}
+                  disabled={!user.username}
+                >
+                  <LogIn size={12} /> Impersonate
+                </button>
+              </div>
+              <div style={userStatsGridStyle}>
+                <MiniStat label="Joined" value={formatDate(user.created_at)} />
+                <MiniStat label="Characters" value={user.character_count || 0} />
+                <MiniStat label="GM Campaigns" value={user.owned_campaign_count || 0} />
+                <MiniStat label="Player In" value={user.joined_campaign_count || 0} />
+                <MiniStat label="Feedback" value={user.feedback_count || 0} />
+                <MiniStat label="Reviews" value={user.review_count || 0} />
+              </div>
+            </article>
+          ))}
+        </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <div style={tableScrollStyle}>
+          <table style={{ minWidth: 980, width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ color: rq.muted, textAlign: 'left', letterSpacing: 1, fontWeight: 900 }}>
                 <th style={thStyle}>Username</th>
@@ -208,6 +250,15 @@ export default function AdminUsersTab() {
   );
 }
 
+function MiniStat({ label, value }) {
+  return (
+    <div style={miniStatStyle}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
 function Metric({ label, value }) {
   return (
     <div style={metricStyle}>
@@ -222,13 +273,21 @@ function formatDate(value) {
   try { return new Date(value).toLocaleDateString(); } catch { return value; }
 }
 
-const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 'clamp(14px, 3vw, 24px)' };
+const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 'clamp(14px, 3vw, 24px)', minWidth: 0, overflow: 'hidden' };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18, flexWrap: 'wrap', gap: 12 };
-const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 10 };
+const titleStyle = { color: rq.text, fontSize: 'clamp(18px, 5vw, 20px)', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 10 };
 const subtitleStyle = { color: rq.muted, fontSize: 13, margin: '6px 0 0' };
-const metricsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 14 };
+const metricsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: 8, marginBottom: 14 };
 const metricStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 12, textAlign: 'center' };
 const searchStyle = { width: '100%', padding: '10px 14px 10px 34px', background: rq.input, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, fontSize: 13, outline: 'none' };
+const tableScrollStyle = { overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' };
+const mobileListStyle = { display: 'grid', gap: 10 };
+const userCardStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 12, display: 'grid', gap: 12 };
+const userCardHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' };
+const userNameStyle = { display: 'block', color: rq.text, fontSize: 15, overflowWrap: 'anywhere' };
+const userMetaStyle = { display: 'block', color: rq.muted, fontSize: 12, marginTop: 3, overflowWrap: 'anywhere' };
+const userStatsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };
+const miniStatStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 8, display: 'grid', gap: 3, color: rq.textSecondary, fontSize: 11 };
 const emptyStyle = { color: rq.muted, fontSize: 13, padding: 28, textAlign: 'center', background: rq.input, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm };
 const thStyle = { padding: '9px 10px', borderBottom: `1px solid ${rq.border}`, whiteSpace: 'nowrap', textTransform: 'uppercase' };
 const trStyle = { color: rq.text, borderBottom: `1px solid rgba(193,18,31,0.10)` };

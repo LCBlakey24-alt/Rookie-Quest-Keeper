@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rook dragon mark">
+  <rect width="64" height="64" rx="14" fill="#080B1A"/>
+  <circle cx="32" cy="32" r="25" fill="none" stroke="#A78BFA" stroke-width="3"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#60A5FA" stroke-width="2" opacity="0.75"/>
+  <path d="M45 20c-8-6-22-3-28 8 7-5 16-6 23-1-5 0-10 2-13 6 7-2 12-1 16 3-4 0-8 1-11 4 6 0 11-1 15-5 4-4 5-10-2-15Z" fill="#F8FAFC"/>
+  <path d="M17 29c-3 7 1 15 8 19 8 4 18 1 23-7-8 5-18 5-25-1-4-3-6-7-6-11Z" fill="#F8FAFC" opacity="0.95"/>
+  <path d="M41 25l8-8-1 10" fill="#F8FAFC"/>
+  <circle cx="42" cy="27" r="1.2" fill="#080B1A"/>
+</svg>

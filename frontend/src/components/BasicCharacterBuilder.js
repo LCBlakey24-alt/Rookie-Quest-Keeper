@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 
 // Recommended stat arrays by primary ability
@@ -30,6 +31,24 @@ const BACKGROUND_OPTIONS = {
   Gladiator: BACKGROUNDS.Gladiator || GLADIATOR_BACKGROUND,
 };
 
+const FIGHTER_FIGHTING_STYLES = [
+  'Archery',
+  'Defense',
+  'Dueling',
+  'Great Weapon Fighting',
+  'Protection',
+  'Two-Weapon Fighting',
+];
+
+const FIGHTER_STYLE_HELP = {
+  Archery: '+2 to hit with ranged weapon attacks.',
+  Defense: '+1 AC while wearing armour.',
+  Dueling: '+2 damage with a one-handed melee weapon and no off-hand weapon.',
+  'Great Weapon Fighting': 'Reroll very low damage dice with two-handed/heavy melee weapons.',
+  Protection: 'Use your reaction to protect a nearby ally with a shield.',
+  'Two-Weapon Fighting': 'Add your ability modifier to off-hand weapon damage.',
+};
+
 const input = {
   width: '100%', padding: '10px 12px', borderRadius: 8,
   background: 'rgba(15,36,64,0.6)', border: '1px solid #D4A017',
@@ -44,6 +63,7 @@ export default function BasicCharacterBuilder() {
   const [background, setBackground] = useState('Soldier');
   const [level, setLevel] = useState(1);
   const [edition, setEdition] = useState('2014');
+  const [fightingStyle, setFightingStyle] = useState('Defense');
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +76,11 @@ export default function BasicCharacterBuilder() {
   }, [cls]);
 
   // Reset skills when class changes/background changes
-  useEffect(() => { setSelectedSkills([]); }, [characterClass, background]);
+  useEffect(() => {
+    setSelectedSkills([]);
+    if (characterClass === 'Fighter' && !fightingStyle) setFightingStyle('Defense');
+    if (characterClass !== 'Fighter') setFightingStyle('');
+  }, [characterClass, background, fightingStyle]);
 
   const skillOptions = useMemo(() => {
     if (!cls) return [];
@@ -67,6 +91,18 @@ export default function BasicCharacterBuilder() {
 
   const skillCount = cls?.skillCount || 2;
   const bgSkills = bgData?.skillProficiencies || [];
+
+  const applyRookBuild = (patch = {}) => {
+    if (patch.name !== undefined) setName(String(patch.name));
+    if (patch.character_class && CLASSES[patch.character_class]) setCharacterClass(patch.character_class);
+    if (patch.race && RACES[patch.race]) setRace(patch.race);
+    if (patch.background && BACKGROUND_OPTIONS[patch.background]) setBackground(patch.background);
+    if (patch.fighting_style && FIGHTER_FIGHTING_STYLES.includes(patch.fighting_style)) setFightingStyle(patch.fighting_style);
+    if (patch.level !== undefined) {
+      const nextLevel = Math.min(20, Math.max(1, Number.parseInt(patch.level, 10) || 1));
+      setLevel(nextLevel);
+    }
+  };
 
   const toggleSkill = (skill) => {
     if (bgSkills.includes(skill)) return;
@@ -84,6 +120,9 @@ export default function BasicCharacterBuilder() {
     if (!name.trim()) return toast.error('Name is required');
     if (selectedSkills.length !== skillCount) {
       return toast.error(`Pick ${skillCount} class skill${skillCount === 1 ? '' : 's'} before creating`);
+    }
+    if (characterClass === 'Fighter' && !fightingStyle) {
+      return toast.error('Pick a Fighter Fighting Style before creating');
     }
     const conMod = Math.floor(((statBlock.constitution || 10) - 10) / 2);
     const maxHP = Math.max(1, (cls?.hitDie || 8) + conMod);
@@ -121,6 +160,7 @@ export default function BasicCharacterBuilder() {
         weapon_proficiencies: cls?.weaponProficiencies || [],
         tool_proficiencies: bgData?.toolProficiencies || [],
         languages: baseLanguages,
+        fighting_style: characterClass === 'Fighter' ? fightingStyle : '',
         class_features: classFeatures,
         racial_traits: racialTraits,
         starting_equipment: [...(cls?.startingEquipment || []), ...(bgData?.equipment || [])]
@@ -138,8 +178,25 @@ export default function BasicCharacterBuilder() {
   return (
     <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{, color: '#D4A017', margin: 0 }}>Basic Build</h1>
+        <h1 style={{ color: '#D4A017', margin: 0 }}>Basic Build</h1>
         <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, and traits.</p>
+
+        <RookFormFillPanel
+          title="Describe the character you want to play"
+          helperText="Rook can suggest a starter build, then import the class/race/background/level/name into these boxes."
+          section="player basic character build"
+          fields={[
+            { name: 'name', label: 'Character name', field_type: 'text' },
+            { name: 'character_class', label: 'Class', field_type: 'select', choices: Object.keys(CLASSES) },
+            { name: 'race', label: 'Race/species', field_type: 'select', choices: Object.keys(RACES) },
+            { name: 'background', label: 'Background', field_type: 'select', choices: Object.keys(BACKGROUND_OPTIONS) },
+            { name: 'fighting_style', label: 'Fighter fighting style', field_type: 'select', choices: FIGHTER_FIGHTING_STYLES },
+            { name: 'level', label: 'Starting level', field_type: 'number' },
+          ]}
+          currentValues={{ name, character_class: characterClass, race, background, fighting_style: fightingStyle, level }}
+          onApply={applyRookBuild}
+          placeholder="Example: I want to play a sneaky archer who avoids direct fights and talks their way out of trouble."
+        />
 
         <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
           <label style={{ fontSize: 12, color: '#94A3B8' }}>Character Name
@@ -164,6 +221,39 @@ export default function BasicCharacterBuilder() {
               {Object.keys(CLASSES).map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
+
+          {characterClass === 'Fighter' && (
+            <div style={{ padding: 12, border: '1px solid rgba(124,58,237,0.55)', borderRadius: 10, background: 'rgba(124,58,237,0.12)' }} data-testid="basic-fighter-style-panel">
+              <div style={{ fontSize: 12, color: '#C4B5FD', fontWeight: 800, marginBottom: 6 }}>
+                Fighter Fighting Style <span style={{ color: '#FCA5A5' }}>(required at level 1)</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 6 }}>
+                {FIGHTER_FIGHTING_STYLES.map(style => {
+                  const selected = fightingStyle === style;
+                  return (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => setFightingStyle(style)}
+                      data-testid={`basic-fighter-style-${style.toLowerCase().replace(/ /g, '-')}`}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        border: `1px solid ${selected ? '#8B5CF6' : 'rgba(148,163,184,0.25)'}`,
+                        background: selected ? 'rgba(124,58,237,0.35)' : 'rgba(15,36,64,0.72)',
+                        color: '#F8FAFC',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <strong style={{ display: 'block', fontSize: 12 }}>{selected ? '✓ ' : ''}{style}</strong>
+                      <span style={{ color: '#CBD5E1', fontSize: 11 }}>{FIGHTER_STYLE_HELP[style]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <label style={{ fontSize: 12, color: '#94A3B8' }}>Race
             <select style={input} value={race} onChange={e => setRace(e.target.value)} data-testid="basic-race">
@@ -219,12 +309,12 @@ export default function BasicCharacterBuilder() {
           </div>
 
           <button
-            disabled={loading || selectedSkills.length !== skillCount}
+            disabled={loading || selectedSkills.length !== skillCount || (characterClass === 'Fighter' && !fightingStyle)}
             onClick={submit}
             data-testid="basic-submit"
             style={{
               marginTop: 8, padding: '12px 20px', borderRadius: 8, fontWeight: 700,
-              background: loading || selectedSkills.length !== skillCount ? 'rgba(212,160,23,0.2)' : '#D4A017',
+              background: loading || selectedSkills.length !== skillCount || (characterClass === 'Fighter' && !fightingStyle) ? 'rgba(212,160,23,0.2)' : '#D4A017',
               border: '1px solid #D4A017', color: '#0A1628', cursor: 'pointer', fontSize: 15
             }}>
             {loading ? 'Creating...' : 'Create Character'}

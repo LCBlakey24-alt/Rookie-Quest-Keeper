@@ -12,8 +12,8 @@ import {
 
 // GM Theme - Red (Tron Aries)
 const theme = {
-  primary: '#F59E0B',
-  hover: '#D97706',
+  primary: '#7C3AED',
+  hover: '#A78BFA',
   subtle: 'rgba(225, 29, 72, 0.15)',
   glow: '0 0 20px rgba(225, 29, 72, 0.3)',
   bg: '#0B0F19',
@@ -22,17 +22,17 @@ const theme = {
   text: '#FFFFFF',
   textSecondary: '#B3B3B3',
   muted: '#808080',
-  border: 'rgba(212, 175, 55, 0.15)'
+  border: 'rgba(124, 58, 237, 0.22)'
 };
 
 // Relationship types with colors and icons
 const RELATIONSHIP_TYPES = [
   { id: 'ally', label: 'Ally', color: '#22C55E', icon: HandshakeIcon },
   { id: 'enemy', label: 'Enemy', color: '#D97706', icon: Swords },
-  { id: 'family', label: 'Family', color: '#8A2BE2', icon: Heart },
-  { id: 'romantic', label: 'Romantic', color: '#4DD0E1', icon: Heart },
-  { id: 'business', label: 'Business', color: '#F59E0B', icon: Crown },
-  { id: 'rival', label: 'Rival', color: '#F97316', icon: AlertCircle },
+  { id: 'family', label: 'Family', color: '#38BDF8', icon: Heart },
+  { id: 'romantic', label: 'Romantic', color: '#38BDF8', icon: Heart },
+  { id: 'business', label: 'Business', color: '#14B8A6', icon: Crown },
+  { id: 'rival', label: 'Rival', color: '#A78BFA', icon: AlertCircle },
   { id: 'neutral', label: 'Neutral', color: '#6B7280', icon: HelpCircle },
   { id: 'servant', label: 'Serves', color: '#06B6D4', icon: Shield },
 ];
