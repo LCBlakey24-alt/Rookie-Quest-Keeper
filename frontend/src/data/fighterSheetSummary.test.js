@@ -10,6 +10,7 @@ describe('Fighter sheet summary', () => {
     expect(summary.criticalRange).toEqual({ minimum: 20, label: '20' });
     expect(summary.isChampion).toBe(false);
     expect(summary.isBattleMaster).toBe(false);
+    expect(summary.isMagicSubclass).toBe(false);
   });
 
   test('adds Champion critical range and subclass features for Champion Fighters', () => {
@@ -17,6 +18,7 @@ describe('Fighter sheet summary', () => {
 
     expect(summary.isChampion).toBe(true);
     expect(summary.isBattleMaster).toBe(false);
+    expect(summary.isMagicSubclass).toBe(false);
     expect(summary.criticalRange).toEqual({ minimum: 18, label: '18–20' });
     expect(summary.subclassFeatures.map(feature => feature.key)).toContain('superior_critical');
   });
@@ -33,11 +35,24 @@ describe('Fighter sheet summary', () => {
 
     expect(summary.isBattleMaster).toBe(true);
     expect(summary.isChampion).toBe(false);
+    expect(summary.isMagicSubclass).toBe(false);
     expect(summary.battleMaster).toMatchObject({
       superiorityDie: 10,
       superiorityDice: 6,
       maneuverCount: 9,
     });
     expect(summary.subclassFeatures.map(feature => feature.key)).toContain('relentless');
+  });
+
+  test('adds magic subclass spell slots and feature summary', () => {
+    const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Eldritch Knight', level: 18, rules_edition: '2024' });
+
+    expect(summary.isMagicSubclass).toBe(true);
+    expect(summary.isChampion).toBe(false);
+    expect(summary.isBattleMaster).toBe(false);
+    expect(summary.magicSubclass).toMatchObject({
+      spellSlots: [4, 3, 3, 0],
+    });
+    expect(summary.subclassFeatures.map(feature => feature.key)).toContain('improved_war_magic');
   });
 });
