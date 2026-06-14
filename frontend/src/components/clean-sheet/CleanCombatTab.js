@@ -4,6 +4,7 @@ import { getClassResourceRules } from '@/data/classResourceRules';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import { getFighterProgressionSummary } from '@/data/fighterProgression';
 import { findWeaponRule, getWeaponAbilityMod } from '@/data/equipmentRules5e';
+import FighterSummarySection from './FighterSummarySection';
 
 const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -442,6 +443,7 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
       </div></section>
 
       <FighterFocusPanel fighterLevel={fighterLevel} fighterSubclass={fighterSubclass} fighterPlan={fighterPlan} maneuvers={fighterManeuvers} resources={classResources} onSecondWind={handleSecondWind} onActionSurge={handleActionSurge} onIndomitable={handleIndomitable} onManeuver={handleManeuver} />
+      <FighterSummarySection character={character} />
 
       <ActionSection title="Attacks / Spells">{attackOptions.map(attack => <AttackCard key={attack.id} action={attack} onAttack={() => rollAttack(attack)} onDamage={() => rollDamage(attack.damage)} active={pendingDamage?.label === attack.damage.label}>{pendingDamage?.label === attack.damage.label && <div className="clean-sheet-pending-damage"><span>Attack rolled. If it hits, use the damage box on this card.</span><button type="button" onClick={() => setPendingDamage(null)}>Cancel</button></div>}</AttackCard>)}</ActionSection>
       <ActionSection title="Actions"><SimpleActionCard title="Dash" description="Gain extra movement equal to your speed this turn." /><SimpleActionCard title="Disengage" description="Your movement does not provoke opportunity attacks this turn." /><SimpleActionCard title="Dodge" description="Attack rolls against you have disadvantage until your next turn." /><SimpleActionCard title="Help" description="Give an ally advantage on a relevant check or attack." /><SimpleActionCard title="Ready" description="Prepare an action to trigger later this round." /></ActionSection>
