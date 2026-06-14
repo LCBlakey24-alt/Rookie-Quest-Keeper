@@ -46,7 +46,7 @@ function InGameNotesTab({ campaignId }) {
       const response = await apiClient.get(`/campaigns/${campaignId}/ingame-notes`);
       setNotes(response.data);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load notes');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load notes');
     } finally {
       setLoading(false);
     }
@@ -59,14 +59,14 @@ function InGameNotesTab({ campaignId }) {
       const applied = response.data?.applied_updates || [];
       if (applied.length > 0) {
         toast.success(`${applied.length} campaign update${applied.length === 1 ? '' : 's'} applied`, {
-          description: applied.slice(0, 2).map(update => update.summary).join(' '),
+          description: applied.slice(0, 2).map(update => update.summary || update).filter(Boolean).join(' '),
         });
       } else if (showEmptyToast) {
         toast.info('Note saved', { description: 'No clear player, NPC, or location changes were detected automatically.' });
       }
       fetchNotes();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to sync note into campaign state');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to sync note into campaign state');
     } finally {
       setSyncingNote(null);
     }
@@ -87,7 +87,7 @@ function InGameNotesTab({ campaignId }) {
       await syncNoteIntoCampaignState(response.data.id, false);
       fetchNotes();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to add note');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to add note');
     }
   };
 
@@ -100,7 +100,7 @@ function InGameNotesTab({ campaignId }) {
       toast.success('Rook processing complete!');
       fetchNotes();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Rook processing failed');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Rook processing failed');
     } finally {
       setProcessingNote(null);
     }
@@ -134,7 +134,7 @@ function InGameNotesTab({ campaignId }) {
         toast.success(`Added God: ${data.name}`);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to apply suggestion');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to apply suggestion');
     }
   };
 
@@ -145,7 +145,7 @@ function InGameNotesTab({ campaignId }) {
       toast.success('Note deleted');
       fetchNotes();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to delete note');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to delete note');
     }
   };
 
@@ -164,9 +164,9 @@ function InGameNotesTab({ campaignId }) {
       toast.success(`Rook drafted a recap and synced it to ${res.data.players_synced} players!`);
     } catch (error) {
       if (error.response?.status === 403) {
-        toast.error('Rook recap unavailable', { description: error.response?.data?.detail || 'Please try again later.' });
+        toast.error('Rook recap unavailable', { description: error?.formattedDetail || error.response?.data?.detail || 'Please try again later.' });
       } else {
-        toast.error(error?.response?.data?.detail || 'Failed to generate recap');
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to generate recap');
       }
     } finally {
       setGeneratingRecap(false);
@@ -263,7 +263,9 @@ function InGameNotesTab({ campaignId }) {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 400px)', gap: '24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {notes.map(note => (
+            {notes.map(note => {
+              const syncSummaries = getSyncSummaries(note);
+              return (
               <Card key={note.id} data-testid={`ingame-note-card-${note.id}`} style={{ background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius }}>
                 <CardContent style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px', gap: '12px', flexWrap: 'wrap' }}>
@@ -272,10 +274,22 @@ function InGameNotesTab({ campaignId }) {
                         {new Date(note.session_date || note.created_at).toLocaleDateString()} {new Date(note.session_date || note.created_at).toLocaleTimeString()}
                       </p>
                       {note.ai_processed && (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: 'rgba(46,139,87,0.12)', borderRadius: rq.radiusSm, border: '1px solid rgba(46,139,87,0.35)' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: 'rgba(46,139,87,0.12)', borderRadius: rq.radiusSm, border: '1px solid rgba(46,139,87,0.35)', marginRight: '8px' }}>
                           <CheckCircle size={14} style={{ color: rq.success }} />
                           <span style={{ fontSize: '12px', color: rq.success, fontWeight: 800 }}>Rook Processed</span>
                         </div>
+                      )}
+                      {note.world_synced && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: rq.accentSoft, borderRadius: rq.radiusSm, border: `1px solid ${rq.border}`, marginTop: '6px' }}>
+                          <CheckCircle size={14} style={{ color: rq.accentHover }} />
+                          <span style={{ fontSize: '12px', color: rq.accentHover, fontWeight: 800 }}>Tabs synced</span>
+                        </div>
+                      )}
+                      {syncSummaries.length > 0 && (
+                        <ul style={{ margin: '8px 0 0 18px', padding: 0, color: rq.textSecondary, fontSize: '12px', lineHeight: 1.5 }}>
+                          {syncSummaries.slice(0, 3).map((summary, index) => <li key={`${note.id}-sync-${index}`}>{summary}</li>)}
+                          {syncSummaries.length > 3 && <li>+{syncSummaries.length - 3} more synced update{syncSummaries.length - 3 === 1 ? '' : 's'}</li>}
+                        </ul>
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -334,7 +348,7 @@ function InGameNotesTab({ campaignId }) {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );})}
           </div>
           
           <div style={{ position: 'sticky', top: '100px' }}>
@@ -476,6 +490,15 @@ function InGameNotesTab({ campaignId }) {
       </Dialog>
     </div>
   );
+}
+
+function getSyncSummaries(note) {
+  const summary = note?.world_sync_summary;
+  if (!summary) return [];
+  if (Array.isArray(summary)) return summary.map(item => typeof item === 'string' ? item : item?.summary).filter(Boolean);
+  if (typeof summary === 'string') return [summary];
+  if (typeof summary === 'object') return Object.values(summary).flat().map(item => typeof item === 'string' ? item : item?.summary).filter(Boolean);
+  return [];
 }
 
 function SuggestionGroup({ title, children }) {
