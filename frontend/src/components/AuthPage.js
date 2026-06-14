@@ -28,14 +28,20 @@ export default function AuthPage({ onLogin }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!loginData.username || !loginData.password) {
+    const identifier = loginData.username.trim();
+    const password = loginData.password;
+
+    if (!identifier || !password) {
       toast.error('Please fill in all fields');
       return;
     }
 
+    const payload = { username: identifier, password };
+    if (identifier.includes('@')) payload.email = identifier;
+
     setLoading(true);
     try {
-      const response = await apiClient.post('/auth/login', loginData);
+      const response = await apiClient.post('/auth/login', payload);
       toast.success('Welcome back!');
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
