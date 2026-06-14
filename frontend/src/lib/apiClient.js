@@ -18,7 +18,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.data?.detail) {
-      error.response.data.detail = formatApiErrorDetail(error.response.data.detail);
+      error.formattedDetail = formatApiErrorDetail(error.response.data.detail);
     }
     if (error?.response?.status === 401) {
       clearAuthToken();
