@@ -193,11 +193,25 @@ async def login(user_data: UserLogin):
     if not identifier:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    lookup = {'email': identifier.lower()} if '@' in identifier else {'username': identifier}
-    user = await db.users.find_one(lookup)
-    if not user and '@' not in identifier:
+    lookup_candidates = []
+    if '@' in identifier:
+        lower_identifier = identifier.lower()
+        lookup_candidates.append({'email': lower_identifier})
+        # Legacy accounts may have been created before optional recovery email
+        # support, with the email address stored directly as username.
+        lookup_candidates.append({'username': identifier})
+        if lower_identifier != identifier:
+            lookup_candidates.append({'username': lower_identifier})
+    else:
+        lookup_candidates.append({'username': identifier})
         # Compatibility for older clients that may still send an email in a generic field.
-        user = await db.users.find_one({'email': identifier.lower()})
+        lookup_candidates.append({'email': identifier.lower()})
+
+    user = None
+    for lookup in lookup_candidates:
+        user = await db.users.find_one(lookup)
+        if user:
+            break
 
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -319,54 +333,33 @@ async def update_account(request: UpdateAccountRequest, username: str = Depends(
         
         # Also update username in campaigns
         await db.campaigns.update_many(
-            {'user_id': username},
-            {'$set': {'user_id': new_username}}
-        )
-        await db.campaigns.update_many(
             {'dm_user_id': username},
             {'$set': {'dm_user_id': new_username}}
         )
+        # Update in characters
+        await db.player_characters.update_many(
+            {'user_id': username},
+            {'$set': {'user_id': new_username}}
+        )
     
-    if request.email:
-        # Check if new email is taken
-        existing = await db.users.find_one({'email': request.email.lower()})
-        if existing and existing['username'] != username:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        updates['email'] = request.email.lower()
+    if request.email is not None:
+        normalized_email = request.email.lower() if request.email else None
+        if normalized_email:
+            existing = await db.users.find_one({'email': normalized_email, 'username': {'$ne': username}})
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already registered")
+            updates['email'] = normalized_email
+        else:
+            updates['email'] = None
     
     if updates:
         await db.users.update_one({'username': username}, {'$set': updates})
     
-    # Get updated user
-    new_username = updates.get('username', username)
-    user = await db.users.find_one({'username': new_username})
-    
-    # Generate new token if username changed
-    token = create_token(new_username)
-    
-    return {
-        "message": "Account updated successfully",
-        "token": token,
-        "username": new_username,
-        "email": user.get('email')
-    }
-
-@router.get("/account/profile")
-async def get_account_profile(username: str = Depends(get_current_user)):
-    """Get current user's account details"""
-    user = await db.users.find_one({'username': username}, {'_id': 0, 'password_hash': 0})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    user = await db.users.find_one({'username': updates.get('username', username)}, {'_id': 0, 'password_hash': 0})
     return user
 
-@router.delete("/account/delete")
+@router.delete("/account")
 async def delete_account(username: str = Depends(get_current_user)):
-    """Delete user account and associated owned data."""
-    summary = await cleanup_user_account(username)
-    logger.info(f"Deleted account {username}: {summary}")
-    return {"message": "Account deleted successfully"}
-
-@router.get("/auth/me")
-async def get_me(username: str = Depends(get_current_user)):
-    user = await db.users.find_one({'username': username}, {'_id': 0, 'password_hash': 0})
-    return user
+    """Delete current user account and associated data."""
+    result = await cleanup_user_account(username)
+    return {"message": "Account deleted", **result}
