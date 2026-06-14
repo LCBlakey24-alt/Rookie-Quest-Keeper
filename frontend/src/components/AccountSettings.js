@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, setAuthToken } from '@/lib/auth';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
   AlertTriangle, CheckCircle, Eye, EyeOff
@@ -37,7 +36,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       setNewUsername(response.data.username);
       setNewEmail(response.data.email || '');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to load profile');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load profile');
     } finally {
       setLoading(false);
     }
@@ -49,7 +48,6 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
     try {
       const updates = {};
-      if (newUsername !== profile.username) updates.username = newUsername;
       if (newEmail.trim() && newEmail.trim() !== (profile.email || '')) updates.email = newEmail.trim();
 
       if (Object.keys(updates).length === 0) {
@@ -60,21 +58,15 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
       const response = await apiClient.put('/account/update', updates);
 
-      if (response.data.username !== username) {
-        localStorage.setItem(AUTH_USERNAME_KEY, response.data.username);
-        setAuthToken(response.data.token);
-        onUsernameChange(response.data.username);
-      }
-
       setProfile({
         ...profile,
-        username: response.data.username,
+        username: response.data.username || profile.username,
         email: response.data.email || '',
       });
 
       toast.success('Profile updated successfully!');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to update profile');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -110,7 +102,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to change password');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to change password');
     } finally {
       setSaving(false);
     }
@@ -129,7 +121,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       onLogout();
       navigate('/');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to delete account');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to delete account');
     } finally {
       setSaving(false);
     }
@@ -161,7 +153,8 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           <form onSubmit={handleUpdateProfile}>
             <div style={{ display: 'grid', gap: '20px' }}>
               <FieldLabel icon={User} text="Username" />
-              <Input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Username: letters, numbers, _ or -" data-testid="profile-username" />
+              <Input type="text" value={newUsername} disabled readOnly placeholder="Username" data-testid="profile-username" />
+              <p style={helpTextStyle}>Username changes are paused for now so campaign, character, handout, and private playtest records stay safely linked to the account.</p>
 
               <FieldLabel icon={Mail} text="Recovery Email (optional)" />
               <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
