@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowLeft, ShieldCheck } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 export default function AuthPage({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -39,7 +40,7 @@ export default function AuthPage({ onLogin }) {
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Login failed');
+      toast.error(getErrorMessage(error, 'Login failed'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ export default function AuthPage({ onLogin }) {
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Registration failed');
+      toast.error(getErrorMessage(error, 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ export default function AuthPage({ onLogin }) {
       toast.success('Password reset email sent!');
       setMode('login');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to send reset email');
+      toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ export default function AuthPage({ onLogin }) {
       setMode('login');
       navigate('/auth');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Password reset failed');
+      toast.error(getErrorMessage(error, 'Password reset failed'));
     } finally {
       setLoading(false);
     }
@@ -295,24 +296,24 @@ function AuthSwitch({ text, actionText, onClick }) {
   );
 }
 
-const pageStyle = { minHeight: '100vh', position: 'relative', overflow: 'hidden', background: '#07111F' };
-const backgroundStyle = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #07111F 0%, #0F172A 48%, #111827 100%)', zIndex: 0 };
-const backgroundGlowStyle = { position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 22% 18%, rgba(124,58,237,0.20) 0%, transparent 42%), radial-gradient(ellipse at 80% 78%, rgba(14,165,233,0.14) 0%, transparent 38%)', zIndex: 1 };
-const contentStyle = { position: 'relative', zIndex: 2, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 18px' };
-const logoWrapStyle = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px', cursor: 'pointer' };
+const pageStyle = { minHeight: '100dvh', position: 'relative', overflowX: 'hidden', overflowY: 'auto', background: '#07111F', WebkitOverflowScrolling: 'touch' };
+const backgroundStyle = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #07111F 0%, #0F172A 48%, #111827 100%)', zIndex: 0, pointerEvents: 'none' };
+const backgroundGlowStyle = { position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 22% 18%, rgba(124,58,237,0.20) 0%, transparent 42%), radial-gradient(ellipse at 80% 78%, rgba(14,165,233,0.14) 0%, transparent 38%)', zIndex: 1, pointerEvents: 'none' };
+const contentStyle = { position: 'relative', zIndex: 2, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 'max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom))' };
+const logoWrapStyle = { display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 20px', cursor: 'pointer', flexShrink: 0 };
 const logoStyle = { height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 10px rgba(124,58,237,0.45))' };
 const logoTextStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '24px', fontWeight: 900, color: 'var(--rq-text-primary, #FFFFFF)', letterSpacing: '0.08em' };
-const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(15,23,42,0.90)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', border: '1px solid rgba(124,58,237,0.30)', borderRadius: '18px', padding: '26px', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
+const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(15,23,42,0.94)', border: '1px solid rgba(124,58,237,0.30)', borderRadius: '18px', padding: 'clamp(18px, 5vw, 26px)', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
 const titleStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '1.55rem', color: 'var(--rq-text-primary, #FFFFFF)', margin: '0 0 6px 0', fontWeight: 900 };
 const subtitleStyle = { color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px', margin: 0 };
 const kidSafeNoteStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45, margin: '-4px 0 14px' };
 const accountChangeNoticeStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(46,139,87,0.12)', border: '1px solid rgba(46,139,87,0.35)', padding: '10px 12px', marginBottom: '18px' };
-const inputWrapperStyle = { position: 'relative', marginBottom: '12px' };
-const inputStyle = { width: '100%', padding: '12px 14px 12px 44px', background: 'rgba(15,23,42,0.86)', border: '1px solid rgba(148,163,184,0.26)', borderRadius: '12px', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '14px', outline: 'none', transition: 'all 0.15s ease' };
-const iconStyle = { position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#A78BFA' };
-const linkButtonStyle = { background: 'none', border: 'none', color: '#A78BFA', fontSize: '12px', cursor: 'pointer', marginBottom: '18px', padding: 0, fontWeight: 800 };
-const primaryButtonStyle = { width: '100%', padding: '12px', background: 'linear-gradient(135deg, #7C3AED, #0EA5E9)', border: '1px solid rgba(167,139,250,0.55)', borderRadius: '12px', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '15px', fontWeight: 900, transition: 'all 0.15s ease', boxShadow: '0 10px 26px rgba(76,29,149,0.28)' };
-const secondaryButtonStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'transparent', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '14px', fontWeight: 800, cursor: 'pointer' };
+const inputWrapperStyle = { position: 'relative', marginBottom: '16px' };
+const inputStyle = { width: '100%', padding: '14px 16px 14px 48px', background: 'var(--rq-bg-input, #1F1F1F)', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '16px', outline: 'none', transition: 'all 0.15s ease' };
+const iconStyle = { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--rq-accent-primary, #C1121F)' };
+const linkButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #D62839)', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: 800 };
+const primaryButtonStyle = { width: '100%', minHeight: 46, padding: '14px', background: 'var(--rq-accent-primary, #C1121F)', border: '1px solid var(--rq-accent-primary, #C1121F)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '16px', fontWeight: 800, transition: 'all 0.15s ease', boxShadow: '0 4px 16px rgba(193,18,31,0.24)' };
+const secondaryButtonStyle = { width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'transparent', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '14px', fontWeight: 800, cursor: 'pointer' };
 const switchWrapStyle = { textAlign: 'center', marginTop: '24px', color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px' };
 const switchButtonStyle = { background: 'none', border: 'none', color: '#A78BFA', fontWeight: 800, cursor: 'pointer', padding: 0 };
-const footerStyle = { marginTop: '32px', color: 'var(--rq-text-disabled, #6F6F6F)', fontSize: '13px' };
+const footerStyle = { marginTop: '24px', color: 'var(--rq-text-disabled, #6F6F6F)', fontSize: '13px', paddingBottom: 8 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Dices, LogOut, Sword } from 'lucide-react';
@@ -79,25 +79,7 @@ export default function LiveSessionGridPage() {
   const [diceFumble, setDiceFumble] = useState(false);
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
-  useEffect(() => { fetchAllData(); }, [campaignId]);
-
-  useEffect(() => {
-    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
-  }, [campaignId, explodingDiceEnabled]);
-
-  useEffect(() => {
-    if (!campaign) return;
-    try {
-      const key = `gm.explodingDice.${campaignId}`;
-      if (localStorage.getItem(key) === null) {
-        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-      }
-    } catch {
-      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-    }
-  }, [campaign, campaignId]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       const [campaignRes, playersRes, scenariosRes, calendarRes, notesRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}`),
@@ -116,7 +98,25 @@ export default function LiveSessionGridPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+
+  useEffect(() => {
+    try { localStorage.setItem(`gm.explodingDice.${campaignId}`, String(explodingDiceEnabled)); } catch { /* ignore */ }
+  }, [campaignId, explodingDiceEnabled]);
+
+  useEffect(() => {
+    if (!campaign) return;
+    try {
+      const key = `gm.explodingDice.${campaignId}`;
+      if (localStorage.getItem(key) === null) {
+        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+      }
+    } catch {
+      setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
+    }
+  }, [campaign, campaignId]);
 
   const rollQuickDice = (notation, label = '', rollType = 'normal') => {
     const result = rollDiceNotation(notation, {
@@ -323,5 +323,5 @@ const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'ce
 const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
-const explodingToggleStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 6, background: theme.accent.subtle, border: `1px solid ${theme.border}`, color: theme.text.secondary, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.5, cursor: 'pointer' };
 const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
+const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer' };

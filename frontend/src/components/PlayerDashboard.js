@@ -88,9 +88,8 @@ export default function PlayerDashboard() {
   const playerSummaryCards = useMemo(() => ([
     { label: 'Characters', value: characters.length, icon: Shield, detail: characters.length === 1 ? 'ready hero' : 'ready heroes' },
     { label: 'Campaigns', value: linkedCampaigns.length, icon: BookOpen, detail: linkedCampaigns.length === 1 ? 'linked table' : 'linked tables' },
-    { label: 'Handouts', value: handoutSummary.unread ? `${handoutSummary.unread} new` : handoutSummary.total, icon: Mail, detail: handoutSummary.saved ? `${handoutSummary.saved} saved clues` : 'received clues' },
     { label: 'Active Character', value: selectedCharacter?.name || 'None yet', icon: Users, detail: selectedCharacter ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}` : 'Create one to begin' },
-  ]), [characters.length, handoutSummary.saved, handoutSummary.total, handoutSummary.unread, linkedCampaigns.length, selectedCharacter]);
+  ]), [characters.length, linkedCampaigns.length, selectedCharacter]);
 
   useEffect(() => {
     loadPlayerData();
@@ -198,16 +197,28 @@ export default function PlayerDashboard() {
         </section>
       )}
 
-
-      {selectedCharacter && (
-        <ActiveCharacterPanel
-          character={selectedCharacter}
-          navigate={navigate}
-          onJoin={openJoinFlow}
-          onOpenHandouts={() => setActiveTab('handouts')}
-          handoutSummary={handoutSummary}
-        />
-      )}
+      <section className="player-desktop-context" style={desktopContextStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Current Player Space</p>
+          <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
+          <p style={desktopTextStyle}>Desktop gives players a quick command centre for sheets, linked campaigns, notes, and GM handouts without squeezing everything into a phone layout.</p>
+        </div>
+        <div style={summaryGridStyle}>
+          {playerSummaryCards.map(card => {
+            const Icon = card.icon;
+            return (
+              <div key={card.label} style={summaryCardStyle}>
+                <Icon size={18} color={rq.accentHover} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={summaryLabelStyle}>{card.label}</p>
+                  <strong style={summaryValueStyle}>{card.value}</strong>
+                  <span style={summaryDetailStyle}>{card.detail}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <nav style={tabBarStyle} aria-label="Player dashboard tabs">
         {tabs.map(tab => {
@@ -253,9 +264,9 @@ export default function PlayerDashboard() {
       {activeTab === 'characters' && <CharactersTab characters={characters} navigate={navigate} onCreate={() => navigate('/characters/new')} onJoin={openJoinFlow} />}
       {activeTab === 'campaigns' && <CampaignsTab campaigns={linkedCampaigns} navigate={navigate} onJoin={openJoinFlow} />}
       {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-      {activeTab === 'handouts' && <PlayerHandoutsPanel onSummaryChange={setHandoutSummary} />}
+      {activeTab === 'handouts' && <PlayerHandoutsPanel />}
 
-      <style>{`@media (max-width: 1024px) { .player-desktop-context { display: none !important; } } @media (max-width: 900px) { .player-active-panel-fix { grid-template-columns: 1fr !important; } } @media (max-width: 720px) { .player-dashboard-actions { width: 100%; } }`}</style>
+      <style>{`@media (max-width: 1024px) { .player-desktop-context { display: none !important; } } @media (max-width: 720px) { .player-dashboard-actions { width: 100%; } }`}</style>
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
@@ -416,47 +427,33 @@ function EmptyPanel({ icon: Icon, title, text, action }) {
   );
 }
 
-const pageStyle = { minHeight: '100dvh', background: 'radial-gradient(circle at top left, rgba(37,99,235,0.22), transparent 34%), radial-gradient(circle at top right, rgba(124,58,237,0.28), transparent 36%), var(--rq-bg-main, #080B1A)', padding: 'clamp(10px, 1.7vw, 18px)', color: rq.text, maxWidth: 1440, margin: '0 auto' };
-const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '10px', flexWrap: 'wrap', background: 'linear-gradient(135deg, rgba(37,99,235,0.16), rgba(124,58,237,0.18))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '12px 14px', boxShadow: '0 16px 42px rgba(0,0,0,0.22)' };
-const iconButtonStyle = { minWidth: 36, height: 36, padding: 0, borderRadius: rq.radiusSm };
-const eyebrowStyle = { color: rq.accentHover, fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 3px' };
-const titleStyle = { color: rq.text, fontSize: 'clamp(20px, 2.8vw, 28px)', fontWeight: 900, margin: 0, lineHeight: 1.08 };
-const subtitleStyle = { color: rq.textSecondary, fontSize: 12, lineHeight: 1.35, margin: '5px 0 0', maxWidth: 680 };
-const heroActionsStyle = { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' };
-const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px, 0.45fr) minmax(0, 1fr)', gap: '10px', alignItems: 'center', background: 'rgba(18,23,42,0.78)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: '10px', marginBottom: '10px' };
-const desktopTitleStyle = { color: rq.text, fontSize: 'clamp(16px, 1.4vw, 20px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', minWidth: 0 };
-const summaryCardStyle = { display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, background: 'rgba(255,255,255,0.045)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '8px 10px' };
-const summaryLabelStyle = { color: rq.muted, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.65, margin: '0 0 2px' };
-const summaryValueStyle = { display: 'block', color: rq.text, fontSize: 14, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const summaryDetailStyle = { display: 'block', color: rq.textSecondary, fontSize: 11, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const actionButtonStyle = { display: 'flex', alignItems: 'center', gap: '7px', borderRadius: rq.radiusSm, fontWeight: 900, minHeight: 34, padding: '7px 11px', fontSize: 12 };
-const joinStripStyle = { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', background: 'rgba(13,18,36,0.88)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: '8px 10px', marginBottom: '10px' };
-const joinLabelStyle = { color: rq.textSecondary, fontSize: 12, fontWeight: 900 };
-const selectStyle = { minWidth: 200, flex: '1 1 200px', background: rq.input, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '8px 10px', fontSize: 12 };
-const tabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', marginBottom: '10px', background: 'rgba(13,18,36,0.78)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: 6 };
-const tabButtonStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', padding: '9px 10px', background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.28), rgba(124,58,237,0.34))' : 'transparent', border: `1px solid ${active ? rq.border : 'transparent'}`, color: active ? rq.text : rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer', fontWeight: 900, minHeight: 36, fontSize: 12 });
-const tabBadgeStyle = { minWidth: 17, height: 17, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', borderRadius: 999, background: 'linear-gradient(135deg, #A855F7, #38BDF8)', color: '#fff', fontSize: 9, fontWeight: 900, boxShadow: '0 0 12px rgba(168,85,247,0.35)' };
-
-const activeCharacterStyle = { display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) minmax(240px, 0.9fr) auto', gap: 10, alignItems: 'center', background: 'linear-gradient(135deg, rgba(56,189,248,0.11), rgba(124,58,237,0.16))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '10px 12px', marginBottom: '10px', minWidth: 0 };
-const activeCharacterTitleStyle = { color: rq.text, fontSize: 'clamp(17px, 2vw, 22px)', fontWeight: 950, margin: 0, lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const activeCharacterSubtitleStyle = { color: rq.textSecondary, fontSize: 12, lineHeight: 1.35, margin: '5px 0 0' };
-const activeCharacterStatsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: 6, minWidth: 0 };
-const miniStatStyle = { display: 'grid', gap: 3, minHeight: 52, alignContent: 'center', background: 'rgba(7,11,24,0.58)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '7px 9px', minWidth: 0 };
-const miniStatLabelStyle = { color: rq.muted, fontSize: 9, fontWeight: 950, letterSpacing: 0.8, textTransform: 'uppercase' };
-const miniStatValueStyle = { color: rq.text, fontSize: 14, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const activeCharacterActionsStyle = { display: 'flex', gap: 7, justifyContent: 'flex-end', flexWrap: 'wrap' };
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '10px' };
-const cardStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius };
-const cardContentStyle = { padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' };
-const cardTitleStyle = { color: rq.text, fontSize: 15, fontWeight: 900, margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const cardMetaStyle = { color: rq.textSecondary, fontSize: 12, lineHeight: 1.35, margin: 0 };
-const linkedTextStyle = { color: rq.accentHover, fontSize: 11, fontWeight: 900, margin: '6px 0 0' };
-
-const characterCardStatsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 2 };
-const characterCardStatStyle = { display: 'grid', gap: 2, background: 'rgba(7,11,24,0.52)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '7px 8px', minWidth: 0 };
-const characterCardStatLabelStyle = { color: rq.muted, fontSize: 9, fontWeight: 950, textTransform: 'uppercase', letterSpacing: 0.7 };
-const characterCardStatValueStyle = { color: rq.text, fontSize: 12, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const pageStyle = { minHeight: '100vh', background: rq.bg, padding: 'var(--rq-space-page, 24px)', color: rq.text, maxWidth: 1680, margin: '0 auto' };
+const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '20px', flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '20px' };
+const iconButtonStyle = { minWidth: 40, height: 40, padding: 0, borderRadius: rq.radiusSm };
+const eyebrowStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 4px' };
+const titleStyle = { color: rq.text, fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
+const subtitleStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.5, margin: '8px 0 0', maxWidth: 720 };
+const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' };
+const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(420px, 0.9fr)', gap: '18px', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(56,189,248,0.10), rgba(193,18,31,0.06))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '18px', marginBottom: '18px', boxShadow: '0 18px 50px rgba(0,0,0,0.20)' };
+const desktopTitleStyle = { color: rq.text, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
+const desktopTextStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.55, margin: '8px 0 0', maxWidth: 760 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px', minWidth: 0 };
+const summaryCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, background: 'rgba(255,255,255,0.055)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '12px' };
+const summaryLabelStyle = { color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, margin: '0 0 4px' };
+const summaryValueStyle = { display: 'block', color: rq.text, fontSize: 16, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const summaryDetailStyle = { display: 'block', color: rq.textSecondary, fontSize: 12, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const actionButtonStyle = { display: 'flex', alignItems: 'center', gap: '8px', borderRadius: rq.radiusSm, fontWeight: 900 };
+const joinStripStyle = { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '12px', marginBottom: '18px' };
+const joinLabelStyle = { color: rq.textSecondary, fontSize: 13, fontWeight: 900 };
+const selectStyle = { minWidth: 220, flex: '1 1 220px', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px' };
+const tabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '8px', marginBottom: '20px' };
+const tabButtonStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: active ? rq.accentSoft : rq.panel, border: `1px solid ${active ? rq.accent : rq.border}`, color: active ? rq.accentHover : rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer', fontWeight: 900 });
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '16px' };
+const cardStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius };
+const cardContentStyle = { padding: '18px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' };
+const cardTitleStyle = { color: rq.text, fontSize: 18, fontWeight: 900, margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const cardMetaStyle = { color: rq.textSecondary, fontSize: 13, lineHeight: 1.5, margin: 0 };
+const linkedTextStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, margin: '8px 0 0' };
 const cardActionsStyle = { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: 'auto' };
 const cardButtonStyle = { display: 'flex', alignItems: 'center', gap: '6px', borderRadius: rq.radiusSm, minHeight: 34, padding: '7px 11px', fontSize: 12 };
 const emptyPanelStyle = { background: rq.panel, border: `1px dashed ${rq.border}`, borderRadius: rq.radius, padding: '30px 18px', textAlign: 'center' };

@@ -60,7 +60,3 @@ The app should feel like a mystical spellcaster's campaign desk: dark navy surfa
 7. Handouts and player clue library.
 8. Inventory and item assignment.
 9. Homebrew / private playtest creation.
-
-## Responsive layout blueprint
-
-For the detailed desktop/tablet/mobile layout templates, navigation rules, colour palette, and implementation order, see `docs/RESPONSIVE_UI_BLUEPRINT.md`.

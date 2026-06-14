@@ -67,32 +67,19 @@ function getItemKey(item, index = '') {
 
 
 function normaliseReferenceItem(item) {
-  const category = String(item?.category || '').toLowerCase();
-  const isArmor = ['light', 'medium', 'heavy', 'shield'].includes(category) || item?.ac || item?.acBonus;
-  const isShield = category === 'shield' || String(item?.name || '').toLowerCase().includes('shield');
+  const isArmor = ['light', 'medium', 'heavy', 'shield'].includes(String(item?.category || '').toLowerCase()) || item?.ac || item?.acBonus;
+  const isShield = String(item?.category || '').toLowerCase() === 'shield' || String(item?.name || '').toLowerCase().includes('shield');
   const damageParts = String(item?.damage || '').match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
   return normaliseItem({
-    id: item?.id,
-    equipment_ref: item?.id || item?.name,
     name: item?.name || 'Equipment',
     type: isShield ? 'Shield' : isArmor ? 'Armour' : 'Weapon',
-    category: item?.category || '',
     quantity: 1,
-    description: [
-      item?.category,
-      Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties,
-      item?.range ? `Range: ${item.range}` : '',
-      item?.cost ? `Cost: ${item.cost}` : '',
-      item?.weight ? `${item.weight} lb` : '',
-    ].filter(Boolean).join(' • '),
+    description: [item?.category, Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties, item?.cost ? `Cost: ${item.cost}` : ''].filter(Boolean).join(' • '),
     damage_dice: damageParts && !isArmor ? damageParts[1] : '',
     damage_type: damageParts && !isArmor ? (item?.damageType || damageParts[2] || '') : '',
     range: item?.range || '',
     properties: Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties || '',
-    ac: item?.ac,
-    ac_bonus: isShield ? Number(item?.acBonus || 2) - 2 : Number(item?.magic_bonus || 0),
-    stealth_disadvantage: Boolean(item?.stealthDisadvantage),
-    strength_requirement: item?.strRequirement || item?.strengthRequired || 0,
+    ac_bonus: 0,
   });
 }
 
@@ -183,9 +170,6 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
   const [itemSearch, setItemSearch] = useState('');
-  const [selectedReferenceKey, setSelectedReferenceKey] = useState('');
-  const [equipmentSearch, setEquipmentSearch] = useState('');
-  const [equipmentTypeFilter, setEquipmentTypeFilter] = useState('all');
 
   const equipped = character?.equipped || {};
   const equipment = character?.equipment || [];
@@ -201,61 +185,20 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
     return allCarriedItems.filter(item => `${getItemName(item)} ${getItemDetail(item)}`.toLowerCase().includes(q));
   }, [allCarriedItems, itemSearch]);
 
-  const referenceCatalog = useMemo(() => [
-    ...ALL_WEAPONS.map((item, index) => ({
-      key: `weapon-${item.category || 'weapon'}-${item.name}-${index}`,
-      kind: 'weapon',
-      item,
-      label: `${item.name} — ${item.damage}${item.damageType ? ` ${item.damageType}` : ''}`,
-      searchText: `${item.name} weapon ${item.category || ''} ${item.damage || ''} ${item.damageType || ''} ${(item.properties || []).join(' ')}`.toLowerCase(),
-    })),
-    ...ALL_ARMOR.map((item, index) => ({
-      key: `armor-${item.category || 'armor'}-${item.name}-${index}`,
-      kind: item.category === 'shield' ? 'shield' : 'armor',
-      item,
-      label: `${item.name}${item.ac ? ` — AC ${item.ac}` : item.acBonus ? ` — AC +${item.acBonus}` : ''}`,
-      searchText: `${item.name} ${item.category || ''} armor shield ac ${item.ac || ''} ${item.acBonus || ''}`.toLowerCase(),
-    })),
-  ], []);
-
-  const filteredReferenceCatalog = useMemo(() => {
-    const q = equipmentSearch.trim().toLowerCase();
-    return referenceCatalog.filter(entry => {
-      const typeMatches = equipmentTypeFilter === 'all' || entry.kind === equipmentTypeFilter;
-      const searchMatches = !q || entry.searchText.includes(q);
-      return typeMatches && searchMatches;
-    });
-  }, [equipmentSearch, equipmentTypeFilter, referenceCatalog]);
-
-  const selectedReferenceEntry = referenceCatalog.find(entry => entry.key === selectedReferenceKey) || null;
-  const selectedReference = selectedReferenceEntry?.item || null;
-  const selectedReferenceItem = selectedReference ? normaliseReferenceItem(selectedReference) : null;
-
   const referenceMatches = useMemo(() => {
     const q = itemSearch.trim().toLowerCase();
     if (q.length < 2) return [];
-    return referenceCatalog
-      .filter(entry => entry.searchText.includes(q))
-      .slice(0, 6)
-      .map(entry => entry.item);
-  }, [itemSearch, referenceCatalog]);
+    return [...ALL_WEAPONS, ...ALL_ARMOR]
+      .filter(item => `${item.name} ${item.category || ''} ${item.damage || ''}`.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [itemSearch]);
 
   const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
-
-  const selectedReferenceSlot = selectedReferenceItem ? inferEquipSlot(selectedReferenceItem) : null;
-  const selectedReferenceAttack = selectedReferenceItem && selectedReferenceSlot === 'mainHand' ? deriveWeaponAttack(selectedReferenceItem, character, proficiencyBonus) : null;
-  const selectedReferenceAc = selectedReferenceItem && ['armor', 'shield'].includes(selectedReferenceSlot)
-    ? deriveArmorClass({ ...character, equipped: { ...equipped, [selectedReferenceSlot]: { ...selectedReferenceItem, equip_slot: selectedReferenceSlot } } }, { ignoreStoredAc: true })
-    : null;
 
   const makeWeaponRoll = (item) => {
     const attack = deriveWeaponAttack(item, character, proficiencyBonus);
     const roll = Math.floor(Math.random() * 20) + 1;
     const total = roll + Number(attack.attackMod || 0);
-    if (onRoll) {
-      onRoll(attack.attackLabel, attack.attackMod || 0);
-      return;
-    }
     toast.success(`${attack.title} attack: ${roll} ${attack.attackText} = ${total}`, {
       description: `${attack.damageText} ${attack.damageType || ''} damage if it hits`,
     });

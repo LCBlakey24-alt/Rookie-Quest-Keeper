@@ -548,7 +548,6 @@ export default function CleanCharacterSheet() {
           }))}
           modifier={rollBurst.modifier}
           total={rollBurst.total}
-          animationValue={rollBurst.mode !== 'hit-die' && rollBurst.d20 ? rollBurst.d20 : rollBurst.total}
           isCrit={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 20}
           isFumble={rollBurst.mode !== 'hit-die' && rollBurst.d20 === 1}
           theme="player"

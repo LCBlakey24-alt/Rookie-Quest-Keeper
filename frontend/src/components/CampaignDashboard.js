@@ -26,46 +26,46 @@ import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
 const theme = {
-  bg: { black: '#070B18', panel: 'rgba(13,19,38,0.96)', card: 'rgba(18,26,49,0.94)' },
-  accent: { primary: '#7C3AED', hover: '#A78BFA', player: '#38BDF8', subtle: 'rgba(124,58,237,0.12)', red: '#7C3AED', redSubtle: 'rgba(124,58,237,0.12)' },
+  bg: { black: '#080B1A', panel: 'rgba(18,23,42,0.96)', card: 'rgba(23,30,51,0.96)' },
+  accent: { primary: '#7C3AED', subtle: 'rgba(124,58,237,0.12)', red: '#7C3AED', redSubtle: 'rgba(124,58,237,0.12)' },
   text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
   border: 'rgba(124,58,237,0.42)',
-  gradient: 'linear-gradient(135deg, #7C3AED, #38BDF8)',
+  gradient: '#7C3AED',
 };
 
 
 const sessionPrepTheme = {
   bg: {
-    primary: '#080B1A',
-    surface: '#12172A',
-    elevated: '#202A46',
-    panel: '#12172A',
-    card: '#171E33',
-    hover: 'rgba(124, 58, 237, 0.12)',
+    primary: '#1F1F23',
+    surface: '#27272B',
+    elevated: '#323235',
+    panel: '#27272B',
+    card: '#27272B',
+    hover: 'rgba(239, 68, 68, 0.12)',
   },
   accent: {
-    primary: '#7C3AED',
-    secondary: '#38BDF8',
-    gold: '#7C3AED',
-    orange: '#A78BFA',
-    hover: '#A78BFA',
-    subtle: 'rgba(124, 58, 237, 0.12)',
+    primary: '#EF4444',
+    secondary: '#B91C1C',
+    gold: '#EF4444',
+    orange: '#F87171',
+    hover: '#F87171',
+    subtle: 'rgba(239, 68, 68, 0.12)',
     glow: 'none',
-    gm: '#7C3AED',
-    gmSubtle: 'rgba(124, 58, 237, 0.12)',
+    gm: '#EF4444',
+    gmSubtle: 'rgba(239, 68, 68, 0.12)',
   },
   text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124, 58, 237, 0.42)',
-  gradient: 'linear-gradient(135deg, #7C3AED, #38BDF8)',
+  border: 'rgba(239, 68, 68, 0.42)',
+  gradient: '#EF4444',
 };
 
 
 const workspacePanelStyle = {
-  background: 'linear-gradient(180deg, rgba(18,23,42,0.94), rgba(8,11,26,0.96))',
+  background: 'linear-gradient(180deg, rgba(39,39,43,0.94), rgba(31,31,35,0.96))',
   border: `1px solid ${theme.border}`,
-  borderRadius: 14,
-  padding: 'clamp(12px, 1.6vw, 18px)',
-  minHeight: 480,
+  borderRadius: 8,
+  padding: 'clamp(14px, 2vw, 24px)',
+  minHeight: 500,
   minWidth: 0,
   boxShadow: '0 18px 50px rgba(0,0,0,0.28)',
 };
@@ -79,12 +79,12 @@ const desktopContextStyle = {
   padding: '14px 16px',
   background: 'rgba(255,255,255,0.035)',
   border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 12,
+  borderRadius: 8,
   minWidth: 0,
 };
 const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase' };
 const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, overflowWrap: 'anywhere' };
-const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.accent.subtle, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' };
+const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.accent.subtle, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' };
 
 const tabGroups = [
   { id: 'prep', label: 'Prep', icon: CalendarDays, tabs: [
@@ -107,7 +107,14 @@ const tabGroups = [
     { id: 'players', icon: Users, label: 'Players' },
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
   ] },
-  { id: 'run', label: 'Run', icon: Swords, tabs: [
+  { id: 'sessions', label: 'Sessions', icon: Sparkles, tabs: [
+    { id: 'tonight', icon: CalendarDays, label: "Tonight's Session" },
+    { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
+    { id: 'session-recap', icon: Sparkles, label: 'Rook Recap' },
+    { id: 'handouts', icon: Mail, label: 'Handouts' },
+    { id: 'tools', icon: ScrollText, label: 'Rook Tools' },
+  ] },
+  { id: 'combat', label: 'Combat', icon: Swords, tabs: [
     { id: 'combat', icon: Swords, label: 'Encounters' },
     { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
     { id: 'tools', icon: ScrollText, label: 'Rook Tools' },
@@ -210,8 +217,8 @@ function CampaignDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: `radial-gradient(circle at top left, rgba(124,58,237,0.14), transparent 34%), radial-gradient(circle at top right, rgba(56,189,248,0.09), transparent 32%), ${theme.bg.black}`, display: 'flex', flexDirection: 'column', overflow: 'visible' }}>
-      <header style={{ background: 'rgba(7,11,24,0.88)', borderBottom: `1px solid ${theme.border}`, padding: '8px 14px', position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(16px)' }}>
+    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible' }}>
+      <header style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '8px 14px', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: theme.accent.red, display: 'none', padding: 8 }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
@@ -225,24 +232,23 @@ function CampaignDashboard() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
-        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 244, minWidth: 244, background: 'rgba(13,19,38,0.94)', borderRight: `1px solid ${theme.border}`, padding: '12px 0', overflowY: 'auto', transition: 'transform 0.3s ease', backdropFilter: 'blur(12px)' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 260, minWidth: 260, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '16px 0', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
           <h3 style={{ color: theme.accent.primary, fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 16 }}>Campaign Tools</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
         </aside>
         {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 39, display: 'none' }} />}
-        <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(10px, 1.4vw, 18px)', minWidth: 0 }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
           {activeTabMeta && (
             <div className="desktop-context" style={desktopContextStyle}>
               <div style={{ minWidth: 0 }}>
                 <p style={desktopEyebrowStyle}>{activeTabMeta.group.label}</p>
                 <h2 style={desktopTitleStyle}>{activeTabMeta.tab.label}</h2>
               </div>
-              <span style={desktopPillStyle}>{campaign.rules_edition || '2024'} rules · {campaign.world_genre || 'fantasy'}</span>
+              <span style={desktopPillStyle}>Desktop workspace</span>
             </div>
           )}
           <section style={workspacePanelStyle}>
-            {activeTab === 'campaign-rules' && <CampaignRulesTab campaignId={campaignId} />}
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
             {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}

@@ -11,9 +11,9 @@
 
 /* ===== RESPONSIVE SAFETY & DESIGN TOKENS ===== */
 :root {
-  --rq-role-gm: #7C3AED;
+  --rq-role-gm: #EF4444;
   --rq-role-player: #38BDF8;
-  --rq-role-rook: #C084FC;
+  --rq-role-rook: #A855F7;
   --rq-role-homebrew: #14B8A6;
   --rq-role-lore: #F59E0B;
   --rq-surface-soft: rgba(255,255,255,0.06);
@@ -22,20 +22,8 @@
 }
 
 html, body, #root {
-  width: 100%;
-  min-height: 100%;
   max-width: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
-}
-
-body {
-  min-height: 100dvh;
-  background: var(--bg-black, #080B1A);
-}
-
-#root, .App {
-  min-height: 100dvh;
 }
 
 img, video, canvas, svg {
@@ -61,40 +49,6 @@ img, video, canvas, svg {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-.rq-page {
-  width: 100%;
-  min-width: 0;
-  color: var(--text-primary, #FFFFFF);
-}
-
-.rq-panel,
-.rq-card {
-  background: var(--bg-panel, #27272B);
-  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.1));
-  border-radius: 8px;
-  min-width: 0;
-}
-
-.rq-card {
-  background: var(--bg-card, #27272B);
-}
-
-.rq-button-primary {
-  background: var(--accent-red, #7C3AED);
-  color: #FFFFFF;
-  border: 1px solid var(--accent-red-border, rgba(124, 58, 237, 0.32));
-  border-radius: 6px;
-  font-weight: 900;
-}
-
-.rq-button-secondary {
-  background: var(--accent-red-subtle, rgba(124, 58, 237, 0.14));
-  color: var(--text-primary, #FFFFFF);
-  border: 1px solid var(--accent-red-border, rgba(124, 58, 237, 0.32));
-  border-radius: 6px;
-  font-weight: 900;
 }
 
 .rq-role-rook { border-color: rgba(168,85,247,0.38) !important; }

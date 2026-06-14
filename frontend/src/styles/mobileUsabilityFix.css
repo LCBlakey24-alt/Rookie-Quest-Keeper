@@ -1,0 +1,189 @@
+/*
+ * Mobile usability rescue layer
+ *
+ * This file deliberately sits after the main design CSS. It avoids changing the
+ * desktop look while making phone/tablet views scrollable, lighter, and easier
+ * to operate with touch.
+ */
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root,
+  .App {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+  }
+
+  body {
+    position: static;
+  }
+
+  .App {
+    max-width: 100vw;
+  }
+
+  main,
+  section,
+  article,
+  aside,
+  header,
+  nav,
+  footer,
+  form,
+  .rq-page-shell,
+  .card,
+  .glow-card,
+  .glow-panel,
+  .parchment-dark {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea,
+  button,
+  [role="button"],
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .btn-icon,
+  .clickable-box {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  textarea {
+    max-height: 50dvh;
+  }
+
+  .modal,
+  [role="dialog"] {
+    width: min(96vw, 680px) !important;
+    max-width: 96vw !important;
+    max-height: 86dvh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-nav,
+  .horizontal-tabs,
+  .admin-tabs,
+  .builder-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tab-nav > *,
+  .horizontal-tabs > *,
+  .admin-tabs > *,
+  .builder-tabs > * {
+    flex: 0 0 auto;
+  }
+
+  .rq-responsive-grid,
+  .dashboard-grid,
+  .cards-grid,
+  .stats-grid,
+  .builder-grid,
+  .combat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .desktop-only,
+  .desktop-logos {
+    display: none !important;
+  }
+
+  .glass-panel,
+  .glass-panel-strong,
+  .glow-panel,
+  .glow-card,
+  .card-glow {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  .smokey-bg,
+  .light-trail,
+  .light-trail-blue,
+  .light-trail-blue-2,
+  .light-trail-blue-3,
+  .light-trail-red,
+  .light-trail-red-2,
+  .light-trail-red-3 {
+    display: none !important;
+  }
+
+  .tron-bg::before,
+  .tron-border-blue::before,
+  .tron-border-red::before,
+  .tron-border-spin-blue::before,
+  .tron-border-spin-red::before,
+  .tron-border-spin-dual::before {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .tron-border-blue,
+  .tron-border-red,
+  .tron-border-spin-blue,
+  .tron-border-spin-red,
+  .tron-border-spin-dual {
+    overflow: visible;
+  }
+
+  .hover-lift:hover,
+  .hover-scale:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .rq-page-shell {
+    padding: 12px;
+  }
+
+  .card,
+  .glow-card,
+  .glow-panel,
+  .parchment-dark,
+  .wizard-step {
+    padding: 12px;
+  }
+
+  h1 { font-size: clamp(24px, 8vw, 32px); }
+  h2 { font-size: clamp(20px, 7vw, 28px); }
+  h3 { font-size: clamp(18px, 6vw, 24px); }
+}
+
+@media (prefers-reduced-motion: reduce), (max-width: 900px) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

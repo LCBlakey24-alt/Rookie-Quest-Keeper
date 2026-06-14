@@ -6,41 +6,19 @@ import { ChevronRight, Crown, Home, Library, LogOut, Plus, RefreshCw, Settings, 
 import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: '#070B18',
-  panel: 'rgba(13,19,38,0.96)',
-  panelSoft: 'rgba(18,26,49,0.9)',
-  elevated: 'rgba(27,37,67,0.96)',
-  border: 'rgba(124,58,237,0.32)',
-  borderStrong: 'rgba(124,58,237,0.52)',
+  bg: '#080B1A',
+  panel: '#12172A',
+  panelSoft: '#0D1224',
+  elevated: '#171E33',
+  border: 'rgba(191,219,254,0.14)',
+  borderStrong: 'rgba(124,58,237,0.38)',
   accent: '#7C3AED',
   accentHover: '#A78BFA',
   accentSoft: 'rgba(124,58,237,0.14)',
   player: '#38BDF8',
   text: '#FFFFFF',
   textSecondary: '#D1D5DB',
-  muted: '#94A3B8',
-};
-
-const CLASS_OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
-const GENRE_OPTIONS = [
-  ['fantasy', 'Fantasy'],
-  ['medieval', 'Medieval'],
-  ['sci_fi', 'Sci-fi'],
-  ['modern', 'Modern'],
-  ['horror', 'Horror'],
-  ['custom', 'Custom'],
-];
-
-const defaultCampaignForm = {
-  name: '',
-  description: '',
-  world_name: '',
-  world_genre: 'fantasy',
-  rules_edition: '2024',
-  allow_exploding_dice: false,
-  allow_epic_levels: false,
-  max_character_level: 20,
-  available_classes: [],
+  muted: '#9CA3AF',
 };
 
 const defaultSiteSettings = {
@@ -184,7 +162,7 @@ export default function UnifiedDashboard({ username, onLogout }) {
     <main style={pageStyle}>
       <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-          <img src="/images/logo-mini.png" alt="ROOK" style={{ width: 42, height: 42, objectFit: 'contain' }} />
+          <img src="/images/logo-mini.png" alt="ROOK" style={{ width: 42, height: 42, objectFit: 'contain', flex: '0 0 auto' }} />
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Rookie Quest Keeper</p>
             <h1 style={titleStyle}>Command Dashboard</h1>
@@ -317,43 +295,37 @@ function SummaryGrid({ recentCharacters, recentCampaigns, navigate, openCampaign
 
 function scrollToSection(id) { const node = document.getElementById(id); if (node) node.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 function HeaderButton({ icon: Icon, label, onClick, disabled }) { return <button type="button" onClick={onClick} disabled={disabled} style={headerButtonStyle(disabled)}><Icon size={16} /><span>{label}</span></button>; }
-function ActionCard({ icon: Icon, title, text, meta, onClick, primary = false, disabled = false }) { return <button type="button" onClick={onClick} disabled={disabled} style={actionCardStyle(primary, disabled)}><div style={actionIconStyle(primary)}><Icon size={24} /></div><div style={{ flex: 1, textAlign: 'left' }}><div style={actionTitleStyle}>{title}</div><div style={actionTextStyle}>{text}</div><div style={actionMetaStyle(disabled)}>{meta}</div></div><ChevronRight size={20} color={disabled ? theme.muted : theme.accentHover} /></button>; }
+function ActionCard({ icon: Icon, title, text, meta, onClick, primary = false, disabled = false }) { return <button type="button" onClick={onClick} disabled={disabled} style={actionCardStyle(primary, disabled)}><div style={actionIconStyle(primary)}><Icon size={24} /></div><div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}><div style={actionTitleStyle}>{title}</div><div style={actionTextStyle}>{text}</div><div style={actionMetaStyle(disabled)}>{meta}</div></div><ChevronRight size={20} color={disabled ? theme.muted : theme.accentHover} /></button>; }
 function SummaryPanel({ id, icon: Icon, title, emptyTitle, emptyText, actionLabel, onAction, children }) { const hasItems = React.Children.count(children) > 0; return <section id={id} style={panelStyle}><div style={panelHeaderStyle}><h2 style={panelTitleStyle}><Icon size={20} /> {title}</h2><button type="button" onClick={onAction} style={smallLinkButtonStyle}>{actionLabel}</button></div>{hasItems ? <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div> : <div style={emptyStyle}><h3 style={{ color: theme.text, margin: '0 0 6px' }}>{emptyTitle}</h3><p style={{ color: theme.muted, margin: 0 }}>{emptyText}</p></div>}</section>; }
 function ListItem({ title, meta, onClick }) { return <button type="button" onClick={onClick} style={listItemStyle}><div style={{ minWidth: 0 }}><div style={{ color: theme.text, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div><div style={{ color: theme.muted, fontSize: 12, marginTop: 4 }}>{meta}</div></div><ChevronRight size={18} color={theme.accentHover} /></button>; }
 
-const pageStyle = { minHeight: '100dvh', background: `radial-gradient(circle at top left, rgba(124,58,237,0.16), transparent 34%), radial-gradient(circle at top right, rgba(56,189,248,0.10), transparent 30%), ${theme.bg}`, color: theme.text, padding: 'clamp(12px, 2vw, 22px)', overflowY: 'auto' };
-const loadingPanelStyle = { width: 'min(520px, calc(100vw - 32px))', background: theme.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center', display: 'grid', justifyItems: 'center', gap: 10, boxShadow: '0 18px 48px rgba(0,0,0,0.35)' };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '12px 14px', marginBottom: 12, boxShadow: '0 18px 50px rgba(0,0,0,0.22)' };
+const pageStyle = { minHeight: '100dvh', background: theme.bg, color: theme.text, padding: 'clamp(12px, 3vw, 26px)', overflowX: 'hidden', overflowY: 'auto' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 14, marginBottom: 16 };
 const eyebrowStyle = { color: theme.accentHover, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: 900, margin: '0 0 4px' };
 const titleStyle = { color: theme.text, fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 900, margin: 0 };
 const subtitleStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.5, margin: '4px 0 0' };
-const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' };
-const headerButtonStyle = (disabled) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 38, background: disabled ? theme.panelSoft : theme.accentSoft, border: `1px solid ${theme.border}`, color: disabled ? theme.muted : theme.textSecondary, padding: '0 11px', fontWeight: 800, cursor: disabled ? 'not-allowed' : 'pointer' });
-const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginBottom: 12 };
-const actionCardStyle = (primary, disabled) => ({ minHeight: 116, display: 'flex', alignItems: 'center', gap: 12, background: primary ? `linear-gradient(135deg, ${theme.elevated}, rgba(13,19,38,0.96))` : theme.panel, border: `1px solid ${primary ? theme.borderStrong : theme.border}`, borderRadius: 12, color: theme.text, padding: 14, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, textAlign: 'left', boxShadow: primary ? '0 14px 36px rgba(0,0,0,0.22)' : 'none' });
-const actionIconStyle = (primary) => ({ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: primary ? 'linear-gradient(135deg, #7C3AED, #38BDF8)' : theme.accentSoft, color: '#FFFFFF', border: `1px solid ${theme.borderStrong}`, flexShrink: 0 });
-const actionTitleStyle = { color: theme.text, fontSize: 16, fontWeight: 900, marginBottom: 4 };
-const actionTextStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.38, marginBottom: 8 };
+const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', maxWidth: '100%' };
+const headerButtonStyle = (disabled) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, background: disabled ? theme.panelSoft : theme.accentSoft, border: `1px solid ${theme.border}`, borderRadius: 8, color: disabled ? theme.muted : theme.textSecondary, padding: '0 11px', fontWeight: 800, cursor: disabled ? 'not-allowed' : 'pointer' });
+const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: 12, marginBottom: 16 };
+const actionCardStyle = (primary, disabled) => ({ minHeight: 132, display: 'flex', alignItems: 'center', gap: 12, background: primary ? theme.elevated : theme.panel, border: `1px solid ${primary ? theme.borderStrong : theme.border}`, borderRadius: 10, color: theme.text, padding: 16, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, textAlign: 'left', maxWidth: '100%' });
+const actionIconStyle = (primary) => ({ width: 46, height: 46, flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: primary ? theme.accent : theme.accentSoft, color: '#FFFFFF', border: `1px solid ${theme.borderStrong}`, borderRadius: 8 });
+const actionTitleStyle = { color: theme.text, fontSize: 17, fontWeight: 900, marginBottom: 5 };
+const actionTextStyle = { color: theme.textSecondary, fontSize: 13, lineHeight: 1.45, marginBottom: 10 };
 const actionMetaStyle = (disabled) => ({ display: 'inline-flex', color: disabled ? theme.muted : theme.accentHover, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.8 });
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 10, marginBottom: 12 };
-const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 12 };
-const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, marginBottom: 16 };
+const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 14 };
+const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' };
 const panelTitleStyle = { color: theme.text, fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
-const smallLinkButtonStyle = { background: 'transparent', border: `1px solid ${theme.border}`, color: theme.accentHover, padding: '7px 10px', cursor: 'pointer', fontWeight: 800 };
-const listItemStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 10, cursor: 'pointer', textAlign: 'left' };
-const emptyStyle = { background: theme.panelSoft, border: `1px dashed ${theme.border}`, padding: 24, textAlign: 'center' };
-const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 12, fontSize: 12, lineHeight: 1.45 };
-const mobileTabsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 };
-const mobileTabButtonStyle = (active) => ({ minHeight: 44, background: active ? theme.accent : theme.panel, color: active ? '#FFFFFF' : theme.textSecondary, border: `1px solid ${active ? theme.accentHover : theme.border}`, fontWeight: 900, cursor: 'pointer' });
+const smallLinkButtonStyle = { background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.accentHover, padding: '7px 10px', cursor: 'pointer', fontWeight: 800 };
+const listItemStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12, cursor: 'pointer', textAlign: 'left' };
+const emptyStyle = { background: theme.panelSoft, border: `1px dashed ${theme.border}`, borderRadius: 8, padding: 24, textAlign: 'center' };
+const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 12, fontSize: 13, lineHeight: 1.5 };
+const mobileTabsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12, position: 'sticky', top: 0, zIndex: 5, background: theme.bg, paddingBottom: 8 };
+const mobileTabButtonStyle = (active) => ({ minHeight: 44, background: active ? theme.accent : theme.panel, color: active ? '#FFFFFF' : theme.textSecondary, border: `1px solid ${active ? theme.accentHover : theme.border}`, borderRadius: 8, fontWeight: 900, cursor: 'pointer' });
 const mobileSectionStyle = { display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 16 };
-const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 };
-const modalStyle = { width: 'min(820px, 100%)', maxHeight: 'calc(100dvh - 36px)', overflowY: 'auto', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 14, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,0.45)' };
+const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 'max(18px, env(safe-area-inset-top)) 14px 18px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' };
+const modalStyle = { width: 'min(520px, 100%)', maxHeight: 'calc(100dvh - 36px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 10, padding: 20, margin: 'auto 0' };
 const modalTitleStyle = { color: theme.text, fontSize: 23, fontWeight: 900, margin: '0 0 8px' };
 const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: theme.muted, fontSize: 12, fontWeight: 900, marginTop: 14 };
-const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, padding: 10, outline: 'none' };
-const compactFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 };
-const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginTop: 14 };
-const toggleCardStyle = { display: 'flex', alignItems: 'center', gap: 10, background: theme.panelSoft, border: `1px solid ${theme.border}`, padding: 10, color: theme.textSecondary, fontSize: 12, cursor: 'pointer' };
-const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(112px, 1fr))', gap: 8, marginTop: 8 };
-const classPillStyle = (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, background: active ? theme.accentSoft : theme.panelSoft, border: `1px solid ${active ? theme.borderStrong : theme.border}`, color: active ? theme.text : theme.textSecondary, padding: '8px 9px', fontSize: 12, fontWeight: 800, cursor: 'pointer' });
+const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, outline: 'none' };
 const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, flexWrap: 'wrap' };

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Dice6 } from 'lucide-react';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
-import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 
 // Mystic tabletop dice theme
 const theme = {
@@ -36,6 +35,8 @@ export function DiceRollButton({
   const [isHovered, setIsHovered] = useState(false);
   const [rollResult, setRollResult] = useState(null);
 
+  const rollDice = (sides) => Math.floor(Math.random() * sides) + 1;
+
   const handleRoll = (e) => {
     e.stopPropagation();
     setRolling(true);
@@ -48,20 +49,24 @@ export function DiceRollButton({
     });
 
     let message = `${label}: ${diceType}`;
-    if (numericModifier >= 0) message += ` + ${numericModifier}`;
-    else message += ` - ${Math.abs(numericModifier)}`;
-
+    if (modifier >= 0) message += ` + ${modifier}`;
+    else message += ` - ${Math.abs(modifier)}`;
+    
+    let description = `Rolled ${finalRoll}`;
+    if (advantage) description += ` (Advantage: ${roll1}, ${roll2})`;
+    if (disadvantage) description += ` (Disadvantage: ${roll1}, ${roll2})`;
+    description += ` = ${total}`;
+    
     setRollResult({
       label: message,
-      rolls: result.visibleRolls,
-      modifier: result.modifier,
-      total: result.total,
-      animationValue: getAnimationTarget(result),
-      isCrit: result.isCrit,
-      isFumble: result.isFumble,
+      rolls: advantage || disadvantage ? [{ sides, result: roll1 }, { sides, result: roll2 }] : [{ sides, result: finalRoll }],
+      modifier,
+      total,
+      isCrit: rollType === 'crit',
+      isFumble: rollType === 'fail',
     });
-    toast(message, { description: 'Rolling…', icon: <Dice6 size={18} color={color} />, duration: 1200 });
-
+    toast(message, { description, icon: <Dice6 size={18} color={color} />, duration: 1200 });
+    
     setTimeout(() => setRolling(false), 300);
   };
 
@@ -113,7 +118,6 @@ export function DiceRollButton({
           rolls={rollResult.rolls}
           modifier={rollResult.modifier}
           total={rollResult.total}
-          animationValue={rollResult.animationValue}
           isCrit={rollResult.isCrit}
           isFumble={rollResult.isFumble}
           theme="player"
@@ -150,8 +154,7 @@ export function DamageRollButton({
   diceFormula,  // e.g., "2d6+3"
   label = 'Damage',
   damageType = 'slashing',
-  color = '#A78BFA',
-  allowExploding = false
+  color = '#A78BFA'
 }) {
   const [rolling, setRolling] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -172,17 +175,32 @@ export function DamageRollButton({
     e.stopPropagation();
     setRolling(true);
     
-    const { modifier } = parseDiceFormula(diceFormula);
-    const result = rollDiceNotation(diceFormula, { exploding: allowExploding });
-
+    const { count, sides, modifier } = parseDiceFormula(diceFormula);
+    const rolls = [];
+    let total = 0;
+    
+    for (let i = 0; i < count; i++) {
+      const roll = Math.floor(Math.random() * sides) + 1;
+      rolls.push(roll);
+      total += roll;
+    }
+    
+    total += modifier;
+    
+    const rollsStr = rolls.join(' + ');
+    let description = `${rollsStr}`;
+    if (modifier !== 0) {
+      description += modifier > 0 ? ` + ${modifier}` : ` - ${Math.abs(modifier)}`;
+    }
+    description += ` = ${total} ${damageType}`;
+    
     setRollResult({
       label: `${label}: ${diceFormula}`,
-      rolls: result.visibleRolls,
+      rolls: rolls.map(result => ({ sides, result })),
       modifier,
-      total: result.total,
-      animationValue: getAnimationTarget(result),
+      total,
     });
-    toast(`${label}: ${diceFormula}`, { description: 'Rolling damage…', icon: <Dice6 size={18} color={color} />, duration: 1200 });
+    toast(`${label}: ${diceFormula}`, { description, icon: <Dice6 size={18} color={color} />, duration: 1200 });
     
     setTimeout(() => setRolling(false), 300);
   };
@@ -229,7 +247,6 @@ export function DamageRollButton({
           rolls={rollResult.rolls}
           modifier={rollResult.modifier}
           total={rollResult.total}
-          animationValue={rollResult.animationValue}
           theme="player"
         />
       )}

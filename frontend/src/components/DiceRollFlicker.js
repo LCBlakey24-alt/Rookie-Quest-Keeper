@@ -42,7 +42,7 @@ export default function DiceRollFlicker({
   const colors = palette[theme] || palette.player;
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
-  const [displayValue, setDisplayValue] = useState(Number(animationValue ?? total) || 0);
+  const [displayValue, setDisplayValue] = useState(total);
   const [settled, setSettled] = useState(true);
   const [fading, setFading] = useState(false);
 
@@ -62,7 +62,7 @@ export default function DiceRollFlicker({
     if (!visible) return undefined;
 
     const highestSide = rolls.reduce((max, roll) => Math.max(max, roll.sides || 0), 20);
-    const ceiling = Math.max(highestSide, finalDisplayValue || Number(total) || 0, 20);
+    const ceiling = Math.max(highestSide, Number(total) + 12, 20);
     const timeouts = [];
     const flickerDuration = 4000;
     const holdDuration = 5000;
@@ -70,17 +70,17 @@ export default function DiceRollFlicker({
 
     setSettled(false);
     setFading(false);
-    setDisplayValue(1);
+    setDisplayValue(Math.max(1, Math.floor(Math.random() * ceiling) + 1));
 
     for (let tick = 1; tick <= tickCount; tick += 1) {
       const progress = tick / tickCount;
       const delay = Math.round(flickerDuration * Math.pow(progress, 1.85));
       timeouts.push(window.setTimeout(() => {
         if (tick === tickCount) {
-          setDisplayValue(finalDisplayValue || total);
+          setDisplayValue(total);
           setSettled(true);
         } else {
-          setDisplayValue(((tick - 1) % ceiling) + 1);
+          setDisplayValue(Math.max(1, Math.floor(Math.random() * ceiling) + 1));
         }
       }, delay));
     }
@@ -93,7 +93,7 @@ export default function DiceRollFlicker({
     return () => {
       timeouts.forEach(id => window.clearTimeout(id));
     };
-  }, [visible, label, rolls, total, finalDisplayValue]);
+  }, [visible, label, rolls, total]);
 
   if (!visible) return null;
 
