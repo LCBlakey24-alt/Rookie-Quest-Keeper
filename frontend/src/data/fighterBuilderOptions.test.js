@@ -7,6 +7,7 @@ describe('Fighter builder options', () => {
     expect(options.needsFightingStyle).toBe(true);
     expect(options.needsSubclass).toBe(false);
     expect(options.fightingStyles.map(style => style.name)).toContain('Archery');
+    expect(options.requiredChoiceLabels).toEqual(['Fighting Style']);
   });
 
   test('2024 level 1 Fighter requires weapon mastery choices', () => {
@@ -15,12 +16,28 @@ describe('Fighter builder options', () => {
     expect(options.needsFightingStyle).toBe(true);
     expect(options.weaponMasteryChoices).toBe(3);
     expect(options.fightingStyles.map(style => style.name)).toContain('Blind Fighting');
+    expect(options.requiredChoiceLabels).toEqual(['Fighting Style', 'Weapon Mastery']);
+    expect(options.helperText).toContain('Choose 3 Weapon Mastery options.');
+  });
+
+  test('returns ready-to-render fighting style options', () => {
+    const options = getFighterBuilderOptions(1, '2024');
+
+    expect(options.fightingStyleOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        value: 'Blind Fighting',
+        label: 'Blind Fighting',
+        key: 'blind_fighting',
+        ruleset: '2024',
+      }),
+    ]));
   });
 
   test('level 3 Fighter requires subclass selection', () => {
     const options = getFighterBuilderOptions(3, '2014');
 
     expect(options.needsSubclass).toBe(true);
+    expect(options.requiredChoiceLabels).toEqual(['Subclass']);
   });
 
   test('validates fighting style by edition', () => {
