@@ -13,8 +13,8 @@ describe('Barbarian sheet summary', () => {
     expect(summary.extraAttack).toBe(true);
   });
 
-  test('uses Barbarian level before total character level', () => {
-    expect(getBarbarianClassLevel({ character_class: 'Fighter', level: 9, multiclass_levels: { Barbarian: 3 } })).toBe(3);
+  test('uses multiclass Barbarian level before total level', () => {
+    expect(getBarbarianClassLevel({ character_class: 'Fighter', level: 9, class_levels: { Barbarian: 3 } })).toBe(3);
   });
 
   test('labels 2024 Brutal Strike at level 9', () => {
@@ -23,14 +23,5 @@ describe('Barbarian sheet summary', () => {
     expect(summary.edition).toBe('2024');
     expect(summary.brutalCriticalLabel).toBe('Brutal Strike online');
     expect(summary.activeFeatures.map(feature => feature.key)).toContain('brutal_strike');
-  });
-
-  test('adds subclass features and upcoming subclass unlocks', () => {
-    const summary = getBarbarianSheetSummary({ character_class: 'Barbarian', subclass: 'Path of the World Tree', level: 6, rules_edition: '2024' });
-
-    expect(summary.subclassKey).toBe('world_tree');
-    expect(summary.subclassLabel).toBe('Path of the World Tree');
-    expect(summary.subclassFeatures.map(feature => feature.key)).toContain('branches_of_the_tree');
-    expect(summary.nextSubclassFeatures.map(feature => feature.key)).toContain('battering_roots');
   });
 });

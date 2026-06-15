@@ -13,7 +13,6 @@ export const CLASS_COMPLETION_CHECKLIST = [
 
 const completedFighter = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
 const completedBarbarian = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
-const completedRogue = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
 
 export const CLASS_COMPLETION_STATUS = [
   {
@@ -32,15 +31,15 @@ export const CLASS_COMPLETION_STATUS = [
   },
   {
     className: 'Rogue',
-    priority: 0,
-    status: 'complete',
-    completed: completedRogue,
-    nextWork: 'Playtest polish only; core Rogue implementation is complete.',
+    priority: 1,
+    status: 'next',
+    completed: ['core_class_data'],
+    nextWork: 'Build Rogue progression, Sneak Attack scaling, Cunning Action sheet actions, subclass summaries, final status, package export, and tests.',
   },
   {
     className: 'Monk',
-    priority: 1,
-    status: 'next',
+    priority: 2,
+    status: 'queued',
     completed: ['core_class_data', 'resource_rules'],
     nextWork: 'Build Monk progression, Ki/Discipline point summaries, unarmored movement/defense summaries, subclass summaries, final status, package export, and tests.',
   },

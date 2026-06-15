@@ -7,8 +7,8 @@ describe('class completion dashboard', () => {
     expect(dashboard.find(entry => entry.className === 'Barbarian')).toMatchObject({ percent: 100, status: 'complete', missing: [] });
   });
 
-  test('identifies Monk as the next class to finish', () => {
-    expect(getNextClassToComplete()).toMatchObject({ className: 'Monk', status: 'next' });
+  test('identifies Rogue as the next class to finish', () => {
+    expect(getNextClassToComplete()).toMatchObject({ className: 'Rogue', status: 'next' });
   });
 
   test('calculates percentages from completed checklist items', () => {
