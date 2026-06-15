@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'class-dashboard-synced-2026-06-15',
+    date: '2026-06-15',
+    badge: 'Fixed',
+    category: 'Class Progress',
+    title: 'Class completion dashboard synced',
+    summary: 'The class dashboard now reflects the completed Fighter, Barbarian, Rogue, Monk, and Paladin packages, with Ranger marked as the next class to complete.',
+    public: true,
+  },
+  {
     id: 'monk-builder-readiness-added-2026-06-15',
     date: '2026-06-15',
     badge: 'Improved',
