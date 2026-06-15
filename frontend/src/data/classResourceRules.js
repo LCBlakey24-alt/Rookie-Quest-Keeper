@@ -27,6 +27,7 @@ const classLevelOf = (character, className) => {
 };
 
 const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
+const barbarianLevelOf = (character) => classLevelOf(character, 'barbarian');
 
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
@@ -47,7 +48,8 @@ export const CLASS_RESOURCE_RULES = {
       minLevel: 1,
       restore: 'long-rest',
       max: (character) => {
-        const level = levelOf(character);
+        const level = barbarianLevelOf(character);
+        if (!is2024Rules(character) && level >= 20) return 99;
         if (level >= 17) return 6;
         if (level >= 12) return 5;
         if (level >= 6) return 4;
@@ -110,7 +112,8 @@ export const CLASS_RESOURCE_RULES = {
 
 export function getClassResourceRules(character) {
   const className = character?.character_class || character?.className || '';
-  const level = normalizeName(className) === 'fighter' ? fighterLevelOf(character) : levelOf(character);
+  const normalizedClass = normalizeName(className);
+  const level = normalizedClass === 'fighter' ? fighterLevelOf(character) : normalizedClass === 'barbarian' ? barbarianLevelOf(character) : levelOf(character);
   return (CLASS_RESOURCE_RULES[className] || [])
     .filter(rule => level >= (rule.minLevel || 1))
     .map(rule => {
