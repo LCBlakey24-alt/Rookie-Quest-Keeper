@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'monk-builder-readiness-added-2026-06-15',
+    date: '2026-06-15',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Monk builder readiness added',
+    summary: 'Monk support now includes subclass options, subclass validation, builder choice summaries, and readiness checks for 2014 and 2024 rules.',
+    public: true,
+  },
+  {
     id: 'monk-detection-added-2026-06-15',
     date: '2026-06-15',
     badge: 'Improved',
