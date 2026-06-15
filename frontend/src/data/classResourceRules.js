@@ -91,7 +91,7 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = fighterLevelOf(character); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
   ],
   Monk: [
-    { key: 'ki', label: 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) },
+    { key: 'ki', label: (character) => is2024Rules(character) ? 'Discipline Points' : 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => monkLevelOf(character) },
   ],
   Paladin: [
     { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => levelOf(character) * 5 },
