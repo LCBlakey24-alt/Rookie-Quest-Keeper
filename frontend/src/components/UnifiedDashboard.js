@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Crown, Home, Library, LogOut, Plus, RefreshCw, Settings, Shield, Sword, User } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import LatestUpdatesPanel from '@/components/LatestUpdatesPanel';
 
 const theme = {
   bg: '#080B1A',
@@ -216,6 +217,8 @@ export default function UnifiedDashboard({ username, onLogout }) {
         </div>
       </header>
 
+      <LatestUpdatesPanel limit={3} />
+
       {smallScreen ? (
         <MobileDashboardTabs
           tab={mobileTab}
@@ -362,15 +365,15 @@ const noticeStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', backgr
 const mobileTabsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12, position: 'sticky', top: 0, zIndex: 5, background: theme.bg, paddingBottom: 8 };
 const mobileTabButtonStyle = (active) => ({ minHeight: 44, background: active ? theme.accent : theme.panel, color: active ? '#FFFFFF' : theme.textSecondary, border: `1px solid ${active ? theme.accentHover : theme.border}`, borderRadius: 8, fontWeight: 900, cursor: 'pointer' });
 const mobileSectionStyle = { display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 16 };
-const modalBackdropStyle = { position: 'fixed', inset: 0, zIndex: 1500, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 'max(18px, env(safe-area-inset-top)) 14px 18px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' };
-const modalStyle = { width: 'min(520px, 100%)', maxHeight: 'calc(100dvh - 36px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 10, padding: 20, margin: 'auto 0' };
-const modalTitleStyle = { color: theme.text, fontSize: 23, fontWeight: 900, margin: '0 0 8px' };
-const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 6, color: theme.muted, fontSize: 12, fontWeight: 900, marginTop: 14 };
-const fieldStyle = { background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, outline: 'none' };
-const compactFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 12 };
-const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 10, marginTop: 14 };
-const toggleCardStyle = { display: 'flex', alignItems: 'flex-start', gap: 9, background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, color: theme.textSecondary, fontSize: 13, lineHeight: 1.4 };
-const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginTop: 8 };
-const classPillStyle = (active) => ({ display: 'flex', alignItems: 'center', gap: 7, background: active ? theme.accentSoft : theme.panelSoft, border: `1px solid ${active ? theme.borderStrong : theme.border}`, borderRadius: 8, padding: '8px 9px', color: active ? theme.text : theme.textSecondary, fontSize: 12, fontWeight: 800, cursor: 'pointer' });
-const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18, flexWrap: 'wrap' };
-const loadingPanelStyle = { width: 'min(420px, 100%)', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 24, textAlign: 'center', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
+const modalBackdropStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 1000, display: 'grid', placeItems: 'center', padding: 14 };
+const modalStyle = { width: 'min(760px, 100%)', maxHeight: '92dvh', overflowY: 'auto', background: theme.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 12 };
+const modalTitleStyle = { color: theme.text, fontSize: 22, fontWeight: 900, margin: 0 };
+const compactFormGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10 };
+const fieldLabelStyle = { color: theme.textSecondary, fontSize: 12, fontWeight: 900, display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 };
+const fieldStyle = { width: '100%', minHeight: 42, background: theme.panelSoft, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 8, padding: '9px 10px' };
+const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10 };
+const toggleCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 10, color: theme.textSecondary, fontSize: 12 };
+const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 };
+const classPillStyle = (active) => ({ display: 'flex', alignItems: 'center', gap: 8, background: active ? theme.accentSoft : theme.panelSoft, border: `1px solid ${active ? theme.borderStrong : theme.border}`, borderRadius: 8, padding: '8px 10px', color: theme.textSecondary, fontSize: 12, cursor: 'pointer' });
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap', marginTop: 4 };
+const loadingPanelStyle = { display: 'grid', placeItems: 'center', gap: 10, background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 24, maxWidth: 520, textAlign: 'center' };

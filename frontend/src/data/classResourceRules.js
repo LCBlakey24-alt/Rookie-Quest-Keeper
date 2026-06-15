@@ -28,8 +28,6 @@ const classLevelOf = (character, className) => {
 
 const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
 const barbarianLevelOf = (character) => classLevelOf(character, 'barbarian');
-const monkLevelOf = (character) => classLevelOf(character, 'monk');
-const paladinLevelOf = (character) => classLevelOf(character, 'paladin');
 
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
@@ -135,11 +133,9 @@ const resourceClassNamesFor = (character) => {
   const primary = canonicalResourceClassName(character?.character_class || character?.className || '');
   const names = primary ? [primary] : [];
 
-  Object.keys(CLASS_RESOURCE_RULES).forEach(className => {
-    if (normalizeName(primary) !== normalizeName(className) && hasExplicitClassLevel(character, className)) {
-      names.push(className);
-    }
-  });
+  if (normalizeName(primary) !== 'barbarian' && hasExplicitClassLevel(character, 'barbarian')) {
+    names.push('Barbarian');
+  }
 
   return Array.from(new Set(names));
 };
@@ -148,9 +144,7 @@ const resourceLevelOf = (character, className) => {
   const normalizedClass = normalizeName(className);
   if (normalizedClass === 'fighter') return fighterLevelOf(character);
   if (normalizedClass === 'barbarian') return barbarianLevelOf(character);
-  if (normalizedClass === 'monk') return monkLevelOf(character);
-  if (normalizedClass === 'paladin') return paladinLevelOf(character);
-  return classLevelOf(character, className);
+  return levelOf(character);
 };
 
 export function getClassResourceRules(character) {
@@ -160,11 +154,9 @@ export function getClassResourceRules(character) {
       .filter(rule => level >= (rule.minLevel || 1))
       .map(rule => {
         const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
-        const label = typeof rule.label === 'function' ? rule.label(character) : rule.label;
         return {
           ...rule,
           className,
-          label,
           restore,
           maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
         };
