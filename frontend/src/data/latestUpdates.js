@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'monk-sheet-summary-added-2026-06-15',
+    date: '2026-06-15',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Monk sheet summary added',
+    summary: 'Monk support now produces sheet-ready summaries for Martial Arts, Ki or Discipline Points, Unarmored Movement, subclass status, current features, and next unlocks.',
+    public: true,
+  },
+  {
     id: 'monk-builder-readiness-added-2026-06-15',
     date: '2026-06-15',
     badge: 'Improved',
