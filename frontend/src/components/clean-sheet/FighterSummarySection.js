@@ -8,6 +8,7 @@ function normaliseName(value = '') {
 
 function isFighterCharacter(character = {}) {
   if (normaliseName(character?.character_class || character?.className || character?.class) === 'fighter') return true;
+  if (Number(character?.fighter_level || character?.fighterLevel || 0) > 0) return true;
 
   const levels = character?.class_levels || character?.classLevels || character?.multiclass_levels || {};
   if (Number(levels.fighter || levels.Fighter || 0) > 0) return true;
