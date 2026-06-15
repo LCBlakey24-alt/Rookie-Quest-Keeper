@@ -14,7 +14,7 @@ const classLevelOf = (character, className) => {
   const directLevel = Number(character?.[directKey] || character?.[camelKey] || 0);
   if (directLevel > 0) return directLevel;
 
-  const classLevels = character?.class_levels || character?.classLevels || {};
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
   const mappedLevel = Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0);
   if (mappedLevel > 0) return mappedLevel;
 
@@ -27,6 +27,8 @@ const classLevelOf = (character, className) => {
 };
 
 const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
+const barbarianLevelOf = (character) => classLevelOf(character, 'barbarian');
+const monkLevelOf = (character) => classLevelOf(character, 'monk');
 
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
@@ -47,7 +49,8 @@ export const CLASS_RESOURCE_RULES = {
       minLevel: 1,
       restore: 'long-rest',
       max: (character) => {
-        const level = levelOf(character);
+        const level = barbarianLevelOf(character);
+        if (!is2024Rules(character) && level >= 20) return 99;
         if (level >= 17) return 6;
         if (level >= 12) return 5;
         if (level >= 6) return 4;
@@ -89,7 +92,7 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = fighterLevelOf(character); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
   ],
   Monk: [
-    { key: 'ki', label: 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => levelOf(character) },
+    { key: 'ki', label: (character) => is2024Rules(character) ? 'Discipline Points' : 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => monkLevelOf(character) },
   ],
   Paladin: [
     { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => levelOf(character) * 5 },
@@ -108,20 +111,64 @@ export const CLASS_RESOURCE_RULES = {
   ],
 };
 
+
+const canonicalResourceClassName = (className = '') => {
+  const normalized = normalizeName(className);
+  return Object.keys(CLASS_RESOURCE_RULES).find(name => normalizeName(name) === normalized) || className;
+};
+
+const hasExplicitClassLevel = (character, className) => {
+  const key = normalizeName(className);
+  const directKey = `${key}_level`;
+  const camelKey = `${key}Level`;
+  if (Number(character?.[directKey] || character?.[camelKey] || 0) > 0) return true;
+
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
+  if (Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0) > 0) return true;
+
+  const entries = Array.isArray(character?.classes) ? character.classes : [];
+  return entries.some(item => normalizeName(item?.name || item?.class_name || item?.className || item?.class) === key && Number(item?.level || item?.class_level || item?.classLevel || 0) > 0);
+};
+
+const resourceClassNamesFor = (character) => {
+  const primary = canonicalResourceClassName(character?.character_class || character?.className || '');
+  const names = primary ? [primary] : [];
+
+  Object.keys(CLASS_RESOURCE_RULES).forEach(className => {
+    if (normalizeName(primary) !== normalizeName(className) && hasExplicitClassLevel(character, className)) {
+      names.push(className);
+    }
+  });
+
+  return Array.from(new Set(names));
+};
+
+const resourceLevelOf = (character, className) => {
+  const normalizedClass = normalizeName(className);
+  if (normalizedClass === 'fighter') return fighterLevelOf(character);
+  if (normalizedClass === 'barbarian') return barbarianLevelOf(character);
+  if (normalizedClass === 'monk') return monkLevelOf(character);
+  return classLevelOf(character, className);
+};
+
 export function getClassResourceRules(character) {
-  const className = character?.character_class || character?.className || '';
-  const level = normalizeName(className) === 'fighter' ? fighterLevelOf(character) : levelOf(character);
-  return (CLASS_RESOURCE_RULES[className] || [])
-    .filter(rule => level >= (rule.minLevel || 1))
-    .map(rule => {
-      const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
-      return {
-        ...rule,
-        restore,
-        maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
-      };
-    })
-    .filter(rule => rule.maxValue > 0);
+  return resourceClassNamesFor(character).flatMap(className => {
+    const level = resourceLevelOf(character, className);
+    return (CLASS_RESOURCE_RULES[className] || [])
+      .filter(rule => level >= (rule.minLevel || 1))
+      .map(rule => {
+        const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
+        const label = typeof rule.label === 'function' ? rule.label(character) : rule.label;
+        return {
+          ...rule,
+          className,
+          label,
+          restore,
+          maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
+        };
+      })
+      .filter(rule => rule.maxValue > 0);
+  });
 }
 
 export function buildInitialClassResources(character) {
