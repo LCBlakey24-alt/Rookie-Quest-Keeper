@@ -14,7 +14,7 @@ const classLevelOf = (character, className) => {
   const directLevel = Number(character?.[directKey] || character?.[camelKey] || 0);
   if (directLevel > 0) return directLevel;
 
-  const classLevels = character?.class_levels || character?.classLevels || {};
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
   const mappedLevel = Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0);
   if (mappedLevel > 0) return mappedLevel;
 
@@ -110,21 +110,59 @@ export const CLASS_RESOURCE_RULES = {
   ],
 };
 
-export function getClassResourceRules(character) {
-  const className = character?.character_class || character?.className || '';
+
+const canonicalResourceClassName = (className = '') => {
+  const normalized = normalizeName(className);
+  return Object.keys(CLASS_RESOURCE_RULES).find(name => normalizeName(name) === normalized) || className;
+};
+
+const hasExplicitClassLevel = (character, className) => {
+  const key = normalizeName(className);
+  const directKey = `${key}_level`;
+  const camelKey = `${key}Level`;
+  if (Number(character?.[directKey] || character?.[camelKey] || 0) > 0) return true;
+
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
+  if (Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0) > 0) return true;
+
+  const entries = Array.isArray(character?.classes) ? character.classes : [];
+  return entries.some(item => normalizeName(item?.name || item?.class_name || item?.className || item?.class) === key && Number(item?.level || item?.class_level || item?.classLevel || 0) > 0);
+};
+
+const resourceClassNamesFor = (character) => {
+  const primary = canonicalResourceClassName(character?.character_class || character?.className || '');
+  const names = primary ? [primary] : [];
+
+  if (normalizeName(primary) !== 'barbarian' && hasExplicitClassLevel(character, 'barbarian')) {
+    names.push('Barbarian');
+  }
+
+  return Array.from(new Set(names));
+};
+
+const resourceLevelOf = (character, className) => {
   const normalizedClass = normalizeName(className);
-  const level = normalizedClass === 'fighter' ? fighterLevelOf(character) : normalizedClass === 'barbarian' ? barbarianLevelOf(character) : levelOf(character);
-  return (CLASS_RESOURCE_RULES[className] || [])
-    .filter(rule => level >= (rule.minLevel || 1))
-    .map(rule => {
-      const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
-      return {
-        ...rule,
-        restore,
-        maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
-      };
-    })
-    .filter(rule => rule.maxValue > 0);
+  if (normalizedClass === 'fighter') return fighterLevelOf(character);
+  if (normalizedClass === 'barbarian') return barbarianLevelOf(character);
+  return levelOf(character);
+};
+
+export function getClassResourceRules(character) {
+  return resourceClassNamesFor(character).flatMap(className => {
+    const level = resourceLevelOf(character, className);
+    return (CLASS_RESOURCE_RULES[className] || [])
+      .filter(rule => level >= (rule.minLevel || 1))
+      .map(rule => {
+        const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
+        return {
+          ...rule,
+          className,
+          restore,
+          maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
+        };
+      })
+      .filter(rule => rule.maxValue > 0);
+  });
 }
 
 export function buildInitialClassResources(character) {
