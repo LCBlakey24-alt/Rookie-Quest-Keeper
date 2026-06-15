@@ -71,6 +71,19 @@ function buildChoiceSummary(choice) {
   return { ...base, helperText: `Choose ${toChoiceLabel(choice.choiceType)}.` };
 }
 
+function getCumulativeBarbarianChoices(level = 1, edition = '2014') {
+  const barbarianLevel = Math.max(1, Number(level || 1));
+  const choicesByType = new Map();
+
+  for (let currentLevel = 1; currentLevel <= barbarianLevel; currentLevel += 1) {
+    getBarbarianChoicesForLevel(currentLevel, edition).forEach(choice => {
+      choicesByType.set(choice.choiceType, choice);
+    });
+  }
+
+  return Array.from(choicesByType.values()).sort((a, b) => a.level - b.level);
+}
+
 export function getBarbarianSubclassOptions(edition = '2014') {
   const ruleset = String(edition).includes('2024') ? '2024' : '2014';
   return BARBARIAN_SUBCLASS_OPTIONS
@@ -99,10 +112,12 @@ export function isValidBarbarianWeaponMastery(value = '', edition = '2024') {
 
 export function getBarbarianBuilderOptions(level = 1, edition = '2014') {
   const summary = getBarbarianProgressionSummary(level, edition);
-  const choices = getBarbarianChoicesForLevel(level, edition);
+  const choices = getCumulativeBarbarianChoices(summary.level, summary.edition);
   const choiceSummaries = choices.map(buildChoiceSummary).filter(Boolean);
   const needsSubclass = choices.some(choice => choice.choiceType === 'subclass');
-  const needsWeaponMastery = choices.find(choice => choice.choiceType === 'weapon_mastery') || null;
+  const weaponMasteryChoices = choices
+    .filter(choice => choice.choiceType === 'weapon_mastery')
+    .reduce((count, choice) => Math.max(count, choice.choices || 0), 0);
   const subclassOptions = getBarbarianSubclassOptions(summary.edition);
   const weaponMasteryOptions = getBarbarianWeaponMasteryOptions(summary.edition);
 
@@ -117,7 +132,7 @@ export function getBarbarianBuilderOptions(level = 1, edition = '2014') {
     requiredChoiceLabels: choiceSummaries.map(choice => choice.label),
     helperText: choiceSummaries.map(choice => choice.helperText).join(' '),
     needsSubclass,
-    weaponMasteryChoices: needsWeaponMastery?.choices || 0,
+    weaponMasteryChoices,
     subclassOptions,
     weaponMasteryOptions,
   };
