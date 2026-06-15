@@ -1,9 +1,5 @@
 import { getBarbarianBuilderOptions } from './barbarianBuilderOptions';
 
-function hasOptions(options = []) {
-  return Array.isArray(options) && options.length > 0;
-}
-
 export function getBarbarianBuilderChoiceSummary(level = 1, edition = '2014') {
   const options = getBarbarianBuilderOptions(level, edition);
 
@@ -22,7 +18,7 @@ export function getBarbarianBuilderChoiceSummary(level = 1, edition = '2014') {
       count: options.weaponMasteryChoices || 0,
       options: options.weaponMasteryOptions || [],
     },
-  ].filter(section => section.required || hasOptions(section.options));
+  ].filter(section => section.required);
 
   return {
     edition: options.edition,
