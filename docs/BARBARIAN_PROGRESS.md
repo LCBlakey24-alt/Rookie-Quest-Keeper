@@ -1,6 +1,6 @@
 # Barbarian Completion Progress
 
-Current Barbarian completion after this PR: around 55%.
+Current Barbarian completion after this PR: 100%.
 
 Completed so far:
 
@@ -12,7 +12,4 @@ Completed so far:
 
 Next slices:
 
-1. Barbarian sheet summary
-2. Barbarian final status helper
-3. Barbarian package export
-4. Barbarian 100% completion note
+All planned Barbarian completion work is done. See `docs/BARBARIAN_100_PERCENT.md` for the final check and next-class recommendations.
