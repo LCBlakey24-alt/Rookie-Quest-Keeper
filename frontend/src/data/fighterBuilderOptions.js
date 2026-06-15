@@ -1,12 +1,40 @@
 import { getFighterChoicesForLevel, getFighterProgressionSummary } from './fighterProgression';
 import { getFighterFightingStyles, isValidFighterFightingStyle } from './fighterFightingStyles';
 
+export const FIGHTER_SUBCLASS_OPTIONS = [
+  {
+    value: 'Champion',
+    label: 'Champion',
+    key: 'champion',
+    summary: 'Simple, reliable martial features with improved critical hits.',
+    rulesets: ['2014', '2024'],
+  },
+  {
+    value: 'Battle Master',
+    label: 'Battle Master',
+    key: 'battle_master',
+    summary: 'Tactical maneuvers powered by superiority dice.',
+    rulesets: ['2014', '2024'],
+  },
+  {
+    value: 'Eldritch Knight',
+    label: 'Eldritch Knight',
+    key: 'eldritch_knight',
+    summary: 'A weapon-focused Fighter with limited spellcasting support.',
+    rulesets: ['2014', '2024'],
+  },
+];
+
 function toChoiceLabel(choiceType = '') {
   return String(choiceType || '')
     .split('_')
     .filter(Boolean)
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+function normaliseSelection(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
 function buildChoiceSummary(choice) {
@@ -32,6 +60,24 @@ function buildChoiceSummary(choice) {
   return { ...base, helperText: `Choose ${toChoiceLabel(choice.choiceType)}.` };
 }
 
+export function getFighterSubclassOptions(edition = '2014') {
+  const ruleset = String(edition).includes('2024') ? '2024' : '2014';
+  return FIGHTER_SUBCLASS_OPTIONS
+    .filter(option => option.rulesets.includes(ruleset))
+    .map(option => ({
+      value: option.value,
+      label: option.label,
+      key: option.key,
+      summary: option.summary,
+      ruleset,
+    }));
+}
+
+export function isValidFighterSubclass(value = '', edition = '2014') {
+  const selected = normaliseSelection(value);
+  return getFighterSubclassOptions(edition).some(option => normaliseSelection(option.value) === selected || option.key === selected);
+}
+
 export function getFighterBuilderOptions(level = 1, edition = '2014') {
   const summary = getFighterProgressionSummary(level, edition);
   const choices = getFighterChoicesForLevel(level, edition);
@@ -40,6 +86,7 @@ export function getFighterBuilderOptions(level = 1, edition = '2014') {
   const needsSubclass = choices.some(choice => choice.choiceType === 'subclass');
   const needsWeaponMastery = choices.find(choice => choice.choiceType === 'weapon_mastery') || null;
   const fightingStyles = getFighterFightingStyles(edition);
+  const subclassOptions = getFighterSubclassOptions(summary.edition);
 
   return {
     edition: summary.edition,
@@ -60,6 +107,7 @@ export function getFighterBuilderOptions(level = 1, edition = '2014') {
       description: style.description,
       ruleset: style.ruleset,
     })),
+    subclassOptions,
   };
 }
 
@@ -71,7 +119,7 @@ export function validateFighterBuilderSelections({ level = 1, edition = '2014', 
     errors.push('Choose a valid Fighter Fighting Style.');
   }
 
-  if (options.needsSubclass && !subclass) {
+  if (options.needsSubclass && !isValidFighterSubclass(subclass, edition)) {
     errors.push('Choose a Fighter subclass.');
   }
 
