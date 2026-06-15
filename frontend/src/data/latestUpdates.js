@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'monk-detection-added-2026-06-15',
+    date: '2026-06-15',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Monk character detection added',
+    summary: 'Monk support now detects direct class fields, class level maps, multiclass maps, and class entry arrays so Monk sheets and future builder helpers can work reliably.',
+    public: true,
+  },
+  {
     id: 'monk-progression-started-2026-06-15',
     date: '2026-06-15',
     badge: 'New',
