@@ -1,0 +1,3 @@
+import { getPaladinBuilderChoiceSummary } from './paladinBuilderChoiceSummary';
+import { validatePaladinBuilderSelections } from './paladinBuilderOptions';
+export function getPaladinBuilderReadiness({level=1,edition='2014',subclass='',fightingStyle=''}={}){const choiceSummary=getPaladinBuilderChoiceSummary(level,edition); const validation=validatePaladinBuilderSelections({level,edition,subclass,fightingStyle}); const missing=[]; if(validation.errors.some(e=>e.includes('oath')))missing.push('Sacred Oath'); if(validation.errors.some(e=>e.includes('fighting style')))missing.push('Fighting Style'); return {ready:validation.valid,errors:validation.errors,missingSections:missing,choiceSummary};}
