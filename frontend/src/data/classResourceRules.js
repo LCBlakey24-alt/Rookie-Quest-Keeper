@@ -94,8 +94,8 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'ki', label: (character) => is2024Rules(character) ? 'Discipline Points' : 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => monkLevelOf(character) },
   ],
   Paladin: [
-    { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => levelOf(character) * 5 },
-    { key: 'channel_divinity', label: 'Channel Divinity', minLevel: 3, restore: 'short-rest', max: () => 1 },
+    { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => paladinLevelOf(character) * 5 },
+    { key: 'channel_divinity', label: 'Channel Divinity', minLevel: 3, restore: (character) => is2024Rules(character) ? 'long-rest' : 'short-rest', max: (character) => is2024Rules(character) ? proficiencyBonusOf(character) : 1 },
   ],
   Ranger: [],
   Rogue: [],
