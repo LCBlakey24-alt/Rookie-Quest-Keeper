@@ -1,32 +1,97 @@
-import { normaliseMonkRulesEdition, MONK_SUBCLASS_FEATURE_LEVELS } from './monkProgression';
-
-const SUBCLASSES = {
-  open_hand: { label: 'Way of the Open Hand', role: 'Control and sustain through Flurry riders, self-healing, calm defense, and a finishing technique.', rulesets: ['2014', '2024'], features: { 3: 'Open Hand Technique', 6: 'Wholeness of Body', 11: 'Tranquility / Fleet Step', 17: 'Quivering Palm' } },
-  shadow: { label: 'Way of Shadow', role: 'Stealth, darkness, teleporting from shadows, and opportunistic melee pressure.', rulesets: ['2014', '2024'], features: { 3: 'Shadow Arts', 6: 'Shadow Step', 11: 'Cloak of Shadows / Improved Shadow Step', 17: 'Opportunist / Cloak of Shadows' } },
-  elements: { label: 'Way of the Four Elements', role: 'Elemental techniques that add reach, area control, and energy-flavored discipline spenders.', rulesets: ['2014'], features: { 3: 'Disciple of the Elements', 6: 'Elemental Discipline', 11: 'Elemental Discipline', 17: 'Elemental Discipline' } },
-  mercy: { label: 'Warrior of Mercy', role: 'Healing, harm, poison pressure, and battlefield support through disciplined strikes.', rulesets: ['2024'], features: { 3: 'Implements of Mercy / Hand of Harm', 6: 'Physician’s Touch', 11: 'Flurry of Healing and Harm', 17: 'Hand of Ultimate Mercy' } },
-};
+export const MONK_SUBCLASSES = [
+  {
+    value: 'Way of the Open Hand',
+    label: 'Way of the Open Hand',
+    key: 'open_hand',
+    summary: 'A direct martial artist focused on control, knockdowns, and improved unarmed combat.',
+    role: 'Control striker',
+    rulesets: ['2014'],
+  },
+  {
+    value: 'Way of Shadow',
+    label: 'Way of Shadow',
+    key: 'shadow',
+    summary: 'A stealth-focused Monk using darkness, mobility, and ambush tactics.',
+    role: 'Stealth skirmisher',
+    rulesets: ['2014'],
+  },
+  {
+    value: 'Way of the Four Elements',
+    label: 'Way of the Four Elements',
+    key: 'four_elements',
+    summary: 'A Monk who channels elemental techniques through ki-powered disciplines.',
+    role: 'Elemental controller',
+    rulesets: ['2014'],
+  },
+  {
+    value: 'Warrior of the Open Hand',
+    label: 'Warrior of the Open Hand',
+    key: 'open_hand',
+    summary: 'A focused martial artist using disciplined strikes and battlefield control.',
+    role: 'Control striker',
+    rulesets: ['2024'],
+  },
+  {
+    value: 'Warrior of Shadow',
+    label: 'Warrior of Shadow',
+    key: 'shadow',
+    summary: 'A mobile infiltrator who uses shadow techniques and precise movement.',
+    role: 'Stealth skirmisher',
+    rulesets: ['2024'],
+  },
+  {
+    value: 'Warrior of the Elements',
+    label: 'Warrior of the Elements',
+    key: 'elements',
+    summary: 'A Monk who channels elemental force into strikes, reach, and area control.',
+    role: 'Elemental striker',
+    rulesets: ['2024'],
+  },
+  {
+    value: 'Warrior of Mercy',
+    label: 'Warrior of Mercy',
+    key: 'mercy',
+    summary: 'A Monk who blends martial discipline with healing, harm, and restorative techniques.',
+    role: 'Support striker',
+    rulesets: ['2024'],
+  },
+];
 
 export function getMonkSubclassKey(value = '') {
-  const normalised = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-  if (normalised.includes('open')) return 'open_hand';
-  if (normalised.includes('shadow')) return 'shadow';
-  if (normalised.includes('element')) return 'elements';
-  if (normalised.includes('mercy')) return 'mercy';
-  return normalised;
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^way of( the)? /, '')
+    .replace(/^warrior of( the)? /, '')
+    .replace(/four elements/, 'four_elements')
+    .replace(/open hand/, 'open_hand')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+export function normaliseMonkSubclassRuleset(edition = '2014') {
+  return String(edition || '').includes('2024') ? '2024' : '2014';
 }
 
 export function getMonkSubclassOptions(edition = '2014') {
-  const ruleset = normaliseMonkRulesEdition(edition);
-  return Object.entries(SUBCLASSES).filter(([, item]) => item.rulesets.includes(ruleset)).map(([key, item]) => ({ key, value: item.label, label: item.label, summary: item.role, ruleset }));
+  const ruleset = normaliseMonkSubclassRuleset(edition);
+  return MONK_SUBCLASSES
+    .filter(option => option.rulesets.includes(ruleset))
+    .map(option => ({
+      value: option.value,
+      label: option.label,
+      key: option.key,
+      summary: option.summary,
+      role: option.role,
+      ruleset,
+    }));
 }
 
-export function getMonkSubclassSummary(value = '', level = 1, edition = '2014') {
+export function getMonkSubclassByKey(value = '', edition = '2014') {
   const key = getMonkSubclassKey(value);
-  const subclass = SUBCLASSES[key];
-  if (!subclass) return null;
-  const monkLevel = Math.max(1, Number(level || 1));
-  const ruleset = normaliseMonkRulesEdition(edition);
-  const features = MONK_SUBCLASS_FEATURE_LEVELS.map(featureLevel => ({ level: featureLevel, key: `${key}_${featureLevel}`, name: subclass.features[featureLevel], summary: subclass.role }));
-  return { key, label: subclass.label, role: subclass.role, ruleset, supportedInRuleset: subclass.rulesets.includes(ruleset), activeFeatures: features.filter(feature => feature.level <= monkLevel), nextFeatures: features.filter(feature => feature.level > monkLevel).slice(0, 2) };
+  return getMonkSubclassOptions(edition).find(option => option.key === key || getMonkSubclassKey(option.value) === key) || null;
+}
+
+export function isMonkSubclassAvailable(value = '', edition = '2014') {
+  return Boolean(getMonkSubclassByKey(value, edition));
 }

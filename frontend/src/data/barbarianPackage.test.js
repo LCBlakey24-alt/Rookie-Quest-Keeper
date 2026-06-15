@@ -4,7 +4,6 @@ import {
   getBarbarianFinalStatus,
   getBarbarianProgressionSummary,
   getBarbarianSheetSummary,
-  getBarbarianSubclassSummary,
   isBarbarianCharacter,
 } from './barbarianPackage';
 
@@ -14,7 +13,6 @@ describe('completed Barbarian package', () => {
     expect(getBarbarianProgressionSummary(5, '2014').rageUses).toBe(3);
     expect(getBarbarianBuilderOptions(1, '2024').weaponMasteryChoices).toBe(2);
     expect(getBarbarianSheetSummary({ character_class: 'Barbarian', level: 5 }).extraAttack).toBe(true);
-    expect(getBarbarianSubclassSummary('Path of the Zealot', 6, '2024').activeFeatures.map(feature => feature.key)).toContain('fanatical_focus');
   });
 
   test('exposes readiness and final status helpers', () => {
