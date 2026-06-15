@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'monk-progression-started-2026-06-15',
+    date: '2026-06-15',
+    badge: 'New',
+    category: 'Class Progress',
+    title: 'Monk class support started',
+    summary: 'Monk progression work has started with Martial Arts scaling, Ki and Discipline Point tracking, Unarmored Movement, subclass choice levels, and core feature progression helpers.',
+    public: true,
+  },
+  {
     id: 'class-support-barbarian-rogue-2026-06-15',
     date: '2026-06-15',
     badge: 'New',
