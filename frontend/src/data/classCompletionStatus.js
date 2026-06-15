@@ -13,9 +13,6 @@ export const CLASS_COMPLETION_CHECKLIST = [
 
 const completedFighter = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
 const completedBarbarian = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
-const completedRogue = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
-const completedMonk = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
-const completedPaladin = CLASS_COMPLETION_CHECKLIST.map(item => item.key);
 
 export const CLASS_COMPLETION_STATUS = [
   {
@@ -34,29 +31,29 @@ export const CLASS_COMPLETION_STATUS = [
   },
   {
     className: 'Rogue',
-    priority: 0,
-    status: 'complete',
-    completed: completedRogue,
-    nextWork: 'Playtest polish only; core Rogue implementation is complete.',
+    priority: 1,
+    status: 'next',
+    completed: ['core_class_data'],
+    nextWork: 'Build Rogue progression, Sneak Attack scaling, Cunning Action sheet actions, subclass summaries, final status, package export, and tests.',
   },
   {
     className: 'Monk',
-    priority: 0,
-    status: 'complete',
-    completed: completedMonk,
-    nextWork: 'Playtest polish only; core Monk implementation is complete.',
+    priority: 2,
+    status: 'queued',
+    completed: ['core_class_data', 'resource_rules'],
+    nextWork: 'Build Monk progression, Ki/Discipline point summaries, unarmored movement/defense summaries, subclass summaries, final status, package export, and tests.',
   },
   {
     className: 'Paladin',
-    priority: 0,
-    status: 'complete',
-    completed: completedPaladin,
-    nextWork: 'Playtest polish only; core Paladin implementation is complete.',
+    priority: 3,
+    status: 'queued',
+    completed: ['core_class_data', 'resource_rules'],
+    nextWork: 'Build Paladin progression, Lay on Hands/Channel Divinity/Divine Smite summaries, aura tracking, spellcasting integration, final status, package export, and tests.',
   },
   {
     className: 'Ranger',
-    priority: 1,
-    status: 'next',
+    priority: 4,
+    status: 'queued',
     completed: ['core_class_data'],
     nextWork: 'Build Ranger progression, exploration/combat feature summaries, weapon/spell choices, subclass summaries, final status, package export, and tests.',
   },
