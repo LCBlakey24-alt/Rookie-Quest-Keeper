@@ -1,5 +1,6 @@
 import { getFighterChoicesForLevel, getFighterProgressionSummary } from './fighterProgression';
 import { getFighterFightingStyles, isValidFighterFightingStyle } from './fighterFightingStyles';
+import { getFighterWeaponMasteryOptions, isValidFighterWeaponMastery } from './fighterWeaponMasteryOptions';
 
 export const FIGHTER_SUBCLASS_OPTIONS = [
   {
@@ -87,6 +88,7 @@ export function getFighterBuilderOptions(level = 1, edition = '2014') {
   const needsWeaponMastery = choices.find(choice => choice.choiceType === 'weapon_mastery') || null;
   const fightingStyles = getFighterFightingStyles(edition);
   const subclassOptions = getFighterSubclassOptions(summary.edition);
+  const weaponMasteryOptions = getFighterWeaponMasteryOptions(summary.edition);
 
   return {
     edition: summary.edition,
@@ -108,6 +110,7 @@ export function getFighterBuilderOptions(level = 1, edition = '2014') {
       ruleset: style.ruleset,
     })),
     subclassOptions,
+    weaponMasteryOptions,
   };
 }
 
@@ -125,6 +128,10 @@ export function validateFighterBuilderSelections({ level = 1, edition = '2014', 
 
   if (options.weaponMasteryChoices > 0 && weaponMasteries.length !== options.weaponMasteryChoices) {
     errors.push(`Choose ${options.weaponMasteryChoices} Weapon Mastery option${options.weaponMasteryChoices === 1 ? '' : 's'}.`);
+  }
+
+  if (options.weaponMasteryChoices > 0 && weaponMasteries.some(mastery => !isValidFighterWeaponMastery(mastery, edition))) {
+    errors.push('Choose valid Weapon Mastery options.');
   }
 
   return {
