@@ -75,7 +75,8 @@ export function isValidRangerSubclass(value = '', edition = '2014') {
 
 export function getSelectedRangerSubclass(value = '', edition = '2014') {
   return getRangerSubclassByKey(value, edition);
-}\n
+}
+
 function hasSelection(value, minimum = 1) {
   return Array.isArray(value) ? value.length >= minimum : Boolean(value);
 }
