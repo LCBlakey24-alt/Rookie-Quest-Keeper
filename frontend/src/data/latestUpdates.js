@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'ranger-detection-added-2026-06-16',
+    date: '2026-06-16',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Ranger character detection added',
+    summary: 'Ranger support now detects direct class fields, explicit Ranger level fields, class level maps, multiclass maps, and class entry arrays for reliable sheet and builder helpers.',
+    public: true,
+  },
+  {
     id: 'ranger-progression-started-2026-06-15',
     date: '2026-06-15',
     badge: 'New',
