@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'ranger-complete-2026-06-16',
+    date: '2026-06-16',
+    badge: 'Complete',
+    category: 'Class Progress',
+    title: 'Ranger class support complete',
+    summary: 'Ranger support is now complete across progression, character detection, subclasses, builder readiness, sheet summaries, final status, package exports, and audit tracking. Bard is now the next class to complete.',
+    public: true,
+  },
+  {
     id: 'ranger-sheet-summary-added-2026-06-16',
     date: '2026-06-16',
     badge: 'Improved',
