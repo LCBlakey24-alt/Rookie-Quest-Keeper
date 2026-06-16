@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'ranger-sheet-summary-added-2026-06-16',
+    date: '2026-06-16',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Ranger sheet summary added',
+    summary: 'Ranger support now includes sheet-ready summaries for class level, subclass, Favored Enemy, terrain, Fighting Style, spellcasting, active features, and next unlocks.',
+    public: true,
+  },
+  {
     id: 'ranger-builder-readiness-added-2026-06-16',
     date: '2026-06-16',
     badge: 'Improved',
