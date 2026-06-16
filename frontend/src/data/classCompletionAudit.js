@@ -3,6 +3,7 @@ import * as barbarianPackage from './barbarianPackage';
 import * as roguePackage from './roguePackage';
 import * as monkPackage from './monkPackage';
 import * as paladinPackage from './paladinPackage';
+import * as rangerPackage from './rangerPackage';
 import { CLASS_COMPLETION_CHECKLIST, getClassCompletionDashboard } from './classCompletionStatus';
 
 const PACKAGE_BY_CLASS = {
@@ -11,6 +12,7 @@ const PACKAGE_BY_CLASS = {
   Rogue: roguePackage,
   Monk: monkPackage,
   Paladin: paladinPackage,
+  Ranger: rangerPackage,
 };
 
 const EXPECTED_EXPORTS_BY_CHECKLIST = {
