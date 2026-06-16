@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'ranger-builder-readiness-added-2026-06-16',
+    date: '2026-06-16',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Ranger builder readiness added',
+    summary: 'Ranger support now includes subclass options, subclass validation, builder choice summaries, and readiness checks for 2014 and 2024 rules.',
+    public: true,
+  },
+  {
     id: 'ranger-detection-added-2026-06-16',
     date: '2026-06-16',
     badge: 'Improved',
