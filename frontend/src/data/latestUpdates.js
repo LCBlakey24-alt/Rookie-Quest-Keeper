@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'ranger-progression-started-2026-06-15',
+    date: '2026-06-15',
+    badge: 'New',
+    category: 'Class Progress',
+    title: 'Ranger class support started',
+    summary: 'Ranger progression work has started with 2014/2024 feature tables, spellcasting unlocks, Fighting Style choices, subclass levels, Favored Enemy support, and next-feature helpers.',
+    public: true,
+  },
+  {
     id: 'class-dashboard-synced-2026-06-15',
     date: '2026-06-15',
     badge: 'Fixed',
