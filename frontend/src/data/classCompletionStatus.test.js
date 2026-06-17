@@ -17,14 +17,15 @@ describe('class completion dashboard', () => {
     expect(getNextClassToComplete()).toMatchObject({ className: 'Wizard', status: 'next' });
   });
 
-  test('tracks Wizard progression helper progress', () => {
+  test('tracks Wizard character detection progress', () => {
     const dashboard = getClassCompletionDashboard();
     const wizard = dashboard.find(entry => entry.className === 'Wizard');
 
     expect(wizard).toMatchObject({
-      percent: 30,
+      percent: 40,
       status: 'next',
     });
+    expect(wizard.missing).not.toContain('Character detection helper');
     expect(wizard.missing).not.toContain('Progression helper');
   });
 
