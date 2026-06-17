@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-sheet-summary-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Druid sheet summary added',
+    summary: 'Druid support now includes sheet-ready summaries for class level, circle, Wild Shape, spellcasting, Primal Order, Elemental Fury, prepared spells, active features, and next unlocks.',
+    public: true,
+  },
+  {
     id: 'druid-builder-readiness-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
