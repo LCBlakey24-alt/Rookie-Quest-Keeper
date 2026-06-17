@@ -4,7 +4,7 @@ describe('class completion dashboard', () => {
   test('marks completed class packages as complete', () => {
     const dashboard = getClassCompletionDashboard();
 
-    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard'].forEach(className => {
+    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard', 'Cleric'].forEach(className => {
       expect(dashboard.find(entry => entry.className === className)).toMatchObject({
         percent: 100,
         status: 'complete',
@@ -13,8 +13,8 @@ describe('class completion dashboard', () => {
     });
   });
 
-  test('identifies Cleric as the next class to finish', () => {
-    expect(getNextClassToComplete()).toMatchObject({ className: 'Cleric', status: 'next' });
+  test('identifies Druid as the next class to finish', () => {
+    expect(getNextClassToComplete()).toMatchObject({ className: 'Druid', status: 'next' });
   });
 
   test('calculates percentages from completed checklist items', () => {
