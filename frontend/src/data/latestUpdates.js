@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-builder-readiness-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Wizard builder readiness added',
+    summary: 'Wizard support now includes builder options, choice summaries, and readiness checks for schools, Scholar, spellbook entries, and prepared spells.',
+    public: true,
+  },
+  {
     id: 'wizard-subclasses-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
