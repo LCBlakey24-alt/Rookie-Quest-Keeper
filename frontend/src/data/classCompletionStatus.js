@@ -81,8 +81,8 @@ export const CLASS_COMPLETION_STATUS = [
     className: 'Wizard',
     priority: 1,
     status: 'next',
-    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'builder_options', 'builder_readiness', 'subclass_summary'],
-    nextWork: 'Build Wizard sheet summary, final status, package export, and tests.',
+    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'builder_options', 'builder_readiness', 'sheet_summary', 'subclass_summary'],
+    nextWork: 'Build Wizard final status, package export, and tests.',
   },
   {
     className: 'Warlock',
