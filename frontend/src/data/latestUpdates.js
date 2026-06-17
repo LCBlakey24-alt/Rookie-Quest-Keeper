@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-builder-readiness-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Druid builder readiness added',
+    summary: 'Druid support now includes builder options, choice summaries, and readiness checks for 2014 and 2024 circles, Primal Order, Elemental Fury, and prepared spell selections.',
+    public: true,
+  },
+  {
     id: 'druid-subclasses-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
