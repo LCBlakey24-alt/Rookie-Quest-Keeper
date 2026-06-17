@@ -17,18 +17,19 @@ describe('class completion dashboard', () => {
     expect(getNextClassToComplete()).toMatchObject({ className: 'Wizard', status: 'next' });
   });
 
-  test('tracks Wizard builder readiness progress', () => {
+  test('tracks Wizard sheet summary progress', () => {
     const dashboard = getClassCompletionDashboard();
     const wizard = dashboard.find(entry => entry.className === 'Wizard');
 
     expect(wizard).toMatchObject({
-      percent: 70,
+      percent: 80,
       status: 'next',
     });
     expect(wizard.missing).not.toContain('Character detection helper');
     expect(wizard.missing).not.toContain('Progression helper');
     expect(wizard.missing).not.toContain('Builder options');
     expect(wizard.missing).not.toContain('Builder readiness');
+    expect(wizard.missing).not.toContain('Sheet summary');
     expect(wizard.missing).not.toContain('Subclass summary');
   });
 
