@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-progression-started-2026-06-17',
+    date: '2026-06-17',
+    badge: 'New',
+    category: 'Class Progress',
+    title: 'Druid class support started',
+    summary: 'Druid progression work has started with 2014/2024 feature tables, full-caster spellcasting summaries, Wild Shape support, subclass timing, Primal Order, Elemental Fury, and next-feature helpers.',
+    public: true,
+  },
+  {
     id: 'ranger-complete-2026-06-16',
     date: '2026-06-16',
     badge: 'Complete',
