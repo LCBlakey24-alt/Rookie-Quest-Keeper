@@ -30,10 +30,10 @@ A class is 100% complete when it has:
 | 0 | Bard | 100% | Complete | Playtest polish only; core Bard implementation is complete. |
 | 0 | Cleric | 100% | Complete | Playtest polish only; core Cleric implementation is complete. |
 | 0 | Druid | 100% | Complete | Playtest polish only; core Druid implementation is complete. |
-| 1 | Wizard | 30% | Next | Build Wizard character detection, Arcane Tradition/school summaries, spellbook/prepared-spell support, builder readiness, sheet summary, final status, package export, and tests. |
+| 1 | Wizard | 40% | Next | Build Wizard Arcane Tradition/school summaries, spellbook/prepared-spell support, builder readiness, sheet summary, final status, package export, and tests. |
 | 2 | Warlock | 20% | Queued | Build Warlock progression, Pact Magic, invocations, pact boon, patron summaries, final status, package export, and tests. |
 | 3 | Sorcerer | 20% | Queued | Build Sorcerer progression, Sorcery Point/Metamagic summaries, origin summaries, final status, package export, and tests. |
 
 ## Next recommendation
 
-Continue Wizard next. Progression helpers are started, so the next useful step is character detection followed by Arcane Tradition/school summaries.
+Continue Wizard next. Progression and character detection helpers are started, so the next useful step is Arcane Tradition/school summaries.
