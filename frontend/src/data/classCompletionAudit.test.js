@@ -7,7 +7,7 @@ describe('class completion audit', () => {
 
   test('audits completed class claims against concrete package helper exports', () => {
     const completed = getClassCompletionAudit().filter(entry => entry.status === 'complete');
-    expect(completed.map(entry => entry.className)).toEqual(['Barbarian', 'Bard', 'Cleric', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue']);
+    expect(completed.map(entry => entry.className)).toEqual(['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue']);
     completed.forEach(entry => {
       expect(entry.percent).toBe(100);
       expect(entry.supported).toBe(true);
