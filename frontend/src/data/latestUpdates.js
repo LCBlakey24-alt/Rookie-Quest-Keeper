@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-subclasses-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Druid circle summaries added',
+    summary: 'Druid support now includes 2014/2024 circle option summaries, edition-aware availability, active subclass feature levels, next subclass unlocks, and homebrew-safe fallbacks.',
+    public: true,
+  },
+  {
     id: 'druid-detection-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
