@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-detection-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Wizard character detection added',
+    summary: 'Wizard support now detects direct class fields, explicit Wizard level fields, class level maps, multiclass maps, and class entry arrays for reliable future sheet and builder helpers.',
+    public: true,
+  },
+  {
     id: 'wizard-progression-started-2026-06-17',
     date: '2026-06-17',
     badge: 'New',
