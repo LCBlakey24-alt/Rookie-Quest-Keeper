@@ -4,7 +4,7 @@ describe('class completion dashboard', () => {
   test('marks completed class packages as complete', () => {
     const dashboard = getClassCompletionDashboard();
 
-    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard', 'Cleric', 'Druid', 'Wizard'].forEach(className => {
+    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard', 'Cleric', 'Druid', 'Wizard', 'Warlock', 'Sorcerer'].forEach(className => {
       expect(dashboard.find(entry => entry.className === className)).toMatchObject({
         percent: 100,
         status: 'complete',
@@ -13,20 +13,8 @@ describe('class completion dashboard', () => {
     });
   });
 
-  test('identifies Warlock as the next class to finish', () => {
-    expect(getNextClassToComplete()).toMatchObject({ className: 'Warlock', status: 'next' });
-  });
-
-  test('tracks Warlock character detection progress', () => {
-    const dashboard = getClassCompletionDashboard();
-    const warlock = dashboard.find(entry => entry.className === 'Warlock');
-
-    expect(warlock).toMatchObject({
-      percent: 40,
-      status: 'next',
-    });
-    expect(warlock.missing).not.toContain('Character detection helper');
-    expect(warlock.missing).not.toContain('Progression helper');
+  test('has no remaining class package to finish', () => {
+    expect(getNextClassToComplete()).toBeNull();
   });
 
   test('calculates percentages from completed checklist items', () => {
