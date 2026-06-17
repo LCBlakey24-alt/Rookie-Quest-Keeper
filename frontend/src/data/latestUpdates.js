@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'warlock-progression-started-2026-06-17',
+    date: '2026-06-17',
+    badge: 'New',
+    category: 'Class Progress',
+    title: 'Warlock class support started',
+    summary: 'Warlock progression work has started with 2014/2024 feature tables, Pact Magic slot summaries, invocation counts, pact boon timing, subclass timing, Mystic Arcanum milestones, and next-feature helpers.',
+    public: true,
+  },
+  {
     id: 'wizard-complete-2026-06-17',
     date: '2026-06-17',
     badge: 'Complete',

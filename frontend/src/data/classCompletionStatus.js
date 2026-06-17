@@ -88,15 +88,15 @@ export const CLASS_COMPLETION_STATUS = [
     className: 'Warlock',
     priority: 1,
     status: 'next',
-    completed: ['core_class_data', 'resource_rules'],
-    nextWork: 'Build Warlock progression, Pact Magic, invocations, pact boon, patron summaries, final status, package export, and tests.',
+    completed: ['core_class_data', 'progression_helper', 'resource_rules'],
+    nextWork: 'Build Warlock character detection, patron summaries, builder readiness, sheet summary, final status, package export, and tests.',
   },
   {
     className: 'Sorcerer',
     priority: 2,
     status: 'queued',
     completed: ['core_class_data', 'resource_rules'],
-    nextWork: 'Build Sorcerer progression, Sorcery Point/Metamagic summaries, origin summaries, final status, package export, and tests.',
+    nextWork: 'Build Sorcerer progression, origin summaries, builder readiness, sheet summary, final status, package export, and tests.',
   },
 ];
 
