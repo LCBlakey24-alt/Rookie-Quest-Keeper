@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-progression-started-2026-06-17',
+    date: '2026-06-17',
+    badge: 'New',
+    category: 'Class Progress',
+    title: 'Wizard class support started',
+    summary: 'Wizard progression work has started with 2014/2024 feature tables, full-caster spellcasting summaries, Arcane Recovery support, subclass timing, Scholar, Memorize Spell, and next-feature helpers.',
+    public: true,
+  },
+  {
     id: 'druid-complete-2026-06-17',
     date: '2026-06-17',
     badge: 'Complete',
