@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-sheet-summary-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Wizard sheet summary added',
+    summary: 'Wizard support now includes sheet-ready summaries for class level, school, Arcane Recovery, Scholar, spellbook entries, prepared spells, active features, and next unlocks.',
+    public: true,
+  },
+  {
     id: 'wizard-builder-readiness-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
