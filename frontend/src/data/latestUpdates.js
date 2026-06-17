@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'warlock-detection-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Warlock character detection added',
+    summary: 'Warlock support now detects direct class fields, explicit Warlock level fields, class level maps, multiclass maps, and class entry arrays for reliable future sheet and builder helpers.',
+    public: true,
+  },
+  {
     id: 'warlock-progression-started-2026-06-17',
     date: '2026-06-17',
     badge: 'New',
