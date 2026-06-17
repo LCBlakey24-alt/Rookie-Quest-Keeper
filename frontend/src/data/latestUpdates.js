@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-complete-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Complete',
+    category: 'Class Progress',
+    title: 'Druid class support complete',
+    summary: 'Druid support is now complete across progression, character detection, circles, builder readiness, sheet summaries, final status, package exports, and audit tracking. Wizard is now the next class to complete.',
+    public: true,
+  },
+  {
     id: 'druid-sheet-summary-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
