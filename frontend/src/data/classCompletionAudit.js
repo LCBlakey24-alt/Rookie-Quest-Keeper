@@ -7,6 +7,7 @@ import * as rangerPackage from './rangerPackage';
 import * as bardPackage from './bardPackage';
 import * as clericPackage from './clericPackage';
 import * as druidPackage from './druidPackage';
+import * as wizardPackage from './wizardPackage';
 import { CLASS_COMPLETION_CHECKLIST, getClassCompletionDashboard } from './classCompletionStatus';
 
 const PACKAGE_BY_CLASS = {
@@ -19,6 +20,7 @@ const PACKAGE_BY_CLASS = {
   Bard: bardPackage,
   Cleric: clericPackage,
   Druid: druidPackage,
+  Wizard: wizardPackage,
 };
 
 const EXPECTED_EXPORTS_BY_CHECKLIST = {
