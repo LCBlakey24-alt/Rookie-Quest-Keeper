@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'druid-detection-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Druid character detection added',
+    summary: 'Druid support now detects direct class fields, explicit Druid level fields, class level maps, multiclass maps, and class entry arrays for reliable future sheet and builder helpers.',
+    public: true,
+  },
+  {
     id: 'druid-progression-started-2026-06-17',
     date: '2026-06-17',
     badge: 'New',
