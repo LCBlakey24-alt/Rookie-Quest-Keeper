@@ -17,16 +17,17 @@ describe('class completion dashboard', () => {
     expect(getNextClassToComplete()).toMatchObject({ className: 'Druid', status: 'next' });
   });
 
-  test('tracks Druid detection and progression helper progress', () => {
+  test('tracks Druid subclass, detection, and progression helper progress', () => {
     const dashboard = getClassCompletionDashboard();
     const druid = dashboard.find(entry => entry.className === 'Druid');
 
     expect(druid).toMatchObject({
-      percent: 40,
+      percent: 50,
       status: 'next',
     });
     expect(druid.missing).not.toContain('Character detection helper');
     expect(druid.missing).not.toContain('Progression helper');
+    expect(druid.missing).not.toContain('Subclass summary');
   });
 
   test('calculates percentages from completed checklist items', () => {
@@ -34,5 +35,6 @@ describe('class completion dashboard', () => {
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'resource_rules'] })).toBe(20);
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'progression_helper', 'resource_rules'] })).toBe(30);
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules'] })).toBe(40);
+    expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'subclass_summary'] })).toBe(50);
   });
 });
