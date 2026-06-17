@@ -4,7 +4,7 @@ describe('class completion dashboard', () => {
   test('marks completed class packages as complete', () => {
     const dashboard = getClassCompletionDashboard();
 
-    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard', 'Cleric', 'Druid'].forEach(className => {
+    ['Fighter', 'Barbarian', 'Rogue', 'Monk', 'Paladin', 'Ranger', 'Bard', 'Cleric', 'Druid', 'Wizard'].forEach(className => {
       expect(dashboard.find(entry => entry.className === className)).toMatchObject({
         percent: 100,
         status: 'complete',
@@ -13,24 +13,8 @@ describe('class completion dashboard', () => {
     });
   });
 
-  test('identifies Wizard as the next class to finish', () => {
-    expect(getNextClassToComplete()).toMatchObject({ className: 'Wizard', status: 'next' });
-  });
-
-  test('tracks Wizard sheet summary progress', () => {
-    const dashboard = getClassCompletionDashboard();
-    const wizard = dashboard.find(entry => entry.className === 'Wizard');
-
-    expect(wizard).toMatchObject({
-      percent: 80,
-      status: 'next',
-    });
-    expect(wizard.missing).not.toContain('Character detection helper');
-    expect(wizard.missing).not.toContain('Progression helper');
-    expect(wizard.missing).not.toContain('Builder options');
-    expect(wizard.missing).not.toContain('Builder readiness');
-    expect(wizard.missing).not.toContain('Sheet summary');
-    expect(wizard.missing).not.toContain('Subclass summary');
+  test('identifies Warlock as the next class to finish', () => {
+    expect(getNextClassToComplete()).toMatchObject({ className: 'Warlock', status: 'next' });
   });
 
   test('calculates percentages from completed checklist items', () => {

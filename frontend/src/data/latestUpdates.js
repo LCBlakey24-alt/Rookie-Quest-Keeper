@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-complete-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Complete',
+    category: 'Class Progress',
+    title: 'Wizard class support complete',
+    summary: 'Wizard support is now complete across progression, character detection, schools, builder readiness, sheet summaries, final status, package exports, and audit tracking. Warlock is now the next class to complete.',
+    public: true,
+  },
+  {
     id: 'wizard-sheet-summary-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',

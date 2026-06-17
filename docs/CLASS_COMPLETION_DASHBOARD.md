@@ -30,10 +30,10 @@ A class is 100% complete when it has:
 | 0 | Bard | 100% | Complete | Playtest polish only; core Bard implementation is complete. |
 | 0 | Cleric | 100% | Complete | Playtest polish only; core Cleric implementation is complete. |
 | 0 | Druid | 100% | Complete | Playtest polish only; core Druid implementation is complete. |
-| 1 | Wizard | 80% | Next | Build Wizard final status, package export, and tests. |
-| 2 | Warlock | 20% | Queued | Build Warlock progression, Pact Magic, invocations, pact boon, patron summaries, final status, package export, and tests. |
-| 3 | Sorcerer | 20% | Queued | Build Sorcerer progression, Sorcery Point/Metamagic summaries, origin summaries, final status, package export, and tests. |
+| 0 | Wizard | 100% | Complete | Playtest polish only; core Wizard implementation is complete. |
+| 1 | Warlock | 20% | Next | Build Warlock progression, patron summaries, builder readiness, sheet summary, final status, package export, and tests. |
+| 2 | Sorcerer | 20% | Queued | Build Sorcerer progression, origin summaries, builder readiness, sheet summary, final status, package export, and tests. |
 
 ## Next recommendation
 
-Continue Wizard next. Progression, character detection, school summaries, builder readiness, and sheet summary are now started, so the next useful step is final status plus the package export layer.
+Start Warlock next. Wizard is now complete across the checklist, so Warlock becomes the next class package to build using the same small-PR pattern.
