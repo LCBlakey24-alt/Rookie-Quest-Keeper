@@ -74,8 +74,8 @@ export const CLASS_COMPLETION_STATUS = [
     className: 'Druid',
     priority: 1,
     status: 'next',
-    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules'],
-    nextWork: 'Build Druid circle summaries, prepared-spell support, builder readiness, sheet summary, final status, package export, and tests.',
+    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'subclass_summary'],
+    nextWork: 'Build Druid prepared-spell support, builder options/readiness, sheet summary, final status, package export, and tests.',
   },
   {
     className: 'Wizard',

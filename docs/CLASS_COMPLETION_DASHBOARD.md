@@ -29,11 +29,11 @@ A class is 100% complete when it has:
 | 0 | Ranger | 100% | Complete | Playtest polish only; core Ranger implementation is complete. |
 | 0 | Bard | 100% | Complete | Playtest polish only; core Bard implementation is complete. |
 | 0 | Cleric | 100% | Complete | Playtest polish only; core Cleric implementation is complete. |
-| 1 | Druid | 40% | Next | Build Druid circle summaries, prepared-spell support, builder readiness, sheet summary, final status, package export, and tests. |
+| 1 | Druid | 50% | Next | Build Druid prepared-spell support, builder options/readiness, sheet summary, final status, package export, and tests. |
 | 2 | Wizard | 20% | Queued | Build Wizard progression, Arcane Recovery/school summaries, spellbook/prepared-spell support, final status, package export, and tests. |
 | 3 | Warlock | 20% | Queued | Build Warlock progression, Pact Magic, invocations, pact boon, patron summaries, final status, package export, and tests. |
 | 4 | Sorcerer | 20% | Queued | Build Sorcerer progression, Sorcery Point/Metamagic summaries, origin summaries, final status, package export, and tests. |
 
 ## Next recommendation
 
-Continue Druid next. Progression and character detection helpers are now started, so the next useful step is circle/subclass summaries followed by builder readiness. Druid is still close enough to Cleric to reuse prepared-caster patterns, but Wild Shape needs its own careful sheet summary layer.
+Continue Druid next. Progression, character detection, and circle summaries are now started, so the next useful step is builder options/readiness. Druid is still close enough to Cleric to reuse prepared-caster patterns, but Wild Shape needs its own careful sheet summary layer.
