@@ -86,17 +86,17 @@ export const CLASS_COMPLETION_STATUS = [
   },
   {
     className: 'Warlock',
-    priority: 1,
-    status: 'next',
-    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules'],
-    nextWork: 'Build Warlock patron summaries, builder readiness, sheet summary, final status, package export, and tests.',
+    priority: 0,
+    status: 'complete',
+    completed: completeClassPackage,
+    nextWork: 'Playtest polish only; core Warlock implementation is complete.',
   },
   {
     className: 'Sorcerer',
-    priority: 2,
-    status: 'queued',
-    completed: ['core_class_data', 'resource_rules'],
-    nextWork: 'Build Sorcerer progression, origin summaries, builder readiness, sheet summary, final status, package export, and tests.',
+    priority: 0,
+    status: 'complete',
+    completed: completeClassPackage,
+    nextWork: 'Playtest polish only; core Sorcerer implementation is complete.',
   },
 ];
 
