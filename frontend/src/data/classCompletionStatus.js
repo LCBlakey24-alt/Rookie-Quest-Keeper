@@ -88,8 +88,8 @@ export const CLASS_COMPLETION_STATUS = [
     className: 'Warlock',
     priority: 1,
     status: 'next',
-    completed: ['core_class_data', 'progression_helper', 'resource_rules'],
-    nextWork: 'Build Warlock character detection, patron summaries, builder readiness, sheet summary, final status, package export, and tests.',
+    completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules'],
+    nextWork: 'Build Warlock patron summaries, builder readiness, sheet summary, final status, package export, and tests.',
   },
   {
     className: 'Sorcerer',
