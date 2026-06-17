@@ -29,15 +29,11 @@ A class is 100% complete when it has:
 | 0 | Ranger | 100% | Complete | Playtest polish only; core Ranger implementation is complete. |
 | 0 | Bard | 100% | Complete | Playtest polish only; core Bard implementation is complete. |
 | 0 | Cleric | 100% | Complete | Playtest polish only; core Cleric implementation is complete. |
-| 1 | Druid | 20% | Next | Build Druid progression, Wild Shape summaries, circle summaries, prepared-spell support, final status, package export, and tests. |
+| 1 | Druid | 30% | Next | Build Druid character detection, circle summaries, prepared-spell support, builder readiness, sheet summary, final status, package export, and tests. |
 | 2 | Wizard | 20% | Queued | Build Wizard progression, Arcane Recovery/school summaries, spellbook/prepared-spell support, final status, package export, and tests. |
 | 3 | Warlock | 20% | Queued | Build Warlock progression, Pact Magic, invocations, pact boon, patron summaries, final status, package export, and tests. |
 | 4 | Sorcerer | 20% | Queued | Build Sorcerer progression, Sorcery Point/Metamagic summaries, origin summaries, final status, package export, and tests. |
 
 ## Next recommendation
 
-Start Druid next. It is the best follow-up to Cleric because both are prepared Wisdom casters, while Druid adds Wild Shape and circle-specific summaries. That keeps the next class close enough to reuse the Cleric patterns without jumping straight into the heavier Wizard spellbook or Warlock Pact Magic workflows.
-
-## Merge note
-
-This document reflects the Cleric completion package and should be merged after the Cleric package/status PR.
+Continue Druid next. Progression helpers are now started, so the next useful step is character detection followed by circle/subclass summaries. Druid is still close enough to Cleric to reuse prepared-caster patterns, but Wild Shape needs its own careful sheet summary layer.
