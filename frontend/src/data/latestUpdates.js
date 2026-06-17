@@ -1,5 +1,14 @@
 export const LATEST_UPDATES = [
   {
+    id: 'wizard-subclasses-added-2026-06-17',
+    date: '2026-06-17',
+    badge: 'Improved',
+    category: 'Class Progress',
+    title: 'Wizard school summaries added',
+    summary: 'Wizard support now includes 2014/2024 school option summaries, edition-aware availability, active subclass feature levels, next subclass unlocks, and custom school fallbacks.',
+    public: true,
+  },
+  {
     id: 'wizard-detection-added-2026-06-17',
     date: '2026-06-17',
     badge: 'Improved',
