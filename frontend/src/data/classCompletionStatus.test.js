@@ -17,18 +17,19 @@ describe('class completion dashboard', () => {
     expect(getNextClassToComplete()).toMatchObject({ className: 'Druid', status: 'next' });
   });
 
-  test('tracks Druid builder readiness progress', () => {
+  test('tracks Druid sheet summary progress', () => {
     const dashboard = getClassCompletionDashboard();
     const druid = dashboard.find(entry => entry.className === 'Druid');
 
     expect(druid).toMatchObject({
-      percent: 70,
+      percent: 80,
       status: 'next',
     });
     expect(druid.missing).not.toContain('Character detection helper');
     expect(druid.missing).not.toContain('Progression helper');
     expect(druid.missing).not.toContain('Builder options');
     expect(druid.missing).not.toContain('Builder readiness');
+    expect(druid.missing).not.toContain('Sheet summary');
     expect(druid.missing).not.toContain('Subclass summary');
   });
 
@@ -39,5 +40,6 @@ describe('class completion dashboard', () => {
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules'] })).toBe(40);
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'subclass_summary'] })).toBe(50);
     expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'builder_options', 'builder_readiness', 'subclass_summary'] })).toBe(70);
+    expect(getClassCompletionPercent({ completed: ['core_class_data', 'character_detection', 'progression_helper', 'resource_rules', 'builder_options', 'builder_readiness', 'sheet_summary', 'subclass_summary'] })).toBe(80);
   });
 });
