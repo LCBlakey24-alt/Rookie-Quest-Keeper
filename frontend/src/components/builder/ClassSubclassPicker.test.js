@@ -12,6 +12,13 @@ describe('ClassSubclassPicker', () => {
     expect(screen.queryByRole('option', { name: 'Divine Soul' })).not.toBeInTheDocument();
   });
 
+  test('keeps 2014 Sorcerer options separate from 2024 options', () => {
+    render(<ClassSubclassPicker className="Sorcerer" edition="2014" label="Sorcerous Origin" />);
+
+    expect(screen.getByRole('option', { name: 'Divine Soul' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Clockwork Soul' })).not.toBeInTheDocument();
+  });
+
   test('calls the subclass change handler', () => {
     const onSubclassChange = jest.fn();
     render(<ClassSubclassPicker className="Fighter" edition="2014" selectedSubclass="" onSubclassChange={onSubclassChange} />);
@@ -26,6 +33,13 @@ describe('ClassSubclassPicker', () => {
 
     expect(screen.getByText('(REQUIRED at Level 1)')).toBeInTheDocument();
     expect(screen.getByRole('option', { name: '-- Choose a Otherworldly Patron --' })).toBeInTheDocument();
+  });
+
+  test('renders optional state copy for level 3 subclass classes', () => {
+    render(<ClassSubclassPicker className="Fighter" edition="2014" optionalText="(optional now — typically chosen at level 3)" />);
+
+    expect(screen.getByText('(optional now — typically chosen at level 3)')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Select later' })).toBeInTheDocument();
   });
 
   test('shows stale subclass warning', () => {
