@@ -32,7 +32,7 @@ describe('class builder helper bridge', () => {
     });
 
     expect(getClassPackageBuilderOptions('Sorcerer', { level: 3, edition: '2024' })).toMatchObject({
-      ruleset: '2024',
+      edition: '2024',
       level: 3,
       subclassChoiceLevel: 3,
       metamagicCount: 2,
