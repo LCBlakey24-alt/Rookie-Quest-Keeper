@@ -57,6 +57,8 @@ export const MONK_SUBCLASSES = [
   },
 ];
 
+const MONK_SUBCLASS_FEATURE_LEVELS = [3, 6, 11, 17];
+
 export function getMonkSubclassKey(value = '') {
   return String(value || '')
     .trim()
@@ -94,4 +96,38 @@ export function getMonkSubclassByKey(value = '', edition = '2014') {
 
 export function isMonkSubclassAvailable(value = '', edition = '2014') {
   return Boolean(getMonkSubclassByKey(value, edition));
+}
+
+export function getMonkSubclassSummary(value = '', level = 1, edition = '2014') {
+  const subclass = getMonkSubclassByKey(value, edition);
+  const monkLevel = Math.max(1, Number(level || 1));
+  const key = subclass?.key || getMonkSubclassKey(value);
+  const label = subclass?.label || value || '';
+
+  const activeFeatures = MONK_SUBCLASS_FEATURE_LEVELS
+    .filter(featureLevel => featureLevel <= monkLevel)
+    .map(featureLevel => ({
+      level: featureLevel,
+      key: `${key || 'custom'}_${featureLevel}`,
+      name: `${label || 'Monk Subclass'} Feature ${featureLevel}`,
+      type: 'subclass',
+    }));
+
+  const nextLevel = MONK_SUBCLASS_FEATURE_LEVELS.find(featureLevel => featureLevel > monkLevel);
+  const nextFeatures = nextLevel ? [{
+    level: nextLevel,
+    key: `${key || 'custom'}_${nextLevel}`,
+    name: `${label || 'Monk Subclass'} Feature ${nextLevel}`,
+    type: 'subclass',
+  }] : [];
+
+  return {
+    key,
+    label,
+    role: subclass?.role || '',
+    summary: subclass?.summary || '',
+    supportedInRuleset: Boolean(!value || subclass),
+    activeFeatures,
+    nextFeatures,
+  };
 }
