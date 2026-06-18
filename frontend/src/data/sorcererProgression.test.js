@@ -4,6 +4,7 @@ import {
   getSorcererChoicesForLevel,
   getSorcererFeaturesForLevel,
   getSorcererMetamagicCount,
+  getSorcererMetamagicStartLevel,
   getSorcererProgressionSummary,
   getSorcererSpellcastingLevel,
   getSorcererSubclassChoiceLevel,
@@ -31,11 +32,16 @@ describe('Sorcerer progression helpers', () => {
   });
 
   test('tracks Metamagic counts by edition', () => {
+    expect(getSorcererMetamagicStartLevel('2014')).toBe(3);
+    expect(getSorcererMetamagicStartLevel('2024')).toBe(2);
+
     expect(getSorcererMetamagicCount(2, '2014')).toBe(0);
     expect(getSorcererMetamagicCount(3, '2014')).toBe(2);
     expect(getSorcererMetamagicCount(10, '2014')).toBe(3);
     expect(getSorcererMetamagicCount(17, '2014')).toBe(4);
 
+    expect(getSorcererMetamagicCount(1, '2024')).toBe(0);
+    expect(getSorcererMetamagicCount(2, '2024')).toBe(2);
     expect(getSorcererMetamagicCount(3, '2024')).toBe(2);
     expect(getSorcererMetamagicCount(10, '2024')).toBe(4);
     expect(getSorcererMetamagicCount(17, '2024')).toBe(6);
@@ -63,6 +69,7 @@ describe('Sorcerer progression helpers', () => {
   test('returns 2024 Sorcerer level features and choices', () => {
     expect(getSorcererFeaturesForLevel(1, '2024').map(feature => feature.key)).toEqual(['spellcasting', 'innate_sorcery']);
     expect(getSorcererFeaturesForLevel(2, '2024').map(feature => feature.key)).toEqual(['font_of_magic', 'metamagic']);
+    expect(getSorcererChoicesForLevel(2, '2024').map(feature => feature.choiceType)).toEqual(['metamagic']);
     expect(getSorcererFeaturesForLevel(3, '2024').map(feature => feature.key)).toEqual(['sorcerer_subclass']);
     expect(getSorcererChoicesForLevel(3, '2024').map(feature => feature.choiceType)).toEqual(['subclass']);
   });
@@ -77,10 +84,11 @@ describe('Sorcerer progression helpers', () => {
       spellcastingLevel: 10,
       sorceryPointMaximum: 10,
       metamagicCount: 3,
+      metamagicStartLevel: 3,
       subclassChoiceLevel: 1,
       subclassFeatureLevels: [1, 6, 14, 18],
     });
-    expect(summary.currentLevelFeatures.map(feature => feature.key)).toContain('metamagic');
+    expect(summary.activeFeatures.map(feature => feature.key)).toContain('metamagic');
     expect(summary.choices.map(choice => choice.choiceType)).toEqual(expect.arrayContaining(['subclass', 'metamagic', 'asi_or_feat']));
   });
 
@@ -94,6 +102,7 @@ describe('Sorcerer progression helpers', () => {
       spellcastingLevel: 6,
       sorceryPointMaximum: 6,
       metamagicCount: 2,
+      metamagicStartLevel: 2,
       subclassChoiceLevel: 3,
       subclassFeatureLevels: [3, 6, 14, 18],
     });
