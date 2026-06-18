@@ -3,8 +3,14 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import BuilderChoicePanel from './BuilderChoicePanel';
 
 const options = {
-  Fighter: { name: 'Fighter' },
-  Sorcerer: { name: 'Sorcerer' },
+  Fighter: {
+    name: 'Fighter',
+    subclasses: ['Champion', 'Battle Master'],
+  },
+  Sorcerer: {
+    name: 'Sorcerer',
+    subclasses: ['Wild Magic'],
+  },
 };
 
 describe('BuilderChoicePanel', () => {
@@ -21,5 +27,6 @@ describe('BuilderChoicePanel', () => {
     render(<BuilderChoicePanel options={options} value="Fighter" />);
 
     expect(screen.getByTestId('class-subclass-picker')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Champion' })).toBeInTheDocument();
   });
 });
