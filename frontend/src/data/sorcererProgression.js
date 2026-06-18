@@ -26,10 +26,14 @@ export function getSorceryPointMaximum(level = 1) {
   return sorcererLevel >= 2 ? sorcererLevel : 0;
 }
 
+export function getSorcererMetamagicStartLevel(edition = '2014') {
+  return normaliseSorcererRulesEdition(edition) === '2024' ? 2 : 3;
+}
+
 export function getSorcererMetamagicCount(level = 1, edition = '2014') {
   const sorcererLevel = Math.max(0, Number(level || 0));
   const ruleset = normaliseSorcererRulesEdition(edition);
-  if (sorcererLevel < 3) return 0;
+  if (sorcererLevel < getSorcererMetamagicStartLevel(ruleset)) return 0;
 
   if (ruleset === '2024') {
     if (sorcererLevel >= 17) return 6;
@@ -114,6 +118,7 @@ export function getSorcererProgressionSummary(level = 1, edition = '2014') {
     spellcastingLevel: getSorcererSpellcastingLevel(sorcererLevel),
     sorceryPointMaximum: getSorceryPointMaximum(sorcererLevel),
     metamagicCount: getSorcererMetamagicCount(sorcererLevel, ruleset),
+    metamagicStartLevel: getSorcererMetamagicStartLevel(ruleset),
     subclassChoiceLevel: getSorcererSubclassChoiceLevel(ruleset),
     subclassFeatureLevels: getSorcererSubclassFeatureLevels(ruleset),
     currentLevelFeatures: getSorcererFeaturesForLevel(sorcererLevel, ruleset),
