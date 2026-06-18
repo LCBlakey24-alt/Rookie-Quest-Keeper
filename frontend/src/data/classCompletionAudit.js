@@ -8,6 +8,8 @@ import * as bardPackage from './bardPackage';
 import * as clericPackage from './clericPackage';
 import * as druidPackage from './druidPackage';
 import * as wizardPackage from './wizardPackage';
+import * as warlockPackage from './warlockPackage';
+import * as sorcererPackage from './sorcererPackage';
 import { CLASS_COMPLETION_CHECKLIST, getClassCompletionDashboard } from './classCompletionStatus';
 
 const PACKAGE_BY_CLASS = {
@@ -21,6 +23,8 @@ const PACKAGE_BY_CLASS = {
   Cleric: clericPackage,
   Druid: druidPackage,
   Wizard: wizardPackage,
+  Warlock: warlockPackage,
+  Sorcerer: sorcererPackage,
 };
 
 const EXPECTED_EXPORTS_BY_CHECKLIST = {
