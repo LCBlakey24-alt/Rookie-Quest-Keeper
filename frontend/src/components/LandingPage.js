@@ -19,16 +19,16 @@ import {
 } from 'lucide-react';
 
 const features = [
-  { icon: Users, title: 'Party Management', desc: 'Track characters, inventory, player notes, and campaign membership in one place.' },
+  { icon: Users, title: 'Character Builder', desc: 'Create 5e characters, choose rulesets, track sheets, and keep your player tools together.' },
   { icon: Sword, title: 'Combat Tools', desc: 'Run initiative, manage HP, prep encounters, and keep combat moving at the table.' },
   { icon: Sparkles, title: 'ROOK AI', desc: 'Generate NPCs, locations, recaps, hooks, and structured campaign content from your notes.' },
-  { icon: Map, title: 'World Building', desc: 'Organize maps, locations, calendars, factions, gods, and lore for long-running games.' }
+  { icon: Map, title: 'Campaign Workspace', desc: 'Organize parties, locations, session notes, and campaign details for long-running games.' }
 ];
 
 const workflow = [
-  { icon: BookOpen, title: 'Build', desc: 'Create characters, campaigns, rulesets, and custom content before the session starts.' },
-  { icon: ShieldCheck, title: 'Run', desc: 'Open the GM screen, roll dice, track combat, and keep live notes without leaving the app.' },
-  { icon: ScrollText, title: 'Remember', desc: 'Turn session notes into recaps, player-facing updates, and searchable campaign history.' }
+  { icon: BookOpen, title: 'Build a character', desc: 'Start with the guided builder, pick a ruleset, and save a playable sheet.' },
+  { icon: ShieldCheck, title: 'Run the table', desc: 'Open the GM screen, roll dice, track combat, and manage live session notes.' },
+  { icon: ScrollText, title: 'Keep the story', desc: 'Turn notes into recaps, player-facing updates, and searchable campaign history.' }
 ];
 
 const productPreviews = [
@@ -204,7 +204,7 @@ export default function LandingPage() {
             Sign In
           </button>
           <button data-testid="landing-getstarted-btn" type="button" className="landing-button landing-button-primary" onClick={() => navigate('/login')}>
-            Get Started
+            Create Account
           </button>
         </div>
       </nav>
@@ -212,14 +212,14 @@ export default function LandingPage() {
       <main>
         <section className="landing-hero">
           <div className="landing-hero-copy">
-            <span className="landing-kicker">Campaign prep, live play, and recap in one place</span>
+            <span className="landing-kicker">Build characters, run sessions, and keep campaign notes together</span>
             <h1>Rookie Quest Keeper</h1>
             <p>
-              A focused TTRPG workspace for building characters, running campaigns, managing live sessions,
-              and keeping your table organized.
+              A focused TTRPG workspace for creating playable 5e characters, managing campaigns,
+              running live sessions, and keeping your table organized from prep to recap.
             </p>
             <button data-testid="landing-cta-btn" type="button" className="landing-button landing-button-primary landing-button-large" onClick={() => navigate('/login')}>
-              Start Your Quest <ChevronRight size={18} />
+              Build Your First Character <ChevronRight size={18} />
             </button>
           </div>
 
@@ -241,8 +241,8 @@ export default function LandingPage() {
 
         <section className="landing-workflow">
           <div className="landing-workflow-copy">
-            <span className="landing-kicker">Built for the whole session</span>
-            <h2>From prep to table notes without changing tools</h2>
+            <span className="landing-kicker">Usable today, built to grow</span>
+            <h2>Start with characters, then bring the whole table into one workspace</h2>
             <div className="landing-workflow-list">
               {workflow.map((item) => {
                 const Icon = item.icon;
