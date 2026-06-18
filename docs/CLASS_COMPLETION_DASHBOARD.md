@@ -30,10 +30,10 @@ A class is 100% complete when it has:
 | 0 | Bard | 100% | Complete | Playtest polish only; core Bard implementation is complete. |
 | 0 | Cleric | 100% | Complete | Playtest polish only; core Cleric implementation is complete. |
 | 0 | Druid | 100% | Complete | Playtest polish only; core Druid implementation is complete. |
+| 0 | Sorcerer | 100% | Complete | Playtest polish only; core Sorcerer implementation is complete. |
+| 0 | Warlock | 100% | Complete | Playtest polish only; core Warlock implementation is complete. |
 | 0 | Wizard | 100% | Complete | Playtest polish only; core Wizard implementation is complete. |
-| 1 | Warlock | 40% | Next | Build Warlock patron summaries, builder readiness, sheet summary, final status, package export, and tests. |
-| 2 | Sorcerer | 20% | Queued | Build Sorcerer progression, origin summaries, builder readiness, sheet summary, final status, package export, and tests. |
 
 ## Next recommendation
 
-Continue Warlock next. Progression and character detection helpers are started, so the next useful step is patron summaries.
+All 12 core class helper packages are complete. The next useful step is wiring these completed helpers into the character builder and sheet UI, then doing playtest polish from real character examples.
