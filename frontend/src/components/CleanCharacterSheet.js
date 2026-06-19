@@ -1,141 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import {
-  Activity,
-  ArrowLeft,
-  Backpack,
-  BookOpen,
-  Coffee,
-  Dices,
-  Edit3,
-  Heart,
-  History,
-  Moon,
-  RotateCcw,
-  Shield,
-  Skull,
-  Sparkles,
-  Star,
-  Swords,
-  TrendingUp,
-  User,
-  Zap,
-} from 'lucide-react';
+
+import apiClient from '@/lib/apiClient';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
-import { deriveArmorClass } from '@/data/characterCombatDerivations';
-import { getClassFeatures } from '@/data/classFeatures';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
-import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
+import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
+import CleanSheetOverviewTab from '@/components/clean-sheet/CleanSheetOverviewTab';
+import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
+import CleanSheetTableFocus from '@/components/clean-sheet/CleanSheetTableFocus';
+import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
+import CleanSheetVitals from '@/components/clean-sheet/CleanSheetVitals';
+import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
 import RookPlayerSuggestions from '@/components/RookPlayerSuggestions';
-import DiceRollFlicker from '@/components/DiceRollFlicker';
-
-const ABILITIES = [
-  ['strength', 'STR'],
-  ['dexterity', 'DEX'],
-  ['constitution', 'CON'],
-  ['intelligence', 'INT'],
-  ['wisdom', 'WIS'],
-  ['charisma', 'CHA'],
-];
-
-const SKILLS = [
-  ['Acrobatics', 'dexterity'], ['Animal Handling', 'wisdom'], ['Arcana', 'intelligence'],
-  ['Athletics', 'strength'], ['Deception', 'charisma'], ['History', 'intelligence'],
-  ['Insight', 'wisdom'], ['Intimidation', 'charisma'], ['Investigation', 'intelligence'],
-  ['Medicine', 'wisdom'], ['Nature', 'intelligence'], ['Perception', 'wisdom'],
-  ['Performance', 'charisma'], ['Persuasion', 'charisma'], ['Religion', 'intelligence'],
-  ['Sleight of Hand', 'dexterity'], ['Stealth', 'dexterity'], ['Survival', 'wisdom'],
-];
-
-const PASSIVE_SKILLS = [
-  ['Perception', 'wisdom'],
-  ['Insight', 'wisdom'],
-  ['Investigation', 'intelligence'],
-];
-
-const COMMON_CONDITIONS = [
-  'blinded',
-  'charmed',
-  'deafened',
-  'frightened',
-  'grappled',
-  'incapacitated',
-  'invisible',
-  'paralyzed',
-  'petrified',
-  'poisoned',
-  'prone',
-  'restrained',
-  'stunned',
-  'unconscious',
-];
-
-const tabs = [
-  { id: 'overview', label: 'Overview', icon: Sparkles },
-  { id: 'combat', label: 'Combat', icon: Swords },
-  { id: 'spells', label: 'Spells', icon: BookOpen },
-  { id: 'inventory', label: 'Inventory', icon: Backpack },
-  { id: 'notes', label: 'Notes', icon: Edit3 },
-];
-
-const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
-const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
-const getMaxHp = (c) => Number(c?.max_hit_points ?? c?.max_hp ?? 10) || 10;
-const getCurrentHp = (c) => Number(c?.current_hit_points ?? c?.hp ?? getMaxHp(c)) || getMaxHp(c);
-const getTempHp = (c) => Number(c?.temporary_hit_points ?? c?.temp_hp ?? 0) || 0;
-const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
-const toArray = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean);
-  if (!value) return [];
-  if (typeof value === 'string') return value.split(',').map(item => item.trim()).filter(Boolean);
-  return [];
-};
-
-const featureTypeLabel = (type) => {
-  if (type === 'bonus_action') return 'Bonus action';
-  if (type === 'reaction') return 'Reaction';
-  if (type === 'action_modifier') return 'Attack modifier';
-  if (type === 'action') return 'Action';
-  if (type === 'special') return 'Special';
-  return 'Passive';
-};
-
-function parseHitDie(hitDice = '1d8') {
-  const match = String(hitDice).match(/(\d+)d(\d+)/i);
-  if (!match) return { total: 1, sides: 8 };
-  return { total: Number(match[1]) || 1, sides: Number(match[2]) || 8 };
-}
-
-function rollD20(modifier = 0, rollMode = 'normal') {
-  const first = Math.floor(Math.random() * 20) + 1;
-  if (rollMode !== 'advantage' && rollMode !== 'disadvantage') {
-    return { d20: first, modifier, total: first + modifier, mode: 'normal', allRolls: [first] };
-  }
-  const second = Math.floor(Math.random() * 20) + 1;
-  const kept = rollMode === 'advantage' ? Math.max(first, second) : Math.min(first, second);
-  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second] };
-}
-
-function rollHitDie(sides = 8, modifier = 0) {
-  const die = Math.floor(Math.random() * sides) + 1;
-  return { die, total: Math.max(1, die + modifier) };
-}
-
-function StatCard({ icon: Icon, label, value, sub, onClick }) {
-  const Tag = onClick ? 'button' : 'div';
-  return (
-    <Tag type={onClick ? 'button' : undefined} onClick={onClick} className={`clean-sheet-stat-card ${onClick ? 'clean-sheet-clickable' : ''}`}>
-      {Icon && <Icon size={18} />}
-      <div className="clean-sheet-stat-value">{value}</div>
-      <div className="clean-sheet-stat-label">{label}</div>
-      {sub && <div className="clean-sheet-stat-sub">{sub}</div>}
-    </Tag>
-  );
-}
+import { deriveArmorClass } from '@/data/characterCombatDerivations';
+import { getClassFeatures } from '@/data/classFeatures';
+import {
+  PASSIVE_SKILLS,
+  SHEET_TABS,
+  clampDeathCount,
+  featureTypeLabel,
+  getCurrentHp,
+  getMaxHp,
+  getTempHp,
+  mod,
+  parseHitDie,
+  rollD20,
+  rollHitDie,
+  toArray,
+} from '@/components/clean-sheet/cleanSheetUtils';
 
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
@@ -155,7 +51,6 @@ export default function CleanCharacterSheet() {
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [rollMode, setRollMode] = useState('normal');
   const [rollBonus, setRollBonus] = useState(0);
-  const [reloadingCharacter, setReloadingCharacter] = useState(false);
   const [concentrationInput, setConcentrationInput] = useState('');
   const [showConcentrationInput, setShowConcentrationInput] = useState(false);
 
@@ -167,7 +62,7 @@ export default function CleanCharacterSheet() {
         const response = await apiClient.get(`/characters/${characterId}`);
         if (!cancelled) setCharacter(response.data);
       } catch (error) {
-        toast.error(error?.response?.data?.detail || 'Failed to load character');
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load character');
         if (!cancelled) setCharacter(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -279,22 +174,8 @@ export default function CleanCharacterSheet() {
       return true;
     } catch (error) {
       setCharacter(previous);
-      toast.error(error?.response?.data?.detail || options.error || 'Could not save character update');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || options.error || 'Could not save character update');
       return false;
-    }
-  };
-
-  const reloadCharacter = async () => {
-    if (reloadingCharacter) return;
-    setReloadingCharacter(true);
-    try {
-      const response = await apiClient.get(`/characters/${characterId}`);
-      setCharacter(response.data);
-      toast.success('Character refreshed');
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to refresh character');
-    } finally {
-      setReloadingCharacter(false);
     }
   };
 
@@ -488,11 +369,27 @@ export default function CleanCharacterSheet() {
           { success: 'Long rest applied', error: 'Could not apply long rest' }
         );
       } else {
-        toast.error(error?.response?.data?.detail || 'Could not complete short rest');
+        toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not complete short rest');
       }
     } finally {
       setSavingQuickState(false);
     }
+  };
+
+  const saveConcentration = async (spellName) => {
+    await patchCharacter(
+      { concentrating_on: spellName, concentration: spellName },
+      { success: `Concentrating on ${spellName}` }
+    );
+    setConcentrationInput('');
+    setShowConcentrationInput(false);
+  };
+
+  const endConcentration = async () => {
+    await patchCharacter(
+      { concentrating_on: null, concentration: null },
+      { success: 'Concentration ended' }
+    );
   };
 
   if (loading) {
@@ -554,411 +451,121 @@ export default function CleanCharacterSheet() {
         />
       )}
 
-      <header className="clean-sheet-header">
-        <button className="clean-sheet-back" onClick={() => navigate('/home')}>
-          <ArrowLeft size={18} /> Dashboard
-        </button>
-        <div className="clean-sheet-identity">
-          <div className="clean-sheet-portrait">
-            {character.portrait_url ? <img src={character.portrait_url} alt="" /> : <User size={30} />}
-          </div>
-          <div>
-            <p className="clean-sheet-kicker">Character</p>
-            <h1>{character.name}</h1>
-            <p>{subtitle}</p>
-          </div>
-        </div>
-        <div className="clean-sheet-header-actions">
-          <button className="clean-sheet-level" onClick={() => setShowLevelUpWizard(true)}>
-            <TrendingUp size={18} /> Level Up
-          </button>
-          <button className="clean-sheet-edit" onClick={() => navigate(`/characters/${character.id}/edit`)}>
-            <Edit3 size={18} /> Edit
-          </button>
-        </div>
-      </header>
+      <CleanSheetHeader
+        character={character}
+        subtitle={subtitle}
+        onBack={() => navigate('/home')}
+        onEdit={() => navigate(`/characters/${character.id}/edit`)}
+        onLevelUp={() => setShowLevelUpWizard(true)}
+      />
 
-      <section className="clean-sheet-vitals">
-        <div className="clean-sheet-hp-card">
-          <div className="clean-sheet-hp-top">
-            <span><Heart size={18} /> HP</span>
-            <strong>{currentHp}/{maxHp}</strong>
-          </div>
-          <div className="clean-sheet-hp-bar"><div style={{ width: `${hpPercent}%` }} /></div>
-          <div className="clean-sheet-hp-bulk-row">
-            <input
-              type="number"
-              min="1"
-              max="999"
-              value={hpAmount}
-              onChange={(e) => setHpAmount(e.target.value)}
-              aria-label="HP amount"
-            />
-            <button onClick={() => updateHp(-getSafeAmount(hpAmount))} disabled={savingHp}>Damage</button>
-            <button onClick={() => updateHp(getSafeAmount(hpAmount))} disabled={savingHp}>Heal</button>
-          </div>
-          <div className="clean-sheet-temp-hp-row clean-sheet-temp-hp-bulk-row">
-            <span>Temp HP</span>
-            <strong>{tempHp}</strong>
-            <input
-              type="number"
-              min="1"
-              max="999"
-              value={tempHpAmount}
-              onChange={(e) => setTempHpAmount(e.target.value)}
-              aria-label="Temporary HP amount"
-            />
-            <button onClick={() => updateTempHp(-getSafeAmount(tempHpAmount))} disabled={savingTempHp || tempHp <= 0}>Remove</button>
-            <button onClick={() => updateTempHp(getSafeAmount(tempHpAmount))} disabled={savingTempHp}>Add</button>
-          </div>
-        </div>
-        <StatCard icon={Shield} label="AC" value={ac} />
-        <StatCard icon={Zap} label="Initiative" value={fmt(dexMod)} onClick={() => makeRoll('Initiative', dexMod)} />
-        <StatCard icon={Dices} label="Proficiency" value={fmt(proficiencyBonus)} />
-        <StatCard icon={User} label="Speed" value={`${speed}ft`} />
-      </section>
+      <CleanSheetVitals
+        currentHp={currentHp}
+        maxHp={maxHp}
+        hpPercent={hpPercent}
+        hpAmount={hpAmount}
+        tempHp={tempHp}
+        tempHpAmount={tempHpAmount}
+        ac={ac}
+        dexMod={dexMod}
+        proficiencyBonus={proficiencyBonus}
+        speed={speed}
+        savingHp={savingHp}
+        savingTempHp={savingTempHp}
+        onHpAmountChange={setHpAmount}
+        onTempHpAmountChange={setTempHpAmount}
+        onDamage={() => updateHp(-getSafeAmount(hpAmount))}
+        onHeal={() => updateHp(getSafeAmount(hpAmount))}
+        onRemoveTempHp={() => updateTempHp(-getSafeAmount(tempHpAmount))}
+        onAddTempHp={() => updateTempHp(getSafeAmount(tempHpAmount))}
+        onRollInitiative={() => makeRoll('Initiative', dexMod)}
+      />
 
-      <section className="clean-sheet-table-focus" data-testid="player-table-focus">
-        <div className="clean-sheet-table-focus-copy">
-          <span><Sparkles size={16} /> At the table</span>
-          <strong>Everything you need on your turn, with fewer taps.</strong>
-          <p>Jump straight to attacks, spells, items, notes, or level-up without hunting through the full sheet.</p>
-        </div>
-        <div className="clean-sheet-table-focus-actions">
-          <button type="button" onClick={() => setActiveTab('combat')}>
-            <Swords size={17} /> Combat
-          </button>
-          <button type="button" onClick={() => setActiveTab('spells')}>
-            <BookOpen size={17} /> Spells
-          </button>
-          <button type="button" onClick={() => setActiveTab('inventory')}>
-            <Backpack size={17} /> Items
-          </button>
-          <button type="button" onClick={() => setActiveTab('notes')}>
-            <Edit3 size={17} /> Notes
-          </button>
-          <button type="button" onClick={() => setShowLevelUpWizard(true)}>
-            <TrendingUp size={17} /> Level Up
-          </button>
-        </div>
-      </section>
+      <CleanSheetTableFocus
+        onSelectTab={setActiveTab}
+        onLevelUp={() => setShowLevelUpWizard(true)}
+      />
 
-      <section className="clean-sheet-turn-strip" data-testid="player-turn-strip">
-        <div><span>Roll mode</span><strong>{rollMode === 'normal' ? 'Normal' : rollMode === 'advantage' ? 'Advantage' : 'Disadvantage'}</strong></div>
-        <div><span>Passive Perception</span><strong>{passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10}</strong></div>
-        <div><span>Conditions</span><strong>{activeConditions.length ? activeConditions.length : 'None'}</strong></div>
-        <div><span>Hit Dice</span><strong>{hitDiceRemaining}/{hitDice}</strong></div>
-        <div><span>Concentration</span><strong>{concentratingName || 'None'}</strong></div>
-      </section>
+      <CleanSheetPlayTools
+        activeConditions={activeConditions}
+        concentratingName={concentratingName}
+        concentrationInput={concentrationInput}
+        currentHp={currentHp}
+        deathSaveFailures={deathSaveFailures}
+        deathSaveSuccesses={deathSaveSuccesses}
+        exhaustionLevel={exhaustionLevel}
+        hasInspiration={hasInspiration}
+        hitDice={hitDice}
+        hitDiceRemaining={hitDiceRemaining}
+        maxHp={maxHp}
+        passiveScores={passiveScores}
+        rollBonus={rollBonus}
+        rollHistory={rollHistory}
+        rollMode={rollMode}
+        savingQuickState={savingQuickState}
+        showConditionPicker={showConditionPicker}
+        showConcentrationInput={showConcentrationInput}
+        showDeathSaves={showDeathSaves}
+        showRollHistory={showRollHistory}
+        onEndConcentration={endConcentration}
+        onLongRest={() => handleRest('long')}
+        onRollBonusChange={setRollBonus}
+        onRollDeathSave={rollDeathSave}
+        onRollHistoryToggle={setShowRollHistory}
+        onRollModeChange={setRollMode}
+        onSaveConcentration={saveConcentration}
+        onSetConcentrationInput={setConcentrationInput}
+        onShortRest={() => handleRest('short')}
+        onShowConditionPickerChange={setShowConditionPicker}
+        onShowConcentrationInputChange={setShowConcentrationInput}
+        onSpendHitDie={spendHitDie}
+        onToggleCondition={toggleCondition}
+        onToggleDeathSave={setDeathSaveCount}
+        onToggleInspiration={toggleInspiration}
+        onResetDeathSaves={resetDeathSaves}
+      />
 
-      <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
-        <div className="clean-sheet-status-row">
-          <button type="button" className={`clean-sheet-inspiration ${hasInspiration ? 'active' : ''}`} onClick={toggleInspiration} disabled={savingQuickState} data-testid="inspiration-toggle">
-            <Star size={17} /> {hasInspiration ? 'Inspired' : 'Inspiration'}
-          </button>
-          <button type="button" className="clean-sheet-rest-button" onClick={() => handleRest('short')} disabled={savingQuickState} data-testid="short-rest-btn">
-            <Coffee size={17} /> Short Rest
-          </button>
-          <button type="button" className="clean-sheet-rest-button" onClick={() => handleRest('long')} disabled={savingQuickState} data-testid="long-rest-btn">
-            <Moon size={17} /> Long Rest
-          </button>
-        </div>
-
-        <div className="clean-sheet-roll-controls" data-testid="roll-controls">
-          <div className="clean-sheet-roll-mode-group" aria-label="Roll mode">
-            {['normal', 'advantage', 'disadvantage'].map(mode => (
-              <button key={mode} type="button" className={rollMode === mode ? 'active' : ''} onClick={() => setRollMode(mode)}>
-                {mode === 'normal' ? 'Normal' : mode === 'advantage' ? 'Adv' : 'Dis'}
-              </button>
-            ))}
-          </div>
-          <label>
-            <span>Bonus</span>
-            <input type="number" value={rollBonus} onChange={(event) => setRollBonus(event.target.value)} aria-label="Custom roll bonus" />
-          </label>
-        </div>
-
-        <div className="clean-sheet-passives" data-testid="passive-scores-strip">
-          {passiveScores.map(([label, value]) => (
-            <div key={label}><span>Passive {label}</span><strong>{value}</strong></div>
-          ))}
-        </div>
-
-        <div className="clean-sheet-hitdice-row" data-testid="hit-dice-row">
-          <span><Activity size={15} /> Hit Dice</span>
-          <strong>{hitDiceRemaining} / {hitDice}</strong>
-          <button type="button" onClick={spendHitDie} disabled={savingQuickState || hitDiceRemaining <= 0 || currentHp >= maxHp}>Spend</button>
-        </div>
-
-        <div className="clean-sheet-hitdice-row" data-testid="concentration-row" style={{ borderColor: concentratingName ? '#a855f7' : undefined }}>
-          <span><Sparkles size={15} style={{ color: '#a855f7' }} /> Concentration</span>
-          {concentratingName ? (
-            <>
-              <strong style={{ color: '#a855f7', flex: 1 }}>{concentratingName}</strong>
-              <button
-                type="button"
-                onClick={() => patchCharacter({ concentrating_on: null, concentration: null }, { success: 'Concentration ended' })}
-                disabled={savingQuickState}
-                title="End concentration"
-                style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
-              >
-                End
-              </button>
-            </>
-          ) : (
-            <>
-              <strong style={{ color: '#64748b', flex: 1 }}>None</strong>
-              <button
-                type="button"
-                onClick={() => setShowConcentrationInput(prev => !prev)}
-                style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
-              >
-                Set
-              </button>
-            </>
-          )}
-          {showConcentrationInput && !concentratingName && (
-            <div style={{ width: '100%', display: 'flex', gap: '6px', marginTop: '6px' }}>
-              <input
-                type="text"
-                placeholder="Spell name…"
-                value={concentrationInput}
-                onChange={e => setConcentrationInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && concentrationInput.trim()) {
-                    patchCharacter({ concentrating_on: concentrationInput.trim(), concentration: concentrationInput.trim() }, { success: `Concentrating on ${concentrationInput.trim()}` });
-                    setConcentrationInput('');
-                    setShowConcentrationInput(false);
-                  }
-                }}
-                className="clean-sheet-input"
-                style={{ flex: 1, padding: '4px 8px', fontSize: '12px', background: 'rgba(10,10,40,0.8)', border: '1px solid #a855f7', borderRadius: '4px', color: '#fff' }}
-              />
-              <button
-                type="button"
-                disabled={!concentrationInput.trim() || savingQuickState}
-                onClick={() => {
-                  if (!concentrationInput.trim()) return;
-                  patchCharacter({ concentrating_on: concentrationInput.trim(), concentration: concentrationInput.trim() }, { success: `Concentrating on ${concentrationInput.trim()}` });
-                  setConcentrationInput('');
-                  setShowConcentrationInput(false);
-                }}
-                style={{ background: 'rgba(168,85,247,0.3)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '4px 10px', fontSize: '11px' }}
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="clean-sheet-condition-panel" data-testid="conditions-strip">
-          <button type="button" onClick={() => setShowConditionPicker(prev => !prev)} className="clean-sheet-condition-toggle">
-            Conditions {activeConditions.length > 0 ? `(${activeConditions.length})` : ''}
-          </button>
-          {exhaustionLevel > 0 && <span className="clean-sheet-condition-chip danger">Exhaustion {exhaustionLevel}</span>}
-          {activeConditions.length === 0 && exhaustionLevel === 0 ? (
-            <span className="clean-sheet-no-conditions">No active conditions</span>
-          ) : (
-            activeConditions.map(condition => <span key={condition} className="clean-sheet-condition-chip">{condition}</span>)
-          )}
-          {showConditionPicker && (
-            <div className="clean-sheet-condition-picker">
-              {COMMON_CONDITIONS.map(condition => (
-                <button
-                  key={condition}
-                  type="button"
-                  className={activeConditions.includes(condition) ? 'active' : ''}
-                  onClick={() => toggleCondition(condition)}
-                  disabled={savingQuickState}
-                >
-                  {condition}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {showDeathSaves && (
-          <div className="clean-sheet-death-saves" data-testid="death-saves-panel">
-            <div className="clean-sheet-death-title"><Skull size={17} /> Death Saves</div>
-            <DeathSaveTrack label="Successes" type="success" count={deathSaveSuccesses} onToggle={setDeathSaveCount} />
-            <DeathSaveTrack label="Failures" type="failure" count={deathSaveFailures} onToggle={setDeathSaveCount} />
-            <div className="clean-sheet-death-actions">
-              <button type="button" onClick={rollDeathSave}>Roll Death Save</button>
-              <button type="button" onClick={resetDeathSaves}><RotateCcw size={15} /> Reset</button>
-            </div>
-          </div>
-        )}
-
-        <div className="clean-sheet-roll-history-panel" data-testid="roll-history-panel">
-          <button type="button" onClick={() => setShowRollHistory(prev => !prev)} className="clean-sheet-roll-history-toggle">
-            <History size={16} /> Last Rolls {rollHistory.length > 0 ? `(${rollHistory.length})` : ''}
-          </button>
-          {showRollHistory && (
-            <div className="clean-sheet-roll-history-list">
-              {rollHistory.length === 0 ? (
-                <p>No rolls yet.</p>
-              ) : (
-                rollHistory.map(entry => (
-                  <div key={entry.id}>
-                    <span>{entry.label}</span>
-                    <strong>{entry.total}</strong>
-                    <em>{entry.time} • {entry.mode === 'hit-die' ? `die ${entry.d20}` : `d20 ${entry.d20}`} {fmt(entry.modifier)}{entry.mode && entry.mode !== 'normal' && entry.mode !== 'hit-die' ? ` • ${entry.mode}` : ''}</em>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <nav className="clean-sheet-tabs" aria-label="Character sheet sections">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          const selected = activeTab === tab.id;
-          return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={selected ? 'active' : ''}>
-              <Icon size={17} /> <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={setActiveTab} />
 
       <main className="clean-sheet-content">
         {activeTab === 'overview' && (
-          <div className="clean-sheet-grid">
-            <section className="clean-sheet-panel">
-              <h2>Ability Scores</h2>
-              <div className="clean-sheet-abilities">
-                {ABILITIES.map(([key, short]) => {
-                  const abilityMod = mod(character[key]);
-                  return (
-                    <button key={key} type="button" className="clean-sheet-ability clean-sheet-clickable" onClick={() => makeRoll(`${short} Check`, abilityMod)}>
-                      <span>{short}</span>
-                      <strong>{character[key] ?? 10}</strong>
-                      <em>{fmt(abilityMod)}</em>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="clean-sheet-panel">
-              <h2>Saving Throws</h2>
-              <div className="clean-sheet-save-grid">
-                {ABILITIES.map(([key, short]) => {
-                  const proficient = saveProficiencies.includes(key) || saveProficiencies.includes(short.toLowerCase());
-                  const saveMod = mod(character[key]) + (proficient ? proficiencyBonus : 0);
-                  return (
-                    <button key={key} type="button" className="clean-sheet-save-card" onClick={() => makeRoll(`${short} Save`, saveMod)}>
-                      <span>{short}</span>
-                      <strong>{fmt(saveMod)}</strong>
-                      {proficient && <em>Proficient</em>}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="clean-sheet-panel clean-sheet-wide">
-              <h2>Skills</h2>
-              <div className="clean-sheet-skill-grid">
-                {SKILLS.map(([skill, ability]) => {
-                  const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-                  const skillMod = mod(character[ability]) + (proficient ? proficiencyBonus : 0);
-                  return (
-                    <button key={skill} type="button" className="clean-sheet-skill-card" onClick={() => makeRoll(skill, skillMod)}>
-                      <span>{skill}</span>
-                      <em>{ability.slice(0, 3).toUpperCase()}</em>
-                      <strong>{fmt(skillMod)}</strong>
-                      {proficient && <small>Proficient</small>}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-feature-action-economy">
-              <div className="clean-sheet-panel-heading">
-                <div>
-                  <h2>Class Features & Turn Options</h2>
-                  <p>{rulesEdition} rules • {character.character_class || 'Class'} level {character.level || 1}</p>
-                </div>
-                <span>{classFeatureSummary.length} features</span>
-              </div>
-              <div className="clean-sheet-feature-lanes">
-                {Object.entries(actionEconomyGroups).map(([label, features]) => (
-                  <div key={label} className="clean-sheet-feature-lane">
-                    <h3>{label}</h3>
-                    {features.slice(0, 5).length ? features.slice(0, 5).map((feature) => (
-                      <article key={`${label}-${feature.name}-${feature.level || 'sheet'}`} className="clean-sheet-feature-card">
-                        <div>
-                          <strong>{feature.name}</strong>
-                          {feature.level && <span>Level {feature.level}</span>}
-                        </div>
-                        {feature.uses && <em>{feature.uses}</em>}
-                        {feature.description && <p>{feature.description}</p>}
-                      </article>
-                    )) : (
-                      <p className="clean-sheet-feature-empty">No {label.toLowerCase()} features found yet.</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="clean-sheet-panel clean-sheet-wide" data-testid="proficiency-equipment-summary">
-              <div className="clean-sheet-panel-heading">
-                <div>
-                  <h2>Proficiencies & Equipment Readiness</h2>
-                  <p>Quick checks for armour, weapons, tools, languages, AC, speed, and multiclass readiness.</p>
-                </div>
-                <button type="button" onClick={() => setActiveTab('inventory')}>Open inventory</button>
-              </div>
-              <div className="clean-sheet-readiness-grid">
-                <div><span>Armour Class</span><strong>{ac}</strong><em>Derived from equipped armour, shield, and stats.</em></div>
-                <div><span>Speed</span><strong>{speed}ft</strong><em>Check class, race/species, armour, and conditions.</em></div>
-                <div><span>Exhaustion</span><strong>{exhaustionLevel}</strong><em>{exhaustionLevel ? 'Apply condition penalties at the table.' : 'No exhaustion marked.'}</em></div>
-                <div><span>Proficiency</span><strong>{fmt(proficiencyBonus)}</strong><em>Total character level based.</em></div>
-              </div>
-              <div className="clean-sheet-proficiency-lists">
-                {proficiencySummary.map(([label, items]) => (
-                  <div key={label}>
-                    <h3>{label}</h3>
-                    <p>{items.length ? items.slice(0, 10).join(', ') : 'None recorded yet'}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+          <CleanSheetOverviewTab
+            ac={ac}
+            actionEconomyGroups={actionEconomyGroups}
+            character={character}
+            classFeatureSummary={classFeatureSummary}
+            exhaustionLevel={exhaustionLevel}
+            proficiencyBonus={proficiencyBonus}
+            proficiencySummary={proficiencySummary}
+            rulesEdition={rulesEdition}
+            saveProficiencies={saveProficiencies}
+            skillProficiencies={skillProficiencies}
+            speed={speed}
+            onOpenInventory={() => setActiveTab('inventory')}
+            onRoll={makeRoll}
+          />
         )}
 
-        {activeTab === 'combat' && <CleanCombatTab character={character} ac={ac} speed={speed} proficiencyBonus={proficiencyBonus} onRoll={makeRoll} onCharacterUpdate={patchCharacter} onDiceResult={(entry) => { setRollBurst(entry); setRollHistory(prev => [entry, ...prev].slice(0, 12)); }} />}
+        {activeTab === 'combat' && (
+          <CleanCombatTab
+            character={character}
+            ac={ac}
+            speed={speed}
+            proficiencyBonus={proficiencyBonus}
+            onRoll={makeRoll}
+            onCharacterUpdate={patchCharacter}
+            onDiceResult={(entry) => {
+              setRollBurst(entry);
+              setRollHistory(prev => [entry, ...prev].slice(0, 12));
+            }}
+          />
+        )}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
 
       <RookPlayerSuggestions character={character} />
-    </div>
-  );
-}
-
-function DeathSaveTrack({ label, type, count, onToggle }) {
-  return (
-    <div className="clean-sheet-death-track">
-      <span>{label}</span>
-      <div>
-        {[0, 1, 2].map(index => (
-          <button
-            key={index}
-            type="button"
-            className={index < count ? 'marked' : ''}
-            onClick={() => onToggle(type, index)}
-            aria-label={`${label} ${index + 1}`}
-          />
-        ))}
-      </div>
     </div>
   );
 }
