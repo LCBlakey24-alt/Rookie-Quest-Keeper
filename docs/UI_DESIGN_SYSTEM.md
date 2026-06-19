@@ -26,13 +26,24 @@ The app should feel like a mystical spellcaster's campaign desk: dark navy surfa
 
 ## Placement rules
 
-1. **No page-specific full colour themes.** Maps, Chronicles, NPCs, Inventory, Handouts, Homebrew, Combat, and Player pages should share the same dark navy / purple-blue shell.
+1. **No page-specific full colour themes.** Maps, Chronicles, NPCs, Inventory, Handouts, Homebrew, Combat, Player pages, and character builders should share the same dark navy / purple-blue shell.
 2. **Purple is the primary app action colour.** Use it for active tabs, Create, Save, Share, Import, Start, and Live Play actions.
 3. **Blue supports player/shared areas.** Use blue in gradients and for player-facing/shared/received states.
 4. **Rook purple should feel magical but specific.** Use the brighter Rook purple for Rook/AI messages, not as a generic panel colour.
 5. **Amber is not a theme.** Use amber only for warnings, treasure/value details, or important clues.
 6. **Red is danger only.** Use red for delete, remove, failed, and destructive states; avoid using it as the default page colour.
 7. **Green means done.** Use it for read, saved, ready, imported, completed, or success.
+
+## Character builder styling
+
+All character builders should use the Mystic Tabletop palette rather than introducing separate mode colours.
+
+- **Full Creation:** detailed, workshop-like, with purple active step states and navy panels.
+- **Basic Build:** guided, compact, and approachable, with blue-purple preview cards and purple primary actions.
+- **Premade Characters:** card-gallery style, with blue-purple card glow and role/class badges.
+- **Kids Mode:** softer and simpler, with bigger blue-purple choice cards, fewer numbers, and friendlier labels.
+
+Builder pages should still feel distinct through layout and language, not through totally different colour themes.
 
 ## Layout rules
 
@@ -60,3 +71,4 @@ The app should feel like a mystical spellcaster's campaign desk: dark navy surfa
 7. Handouts and player clue library.
 8. Inventory and item assignment.
 9. Homebrew / private playtest creation.
+10. Character builders: Full Creation, Basic Build, Premades, and Kids Mode.
