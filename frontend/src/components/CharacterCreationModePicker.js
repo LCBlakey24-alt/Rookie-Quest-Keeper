@@ -24,6 +24,7 @@ const modes = [
     route: '/characters/new/kids',
     time: '2–4 mins',
     badge: 'Simplest',
+    decision: 'Use this for children or complete beginners.',
     description: 'Simple choices, plain language, and a friendly guided setup for younger players or absolute beginners.',
     bestFor: 'Children, family tables, first-time roleplay, and anyone who wants less rules noise.',
     includes: ['Plain-English choices', 'Quick hero identity', 'Minimal rules pressure'],
@@ -36,6 +37,7 @@ const modes = [
     route: '/characters/new/premade',
     time: '1–3 mins',
     badge: 'Fastest',
+    decision: 'Use this when the game starts soon.',
     description: 'Pick a ready-to-play hero and jump straight into the game with a solid starting character.',
     bestFor: 'One-shots, new players, guest players, or anyone joining a session at short notice.',
     includes: ['Ready-made builds', 'Quick selection', 'Easy table entry'],
@@ -48,9 +50,10 @@ const modes = [
     route: '/characters/new/basic',
     time: '5–8 mins',
     badge: 'Recommended',
-    description: 'Choose the important bits — name, race, class, and level — then let ROOK fill in the fiddly parts.',
+    decision: 'Use this for a fast character that still feels yours.',
+    description: 'Choose the important bits — name, species, class, background, and level — then let ROOK fill in stats, skills, gear, traits, and starter languages.',
     bestFor: 'Players who want ownership without getting buried under every character-building rule.',
-    includes: ['Core choices only', 'Auto-filled details', 'Beginner-friendly control'],
+    includes: ['Core choices only', 'Auto-filled sheet details', 'Playable starter languages'],
     featured: true,
   },
   {
@@ -61,10 +64,17 @@ const modes = [
     route: '/characters/new/full',
     time: '12–20 mins',
     badge: 'Detailed',
-    description: 'Build from the ground up with full control over background, ability scores, skills, spells, gear, and personality.',
+    decision: 'Use this when every rule choice matters.',
+    description: 'Build from the ground up with full control over background, ability scores, skills, spells, gear, personality, and character flavour.',
     bestFor: 'Experienced players, long campaigns, theorycrafters, and anyone who loves character creation.',
     includes: ['Ability score methods', 'Skills and spells', 'Portrait and personality'],
   },
+];
+
+const quickGuide = [
+  { label: 'Fastest', value: 'Premade', copy: 'Grab a ready hero and start playing.' },
+  { label: 'Best default', value: 'Basic Build', copy: 'Pick the fun choices while ROOK fills the sheet.' },
+  { label: 'Most control', value: 'Full Creation', copy: 'Choose the detailed rules yourself.' },
 ];
 
 export default function CharacterCreationModePicker() {
@@ -87,9 +97,9 @@ export default function CharacterCreationModePicker() {
             <div className="character-mode-kicker">
               <Sparkles size={16} /> New Character
             </div>
-            <h1>How do you want to build your hero?</h1>
+            <h1>Choose the builder that fits tonight.</h1>
             <p>
-              Choose the creation style that matches your table, your confidence, and how much control you want. You can edit the character later, so this choice is not a trapdoor into doom.
+              Pick the route that matches your table, time, and confidence. Every option creates a saved sheet, and you can polish the character later.
             </p>
           </div>
 
@@ -98,10 +108,20 @@ export default function CharacterCreationModePicker() {
             <div>
               <h2>Not sure?</h2>
               <p>
-                Start with <strong>Basic Build</strong>. It gives you the important choices without making character creation feel like tax paperwork with goblins.
+                Start with <strong>Basic Build</strong>. It now creates a more complete starter sheet, including auto-filled languages and other fiddly details.
               </p>
             </div>
           </aside>
+        </section>
+
+        <section className="character-mode-guide" data-testid="mode-picker-quick-guide" aria-label="Quick builder guide">
+          {quickGuide.map((item) => (
+            <div key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.copy}</p>
+            </div>
+          ))}
         </section>
 
         <section className="character-mode-grid" aria-label="Character creation modes">
@@ -172,6 +192,7 @@ function ModeCard({ mode, onChoose }) {
         </div>
       </div>
 
+      <div className="character-mode-decision">{mode.decision}</div>
       <p className="character-mode-description">{mode.description}</p>
 
       <div className="character-mode-best-for">
@@ -235,7 +256,7 @@ const pageCss = `
 
 .character-mode-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   gap: 12px;
   align-items: stretch;
   margin-bottom: 12px;
@@ -243,7 +264,8 @@ const pageCss = `
 
 .character-mode-hero-copy,
 .character-mode-tip,
-.character-mode-summary {
+.character-mode-summary,
+.character-mode-guide {
   background: var(--bg-panel);
   border: 1px solid var(--border-default);
   box-shadow: var(--shadow-md);
@@ -317,6 +339,45 @@ const pageCss = `
   line-height: 1.45;
 }
 
+.character-mode-guide {
+  margin-bottom: 12px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.character-mode-guide div {
+  border: 1px solid var(--border-subtle);
+  background: rgba(255,255,255,0.035);
+  border-radius: 9px;
+  padding: 10px 11px;
+}
+
+.character-mode-guide span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.character-mode-guide strong {
+  display: block;
+  color: var(--accent-red-hover);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.character-mode-guide p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .character-mode-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -333,7 +394,7 @@ const pageCss = `
   padding: 13px;
   text-align: left;
   cursor: pointer;
-  min-height: 245px;
+  min-height: 275px;
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -353,9 +414,16 @@ const pageCss = `
   box-shadow: 0 18px 38px rgba(239,68,68,0.14);
 }
 
-.character-mode-card-topline {
+.character-mode-card-topline,
+.character-mode-card-header,
+.character-mode-choose,
+.character-mode-summary div {
   display: flex;
   align-items: center;
+}
+
+.character-mode-card-topline,
+.character-mode-choose {
   justify-content: space-between;
   gap: 8px;
 }
@@ -388,8 +456,6 @@ const pageCss = `
 }
 
 .character-mode-card-header {
-  display: flex;
-  align-items: center;
   gap: 12px;
 }
 
@@ -423,36 +489,43 @@ const pageCss = `
   font-weight: 800;
 }
 
+.character-mode-decision {
+  border: 1px solid var(--accent-red-border);
+  background: var(--accent-red-subtle);
+  color: var(--text-primary);
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.character-mode-description,
+.character-mode-best-for,
+.character-mode-includes {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .character-mode-description {
   margin: 0;
-  color: var(--text-secondary);
   font-size: 12px;
-  line-height: 1.42;
 }
 
 .character-mode-best-for {
   border: 1px solid var(--border-subtle);
   background: rgba(0,0,0,0.12);
   padding: 8px 9px;
-  color: var(--text-secondary);
-  font-size: 11px;
-  line-height: 1.35;
 }
 
 .character-mode-includes {
   margin: 0;
   padding-left: 16px;
-  color: var(--text-secondary);
-  font-size: 11px;
-  line-height: 1.45;
 }
 
 .character-mode-choose {
   margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   border-top: 1px solid var(--border-subtle);
   padding-top: 9px;
   color: var(--accent-red-hover);
@@ -508,8 +581,6 @@ const pageCss = `
 }
 
 .character-mode-summary div {
-  display: flex;
-  align-items: center;
   gap: 9px;
   color: var(--text-secondary);
   font-size: 12px;
@@ -519,6 +590,7 @@ const pageCss = `
 
 .character-mode-summary svg {
   color: var(--accent-red-hover);
+  flex: 0 0 auto;
 }
 
 @media (max-height: 760px) and (min-width: 900px) {
@@ -528,27 +600,18 @@ const pageCss = `
 }
 
 @media (max-width: 1100px) {
-  .character-mode-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .character-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 820px) {
   .character-mode-hero,
-  .character-mode-flow {
+  .character-mode-flow,
+  .character-mode-guide {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 560px) {
-  .character-mode-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .character-mode-grid {
-    grid-template-columns: 1fr;
-  }
+  .character-mode-grid { grid-template-columns: 1fr; }
 }
 `;
