@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
+import { calculateArmorAc } from '../data/armorRules5e';
 
 // Recommended stat arrays by primary ability
 const STAT_ARRAYS = {
@@ -15,6 +16,16 @@ const STAT_ARRAYS = {
   wisdom:       { wisdom: 15, constitution: 14, dexterity: 13, strength: 12, intelligence: 10, charisma: 8 },
   charisma:     { charisma: 15, constitution: 14, dexterity: 13, wisdom: 12, intelligence: 10, strength: 8 }
 };
+
+const BASIC_ARMOR_OPTIONS = [
+  { key: 'none', name: 'No armour', category: 'none', helper: 'Clothes or unarmoured defence.' },
+  { key: 'Leather', name: 'Leather', category: 'light', helper: 'Light armour: 11 + Dex.' },
+  { key: 'StuddedLeather', name: 'Studded Leather', category: 'light', helper: 'Light armour: 12 + Dex.' },
+  { key: 'Hide', name: 'Hide', category: 'medium', helper: 'Medium armour: 12 + Dex, max +2.' },
+  { key: 'ChainShirt', name: 'Chain Shirt', category: 'medium', helper: 'Medium armour: 13 + Dex, max +2.' },
+  { key: 'ScaleMail', name: 'Scale Mail', category: 'medium', helper: 'Medium armour: 14 + Dex, max +2.' },
+  { key: 'ChainMail', name: 'Chain Mail', category: 'heavy', helper: 'Heavy armour: flat 16 AC.' },
+];
 
 const input = {
   width: '100%',
@@ -72,29 +83,60 @@ const calculateBasicMaxHp = ({ hitDie = 8, constitution = 10, level = 1 } = {}) 
   return firstLevelHp + ((safeLevel - 1) * laterLevelHp);
 };
 
-const calculateBasicArmorClass = ({ characterClass, statBlock = {} } = {}) => {
+const getArmorName = (armorChoice) => BASIC_ARMOR_OPTIONS.find(option => option.key === armorChoice)?.name || null;
+const getArmorHelper = (armorChoice) => BASIC_ARMOR_OPTIONS.find(option => option.key === armorChoice)?.helper || '';
+
+const getArmorProficiencies = (cls) => {
+  const profs = (cls?.armorProficiencies || []).map(item => String(item).toLowerCase());
+  const hasAll = profs.some(item => item === 'all' || item.includes('all armour') || item.includes('all armor'));
+
+  return {
+    light: hasAll || profs.some(item => item.includes('light')),
+    medium: hasAll || profs.some(item => item.includes('medium')),
+    heavy: hasAll || profs.some(item => item.includes('heavy')),
+    shields: profs.some(item => item.includes('shield')),
+  };
+};
+
+const getAllowedArmorOptions = (cls) => {
+  const profs = getArmorProficiencies(cls);
+  return BASIC_ARMOR_OPTIONS.filter(option => option.category === 'none' || Boolean(profs[option.category]));
+};
+
+const getSuggestedArmorChoice = (cls) => {
+  const profs = getArmorProficiencies(cls);
+  if (profs.heavy) return 'ChainMail';
+  if (profs.medium) return 'ScaleMail';
+  if (profs.light) return 'Leather';
+  return 'none';
+};
+
+const calculateBasicArmorClass = ({ characterClass, statBlock = {}, armorChoice = 'none', shieldEquipped = false } = {}) => {
   const dexMod = abilityModifier(statBlock.dexterity);
   const conMod = abilityModifier(statBlock.constitution);
   const wisMod = abilityModifier(statBlock.wisdom);
+  const armor = armorChoice === 'none' ? null : getArmorName(armorChoice);
+  const shield = shieldEquipped ? 'Shield' : null;
+  let unarmoredAc = 10 + dexMod;
+  let unarmoredHelper = `Base AC: 10 + Dex ${formatModifier(dexMod)}.`;
 
-  if (characterClass === 'Barbarian') {
-    return {
-      value: 10 + dexMod + conMod,
-      helper: `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Con ${formatModifier(conMod)}.`,
-    };
+  if (!armor && characterClass === 'Barbarian') {
+    unarmoredAc = 10 + dexMod + conMod;
+    unarmoredHelper = `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Con ${formatModifier(conMod)}.`;
   }
 
-  if (characterClass === 'Monk') {
-    return {
-      value: 10 + dexMod + wisMod,
-      helper: `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Wis ${formatModifier(wisMod)}.`,
-    };
+  if (!armor && characterClass === 'Monk') {
+    unarmoredAc = 10 + dexMod + wisMod;
+    unarmoredHelper = `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Wis ${formatModifier(wisMod)}.`;
   }
 
-  return {
-    value: 10 + dexMod,
-    helper: `Base AC: 10 + Dex ${formatModifier(dexMod)}. Armour and shields can be adjusted from the full sheet later.`,
-  };
+  const value = calculateArmorAc({ armor, shield, dexMod, unarmoredAc });
+  const loadout = `${armor || 'No armour'}${shieldEquipped ? ' + Shield' : ''}`;
+  const helper = armor
+    ? `${loadout}. ${getArmorHelper(armorChoice)}${shieldEquipped ? ' Shield adds +2 AC.' : ''}`
+    : `${unarmoredHelper}${shieldEquipped ? ' Shield adds +2 AC.' : ''}`;
+
+  return { value, helper, loadout };
 };
 
 const buildClassFeaturesThroughLevel = (cls, characterClass, level) => {
@@ -121,19 +163,32 @@ export default function BasicCharacterBuilder() {
   const [level, setLevel] = useState(1);
   const [edition, setEdition] = useState('2014');
   const [selectedSkills, setSelectedSkills] = useState([]);
+  const [armorChoice, setArmorChoice] = useState('ChainMail');
+  const [shieldEquipped, setShieldEquipped] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const cls = CLASSES[characterClass];
   const raceData = RACES[race];
   const bgData = BACKGROUNDS[background];
   const safeLevel = clampLevel(level);
+  const armorProficiencies = useMemo(() => getArmorProficiencies(cls), [cls]);
+  const allowedArmorOptions = useMemo(() => getAllowedArmorOptions(cls), [cls]);
+  const selectedArmorName = armorChoice === 'none' ? null : getArmorName(armorChoice);
 
   const statBlock = useMemo(() => {
     return STAT_ARRAYS[cls?.primaryAbility] || STAT_ARRAYS.strength;
   }, [cls]);
 
-  // Reset skills when class changes/background changes
+  // Reset skills when class/background changes
   useEffect(() => { setSelectedSkills([]); }, [characterClass, background]);
+
+  // Keep Basic Build defence choices legal and sensible when class changes.
+  useEffect(() => {
+    const nextArmor = getSuggestedArmorChoice(cls);
+    const nextProfs = getArmorProficiencies(cls);
+    setArmorChoice(nextArmor);
+    setShieldEquipped(Boolean(nextProfs.shields));
+  }, [cls]);
 
   const skillOptions = useMemo(() => {
     if (!cls) return [];
@@ -158,13 +213,17 @@ export default function BasicCharacterBuilder() {
   const armorPreview = useMemo(() => calculateBasicArmorClass({
     characterClass,
     statBlock,
-  }), [characterClass, statBlock]);
+    armorChoice,
+    shieldEquipped,
+  }), [characterClass, statBlock, armorChoice, shieldEquipped]);
   const proficiencyBonus = 2 + Math.floor((safeLevel - 1) / 4);
   const classFeatures = useMemo(() => buildClassFeaturesThroughLevel(cls, characterClass, safeLevel), [cls, characterClass, safeLevel]);
-  const startingEquipment = useMemo(() => [
+  const startingEquipment = useMemo(() => Array.from(new Set([
     ...(cls?.startingEquipment || []),
-    ...(bgData?.equipment || [])
-  ], [cls, bgData]);
+    ...(bgData?.equipment || []),
+    selectedArmorName,
+    shieldEquipped ? 'Shield' : null,
+  ].filter(Boolean))), [cls, bgData, selectedArmorName, shieldEquipped]);
 
   const applyRookBuild = (patch = {}) => {
     if (patch.name !== undefined) setName(String(patch.name));
@@ -282,13 +341,13 @@ export default function BasicCharacterBuilder() {
               Basic Build
             </h1>
             <p style={{ color: '#A1A1AA', margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
-              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, base armour class, proficiencies, equipment, traits, and languages.
+              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, and languages.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
-            <AutoFillCard title="You choose" text="Name, edition, level, class, species, and background." />
-            <AutoFillCard title="ROOK fills" text="Stats, HP, base AC, gear, traits, starter language choices, and class features." />
+            <AutoFillCard title="You choose" text="Name, edition, level, class, species, background, and defence loadout." />
+            <AutoFillCard title="ROOK fills" text="Stats, HP, AC, gear, traits, starter language choices, and class features." />
             <AutoFillCard title="Still yours" text="Pick class skills and edit the sheet after creation if needed." />
           </div>
         </section>
@@ -348,6 +407,44 @@ export default function BasicCharacterBuilder() {
                 </select>
               </label>
             </div>
+
+            <div style={{ marginTop: 14, padding: 12, borderRadius: 10, border: '1px solid rgba(239,68,68,0.24)', background: 'rgba(239,68,68,0.07)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
+                <div>
+                  <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: 15 }}>Defence choices</h3>
+                  <p style={{ margin: '5px 0 0', color: '#A1A1AA', fontSize: 12, lineHeight: 1.4 }}>
+                    Pick a simple armour and shield loadout. This updates AC and saved starting equipment.
+                  </p>
+                </div>
+                <span style={pillStyle}>{armorPreview.loadout}</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
+                <label style={labelStyle}>Armour
+                  <select style={input} value={armorChoice} onChange={e => setArmorChoice(e.target.value)} data-testid="basic-armor-choice">
+                    {allowedArmorOptions.map(option => <option key={option.key} value={option.key}>{option.name}</option>)}
+                  </select>
+                </label>
+
+                <label style={labelStyle}>Shield
+                  <button
+                    type="button"
+                    disabled={!armorProficiencies.shields}
+                    onClick={() => setShieldEquipped(prev => !prev)}
+                    data-testid="basic-shield-toggle"
+                    style={{
+                      ...input,
+                      textAlign: 'left',
+                      cursor: armorProficiencies.shields ? 'pointer' : 'not-allowed',
+                      opacity: armorProficiencies.shields ? 1 : 0.55,
+                      fontWeight: 900,
+                    }}
+                  >
+                    {shieldEquipped ? '✓ Shield equipped' : armorProficiencies.shields ? 'No shield' : 'No shield proficiency'}
+                  </button>
+                </label>
+              </div>
+            </div>
           </section>
 
           <aside style={{ ...panelStyle, padding: 16 }}>
@@ -358,14 +455,14 @@ export default function BasicCharacterBuilder() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
               <PreviewStat label="HP" value={maxHP} helper={`Level ${safeLevel} average HP`} />
-              <PreviewStat label="AC" value={armorPreview.value} helper="Base defence" />
+              <PreviewStat label="AC" value={armorPreview.value} helper="From defence choices" />
               <PreviewStat label="Prof." value={`+${proficiencyBonus}`} helper="Proficiency bonus" />
               <PreviewStat label="Hit Die" value={`d${cls?.hitDie || 8}`} helper="Class hit die" />
             </div>
 
             {bgData && (
               <div style={{ display: 'grid', gap: 10 }}>
-                <SummaryRow label="AC note" value={armorPreview.helper} />
+                <SummaryRow label="Armour choice" value={armorPreview.loadout} helper={armorPreview.helper} />
                 <SummaryRow label="Background" value={bgData.name || background} helper={bgData.description} />
                 <SummaryRow label="Background skills" value={(bgData.skillProficiencies || []).join(', ') || 'None'} />
                 <SummaryRow label="Tools" value={(bgData.toolProficiencies || []).join(', ') || 'None'} />
@@ -379,7 +476,7 @@ export default function BasicCharacterBuilder() {
                   value={featurePreview || 'No listed class features'}
                   helper={extraFeatureCount > 0 ? `Plus ${extraFeatureCount} more saved to the sheet.` : 'Saved to the character sheet.'}
                 />
-                <SummaryRow label="Background equipment" value={(bgData.equipment || []).join(', ') || 'None listed'} />
+                <SummaryRow label="Starting equipment" value={startingEquipment.join(', ') || 'None listed'} />
                 <SummaryRow label="Primary ability" value={cls?.primaryAbility || 'Strength'} />
               </div>
             )}
