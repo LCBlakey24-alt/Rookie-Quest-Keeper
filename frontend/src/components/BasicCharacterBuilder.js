@@ -4,6 +4,7 @@ import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
+import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
 
 // Recommended stat arrays by primary ability
 const STAT_ARRAYS = {
@@ -68,6 +69,12 @@ export default function BasicCharacterBuilder() {
 
   const skillCount = cls?.skillCount || 2;
   const bgSkills = bgData?.skillProficiencies || [];
+  const backgroundLanguageCount = Number(bgData?.languages || 0);
+  const raceLanguageChoiceCount = countChoiceLanguages(raceData?.languages || []);
+  const finalLanguages = useMemo(() => buildBasicLanguages({
+    raceLanguages: raceData?.languages || [],
+    backgroundLanguageCount,
+  }), [raceData, backgroundLanguageCount]);
 
   const applyRookBuild = (patch = {}) => {
     if (patch.name !== undefined) setName(String(patch.name));
@@ -103,7 +110,6 @@ export default function BasicCharacterBuilder() {
     setLoading(true);
     try {
       const allSkills = Array.from(new Set([...bgSkills, ...selectedSkills]));
-      const baseLanguages = (raceData?.languages || []).filter(l => !l.toLowerCase().includes('choice'));
       const racialTraits = (raceData?.traits || []).map(t => ({
         name: String(t).split(' (')[0],
         description: String(t)
@@ -132,7 +138,7 @@ export default function BasicCharacterBuilder() {
         armor_proficiencies: cls?.armorProficiencies || [],
         weapon_proficiencies: cls?.weaponProficiencies || [],
         tool_proficiencies: bgData?.toolProficiencies || [],
-        languages: baseLanguages,
+        languages: finalLanguages,
         class_features: classFeatures,
         racial_traits: racialTraits,
         starting_equipment: [...(cls?.startingEquipment || []), ...(bgData?.equipment || [])]
@@ -151,7 +157,7 @@ export default function BasicCharacterBuilder() {
     <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
         <h1 style={{ color: '#D4A017', margin: 0 }}>Basic Build</h1>
-        <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, and traits.</p>
+        <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, traits, and starter languages.</p>
 
         <RookFormFillPanel
           title="Describe the character you want to play"
@@ -208,7 +214,9 @@ export default function BasicCharacterBuilder() {
           {bgData && (
             <div style={{ padding: 10, border: '1px solid rgba(212,160,23,0.45)', borderRadius: 8, color: '#CBD5E1', fontSize: 12, lineHeight: 1.5 }}>
               <strong style={{ color: '#D4A017' }}>{bgData.name}</strong>: {bgData.description}<br />
-              Skills: {(bgData.skillProficiencies || []).join(', ') || 'None'}
+              Skills: {(bgData.skillProficiencies || []).join(', ') || 'None'}<br />
+              Languages: {finalLanguages.join(', ') || 'None'}
+              {(raceLanguageChoiceCount + backgroundLanguageCount) > 0 && <span style={{ color: '#94A3B8' }}> — auto-filled</span>}
             </div>
           )}
 
