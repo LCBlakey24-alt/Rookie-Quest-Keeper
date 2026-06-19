@@ -58,6 +58,60 @@ const pillStyle = {
   letterSpacing: 0.7,
 };
 
+const clampLevel = (value) => Math.min(20, Math.max(1, Number.parseInt(value, 10) || 1));
+const abilityModifier = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const formatModifier = (value) => (value >= 0 ? `+${value}` : `${value}`);
+
+const calculateBasicMaxHp = ({ hitDie = 8, constitution = 10, level = 1 } = {}) => {
+  const safeLevel = clampLevel(level);
+  const die = Number(hitDie) || 8;
+  const conMod = abilityModifier(constitution);
+  const firstLevelHp = Math.max(1, die + conMod);
+  const laterLevelHp = Math.max(1, Math.floor(die / 2) + 1 + conMod);
+
+  return firstLevelHp + ((safeLevel - 1) * laterLevelHp);
+};
+
+const calculateBasicArmorClass = ({ characterClass, statBlock = {} } = {}) => {
+  const dexMod = abilityModifier(statBlock.dexterity);
+  const conMod = abilityModifier(statBlock.constitution);
+  const wisMod = abilityModifier(statBlock.wisdom);
+
+  if (characterClass === 'Barbarian') {
+    return {
+      value: 10 + dexMod + conMod,
+      helper: `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Con ${formatModifier(conMod)}.`,
+    };
+  }
+
+  if (characterClass === 'Monk') {
+    return {
+      value: 10 + dexMod + wisMod,
+      helper: `Unarmored Defense: 10 + Dex ${formatModifier(dexMod)} + Wis ${formatModifier(wisMod)}.`,
+    };
+  }
+
+  return {
+    value: 10 + dexMod,
+    helper: `Base AC: 10 + Dex ${formatModifier(dexMod)}. Armour and shields can be adjusted from the full sheet later.`,
+  };
+};
+
+const buildClassFeaturesThroughLevel = (cls, characterClass, level) => {
+  const safeLevel = clampLevel(level);
+  const featuresByLevel = cls?.features || {};
+
+  return Array.from({ length: safeLevel }, (_, index) => index + 1)
+    .flatMap(featureLevel => (featuresByLevel[featureLevel] || [])
+      .filter(featureName => featureName && featureName !== '---')
+      .map(featureName => ({
+        name: featureName,
+        description: `${characterClass} feature gained at Level ${featureLevel}`,
+        level: featureLevel,
+      }))
+    );
+};
+
 export default function BasicCharacterBuilder() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -72,6 +126,7 @@ export default function BasicCharacterBuilder() {
   const cls = CLASSES[characterClass];
   const raceData = RACES[race];
   const bgData = BACKGROUNDS[background];
+  const safeLevel = clampLevel(level);
 
   const statBlock = useMemo(() => {
     return STAT_ARRAYS[cls?.primaryAbility] || STAT_ARRAYS.strength;
@@ -95,6 +150,21 @@ export default function BasicCharacterBuilder() {
     raceLanguages: raceData?.languages || [],
     backgroundLanguageCount,
   }), [raceData, backgroundLanguageCount]);
+  const maxHP = useMemo(() => calculateBasicMaxHp({
+    hitDie: cls?.hitDie,
+    constitution: statBlock.constitution,
+    level: safeLevel,
+  }), [cls, statBlock, safeLevel]);
+  const armorPreview = useMemo(() => calculateBasicArmorClass({
+    characterClass,
+    statBlock,
+  }), [characterClass, statBlock]);
+  const proficiencyBonus = 2 + Math.floor((safeLevel - 1) / 4);
+  const classFeatures = useMemo(() => buildClassFeaturesThroughLevel(cls, characterClass, safeLevel), [cls, characterClass, safeLevel]);
+  const startingEquipment = useMemo(() => [
+    ...(cls?.startingEquipment || []),
+    ...(bgData?.equipment || [])
+  ], [cls, bgData]);
 
   const applyRookBuild = (patch = {}) => {
     if (patch.name !== undefined) setName(String(patch.name));
@@ -102,8 +172,7 @@ export default function BasicCharacterBuilder() {
     if (patch.race && RACES[patch.race]) setRace(patch.race);
     if (patch.background && BACKGROUNDS[patch.background]) setBackground(patch.background);
     if (patch.level !== undefined) {
-      const nextLevel = Math.min(20, Math.max(1, Number.parseInt(patch.level, 10) || 1));
-      setLevel(nextLevel);
+      setLevel(clampLevel(patch.level));
     }
   };
 
@@ -124,8 +193,6 @@ export default function BasicCharacterBuilder() {
     if (selectedSkills.length !== skillCount) {
       return toast.error(`Pick ${skillCount} class skill${skillCount === 1 ? '' : 's'} before creating`);
     }
-    const conMod = Math.floor(((statBlock.constitution || 10) - 10) / 2);
-    const maxHP = Math.max(1, (cls?.hitDie || 8) + conMod);
 
     setLoading(true);
     try {
@@ -134,10 +201,6 @@ export default function BasicCharacterBuilder() {
         name: String(t).split(' (')[0],
         description: String(t)
       }));
-      const classFeatures = (cls?.features?.[1] || []).map(featureName => ({
-        name: featureName,
-        description: `${characterClass} feature gained at Level 1`
-      }));
 
       const payload = {
         name: name.trim(),
@@ -145,13 +208,14 @@ export default function BasicCharacterBuilder() {
         character_class: characterClass,
         race,
         subrace: '',
-        level: Number(level),
+        level: safeLevel,
         background,
         alignment: 'Neutral',
         edition,
         ruleset_id: edition === '2024' ? 'dnd5e_2024' : 'dnd5e_2014',
         ...statBlock,
         max_hit_points: maxHP,
+        armor_class: armorPreview.value,
         speed: raceData?.speed || 30,
         skill_proficiencies: allSkills,
         saving_throw_proficiencies: cls?.savingThrows || [],
@@ -161,7 +225,7 @@ export default function BasicCharacterBuilder() {
         languages: finalLanguages,
         class_features: classFeatures,
         racial_traits: racialTraits,
-        starting_equipment: [...(cls?.startingEquipment || []), ...(bgData?.equipment || [])]
+        starting_equipment: startingEquipment
       };
       const res = await apiClient.post(`/characters`, payload);
       toast.success('Basic character created!');
@@ -174,6 +238,8 @@ export default function BasicCharacterBuilder() {
   };
 
   const autoFilledCount = raceLanguageChoiceCount + backgroundLanguageCount;
+  const featurePreview = classFeatures.map(feature => feature.name).slice(0, 6).join(', ');
+  const extraFeatureCount = Math.max(0, classFeatures.length - 6);
 
   return (
     <main style={{
@@ -210,19 +276,19 @@ export default function BasicCharacterBuilder() {
           display: 'grid',
           gap: 12,
         }}>
-          <span style={pillStyle}>Recommended path</span>
+          <span style={pillStyle}>Guided build</span>
           <div>
             <h1 style={{ color: '#FFFFFF', margin: 0, fontSize: 'clamp(28px, 4vw, 44px)', lineHeight: 1, letterSpacing: -1.4 }}>
               Basic Build
             </h1>
             <p style={{ color: '#A1A1AA', margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
-              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, proficiencies, equipment, traits, and languages.
+              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, base armour class, proficiencies, equipment, traits, and languages.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
             <AutoFillCard title="You choose" text="Name, edition, level, class, species, and background." />
-            <AutoFillCard title="ROOK fills" text="Stats, HP, gear, traits, starter language choices, and basic features." />
+            <AutoFillCard title="ROOK fills" text="Stats, HP, base AC, gear, traits, starter language choices, and class features." />
             <AutoFillCard title="Still yours" text="Pick class skills and edit the sheet after creation if needed." />
           </div>
         </section>
@@ -259,7 +325,7 @@ export default function BasicCharacterBuilder() {
               </label>
 
               <label style={labelStyle}>Starting Level
-                <select style={input} value={level} onChange={e => setLevel(Number(e.target.value))} data-testid="basic-level">
+                <select style={input} value={level} onChange={e => setLevel(clampLevel(e.target.value))} data-testid="basic-level">
                   {Array.from({ length: 20 }, (_, i) => i + 1).map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </label>
@@ -290,15 +356,30 @@ export default function BasicCharacterBuilder() {
               These details will be saved onto the character sheet.
             </p>
 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+              <PreviewStat label="HP" value={maxHP} helper={`Level ${safeLevel} average HP`} />
+              <PreviewStat label="AC" value={armorPreview.value} helper="Base defence" />
+              <PreviewStat label="Prof." value={`+${proficiencyBonus}`} helper="Proficiency bonus" />
+              <PreviewStat label="Hit Die" value={`d${cls?.hitDie || 8}`} helper="Class hit die" />
+            </div>
+
             {bgData && (
               <div style={{ display: 'grid', gap: 10 }}>
+                <SummaryRow label="AC note" value={armorPreview.helper} />
                 <SummaryRow label="Background" value={bgData.name || background} helper={bgData.description} />
                 <SummaryRow label="Background skills" value={(bgData.skillProficiencies || []).join(', ') || 'None'} />
+                <SummaryRow label="Tools" value={(bgData.toolProficiencies || []).join(', ') || 'None'} />
                 <SummaryRow
                   label="Languages"
                   value={finalLanguages.join(', ') || 'None'}
                   helper={autoFilledCount > 0 ? `${autoFilledCount} language choice${autoFilledCount === 1 ? '' : 's'} auto-filled.` : 'Fixed starting languages.'}
                 />
+                <SummaryRow
+                  label={`Class features to level ${safeLevel}`}
+                  value={featurePreview || 'No listed class features'}
+                  helper={extraFeatureCount > 0 ? `Plus ${extraFeatureCount} more saved to the sheet.` : 'Saved to the character sheet.'}
+                />
+                <SummaryRow label="Background equipment" value={(bgData.equipment || []).join(', ') || 'None listed'} />
                 <SummaryRow label="Primary ability" value={cls?.primaryAbility || 'Strength'} />
               </div>
             )}
@@ -384,6 +465,16 @@ function AutoFillCard({ title, text }) {
     <div style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.035)', borderRadius: 9, padding: 11 }}>
       <strong style={{ display: 'block', color: '#FFFFFF', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.7 }}>{title}</strong>
       <span style={{ display: 'block', color: '#A1A1AA', fontSize: 12, lineHeight: 1.4, marginTop: 4 }}>{text}</span>
+    </div>
+  );
+}
+
+function PreviewStat({ label, value, helper }) {
+  return (
+    <div style={{ border: '1px solid rgba(239,68,68,0.24)', background: 'rgba(239,68,68,0.08)', borderRadius: 9, padding: 10 }}>
+      <div style={{ color: '#A1A1AA', fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 900, marginTop: 2, lineHeight: 1 }}>{value}</div>
+      {helper && <div style={{ color: '#A1A1AA', fontSize: 10, lineHeight: 1.3, marginTop: 4 }}>{helper}</div>}
     </div>
   );
 }
