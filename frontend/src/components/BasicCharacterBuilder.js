@@ -16,26 +16,46 @@ const STAT_ARRAYS = {
   charisma:     { charisma: 15, constitution: 14, dexterity: 13, wisdom: 12, intelligence: 10, strength: 8 }
 };
 
-const GLADIATOR_BACKGROUND = {
-  name: 'Gladiator',
-  description: 'Arena performer or pit fighter with a fearsome reputation.',
-  skillProficiencies: ['Athletics', 'Performance'],
-  toolProficiencies: ['Disguise kit', 'Musical instrument'],
-  equipment: ['Costume', 'Arena token', 'Common clothes', '15 gp'],
-  feature: 'Arena Reputation',
-  asi2024: { strength: 2, charisma: 1 },
-  originFeat2024: 'Savage Attacker'
-};
-
-const BACKGROUND_OPTIONS = {
-  ...BACKGROUNDS,
-  Gladiator: BACKGROUNDS.Gladiator || GLADIATOR_BACKGROUND,
-};
-
 const input = {
-  width: '100%', padding: '10px 12px', borderRadius: 8,
-  background: 'rgba(15,36,64,0.6)', border: '1px solid #D4A017',
-  color: '#F8FAFC', fontSize: 14
+  width: '100%',
+  padding: '11px 12px',
+  borderRadius: 8,
+  background: '#18181B',
+  border: '1px solid rgba(239, 68, 68, 0.35)',
+  color: '#F9FAFB',
+  fontSize: 14,
+  outline: 'none',
+};
+
+const labelStyle = {
+  display: 'grid',
+  gap: 6,
+  fontSize: 11,
+  color: '#A1A1AA',
+  fontWeight: 900,
+  letterSpacing: 0.7,
+  textTransform: 'uppercase',
+};
+
+const panelStyle = {
+  background: 'rgba(39, 39, 43, 0.92)',
+  border: '1px solid rgba(255,255,255,0.09)',
+  borderRadius: 12,
+  boxShadow: '0 20px 48px rgba(0,0,0,0.34)',
+};
+
+const pillStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  border: '1px solid rgba(239,68,68,0.35)',
+  background: 'rgba(239,68,68,0.12)',
+  color: '#FECACA',
+  borderRadius: 999,
+  padding: '4px 8px',
+  fontSize: 10,
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  letterSpacing: 0.7,
 };
 
 export default function BasicCharacterBuilder() {
@@ -51,7 +71,7 @@ export default function BasicCharacterBuilder() {
 
   const cls = CLASSES[characterClass];
   const raceData = RACES[race];
-  const bgData = BACKGROUND_OPTIONS[background];
+  const bgData = BACKGROUNDS[background];
 
   const statBlock = useMemo(() => {
     return STAT_ARRAYS[cls?.primaryAbility] || STAT_ARRAYS.strength;
@@ -80,7 +100,7 @@ export default function BasicCharacterBuilder() {
     if (patch.name !== undefined) setName(String(patch.name));
     if (patch.character_class && CLASSES[patch.character_class]) setCharacterClass(patch.character_class);
     if (patch.race && RACES[patch.race]) setRace(patch.race);
-    if (patch.background && BACKGROUND_OPTIONS[patch.background]) setBackground(patch.background);
+    if (patch.background && BACKGROUNDS[patch.background]) setBackground(patch.background);
     if (patch.level !== undefined) {
       const nextLevel = Math.min(20, Math.max(1, Number.parseInt(patch.level, 10) || 1));
       setLevel(nextLevel);
@@ -153,21 +173,69 @@ export default function BasicCharacterBuilder() {
     }
   };
 
+  const autoFilledCount = raceLanguageChoiceCount + backgroundLanguageCount;
+
   return (
-    <div style={{ padding: 24, color: '#F8FAFC', background: '#0A1628', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 560, margin: '0 auto' }}>
-        <h1 style={{ color: '#D4A017', margin: 0 }}>Basic Build</h1>
-        <p style={{ color: '#94A3B8' }}>Pick the essentials. We auto-fill stats, equipment, traits, and starter languages.</p>
+    <main style={{
+      padding: '20px',
+      color: '#F9FAFB',
+      background: 'radial-gradient(circle at top left, rgba(239,68,68,0.14), transparent 32%), linear-gradient(180deg, #09090B, #18181B)',
+      minHeight: '100vh'
+    }}>
+      <div style={{ maxWidth: 980, margin: '0 auto' }}>
+        <button
+          onClick={() => navigate('/characters/new')}
+          type="button"
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: '#D4D4D8',
+            cursor: 'pointer',
+            fontSize: 12,
+            fontWeight: 900,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            padding: '8px 10px',
+            borderRadius: 8,
+            marginBottom: 12,
+          }}
+        >
+          ← Back to Modes
+        </button>
+
+        <section style={{
+          ...panelStyle,
+          padding: '18px',
+          marginBottom: 14,
+          display: 'grid',
+          gap: 12,
+        }}>
+          <span style={pillStyle}>Recommended path</span>
+          <div>
+            <h1 style={{ color: '#FFFFFF', margin: 0, fontSize: 'clamp(28px, 4vw, 44px)', lineHeight: 1, letterSpacing: -1.4 }}>
+              Basic Build
+            </h1>
+            <p style={{ color: '#A1A1AA', margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
+              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, proficiencies, equipment, traits, and languages.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
+            <AutoFillCard title="You choose" text="Name, edition, level, class, species, and background." />
+            <AutoFillCard title="ROOK fills" text="Stats, HP, gear, traits, starter language choices, and basic features." />
+            <AutoFillCard title="Still yours" text="Pick class skills and edit the sheet after creation if needed." />
+          </div>
+        </section>
 
         <RookFormFillPanel
           title="Describe the character you want to play"
-          helperText="Rook can suggest a starter build, then import the class/race/background/level/name into these boxes."
+          helperText="ROOK can suggest a starter build, then import the class/species/background/level/name into these boxes."
           section="player basic character build"
           fields={[
             { name: 'name', label: 'Character name', field_type: 'text' },
             { name: 'character_class', label: 'Class', field_type: 'select', choices: Object.keys(CLASSES) },
             { name: 'race', label: 'Race/species', field_type: 'select', choices: Object.keys(RACES) },
-            { name: 'background', label: 'Background', field_type: 'select', choices: Object.keys(BACKGROUND_OPTIONS) },
+            { name: 'background', label: 'Background', field_type: 'select', choices: Object.keys(BACKGROUNDS) },
             { name: 'level', label: 'Starting level', field_type: 'number' },
           ]}
           currentValues={{ name, character_class: characterClass, race, background, level }}
@@ -175,101 +243,157 @@ export default function BasicCharacterBuilder() {
           placeholder="Example: I want to play a sneaky archer who avoids direct fights and talks their way out of trouble."
         />
 
-        <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Character Name
-            <input data-testid="basic-name" style={input} placeholder='Enter name...' value={name} onChange={e => setName(e.target.value)} />
-          </label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 360px)', gap: 14, marginTop: 16 }}>
+          <section style={{ ...panelStyle, padding: 16 }}>
+            <h2 style={{ margin: '0 0 12px', color: '#FFFFFF', fontSize: 18 }}>Core choices</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+              <label style={labelStyle}>Character Name
+                <input data-testid="basic-name" style={input} placeholder="Enter name..." value={name} onChange={e => setName(e.target.value)} />
+              </label>
 
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Edition
-            <select style={input} value={edition} onChange={e => setEdition(e.target.value)} data-testid="basic-edition">
-              <option value='2014'>2014 Rules</option>
-              <option value='2024'>2024 Rules</option>
-            </select>
-          </label>
+              <label style={labelStyle}>Edition
+                <select style={input} value={edition} onChange={e => setEdition(e.target.value)} data-testid="basic-edition">
+                  <option value="2014">2014 Rules</option>
+                  <option value="2024">2024 Rules</option>
+                </select>
+              </label>
 
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Starting Level
-            <select style={input} value={level} onChange={e => setLevel(Number(e.target.value))} data-testid="basic-level">
-              {Array.from({ length: 20 }, (_, i) => i + 1).map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </label>
+              <label style={labelStyle}>Starting Level
+                <select style={input} value={level} onChange={e => setLevel(Number(e.target.value))} data-testid="basic-level">
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </label>
 
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Class
-            <select style={input} value={characterClass} onChange={e => setCharacterClass(e.target.value)} data-testid="basic-class">
-              {Object.keys(CLASSES).map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
+              <label style={labelStyle}>Class
+                <select style={input} value={characterClass} onChange={e => setCharacterClass(e.target.value)} data-testid="basic-class">
+                  {Object.keys(CLASSES).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
 
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Race
-            <select style={input} value={race} onChange={e => setRace(e.target.value)} data-testid="basic-race">
-              {Object.keys(RACES).map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </label>
+              <label style={labelStyle}>Species
+                <select style={input} value={race} onChange={e => setRace(e.target.value)} data-testid="basic-race">
+                  {Object.keys(RACES).map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </label>
 
-          <label style={{ fontSize: 12, color: '#94A3B8' }}>Background
-            <select style={input} value={background} onChange={e => setBackground(e.target.value)} data-testid="basic-background">
-              {Object.keys(BACKGROUND_OPTIONS).map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </label>
+              <label style={labelStyle}>Background
+                <select style={input} value={background} onChange={e => setBackground(e.target.value)} data-testid="basic-background">
+                  {Object.keys(BACKGROUNDS).map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </label>
+            </div>
+          </section>
 
-          {bgData && (
-            <div style={{ padding: 10, border: '1px solid rgba(212,160,23,0.45)', borderRadius: 8, color: '#CBD5E1', fontSize: 12, lineHeight: 1.5 }}>
-              <strong style={{ color: '#D4A017' }}>{bgData.name}</strong>: {bgData.description}<br />
-              Skills: {(bgData.skillProficiencies || []).join(', ') || 'None'}<br />
-              Languages: {finalLanguages.join(', ') || 'None'}
-              {(raceLanguageChoiceCount + backgroundLanguageCount) > 0 && <span style={{ color: '#94A3B8' }}> — auto-filled</span>}
+          <aside style={{ ...panelStyle, padding: 16 }}>
+            <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: 18 }}>Starter sheet preview</h2>
+            <p style={{ margin: '6px 0 12px', color: '#A1A1AA', fontSize: 12, lineHeight: 1.45 }}>
+              These details will be saved onto the character sheet.
+            </p>
+
+            {bgData && (
+              <div style={{ display: 'grid', gap: 10 }}>
+                <SummaryRow label="Background" value={bgData.name || background} helper={bgData.description} />
+                <SummaryRow label="Background skills" value={(bgData.skillProficiencies || []).join(', ') || 'None'} />
+                <SummaryRow
+                  label="Languages"
+                  value={finalLanguages.join(', ') || 'None'}
+                  helper={autoFilledCount > 0 ? `${autoFilledCount} language choice${autoFilledCount === 1 ? '' : 's'} auto-filled.` : 'Fixed starting languages.'}
+                />
+                <SummaryRow label="Primary ability" value={cls?.primaryAbility || 'Strength'} />
+              </div>
+            )}
+          </aside>
+        </div>
+
+        <section style={{ ...panelStyle, padding: 16, marginTop: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
+            <div>
+              <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: 18 }}>Class skills</h2>
+              <p style={{ margin: '5px 0 0', color: '#A1A1AA', fontSize: 12 }}>
+                Pick {skillCount} class skill{skillCount === 1 ? '' : 's'}. Background skills are already granted.
+              </p>
+            </div>
+            <span style={pillStyle}>{selectedSkills.length}/{skillCount} picked</span>
+          </div>
+
+          {bgSkills.length > 0 && (
+            <div style={{ fontSize: 12, color: '#D4D4D8', marginBottom: 10, padding: 10, border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, background: 'rgba(255,255,255,0.035)' }}>
+              Granted by {background}: <strong>{bgSkills.join(', ')}</strong>
             </div>
           )}
 
-          <div style={{ padding: 12, border: '1px solid #D4A017', borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#D4A017', fontWeight: 700, marginBottom: 6 }}>
-              Pick {skillCount} class skill{skillCount === 1 ? '' : 's'} ({selectedSkills.length}/{skillCount})
-            </div>
-            {bgSkills.length > 0 && (
-              <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 6 }}>
-                Granted by {background}: {bgSkills.join(', ')}
-              </div>
-            )}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {skillOptions.map(skill => {
-                const fromBg = bgSkills.includes(skill);
-                const sel = selectedSkills.includes(skill);
-                return (
-                  <button
-                    key={skill} type="button"
-                    disabled={fromBg}
-                    onClick={() => toggleSkill(skill)}
-                    data-testid={`basic-skill-${skill.replace(/ /g, '-').toLowerCase()}`}
-                    style={{
-                      padding: '5px 10px', borderRadius: 6, fontSize: 12,
-                      background: fromBg ? 'rgba(212,160,23,0.25)' : sel ? 'rgba(212,160,23,0.4)' : 'rgba(15,36,64,0.6)',
-                      border: `1px solid ${fromBg || sel ? '#D4A017' : 'rgba(212,160,23,0.3)'}`,
-                      color: '#F8FAFC',
-                      cursor: fromBg ? 'not-allowed' : 'pointer',
-                      opacity: fromBg ? 0.7 : 1
-                    }}>
-                    {sel || fromBg ? '✓ ' : ''}{skill}
-                  </button>
-                );
-              })}
-            </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {skillOptions.map(skill => {
+              const fromBg = bgSkills.includes(skill);
+              const sel = selectedSkills.includes(skill);
+              return (
+                <button
+                  key={skill}
+                  type="button"
+                  disabled={fromBg}
+                  onClick={() => toggleSkill(skill)}
+                  data-testid={`basic-skill-${skill.replace(/ /g, '-').toLowerCase()}`}
+                  style={{
+                    padding: '7px 11px',
+                    borderRadius: 7,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    background: fromBg ? 'rgba(16,185,129,0.12)' : sel ? 'rgba(239,68,68,0.22)' : '#18181B',
+                    border: `1px solid ${fromBg ? 'rgba(16,185,129,0.4)' : sel ? 'rgba(239,68,68,0.75)' : 'rgba(255,255,255,0.11)'}`,
+                    color: '#F9FAFB',
+                    cursor: fromBg ? 'not-allowed' : 'pointer',
+                    opacity: fromBg ? 0.72 : 1
+                  }}>
+                  {sel || fromBg ? '✓ ' : ''}{skill}
+                </button>
+              );
+            })}
           </div>
+        </section>
 
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
           <button
             disabled={loading || selectedSkills.length !== skillCount}
             onClick={submit}
             data-testid="basic-submit"
             style={{
-              marginTop: 8, padding: '12px 20px', borderRadius: 8, fontWeight: 700,
-              background: loading || selectedSkills.length !== skillCount ? 'rgba(212,160,23,0.2)' : '#D4A017',
-              border: '1px solid #D4A017', color: '#0A1628', cursor: 'pointer', fontSize: 15
+              padding: '13px 20px',
+              borderRadius: 8,
+              fontWeight: 900,
+              background: loading || selectedSkills.length !== skillCount ? 'rgba(239,68,68,0.18)' : '#EF4444',
+              border: '1px solid rgba(239,68,68,0.75)',
+              color: '#FFFFFF',
+              cursor: loading || selectedSkills.length !== skillCount ? 'not-allowed' : 'pointer',
+              fontSize: 14,
+              textTransform: 'uppercase',
+              letterSpacing: 0.7,
             }}>
             {loading ? 'Creating...' : 'Create Character'}
           </button>
-          <button onClick={() => navigate('/characters/new')} type="button" style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: 13 }}>
-            ← Back to Modes
-          </button>
+          <span style={{ color: '#A1A1AA', fontSize: 12 }}>
+            You can edit the full sheet after creation.
+          </span>
         </div>
       </div>
+    </main>
+  );
+}
+
+function AutoFillCard({ title, text }) {
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.035)', borderRadius: 9, padding: 11 }}>
+      <strong style={{ display: 'block', color: '#FFFFFF', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.7 }}>{title}</strong>
+      <span style={{ display: 'block', color: '#A1A1AA', fontSize: 12, lineHeight: 1.4, marginTop: 4 }}>{text}</span>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value, helper }) {
+  return (
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
+      <div style={{ color: '#A1A1AA', fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 800, marginTop: 3 }}>{value}</div>
+      {helper && <div style={{ color: '#A1A1AA', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{helper}</div>}
     </div>
   );
 }
