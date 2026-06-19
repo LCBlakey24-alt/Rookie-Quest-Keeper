@@ -7,7 +7,7 @@ import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
 import { calculateArmorAc } from '../data/armorRules5e';
 
-// Recommended stat arrays by primary ability
+// Starter stat arrays by primary ability
 const STAT_ARRAYS = {
   strength:     { strength: 15, constitution: 14, dexterity: 13, wisdom: 12, charisma: 10, intelligence: 8 },
   dexterity:    { dexterity: 15, constitution: 14, wisdom: 13, intelligence: 12, charisma: 10, strength: 8 },
@@ -27,13 +27,28 @@ const BASIC_ARMOR_OPTIONS = [
   { key: 'ChainMail', name: 'Chain Mail', category: 'heavy', helper: 'Heavy armour: flat 16 AC.' },
 ];
 
+const mystic = {
+  appBackground: '#080B1A',
+  surface: '#12172A',
+  card: '#171E33',
+  raised: '#202A46',
+  purple: '#7C3AED',
+  purpleHover: '#A78BFA',
+  arcaneBlue: '#2563EB',
+  playerBlue: '#38BDF8',
+  rookPurple: '#C084FC',
+  text: '#F8FAFC',
+  muted: '#94A3B8',
+  success: '#10B981',
+};
+
 const input = {
   width: '100%',
   padding: '11px 12px',
   borderRadius: 8,
-  background: '#18181B',
-  border: '1px solid rgba(239, 68, 68, 0.35)',
-  color: '#F9FAFB',
+  background: mystic.card,
+  border: '1px solid rgba(56, 189, 248, 0.28)',
+  color: mystic.text,
   fontSize: 14,
   outline: 'none',
 };
@@ -42,31 +57,39 @@ const labelStyle = {
   display: 'grid',
   gap: 6,
   fontSize: 11,
-  color: '#A1A1AA',
+  color: mystic.muted,
   fontWeight: 900,
   letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
 const panelStyle = {
-  background: 'rgba(39, 39, 43, 0.92)',
-  border: '1px solid rgba(255,255,255,0.09)',
+  background: 'rgba(18, 23, 42, 0.94)',
+  border: '1px solid rgba(148, 163, 184, 0.16)',
   borderRadius: 12,
-  boxShadow: '0 20px 48px rgba(0,0,0,0.34)',
+  boxShadow: '0 20px 52px rgba(0,0,0,0.42)',
 };
 
 const pillStyle = {
   display: 'inline-flex',
   alignItems: 'center',
-  border: '1px solid rgba(239,68,68,0.35)',
-  background: 'rgba(239,68,68,0.12)',
-  color: '#FECACA',
+  border: '1px solid rgba(124, 58, 237, 0.45)',
+  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(124, 58, 237, 0.22))',
+  color: '#E9D5FF',
   borderRadius: 999,
   padding: '4px 8px',
   fontSize: 10,
   fontWeight: 900,
   textTransform: 'uppercase',
   letterSpacing: 0.7,
+};
+
+const arcanePanelStyle = {
+  marginTop: 14,
+  padding: 12,
+  borderRadius: 10,
+  border: '1px solid rgba(56, 189, 248, 0.24)',
+  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(124, 58, 237, 0.11))',
 };
 
 const clampLevel = (value) => Math.min(20, Math.max(1, Number.parseInt(value, 10) || 1));
@@ -303,8 +326,8 @@ export default function BasicCharacterBuilder() {
   return (
     <main style={{
       padding: '20px',
-      color: '#F9FAFB',
-      background: 'radial-gradient(circle at top left, rgba(239,68,68,0.14), transparent 32%), linear-gradient(180deg, #09090B, #18181B)',
+      color: mystic.text,
+      background: 'radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 32%), radial-gradient(circle at top right, rgba(124,58,237,0.18), transparent 34%), linear-gradient(180deg, #080B1A, #12172A)',
       minHeight: '100vh'
     }}>
       <div style={{ maxWidth: 980, margin: '0 auto' }}>
@@ -312,9 +335,9 @@ export default function BasicCharacterBuilder() {
           onClick={() => navigate('/characters/new')}
           type="button"
           style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.12)',
-            color: '#D4D4D8',
+            background: 'rgba(23, 30, 51, 0.72)',
+            border: '1px solid rgba(148,163,184,0.18)',
+            color: '#CBD5E1',
             cursor: 'pointer',
             fontSize: 12,
             fontWeight: 900,
@@ -340,7 +363,7 @@ export default function BasicCharacterBuilder() {
             <h1 style={{ color: '#FFFFFF', margin: 0, fontSize: 'clamp(28px, 4vw, 44px)', lineHeight: 1, letterSpacing: -1.4 }}>
               Basic Build
             </h1>
-            <p style={{ color: '#A1A1AA', margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
+            <p style={{ color: mystic.muted, margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
               Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, and languages.
             </p>
           </div>
@@ -408,11 +431,11 @@ export default function BasicCharacterBuilder() {
               </label>
             </div>
 
-            <div style={{ marginTop: 14, padding: 12, borderRadius: 10, border: '1px solid rgba(239,68,68,0.24)', background: 'rgba(239,68,68,0.07)' }}>
+            <div style={arcanePanelStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
                 <div>
                   <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: 15 }}>Defence choices</h3>
-                  <p style={{ margin: '5px 0 0', color: '#A1A1AA', fontSize: 12, lineHeight: 1.4 }}>
+                  <p style={{ margin: '5px 0 0', color: mystic.muted, fontSize: 12, lineHeight: 1.4 }}>
                     Pick a simple armour and shield loadout. This updates AC and saved starting equipment.
                   </p>
                 </div>
@@ -438,6 +461,9 @@ export default function BasicCharacterBuilder() {
                       cursor: armorProficiencies.shields ? 'pointer' : 'not-allowed',
                       opacity: armorProficiencies.shields ? 1 : 0.55,
                       fontWeight: 900,
+                      background: shieldEquipped
+                        ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.22), rgba(124, 58, 237, 0.25))'
+                        : input.background,
                     }}
                   >
                     {shieldEquipped ? '✓ Shield equipped' : armorProficiencies.shields ? 'No shield' : 'No shield proficiency'}
@@ -449,7 +475,7 @@ export default function BasicCharacterBuilder() {
 
           <aside style={{ ...panelStyle, padding: 16 }}>
             <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: 18 }}>Starter sheet preview</h2>
-            <p style={{ margin: '6px 0 12px', color: '#A1A1AA', fontSize: 12, lineHeight: 1.45 }}>
+            <p style={{ margin: '6px 0 12px', color: mystic.muted, fontSize: 12, lineHeight: 1.45 }}>
               These details will be saved onto the character sheet.
             </p>
 
@@ -487,7 +513,7 @@ export default function BasicCharacterBuilder() {
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
             <div>
               <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: 18 }}>Class skills</h2>
-              <p style={{ margin: '5px 0 0', color: '#A1A1AA', fontSize: 12 }}>
+              <p style={{ margin: '5px 0 0', color: mystic.muted, fontSize: 12 }}>
                 Pick {skillCount} class skill{skillCount === 1 ? '' : 's'}. Background skills are already granted.
               </p>
             </div>
@@ -495,7 +521,7 @@ export default function BasicCharacterBuilder() {
           </div>
 
           {bgSkills.length > 0 && (
-            <div style={{ fontSize: 12, color: '#D4D4D8', marginBottom: 10, padding: 10, border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, background: 'rgba(255,255,255,0.035)' }}>
+            <div style={{ fontSize: 12, color: '#CBD5E1', marginBottom: 10, padding: 10, border: '1px solid rgba(56,189,248,0.16)', borderRadius: 8, background: 'rgba(56,189,248,0.06)' }}>
               Granted by {background}: <strong>{bgSkills.join(', ')}</strong>
             </div>
           )}
@@ -516,9 +542,9 @@ export default function BasicCharacterBuilder() {
                     borderRadius: 7,
                     fontSize: 12,
                     fontWeight: 800,
-                    background: fromBg ? 'rgba(16,185,129,0.12)' : sel ? 'rgba(239,68,68,0.22)' : '#18181B',
-                    border: `1px solid ${fromBg ? 'rgba(16,185,129,0.4)' : sel ? 'rgba(239,68,68,0.75)' : 'rgba(255,255,255,0.11)'}`,
-                    color: '#F9FAFB',
+                    background: fromBg ? 'rgba(16,185,129,0.12)' : sel ? 'linear-gradient(135deg, rgba(37,99,235,0.28), rgba(124,58,237,0.28))' : mystic.card,
+                    border: `1px solid ${fromBg ? 'rgba(16,185,129,0.4)' : sel ? 'rgba(124,58,237,0.72)' : 'rgba(148,163,184,0.16)'}`,
+                    color: mystic.text,
                     cursor: fromBg ? 'not-allowed' : 'pointer',
                     opacity: fromBg ? 0.72 : 1
                   }}>
@@ -538,17 +564,22 @@ export default function BasicCharacterBuilder() {
               padding: '13px 20px',
               borderRadius: 8,
               fontWeight: 900,
-              background: loading || selectedSkills.length !== skillCount ? 'rgba(239,68,68,0.18)' : '#EF4444',
-              border: '1px solid rgba(239,68,68,0.75)',
+              background: loading || selectedSkills.length !== skillCount
+                ? 'rgba(124,58,237,0.20)'
+                : 'linear-gradient(135deg, #2563EB, #7C3AED)',
+              border: loading || selectedSkills.length !== skillCount
+                ? '1px solid rgba(124,58,237,0.26)'
+                : '1px solid rgba(167,139,250,0.72)',
               color: '#FFFFFF',
               cursor: loading || selectedSkills.length !== skillCount ? 'not-allowed' : 'pointer',
               fontSize: 14,
               textTransform: 'uppercase',
               letterSpacing: 0.7,
+              boxShadow: loading || selectedSkills.length !== skillCount ? 'none' : '0 14px 32px rgba(37,99,235,0.28)',
             }}>
             {loading ? 'Creating...' : 'Create Character'}
           </button>
-          <span style={{ color: '#A1A1AA', fontSize: 12 }}>
+          <span style={{ color: mystic.muted, fontSize: 12 }}>
             You can edit the full sheet after creation.
           </span>
         </div>
@@ -559,29 +590,29 @@ export default function BasicCharacterBuilder() {
 
 function AutoFillCard({ title, text }) {
   return (
-    <div style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.035)', borderRadius: 9, padding: 11 }}>
+    <div style={{ border: '1px solid rgba(56,189,248,0.16)', background: 'rgba(23,30,51,0.72)', borderRadius: 9, padding: 11 }}>
       <strong style={{ display: 'block', color: '#FFFFFF', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.7 }}>{title}</strong>
-      <span style={{ display: 'block', color: '#A1A1AA', fontSize: 12, lineHeight: 1.4, marginTop: 4 }}>{text}</span>
+      <span style={{ display: 'block', color: mystic.muted, fontSize: 12, lineHeight: 1.4, marginTop: 4 }}>{text}</span>
     </div>
   );
 }
 
 function PreviewStat({ label, value, helper }) {
   return (
-    <div style={{ border: '1px solid rgba(239,68,68,0.24)', background: 'rgba(239,68,68,0.08)', borderRadius: 9, padding: 10 }}>
-      <div style={{ color: '#A1A1AA', fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
+    <div style={{ border: '1px solid rgba(56,189,248,0.22)', background: 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(124,58,237,0.10))', borderRadius: 9, padding: 10 }}>
+      <div style={{ color: mystic.muted, fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 900, marginTop: 2, lineHeight: 1 }}>{value}</div>
-      {helper && <div style={{ color: '#A1A1AA', fontSize: 10, lineHeight: 1.3, marginTop: 4 }}>{helper}</div>}
+      {helper && <div style={{ color: mystic.muted, fontSize: 10, lineHeight: 1.3, marginTop: 4 }}>{helper}</div>}
     </div>
   );
 }
 
 function SummaryRow({ label, value, helper }) {
   return (
-    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
-      <div style={{ color: '#A1A1AA', fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
+    <div style={{ borderTop: '1px solid rgba(148,163,184,0.13)', paddingTop: 10 }}>
+      <div style={{ color: mystic.muted, fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 800, marginTop: 3 }}>{value}</div>
-      {helper && <div style={{ color: '#A1A1AA', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{helper}</div>}
+      {helper && <div style={{ color: mystic.muted, fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{helper}</div>}
     </div>
   );
 }
