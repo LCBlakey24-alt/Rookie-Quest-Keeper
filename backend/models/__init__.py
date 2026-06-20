@@ -634,6 +634,7 @@ class PlayerCharacter(BaseModel):
     spell_attack_bonus: int = 0
     spell_slots: Dict[str, int] = {}  # {"1": 2, "2": 1} - slots per level
     spell_slots_remaining: Dict[str, int] = {}
+    spell_preparation_loadout: str = ""
     spells_known: List[Dict[str, Any]] = []  # [{"name": "Fireball", "level": 3, "school": "evocation"}]
     spells_prepared: List[Dict[str, Any]] = []  # Spells currently prepared for the day
     cantrips_known: List[Dict[str, Any]] = []  # [{"name": "Fire Bolt", "level": 0}] - Cantrips the character knows
@@ -643,6 +644,9 @@ class PlayerCharacter(BaseModel):
     asi_increases: Dict[str, int] = {}  # Total ASI bonuses applied {"strength": 2, "dexterity": 2}
     
     # Equipment & Inventory
+    equipment_choice: str = ""  # Builder/template equipment preset key used during creation
+    fighting_style: str = ""
+    starting_equipment: List[str] = []
     equipment: List[Dict[str, Any]] = []  # [{"name": "Longsword", "equipped": true}]
     inventory: List[Dict[str, Any]] = []
     equipped: Dict[str, Any] = {"armor": None, "shield": None, "mainHand": None, "offHand": None}
@@ -719,7 +723,27 @@ class PlayerCharacterCreate(BaseModel):
     spells_known: Optional[List[Dict[str, Any]]] = []
     spells_prepared: Optional[List[Dict[str, Any]]] = []
     cantrips_known: Optional[List[Dict[str, Any]]] = []
+    spellcasting_ability: Optional[str] = ""
+    spell_save_dc: Optional[int] = 0
+    spell_attack_bonus: Optional[int] = 0
+    spell_slots: Optional[Dict[str, int]] = {}
+    spell_slots_remaining: Optional[Dict[str, int]] = {}
+    spell_preparation_loadout: Optional[str] = ""
     feats: Optional[List[Dict[str, Any]]] = []
+
+    # Equipment/inventory selections from builders and premade templates
+    equipment_choice: Optional[str] = ""
+    fighting_style: Optional[str] = ""
+    starting_equipment: Optional[List[str]] = []
+    equipment: Optional[List[Dict[str, Any]]] = []
+    inventory: Optional[List[Dict[str, Any]]] = []
+    equipped: Optional[Dict[str, Any]] = {}
+    currency: Optional[Dict[str, int]] = {}
+    gold: Optional[int] = 0
+
+    # Starter combat state
+    conditions: Optional[List[str]] = []
+    inspiration: Optional[bool] = False
 
 class PlayerCharacterUpdate(BaseModel):
     name: Optional[str] = None
