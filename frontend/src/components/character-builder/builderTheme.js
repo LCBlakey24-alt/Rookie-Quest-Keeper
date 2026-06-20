@@ -1,17 +1,35 @@
 export const builderTheme = {
-  bg: { primary: '#1F1F23', surface: '#27272B', elevated: '#323235' },
-  sunset: { purple: '#EF4444', pink: '#EF4444', gold: '#EF4444' },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.35)',
-  borderActive: '#EF4444',
-  accent: { primary: '#EF4444', soft: 'rgba(239, 68, 68, 0.12)', line: 'rgba(239, 68, 68, 0.28)' },
-  success: '#10B981'
+  bg: {
+    primary: 'var(--rq-bg-main)',
+    surface: 'var(--rq-bg-panel)',
+    elevated: 'var(--rq-bg-elevated)'
+  },
+  sunset: {
+    purple: 'var(--rq-accent-active)',
+    pink: 'var(--rq-accent-primary)',
+    gold: 'var(--rq-accent-hover)'
+  },
+  text: {
+    primary: 'var(--rq-text-primary)',
+    secondary: 'var(--rq-text-secondary)',
+    muted: 'var(--rq-text-muted)'
+  },
+  border: 'var(--rq-border-default)',
+  borderActive: 'var(--rq-accent-primary)',
+  accent: {
+    primary: 'var(--rq-accent-primary)',
+    soft: 'var(--rq-accent-soft)',
+    line: 'var(--rq-accent-border)'
+  },
+  success: 'var(--rq-success)',
+  warning: 'var(--rq-warning)',
+  danger: 'var(--rq-danger)'
 };
 
 export const traitChipStyle = {
   display: 'inline-flex', alignItems: 'center', gap: '4px',
   padding: '4px 8px', borderRadius: '6px',
-  background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.25)',
+  background: 'var(--rq-accent-soft)', border: '1px solid var(--rq-accent-border)',
   fontSize: '11px', color: builderTheme.text.secondary
 };
 
