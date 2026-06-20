@@ -90,3 +90,42 @@ describe('Monk and Paladin class resources', () => {
     expect(getClassResourceRules({ character_class: 'Paladin', level: 4, rules_edition: '2014' }).find(rule => rule.key === 'lay_on_hands')).toMatchObject({ maxValue: 20 });
   });
 });
+
+describe('Bard, Sorcerer, and Warlock multiclass resources', () => {
+  test('Bard restore timing uses Bard level rather than total character level', () => {
+    const rules = getClassResourceRules({
+      character_class: 'Fighter',
+      level: 10,
+      rules_edition: '2014',
+      charisma: 16,
+      class_levels: { Fighter: 7, Bard: 3 },
+    });
+
+    expect(rules.find(rule => rule.className === 'Bard' && rule.key === 'bardic_inspiration')).toMatchObject({
+      maxValue: 3,
+      restore: 'long-rest',
+    });
+  });
+
+  test('Sorcery Points use Sorcerer level rather than total character level', () => {
+    const rules = getClassResourceRules({
+      character_class: 'Fighter',
+      level: 10,
+      rules_edition: '2014',
+      class_levels: { Fighter: 8, Sorcerer: 2 },
+    });
+
+    expect(rules.find(rule => rule.className === 'Sorcerer' && rule.key === 'sorcery_points')).toMatchObject({ maxValue: 2 });
+  });
+
+  test('Warlock Pact Magic uses Warlock level rather than total character level', () => {
+    const rules = getClassResourceRules({
+      character_class: 'Fighter',
+      level: 10,
+      rules_edition: '2014',
+      class_levels: { Fighter: 9, Warlock: 1 },
+    });
+
+    expect(rules.find(rule => rule.className === 'Warlock' && rule.key === 'pact_magic')).toMatchObject({ maxValue: 1 });
+  });
+});
