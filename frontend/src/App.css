@@ -11,9 +11,9 @@
 
 /* ===== RESPONSIVE SAFETY & DESIGN TOKENS ===== */
 :root {
-  --rq-role-gm: #EF4444;
-  --rq-role-player: #38BDF8;
-  --rq-role-rook: #A855F7;
+  --rq-role-gm: var(--rq-accent-active, #A45A32);
+  --rq-role-player: var(--rq-accent-primary, #C08A3D);
+  --rq-role-rook: var(--rq-accent-hover, #E0B15C);
   --rq-role-homebrew: #14B8A6;
   --rq-role-lore: #F59E0B;
   --rq-surface-soft: rgba(255,255,255,0.06);
@@ -51,9 +51,9 @@ img, video, canvas, svg {
   -webkit-overflow-scrolling: touch;
 }
 
-.rq-role-rook { border-color: rgba(168,85,247,0.38) !important; }
+.rq-role-rook { border-color: var(--rq-accent-strong-border, rgba(224,177,92,0.56)) !important; }
 .rq-role-homebrew { border-color: rgba(20,184,166,0.38) !important; }
-.rq-role-player { border-color: rgba(56,189,248,0.38) !important; }
+.rq-role-player { border-color: var(--rq-accent-border, rgba(192,138,61,0.34)) !important; }
 .rq-role-lore { border-color: rgba(245,158,11,0.38) !important; }
 
 
@@ -123,15 +123,15 @@ img, video, canvas, svg {
   height: 200%;
   top: -50%;
   left: -50%;
-  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.14) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
-              radial-gradient(ellipse at 80% 20%, rgba(192, 132, 252, 0.08) 0%, transparent 40%);
+  background: radial-gradient(ellipse at center, rgba(192, 138, 61, 0.14) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(164, 90, 50, 0.10) 0%, transparent 40%),
+              radial-gradient(ellipse at 80% 20%, rgba(245, 230, 200, 0.06) 0%, transparent 40%);
   animation: smokeFloat 30s ease-in-out infinite;
 }
 
 .smokey-bg::after {
-  background: radial-gradient(ellipse at 70% 70%, rgba(30, 41, 59, 0.20) 0%, transparent 50%),
-              radial-gradient(ellipse at 30% 30%, rgba(88, 28, 135, 0.14) 0%, transparent 45%);
+  background: radial-gradient(ellipse at 70% 70%, rgba(58, 38, 25, 0.24) 0%, transparent 50%),
+              radial-gradient(ellipse at 30% 30%, rgba(164, 90, 50, 0.14) 0%, transparent 45%);
   animation: smokeFloat 40s ease-in-out infinite reverse;
 }
 
@@ -184,7 +184,7 @@ img, video, canvas, svg {
   }
 }
 
-/* Base class for border light effect - CYAN (Player) */
+/* Base class for border light effect - GOLD (Player compatibility) */
 .tron-border-blue {
   position: relative;
   overflow: hidden;
@@ -197,13 +197,13 @@ img, video, canvas, svg {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    transparent 40%, 
-    #06B6D4 45%, 
-    #fff 50%, 
-    #06B6D4 55%, 
-    transparent 60%, 
+  background: linear-gradient(90deg,
+    transparent 0%,
+    transparent 40%,
+    #C08A3D 45%,
+    #fff 50%,
+    #C08A3D 55%,
+    transparent 60%,
     transparent 100%
   );
   background-size: 200% 200%;
@@ -222,7 +222,7 @@ img, video, canvas, svg {
   z-index: -1;
 }
 
-/* Base class for border light effect - RED (GM) */
+/* Base class for border light effect - COPPER (GM compatibility) */
 .tron-border-red {
   position: relative;
   overflow: hidden;
@@ -235,13 +235,13 @@ img, video, canvas, svg {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    transparent 40%, 
-    #E11D48 45%, 
-    #fff 50%, 
-    #E11D48 55%, 
-    transparent 60%, 
+  background: linear-gradient(90deg,
+    transparent 0%,
+    transparent 40%,
+    #A45A32 45%,
+    #fff 50%,
+    #A45A32 55%,
+    transparent 60%,
     transparent 100%
   );
   background-size: 200% 200%;
@@ -277,11 +277,11 @@ img, video, canvas, svg {
     from 0deg,
     transparent 0deg,
     transparent 60deg,
-    #06B6D4 80deg,
-    #22D3EE 90deg,
+    #C08A3D 80deg,
+    #E0B15C 90deg,
     #fff 95deg,
-    #22D3EE 100deg,
-    #06B6D4 110deg,
+    #E0B15C 100deg,
+    #C08A3D 110deg,
     transparent 130deg,
     transparent 360deg
   );
@@ -300,7 +300,7 @@ img, video, canvas, svg {
   z-index: -1;
 }
 
-/* Spinning conic gradient border - RED */
+/* Spinning conic gradient border - COPPER */
 .tron-border-spin-red {
   position: relative;
   z-index: 0;
@@ -317,11 +317,11 @@ img, video, canvas, svg {
     from 0deg,
     transparent 0deg,
     transparent 60deg,
-    #E11D48 80deg,
-    #F43F5E 90deg,
+    #A45A32 80deg,
+    #C08A3D 90deg,
     #fff 95deg,
-    #F43F5E 100deg,
-    #E11D48 110deg,
+    #C08A3D 100deg,
+    #A45A32 110deg,
     transparent 130deg,
     transparent 360deg
   );
@@ -357,15 +357,15 @@ img, video, canvas, svg {
     from 0deg,
     transparent 0deg,
     transparent 30deg,
-    #06B6D4 50deg,
+    #C08A3D 50deg,
     #fff 60deg,
-    #06B6D4 70deg,
+    #C08A3D 70deg,
     transparent 90deg,
     transparent 180deg,
     transparent 210deg,
-    #E11D48 230deg,
+    #A45A32 230deg,
     #fff 240deg,
-    #E11D48 250deg,
+    #A45A32 250deg,
     transparent 270deg,
     transparent 360deg
   );
@@ -398,49 +398,49 @@ img, video, canvas, svg {
 
 :root {
   /* Core Colors - Dark Minimalist Palette */
-  --bg-black: #080B1A;
-  --rq-bg-main: #080B1A;
-  --bg-dark: #0F1430;
-  --bg-panel: #12172A;
-  --rq-bg-panel: #12172A;
-  --rq-bg-input: #0D1224;
-  --bg-card: #171E33;
-  --bg-hover: #202A46;
-  --bg-elevated: #202A46;
-  --bg-light: #2D3A62;
-  
-  /* Accent Colors - Mystic Blue/Purple (legacy variable names kept for compatibility) */
-  --accent-red: #7C3AED;
-  --accent-red-hover: #A78BFA;
-  --accent-red-subtle: rgba(124, 58, 237, 0.14);
-  --accent-red-border: rgba(124, 58, 237, 0.32);
-  --rq-accent-primary: #7C3AED;
-  --rq-accent-hover: #A78BFA;
-  --rq-accent-soft: rgba(124, 58, 237, 0.14);
-  --rq-accent-border: rgba(124, 58, 237, 0.32);
-  
-  /* Text Colors - WHITE ONLY */
-  --text-primary: #FFFFFF;
-  --text-secondary: #D1D5DB;
-  --text-muted: #9CA3AF;
-  --text-dim: #666666;
-  
+  --bg-black: #120C08;
+  --rq-bg-main: #120C08;
+  --bg-dark: #160F0A;
+  --bg-panel: #21150E;
+  --rq-bg-panel: #21150E;
+  --rq-bg-input: #1A100B;
+  --bg-card: #2E1D13;
+  --bg-hover: #3A2619;
+  --bg-elevated: #3A2619;
+  --bg-light: #3A2619;
+
+  /* Accent Colors - Velvet gold/copper (legacy variable names kept for compatibility) */
+  --accent-red: #C08A3D;
+  --accent-red-hover: #E0B15C;
+  --accent-red-subtle: rgba(192, 138, 61, 0.14);
+  --accent-red-border: rgba(192, 138, 61, 0.34);
+  --rq-accent-primary: #C08A3D;
+  --rq-accent-hover: #E0B15C;
+  --rq-accent-soft: rgba(192, 138, 61, 0.14);
+  --rq-accent-border: rgba(192, 138, 61, 0.34);
+
+  /* Text Colors - cream/parchment */
+  --text-primary: #F5E6C8;
+  --text-secondary: #E6D2AA;
+  --text-muted: #CDBA98;
+  --text-dim: #8D7453;
+
   /* Status Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  
+  --success: #7A9B66;
+  --warning: #D4953C;
+  --danger: #B44732;
+
   /* Borders */
-  --border-dark: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(191, 219, 254, 0.14);
-  --rq-border-default: rgba(191, 219, 254, 0.14);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  
+  --border-dark: rgba(245, 230, 200, 0.08);
+  --border-default: rgba(192, 138, 61, 0.22);
+  --rq-border-default: rgba(192, 138, 61, 0.22);
+  --border-hover: rgba(224, 177, 92, 0.34);
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.7);
-  
+
   /* Spacing - SQUARE CORNERS */
   --radius-none: 0px;
   --radius-sm: 0px;
@@ -608,7 +608,7 @@ p, span, div, label, a, button {
 }
 
 /* ===== BUTTONS ===== */
-/* Primary Button - Red */
+/* Primary Button - Velvet gold */
 .btn-primary {
   background: var(--accent-red);
   color: var(--text-primary);
@@ -680,9 +680,9 @@ p, span, div, label, a, button {
 
 /* Danger Button */
 .btn-danger {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(180, 71, 50, 0.12);
   color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(180, 71, 50, 0.38);
   padding: 10px 16px;
   font-weight: 600;
   font-size: 13px;
@@ -692,7 +692,7 @@ p, span, div, label, a, button {
 }
 
 .btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(180, 71, 50, 0.20);
   border-color: var(--danger);
 }
 
@@ -1092,34 +1092,34 @@ select option {
     gap: 2px;
     padding: 4px;
   }
-  
+
   .tab-item {
     padding: 8px 12px;
     font-size: 11px;
   }
-  
+
   .glow-panel {
     padding: 16px;
   }
-  
+
   .btn-primary,
   .btn-secondary {
     padding: 10px 18px;
     font-size: 13px;
   }
-  
+
   .card, .glow-card {
     padding: 16px;
   }
-  
+
   .mobile-menu-toggle {
     display: block !important;
   }
-  
+
   .desktop-only {
     display: none !important;
   }
-  
+
   .desktop-logos {
     display: none !important;
   }
@@ -1129,7 +1129,7 @@ select option {
   .mobile-menu-toggle {
     display: none !important;
   }
-  
+
   .desktop-only {
     display: block;
   }
@@ -1144,7 +1144,7 @@ select option {
 /* ===== SELECTION ===== */
 ::selection {
   background: var(--accent-red);
-  color: white;
+  color: var(--rq-text-inverse, #120C08);
 }
 
 /* ===== LEGACY SUPPORT ===== */
@@ -1179,66 +1179,66 @@ select option {
 }
 
 @keyframes fadeInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes fadeInDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-20px); 
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes fadeInLeft {
-  from { 
-    opacity: 0; 
-    transform: translateX(-20px); 
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateX(0); 
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
 @keyframes fadeInRight {
-  from { 
-    opacity: 0; 
-    transform: translateX(20px); 
+  from {
+    opacity: 0;
+    transform: translateX(20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateX(0); 
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
 @keyframes scaleIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.95); 
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 @keyframes slideInUp {
-  from { 
-    transform: translateY(100%); 
+  from {
+    transform: translateY(100%);
   }
-  to { 
-    transform: translateY(0); 
+  to {
+    transform: translateY(0);
   }
 }
 
@@ -1316,7 +1316,7 @@ select option {
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 20px rgba(225, 29, 72, 0.3);
+  box-shadow: 0 0 20px rgba(164, 90, 50, 0.30);
 }
 
 .hover-scale:hover {
@@ -1382,7 +1382,7 @@ select option {
 
 .mobile-toggle-active {
   background: var(--accent-red);
-  color: white;
+  color: var(--rq-text-inverse, #120C08);
 }
 
 /* Slide Panel Animation */
@@ -1512,39 +1512,39 @@ select option {
 
 /* Blue/Cyan Trails (Player Side) - FAST LASERS */
 .light-trail-blue {
-  background: linear-gradient(90deg, transparent 0%, #06B6D4 20%, #fff 50%, #3B82F6 80%, transparent 100%);
-  box-shadow: 0 0 4px #06B6D4, 0 0 8px #06B6D4, 0 0 15px rgba(6, 182, 212, 0.8), 0 0 30px rgba(6, 182, 212, 0.4);
+  background: linear-gradient(90deg, transparent 0%, #C08A3D 20%, #fff 50%, #A45A32 80%, transparent 100%);
+  box-shadow: 0 0 4px #C08A3D, 0 0 8px #C08A3D, 0 0 15px rgba(192, 138, 61, 0.72), 0 0 30px rgba(192, 138, 61, 0.32);
   animation: lightTrailLeft 1.8s linear infinite;
 }
 
 .light-trail-blue-2 {
-  background: linear-gradient(90deg, transparent 0%, #22D3EE 20%, #fff 50%, #0EA5E9 80%, transparent 100%);
-  box-shadow: 0 0 4px #22D3EE, 0 0 10px #22D3EE, 0 0 20px rgba(34, 211, 238, 0.6);
+  background: linear-gradient(90deg, transparent 0%, #E0B15C 20%, #fff 50%, #E0B15C 80%, transparent 100%);
+  box-shadow: 0 0 4px #E0B15C, 0 0 10px #E0B15C, 0 0 20px rgba(224, 177, 92, 0.42);
   animation: lightTrailLeft 2.2s linear infinite 0.5s;
 }
 
 .light-trail-blue-3 {
-  background: linear-gradient(90deg, transparent 0%, #3B82F6 20%, #fff 50%, #06B6D4 80%, transparent 100%);
-  box-shadow: 0 0 6px #3B82F6, 0 0 12px rgba(59, 130, 246, 0.8);
+  background: linear-gradient(90deg, transparent 0%, #A45A32 20%, #fff 50%, #C08A3D 80%, transparent 100%);
+  box-shadow: 0 0 6px #A45A32, 0 0 12px rgba(164, 90, 50, 0.64);
   animation: lightTrailDiagonal 2.5s linear infinite 1s;
 }
 
 /* Red Trails (GM Side) - FAST LASERS */
 .light-trail-red {
-  background: linear-gradient(90deg, transparent 0%, #E11D48 20%, #fff 50%, #F43F5E 80%, transparent 100%);
-  box-shadow: 0 0 4px #E11D48, 0 0 8px #E11D48, 0 0 15px rgba(225, 29, 72, 0.8), 0 0 30px rgba(225, 29, 72, 0.4);
+  background: linear-gradient(90deg, transparent 0%, #A45A32 20%, #fff 50%, #C08A3D 80%, transparent 100%);
+  box-shadow: 0 0 4px #A45A32, 0 0 8px #A45A32, 0 0 15px rgba(164, 90, 50, 0.64), 0 0 30px rgba(164, 90, 50, 0.32);
   animation: lightTrailRight 2s linear infinite;
 }
 
 .light-trail-red-2 {
-  background: linear-gradient(90deg, transparent 0%, #FB7185 20%, #fff 50%, #F43F5E 80%, transparent 100%);
-  box-shadow: 0 0 4px #FB7185, 0 0 10px #FB7185, 0 0 20px rgba(251, 113, 133, 0.6);
+  background: linear-gradient(90deg, transparent 0%, #E6D2AA 20%, #fff 50%, #C08A3D 80%, transparent 100%);
+  box-shadow: 0 0 4px #E6D2AA, 0 0 10px #E6D2AA, 0 0 20px rgba(230, 210, 170, 0.36);
   animation: lightTrailRight 2.4s linear infinite 0.7s;
 }
 
 .light-trail-red-3 {
-  background: linear-gradient(90deg, transparent 0%, #E11D48 20%, #fff 50%, #DC2626 80%, transparent 100%);
-  box-shadow: 0 0 6px #E11D48, 0 0 12px rgba(225, 29, 72, 0.8);
+  background: linear-gradient(90deg, transparent 0%, #A45A32 20%, #fff 50%, #B44732 80%, transparent 100%);
+  box-shadow: 0 0 6px #A45A32, 0 0 12px rgba(164, 90, 50, 0.64);
   animation: lightTrailDiagonalReverse 2.8s linear infinite 1.2s;
 }
 
@@ -1555,7 +1555,7 @@ select option {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -1565,16 +1565,16 @@ select option {
 
 /* Subtle Grid with color tint */
 .tron-grid-blue {
-  background-image: 
-    linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(192, 138, 61, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(192, 138, 61, 0.04) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
 .tron-grid-red {
-  background-image: 
-    linear-gradient(rgba(225, 29, 72, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(225, 29, 72, 0.03) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(164, 90, 50, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164, 90, 50, 0.04) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -1590,32 +1590,32 @@ select option {
 
 .glow-pulse-blue {
   animation: glowPulse 3s ease-in-out infinite;
-  color: #06B6D4;
+  color: #C08A3D;
 }
 
 .glow-pulse-red {
   animation: glowPulse 3s ease-in-out infinite;
-  color: #E11D48;
+  color: #A45A32;
 }
 
 /* Edge Glow Effects */
 .edge-glow-blue {
-  box-shadow: inset 0 1px 0 rgba(6, 182, 212, 0.3), 
-              inset 0 -1px 0 rgba(6, 182, 212, 0.1);
+  box-shadow: inset 0 1px 0 rgba(192, 138, 61, 0.30),
+              inset 0 -1px 0 rgba(192, 138, 61, 0.12);
 }
 
 .edge-glow-red {
-  box-shadow: inset 0 1px 0 rgba(225, 29, 72, 0.3), 
-              inset 0 -1px 0 rgba(225, 29, 72, 0.1);
+  box-shadow: inset 0 1px 0 rgba(164, 90, 50, 0.30),
+              inset 0 -1px 0 rgba(164, 90, 50, 0.12);
 }
 
 /* Horizon Glow - Bottom gradient */
 .horizon-glow-blue {
-  background: linear-gradient(to top, rgba(6, 182, 212, 0.1) 0%, transparent 30%);
+  background: linear-gradient(to top, rgba(192, 138, 61, 0.12) 0%, transparent 30%);
 }
 
 .horizon-glow-red {
-  background: linear-gradient(to top, rgba(225, 29, 72, 0.1) 0%, transparent 30%);
+  background: linear-gradient(to top, rgba(164, 90, 50, 0.12) 0%, transparent 30%);
 }
 
 /* Scanline Effect */
@@ -1632,9 +1632,9 @@ select option {
   position: absolute;
   width: 100%;
   height: 4px;
-  background: linear-gradient(to bottom, 
-    transparent, 
-    rgba(255, 255, 255, 0.03), 
+  background: linear-gradient(to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.03),
     transparent);
   animation: scanline 8s linear infinite;
   pointer-events: none;
@@ -1657,9 +1657,9 @@ select option {
 }
 
 @keyframes rookSharePulse {
-  0% { transform: translateY(-4px) scale(0.98); opacity: 0; box-shadow: 0 0 0 rgba(168,85,247,0); }
-  45% { transform: translateY(0) scale(1.01); opacity: 1; box-shadow: 0 0 28px rgba(168,85,247,0.28); }
-  100% { transform: translateY(0) scale(1); opacity: 1; box-shadow: 0 0 10px rgba(168,85,247,0.12); }
+  0% { transform: translateY(-4px) scale(0.98); opacity: 0; box-shadow: 0 0 0 rgba(192,138,61,0); }
+  45% { transform: translateY(0) scale(1.01); opacity: 1; box-shadow: 0 0 28px rgba(192,138,61,0.28); }
+  100% { transform: translateY(0) scale(1); opacity: 1; box-shadow: 0 0 10px rgba(192,138,61,0.12); }
 }
 
 .rook-share-alert {

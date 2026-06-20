@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, ChevronLeft, Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
-import { Button } from './ui/button';
+import { Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
@@ -9,17 +8,11 @@ import { FEATURE_TYPE_CONFIG } from '../data/classResources';
 import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, CANTRIPS_KNOWN, SPELLS_KNOWN, getSpellsForClass, getMaxSpellLevel } from '../data/spellDatabase';
 import { HIT_DICE, ASI_LEVELS, FEATS, ABILITIES, ABILITY_SHORT, getFeatsByEdition } from '../data/levelUpData';
 import DiceRollFlicker from './DiceRollFlicker';
-
-
-// Theme colors matching the character sheet
-const theme = {
-  bg: { primary: '#080B1A', surface: '#12172A', elevated: '#171E33', panel: 'rgba(18, 23, 42, 0.98)' },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124, 58, 237, 0.35)',
-  sunset: { purple: '#8B5CF6', pink: '#22D3EE', gold: '#C4B5FD' },
-  success: '#22C55E',
-  gradient: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 55%, #22D3EE 100%)'
-};
+import { levelUpTheme as theme } from './level-up/levelUpTheme';
+import LevelUpStepHeader from './level-up/LevelUpStepHeader';
+import LevelUpPlanSummary from './level-up/LevelUpPlanSummary';
+import LevelUpPreflightSkeleton from './level-up/LevelUpPreflightSkeleton';
+import LevelUpFooter from './level-up/LevelUpFooter';
 
 export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp }) {
   const [step, setStep] = useState(0); // Start at 0 for multiclass choice
@@ -397,107 +390,21 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{
-          background: theme.gradient,
-          padding: '24px',
-          position: 'relative'
-        }}>
-          <button
-            onClick={onClose}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'rgba(0,0,0,0.2)',
-              border: 'none',
-              borderRadius: '50%',
-              padding: '8px',
-              cursor: 'pointer',
-              color: '#fff'
-            }}
-          >
-            <X size={20} />
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Sparkles size={32} color="#fff" />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '24px', color: '#fff', margin: 0, fontWeight: '600' }}>
-                Level Up!
-              </h2>
-              <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0', fontSize: '15px' }}>
-                {character.name} • {characterClass} {currentLevel} → {newLevel}
-              </p>
-            </div>
-          </div>
-          
-          {/* Step indicator */}
-          <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: '4px',
-                  borderRadius: '2px',
-                  background: i < step ? '#fff' : 'rgba(255,255,255,0.3)',
-                  transition: 'background 0.3s'
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        <LevelUpStepHeader
+          onClose={onClose}
+          characterName={character.name}
+          characterClass={characterClass}
+          currentLevel={currentLevel}
+          newLevel={newLevel}
+          totalSteps={totalSteps}
+          step={step}
+        />
 
         {/* Content */}
         <div style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(90vh - 200px)' }}>
-          <div data-testid="levelup-plan-summary" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-            gap: '8px',
-            marginBottom: '14px'
-          }}>
-            {levelPlanItems.map((item) => (
-              <div key={item.label} style={{
-                border: `1px solid ${theme.border}`,
-                background: 'rgba(13, 18, 36, 0.72)',
-                borderRadius: '10px',
-                padding: '10px',
-                minWidth: 0
-              }}>
-                <div style={{ color: theme.text.muted, fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {item.label}
-                </div>
-                <div style={{ color: theme.text.primary, fontSize: '13px', fontWeight: 800, marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {item.value}
-                </div>
-              </div>
-            ))}
-          </div>
+          <LevelUpPlanSummary items={levelPlanItems} />
           {/* Preflight loading skeleton — prevents flicker from local-fallback to server values */}
-          {preflightLoading && !preflight && (
-            <div data-testid="levelup-preflight-skeleton" style={{
-              display: 'flex', flexDirection: 'column', gap: 10, padding: 16,
-              background: 'rgba(124, 58, 237, 0.08)',
-              border: '1px solid rgba(124, 58, 237, 0.24)',
-              borderRadius: 8, marginBottom: 12,
-            }}>
-              <div style={{ width: '60%', height: 14, background: 'rgba(124, 58, 237, 0.16)', borderRadius: 4 }} />
-              <div style={{ width: '85%', height: 10, background: 'rgba(34, 211, 238, 0.12)', borderRadius: 4 }} />
-              <div style={{ width: '40%', height: 10, background: 'rgba(34, 211, 238, 0.12)', borderRadius: 4 }} />
-              <div style={{ fontSize: 11, color: 'rgba(196, 181, 253, 0.88)', fontWeight: 600, textAlign: 'center', marginTop: 4 }}>
-                Loading level-up options…
-              </div>
-            </div>
-          )}
+          {preflightLoading && !preflight && <LevelUpPreflightSkeleton />}
           {/* Step 0: Class Choice (Continue or Multiclass) */}
           {step === 0 && (
             <div>
@@ -1614,94 +1521,16 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         </div>
 
         {/* Footer */}
-        <div style={{
-          padding: '16px 24px',
-          borderTop: `1px solid ${theme.border}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: '12px'
-        }}>
-          {step > 1 ? (
-            <Button
-              onClick={() => setStep(s => s - 1)}
-              style={{
-                flex: 1,
-                padding: '14px',
-                background: 'transparent',
-                border: `1px solid ${theme.border}`,
-                borderRadius: '10px',
-                color: theme.text.secondary,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              <ChevronLeft size={18} /> Back
-            </Button>
-          ) : (
-            <Button
-              onClick={onClose}
-              style={{
-                flex: 1,
-                padding: '14px',
-                background: 'transparent',
-                border: `1px solid ${theme.border}`,
-                borderRadius: '10px',
-                color: theme.text.secondary
-              }}
-            >
-              Cancel
-            </Button>
-          )}
-          
-          {step === confirmStepPos ? (
-            <Button
-              onClick={handleLevelUp}
-              disabled={loading}
-              style={{
-                flex: 2,
-                padding: '14px',
-                background: theme.gradient,
-                border: 'none',
-                borderRadius: '10px',
-                color: '#fff',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              {loading ? 'Leveling Up...' : (
-                <>
-                  <Sparkles size={18} /> Confirm Level Up
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setStep(s => s + 1)}
-              disabled={!canProceed()}
-              style={{
-                flex: 2,
-                padding: '14px',
-                background: canProceed() ? theme.gradient : theme.bg.surface,
-                border: 'none',
-                borderRadius: '10px',
-                color: canProceed() ? '#fff' : theme.text.muted,
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                opacity: canProceed() ? 1 : 0.5
-              }}
-            >
-              Next <ChevronRight size={18} />
-            </Button>
-          )}
-        </div>
+        <LevelUpFooter
+          step={step}
+          confirmStepPos={confirmStepPos}
+          loading={loading}
+          canProceed={canProceed()}
+          onClose={onClose}
+          onBack={() => setStep(s => s - 1)}
+          onNext={() => setStep(s => s + 1)}
+          onConfirm={handleLevelUp}
+        />
       </div>
       <DiceRollFlicker
         isOpen={!!hpRollFlicker}

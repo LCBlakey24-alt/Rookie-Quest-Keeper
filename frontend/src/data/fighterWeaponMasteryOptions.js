@@ -9,6 +9,14 @@ const WEAPON_MASTERY_OPTIONS = [
   { value: 'Vex', key: 'vex', summary: 'Set up advantage on your next attack against the target.' },
 ];
 
+
+const WEAPON_MASTERY_WEAPON_NAMES = [
+  'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 'Mace', 'Quarterstaff', 'Sickle', 'Spear',
+  'Crossbow, Light', 'Dart', 'Shortbow', 'Sling', 'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd',
+  'Lance', 'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier', 'Scimitar', 'Shortsword', 'Trident', 'War Pick',
+  'Warhammer', 'Whip', 'Blowgun', 'Crossbow, Hand', 'Crossbow, Heavy', 'Longbow', 'Musket', 'Pistol',
+];
+
 function rulesetOf(edition = '2024') {
   return String(edition).includes('2024') ? '2024' : '2014';
 }
@@ -31,5 +39,6 @@ export function getFighterWeaponMasteryOptions(edition = '2024') {
 
 export function isValidFighterWeaponMastery(value = '', edition = '2024') {
   const selected = normalise(value);
-  return getFighterWeaponMasteryOptions(edition).some(option => option.key === selected || normalise(option.value) === selected);
+  return getFighterWeaponMasteryOptions(edition).some(option => option.key === selected || normalise(option.value) === selected)
+    || WEAPON_MASTERY_WEAPON_NAMES.some(name => normalise(name) === selected);
 }

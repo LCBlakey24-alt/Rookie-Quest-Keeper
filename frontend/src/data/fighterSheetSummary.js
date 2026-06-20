@@ -19,7 +19,7 @@ export function getFighterClassLevel(character = {}) {
   const directLevel = Number(character?.fighter_level || character?.fighterLevel || 0);
   if (directLevel > 0) return directLevel;
 
-  const classLevels = character?.class_levels || character?.classLevels || {};
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
   const mappedLevel = Number(classLevels.fighter || classLevels.Fighter || 0);
   if (mappedLevel > 0) return mappedLevel;
 
@@ -28,7 +28,7 @@ export function getFighterClassLevel(character = {}) {
   const entryLevel = Number(fighterEntry?.level || fighterEntry?.class_level || fighterEntry?.classLevel || 0);
   if (entryLevel > 0) return entryLevel;
 
-  return Number(character?.level || 1) || 1;
+  return normaliseClassName(character?.character_class || character?.className || character?.class) === 'fighter' ? Number(character?.level || 1) || 1 : 0;
 }
 
 export function getFighterSheetSummary(character = {}) {
@@ -41,6 +41,7 @@ export function getFighterSheetSummary(character = {}) {
   const magicSubclass = isFighterMagicSubclass(subclassKey) ? getFighterMagicSummary(level, edition) : null;
 
   return {
+    className: 'Fighter',
     edition,
     level,
     subclassKey,
