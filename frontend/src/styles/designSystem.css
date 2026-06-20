@@ -1,39 +1,33 @@
 /* ============================================
-   ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.2
-   Current app-wide direction: Mystic Professional
-   Navy surfaces, purple primary actions, cyan player/shared accents
+   ROOKIE QUEST KEEPER - DESIGN SYSTEM v4.0
+   Current app-wide direction: Velvet Tabletop
+   Espresso surfaces, leather panels, cream text, gold actions, copper warmth
    ============================================ */
 
 :root {
-  /* ============ DOCUMENTED RQ TOKENS ============ */
-  --rq-bg-main: #070B18;
-  --rq-bg-page: #080D1F;
-  --rq-bg-panel: #0D1326;
-  --rq-bg-panel-alt: #121A31;
-  --rq-bg-elevated: #1B2543;
-  --rq-bg-input: #0A1022;
+  --rq-bg-main: #120C08;
+  --rq-bg-page: #160F0A;
+  --rq-bg-panel: #21150E;
+  --rq-bg-panel-alt: #2E1D13;
+  --rq-bg-elevated: #3A2619;
+  --rq-bg-input: #1A100B;
 
-  --rq-accent-primary: #7C3AED;
-  --rq-accent-hover: #A78BFA;
-  --rq-accent-active: #6D28D9;
-  --rq-accent-soft: rgba(124, 58, 237, 0.14);
-  --rq-accent-border: rgba(124, 58, 237, 0.34);
-  --rq-accent-strong-border: rgba(124, 58, 237, 0.56);
+  --rq-accent-primary: #C08A3D;
+  --rq-accent-hover: #E0B15C;
+  --rq-accent-active: #A45A32;
+  --rq-accent-soft: rgba(192, 138, 61, 0.14);
+  --rq-accent-border: rgba(192, 138, 61, 0.34);
+  --rq-accent-strong-border: rgba(224, 177, 92, 0.56);
 
-  --rq-text-primary: #FFFFFF;
-  --rq-text-secondary: #D1D5DB;
-  --rq-text-muted: #94A3B8;
-  --rq-text-disabled: #6F6F6F;
-  --rq-text-inverse: #111111;
+  --rq-text-primary: #F5E6C8;
+  --rq-text-secondary: #E6D2AA;
+  --rq-text-muted: #CDBA98;
+  --rq-text-disabled: #8D7453;
+  --rq-text-inverse: #120C08;
 
-  --rq-border-default: rgba(148, 163, 184, 0.18);
-  --rq-border-strong: rgba(124, 58, 237, 0.42);
-  --rq-border-accent: #7C3AED;
-
-  --rq-success: #10B981;
-  --rq-warning: #F59E0B;
-  --rq-danger: #EF4444;
-  --rq-info: #38BDF8;
+  --rq-border-default: rgba(192, 138, 61, 0.22);
+  --rq-border-strong: rgba(224, 177, 92, 0.42);
+  --rq-border-accent: #C08A3D;
 
   --rq-radius-sm: 4px;
   --rq-radius-md: 6px;
@@ -48,21 +42,30 @@
   --rq-space-7: 32px;
   --rq-space-8: 40px;
 
-  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.22);
-  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.32);
+  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.42);
 
-  /* ============ EXISTING APP ALIASES ============ */
+  --bg-black: var(--rq-bg-main);
+  --bg-dark: var(--rq-bg-page);
   --bg-primary: var(--rq-bg-main);
   --bg-secondary: var(--rq-bg-panel-alt);
-  --bg-card: var(--rq-bg-panel);
+  --bg-panel: var(--rq-bg-panel);
+  --bg-card: var(--rq-bg-panel-alt);
   --bg-elevated: var(--rq-bg-elevated);
-  --bg-hover: rgba(124, 58, 237, 0.12);
-  --bg-overlay: rgba(7, 11, 24, 0.88);
+  --bg-hover: var(--rq-bg-elevated);
+  --bg-overlay: rgba(18, 12, 8, 0.90);
+  --bg-light: #4A3323;
 
   --text-primary: var(--rq-text-primary);
   --text-secondary: var(--rq-text-secondary);
   --text-muted: var(--rq-text-muted);
+  --text-dim: var(--rq-text-disabled);
   --text-disabled: var(--rq-text-disabled);
+
+  --accent-red: var(--rq-accent-primary);
+  --accent-red-hover: var(--rq-accent-hover);
+  --accent-red-subtle: var(--rq-accent-soft);
+  --accent-red-border: var(--rq-accent-border);
 
   --rq-red: var(--rq-accent-primary);
   --rq-red-bright: var(--rq-accent-hover);
@@ -70,77 +73,76 @@
   --rq-red-soft: var(--rq-accent-soft);
   --rq-red-border: var(--rq-accent-border);
   --rq-red-border-strong: var(--rq-accent-strong-border);
+
+  --rq-gold: var(--rq-accent-primary);
+  --rq-gold-bright: var(--rq-accent-hover);
+  --rq-gold-soft: var(--rq-accent-soft);
+  --rq-gold-border: var(--rq-accent-border);
+  --rq-gold-border-strong: var(--rq-accent-strong-border);
   --rq-charcoal: var(--rq-bg-main);
   --rq-charcoal-soft: var(--rq-bg-panel);
+  --rq-navy: var(--rq-bg-main);
+  --rq-navy-soft: var(--rq-bg-panel);
 
-  /* ============ LEGACY ALIASES ============ */
-  /* Keep these so older components do not break while the app is fully swept. */
-  --rq-gold: var(--rq-red);
-  --rq-gold-bright: var(--rq-red-bright);
-  --rq-gold-soft: var(--rq-red-soft);
-  --rq-gold-border: var(--rq-red-border);
-  --rq-gold-border-strong: var(--rq-red-border-strong);
-  --rq-navy: var(--rq-charcoal);
-  --rq-navy-soft: var(--rq-charcoal-soft);
+  --rq-role-gm: var(--rq-accent-active);
+  --rq-role-player: var(--rq-accent-primary);
+  --rq-role-rook: var(--rq-accent-hover);
+  --rq-role-homebrew: #7A9B66;
+  --rq-role-lore: #D4953C;
+  --rq-surface-soft: rgba(245, 230, 200, 0.06);
 
-  /* ============ GM THEME ============ */
-  --gm-primary: var(--rq-red);
-  --gm-hover: var(--rq-red-bright);
-  --gm-active: var(--rq-red-dark);
-  --gm-subtle: var(--rq-red-soft);
-  --gm-border: var(--rq-red-border);
-  --gm-glow: rgba(124, 58, 237, 0.18);
+  --gm-primary: var(--rq-accent-primary);
+  --gm-hover: var(--rq-accent-hover);
+  --gm-active: var(--rq-accent-active);
+  --gm-subtle: var(--rq-accent-soft);
+  --gm-border: var(--rq-accent-border);
+  --gm-glow: rgba(192, 138, 61, 0.18);
 
-  /* ============ PLAYER THEME ============ */
-  --player-primary: #38BDF8;
-  --player-hover: #7DD3FC;
-  --player-active: #0284C7;
-  --player-subtle: rgba(56, 189, 248, 0.12);
-  --player-border: rgba(56, 189, 248, 0.34);
-  --player-glow: rgba(56, 189, 248, 0.18);
+  --player-primary: var(--rq-accent-primary);
+  --player-hover: var(--rq-accent-hover);
+  --player-active: var(--rq-accent-active);
+  --player-subtle: var(--rq-accent-soft);
+  --player-border: var(--rq-accent-border);
+  --player-glow: rgba(192, 138, 61, 0.18);
 
-  /* ============ STATUS COLORS ============ */
-  --success: var(--rq-success);
-  --success-subtle: rgba(16, 185, 129, 0.15);
-  --warning: var(--rq-warning);
-  --warning-subtle: rgba(245, 158, 11, 0.15);
-  --danger: var(--rq-danger);
-  --danger-subtle: rgba(239, 68, 68, 0.15);
-  --info: var(--rq-info);
-  --info-subtle: rgba(56, 189, 248, 0.12);
+  --border-dark: rgba(192, 138, 61, 0.10);
+  --border-subtle: rgba(192, 138, 61, 0.14);
+  --border-default: rgba(192, 138, 61, 0.24);
+  --rq-border-default: rgba(192, 138, 61, 0.24);
+  --border-hover: rgba(224, 177, 92, 0.44);
+  --border-strong: rgba(224, 177, 92, 0.42);
 
-  /* ============ BORDERS & SHADOWS ============ */
-  --border-subtle: rgba(148, 163, 184, 0.12);
-  --border-default: rgba(124, 58, 237, 0.24);
-  --border-strong: rgba(124, 58, 237, 0.42);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.38);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.48);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.36);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.44);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.54);
 
-  /* ============ SHAPE ============ */
   --radius-none: 0;
   --radius-sm: var(--rq-radius-sm);
   --radius-md: var(--rq-radius-md);
   --radius-lg: var(--rq-radius-lg);
 
-  /* ============ TYPOGRAPHY ============ */
   --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: 'Montserrat', var(--font-sans);
 
-  /* ============ RQ ALIASES ============ */
   --rq-bg-panel-soft: var(--rq-bg-panel-alt);
   --rq-text-main: var(--rq-text-primary);
   --rq-text-soft: var(--rq-text-secondary);
   --rq-border: var(--border-subtle);
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+html,
+body,
+#root,
+.App {
+  background: radial-gradient(circle at top left, rgba(224, 177, 92, 0.10), transparent 32%),
+              radial-gradient(circle at top right, rgba(164, 90, 50, 0.14), transparent 34%),
+              linear-gradient(180deg, var(--rq-bg-main), var(--rq-bg-page));
+  color: var(--rq-text-primary);
 }
 
 body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
@@ -156,15 +158,31 @@ select {
 .card,
 .card-gm,
 .card-player,
-.rq-card {
+.rq-card,
+.panel,
+.rq-panel,
+.glass,
+.glass-gm,
+.glass-player {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+  color: var(--text-primary);
 }
 
 .card-gm,
-.card-player {
+.card-player,
+.glass-gm,
+.glass-player {
   border-color: var(--rq-red-border);
+}
+
+.card:hover,
+.rq-card:hover,
+.panel:hover,
+.rq-panel:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
 }
 
 .btn,
@@ -186,16 +204,16 @@ select {
 .btn-gm,
 .btn-player,
 .rq-button-primary {
-  background: var(--rq-red);
-  color: var(--text-primary);
-  border: 1px solid var(--rq-red);
+  background: linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-active));
+  color: var(--rq-text-inverse);
+  border: 1px solid var(--rq-accent-primary);
 }
 
 .btn-gm:hover,
 .btn-player:hover,
 .rq-button-primary:hover {
-  background: var(--rq-red-bright);
-  border-color: var(--rq-red-bright);
+  background: linear-gradient(135deg, var(--rq-accent-hover), var(--rq-accent-primary));
+  border-color: var(--rq-accent-hover);
 }
 
 .btn-outline-gm,
@@ -241,31 +259,33 @@ select {
 }
 
 .input,
-.rq-input {
-  padding: 10px 14px;
+.rq-input,
+input,
+textarea,
+select {
   background: var(--rq-bg-input);
   border: 1px solid var(--rq-border-default);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
+}
+
+.input,
+.rq-input {
+  padding: 10px 14px;
   font-size: 14px;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .input:focus,
 .input-gm:focus,
-.rq-input:focus {
+.rq-input:focus,
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--rq-red-bright);
   background: var(--bg-elevated);
-  box-shadow: 0 0 0 2px rgba(193, 18, 31, 0.18);
-}
-
-.panel,
-.rq-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 20px;
+  box-shadow: 0 0 0 2px rgba(192, 138, 61, 0.18);
 }
 
 .rq-panel {
@@ -281,15 +301,8 @@ select {
 .glass,
 .glass-gm,
 .glass-player {
-  background: rgba(26, 26, 26, 0.82);
+  background: rgba(33, 21, 14, 0.82);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-}
-
-.glass-gm,
-.glass-player {
-  border-color: var(--rq-red-border);
 }
 
 .section-header,
@@ -376,28 +389,13 @@ select {
   font-size: 14px;
 }
 
-.rq-grid {
-  display: grid;
-  gap: var(--rq-space-4);
-}
-
-.rq-grid-2 {
-  display: grid;
-  gap: var(--rq-space-4);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.rq-grid-3 {
-  display: grid;
-  gap: var(--rq-space-4);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
+.rq-grid { display: grid; gap: var(--rq-space-4); }
+.rq-grid-2 { display: grid; gap: var(--rq-space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rq-grid-3 { display: grid; gap: var(--rq-space-4); grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 800px) {
   .rq-grid-2,
-  .rq-grid-3 {
-    grid-template-columns: 1fr;
-  }
+  .rq-grid-3 { grid-template-columns: 1fr; }
 }
 
 @keyframes fadeIn {
@@ -405,6 +403,4 @@ select {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-in {
-  animation: fadeIn 0.3s ease-out;
-}
+.animate-in { animation: fadeIn 0.3s ease-out; }

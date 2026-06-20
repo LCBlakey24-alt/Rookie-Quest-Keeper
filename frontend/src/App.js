@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 import '@/styles/designSystem.css';
@@ -24,31 +24,43 @@ import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
-import AuthPage from '@/components/AuthPage';
-import UnifiedDashboard from '@/components/UnifiedDashboard';
-import PlayerDashboard from '@/components/PlayerDashboard';
-import CampaignDashboard from '@/components/CampaignDashboard';
-import LiveSessionGridPage from '@/components/gm/LiveSessionGridPage';
-import MobilePlayerCampaignView from '@/components/MobilePlayerCampaignView';
-import CombatPage from '@/components/CombatPage';
-import AdminPage from '@/components/AdminPage';
-import LandingPage from '@/components/LandingPage';
-import AccountSettings from '@/components/AccountSettings';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
-import HomebrewWorkshop from '@/components/HomebrewWorkshop';
-import CharacterBuilder from '@/components/CharacterBuilder';
-import CharacterCreationModePicker from '@/components/CharacterCreationModePicker';
-import BasicCharacterBuilder from '@/components/BasicCharacterBuilder';
-import PremadeCharacterBuilder from '@/components/PremadeCharacterBuilder';
-import KidsCharacterBuilder from '@/components/KidsCharacterBuilder';
-import CleanCharacterSheet from '@/components/CleanCharacterSheet';
-import PlayerMobileRailSheet from '@/components/PlayerMobileRailSheet';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, clearAuthToken, getAuthToken, setAuthToken } from '@/lib/auth';
+
+const AuthPage = React.lazy(() => import('@/components/AuthPage'));
+const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
+const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
+const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
+const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
+const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
+const CombatPage = React.lazy(() => import('@/components/CombatPage'));
+const AdminPage = React.lazy(() => import('@/components/AdminPage'));
+const LandingPage = React.lazy(() => import('@/components/LandingPage'));
+const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
+const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
+const CharacterBuilder = React.lazy(() => import('@/components/CharacterBuilder'));
+const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
+const BasicCharacterBuilder = React.lazy(() => import('@/components/BasicCharacterBuilder'));
+const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCharacterBuilder'));
+const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
+const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
+const PlayerMobileRailSheet = React.lazy(() => import('@/components/PlayerMobileRailSheet'));
+
+function RouteLoadingScreen() {
+  return (
+    <div className="loading-screen">
+      <div className="loading-spinner">
+        <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
+      </div>
+      <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
+    </div>
+  );
+}
 
 function ThemeRouter() {
   const location = useLocation();
@@ -147,16 +159,7 @@ function CampaignAccessRoute({ username, onLogout }) {
     return () => { cancelled = true; };
   }, [campaignId, setTheme]);
 
-  if (accessMode === 'checking') {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner">
-          <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
-        </div>
-        <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
-      </div>
-    );
-  }
+  if (accessMode === 'checking') return <RouteLoadingScreen />;
 
   if (accessMode === 'gm') {
     return <CampaignDashboard username={username} onLogout={onLogout} />;
@@ -263,16 +266,7 @@ function App() {
     toast.success('Logged out successfully');
   };
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner">
-          <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
-        </div>
-        <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
-      </div>
-    );
-  }
+  if (loading) return <RouteLoadingScreen />;
 
   const showAnnouncement = siteSettings.announcement_enabled && siteSettings.announcement_text;
 
@@ -296,28 +290,30 @@ function App() {
           <ThemeRouter />
           <ImpersonationBanner />
           <KeyboardShortcutsProvider isAuthenticated={isAuthenticated}>
-            <Routes>
-              <Route path="/login" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
-              <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
-              <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
-              <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
-              <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/:characterId" element={isAuthenticated ? <ResponsiveCharacterSheetRoute /> : <Navigate to="/auth" replace />} />
-              <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode={true} /> : <Navigate to="/auth" replace />} />
-              <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignAccessRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
-              <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LivePlayModeRoute /> : <Navigate to="/auth" replace />} />
-              <Route path="/gm-screen/:campaignId/live-grid" element={isAuthenticated ? <LivePlayModeRoute /> : <Navigate to="/auth" replace />} />
-              <Route path="/campaign/:campaignId/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-              <Route path="/admin" element={isAuthenticated ? (isAdmin ? <AdminPage username={username} /> : <Navigate to="/home" replace />) : <Navigate to="/auth" replace />} />
-              <Route path="/account" element={isAuthenticated ? <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : <Navigate to="/auth" replace />} />
-              <Route path="/reset-password" element={<AuthPage onLogin={handleLogin} />} />
-              <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
-            </Routes>
+            <Suspense fallback={<RouteLoadingScreen />}>
+              <Routes>
+                <Route path="/login" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
+                <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleLogin} />} />
+                <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+                <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/:characterId" element={isAuthenticated ? <ResponsiveCharacterSheetRoute /> : <Navigate to="/auth" replace />} />
+                <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode={true} /> : <Navigate to="/auth" replace />} />
+                <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignAccessRoute username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+                <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LivePlayModeRoute /> : <Navigate to="/auth" replace />} />
+                <Route path="/gm-screen/:campaignId/live-grid" element={isAuthenticated ? <LivePlayModeRoute /> : <Navigate to="/auth" replace />} />
+                <Route path="/campaign/:campaignId/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
+                <Route path="/admin" element={isAuthenticated ? (isAdmin ? <AdminPage username={username} /> : <Navigate to="/home" replace />) : <Navigate to="/auth" replace />} />
+                <Route path="/account" element={isAuthenticated ? <AccountSettings username={username} onLogout={handleLogout} onUsernameChange={setUsername} /> : <Navigate to="/auth" replace />} />
+                <Route path="/reset-password" element={<AuthPage onLogin={handleLogin} />} />
+                <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
+              </Routes>
+            </Suspense>
             <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
           </KeyboardShortcutsProvider>
         </ThemeProvider>

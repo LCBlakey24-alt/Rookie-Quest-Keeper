@@ -56,3 +56,37 @@ describe('Fighter class resources', () => {
     expect(restored.indomitable).toMatchObject({ current: 3, remaining: 3, max: 3 });
   });
 });
+
+describe('Cleric class resources', () => {
+  test('2014 Cleric Channel Divinity uses Cleric level scaling', () => {
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 1, rules_edition: '2014' }).find(rule => rule.key === 'channel_divinity')).toBeUndefined();
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 2, rules_edition: '2014' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 1 });
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 6, rules_edition: '2014' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 2 });
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 18, rules_edition: '2014' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 3 });
+  });
+
+  test('2024 Cleric Channel Divinity follows revised scaling', () => {
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 2, rules_edition: '2024' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 2 });
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 7, rules_edition: '2024' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 4 });
+    expect(getClassResourceRules({ character_class: 'Cleric', level: 20, rules_edition: '2024' }).find(rule => rule.key === 'channel_divinity')).toMatchObject({ maxValue: 10 });
+  });
+
+  test('multiclass Cleric resources use Cleric level instead of total character level', () => {
+    const rules = getClassResourceRules({
+      character_class: 'Fighter',
+      level: 12,
+      rules_edition: '2014',
+      class_levels: { Fighter: 7, Cleric: 5 },
+    });
+
+    expect(rules.find(rule => rule.className === 'Cleric' && rule.key === 'channel_divinity')).toMatchObject({ maxValue: 1 });
+    expect(rules.find(rule => rule.className === 'Fighter' && rule.key === 'action_surge')).toMatchObject({ maxValue: 1 });
+  });
+});
+
+describe('Monk and Paladin class resources', () => {
+  test('Monk and Paladin helpers are defined and class-level aware', () => {
+    expect(getClassResourceRules({ character_class: 'Monk', level: 5, rules_edition: '2014' }).find(rule => rule.key === 'ki')).toMatchObject({ maxValue: 5 });
+    expect(getClassResourceRules({ character_class: 'Paladin', level: 4, rules_edition: '2014' }).find(rule => rule.key === 'lay_on_hands')).toMatchObject({ maxValue: 20 });
+  });
+});

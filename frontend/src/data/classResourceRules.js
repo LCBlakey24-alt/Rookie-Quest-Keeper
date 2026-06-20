@@ -28,6 +28,7 @@ const classLevelOf = (character, className) => {
 
 const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
 const barbarianLevelOf = (character) => classLevelOf(character, 'barbarian');
+const clericLevelOf = (character) => classLevelOf(character, 'cleric');
 const monkLevelOf = (character) => classLevelOf(character, 'monk');
 const paladinLevelOf = (character) => classLevelOf(character, 'paladin');
 
@@ -76,7 +77,8 @@ export const CLASS_RESOURCE_RULES = {
       minLevel: 2,
       restore: 'short-rest',
       max: (character) => {
-        const level = levelOf(character);
+        const level = clericLevelOf(character);
+        if (is2024Rules(character)) return Math.max(2, Math.ceil(level / 2));
         if (level >= 18) return 3;
         if (level >= 6) return 2;
         return 1;
@@ -134,9 +136,10 @@ const hasExplicitClassLevel = (character, className) => {
 const resourceClassNamesFor = (character) => {
   const primary = canonicalResourceClassName(character?.character_class || character?.className || '');
   const names = primary ? [primary] : [];
+  const primaryKey = normalizeName(primary);
 
   Object.keys(CLASS_RESOURCE_RULES).forEach(className => {
-    if (normalizeName(primary) !== normalizeName(className) && hasExplicitClassLevel(character, className)) {
+    if (normalizeName(className) !== primaryKey && hasExplicitClassLevel(character, className)) {
       names.push(className);
     }
   });
@@ -148,6 +151,7 @@ const resourceLevelOf = (character, className) => {
   const normalizedClass = normalizeName(className);
   if (normalizedClass === 'fighter') return fighterLevelOf(character);
   if (normalizedClass === 'barbarian') return barbarianLevelOf(character);
+  if (normalizedClass === 'cleric') return clericLevelOf(character);
   if (normalizedClass === 'monk') return monkLevelOf(character);
   if (normalizedClass === 'paladin') return paladinLevelOf(character);
   return classLevelOf(character, className);
@@ -160,11 +164,9 @@ export function getClassResourceRules(character) {
       .filter(rule => level >= (rule.minLevel || 1))
       .map(rule => {
         const restore = typeof rule.restore === 'function' ? rule.restore(character) : rule.restore;
-        const label = typeof rule.label === 'function' ? rule.label(character) : rule.label;
         return {
           ...rule,
           className,
-          label,
           restore,
           maxValue: Math.max(0, Number(rule.max?.(character) || 0)),
         };
