@@ -4,8 +4,8 @@ import apiClient from "../lib/apiClient";
 import { toast } from "sonner";
 import {
   User, Sword, Shield, Sparkles, Dices, ChevronLeft, ChevronRight,
-  Save, RotateCcw, BookOpen, Info, Check, Heart, Zap, Wand2,
-  Scroll, Award, Languages, Backpack, Eye
+  Save, RotateCcw, BookOpen, Check, Wand2,
+  Scroll, Award, Languages, Backpack
 } from "lucide-react";
 import {
   ABILITIES,
@@ -24,17 +24,6 @@ import PortraitGenerator from "./builder/PortraitGenerator";
 import ClassSubclassPicker from "./builder/ClassSubclassPicker";
 
 const DRAFT_KEY = "rq_character_builder_draft_v2";
-
-// Theme
-const theme = {
-  bg: { primary: '#1F1F23', surface: '#27272B', elevated: '#323235' },
-  sunset: { purple: '#EF4444', pink: '#EF4444', gold: '#EF4444' },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.35)',
-  borderActive: '#EF4444',
-  accent: { primary: '#EF4444', soft: 'rgba(239, 68, 68, 0.12)', line: 'rgba(239, 68, 68, 0.28)' },
-  success: '#10B981'
-};
 
 // All 18 skills mapped to their governing ability
 const ALL_SKILLS = {
@@ -1341,152 +1330,43 @@ const subclassLabel = {
   };
 
   const renderReviewStep = () => (
-    <div>
-      <StepHeader icon={Check} title="Review & Name" subtitle="Final touches before your hero is born" color={theme.sunset.gold} />
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
-        <div>
-          <label style={labelStyle}>Character Name *</label>
-          <input
-            type="text" value={name} onChange={e => setName(e.target.value)}
-            placeholder="Enter name..." style={inputStyle} data-testid="character-name-input"
-          />
-        </div>
-        <div>
-          <label style={labelStyle}>Alignment</label>
-          <select value={alignment} onChange={e => setAlignment(e.target.value)} style={inputStyle} data-testid="alignment-select">
-            {ALIGNMENTS.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <PortraitGenerator
-          character={{
-            race, subrace, className, subclass, background, alignment,
-            description: backstory
-          }}
-          portrait={portrait}
-          onChange={setPortrait}
-        />
-      </div>
-
-      {/* Personality prompts — optional but encouraged. Helps GMs & AI co-GM give richer RP. */}
-      <div style={{ ...panelStyle, padding: '16px', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <Sparkles size={14} color="#EF4444" />
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#EF4444', letterSpacing: 1 }}>
-            PERSONALITY & ROLEPLAY
-          </div>
-          <span style={{ fontSize: 10, color: theme.text.muted, fontStyle: 'italic' }}>
-            optional — but richer AI + GM story hooks
-          </span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <label style={labelStyle}>Personality Trait</label>
-            <textarea
-              value={personalityTrait} onChange={e => setPersonalityTrait(e.target.value)}
-              placeholder="e.g. I speak in riddles, I'm suspicious of strangers..."
-              style={{ ...inputStyle, minHeight: 56, resize: 'vertical' }}
-              data-testid="personality-trait-input"
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Ideal</label>
-            <textarea
-              value={ideal} onChange={e => setIdeal(e.target.value)}
-              placeholder="e.g. Knowledge must be shared freely, Chaos is the only truth..."
-              style={{ ...inputStyle, minHeight: 56, resize: 'vertical' }}
-              data-testid="ideal-input"
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Bond</label>
-            <textarea
-              value={bond} onChange={e => setBond(e.target.value)}
-              placeholder="e.g. My sister was taken by slavers — I will find her..."
-              style={{ ...inputStyle, minHeight: 56, resize: 'vertical' }}
-              data-testid="bond-input"
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Flaw / Fear</label>
-            <textarea
-              value={flaw} onChange={e => setFlaw(e.target.value)}
-              placeholder="e.g. I'm afraid of deep water, I trust too easily..."
-              style={{ ...inputStyle, minHeight: 56, resize: 'vertical' }}
-              data-testid="flaw-input"
-            />
-          </div>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <label style={labelStyle}>Backstory (1-2 paragraphs)</label>
-          <textarea
-            value={backstory} onChange={e => setBackstory(e.target.value)}
-            placeholder="Where did your hero come from? What drives them?"
-            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-            data-testid="backstory-input"
-          />
-        </div>
-      </div>
-
-      {/* Summary card */}
-      <div style={{ ...panelStyle, padding: '20px', background: 'rgba(31, 31, 35, 0.7)' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
-          {portrait ? (
-            <img src={portrait} alt="" style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.sunset.purple}` }}
-              onError={e => { e.target.style.display = 'none'; }} />
-          ) : (
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: theme.bg.surface, border: `1px solid ${theme.sunset.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={28} color="#fff" />
-            </div>
-          )}
-          <div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>{name || 'Unnamed Hero'}</div>
-            <div style={{ color: theme.text.secondary, fontSize: '14px' }}>
-              {race}{subrace && ` (${subrace})`} • {className}{subclass && ` (${subclass})`} • {background}
-            </div>
-            <div style={{ color: theme.text.muted, fontSize: '12px' }}>{alignment} • Level 1 • {EDITIONS[edition]?.name}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '14px' }}>
-          {ABILITIES.map(a => {
-            const final = Number(stats[a]) + (asiBonus[a] || 0);
-            const mod = Math.floor((final - 10) / 2);
-            return (
-              <div key={a} style={{ textAlign: 'center', padding: '10px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.08)' }}>
-                <div style={{ fontSize: '10px', color: theme.text.muted, fontWeight: 600 }}>{formatAbility(a)}</div>
-                <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{final}</div>
-                <div style={{ fontSize: '12px', color: theme.sunset.gold, fontWeight: 600 }}>{formatModifier(mod)}</div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', marginBottom: '14px' }}>
-          <PreviewStat icon={Heart} label="HP" value={derivedHp} color="#EF4444" />
-          <PreviewStat icon={Shield} label="AC" value={derivedAc} color={theme.sunset.purple} />
-          <PreviewStat icon={Zap} label="Init" value={formatModifier(dexMod)} color={theme.sunset.pink} />
-          <PreviewStat icon={User} label="Speed" value={`${raceData?.speed || 30}ft`} color={theme.sunset.gold} />
-        </div>
-
-        <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: '12px' }}>
-          <div style={detailHeaderStyle}>Skill Proficiencies</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-            {Array.from(new Set([...backgroundSkills, ...selectedSkills])).map(s => (
-              <span key={s} style={traitChipStyle}><Check size={11} /> {s}</span>
-            ))}
-            {[...backgroundSkills, ...selectedSkills].length === 0 && <span style={{ color: theme.text.muted, fontSize: '12px' }}>None</span>}
-          </div>
-          <div style={detailHeaderStyle}>Saving Throws</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {(classData?.savingThrows || []).map(s => <span key={s} style={traitChipStyle}><Shield size={11} /> {s.charAt(0).toUpperCase() + s.slice(1)}</span>)}
-          </div>
-        </div>
-      </div>
-    </div>
+    <BuilderReviewSummary
+      alignment={alignment}
+      alignments={ALIGNMENTS}
+      asiBonus={asiBonus}
+      background={background}
+      backgroundSkills={backgroundSkills}
+      backstory={backstory}
+      bond={bond}
+      classData={classData}
+      className={className}
+      derivedAc={derivedAc}
+      derivedHp={derivedHp}
+      dexMod={dexMod}
+      edition={edition}
+      flaw={flaw}
+      ideal={ideal}
+      inputStyle={inputStyle}
+      labelStyle={labelStyle}
+      name={name}
+      panelStyle={panelStyle}
+      personalityTrait={personalityTrait}
+      portrait={portrait}
+      race={race}
+      raceData={raceData}
+      selectedSkills={selectedSkills}
+      setAlignment={setAlignment}
+      setBackstory={setBackstory}
+      setBond={setBond}
+      setFlaw={setFlaw}
+      setIdeal={setIdeal}
+      setName={setName}
+      setPersonalityTrait={setPersonalityTrait}
+      setPortrait={setPortrait}
+      stats={stats}
+      subclass={subclass}
+      subrace={subrace}
+    />
   );
 
   if (loadingCharacter) {
@@ -1521,30 +1401,10 @@ const subclassLabel = {
         </div>
 
         {/* Stepper */}
-        <Stepper steps={STEPS} current={step} onJump={goToStep} />
+        <BuilderStepSidebar steps={STEPS} current={step} onJump={goToStep} />
 
         {/* Progress bar — % completion across the wizard */}
-        <div data-testid="builder-progress" style={{
-          marginTop: 6, display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 11, color: theme.text.muted, fontWeight: 600, letterSpacing: 0.5,
-        }}>
-          <span>STEP {step + 1} OF {STEPS.length}</span>
-          <div style={{
-            flex: 1, height: 6, borderRadius: 3,
-            background: 'rgba(239, 68, 68, 0.10)',
-            border: '1px solid rgba(239, 68, 68, 0.20)', overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.round(((step + 1) / STEPS.length) * 100)}%`,
-              background: '#EF4444',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-          <span style={{ color: '#EF4444', minWidth: 36, textAlign: 'right' }}>
-            {Math.round(((step + 1) / STEPS.length) * 100)}%
-          </span>
-        </div>
+        <BuilderProgress currentStep={step} totalSteps={STEPS.length} />
 
         {/* 2-column: builder panel + sticky live preview */}
         <div style={{
@@ -1578,62 +1438,21 @@ const subclassLabel = {
           </div>
 
           {/* Live preview — sticky on the right */}
-          <div data-testid="builder-live-preview" style={{
-            position: 'sticky', top: 16,
-            background: theme.bg.surface,
-            border: '1px solid rgba(239, 68, 68, 0.35)',
-            borderRadius: 12,
-            padding: 16,
-            display: 'flex', flexDirection: 'column', gap: 10,
-          }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: '#EF4444', letterSpacing: 1 }}>
-              LIVE PREVIEW
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: theme.text.primary }}>
-              {name || <span style={{ color: theme.text.muted, fontStyle: 'italic' }}>Unnamed Hero</span>}
-            </div>
-            <div style={{ fontSize: 12, color: theme.text.secondary }}>
-              {(race || 'No race')} {subrace ? `(${subrace})` : ''} · {(className || 'No class')}{subclass ? ` (${subclass})` : ''}
-            </div>
-            <div style={{ fontSize: 11, color: theme.text.muted }}>
-              {edition === '2024' ? '2024 Rules' : '2014 Rules'} · {background || 'No background'}
-            </div>
-            {/* Ability mods */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4,
-              padding: 8, borderRadius: 6,
-              background: 'rgba(239, 68, 68, 0.06)',
-              border: '1px solid rgba(239, 68, 68, 0.20)',
-            }}>
-              {['STR','DEX','CON','INT','WIS','CHA'].map((ab, i) => {
-                const key = ['strength','dexterity','constitution','intelligence','wisdom','charisma'][i];
-                const score = (stats?.[key] || 10) + (floatingAsi?.[key] || 0);
-                const mod = Math.floor((score - 10) / 2);
-                return (
-                  <div key={ab} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: theme.text.muted, fontWeight: 700 }}>{ab}</div>
-                    <div style={{ fontSize: 14, color: theme.text.primary, fontWeight: 800 }}>{score}</div>
-                    <div style={{ fontSize: 10, color: '#EF4444', fontWeight: 700 }}>{mod >= 0 ? `+${mod}` : mod}</div>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Skills count */}
-            <div style={{ fontSize: 11, color: theme.text.secondary }}>
-              <strong style={{ color: '#EF4444' }}>{(selectedSkills || []).length}</strong> skill{(selectedSkills || []).length === 1 ? '' : 's'} chosen
-              {(selectedCantrips || []).length > 0 && (
-                <> · <strong style={{ color: '#EF4444' }}>{selectedCantrips.length}</strong> cantrip{selectedCantrips.length === 1 ? '' : 's'}</>
-              )}
-              {(selectedSpells || []).length > 0 && (
-                <> · <strong style={{ color: '#EF4444' }}>{selectedSpells.length}</strong> spell{selectedSpells.length === 1 ? '' : 's'}</>
-              )}
-            </div>
-            {originFeat && (
-              <div style={{ fontSize: 11, color: theme.text.secondary }}>
-                <span style={{ color: theme.text.muted }}>Origin Feat:</span> <strong style={{ color: '#EF4444' }}>{originFeat}</strong>
-              </div>
-            )}
-          </div>
+          <BuilderPreviewPanel
+            name={name}
+            race={race}
+            subrace={subrace}
+            className={className}
+            subclass={subclass}
+            edition={edition}
+            background={background}
+            stats={stats}
+            floatingAsi={floatingAsi}
+            selectedSkills={selectedSkills}
+            selectedCantrips={selectedCantrips}
+            selectedSpells={selectedSpells}
+            originFeat={originFeat}
+          />
         </div>
 
         {/* Nav buttons */}
@@ -1686,128 +1505,3 @@ const subclassLabel = {
     </div>
   );
 }
-
-// ============ SUB-COMPONENTS ============
-
-function Stepper({ steps, current, onJump }) {
-  return (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', overflowX: 'auto', padding: '4px 0' }}>
-      {steps.map((s, i) => {
-        const Icon = s.icon;
-        const completed = i < current;
-        const active = i === current;
-        return (
-          <React.Fragment key={s.id}>
-            <button
-              onClick={() => onJump(i)} type="button"
-              data-testid={`step-${s.id}`}
-              style={{
-                flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '8px 12px', borderRadius: '20px',
-                background: active ? theme.sunset.gold :
-                  completed ? 'rgba(16, 185, 129, 0.15)' : theme.bg.surface,
-                border: active ? `1px solid ${theme.sunset.gold}` :
-                  completed ? '1px solid rgba(16, 185, 129, 0.3)' : `1px solid ${theme.border}`,
-                color: active ? theme.bg.primary : completed ? '#10B981' : theme.text.muted,
-                cursor: 'pointer', fontSize: '12px', fontWeight: active ? 700 : 500,
-                whiteSpace: 'nowrap', transition: 'all 0.2s'
-              }}>
-              {completed ? <Check size={14} /> : <Icon size={14} />}
-              <span>{i + 1}. {s.label}</span>
-            </button>
-            {i < steps.length - 1 && (
-              <div style={{
-                flex: '0 0 12px', height: '2px',
-                background: completed ? 'rgba(16, 185, 129, 0.4)' : theme.border,
-                borderRadius: '1px'
-              }} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-function StepHeader({ icon: Icon, title, subtitle, color }) {
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontSize: '1.4rem', margin: 0, color, display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Icon size={20} /> {title}
-      </h2>
-      <p style={{ color: theme.text.muted, fontSize: '13px', margin: '4px 0 0 0' }}>{subtitle}</p>
-    </div>
-  );
-}
-
-function SelectCard({ active, onClick, color, title, subtitle, footer, ...rest }) {
-  return (
-    <button
-      type="button" onClick={onClick} {...rest}
-      style={{
-        textAlign: 'left', padding: '12px 14px', borderRadius: '12px', cursor: 'pointer',
-        background: active ? theme.bg.elevated : theme.bg.surface,
-        border: active ? `2px solid ${theme.sunset.gold}` : `1px solid ${theme.border}`,
-        boxShadow: 'none',
-        color: theme.text.primary, transition: 'all 0.2s ease',
-        outline: 'none'
-      }}>
-      <div style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '2px' }}>{title}</div>
-      <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.4 }}>{subtitle}</div>
-      {footer}
-    </button>
-  );
-}
-
-function DetailPanel({ title, color, children }) {
-  return (
-    <div style={{
-      marginTop: '16px', padding: '14px 16px', borderRadius: '12px',
-      background: 'rgba(31, 31, 35, 0.65)', border: `1px solid ${theme.border}`,
-      borderLeft: `3px solid ${color}`
-    }}>
-      <div style={{ fontSize: '0.95rem', color, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <Eye size={14} /> {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function InfoBanner({ children }) {
-  return (
-    <div style={{ marginTop: '16px', padding: '10px 14px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', color: theme.text.secondary, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <Info size={14} color={theme.sunset.pink} />
-      {children}
-    </div>
-  );
-}
-
-function Pill({ icon, children }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 6px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', fontSize: '10px', color: theme.text.secondary, fontWeight: 500 }}>
-      <span>{icon}</span>{children}
-    </span>
-  );
-}
-
-function PreviewStat({ icon: Icon, label, value, color }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.08)', border: `1px solid ${color}30` }}>
-      <Icon size={14} color={color} />
-      <div style={{ fontSize: '11px', color: theme.text.muted, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: '15px', color, fontWeight: 700 }}>{value}</div>
-    </div>
-  );
-}
-
-const traitChipStyle = {
-  display: 'inline-flex', alignItems: 'center', gap: '4px',
-  padding: '4px 8px', borderRadius: '6px',
-  background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.25)',
-  fontSize: '11px', color: theme.text.secondary
-};
-const detailHeaderStyle = {
-  fontSize: '11px', color: theme.text.muted, marginBottom: '6px',
-  letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 600
-};
