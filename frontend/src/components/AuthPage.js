@@ -114,10 +114,10 @@ export default function AuthPage({ onLogin }) {
   };
 
   const authCopy = {
-    login: { title: 'Welcome Back', subtitle: 'Sign in with your username. Existing accounts can still use their email here.' },
-    register: { title: 'Begin Your Quest', subtitle: 'Create a safe username and password. Email is optional for recovery only.' },
-    forgot: { title: 'Reset Password', subtitle: 'Enter your email to receive a reset link' },
-    reset: { title: 'New Password', subtitle: 'Choose a new password for your account' },
+    login: { title: 'Welcome Back', subtitle: 'Sign in to open your dashboard, character sheets, campaigns, and player tools.' },
+    register: { title: 'Create Your ROOK Account', subtitle: 'Make an account, then build your first character or join a campaign from the dashboard.' },
+    forgot: { title: 'Reset Password', subtitle: 'Enter your recovery email and we will send a reset link.' },
+    reset: { title: 'New Password', subtitle: 'Choose a new password for your account.' },
   };
 
   return (
@@ -137,10 +137,17 @@ export default function AuthPage({ onLogin }) {
             <p style={subtitleStyle}>{authCopy[mode]?.subtitle}</p>
           </div>
 
+          {(mode === 'login' || mode === 'register') && (
+            <div style={nextStepNoteStyle}>
+              <ShieldCheck size={16} />
+              <span>After signing in, start with <strong>Build Your First Character</strong>, then join a campaign when your GM shares a code.</span>
+            </div>
+          )}
+
           {mode === 'login' && (
             <div style={accountChangeNoticeStyle}>
               <ShieldCheck size={16} />
-              <span>Account update: new players can sign up without email. If you already used email before, type that same email here and your campaigns/characters will still load.</span>
+              <span>Existing player? Use your username or the same email you used before. New player? Tap <strong>Sign up</strong> below to create an account.</span>
             </div>
           )}
 
@@ -168,10 +175,10 @@ export default function AuthPage({ onLogin }) {
               </button>
 
               <PrimaryButton type="submit" disabled={loading} testId="login-btn">
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Opening dashboard...' : 'Open Dashboard'}
               </PrimaryButton>
 
-              <AuthSwitch text="Don't have an account?" actionText="Sign up" onClick={() => setMode('register')} />
+              <AuthSwitch text="New to ROOK?" actionText="Create an account" onClick={() => setMode('register')} />
             </form>
           )}
 
@@ -201,7 +208,7 @@ export default function AuthPage({ onLogin }) {
               />
 
               <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create Account'}
+                {loading ? 'Creating account...' : 'Create Account & Continue'}
               </PrimaryButton>
 
               <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => setMode('login')} />
@@ -311,9 +318,10 @@ const logoStyle = { height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 10
 const logoTextStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '24px', fontWeight: 900, color: 'var(--rq-text-primary, #FFFFFF)', letterSpacing: '0.08em' };
 const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(15,23,42,0.94)', border: '1px solid rgba(124,58,237,0.30)', borderRadius: '18px', padding: 'clamp(18px, 5vw, 26px)', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
 const titleStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '1.55rem', color: 'var(--rq-text-primary, #FFFFFF)', margin: '0 0 6px 0', fontWeight: 900 };
-const subtitleStyle = { color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px', margin: 0 };
+const subtitleStyle = { color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px', margin: 0, lineHeight: 1.45 };
+const nextStepNoteStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(124,58,237,0.13)', border: '1px solid rgba(124,58,237,0.34)', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px' };
 const kidSafeNoteStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45, margin: '-4px 0 14px' };
-const accountChangeNoticeStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(46,139,87,0.12)', border: '1px solid rgba(46,139,87,0.35)', padding: '10px 12px', marginBottom: '18px' };
+const accountChangeNoticeStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(46,139,87,0.12)', border: '1px solid rgba(46,139,87,0.35)', borderRadius: '10px', padding: '10px 12px', marginBottom: '18px' };
 const inputWrapperStyle = { position: 'relative', marginBottom: '16px' };
 const inputStyle = { width: '100%', padding: '14px 16px 14px 48px', background: 'var(--rq-bg-input, #1F1F1F)', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '16px', outline: 'none', transition: 'all 0.15s ease' };
 const iconStyle = { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--rq-accent-primary, #C1121F)' };

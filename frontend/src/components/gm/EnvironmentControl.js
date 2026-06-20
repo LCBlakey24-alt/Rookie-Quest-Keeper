@@ -41,14 +41,15 @@ const MOOD_OPTIONS = [
 ];
 
 const colors = {
-  bg: '#1F1F23',
-  panel: '#27272B',
-  elevated: '#323235',
-  red: '#EF4444',
-  redSoft: 'rgba(239,68,68,0.14)',
-  border: 'rgba(239,68,68,0.42)',
-  text: '#FFFFFF',
-  muted: '#D1D5DB',
+  bg: 'var(--rq-bg-main)',
+  panel: 'var(--rq-bg-panel)',
+  elevated: 'var(--rq-bg-elevated)',
+  gold: 'var(--rq-accent-primary)',
+  goldSoft: 'var(--rq-accent-soft)',
+  border: 'var(--rq-accent-border)',
+  text: 'var(--rq-text-primary)',
+  muted: 'var(--rq-text-muted)',
+  inverse: 'var(--rq-text-inverse)',
 };
 
 export default function EnvironmentControl({ campaignId, campaign, onEnvironmentChange }) {
@@ -81,7 +82,7 @@ export default function EnvironmentControl({ campaignId, campaign, onEnvironment
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, color: colors.text, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <CloudRain size={24} style={{ color: colors.red }} /> Environment
+          <CloudRain size={24} style={{ color: colors.gold }} /> Environment
         </h2>
         <Button onClick={saveEnvironment} disabled={saving} style={primaryButtonStyle}>
           {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
@@ -97,7 +98,7 @@ export default function EnvironmentControl({ campaignId, campaign, onEnvironment
           <div>
             <label style={labelStyle}>Location</label>
             <div style={{ position: 'relative' }}>
-              <MapPin size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: colors.red }} />
+              <MapPin size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: colors.gold }} />
               <input value={draft.location} onChange={event => updateDraft('location', event.target.value)} placeholder="Ruined keep, forest road, city docks..." style={{ ...inputStyle, paddingLeft: 30 }} />
             </div>
           </div>
@@ -105,13 +106,13 @@ export default function EnvironmentControl({ campaignId, campaign, onEnvironment
 
         <div style={{ marginTop: 12 }}>
           <label style={labelStyle}>Notes</label>
-          <textarea value={draft.notes} onChange={event => updateDraft('notes', event.target.value)} rows={3} placeholder="Cold wind, flooded streets, red moon, distant bells..." style={{ ...inputStyle, resize: 'vertical', minHeight: 82 }} />
+          <textarea value={draft.notes} onChange={event => updateDraft('notes', event.target.value)} rows={3} placeholder="Cold wind, flooded streets, copper moon, distant bells..." style={{ ...inputStyle, resize: 'vertical', minHeight: 82 }} />
         </div>
       </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         <section style={panelStyle}>
-          <div style={{ color: colors.red, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ color: colors.gold, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
             Player Backdrop
           </div>
           <div style={previewStyle}>
@@ -155,7 +156,7 @@ function ControlGroup({ label, options, value, onChange }) {
         {options.map(option => {
           const active = option.id === value;
           return (
-            <button key={option.id} type="button" onClick={() => onChange(option.id)} style={{ border: `1px solid ${active ? colors.red : colors.border}`, borderRadius: 0, background: active ? colors.redSoft : colors.bg, color: active ? colors.text : colors.muted, padding: '8px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+            <button key={option.id} type="button" onClick={() => onChange(option.id)} style={{ border: `1px solid ${active ? colors.gold : colors.border}`, borderRadius: 8, background: active ? colors.goldSoft : colors.bg, color: active ? colors.text : colors.muted, padding: '8px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
               {option.label}
             </button>
           );
@@ -167,18 +168,18 @@ function ControlGroup({ label, options, value, onChange }) {
 
 function Summary({ label, value }) {
   return (
-    <div style={{ border: `1px solid ${colors.border}`, background: colors.bg, padding: 9 }}>
-      <div style={{ color: colors.red, fontSize: 10, textTransform: 'uppercase', marginBottom: 3 }}>{label}</div>
+    <div style={{ border: `1px solid ${colors.border}`, background: colors.bg, padding: 9, borderRadius: 8 }}>
+      <div style={{ color: colors.gold, fontSize: 10, textTransform: 'uppercase', marginBottom: 3 }}>{label}</div>
       <div style={{ color: colors.text, fontSize: 12, lineHeight: 1.35 }}>{value}</div>
     </div>
   );
 }
 
-const panelStyle = { background: colors.panel, border: `1px solid ${colors.border}`, borderRadius: 0, padding: 14 };
-const primaryButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, border: `1px solid ${colors.red}`, borderRadius: 0, background: colors.red, color: colors.text, padding: '9px 14px', fontSize: 12, fontWeight: 800 };
-const labelStyle = { display: 'block', color: colors.red, fontSize: 11, textTransform: 'uppercase', marginBottom: 6, fontWeight: 800 };
-const inputStyle = { width: '100%', border: `1px solid ${colors.border}`, borderRadius: 0, background: colors.bg, color: colors.text, outline: 'none', padding: '10px 11px', fontSize: 12 };
-const previewStyle = { position: 'relative', aspectRatio: '16 / 9', border: `1px solid ${colors.border}`, background: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 12 };
+const panelStyle = { background: colors.panel, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 14 };
+const primaryButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, border: `1px solid var(--rq-accent-hover)`, borderRadius: 8, background: colors.gold, color: colors.inverse, padding: '9px 14px', fontSize: 12, fontWeight: 800 };
+const labelStyle = { display: 'block', color: colors.gold, fontSize: 11, textTransform: 'uppercase', marginBottom: 6, fontWeight: 800 };
+const inputStyle = { width: '100%', border: `1px solid ${colors.border}`, borderRadius: 8, background: colors.bg, color: colors.text, outline: 'none', padding: '10px 11px', fontSize: 12 };
+const previewStyle = { position: 'relative', aspectRatio: '16 / 9', border: `1px solid ${colors.border}`, borderRadius: 12, background: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 12 };
 const previewImageStyle = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
-const clearButtonStyle = { position: 'absolute', top: 8, right: 8, width: 32, height: 32, border: `1px solid ${colors.border}`, borderRadius: 0, background: 'rgba(31,31,35,0.86)', color: colors.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const clearButtonStyle = { position: 'absolute', top: 8, right: 8, width: 32, height: 32, border: `1px solid ${colors.border}`, borderRadius: 8, background: 'rgba(18, 12, 8, 0.86)', color: colors.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
 const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };

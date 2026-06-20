@@ -20,12 +20,8 @@ import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e"
 import { getFeatsByEdition } from "../data/levelUpData";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
-import { builderTheme as theme, detailHeaderStyle, traitChipStyle } from "./character-builder/builderTheme";
-import BuilderStepSidebar from "./character-builder/BuilderStepSidebar";
-import BuilderProgress from "./character-builder/BuilderProgress";
-import BuilderPreviewPanel from "./character-builder/BuilderPreviewPanel";
-import BuilderReviewSummary from "./character-builder/BuilderReviewSummary";
-import { DetailPanel, InfoBanner, Pill, PreviewStat, SelectCard, StepHeader } from "./character-builder/BuilderPrimitives";
+import PortraitGenerator from "./builder/PortraitGenerator";
+import ClassSubclassPicker from "./builder/ClassSubclassPicker";
 
 const DRAFT_KEY = "rq_character_builder_draft_v2";
 
@@ -296,11 +292,17 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   }, [homebrew.background]);
   // ────────────────────────────────────────────────────────────────────────
 
-  const raceData = mergedRaces[race] || RACES[race] || null;
-  const availableSubraces = raceData?.subraces ? Object.keys(raceData.subraces) : [];
-  const classData = mergedClasses[className] || CLASSES[className] || null;
-  const availableSubclasses = classData?.subclasses || [];
-  const backgroundData = mergedBackgrounds[background] || BACKGROUNDS[background] || null;
+const raceData = mergedRaces[race] || RACES[race] || null;
+const availableSubraces = raceData?.subraces ? Object.keys(raceData.subraces) : [];
+const classData = mergedClasses[className] || CLASSES[className] || null;
+const backgroundData = mergedBackgrounds[background] || BACKGROUNDS[background] || null;
+
+const requiresLevelOneSubclass = edition === "2014" && SUBCLASS_AT_L1_2014.has(className);
+const subclassLabel = {
+  Cleric: "Divine Domain",
+  Sorcerer: "Sorcerous Origin",
+  Warlock: "Otherworldly Patron",
+}[className] || "Subclass";
 
   // Dynamic steps - spells only for spellcasters
   const STEPS = useMemo(() => {
@@ -457,7 +459,7 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
     }
     if (id === 'class') {
       if (!className) return false;
-      if (edition === '2014' && SUBCLASS_AT_L1_2014.has(className) && !subclass) return false;
+      if (requiresLevelOneSubclass && !subclass) return false;
       // Fighter requires fighting style at L1
       if (className === 'Fighter' && !fightingStyle) return false;
       return true;
@@ -905,30 +907,23 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
         </DetailPanel>
       )}
 
-      {availableSubclasses.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          {(() => {
-            const requiresL1 = edition === '2014' && SUBCLASS_AT_L1_2014.has(className);
-            const subclassLabel = {
-              'Cleric': 'Divine Domain', 'Sorcerer': 'Sorcerous Origin', 'Warlock': 'Otherworldly Patron'
-            }[className] || 'Subclass';
-            return (
-              <>
-                <label style={labelStyle}>
-                  {subclassLabel}
-                  <span style={{ color: requiresL1 ? '#EF4444' : theme.text.muted, textTransform: 'none', marginLeft: 6 }}>
-                    {requiresL1 ? '(REQUIRED at Level 1)' : '(optional now — typically chosen at level 3)'}
-                  </span>
-                </label>
-                <select value={subclass} onChange={e => setSubclass(e.target.value)} style={{ ...inputStyle, borderColor: requiresL1 && !subclass ? '#EF4444' : theme.border }} data-testid="subclass-select">
-                  <option value="">{requiresL1 ? `-- Choose a ${subclassLabel} --` : 'Select later'}</option>
-                  {availableSubclasses.map(sc => <option key={sc} value={sc}>{sc}</option>)}
-                </select>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      {className && (
+  <ClassSubclassPicker
+    className={className}
+    edition={edition}
+    level={1}
+    classes={mergedClasses}
+    selectedSubclass={subclass}
+    onSubclassChange={setSubclass}
+    label={subclassLabel}
+    required={requiresLevelOneSubclass}
+    requiredText="(REQUIRED at Level 1)"
+    optionalText="(optional now — typically chosen at level 3)"
+    labelStyle={labelStyle}
+    inputStyle={inputStyle}
+    theme={theme}
+  />
+)}
 
       {/* Fighting Style (Fighter L1, Paladin L2, Ranger L2) */}
       {FIGHTING_STYLE_CLASSES[className] && (

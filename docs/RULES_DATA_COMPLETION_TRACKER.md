@@ -2,8 +2,6 @@
 
 This tracker is developer-facing. Its purpose is to prevent silent incomplete character saves across Full Creation, Basic Build, Premade Characters, Kids Mode, the character sheet, and backend persistence.
 
-Last audited: after the premade/kids payload helper and builder split work. This tracker is intentionally conservative: **Partial** means the code exists somewhere, but route parity or end-to-end save/display coverage is not fully proven yet.
-
 Status key:
 
 - **Complete** — implemented and saved/displayed reliably for the current supported scope.
@@ -16,32 +14,32 @@ Status key:
 
 | Area | Overall status | Notes |
 | --- | --- | --- |
-| Basic Build | **Partial** | Healthiest traditional builder for usable sheets: saves HP, skills, proficiencies, languages, traits, class features, and starting equipment. Still needs shared AC/equipment helpers, structured equipped items, spell defaults, and route-level save tests. |
-| Premade Characters | **Partial** | Now uses the shared template payload helper to derive HP, AC, equipment, languages, traits, class features, warnings, and prepared spell loadouts. Still needs every template validated with tests and sheet-display smoke checks. |
-| Kids Mode | **Partial** | Dedicated Simple hero builder now maps plain-English choices to real class/species/background payloads and previews HP/AC/skills. Still needs every hero mapping tested, broader caster/equipment coverage, and end-to-end UI coverage. |
-| Full Creation | **Partial** | Detailed step structure exists and is being split into safer components, but it is level-1 only, AC is still too basic for armour/shield choices, equipment is mostly choice/list based, and homebrew normalization needs work. |
-| Character Sheet | **Partial** | Displays and patches many combat fields, conditions, inventory, spells, and class summaries, but depends on builders/backends saving complete data. Needs incomplete-data warnings and route parity checks. |
-| Backend create flow | **Partial** | Calculates fallback HP, proficiency bonus, basic AC, spellcasting ability, and normalizes spell lists; recent model fields allow spell stats/slots/equipment metadata, but deeper equipment-derived AC and route tests still need hardening. |
+| Basic Build | **Partial** | Healthiest builder for usable sheets: saves HP, skills, proficiencies, languages, traits, class features, and starting equipment, but AC/equipment are still not structured enough and the UI still has some old hardcoded styling. |
+| Premade Characters | **Partial** | Visual flow exists and saves abilities/skills/spells, but payload is too thin for full usable sheets: AC, HP, equipment, languages, traits, saving throws, proficiencies, and features need to be derived or copied from templates/rules data. |
+| Kids Mode | **Missing** | Route exists, but `KidsCharacterBuilder` currently renders `BasicCharacterBuilder`; it is not a separate simplified mode yet. |
+| Full Creation | **Partial** | Detailed step structure exists and saves more fields than Premade, but it is level-1 only, AC is basic 10 + Dex, equipment is mostly a choice/starting list, and homebrew normalization needs work. |
+| Character Sheet | **Partial** | Displays and patches many combat fields, conditions, inventory, spells, and class summaries, but depends on builders/backends saving complete data. |
+| Backend create flow | **Partial** | Calculates fallback HP, proficiency bonus, basic AC, spellcasting ability, and normalizes spell lists; spell DC/attack/slots and deeper equipment-derived AC need improvement. |
 
 ## Builder support matrix
 
 | Data area | Full Creation | Basic Build | Premade Characters | Kids Mode | Character Sheet display | Backend save flow |
 | --- | --- | --- | --- | --- | --- | --- |
-| Name/class/species/background/level | **Complete** | **Complete** | **Complete** | **Partial** | **Complete** | **Complete** |
-| Ability scores | **Complete** | **Complete** | **Partial** | **Partial** | **Complete** | **Complete** |
-| Ability modifiers | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** | **Partial** |
-| HP / hit points | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** | **Partial** |
-| AC / armour / shields | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** | **Partial** |
-| Skills/proficiencies | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** | **Complete** |
-| Languages | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** |
-| Species/racial traits | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** | **Complete** |
-| Class features/resources | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** |
+| Name/class/species/background/level | **Complete** | **Complete** | **Complete** | **Missing** | **Complete** | **Complete** |
+| Ability scores | **Complete** | **Complete** | **Partial** | **Missing** | **Complete** | **Complete** |
+| Ability modifiers | **Partial** | **Partial** | **Partial** | **Missing** | **Complete** | **Partial** |
+| HP / hit points | **Partial** | **Partial** | **Missing** | **Missing** | **Complete** | **Partial** |
+| AC / armour / shields | **Partial** | **Partial** | **Missing** | **Missing** | **Complete** | **Partial** |
+| Skills/proficiencies | **Partial** | **Partial** | **Partial** | **Missing** | **Complete** | **Complete** |
+| Languages | **Partial** | **Partial** | **Missing** | **Missing** | **Partial** | **Complete** |
+| Species/racial traits | **Partial** | **Partial** | **Missing** | **Missing** | **Partial** | **Complete** |
+| Class features/resources | **Partial** | **Partial** | **Missing** | **Missing** | **Partial** | **Partial** |
 | Subclass choice/save | **Partial** | **Missing** | **Partial** | **Missing** | **Partial** | **Partial** |
-| Starting equipment/inventory | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** | **Partial** |
-| Spells/cantrips | **Partial** | **Missing** | **Partial** | **Partial** | **Partial** | **Partial** |
-| Spell save DC / attack / slots | **Partial** | **Missing** | **Partial** | **Partial** | **Partial** | **Partial** |
+| Starting equipment/inventory | **Partial** | **Partial** | **Missing** | **Missing** | **Partial** | **Partial** |
+| Spells/cantrips | **Partial** | **Missing** | **Partial** | **Missing** | **Partial** | **Partial** |
+| Spell save DC / attack / slots | **Missing** | **Missing** | **Missing** | **Missing** | **Partial** | **Missing** |
 | Conditions/combat state | **Deferred** | **Deferred** | **Deferred** | **Deferred** | **Partial** | **Partial** |
-| Notes/personality/backstory | **Partial** | **Missing** | **Missing** | **Partial** | **Partial** | **Complete** |
+| Notes/personality/backstory | **Partial** | **Missing** | **Missing** | **Missing** | **Partial** | **Complete** |
 
 ## Classes
 
@@ -49,15 +47,15 @@ Status key:
 | --- | --- | --- |
 | Hit die | **Complete** | Static class data and backend hit-die fallback exist; class packages also encode hit-die-sensitive summaries where needed. |
 | Primary ability | **Partial** | Basic Build uses primary ability for starter stat arrays; Full Creation displays/uses class data but not all builders rely on it consistently. |
-| Saving throw proficiencies | **Partial** | Full Creation and Basic Build save class saving throws; Premade/Kids payload helpers can derive them, but every template/mapping still needs validation. |
-| Skill choices | **Partial** | Full Creation and Basic Build validate class skill picks; Premade/Kids can supply defaults from templates/mappings, but do not yet run the same choice validation. |
+| Saving throw proficiencies | **Partial** | Full Creation and Basic Build save class saving throws; Premade does not currently include/derive them. |
+| Skill choices | **Partial** | Full Creation and Basic Build validate class skill picks; Premade does not run choice validation. |
 | Skill count | **Partial** | Full Creation and Basic Build enforce counts; homebrew normalization and Premade need improvement. |
-| Armour proficiencies | **Partial** | Full Creation and Basic Build save class armour proficiencies; Premade/Kids can derive them through payload helpers, but template coverage needs tests. |
-| Weapon proficiencies | **Partial** | Full Creation and Basic Build save class weapon proficiencies; Premade/Kids can derive them through payload helpers, but template coverage needs tests. |
+| Armour proficiencies | **Partial** | Full Creation and Basic Build save class armour proficiencies; Premade currently does not. |
+| Weapon proficiencies | **Partial** | Full Creation and Basic Build save class weapon proficiencies; Premade currently does not. |
 | Tool proficiencies | **Partial** | Background tools are saved in Full Creation/Basic Build; class/tool edge cases and Premade need improvement. |
 | Starting equipment | **Partial** | Full Creation/Basic Build save class/background starting lists, but equipment is not always structured/equipped and does not reliably drive AC. |
 | Class features by level | **Partial** | Basic Build can include features through selected level; Full Creation currently saves level-1 features only; new class packages cover Fighter/Barbarian/Rogue/Monk/Paladin summaries. |
-| Spellcasting info | **Partial** | Backend/frontend now have fields and helpers for casting ability, prepared loadouts, spell slots, DC, and attack values, but Basic Build defaults, pact magic, and route-level tests remain incomplete. |
+| Spellcasting info | **Partial** | Backend determines casting ability, frontend has spell selection in Full Creation/Premade, but spell DC/attack/slots are not fully derived. |
 | Subclass choice timing | **Partial** | Backend validates unlock level; Full Creation supports some subclass timing; Basic Build does not expose subclass choice. |
 | Class resources | **Partial** | Resource rules exist for major resources and recent work improved Fighter/Barbarian/Monk/Paladin; remaining classes and builder save/display integration need audit. |
 
@@ -87,7 +85,7 @@ Status key:
 | Subclass choice supported in Full Creation | **Partial** | Full Creation supports subclass for some timing/class cases, but needs broader class-package integration. |
 | Subclass choice supported in Basic Build | **Missing** | Basic Build does not currently expose subclass selection. |
 | Subclass choice supported in Premade | **Partial** | Premade can send a template subclass, but does not validate/derive full subclass feature data. |
-| Subclass choice supported in Kids Mode | **Deferred** | Simple hero builder intentionally avoids subclass choices at level 1; subclass support belongs in later level-up or advanced flows. |
+| Subclass choice supported in Kids Mode | **Missing** | Kids Mode is not separate yet. |
 | Subclass data saved | **Partial** | `subclass` can be saved, but subclass features are not consistently derived into saved sheet data. |
 
 ## Species / races
@@ -95,10 +93,10 @@ Status key:
 | Field | Status | Notes |
 | --- | --- | --- |
 | Name | **Complete** | Static race/species names exist and builders save race names. |
-| Speed | **Partial** | Full Creation/Basic Build save race speed; Premade/Kids derive speed from species data, but route parity tests still need expansion. |
+| Speed | **Partial** | Full Creation/Basic Build save race speed; Premade and Kids Mode need derivation. |
 | Size | **Partial** | Static data/homebrew merge contains size, but save/display coverage needs audit. |
-| Languages | **Partial** | Full Creation/Basic Build save base languages and selected language choices; Premade/Kids derive sensible defaults, but choice-based language UI remains incomplete. |
-| Traits | **Partial** | Full Creation/Basic Build save traits; Premade/Kids derive species traits, but choice-based trait support remains incomplete. |
+| Languages | **Partial** | Full Creation/Basic Build save base languages and selected language choices; Premade and Kids Mode need derivation. |
+| Traits | **Partial** | Full Creation/Basic Build save traits; Premade and Kids Mode need derivation. |
 | Subraces | **Partial** | Full Creation supports subrace choices; other builders are incomplete. |
 | 2014 ability score rules | **Partial** | Full Creation supports race/species ASI and some floating choices; Basic Build uses starter arrays rather than full choice flow. |
 | 2024 compatibility | **Partial** | Full Creation supports background ASI/origin feat in places; route parity is incomplete. |
@@ -113,9 +111,9 @@ Status key:
 | --- | --- | --- |
 | Name | **Complete** | Static background names exist and builders save background names. |
 | Description | **Partial** | Present in static data/UI; not always meaningful in saved character payload. |
-| Skills | **Partial** | Full Creation/Basic Build include background skills; Premade/Kids can derive defaults through payload helpers, but every template/mapping needs tests. |
-| Tools | **Partial** | Full Creation/Basic Build include background tools; Premade/Kids can derive defaults through payload helpers, but tool/equipment display parity needs tests. |
-| Languages/language choices | **Partial** | Static data supports some languages; Premade/Kids derive sensible defaults, but choice flow and route parity still need audit. |
+| Skills | **Partial** | Full Creation/Basic Build include background skills; Premade/Kids need derivation. |
+| Tools | **Partial** | Full Creation/Basic Build include background tools; Premade/Kids need derivation. |
+| Languages/language choices | **Partial** | Static data supports some languages; choice flow and route parity need audit. |
 | Equipment | **Partial** | Full Creation/Basic Build include background equipment as text/list; structured inventory is incomplete. |
 | Background feature | **Needs audit** | Static data may contain features, but save/display consistency needs audit. |
 | 2024 ability score bonuses | **Partial** | Full Creation has 2024 background ASI support; other routes need parity. |
@@ -145,7 +143,7 @@ Status key:
 | Constitution modifier | **Partial** | Used in frontend/backend HP calculations; needs shared helper/tests. |
 | Class hit die | **Complete** | Static class/backend hit-die data exist. |
 | Current HP | **Partial** | Backend starts current HP equal to max HP; frontend builders should send more complete max HP. |
-| Max HP | **Partial** | Full Creation/Basic Build send max HP; Premade/Kids now derive max HP, but every template/mapping needs save/display tests. |
+| Max HP | **Partial** | Full Creation/Basic Build send max HP; Premade/Kids need derivation. |
 | Temporary HP | **Deferred** | Model/sheet support exists, but builders do not set starter temporary HP. |
 | Hit dice | **Partial** | Backend sets `1dX`; higher-level hit dice support needs improvement. |
 | Hit dice remaining | **Partial** | Backend sets 1 at creation; higher-level support needs improvement. |
@@ -163,7 +161,7 @@ Status key:
 | Monk unarmoured defence | **Partial** | Monk sheet summary computes it; creation AC helpers need parity. |
 | Barbarian unarmoured defence | **Partial** | Barbarian sheet summary computes it; creation AC helpers need parity. |
 | Armour proficiency restrictions | **Needs audit** | Basic Build likely handles options; Full/Premade should validate equipment vs proficiency. |
-| Saved `armor_class` | **Partial** | Backend preserves explicit AC and falls back when default; Premade/Kids can derive AC, but Full Creation still needs armour/shield selection and route parity tests. |
+| Saved `armor_class` | **Partial** | Backend preserves explicit AC and falls back when default; Premade and Full need better frontend AC. |
 | Equipped armour/shield | **Partial** | Character model/sheet inventory support exists; builders are inconsistent. |
 | Starting armour/shield equipment | **Partial** | Basic/Full starting equipment lists exist but are not reliably structured/equipped. |
 | Magic item AC bonuses | **Deferred** | Inventory sheet may support item effects later; creation should not overbuild this now. |
@@ -172,24 +170,24 @@ Status key:
 
 | Field | Status | Notes |
 | --- | --- | --- |
-| Class skill choices | **Partial** | Full Creation and Basic Build validate choices; Premade/Kids derive defaults, but do not yet run the same validation flow. |
-| Background-granted skills | **Partial** | Full Creation and Basic Build include them; Premade/Kids derive defaults, but every mapping/template needs tests. |
+| Class skill choices | **Partial** | Full Creation and Basic Build validate choices; Premade/Kids need derivation/defaults. |
+| Background-granted skills | **Partial** | Full Creation and Basic Build include them; Premade/Kids need derivation. |
 | Species-granted skills | **Partial** | Some Full Creation species choices exist; route parity incomplete. |
 | Half-Elf skill versatility | **Partial** | Full Creation has a specific path; other routes need defaults/derivation. |
 | Duplicate prevention | **Partial** | Full Creation/Basic Build avoid background duplicates for class picks; route parity incomplete. |
 | Skill count validation | **Partial** | Full Creation/Basic Build validate; Premade/Kids need validation/defaults. |
-| Saving throws | **Partial** | Full Creation/Basic Build save class saves; Premade/Kids derive defaults, but every mapping/template needs tests. |
+| Saving throws | **Partial** | Full Creation/Basic Build save class saves; Premade/Kids need derivation. |
 | Tools | **Partial** | Background tools saved in Full Creation/Basic Build; class/tool edge cases need audit. |
-| Weapons | **Partial** | Full Creation/Basic Build save class weapon proficiencies; Premade/Kids derive defaults, but every mapping/template needs tests. |
-| Armour | **Partial** | Full Creation/Basic Build save armour proficiencies; Premade/Kids derive defaults, but every mapping/template needs tests. |
-| Languages | **Partial** | Full Creation/Basic Build save base languages; Premade/Kids derive defaults, but language-choice UI still needs parity. |
+| Weapons | **Partial** | Full Creation/Basic Build save class weapon proficiencies; Premade/Kids need derivation. |
+| Armour | **Partial** | Full Creation/Basic Build save armour proficiencies; Premade/Kids need derivation. |
+| Languages | **Partial** | Full Creation/Basic Build save base languages; Premade/Kids need derivation/defaults. |
 
 ## Equipment and inventory
 
 | Field | Status | Notes |
 | --- | --- | --- |
-| Class starting equipment | **Partial** | Full Creation/Basic Build save lists; Premade/Kids now derive starting lists through payload helpers, but structured equipment/equipped state needs validation. |
-| Background starting equipment | **Partial** | Full Creation/Basic Build save lists; Premade/Kids now derive background equipment through payload helpers, but structured inventory parity needs validation. |
+| Class starting equipment | **Partial** | Full Creation/Basic Build save lists; Premade/Kids need derivation. |
+| Background starting equipment | **Partial** | Full Creation/Basic Build save lists; Premade/Kids need derivation. |
 | Armour | **Partial** | Basic Build has AC options; structured saved armour remains incomplete across routes. |
 | Shields | **Partial** | Basic Build has shield toggle; structured saved shield remains incomplete across routes. |
 | Weapons | **Partial** | Starting equipment lists exist; equipped weapon structure needs consistency. |
@@ -205,21 +203,21 @@ Status key:
 | Field | Status | Notes |
 | --- | --- | --- |
 | Spellcasting classes | **Partial** | Static/backend data knows spellcasting classes; package parity still missing for many caster classes. |
-| Cantrips known | **Partial** | Full Creation, Premade, and Kids can save cantrips where mapped; Basic Build still needs starter defaults. |
-| Spells known | **Partial** | Full Creation, Premade, and Kids can save known spells where mapped; spell counts/deeper rules need audit. |
+| Cantrips known | **Partial** | Full Creation and Premade can save cantrips; Basic/Kids need defaults. |
+| Spells known | **Partial** | Full Creation and Premade can save known spells; spell counts/deeper rules need audit. |
 | Spells prepared | **Partial** | Full Creation distinguishes prepared vs known for some classes; backend stores prepared lists. |
 | Spellbook for Wizard | **Deferred** | Wizard spellbook-specific support needs dedicated work. |
-| Spell save DC | **Partial** | Payload/backend fields support spell save DC for generated characters; needs backend route tests and Basic Build defaults. |
-| Spell attack bonus | **Partial** | Payload/backend fields support spell attack bonus for generated characters; needs backend route tests and Basic Build defaults. |
-| Spell slots | **Partial** | Payload/backend fields support starting spell slots for generated casters; pact magic and route-level tests still need work. |
-| Spell slots remaining | **Partial** | Can mirror starting slots for generated payloads; needs backend tests to ensure created sheets start with correct remaining slots. |
-| Pact magic | **Deferred** | Warlock pact magic needs dedicated class-package and backend creation handling. |
+| Spell save DC | **Missing** | Backend model has a field, but create flow does not calculate it yet. |
+| Spell attack bonus | **Missing** | Backend model has a field, but create flow does not calculate it yet. |
+| Spell slots | **Missing** | Backend model has fields, but create flow does not fully initialize slots. |
+| Spell slots remaining | **Missing** | Needs to be initialized from starting spell slots. |
+| Pact magic | **Deferred** | Warlock pact magic needs dedicated handling. |
 | Half-caster support | **Partial** | Paladin package summarizes half-caster slots; backend creation still needs spell slot initialization. |
 | Prepared vs known distinction | **Partial** | Full Creation and backend fields support both; route coverage and counts need audit. |
-| Premade spell lists | **Partial** | Premade now supports Rook prepared-spell loadouts and template spell payloads; every caster template needs validation and sheet-display tests. |
+| Premade spell lists | **Partial** | Premade saves cantrips/spells when present but lacks spell stats/slots. |
 | Basic Build spell fallback | **Missing** | Basic Build does not currently provide starter spell defaults. |
 | Full Creation spell choice | **Partial** | Spell step exists for spellcasters; level/saves/slots need improvement. |
-| Kids Mode simple magic mapping | **Partial** | Kids Mode maps Magic User/Helpful Healer/Nature Friend to real starter cantrips/spells, but needs every mapping tested and deeper spell-choice UI later. |
+| Kids Mode simple magic mapping | **Missing** | Kids Mode is not separate yet. |
 
 ## Conditions and combat state
 
@@ -238,21 +236,18 @@ Status key:
 
 ## Immediate PR order
 
-1. **Character creation payload tests** — prove Premade/Kids/Full/Basic payloads include HP, AC, proficiencies, equipment, spell fields, and warnings where needed.
-2. **Ranger package to 100%** — next class by the class-completion dashboard: progression, choices, sheet summary, subclass summary, final status, package export, and tests.
-3. **Continue splitting `CharacterBuilder.js`** — extract race/class/background/skills/spells/equipment steps before larger Full Creation changes.
-4. **Continue splitting `LevelUpWizard.js`** — extract path/HP/class-choice/spell/ASI/confirm step panels before theme/logic changes.
-5. **Full Creation armour/equipment** — make saved AC/equipment match selected gear and structured equipped items.
-6. **Backend spell stat tests and hardening** — spell save DC, spell attack bonus, starting slots, and pact magic expectations.
-7. **Premade template validation pass** — validate every template and display friendly warnings when data is incomplete.
-8. **Kids Mode validation pass** — validate every simple hero mapping and caster/equipment mapping.
-9. **Conditions/exhaustion audit** — align canonical names and persistence expectations.
-10. **Homebrew normalization** — make homebrew shapes match static data before deeper Full Creation work.
+1. **Premade character creation payload** — highest risk because it creates apparently finished heroes with missing sheet data.
+2. **Real Kids Mode builder** — currently not a separate mode.
+3. **Full Creation Velvet + warnings pass** — styling and missing-data clarity without a big logic rewrite.
+4. **Full Creation armour/equipment** — make saved AC/equipment match selected gear.
+5. **Spell stat calculation** — spell save DC, spell attack bonus, and starting slots.
+6. **Conditions/exhaustion audit** — align canonical names and persistence expectations.
+7. **Homebrew normalization** — make homebrew shapes match static data.
+8. **Character creation rules tests** — lock HP/AC/proficiencies/spells/payload behavior.
 
 ## Known risk notes
 
 - Do not mark a route complete just because the backend has a field. The builder must send it or the backend must safely derive it.
 - Text/list starting equipment is better than nothing, but structured equipment is still the goal for AC, attacks, and inventory quality.
 - Premade and Kids Mode should show friendly warnings/defaults when template/rules data is missing instead of silently creating thin sheets.
-- The tracker should be updated whenever a helper gains support but route-level save/display tests are still missing; do not silently upgrade a status to Complete until the whole route is proven.
 - Continue using Velvet Tabletop tokens for UI work. This tracker does not change app styling or logic.

@@ -2,37 +2,49 @@
 
 This is the design lock for Rookie Quest Keeper while the UI is being stripped back and rebuilt consistently.
 
-## Chosen direction: Mystic Tabletop
+## Chosen direction: Velvet Tabletop
 
-The app should feel like a mystical spellcaster's campaign desk: dark navy surfaces, blue-to-purple arcane gradients, compact controls, and readable table tools. Individual tools should not introduce their own page-wide colour themes.
+The app should feel like a premium tabletop campaign keeper on a candlelit table: dark espresso surfaces, leather-brown cards, cream parchment text, warm gold actions, copper hover states, and soft candlelight glows. Individual tools should not introduce their own page-wide colour themes.
 
 ## Core palette
 
 | Role | Use | Colour |
 | --- | --- | --- |
-| App background | Whole app shell | `#080B1A` |
-| Surface | Page panels | `#12172A` |
-| Card | Cards, lists, tool blocks | `#171E33` |
-| Raised | Hover/selected surfaces | `#202A46` |
-| Main action | Primary CTAs, active nav, selected states | `#7C3AED` |
-| Main action hover | Hover/focus accents | `#A78BFA` |
-| Arcane blue | Player space, secondary gradients, shared state | `#2563EB` |
-| Player | Player-facing/shared/received state | `#38BDF8` |
-| Rook | Rook/AI messages and Rook-only buttons | `#C084FC` |
-| Homebrew/imported | Private content, imports, safe creation | `#14B8A6` |
-| Warning | Warnings, attention, risk | `#F59E0B` |
-| Danger | Deletion/destructive actions only | `#EF4444` |
-| Success | Saved, read, completed, ready | `#10B981` |
+| App background | Whole app shell | `#120C08` |
+| Surface | Page panels | `#21150E` |
+| Card | Cards, lists, tool blocks | `#2E1D13` |
+| Raised | Hover/selected surfaces | `#3A2619` |
+| Main action | Primary CTAs, active nav, selected states | `#C08A3D` |
+| Main action hover | Hover/focus accents | `#E0B15C` |
+| Copper accent | Secondary actions, hover warmth, divider glow | `#A45A32` |
+| Main text | Primary readable text | `#F5E6C8` |
+| Muted text | Secondary text, helper copy, inactive labels | `#CDBA98` |
+| Parchment soft | Subtle light surface/tint | `#E6D2AA` |
+| Homebrew/imported | Private content, imports, safe creation | `#7A9B66` |
+| Warning | Warnings, attention, risk | `#D4953C` |
+| Danger | High-risk actions and error states | `#B44732` |
+| Success | Saved, read, completed, ready | `#7A9B66` |
 
 ## Placement rules
 
-1. **No page-specific full colour themes.** Maps, Chronicles, NPCs, Inventory, Handouts, Homebrew, Combat, and Player pages should share the same dark navy / purple-blue shell.
-2. **Purple is the primary app action colour.** Use it for active tabs, Create, Save, Share, Import, Start, and Live Play actions.
-3. **Blue supports player/shared areas.** Use blue in gradients and for player-facing/shared/received states.
-4. **Rook purple should feel magical but specific.** Use the brighter Rook purple for Rook/AI messages, not as a generic panel colour.
-5. **Amber is not a theme.** Use amber only for warnings, treasure/value details, or important clues.
-6. **Red is danger only.** Use red for delete, remove, failed, and destructive states; avoid using it as the default page colour.
-7. **Green means done.** Use it for read, saved, ready, imported, completed, or success.
+1. **No page-specific full colour themes.** Maps, Chronicles, NPCs, Inventory, Handouts, Homebrew, Combat, Player pages, and character builders should share the same Velvet Tabletop shell.
+2. **Gold is the primary app action colour.** Use it for active tabs, Create, Save, Share, Import, Start, and Live Play actions.
+3. **Copper supports hover and secondary warmth.** Use copper in gradients, border glows, dividers, and secondary active states.
+4. **Cream text is the default readable layer.** Use cream for headings/body text and muted cream for helper copy, inactive states, and small labels.
+5. **Green means done or safe creation.** Use it for read, saved, ready, imported, completed, success, or safe homebrew/imported content.
+6. **Gold is not a warning by default.** Use stronger warning treatment only when attention is genuinely needed.
+7. **Red is reserved.** Use red only for high-risk actions and error states; avoid using it as a page colour.
+
+## Character builder styling
+
+All character builders should use the Velvet Tabletop palette rather than introducing separate mode colours.
+
+- **Full Creation:** detailed, workshop-like, with gold active step states, leather panels, and a cream live-preview sheet.
+- **Basic Build:** guided, compact, and approachable, with warm preview cards, gold primary actions, and parchment helper text.
+- **Premade Characters:** card-gallery style, like tavern hero posters or leather-backed character cards, with role/class badges.
+- **Kids Mode:** softer and simpler, with bigger warm choice cards, fewer numbers, friendlier labels, and less visual density.
+
+Builder pages should still feel distinct through layout and language, not through totally different colour themes.
 
 ## Layout rules
 
@@ -40,8 +52,8 @@ The app should feel like a mystical spellcaster's campaign desk: dark navy surfa
 - Desktop player pages should be flatter than GM pages: compact hero, tabs directly near the top, and cards that do not force long scrolling.
 - Long tool pages must scroll vertically; avoid trapping the page with `overflow: hidden` unless the internal panel provides its own scroll area.
 - Live Play Mode may use a fixed viewport, but every panel inside it must have its own scroll area.
-- Cards should use `8px` radius, subtle blue/purple borders, compact spacing, and clear section headers.
-- Buttons should be visually consistent: purple primary, navy/purple-outline secondary, red danger, bright purple only for Rook.
+- Cards should use `8px` radius or slightly larger hero-card radii, subtle gold/copper borders, compact spacing, and clear section headers.
+- Buttons should be visually consistent: gold primary, leather/gold-outline secondary, red reserved, green success/safe creation.
 
 ## Font rules
 
@@ -60,3 +72,4 @@ The app should feel like a mystical spellcaster's campaign desk: dark navy surfa
 7. Handouts and player clue library.
 8. Inventory and item assignment.
 9. Homebrew / private playtest creation.
+10. Character builders: Full Creation, Basic Build, Premades, and Kids Mode.
