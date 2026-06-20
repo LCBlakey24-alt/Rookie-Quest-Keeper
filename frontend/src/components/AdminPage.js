@@ -12,11 +12,24 @@ import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import apiClient from '@/lib/apiClient';
 
 const theme = {
-  bg: { black: '#1F1F23', panel: '#27272B', card: '#323235', tab: '#27272B' },
-  gold: '#EF4444',
-  text: { white: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.28)',
-  borderStrong: 'rgba(239, 68, 68, 0.42)'
+  bg: {
+    black: 'var(--rq-bg-main)',
+    panel: 'var(--rq-bg-panel)',
+    card: 'var(--rq-bg-panel-alt)',
+    tab: 'var(--rq-bg-panel-alt)'
+  },
+  gold: 'var(--rq-accent-primary)',
+  goldSoft: 'var(--rq-accent-soft)',
+  text: {
+    white: 'var(--rq-text-primary)',
+    secondary: 'var(--rq-text-secondary)',
+    muted: 'var(--rq-text-muted)',
+    inverse: 'var(--rq-text-inverse)'
+  },
+  border: 'var(--rq-border-default)',
+  borderStrong: 'var(--rq-accent-border)',
+  danger: 'var(--rq-danger)',
+  dangerSoft: 'rgba(180, 71, 50, 0.15)'
 };
 
 function AdminPage() {
@@ -142,7 +155,7 @@ function AdminPage() {
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            return <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} data-testid={`admin-tab-${tab.id}`} style={{ flex: '1 1 150px', padding: 16, background: isActive ? 'rgba(239, 68, 68, 0.10)' : theme.bg.tab, border: 'none', borderBottom: isActive ? `2px solid ${theme.gold}` : `1px solid ${theme.border}`, color: isActive ? theme.gold : theme.text.muted, fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Icon size={18} />{tab.label}</button>;
+            return <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} data-testid={`admin-tab-${tab.id}`} style={{ flex: '1 1 150px', padding: 16, background: isActive ? theme.goldSoft : theme.bg.tab, border: 'none', borderBottom: isActive ? `2px solid ${theme.gold}` : `1px solid ${theme.border}`, color: isActive ? theme.gold : theme.text.muted, fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Icon size={18} />{tab.label}</button>;
           })}
         </div>}
 
@@ -170,10 +183,10 @@ const adminSubtitleStyle = { color: theme.text.muted, marginTop: 4, fontSize: 14
 const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(145px, 100%), 1fr))', gap: 12, marginBottom: 24 };
 const tabBarStyle = { display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap', overflowX: 'auto' };
 const contentWrapStyle = { minWidth: 0, overflow: 'hidden' };
-const adminPanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, padding: 'clamp(14px, 4vw, 24px)', minWidth: 0, overflow: 'hidden' };
+const adminPanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 'clamp(14px, 4vw, 24px)', minWidth: 0, overflow: 'hidden' };
 
 function StatCard({ label, value, icon: Icon }) {
-  return <div style={{ background: theme.bg.card, border: `1px solid ${theme.borderStrong}`, padding: 'clamp(14px, 3vw, 20px)', textAlign: 'center', borderRadius: 8, minWidth: 0 }}><Icon size={24} color={theme.gold} style={{ marginBottom: 8 }} /><div style={{ color: '#F8FAFC', fontSize: 28, fontWeight: 800 }}>{value}</div><div style={{ color: theme.text.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</div></div>;
+  return <div style={{ background: theme.bg.card, border: `1px solid ${theme.borderStrong}`, padding: 'clamp(14px, 3vw, 20px)', textAlign: 'center', borderRadius: 12, minWidth: 0 }}><Icon size={24} color={theme.gold} style={{ marginBottom: 8 }} /><div style={{ color: theme.text.white, fontSize: 28, fontWeight: 800 }}>{value}</div><div style={{ color: theme.text.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</div></div>;
 }
 
 function ReviewsPanel({ reviews, onToggleReview, onDeleteReview }) {
@@ -183,16 +196,16 @@ function ReviewsPanel({ reviews, onToggleReview, onDeleteReview }) {
       {reviews.length === 0 ? <div style={{ textAlign: 'center', padding: 60, color: theme.text.muted }}><Star size={48} style={{ opacity: 0.3, marginBottom: 16 }} /><p>No reviews yet</p></div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {reviews.map(review => (
-            <div key={review.id} style={{ background: theme.bg.card, border: `1px solid ${review.is_approved ? theme.borderStrong : theme.border}`, borderLeft: `3px solid ${review.is_approved ? theme.gold : theme.text.muted}`, padding: '16px 20px' }}>
+            <div key={review.id} style={{ background: theme.bg.card, border: `1px solid ${review.is_approved ? theme.borderStrong : theme.border}`, borderLeft: `3px solid ${review.is_approved ? theme.gold : theme.text.muted}`, borderRadius: 10, padding: '16px 20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}><span style={{ color: theme.text.white, fontWeight: 700 }}>{review.username}</span>{review.is_approved && <span style={{ background: 'rgba(239,68,68,0.12)', color: theme.gold, padding: '2px 8px', fontSize: 10, fontWeight: 800 }}>VISIBLE</span>}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}><span style={{ color: theme.text.white, fontWeight: 700 }}>{review.username}</span>{review.is_approved && <span style={{ background: theme.goldSoft, color: theme.gold, padding: '2px 8px', fontSize: 10, fontWeight: 800, borderRadius: 999 }}>VISIBLE</span>}</div>
                   <p style={{ color: theme.text.secondary, fontSize: 13, fontStyle: 'italic', margin: '0 0 8px' }}>"{review.comment}"</p>
                   <p style={{ color: theme.text.muted, fontSize: 11, margin: 0 }}>{new Date(review.created_at).toLocaleDateString()}</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <Button onClick={() => onToggleReview(review.id)} style={{ padding: '8px 12px', fontSize: 11, background: review.is_approved ? 'transparent' : theme.gold, border: review.is_approved ? `1px solid ${theme.border}` : 'none', color: review.is_approved ? theme.text.muted : '#FFFFFF', display: 'flex', alignItems: 'center', gap: 4 }}>{review.is_approved ? <X size={12} /> : <Check size={12} />}{review.is_approved ? 'Hide' : 'Show'}</Button>
-                  <Button onClick={() => onDeleteReview(review.id)} style={{ padding: 8, background: 'rgba(239, 68, 68, 0.15)', border: 'none' }}><Trash2 size={14} color="#ef4444" /></Button>
+                  <Button onClick={() => onToggleReview(review.id)} style={{ padding: '8px 12px', fontSize: 11, background: review.is_approved ? 'transparent' : theme.gold, border: review.is_approved ? `1px solid ${theme.border}` : 'none', color: review.is_approved ? theme.text.muted : theme.text.inverse, display: 'flex', alignItems: 'center', gap: 4 }}>{review.is_approved ? <X size={12} /> : <Check size={12} />}{review.is_approved ? 'Hide' : 'Show'}</Button>
+                  <Button onClick={() => onDeleteReview(review.id)} style={{ padding: 8, background: theme.dangerSoft, border: 'none' }}><Trash2 size={14} color="var(--rq-danger)" /></Button>
                 </div>
               </div>
             </div>
