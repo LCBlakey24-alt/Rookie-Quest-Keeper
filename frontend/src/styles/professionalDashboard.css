@@ -4,20 +4,21 @@
 #player-section,
 #gm-section,
 [data-testid="sourcebook-library"] {
-  --dash-black: #070B18;
-  --dash-panel: #0D1326;
-  --dash-card: #121A31;
-  --dash-red: #7C3AED;
-  --dash-red-border: rgba(124, 58, 237, 0.32);
-  --dash-border: rgba(148, 163, 184, 0.16);
-  --dash-white: #FFFFFF;
-  --dash-soft: #D1D5DB;
-  --dash-muted: #9CA3AF;
+  --dash-black: var(--rq-bg-main, #120C08);
+  --dash-panel: var(--rq-bg-panel, #21150E);
+  --dash-card: var(--rq-bg-panel-alt, #2E1D13);
+  --dash-red: var(--rq-accent-primary, #C08A3D);
+  --dash-red-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
+  --dash-border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  --dash-white: var(--rq-text-primary, #F5E6C8);
+  --dash-soft: var(--rq-text-secondary, #E6D2AA);
+  --dash-muted: var(--rq-text-muted, #CDBA98);
+  --dash-inverse: var(--rq-text-inverse, #120C08);
 }
 
 /* Dashboard header only: avoid styling every header in the app. */
 .App:has(#player-section) header {
-  background: rgba(7, 11, 24, 0.9) !important;
+  background: rgba(18, 12, 8, 0.9) !important;
   border-bottom: 1px solid var(--dash-border) !important;
   backdrop-filter: blur(16px) !important;
   padding: 14px clamp(14px, 3vw, 28px) !important;
@@ -31,7 +32,7 @@
 }
 
 .App:has(#player-section) header img[src="/images/logo-mini.png"] {
-  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.38)) !important;
+  filter: drop-shadow(0 0 12px rgba(192, 138, 61, 0.38)) !important;
 }
 
 .App:has(#player-section) header button,
@@ -42,7 +43,7 @@
 
 .App:has(#player-section) header label[data-testid="upload-json-btn"] {
   background: var(--dash-red) !important;
-  color: var(--dash-white) !important;
+  color: var(--dash-inverse) !important;
 }
 
 /* Sourcebook strip: keep compact; do not globally restyle all spans as large badges. */
@@ -146,7 +147,7 @@
 #player-section select:focus,
 #gm-section select:focus {
   border-color: var(--dash-red) !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 0 3px var(--rq-accent-soft, rgba(192, 138, 61, 0.14)) !important;
 }
 
 /* Primary actions */
@@ -155,8 +156,8 @@ button[data-testid*="new-campaign"],
 button[data-testid*="create-campaign"],
 button[data-testid*="campaign-create"] {
   background: var(--dash-red) !important;
-  color: var(--dash-white) !important;
-  border: 1px solid var(--dash-red) !important;
+  color: var(--dash-inverse) !important;
+  border: 1px solid var(--rq-accent-hover, #E0B15C) !important;
   border-radius: 10px !important;
   box-shadow: none !important;
 }
@@ -164,7 +165,7 @@ button[data-testid*="campaign-create"] {
 [data-testid="homebrew-workshop-btn"] {
   background: transparent !important;
   color: var(--dash-white) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(245, 230, 200, 0.16) !important;
   border-radius: 10px !important;
 }
 
@@ -185,7 +186,7 @@ button[data-testid*="campaign-create"] {
 
 #player-section [data-testid^="character-"]:hover,
 #gm-section [data-testid^="campaign-"]:hover {
-  background: #181818 !important;
+  background: var(--rq-bg-elevated, #3A2619) !important;
   border-color: var(--dash-red-border) !important;
 }
 
