@@ -1,87 +1,92 @@
 /**
  * ROOK shared design theme.
- * Minimalist dark surface, red linework, square corners.
+ * Velvet Tabletop: espresso backgrounds, leather panels, cream text,
+ * gold primary actions, copper warmth, and meaningful state colours.
  * Import via: import { theme } from '@/lib/theme';
  */
 
 export const theme = {
   // Backgrounds
   bg: {
-    primary: '#1F1F23',     // main dark grey page bg
-    surface: '#27272B',     // panel/card bg (slightly lighter)
-    elevated: '#323235',    // hover / elevated panel
-    deep: '#0B0B0C',        // deepest (modal backdrop)
-    panel: '#27272B'
+    primary: 'var(--rq-bg-main)',
+    surface: 'var(--rq-bg-panel)',
+    elevated: 'var(--rq-bg-elevated)',
+    deep: 'rgba(18, 12, 8, 0.92)',
+    panel: 'var(--rq-bg-panel)',
+    card: 'var(--rq-bg-panel-alt)',
   },
   // Text
   text: {
-    primary: '#FFFFFF',
-    secondary: '#D1D5DB',
-    muted: '#9CA3AF',
-    accent: '#EF4444'
+    primary: 'var(--rq-text-primary)',
+    secondary: 'var(--rq-text-secondary)',
+    muted: 'var(--rq-text-muted)',
+    accent: 'var(--rq-accent-primary)'
   },
-  // Accents - red-only linework
+  // Accents - Velvet gold/copper theme
   accent: {
-    primary: '#EF4444',     // main red accent
-    hover: '#F87171',       // lighter red hover
-    soft: 'rgba(239,68,68,0.12)',
-    line: 'rgba(239,68,68,0.28)',
-    secondary: '#B91C1C',
-    highlight: '#F87171',
-    pink: '#EF4444'
+    primary: 'var(--rq-accent-primary)',
+    hover: 'var(--rq-accent-hover)',
+    soft: 'var(--rq-accent-soft)',
+    line: 'var(--rq-accent-border)',
+    secondary: 'var(--rq-accent-active)',
+    highlight: 'var(--rq-accent-hover)',
+    pink: 'var(--rq-accent-active)'
   },
-  // Border uses soft red tint
-  border: 'rgba(239,68,68,0.18)',
-  borderActive: '#EF4444',
+  // Borders use warm gold/copper tint
+  border: 'var(--rq-border-default)',
+  borderActive: 'var(--rq-accent-primary)',
   // State colors (kept meaningful)
-  success: '#10B981',
-  danger: '#EF4444',
-  warning: '#F59E0B',
+  success: 'var(--rq-success)',
+  danger: 'var(--rq-danger)',
+  warning: 'var(--rq-warning)',
   // Legacy compatibility shims (so existing `theme.sunset.xxx` lookups keep rendering)
-  sunset: { purple: '#EF4444', pink: '#EF4444', gold: '#EF4444' },
-  gradient: '#EF4444',
-  glow: 'none',         // Disable glows
-  player:  { primary: '#EF4444', hover: '#F87171', secondary: '#B91C1C' },
-  gm:      { primary: '#EF4444', hover: '#F87171', secondary: '#B91C1C' },
+  sunset: {
+    purple: 'var(--rq-accent-active)',
+    pink: 'var(--rq-accent-primary)',
+    gold: 'var(--rq-accent-hover)'
+  },
+  gradient: 'linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-active))',
+  glow: '0 12px 34px rgba(192, 138, 61, 0.18)',
+  player:  { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
+  gm:      { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
 };
 
-/** Common panel style: dark surface + red 1px outline. */
+/** Common panel style: leather surface + warm 1px outline. */
 export const panelStyle = {
   background: theme.bg.surface,
   border: `1px solid ${theme.accent.line}`,
-  borderRadius: 0,
+  borderRadius: 10,
   padding: 16,
 };
 
 export const buttonStyle = {
-  background: 'transparent',
-  border: `1px solid ${theme.accent.primary}`,
-  borderRadius: 0,
-  color: theme.text.primary,
+  background: theme.accent.primary,
+  border: `1px solid ${theme.accent.hover}`,
+  borderRadius: 8,
+  color: 'var(--rq-text-inverse)',
   padding: '8px 14px',
-  fontWeight: 600,
+  fontWeight: 800,
   cursor: 'pointer',
 };
 
 /**
- * Per-class accent palette - subtle border / icon tint within the red-line theme.
- * Keep saturation low so it never overpowers the primary red outline.
+ * Per-class accent palette - subtle border / icon tint within Velvet Tabletop.
  * `tint` = used as a soft border-shadow / left-border accent
  * `icon` = used for the class crest dot next to character name + section headers
  */
 export const CLASS_ACCENTS = {
-  Barbarian: { tint: 'rgba(180, 83, 9, 0.35)',  icon: '#B45309', label: 'Barbarian' },
-  Bard:      { tint: 'rgba(217, 119, 6, 0.35)', icon: '#D97706', label: 'Bard' },
-  Cleric:    { tint: 'rgba(229, 231, 235, 0.45)',icon: '#E5E7EB', label: 'Cleric' },
-  Druid:     { tint: 'rgba(22, 101, 52, 0.45)', icon: '#16A34A', label: 'Druid' },
-  Fighter:   { tint: 'rgba(100, 116, 139, 0.5)',icon: '#94A3B8', label: 'Fighter' },
-  Monk:      { tint: 'rgba(214, 162, 74, 0.4)', icon: '#D6A24A', label: 'Monk' },
-  Paladin:   { tint: 'rgba(245, 197, 66, 0.5)', icon: '#F5C542', label: 'Paladin' },
-  Ranger:    { tint: 'rgba(22, 101, 52, 0.4)',  icon: '#22C55E', label: 'Ranger' },
-  Rogue:     { tint: 'rgba(30, 41, 59, 0.7)',   icon: '#475569', label: 'Rogue' },
-  Sorcerer:  { tint: 'rgba(220, 38, 38, 0.35)', icon: '#DC2626', label: 'Sorcerer' },
-  Warlock:   { tint: 'rgba(127, 29, 29, 0.45)', icon: '#7F1D1D', label: 'Warlock' },
-  Wizard:    { tint: 'rgba(30, 64, 175, 0.45)', icon: '#3B82F6', label: 'Wizard' },
+  Barbarian: { tint: 'rgba(164, 90, 50, 0.42)',  icon: '#A45A32', label: 'Barbarian' },
+  Bard:      { tint: 'rgba(224, 177, 92, 0.38)', icon: '#E0B15C', label: 'Bard' },
+  Cleric:    { tint: 'rgba(245, 230, 200, 0.38)',icon: '#F5E6C8', label: 'Cleric' },
+  Druid:     { tint: 'rgba(122, 155, 102, 0.42)', icon: '#7A9B66', label: 'Druid' },
+  Fighter:   { tint: 'rgba(192, 138, 61, 0.40)',icon: '#C08A3D', label: 'Fighter' },
+  Monk:      { tint: 'rgba(224, 177, 92, 0.38)', icon: '#E0B15C', label: 'Monk' },
+  Paladin:   { tint: 'rgba(245, 230, 200, 0.42)', icon: '#F5E6C8', label: 'Paladin' },
+  Ranger:    { tint: 'rgba(122, 155, 102, 0.40)',  icon: '#7A9B66', label: 'Ranger' },
+  Rogue:     { tint: 'rgba(205, 186, 152, 0.34)',   icon: '#CDBA98', label: 'Rogue' },
+  Sorcerer:  { tint: 'rgba(180, 71, 50, 0.34)', icon: '#B44732', label: 'Sorcerer' },
+  Warlock:   { tint: 'rgba(164, 90, 50, 0.42)', icon: '#A45A32', label: 'Warlock' },
+  Wizard:    { tint: 'rgba(192, 138, 61, 0.38)', icon: '#C08A3D', label: 'Wizard' },
 };
 
 /**
