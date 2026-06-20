@@ -28,9 +28,12 @@ const classLevelOf = (character, className) => {
 
 const fighterLevelOf = (character) => classLevelOf(character, 'fighter');
 const barbarianLevelOf = (character) => classLevelOf(character, 'barbarian');
+const bardLevelOf = (character) => classLevelOf(character, 'bard');
 const clericLevelOf = (character) => classLevelOf(character, 'cleric');
 const monkLevelOf = (character) => classLevelOf(character, 'monk');
 const paladinLevelOf = (character) => classLevelOf(character, 'paladin');
+const sorcererLevelOf = (character) => classLevelOf(character, 'sorcerer');
+const warlockLevelOf = (character) => classLevelOf(character, 'warlock');
 
 const proficiencyBonusOf = (character) => {
   const explicitBonus = Number(character?.proficiency_bonus || character?.proficiencyBonus || 0);
@@ -66,7 +69,7 @@ export const CLASS_RESOURCE_RULES = {
       key: 'bardic_inspiration',
       label: 'Bardic Inspiration',
       minLevel: 1,
-      restore: (character) => levelOf(character) >= 5 ? 'short-rest' : 'long-rest',
+      restore: (character) => bardLevelOf(character) >= 5 ? 'short-rest' : 'long-rest',
       max: (character) => Math.max(1, abilityMod(character?.charisma)),
     },
   ],
@@ -104,10 +107,10 @@ export const CLASS_RESOURCE_RULES = {
   Ranger: [],
   Rogue: [],
   Sorcerer: [
-    { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, restore: 'long-rest', max: (character) => levelOf(character) },
+    { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, restore: 'long-rest', max: (character) => sorcererLevelOf(character) },
   ],
   Warlock: [
-    { key: 'pact_magic', label: 'Pact Magic', minLevel: 1, restore: 'short-rest', max: (character) => levelOf(character) >= 2 ? 2 : 1 },
+    { key: 'pact_magic', label: 'Pact Magic', minLevel: 1, restore: 'short-rest', max: (character) => warlockLevelOf(character) >= 2 ? 2 : 1 },
   ],
   Wizard: [
     { key: 'arcane_recovery', label: 'Arcane Recovery', minLevel: 1, restore: 'long-rest', max: () => 1 },
@@ -151,9 +154,12 @@ const resourceLevelOf = (character, className) => {
   const normalizedClass = normalizeName(className);
   if (normalizedClass === 'fighter') return fighterLevelOf(character);
   if (normalizedClass === 'barbarian') return barbarianLevelOf(character);
+  if (normalizedClass === 'bard') return bardLevelOf(character);
   if (normalizedClass === 'cleric') return clericLevelOf(character);
   if (normalizedClass === 'monk') return monkLevelOf(character);
   if (normalizedClass === 'paladin') return paladinLevelOf(character);
+  if (normalizedClass === 'sorcerer') return sorcererLevelOf(character);
+  if (normalizedClass === 'warlock') return warlockLevelOf(character);
   return classLevelOf(character, className);
 };
 
