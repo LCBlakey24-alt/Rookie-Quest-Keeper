@@ -113,7 +113,7 @@ async def create_character(
     # Prepare character data, excluding fields that will be calculated or explicitly set
     char_data = character.model_dump()
     excluded_fields = ['max_hit_points', 'current_hit_points', 'proficiency_bonus', 'armor_class',
-                       'spells_known', 'spells_prepared', 'cantrips_known', 'feats', 'edition',
+                       'spells_known', 'spells_prepared', 'cantrips_known', 'feats', 'spellcasting_ability', 'spell_save_dc', 'spell_attack_bonus', 'spell_slots', 'spell_slots_remaining', 'edition',
                        'portrait_url', 'campaign_id', 'ruleset_id']
     char_data = {k: v for k, v in char_data.items() if k not in excluded_fields}
     
@@ -137,7 +137,7 @@ async def create_character(
         'Warlock': 'charisma', 'Wizard': 'intelligence',
         'Fighter': 'intelligence', 'Rogue': 'intelligence'  # For Eldritch Knight / Arcane Trickster
     }
-    spellcasting_ability = SPELLCASTING_ABILITIES.get(character.character_class, '')
+    spellcasting_ability = character.spellcasting_ability or SPELLCASTING_ABILITIES.get(character.character_class, '')
     
     new_character = PlayerCharacter(
         user_id=username,
@@ -151,10 +151,14 @@ async def create_character(
         spells_known=normalized_spells_known,
         spells_prepared=normalized_spells_prepared,
         cantrips_known=normalized_cantrips,
+        spellcasting_ability=spellcasting_ability,
+        spell_save_dc=character.spell_save_dc or 0,
+        spell_attack_bonus=character.spell_attack_bonus or 0,
+        spell_slots=character.spell_slots or {},
+        spell_slots_remaining=character.spell_slots_remaining or character.spell_slots or {},
         feats=character.feats or [],
         edition=edition,
         portrait_url=character.portrait_url or '',
-        spellcasting_ability=spellcasting_ability,
         ruleset_id=ruleset_id
     )
     

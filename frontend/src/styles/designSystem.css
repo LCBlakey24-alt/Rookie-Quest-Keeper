@@ -1,39 +1,39 @@
 /* ============================================
-   ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.2
-   Current app-wide direction: Mystic Professional
-   Navy surfaces, purple primary actions, cyan player/shared accents
+   ROOKIE QUEST KEEPER - DESIGN SYSTEM v3.3
+   Current app-wide direction: Velvet Tabletop
+   Espresso surfaces, leather panels, cream text, gold actions, copper accents
    ============================================ */
 
 :root {
   /* ============ DOCUMENTED RQ TOKENS ============ */
-  --rq-bg-main: #070B18;
-  --rq-bg-page: #080D1F;
-  --rq-bg-panel: #0D1326;
-  --rq-bg-panel-alt: #121A31;
-  --rq-bg-elevated: #1B2543;
-  --rq-bg-input: #0A1022;
+  --rq-bg-main: #120C08;
+  --rq-bg-page: #160F0A;
+  --rq-bg-panel: #21150E;
+  --rq-bg-panel-alt: #2E1D13;
+  --rq-bg-elevated: #3A2619;
+  --rq-bg-input: #1A100B;
 
-  --rq-accent-primary: #7C3AED;
-  --rq-accent-hover: #A78BFA;
-  --rq-accent-active: #6D28D9;
-  --rq-accent-soft: rgba(124, 58, 237, 0.14);
-  --rq-accent-border: rgba(124, 58, 237, 0.34);
-  --rq-accent-strong-border: rgba(124, 58, 237, 0.56);
+  --rq-accent-primary: #C08A3D;
+  --rq-accent-hover: #E0B15C;
+  --rq-accent-active: #A45A32;
+  --rq-accent-soft: rgba(192, 138, 61, 0.14);
+  --rq-accent-border: rgba(192, 138, 61, 0.34);
+  --rq-accent-strong-border: rgba(224, 177, 92, 0.56);
 
-  --rq-text-primary: #FFFFFF;
-  --rq-text-secondary: #D1D5DB;
-  --rq-text-muted: #94A3B8;
-  --rq-text-disabled: #6F6F6F;
-  --rq-text-inverse: #111111;
+  --rq-text-primary: #F5E6C8;
+  --rq-text-secondary: #E6D2AA;
+  --rq-text-muted: #CDBA98;
+  --rq-text-disabled: #8D7453;
+  --rq-text-inverse: #120C08;
 
-  --rq-border-default: rgba(148, 163, 184, 0.18);
-  --rq-border-strong: rgba(124, 58, 237, 0.42);
-  --rq-border-accent: #7C3AED;
+  --rq-border-default: rgba(192, 138, 61, 0.22);
+  --rq-border-strong: rgba(224, 177, 92, 0.42);
+  --rq-border-accent: #C08A3D;
 
-  --rq-success: #10B981;
-  --rq-warning: #F59E0B;
-  --rq-danger: #EF4444;
-  --rq-info: #38BDF8;
+  --rq-success: #7A9B66;
+  --rq-warning: #D4953C;
+  --rq-danger: #B44732;
+  --rq-info: #C08A3D;
 
   --rq-radius-sm: 4px;
   --rq-radius-md: 6px;
@@ -48,22 +48,23 @@
   --rq-space-7: 32px;
   --rq-space-8: 40px;
 
-  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.22);
-  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.32);
+  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.4);
 
   /* ============ EXISTING APP ALIASES ============ */
   --bg-primary: var(--rq-bg-main);
   --bg-secondary: var(--rq-bg-panel-alt);
   --bg-card: var(--rq-bg-panel);
   --bg-elevated: var(--rq-bg-elevated);
-  --bg-hover: rgba(124, 58, 237, 0.12);
-  --bg-overlay: rgba(7, 11, 24, 0.88);
+  --bg-hover: var(--rq-accent-soft);
+  --bg-overlay: rgba(18, 12, 8, 0.9);
 
   --text-primary: var(--rq-text-primary);
   --text-secondary: var(--rq-text-secondary);
   --text-muted: var(--rq-text-muted);
   --text-disabled: var(--rq-text-disabled);
 
+  /* Legacy red aliases are compatibility names; they now map to Velvet gold. */
   --rq-red: var(--rq-accent-primary);
   --rq-red-bright: var(--rq-accent-hover);
   --rq-red-dark: var(--rq-accent-active);
@@ -75,47 +76,47 @@
 
   /* ============ LEGACY ALIASES ============ */
   /* Keep these so older components do not break while the app is fully swept. */
-  --rq-gold: var(--rq-red);
-  --rq-gold-bright: var(--rq-red-bright);
-  --rq-gold-soft: var(--rq-red-soft);
-  --rq-gold-border: var(--rq-red-border);
-  --rq-gold-border-strong: var(--rq-red-border-strong);
+  --rq-gold: var(--rq-accent-primary);
+  --rq-gold-bright: var(--rq-accent-hover);
+  --rq-gold-soft: var(--rq-accent-soft);
+  --rq-gold-border: var(--rq-accent-border);
+  --rq-gold-border-strong: var(--rq-accent-strong-border);
   --rq-navy: var(--rq-charcoal);
   --rq-navy-soft: var(--rq-charcoal-soft);
 
   /* ============ GM THEME ============ */
-  --gm-primary: var(--rq-red);
-  --gm-hover: var(--rq-red-bright);
-  --gm-active: var(--rq-red-dark);
-  --gm-subtle: var(--rq-red-soft);
-  --gm-border: var(--rq-red-border);
-  --gm-glow: rgba(124, 58, 237, 0.18);
+  --gm-primary: var(--rq-accent-primary);
+  --gm-hover: var(--rq-accent-hover);
+  --gm-active: var(--rq-accent-active);
+  --gm-subtle: var(--rq-accent-soft);
+  --gm-border: var(--rq-accent-border);
+  --gm-glow: rgba(192, 138, 61, 0.18);
 
   /* ============ PLAYER THEME ============ */
-  --player-primary: #38BDF8;
-  --player-hover: #7DD3FC;
-  --player-active: #0284C7;
-  --player-subtle: rgba(56, 189, 248, 0.12);
-  --player-border: rgba(56, 189, 248, 0.34);
-  --player-glow: rgba(56, 189, 248, 0.18);
+  --player-primary: var(--rq-accent-primary);
+  --player-hover: var(--rq-accent-hover);
+  --player-active: var(--rq-accent-active);
+  --player-subtle: var(--rq-accent-soft);
+  --player-border: var(--rq-accent-border);
+  --player-glow: rgba(192, 138, 61, 0.18);
 
   /* ============ STATUS COLORS ============ */
   --success: var(--rq-success);
-  --success-subtle: rgba(16, 185, 129, 0.15);
+  --success-subtle: rgba(122, 155, 102, 0.16);
   --warning: var(--rq-warning);
-  --warning-subtle: rgba(245, 158, 11, 0.15);
+  --warning-subtle: rgba(212, 149, 60, 0.16);
   --danger: var(--rq-danger);
-  --danger-subtle: rgba(239, 68, 68, 0.15);
+  --danger-subtle: rgba(180, 71, 50, 0.16);
   --info: var(--rq-info);
-  --info-subtle: rgba(56, 189, 248, 0.12);
+  --info-subtle: var(--rq-accent-soft);
 
   /* ============ BORDERS & SHADOWS ============ */
-  --border-subtle: rgba(148, 163, 184, 0.12);
-  --border-default: rgba(124, 58, 237, 0.24);
-  --border-strong: rgba(124, 58, 237, 0.42);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.38);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.48);
+  --border-subtle: rgba(192, 138, 61, 0.14);
+  --border-default: var(--rq-border-default);
+  --border-strong: var(--rq-border-strong);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.52);
 
   /* ============ SHAPE ============ */
   --radius-none: 0;

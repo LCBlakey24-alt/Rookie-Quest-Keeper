@@ -1,51 +1,51 @@
 /**
  * ROOK shared design theme.
- * Minimalist dark surface, red linework, square corners.
+ * Velvet Tabletop surfaces, cream text, gold actions, copper accents.
  * Import via: import { theme } from '@/lib/theme';
  */
 
 export const theme = {
   // Backgrounds
   bg: {
-    primary: '#1F1F23',     // main dark grey page bg
-    surface: '#27272B',     // panel/card bg (slightly lighter)
-    elevated: '#323235',    // hover / elevated panel
-    deep: '#0B0B0C',        // deepest (modal backdrop)
-    panel: '#27272B'
+    primary: 'var(--rq-bg-main)',     // espresso page bg
+    surface: 'var(--rq-bg-panel)',     // leather panel/card bg
+    elevated: 'var(--rq-bg-elevated)',    // hover / elevated panel
+    deep: 'var(--rq-bg-main)',        // deepest (modal backdrop)
+    panel: 'var(--rq-bg-panel)'
   },
   // Text
   text: {
-    primary: '#FFFFFF',
-    secondary: '#D1D5DB',
-    muted: '#9CA3AF',
-    accent: '#EF4444'
+    primary: 'var(--rq-text-primary)',
+    secondary: 'var(--rq-text-secondary)',
+    muted: 'var(--rq-text-muted)',
+    accent: 'var(--rq-accent-primary)'
   },
-  // Accents - red-only linework
+  // Accents - Velvet gold/copper linework
   accent: {
-    primary: '#EF4444',     // main red accent
-    hover: '#F87171',       // lighter red hover
-    soft: 'rgba(239,68,68,0.12)',
-    line: 'rgba(239,68,68,0.28)',
-    secondary: '#B91C1C',
-    highlight: '#F87171',
-    pink: '#EF4444'
+    primary: 'var(--rq-accent-primary)',     // main gold accent
+    hover: 'var(--rq-accent-hover)',       // warm gold hover
+    soft: 'var(--rq-accent-soft)',
+    line: 'var(--rq-accent-border)',
+    secondary: 'var(--rq-accent-active)',
+    highlight: 'var(--rq-accent-hover)',
+    pink: 'var(--rq-accent-primary)'
   },
-  // Border uses soft red tint
-  border: 'rgba(239,68,68,0.18)',
-  borderActive: '#EF4444',
+  // Border uses soft gold tint
+  border: 'var(--rq-border-default)',
+  borderActive: 'var(--rq-accent-primary)',
   // State colors (kept meaningful)
-  success: '#10B981',
-  danger: '#EF4444',
-  warning: '#F59E0B',
+  success: 'var(--rq-success)',
+  danger: 'var(--rq-danger)',
+  warning: 'var(--rq-warning)',
   // Legacy compatibility shims (so existing `theme.sunset.xxx` lookups keep rendering)
-  sunset: { purple: '#EF4444', pink: '#EF4444', gold: '#EF4444' },
-  gradient: '#EF4444',
+  sunset: { purple: 'var(--rq-accent-active)', pink: 'var(--rq-accent-primary)', gold: 'var(--rq-accent-hover)' },
+  gradient: 'linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-active))',
   glow: 'none',         // Disable glows
-  player:  { primary: '#EF4444', hover: '#F87171', secondary: '#B91C1C' },
-  gm:      { primary: '#EF4444', hover: '#F87171', secondary: '#B91C1C' },
+  player:  { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
+  gm:      { primary: 'var(--rq-accent-primary)', hover: 'var(--rq-accent-hover)', secondary: 'var(--rq-accent-active)' },
 };
 
-/** Common panel style: dark surface + red 1px outline. */
+/** Common panel style: leather surface + gold 1px outline. */
 export const panelStyle = {
   background: theme.bg.surface,
   border: `1px solid ${theme.accent.line}`,
