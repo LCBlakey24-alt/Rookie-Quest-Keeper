@@ -12,8 +12,8 @@
 .clean-sheet-spell-summary div,
 .clean-sheet-slot-card,
 .clean-sheet-spell-card {
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 14px;
 }
@@ -22,7 +22,7 @@
 .clean-sheet-slot-card span,
 .clean-sheet-spell-level {
   display: block;
-  color: #9CA3AF;
+  color: var(--rq-text-muted);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -33,7 +33,7 @@
 .clean-sheet-spell-summary strong,
 .clean-sheet-slot-card strong,
 .clean-sheet-spell-card strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-weight: 950;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .clean-sheet-spell-card em {
-  color: #7C3AED;
+  color: var(--rq-accent-primary);
   font-style: normal;
   font-size: 12px;
   font-weight: 900;
@@ -71,7 +71,7 @@
 }
 
 .clean-sheet-spell-card p {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 13px;
   line-height: 1.45;
   margin: 2px 0 0;
@@ -102,16 +102,16 @@
 
 .clean-sheet-spellcasting-heading p {
   margin: 0;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .clean-sheet-spellcasting-heading > span {
   flex: 0 0 auto;
-  border: 1px solid rgba(34, 211, 238, 0.32);
-  background: rgba(34, 211, 238, 0.10);
-  color: #C4B5FD;
+  border: 1px solid rgba(192, 138, 61, 0.32);
+  background: rgba(192, 138, 61, 0.10);
+  color: var(--rq-accent-hover);
   border-radius: 999px;
   padding: 7px 10px;
   font-size: 11px;
@@ -133,8 +133,8 @@
 .clean-sheet-caster-card,
 .clean-sheet-slot-math-grid div,
 .clean-sheet-pact-card {
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(13, 18, 36, 0.74);
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(33, 21, 14, 0.74);
   border-radius: 14px;
   padding: 12px;
 }
@@ -148,12 +148,12 @@
 }
 
 .clean-sheet-caster-card-title strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 15px;
 }
 
 .clean-sheet-caster-card-title span {
-  color: #22D3EE;
+  color: var(--rq-accent-hover);
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
@@ -179,7 +179,7 @@
 .clean-sheet-slot-math-grid span,
 .clean-sheet-pact-card span {
   display: block;
-  color: #9CA3AF;
+  color: var(--rq-text-muted);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -191,7 +191,7 @@
 .clean-sheet-pact-card strong {
   display: block;
   margin-top: 4px;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 18px;
   font-weight: 950;
 }
@@ -201,7 +201,7 @@
 .clean-sheet-pact-card p {
   display: block;
   margin: 4px 0 0;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 11px;
   font-style: normal;
   line-height: 1.35;

@@ -2,10 +2,10 @@
   width: 100%;
   min-height: 220px;
   resize: vertical;
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   padding: 14px;
   font: inherit;
   line-height: 1.55;
@@ -13,8 +13,8 @@
 }
 
 .clean-sheet-notes-textarea:focus {
-  border-color: rgba(124, 58, 237, 0.55);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+  border-color: var(--rq-accent-strong-border);
+  box-shadow: 0 0 0 3px var(--rq-accent-soft);
 }
 
 .clean-sheet-notes-textarea::placeholder {
@@ -30,9 +30,9 @@
 .clean-sheet-notes-actions button {
   min-height: 42px;
   padding: 10px 16px;
-  background: #7C3AED;
-  border: 1px solid #7C3AED;
-  color: #FFFFFF;
+  background: var(--rq-accent-primary);
+  border: 1px solid var(--rq-accent-primary);
+  color: var(--rq-text-inverse);
   border-radius: 10px;
   cursor: pointer;
   font: inherit;
@@ -45,8 +45,8 @@
 }
 
 .clean-sheet-note-field {
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 10px;
@@ -54,7 +54,7 @@
 
 .clean-sheet-note-field span {
   display: block;
-  color: #7C3AED;
+  color: var(--rq-accent-primary);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -64,7 +64,7 @@
 
 .clean-sheet-note-field p,
 .clean-sheet-backstory-text {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;
@@ -79,10 +79,10 @@
 .clean-sheet-feature-card {
   width: 100%;
   text-align: left;
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   padding: 14px;
   display: grid;
   gap: 8px;
@@ -92,8 +92,8 @@
 
 .clean-sheet-feature-card:hover,
 .clean-sheet-feature-card.expanded {
-  border-color: rgba(124, 58, 237, 0.42);
-  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(192, 138, 61, 0.42);
+  background: rgba(192, 138, 61, 0.08);
 }
 
 .clean-sheet-feature-topline {
@@ -105,9 +105,9 @@
 
 .clean-sheet-feature-topline span,
 .clean-sheet-feature-topline em {
-  color: #7C3AED;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.08);
+  color: var(--rq-accent-primary);
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.08);
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 10px;
@@ -118,13 +118,13 @@
 }
 
 .clean-sheet-feature-card strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-weight: 950;
   line-height: 1.2;
 }
 
 .clean-sheet-feature-card p {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   line-height: 1.55;
   font-size: 13px;
   margin: 0;
@@ -141,9 +141,9 @@
   display: inline-flex;
   min-height: 32px;
   align-items: center;
-  color: #FFFFFF;
-  background: #070B18;
-  border: 1px solid rgba(124, 58, 237, 0.28);
+  color: var(--rq-text-primary);
+  background: var(--rq-bg-main);
+  border: 1px solid rgba(192, 138, 61, 0.28);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;

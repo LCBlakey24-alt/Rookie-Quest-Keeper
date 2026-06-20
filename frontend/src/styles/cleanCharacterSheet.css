@@ -1,24 +1,24 @@
 .clean-sheet-page {
-  --cs-bg: #080B1A;
-  --cs-panel: #12172A;
-  --cs-accent: #7C3AED;
-  --cs-text: #FFFFFF;
-  --cs-text-soft: #D1D5DB;
-  --cs-muted: #9CA3AF;
-  --cs-success: #10B981;
-  --cs-border: rgba(191, 219, 254, 0.14);
-  --cs-border-strong: rgba(124, 58, 237, 0.38);
-  --cs-accent-soft: rgba(124, 58, 237, 0.14);
-  --cs-accent-border: rgba(124, 58, 237, 0.38);
-  --cs-accent-ghost-border: rgba(124, 58, 237, 0.28);
-  --cs-accent-hover-border: rgba(167, 139, 250, 0.58);
-  --cs-accent-hover-bg: rgba(124, 58, 237, 0.18);
-  --cs-blue-soft: rgba(37, 99, 235, 0.16);
-  --cs-card: #171E33;
+  --cs-bg: var(--rq-bg-main);
+  --cs-panel: var(--rq-bg-panel);
+  --cs-accent: var(--rq-accent-primary);
+  --cs-text: var(--rq-text-primary);
+  --cs-text-soft: var(--rq-text-secondary);
+  --cs-muted: var(--rq-text-muted);
+  --cs-success: var(--rq-success);
+  --cs-border: rgba(192, 138, 61, 0.14);
+  --cs-border-strong: rgba(192, 138, 61, 0.38);
+  --cs-accent-soft: var(--rq-accent-soft);
+  --cs-accent-border: rgba(192, 138, 61, 0.38);
+  --cs-accent-ghost-border: rgba(192, 138, 61, 0.28);
+  --cs-accent-hover-border: rgba(224, 177, 92, 0.58);
+  --cs-accent-hover-bg: rgba(192, 138, 61, 0.18);
+  --cs-blue-soft: rgba(192, 138, 61, 0.14);
+  --cs-card: var(--rq-bg-panel-alt);
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 0%, rgba(37,99,235,0.26), transparent 34%),
-    radial-gradient(circle at 92% 4%, rgba(124,58,237,0.30), transparent 32%),
+    radial-gradient(circle at 12% 0%, rgba(192,138,61,0.18), transparent 34%),
+    radial-gradient(circle at 92% 4%, rgba(192,138,61,0.30), transparent 32%),
     var(--cs-bg);
   color: var(--cs-text);
   padding: clamp(10px, 1.8vw, 18px);
@@ -37,7 +37,7 @@
   width: 72px;
   height: 72px;
   object-fit: contain;
-  filter: drop-shadow(0 0 16px rgba(124, 58, 237, 0.45));
+  filter: drop-shadow(0 0 16px rgba(192, 138, 61, 0.45));
 }
 
 .clean-sheet-loading button,
@@ -111,7 +111,7 @@
   width: 62px;
   height: 62px;
   border-radius: 16px;
-  border: 1px solid rgba(124, 58, 237, 0.42);
+  border: 1px solid rgba(192, 138, 61, 0.42);
   background: var(--cs-bg);
   display: flex;
   align-items: center;
@@ -237,7 +237,7 @@
 .clean-sheet-roll-controls input {
   width: 100%;
   min-height: 42px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(192,138,61,0.18);
   background: var(--cs-bg);
   color: var(--cs-text);
   border-radius: 10px;
@@ -251,7 +251,7 @@
 .clean-sheet-hitdice-row button,
 .clean-sheet-slot-actions button {
   min-height: 42px;
-  border: 1px solid rgba(124, 58, 237, 0.28);
+  border: 1px solid rgba(192, 138, 61, 0.28);
   background: var(--cs-accent-soft);
   color: var(--cs-text);
   border-radius: 10px;
@@ -317,7 +317,7 @@
 .clean-sheet-roll-controls {
   grid-template-columns: 1.4fr minmax(92px, 0.6fr);
   background: var(--cs-bg);
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 8px;
 }
@@ -338,7 +338,7 @@
 }
 
 .clean-sheet-roll-mode-group button.active {
-  background: rgba(124,58,237,0.16);
+  background: rgba(192,138,61,0.16);
   border-color: var(--cs-accent);
   color: var(--cs-text);
 }
@@ -362,8 +362,8 @@
 .clean-sheet-roll-history-toggle,
 .clean-sheet-death-actions button {
   min-height: 42px;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.08);
   color: var(--cs-text);
   border-radius: 10px;
   cursor: pointer;
@@ -376,8 +376,8 @@
 
 .clean-sheet-inspiration.active {
   background: var(--cs-accent);
-  border-color: #A78BFA;
-  box-shadow: 0 0 18px rgba(124,58,237,0.22);
+  border-color: var(--rq-accent-hover);
+  box-shadow: 0 0 18px rgba(192,138,61,0.22);
 }
 
 .clean-sheet-passives {
@@ -391,7 +391,7 @@
 .clean-sheet-roll-history-list div,
 .clean-sheet-death-saves {
   background: var(--cs-bg);
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
 }
 
@@ -474,7 +474,7 @@
   min-height: 30px;
   padding: 5px 9px;
   border: 1px solid var(--cs-accent-ghost-border);
-  background: rgba(124,58,237,0.10);
+  background: rgba(192,138,61,0.10);
   color: var(--cs-text);
   border-radius: 999px;
   font-size: 11px;
@@ -497,7 +497,7 @@
 
 .clean-sheet-condition-picker button {
   min-height: 36px;
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid var(--rq-border-default);
   background: var(--cs-bg);
   color: var(--cs-text-soft);
   border-radius: 10px;
@@ -508,14 +508,14 @@
 .clean-sheet-condition-picker button.active {
   color: var(--cs-text);
   border-color: var(--cs-accent);
-  background: rgba(124,58,237,0.16);
+  background: rgba(192,138,61,0.16);
 }
 
 .clean-sheet-death-saves {
   padding: 12px;
   display: grid;
   gap: 10px;
-  border-color: rgba(124,58,237,0.35);
+  border-color: rgba(192,138,61,0.35);
 }
 
 .clean-sheet-death-title {
@@ -545,14 +545,14 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(224,177,92,0.22);
   background: transparent;
   cursor: pointer;
 }
 
 .clean-sheet-death-track button.marked {
   background: var(--cs-accent);
-  border-color: #A78BFA;
+  border-color: var(--rq-accent-hover);
 }
 
 .clean-sheet-death-actions {
@@ -734,7 +734,7 @@
   min-height: 24px;
   padding: 4px 7px;
   border: 1px solid var(--cs-accent-ghost-border);
-  background: rgba(124,58,237,0.10);
+  background: rgba(192,138,61,0.10);
   color: var(--cs-accent) !important;
   border-radius: 999px;
   margin-bottom: 8px;
@@ -756,14 +756,14 @@
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  border: 1px solid rgba(124,58,237,0.35);
+  border: 1px solid rgba(192,138,61,0.35);
   transform: rotate(45deg);
   background: transparent;
 }
 
 .clean-sheet-slot-pips i.filled {
   background: var(--cs-accent);
-  border-color: #A78BFA;
+  border-color: var(--rq-accent-hover);
 }
 
 .clean-sheet-slot-actions {
@@ -832,7 +832,7 @@
 
 .clean-sheet-spell-summary div {
   background: var(--cs-bg);
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -882,7 +882,7 @@
 }
 
 
-/* ===== Mystic player character sheet refresh ===== */
+/* ===== Velvet player character sheet refresh ===== */
 .clean-sheet-header,
 .clean-sheet-vitals,
 .clean-sheet-mobile-tools,
@@ -898,7 +898,7 @@
   gap: 12px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(37,99,235,0.16), rgba(124,58,237,0.18)), var(--cs-panel);
+  background: linear-gradient(135deg, rgba(192,138,61,0.10), rgba(192,138,61,0.18)), var(--cs-panel);
   border-color: var(--cs-accent-border);
   box-shadow: 0 18px 48px rgba(0,0,0,0.25);
 }
@@ -910,11 +910,11 @@
   padding: 7px 11px;
   border-radius: 9px;
   font-size: 12px;
-  background: rgba(13,18,36,0.72);
+  background: rgba(33,21,14,0.72);
 }
 
 .clean-sheet-level {
-  background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(124,58,237,0.28));
+  background: linear-gradient(135deg, rgba(192,138,61,0.14), rgba(192,138,61,0.28));
 }
 
 .clean-sheet-portrait {
@@ -922,13 +922,13 @@
   height: 52px;
   border-radius: 14px;
   border-color: var(--cs-accent-border);
-  background: #0D1224;
+  background: var(--rq-bg-input);
 }
 
 .clean-sheet-kicker {
   font-size: 10px;
   margin-bottom: 3px;
-  color: #A78BFA;
+  color: var(--rq-accent-hover);
 }
 
 .clean-sheet-identity h1 {
@@ -973,7 +973,7 @@
 .clean-sheet-hp-bar {
   height: 7px;
   margin-bottom: 9px;
-  background: #0D1224;
+  background: var(--rq-bg-input);
 }
 
 .clean-sheet-hp-bulk-row,
@@ -989,7 +989,7 @@
 .clean-sheet-temp-hp-bulk-row input,
 .clean-sheet-roll-controls input,
 .clean-sheet-input {
-  background: #0D1224 !important;
+  background: var(--rq-bg-input) !important;
   border-color: var(--cs-border) !important;
 }
 
@@ -1012,7 +1012,7 @@
 .clean-sheet-hitdice-row svg,
 .clean-sheet-death-title svg,
 .clean-sheet-roll-history-toggle svg {
-  color: #A78BFA;
+  color: var(--rq-accent-hover);
 }
 
 .clean-sheet-stat-value {
@@ -1044,7 +1044,7 @@
   min-height: 34px;
   padding: 6px 10px;
   border-radius: 9px;
-  background: rgba(124,58,237,0.10);
+  background: rgba(192,138,61,0.10);
   border-color: var(--cs-accent-border);
   font-size: 12px;
 }
@@ -1053,7 +1053,7 @@
 .clean-sheet-roll-mode-group button.active,
 .clean-sheet-condition-picker button.active,
 .clean-sheet-tabs button.active {
-  background: linear-gradient(135deg, rgba(37,99,235,0.24), rgba(124,58,237,0.34));
+  background: linear-gradient(135deg, rgba(192,138,61,0.16), rgba(192,138,61,0.34));
   border-color: var(--cs-accent-border);
   box-shadow: none;
 }
@@ -1066,7 +1066,7 @@
 .clean-sheet-hitdice-row,
 .clean-sheet-death-saves,
 .clean-sheet-roll-history-list div {
-  background: #0D1224;
+  background: var(--rq-bg-input);
   border-color: var(--cs-border);
   border-radius: 10px;
 }
@@ -1089,7 +1089,7 @@
   gap: 6px;
   padding: 6px;
   border-radius: 14px;
-  background: rgba(13,18,36,0.82);
+  background: rgba(33,21,14,0.82);
   border-color: var(--cs-border);
 }
 
@@ -1142,7 +1142,7 @@
 .clean-sheet-spell-summary div,
 .clean-sheet-list div,
 .clean-sheet-skills div {
-  background: #0D1224;
+  background: var(--rq-bg-input);
   border-color: var(--cs-border);
   border-radius: 10px;
   padding: 10px;
@@ -1163,7 +1163,7 @@
 
 .clean-sheet-spell-level,
 .clean-sheet-condition-chip {
-  background: rgba(124,58,237,0.12);
+  background: rgba(192,138,61,0.12);
   border-color: var(--cs-accent-border);
 }
 
@@ -1174,7 +1174,7 @@
 .clean-sheet-slot-pips i.filled,
 .clean-sheet-death-track button.marked {
   background: var(--cs-accent);
-  border-color: #A78BFA;
+  border-color: var(--rq-accent-hover);
 }
 
 @media (min-width: 901px) {
@@ -1339,7 +1339,7 @@
   padding: 9px 10px;
   border: 1px solid var(--cs-border);
   border-radius: 10px;
-  background: #0D1224;
+  background: var(--rq-bg-input);
 }
 
 .clean-sheet-reference-match div {
@@ -1361,7 +1361,7 @@
 .clean-sheet-reference-match button {
   min-height: 30px;
   border: 1px solid var(--cs-accent-border);
-  background: rgba(124,58,237,0.12);
+  background: rgba(192,138,61,0.12);
   color: var(--cs-text);
   border-radius: 8px;
   padding: 5px 8px;

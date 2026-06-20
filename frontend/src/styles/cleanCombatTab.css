@@ -16,8 +16,8 @@
 .clean-sheet-concentration-box,
 .clean-sheet-resource-card,
 .clean-sheet-consumable-strip {
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 12px;
 }
@@ -32,7 +32,7 @@
 .clean-sheet-concentration-box span,
 .clean-sheet-consumable-strip > span,
 .clean-sheet-resource-card span {
-  color: #9CA3AF;
+  color: var(--rq-text-muted);
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 950;
@@ -41,9 +41,9 @@
 
 .clean-sheet-concentration-box input {
   min-height: 42px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: #0D1326;
-  color: #FFFFFF;
+  border: 1px solid rgba(192,138,61,0.18);
+  background: var(--rq-bg-input);
+  color: var(--rq-text-primary);
   border-radius: 10px;
   padding: 8px 10px;
   font-weight: 800;
@@ -54,9 +54,9 @@
 .clean-sheet-consumable-strip button,
 .clean-sheet-pending-damage button {
   min-height: 40px;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.10);
-  color: #FFFFFF;
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.10);
+  color: var(--rq-text-primary);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 900;
@@ -67,8 +67,8 @@
 .clean-sheet-resource-card button:hover,
 .clean-sheet-consumable-strip button:hover,
 .clean-sheet-pending-damage button:hover {
-  border-color: rgba(124, 58, 237, 0.55);
-  background: rgba(124, 58, 237, 0.16);
+  border-color: var(--rq-accent-strong-border);
+  background: rgba(192, 138, 61, 0.16);
 }
 
 .clean-sheet-resource-grid {
@@ -83,7 +83,7 @@
 }
 
 .clean-sheet-resource-card strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 1.35rem;
   font-weight: 950;
 }
@@ -120,11 +120,11 @@
 .clean-sheet-action-card {
   text-align: left;
   min-height: 104px;
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 12px;
   padding: 14px;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -133,26 +133,26 @@
 }
 
 .clean-sheet-action-card:hover {
-  border-color: rgba(124, 58, 237, 0.42);
-  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(192, 138, 61, 0.42);
+  background: rgba(192, 138, 61, 0.08);
 }
 
 .clean-sheet-action-card strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-weight: 950;
 }
 
 .clean-sheet-action-card span {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   line-height: 1.45;
   font-size: 13px;
 }
 
 .clean-sheet-action-card .clean-sheet-action-type {
   width: fit-content;
-  color: #7C3AED;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.08);
+  color: var(--rq-accent-primary);
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.08);
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 10px;
@@ -171,7 +171,7 @@
   display: grid;
   gap: 7px;
   padding: 13px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(192,138,61,0.12);
 }
 
 .clean-sheet-attack-card-top strong {
@@ -180,7 +180,7 @@
 }
 
 .clean-sheet-attack-details {
-  color: #D1D5DB !important;
+  color: var(--rq-text-secondary) !important;
   font-size: 12px !important;
   line-height: 1.35 !important;
 }
@@ -189,11 +189,11 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(192,138,61,0.12);
 }
 
 .clean-sheet-attack-stat-box {
-  background: #0D1326;
+  background: var(--rq-bg-input);
   border: 0;
   border-radius: 0;
   color: inherit;
@@ -210,8 +210,8 @@ button.clean-sheet-attack-stat-box {
 }
 
 button.clean-sheet-attack-stat-box:hover:not(:disabled) {
-  background: rgba(124, 58, 237, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.36);
+  background: rgba(192, 138, 61, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(224, 177, 92, 0.36);
   transform: translateY(-1px);
 }
 
@@ -221,7 +221,7 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-attack-stat-row span {
-  color: #9CA3AF !important;
+  color: var(--rq-text-muted) !important;
   font-size: 9px !important;
   line-height: 1.1 !important;
   font-weight: 950;
@@ -230,7 +230,7 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-attack-stat-row strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 12px;
   line-height: 1.15;
   overflow-wrap: anywhere;
@@ -246,7 +246,7 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-pending-damage span {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -255,7 +255,7 @@ button.clean-sheet-attack-stat-box:disabled {
   min-height: 42px;
   border: 1px solid rgba(34, 197, 94, 0.45) !important;
   background: rgba(34, 197, 94, 0.12) !important;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 950;
@@ -268,7 +268,7 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-muted {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -279,15 +279,15 @@ button.clean-sheet-attack-stat-box:disabled {
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-main);
+  border: 1px solid var(--rq-border-default);
   border-radius: 10px;
   padding: 10px 12px;
 }
 
 .clean-sheet-combat-summary span,
 .clean-sheet-damage-result span {
-  color: #9CA3AF;
+  color: var(--rq-text-muted);
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 900;
@@ -296,7 +296,7 @@ button.clean-sheet-attack-stat-box:disabled {
 
 .clean-sheet-combat-summary strong,
 .clean-sheet-damage-result strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-weight: 950;
 }
 
@@ -332,8 +332,8 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-fighter-panel {
-  border-color: rgba(34, 211, 238, 0.24);
-  background: linear-gradient(135deg, rgba(13, 18, 36, 0.96), rgba(30, 41, 59, 0.72));
+  border-color: rgba(192, 138, 61, 0.24);
+  background: linear-gradient(135deg, rgba(33, 21, 14, 0.96), rgba(58, 38, 25, 0.72));
 }
 
 .clean-sheet-fighter-heading {
@@ -350,15 +350,15 @@ button.clean-sheet-attack-stat-box:disabled {
 
 .clean-sheet-fighter-heading p {
   margin: 0;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .clean-sheet-fighter-heading > span {
-  border: 1px solid rgba(34, 211, 238, 0.34);
-  background: rgba(34, 211, 238, 0.10);
-  color: #C4B5FD;
+  border: 1px solid rgba(192, 138, 61, 0.34);
+  background: rgba(192, 138, 61, 0.10);
+  color: var(--rq-accent-hover);
   border-radius: 999px;
   padding: 7px 10px;
   font-size: 11px;
@@ -390,7 +390,7 @@ button.clean-sheet-attack-stat-box:disabled {
 .clean-sheet-fighter-stat-grid span,
 .clean-sheet-maneuver-header span {
   display: block;
-  color: #9CA3AF;
+  color: var(--rq-text-muted);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -399,7 +399,7 @@ button.clean-sheet-attack-stat-box:disabled {
 
 .clean-sheet-fighter-stat-grid strong {
   display: block;
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 18px;
   font-weight: 950;
   margin-top: 4px;
@@ -407,7 +407,7 @@ button.clean-sheet-attack-stat-box:disabled {
 
 .clean-sheet-fighter-stat-grid em {
   display: block;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 11px;
   font-style: normal;
   line-height: 1.35;
@@ -422,9 +422,9 @@ button.clean-sheet-attack-stat-box:disabled {
 .clean-sheet-fighter-buttons button,
 .clean-sheet-maneuver-grid button {
   min-height: 42px;
-  border: 1px solid rgba(124, 58, 237, 0.30);
-  background: rgba(124, 58, 237, 0.12);
-  color: #FFFFFF;
+  border: 1px solid rgba(192, 138, 61, 0.30);
+  background: rgba(192, 138, 61, 0.12);
+  color: var(--rq-text-primary);
   border-radius: 12px;
   cursor: pointer;
   font-weight: 950;
@@ -450,7 +450,7 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-maneuver-header strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
 }
 
 .clean-sheet-maneuver-grid {
@@ -466,12 +466,12 @@ button.clean-sheet-attack-stat-box:disabled {
 }
 
 .clean-sheet-maneuver-grid button strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary);
   font-size: 12px;
 }
 
 .clean-sheet-maneuver-grid button span {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary);
   font-size: 11px;
   line-height: 1.35;
 }
