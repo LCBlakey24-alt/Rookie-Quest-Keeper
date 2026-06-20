@@ -2,6 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { buildCharacterCreationPayloadFromTemplate, buildRookSpellLoadoutsForTemplate, getCharacterCreationPayloadWarnings } from '@/data/characterCreationPayload';
+
+const PREPARED_SPELLCASTERS = new Set(['Wizard', 'Cleric', 'Druid', 'Paladin']);
+const PREMADE_SPELL_PLAN_OPTIONS = [
+  { id: 'rook-balanced', label: 'Balanced' },
+  { id: 'rook-healing', label: 'Healing' },
+  { id: 'rook-power', label: 'Power' },
+  { id: 'rook-support', label: 'Support' },
+  { id: 'prepare-later', label: 'Prepare later' },
+];
 
 const ROLE_FILTERS = [
   { key: 'all', label: 'All roles' },
@@ -157,28 +167,12 @@ export default function PremadeCharacterBuilder() {
     try {
       // Fetch full template details (with stats, skills, spells, etc.)
       const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
-      const abilities = full.ability_scores || {};
-      const payload = {
-        name: name.trim(),
-        race: full.race || template.race,
-        subrace: full.subrace || '',
-        character_class: full.character_class || template.character_class,
-        subclass: full.subclass || '',
-        background: full.background || template.background || '',
-        level: 1,
-        alignment: full.alignment || 'Neutral',
-        edition,
-        ruleset_id: rulesetId,
-        strength: abilities.strength ?? 10,
-        dexterity: abilities.dexterity ?? 10,
-        constitution: abilities.constitution ?? 10,
-        intelligence: abilities.intelligence ?? 10,
-        wisdom: abilities.wisdom ?? 10,
-        charisma: abilities.charisma ?? 10,
-        skill_proficiencies: full.skill_proficiencies || [],
-        spells_known: (full.spells_known || []).map(s => typeof s === 'string' ? { name: s } : s),
-        cantrips_known: (full.cantrips_known || []).map(s => typeof s === 'string' ? { name: s } : s),
-      };
+      const spellLoadoutId = spellPlans[template.id] || 'rook-balanced';
+      const payload = buildCharacterCreationPayloadFromTemplate(full, { name, edition, rulesetId, spellLoadoutId });
+      const warnings = getCharacterCreationPayloadWarnings(payload);
+      if (warnings.length) {
+        toast.warning(`Created with ${warnings.length} sheet detail${warnings.length === 1 ? '' : 's'} to review.`);
+      }
       const res = await apiClient.post(`/characters`, payload);
       toast.success('Premade character created');
       navigate(`/characters/${res.data?.character_id}`);
