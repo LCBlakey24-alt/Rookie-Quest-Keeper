@@ -1,16 +1,23 @@
 import { getBarbarianProgressionSummary } from './barbarianProgression';
 import { isBarbarianCharacter } from './barbarianCharacterShape';
-import { getBarbarianSubclassKey, getBarbarianSubclassSummary } from './barbarianSubclasses';
 
-const normaliseRuleset = (character = {}) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
-const normaliseClassName = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
+function normaliseRuleset(character = {}) {
+  return String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+}
+
+function normaliseClassName(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function normaliseSubclass(value = '') {
+  return normaliseClassName(value).replace(/^path_of_/, '').replace(/^path_/, '');
+}
 
 export function getBarbarianClassLevel(character = {}) {
   const directLevel = Number(character?.barbarian_level || character?.barbarianLevel || 0);
   if (directLevel > 0) return directLevel;
 
-  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
+  const classLevels = character?.class_levels || character?.classLevels || character?.multiclass_levels || {};
   const mappedLevel = Number(classLevels.barbarian || classLevels.Barbarian || 0);
   if (mappedLevel > 0) return mappedLevel;
 
@@ -26,20 +33,17 @@ export function getBarbarianSheetSummary(character = {}) {
   const level = getBarbarianClassLevel(character);
   const edition = normaliseRuleset(character);
   const progression = getBarbarianProgressionSummary(level || 1, edition);
-  const subclassKey = getBarbarianSubclassKey(character?.subclass || '');
-  const subclass = getBarbarianSubclassSummary(character?.subclass || '', level || 1, edition);
+  const constitutionMod = Math.floor((Number(character?.constitution || 10) - 10) / 2);
+  const dexterityMod = Math.floor((Number(character?.dexterity || 10) - 10) / 2);
+  const unarmoredDefenseAc = 10 + dexterityMod + constitutionMod;
   const rageUses = progression.rageUses;
 
   return {
     className: 'Barbarian',
     edition,
     level,
-    subclassKey,
-    subclassLabel: subclass?.label || character?.subclass || (level >= 3 ? 'Choose/record Primal Path' : 'None yet'),
-    subclassRole: subclass?.role || '',
-    subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
-    subclassFeatures: subclass?.activeFeatures || [],
-    nextSubclassFeatures: subclass?.nextFeatures || [],
+    subclassKey: normaliseSubclass(character?.subclass || ''),
+    subclassLabel: character?.subclass || (level >= 3 ? 'Choose/record Primal Path' : 'None yet'),
     rageUses,
     rageUsesLabel: rageUses === Infinity ? 'Unlimited' : String(rageUses),
     rageDamageBonus: progression.rageDamageBonus,
@@ -47,7 +51,7 @@ export function getBarbarianSheetSummary(character = {}) {
     brutalCriticalLabel: edition === '2024'
       ? (level >= 9 ? 'Brutal Strike online' : 'Not yet')
       : (progression.brutalCriticalDice > 0 ? `+${progression.brutalCriticalDice} weapon damage dice` : 'Not yet'),
-    unarmoredDefenseAc: 10 + abilityMod(character?.dexterity) + abilityMod(character?.constitution),
+    unarmoredDefenseAc,
     recklessAttack: level >= 2,
     dangerSense: level >= 2,
     extraAttack: level >= 5,

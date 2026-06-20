@@ -6,7 +6,7 @@ from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from starlette.middleware.cors import CORSMiddleware
 import logging
 
-from config import client, logger, CORS_ORIGIN_LIST
+from config import client, db, logger, CORS_ORIGIN_LIST
 from utils.ws_manager import ws_manager
 from utils.auth import verify_token, verify_campaign_membership
 from utils.rate_limit import RateLimitMiddleware

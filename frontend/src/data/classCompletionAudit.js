@@ -3,6 +3,13 @@ import * as barbarianPackage from './barbarianPackage';
 import * as roguePackage from './roguePackage';
 import * as monkPackage from './monkPackage';
 import * as paladinPackage from './paladinPackage';
+import * as rangerPackage from './rangerPackage';
+import * as bardPackage from './bardPackage';
+import * as clericPackage from './clericPackage';
+import * as druidPackage from './druidPackage';
+import * as wizardPackage from './wizardPackage';
+import * as warlockPackage from './warlockPackage';
+import * as sorcererPackage from './sorcererPackage';
 import { CLASS_COMPLETION_CHECKLIST, getClassCompletionDashboard } from './classCompletionStatus';
 
 const PACKAGE_BY_CLASS = {
@@ -11,6 +18,13 @@ const PACKAGE_BY_CLASS = {
   Rogue: roguePackage,
   Monk: monkPackage,
   Paladin: paladinPackage,
+  Ranger: rangerPackage,
+  Bard: bardPackage,
+  Cleric: clericPackage,
+  Druid: druidPackage,
+  Wizard: wizardPackage,
+  Warlock: warlockPackage,
+  Sorcerer: sorcererPackage,
 };
 
 const EXPECTED_EXPORTS_BY_CHECKLIST = {
