@@ -21,17 +21,17 @@ import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
 import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 
 const rq = {
-  bg: 'var(--rq-bg-main, #080B1A)',
-  panel: 'var(--rq-bg-panel, #12172A)',
-  input: 'var(--rq-bg-input, #0D1224)',
-  border: 'var(--rq-accent-border, rgba(124,58,237,0.32))',
-  borderDefault: 'var(--rq-border-default, rgba(191,219,254,0.14))',
-  accent: 'var(--rq-accent-primary, #7C3AED)',
-  accentHover: 'var(--rq-accent-hover, #A78BFA)',
-  accentSoft: 'var(--rq-accent-soft, rgba(124,58,237,0.14))',
-  text: 'var(--rq-text-primary, #FFFFFF)',
-  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
-  muted: 'var(--rq-text-muted, #A0A0A0)',
+  bg: 'var(--rq-bg-main, #120C08)',
+  panel: 'var(--rq-bg-panel, #21150E)',
+  input: 'var(--rq-bg-input, #1A100B)',
+  border: 'var(--rq-accent-border, rgba(192,138,61,0.32))',
+  borderDefault: 'var(--rq-border-default, rgba(192,138,61,0.14))',
+  accent: 'var(--rq-accent-primary, #C08A3D)',
+  accentHover: 'var(--rq-accent-hover, #E0B15C)',
+  accentSoft: 'var(--rq-accent-soft, rgba(192,138,61,0.14))',
+  text: 'var(--rq-text-primary, #F5E6C8)',
+  textSecondary: 'var(--rq-text-secondary, #E6D2AA)',
+  muted: 'var(--rq-text-muted, #CDBA98)',
   radius: 'var(--rq-radius-md, 6px)',
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
@@ -434,7 +434,7 @@ const eyebrowStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, let
 const titleStyle = { color: rq.text, fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
 const subtitleStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.5, margin: '8px 0 0', maxWidth: 720 };
 const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' };
-const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(420px, 0.9fr)', gap: '18px', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(56,189,248,0.10), rgba(193,18,31,0.06))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '18px', marginBottom: '18px', boxShadow: '0 18px 50px rgba(0,0,0,0.20)' };
+const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(420px, 0.9fr)', gap: '18px', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(164,90,50,0.10), rgba(193,18,31,0.06))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '18px', marginBottom: '18px', boxShadow: '0 18px 50px rgba(0,0,0,0.20)' };
 const desktopTitleStyle = { color: rq.text, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
 const desktopTextStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.55, margin: '8px 0 0', maxWidth: 760 };
 const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px', minWidth: 0 };

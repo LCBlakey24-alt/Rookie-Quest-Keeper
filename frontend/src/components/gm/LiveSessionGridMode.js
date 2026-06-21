@@ -23,17 +23,17 @@ import {
 } from 'lucide-react';
 
 const rq = {
-  panel: 'var(--rq-bg-panel, #242424)',
-  input: 'var(--rq-bg-input, #1F1F1F)',
-  elevated: 'var(--rq-bg-elevated, #323232)',
-  border: 'var(--rq-accent-border, rgba(124,58,237,0.42))',
-  borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #7C3AED)',
-  accentHover: 'var(--rq-accent-hover, #A78BFA)',
-  accentSoft: 'var(--rq-accent-soft, rgba(124,58,237,0.12))',
-  text: 'var(--rq-text-primary, #FFFFFF)',
-  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
-  muted: 'var(--rq-text-muted, #A0A0A0)',
+  panel: 'var(--rq-bg-panel, #21150E)',
+  input: 'var(--rq-bg-input, #1A100B)',
+  elevated: 'var(--rq-bg-elevated, #3A2619)',
+  border: 'var(--rq-accent-border, rgba(192,138,61,0.42))',
+  borderDefault: 'var(--rq-border-default, rgba(192,138,61,0.22))',
+  accent: 'var(--rq-accent-primary, #C08A3D)',
+  accentHover: 'var(--rq-accent-hover, #E0B15C)',
+  accentSoft: 'var(--rq-accent-soft, rgba(192,138,61,0.12))',
+  text: 'var(--rq-text-primary, #F5E6C8)',
+  textSecondary: 'var(--rq-text-secondary, #E6D2AA)',
+  muted: 'var(--rq-text-muted, #CDBA98)',
   radius: 'var(--rq-radius-md, 6px)',
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
@@ -247,7 +247,7 @@ const titleStyle = { color: rq.text, fontSize: 17, fontWeight: 900, display: 'fl
 const subtitleStyle = { color: rq.muted, fontSize: 11, margin: '2px 0 0' };
 const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' };
 const countPickerStyle = { display: 'flex', border: `1px solid ${rq.border}`, background: rq.input, borderRadius: 0, overflow: 'hidden' };
-const countButtonStyle = (active) => ({ minWidth: 30, height: 30, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? '#FFFFFF' : rq.textSecondary, fontWeight: 900, cursor: 'pointer', fontSize: 12 });
+const countButtonStyle = (active) => ({ minWidth: 30, height: 30, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? 'var(--rq-text-primary, #F5E6C8)' : rq.textSecondary, fontWeight: 900, cursor: 'pointer', fontSize: 12 });
 const resetButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 9px', borderRadius: 0, fontWeight: 900, cursor: 'pointer', fontSize: 12 };
 const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
 const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', padding: '6px 8px', borderBottom: `1px solid ${rq.border}`, background: rq.input, flexShrink: 0 };

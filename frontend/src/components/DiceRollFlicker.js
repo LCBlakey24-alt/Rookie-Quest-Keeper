@@ -4,18 +4,18 @@ import { Dices } from 'lucide-react';
 
 const palette = {
   player: {
-    bg: 'rgba(10, 22, 40, 0.96)',
-    border: 'rgba(124, 58, 237, 0.46)',
-    accent: '#A78BFA',
-    text: '#F8FAFC',
-    muted: '#94A3B8',
+    bg: 'rgba(33, 21, 14, 0.96)',
+    border: 'rgba(192, 138, 61, 0.46)',
+    accent: '#E0B15C',
+    text: '#F5E6C8',
+    muted: '#CDBA98',
   },
   gm: {
-    bg: 'rgba(10, 22, 40, 0.97)',
-    border: 'rgba(124, 58, 237, 0.52)',
-    accent: '#A78BFA',
-    text: '#F8FAFC',
-    muted: '#CBD5E1',
+    bg: 'rgba(33, 21, 14, 0.97)',
+    border: 'rgba(192, 138, 61, 0.52)',
+    accent: '#E0B15C',
+    text: '#F5E6C8',
+    muted: '#E6D2AA',
   },
 };
 

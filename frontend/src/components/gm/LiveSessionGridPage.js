@@ -26,27 +26,31 @@ import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 
 const theme = {
   bg: {
-    primary: '#1F1F23',
-    surface: '#27272B',
-    elevated: '#323235',
-    panel: '#27272B',
-    card: '#27272B',
-    hover: 'rgba(124, 58, 237, 0.12)',
+    primary: 'var(--rq-bg-main, #120C08)',
+    surface: 'var(--rq-bg-panel, #21150E)',
+    elevated: 'var(--rq-bg-panel-alt, #2E1D13)',
+    panel: 'var(--rq-bg-panel, #21150E)',
+    card: 'var(--rq-bg-panel-alt, #2E1D13)',
+    hover: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
   },
   accent: {
-    primary: '#7C3AED',
-    secondary: '#B91C1C',
-    gold: '#7C3AED',
-    orange: '#A78BFA',
-    hover: '#A78BFA',
-    subtle: 'rgba(124, 58, 237, 0.12)',
+    primary: 'var(--rq-accent-primary, #C08A3D)',
+    secondary: 'var(--rq-accent-active, #A45A32)',
+    gold: 'var(--rq-accent-primary, #C08A3D)',
+    orange: 'var(--rq-accent-hover, #E0B15C)',
+    hover: 'var(--rq-accent-hover, #E0B15C)',
+    subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
     glow: 'none',
-    gm: '#7C3AED',
-    gmSubtle: 'rgba(124, 58, 237, 0.12)',
+    gm: 'var(--rq-accent-primary, #C08A3D)',
+    gmSubtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
   },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124, 58, 237, 0.42)',
-  gradient: '#7C3AED',
+  text: {
+    primary: 'var(--rq-text-primary, #F5E6C8)',
+    secondary: 'var(--rq-text-secondary, #E6D2AA)',
+    muted: 'var(--rq-text-muted, #CDBA98)'
+  },
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+  gradient: 'var(--rq-accent-primary, #C08A3D)',
 };
 
 export default function LiveSessionGridPage() {
@@ -322,6 +326,6 @@ const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 90
 const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(17px, 1.5vw, 20px)', fontWeight: 900, margin: 0, minWidth: 0 };
 const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
 const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
-const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
+const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 10, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
 const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
 const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer' };
