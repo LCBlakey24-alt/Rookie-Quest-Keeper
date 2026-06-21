@@ -19,6 +19,7 @@ import '@/styles/cleanInventoryTab.css';
 import '@/styles/cleanSpellsTab.css';
 import '@/styles/cleanNotesTab.css';
 import '@/styles/levelUpCleanStyle.css';
+import '@/styles/siteVelvetTheme.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
