@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   User, Sword, Shield, Sparkles, Dices, ChevronLeft, ChevronRight,
   Save, RotateCcw, BookOpen, Check, Wand2,
-  Scroll, Award, Languages, Backpack
+  Scroll, Award, Backpack
 } from "lucide-react";
 import {
   ABILITIES,
@@ -23,6 +23,7 @@ import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
 import ClassSubclassPicker from "./builder/ClassSubclassPicker";
 import BackgroundStep from "./builder/full/BackgroundStep";
+import RaceStep from "./builder/full/RaceStep";
 import { DetailPanel, InfoBanner, Pill, PreviewStat, SelectCard, StepHeader } from "./character-builder/BuilderPrimitives";
 import { builderTheme as theme, detailHeaderStyle, traitChipStyle } from "./character-builder/builderTheme";
 
@@ -734,162 +735,26 @@ const subclassLabel = {
   );
 
   const renderRaceStep = () => (
-    <div>
-      <StepHeader icon={User} title="Choose Your Race" subtitle="Your ancestry shapes your traits and abilities" color={theme.sunset.pink} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(mergedRaces).map(([key, r]) => (
-          <SelectCard
-            key={key} active={race === key} onClick={() => setRace(key)}
-            color={theme.sunset.pink}
-            title={r.name}
-            subtitle={r.description}
-            data-testid={`race-${key}`}
-            footer={
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                <Pill icon="🏃">{r.speed}ft</Pill>
-                <Pill icon="📐">{r.size}</Pill>
-                {edition === '2014' && r.asi2014 && (
-                  <Pill icon="✨">{r.asi2014.all
-                    ? `+${r.asi2014.all} All`
-                    : Object.entries(r.asi2014).filter(([k]) => k !== 'choice').map(([k, v]) => `+${v} ${k.slice(0, 3).toUpperCase()}`).join(' ')}</Pill>
-                )}
-              </div>
-            }
-          />
-        ))}
-      </div>
-
-      {raceData && (
-        <DetailPanel title={`${raceData.name} Traits`} color={theme.sunset.pink}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px' }}>
-            {raceData.traits.map((t, i) => (
-              <div key={i} style={traitChipStyle}><Sparkles size={12} style={{ flexShrink: 0 }} /> {t}</div>
-            ))}
-          </div>
-          {raceData.languages && (
-            <div style={{ fontSize: '13px', color: theme.text.secondary, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Languages size={14} /> Languages: {raceData.languages.join(', ')}
-            </div>
-          )}
-        </DetailPanel>
-      )}
-
-      {availableSubraces.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <label style={labelStyle}>Choose Subrace</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-            {availableSubraces.map(sr => {
-              const sub = raceData.subraces[sr];
-              return (
-                <SelectCard
-                  key={sr} active={subrace === sr} onClick={() => setSubrace(sr)}
-                  color={theme.sunset.pink}
-                  title={sr}
-                  subtitle={(sub.traits || []).slice(0, 1).join(', ') || 'Subrace'}
-                  data-testid={`subrace-${sr}`}
-                  footer={
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                      {edition === '2014' && sub.asi2014 && Object.entries(sub.asi2014).map(([k, v]) => (
-                        <Pill key={k} icon="✨">+{v} {k.slice(0, 3).toUpperCase()}</Pill>
-                      ))}
-                    </div>
-                  }
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Floating ASI picker (Half-Elf 2014: +1 to two abilities of your choice) */}
-      {edition === '2014' && floatingAsiBudget > 0 && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Distribute {floatingAsiBudget} floating +1{floatingAsiBudget === 1 ? '' : 's'}
-            {' — '}
-            <span style={{ color: totalFloatingSpent === floatingAsiBudget ? theme.success : (theme.accent?.primary || theme.accent), textTransform: 'none' }}>
-              {totalFloatingSpent}/{floatingAsiBudget} assigned
-            </span>
-          </label>
-          <div style={{ fontSize: 12, color: theme.text.muted, marginBottom: 8 }}>
-            Pick {floatingAsiBudget} different abilities to each gain +1. Cannot stack on the same ability.
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
-            {ABILITIES.map(a => {
-              const fixed = (raceData?.asi2014?.[a] || 0) > 0; // fixed bonus already
-              const chosen = !!floatingAsi[a];
-              const disabled = fixed;
-              return (
-                <button
-                  key={a} type="button" disabled={disabled}
-                  data-testid={`floating-asi-${a}`}
-                  onClick={() => {
-                    setFloatingAsi(prev => {
-                      const next = { ...prev };
-                      if (next[a]) delete next[a];
-                      else if (totalFloatingSpent < floatingAsiBudget) next[a] = 1;
-                      else toast.info(`Only ${floatingAsiBudget} floating +1s allowed`);
-                      return next;
-                    });
-                  }}
-                  style={{
-                    padding: '8px 10px', borderRadius: 8,
-                    background: chosen ? 'rgba(16, 185, 129, 0.18)' : disabled ? theme.accent.soft : theme.bg.surface,
-                    border: `1px solid ${chosen ? theme.success : disabled ? theme.accent.line : theme.border}`,
-                    color: disabled ? theme.text.muted : theme.text.primary,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    opacity: disabled ? 0.5 : 1, fontSize: 12, fontWeight: 600
-                  }}>
-                  {chosen ? '✓ ' : ''}{a.charAt(0).toUpperCase() + a.slice(1)}
-                  {fixed && <span style={{ fontSize: 9, display: 'block', color: theme.text.muted }}>Already +{raceData.asi2014[a]}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Language picker (for races with "One of choice") */}
-      {languageBudget > 0 && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Choose {languageBudget} extra language{languageBudget === 1 ? '' : 's'}
-            {' — '}
-            <span style={{ color: chosenLanguages.length === languageBudget ? theme.success : (theme.accent?.primary || theme.accent), textTransform: 'none' }}>
-              {chosenLanguages.length}/{languageBudget} picked
-            </span>
-          </label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {EXTRA_LANGUAGE_OPTIONS.filter(l => !(raceData?.languages || []).includes(l)).map(lang => {
-              const sel = chosenLanguages.includes(lang);
-              return (
-                <button
-                  key={lang} type="button"
-                  data-testid={`language-${lang.toLowerCase()}`}
-                  onClick={() => {
-                    setChosenLanguages(prev => {
-                      if (prev.includes(lang)) return prev.filter(l => l !== lang);
-                      if (prev.length >= languageBudget) {
-                        toast.info(`Only ${languageBudget} language${languageBudget === 1 ? '' : 's'} can be chosen`);
-                        return prev;
-                      }
-                      return [...prev, lang];
-                    });
-                  }}
-                  style={{
-                    padding: '5px 10px', borderRadius: 6, fontSize: 12,
-                    background: sel ? theme.accent.soft : theme.bg.surface,
-                    border: `1px solid ${sel ? (theme.accent?.primary || theme.accent) : theme.border}`,
-                    color: theme.text.primary, cursor: 'pointer'
-                  }}>
-                  {sel ? '✓ ' : ''}{lang}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <RaceStep
+      mergedRaces={mergedRaces}
+      race={race}
+      setRace={setRace}
+      raceData={raceData}
+      subrace={subrace}
+      setSubrace={setSubrace}
+      availableSubraces={availableSubraces}
+      edition={edition}
+      floatingAsi={floatingAsi}
+      setFloatingAsi={setFloatingAsi}
+      floatingAsiBudget={floatingAsiBudget}
+      totalFloatingSpent={totalFloatingSpent}
+      languageBudget={languageBudget}
+      chosenLanguages={chosenLanguages}
+      setChosenLanguages={setChosenLanguages}
+      extraLanguageOptions={EXTRA_LANGUAGE_OPTIONS}
+      theme={theme}
+      labelStyle={labelStyle}
+    />
   );
 
   const renderClassStep = () => (
