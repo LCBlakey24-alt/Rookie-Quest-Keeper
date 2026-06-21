@@ -69,6 +69,131 @@ const productPreviews = [
   }
 ];
 
+const updateStyles = {
+  section: {
+    width: 'min(1240px, calc(100% - 40px))',
+    margin: '0 auto 34px',
+    padding: '18px',
+    border: '1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))',
+    borderRadius: '12px',
+    background: 'linear-gradient(135deg, rgba(33, 21, 14, 0.94), rgba(46, 29, 19, 0.92))',
+    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.28)',
+  },
+  heading: {
+    display: 'grid',
+    gap: '8px',
+    marginBottom: '14px',
+  },
+  headingTitle: {
+    margin: 0,
+    color: 'var(--rq-text-primary, #F5E6C8)',
+    fontSize: 'clamp(24px, 3vw, 34px)',
+    lineHeight: 1.08,
+    fontWeight: 900,
+  },
+  headingText: {
+    margin: 0,
+    maxWidth: '760px',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+    fontSize: '14px',
+    lineHeight: 1.55,
+    fontWeight: 500,
+  },
+  list: {
+    display: 'grid',
+    gap: '10px',
+  },
+  card: {
+    position: 'relative',
+    overflow: 'hidden',
+    border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+    borderRadius: '10px',
+    background: 'rgba(18, 12, 8, 0.58)',
+  },
+  toggle: {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr)',
+    gap: '12px',
+    alignItems: 'start',
+    padding: '14px 48px 14px 14px',
+    border: 0,
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  chevron: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    borderRadius: '999px',
+    color: 'var(--rq-accent-hover, #E0B15C)',
+    background: 'rgba(192, 138, 61, 0.12)',
+    border: '1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))',
+    transition: 'transform 0.18s ease',
+  },
+  meta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '7px',
+    alignItems: 'center',
+    marginBottom: '6px',
+    color: 'var(--rq-text-muted, #CDBA98)',
+    fontSize: '11px',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+  },
+  badge: {
+    color: 'var(--rq-text-inverse, #120C08)',
+    background: 'var(--rq-accent-primary, #C08A3D)',
+    borderRadius: '999px',
+    padding: '2px 7px',
+    fontSize: '10px',
+    fontWeight: 900,
+  },
+  title: {
+    display: 'block',
+    color: 'var(--rq-text-primary, #F5E6C8)',
+    fontSize: '17px',
+    lineHeight: 1.25,
+    fontWeight: 900,
+  },
+  summary: {
+    display: 'block',
+    marginTop: '5px',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+    fontSize: '13px',
+    lineHeight: 1.5,
+    fontWeight: 500,
+  },
+  dismiss: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '30px',
+    height: '30px',
+    border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+    borderRadius: '999px',
+    color: 'var(--rq-text-muted, #CDBA98)',
+    background: 'rgba(18, 12, 8, 0.74)',
+    cursor: 'pointer',
+  },
+  details: {
+    margin: '0 14px 14px 58px',
+    padding: '12px 14px',
+    borderLeft: '2px solid var(--rq-accent-primary, #C08A3D)',
+    borderRadius: '8px',
+    background: 'rgba(192, 138, 61, 0.08)',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+  },
+};
+
 function readDismissedUpdateIds() {
   if (typeof window === 'undefined') return [];
 
@@ -228,41 +353,41 @@ function LandingUpdatesPanel() {
   if (!updates.length) return null;
 
   return (
-    <section className="landing-updates" aria-label="Latest Rookie Quest Keeper updates">
-      <div className="landing-updates-heading">
+    <section className="landing-updates" style={updateStyles.section} aria-label="Latest Rookie Quest Keeper updates">
+      <div style={updateStyles.heading}>
         <span className="landing-kicker">Latest updates</span>
-        <h2>What’s new at the table</h2>
-        <p>Quick, player-friendly notes. Expand an update for the details or dismiss it once you’ve seen enough.</p>
+        <h2 style={updateStyles.headingTitle}>What’s new at the table</h2>
+        <p style={updateStyles.headingText}>Quick, player-friendly notes. Expand an update for the details or dismiss it once you’ve seen enough.</p>
       </div>
 
-      <div className="landing-updates-list">
+      <div style={updateStyles.list}>
         {updates.map((update) => {
           const isExpanded = expandedId === update.id;
           return (
-            <article key={update.id} className={`landing-update-card ${isExpanded ? 'landing-update-card-expanded' : ''}`}>
+            <article key={update.id} style={updateStyles.card}>
               <button
                 type="button"
-                className="landing-update-toggle"
+                style={updateStyles.toggle}
                 aria-expanded={isExpanded}
                 onClick={() => setExpandedId(isExpanded ? null : update.id)}
               >
-                <span className="landing-update-chevron" aria-hidden="true">
+                <span style={{ ...updateStyles.chevron, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} aria-hidden="true">
                   <ChevronDown size={18} />
                 </span>
-                <span className="landing-update-copy">
-                  <span className="landing-update-meta">
+                <span>
+                  <span style={updateStyles.meta}>
                     <span>{update.date}</span>
                     <span>{update.category}</span>
-                    <strong>{update.badge}</strong>
+                    <strong style={updateStyles.badge}>{update.badge}</strong>
                   </span>
-                  <span className="landing-update-title">{update.title}</span>
-                  <span className="landing-update-summary">{update.summary}</span>
+                  <span style={updateStyles.title}>{update.title}</span>
+                  <span style={updateStyles.summary}>{update.summary}</span>
                 </span>
               </button>
 
               <button
                 type="button"
-                className="landing-update-dismiss"
+                style={updateStyles.dismiss}
                 aria-label={`Dismiss update: ${update.title}`}
                 onClick={() => dismissUpdate(update.id)}
               >
@@ -270,10 +395,10 @@ function LandingUpdatesPanel() {
               </button>
 
               {isExpanded && update.details?.length > 0 && (
-                <div className="landing-update-details">
-                  <ul>
+                <div style={updateStyles.details}>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
                     {update.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
+                      <li key={detail} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.5 }}>{detail}</li>
                     ))}
                   </ul>
                 </div>
