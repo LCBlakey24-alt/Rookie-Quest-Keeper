@@ -14,9 +14,9 @@
 .clean-sheet-inventory-header button,
 .clean-sheet-add-item-form button {
   min-height: 38px;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.10);
-  color: #FFFFFF;
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.10);
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 10px;
   cursor: pointer;
   font-weight: 900;
@@ -30,7 +30,7 @@
   min-height: 42px;
   border: 1px solid rgba(255,255,255,0.12);
   background: #070B18;
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 10px;
   padding: 8px 10px;
   font-weight: 800;
@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary, #E6D2AA);
   font-size: 13px;
   font-weight: 800;
 }
@@ -90,8 +90,8 @@
 }
 
 .clean-sheet-item-card.favorite {
-  border-color: rgba(124,58,237,0.42);
-  box-shadow: 0 0 0 1px rgba(124,58,237,0.08);
+  border-color: rgba(192,138,61,0.42);
+  box-shadow: 0 0 0 1px rgba(192,138,61,0.08);
 }
 
 .clean-sheet-item-card.consumable {
@@ -110,20 +110,20 @@
 }
 
 .clean-sheet-item-card strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   font-weight: 950;
   line-height: 1.2;
 }
 
 .clean-sheet-item-card p {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary, #E6D2AA);
   line-height: 1.45;
   font-size: 13px;
   margin: 0;
 }
 
 .clean-sheet-item-card em {
-  color: #7C3AED;
+  color: var(--rq-accent-primary, #C08A3D);
   font-style: normal;
   font-size: 12px;
   font-weight: 900;
@@ -133,9 +133,9 @@
 
 .clean-sheet-item-slot {
   width: fit-content;
-  color: #7C3AED;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.08);
+  color: var(--rq-accent-primary, #C08A3D);
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.08);
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 10px;
@@ -145,7 +145,7 @@
 }
 
 .clean-sheet-item-slot.favorite {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   background: rgba(239,68,68,0.22);
 }
 
@@ -166,9 +166,9 @@
 .clean-sheet-item-actions button {
   min-height: 34px;
   padding: 7px 9px;
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.08);
-  color: #FFFFFF;
+  border: 1px solid rgba(192, 138, 61, 0.28);
+  background: rgba(192, 138, 61, 0.08);
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 8px;
   cursor: pointer;
   font-weight: 800;
@@ -178,8 +178,8 @@
 .clean-sheet-item-actions button:hover:not(:disabled),
 .clean-sheet-inventory-header button:hover,
 .clean-sheet-add-item-form button:hover {
-  border-color: rgba(124, 58, 237, 0.55);
-  background: rgba(124, 58, 237, 0.16);
+  border-color: rgba(192, 138, 61, 0.55);
+  background: rgba(192, 138, 61, 0.16);
 }
 
 .clean-sheet-item-actions button:disabled,
@@ -212,7 +212,7 @@
 }
 
 .clean-sheet-currency-grid strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   font-weight: 950;
   font-size: 1.2rem;
 }
