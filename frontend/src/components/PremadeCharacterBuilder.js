@@ -495,6 +495,8 @@ const createFromTemplate = async (template) => {
 }
 
 function HeroCard({ template, selected, suggested, busy, creating, onSelect, onCreate }) {
+  const [showBackstory, setShowBackstory] = useState(false);
+
   return (
     <article className={`premade-card ${selected ? 'selected' : ''}`} data-testid={`template-${template.id}`}>
       <button type="button" onClick={onSelect} className="premade-card-main">
@@ -523,15 +525,32 @@ function HeroCard({ template, selected, suggested, busy, creating, onSelect, onC
         </div>
       </button>
 
-      <button
-        disabled={busy}
-        onClick={onCreate}
-        data-testid={`use-template-${template.id}`}
-        className="premade-card-create"
-        type="button"
-      >
-        {creating ? 'Creating…' : 'Use Hero'}
-      </button>
+      {showBackstory && (
+        <div className="premade-card-backstory">
+          <strong>Brief backstory</strong>
+          <p>{getBriefBackstory(template)}</p>
+        </div>
+      )}
+
+      <div className="premade-card-actions">
+        <button
+          type="button"
+          onClick={() => setShowBackstory(current => !current)}
+          className="premade-card-secondary"
+        >
+          {showBackstory ? 'Hide Backstory' : 'Brief Backstory'}
+        </button>
+
+        <button
+          disabled={busy}
+          onClick={onCreate}
+          data-testid={`use-template-${template.id}`}
+          className="premade-card-create"
+          type="button"
+        >
+          {creating ? 'Creating…' : 'Choose Hero'}
+        </button>
+      </div>
     </article>
   );
 }
