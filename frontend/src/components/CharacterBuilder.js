@@ -137,6 +137,16 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const [step, setStep] = useState(editMode ? 0 : (initialState.step || 0));
   const [isEditMode] = useState(editMode);
   const [loadingCharacter, setLoadingCharacter] = useState(editMode);
+  const [isBuilderNarrow, setIsBuilderNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const media = window.matchMedia('(max-width: 900px)');
+    const onChange = () => setIsBuilderNarrow(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
   const [name, setName] = useState(initialState.name);
   const [race, setRace] = useState(initialState.race);
   const [subrace, setSubrace] = useState(initialState.subrace);
@@ -1323,7 +1333,7 @@ const subclassLabel = {
         {/* 2-column: builder panel + sticky live preview */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(220px, 280px)',
+          gridTemplateColumns: isBuilderNarrow ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(220px, 280px)',
           gap: 16,
           marginTop: '16px',
           alignItems: 'flex-start',

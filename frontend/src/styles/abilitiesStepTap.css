@@ -1,5 +1,5 @@
 .ability-step-tap {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -16,7 +16,7 @@
 }
 
 .ability-step-header strong {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   font-size: 22px;
   font-weight: 900;
   line-height: 1.1;
@@ -24,7 +24,7 @@
 
 .ability-step-header p {
   margin: 0;
-  color: #D1D5DB;
+  color: var(--rq-text-secondary, #E6D2AA);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -39,9 +39,9 @@
 .ability-method-grid button {
   min-height: 86px;
   text-align: left;
-  background: #0D1326;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
+  background: var(--rq-bg-panel, #21150E);
+  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 12px;
   padding: 14px;
   cursor: pointer;
@@ -69,7 +69,7 @@
 .ability-pool-header span,
 .ability-score-pool p,
 .ability-preview > span {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary, #E6D2AA);
   font-size: 13px;
   line-height: 1.35;
 }
@@ -99,13 +99,40 @@
   gap: 6px;
   min-height: 38px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
+  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 8px;
   padding: 7px 10px;
   cursor: pointer;
   font: inherit;
   font-weight: 800;
+}
+
+.ability-roll-animation {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(34px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ability-roll-animation span {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--rq-bg-input, #1A100B);
+  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  color: var(--rq-text-muted, #CDBA98);
+  font-size: 20px;
+  font-weight: 950;
+  transition: transform 0.08s ease, border-color 0.08s ease, color 0.08s ease;
+}
+
+.ability-roll-animation span.active {
+  color: var(--rq-accent-hover, #E0B15C);
+  border-color: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
+  transform: translateY(-1px);
 }
 
 .ability-score-pool {
@@ -114,16 +141,16 @@
   gap: 10px;
   margin-bottom: 16px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: var(--rq-bg-muted, rgba(192, 138, 61, 0.08));
+  border: 1px dashed var(--rq-border-subtle, rgba(192, 138, 61, 0.14));
   border-radius: 12px;
 }
 
 .ability-score-pool button {
   min-height: 58px;
-  background: #070B18;
-  color: #FFFFFF;
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: var(--rq-bg-input, #1A100B);
+  color: var(--rq-text-primary, #F5E6C8);
+  border: 2px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
   border-radius: 12px;
   font-size: 22px;
   font-weight: 950;
@@ -144,8 +171,8 @@
 
 .ability-score-card {
   min-height: 158px;
-  background: #0D1326;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--rq-bg-panel, #21150E);
+  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
   border-radius: 14px;
   padding: 14px;
   display: grid;
@@ -160,7 +187,7 @@
 }
 
 .ability-score-card > span {
-  color: #9CA3AF;
+  color: var(--rq-text-muted, #CDBA98);
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -180,7 +207,7 @@
   min-width: 44px;
   background: rgba(192, 138, 61, 0.10);
   border: 1px solid rgba(192, 138, 61, 0.28);
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 10px;
   cursor: pointer;
   font: inherit;
@@ -194,7 +221,7 @@
 
 .ability-stepper strong,
 .ability-assignment {
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   font-size: 24px;
   font-weight: 950;
   text-align: center;
@@ -213,9 +240,9 @@
 .ability-score-card input {
   width: 100%;
   min-height: 50px;
-  background: #070B18;
+  background: var(--rq-bg-input, #1A100B);
   border: 1px solid rgba(192, 138, 61, 0.35);
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   border-radius: 10px;
   text-align: center;
   font-size: 22px;
@@ -224,7 +251,7 @@
 }
 
 .ability-score-card em {
-  color: #22C55E;
+  color: var(--rq-success, #7A9B66);
   font-size: 12px;
   font-style: normal;
   font-weight: 900;
@@ -239,8 +266,8 @@
 .ability-preview {
   margin-top: 18px;
   padding: 14px;
-  background: #0D1326;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--rq-bg-panel, #21150E);
+  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
   border-radius: 14px;
 }
 
@@ -264,8 +291,8 @@
   grid-template-columns: auto 1fr;
   gap: 4px 8px;
   align-items: center;
-  background: #070B18;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--rq-bg-input, #1A100B);
+  border: 1px solid var(--rq-border-subtle, rgba(192, 138, 61, 0.14));
   border-radius: 10px;
   padding: 10px;
 }
@@ -275,7 +302,7 @@
 }
 
 .ability-preview-stat span {
-  color: #9CA3AF;
+  color: var(--rq-text-muted, #CDBA98);
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
@@ -283,7 +310,7 @@
 
 .ability-preview-stat strong {
   grid-column: 2;
-  color: #FFFFFF;
+  color: var(--rq-text-primary, #F5E6C8);
   font-weight: 950;
 }
 

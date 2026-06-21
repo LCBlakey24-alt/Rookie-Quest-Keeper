@@ -143,11 +143,29 @@ function AdminPage() {
         </div>
 
         {isMobile && (
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="admin-tab-select" style={{ display: 'block', color: theme.text.muted, marginBottom: 6, fontSize: 12 }}>Admin section</label>
-            <select id="admin-tab-select" value={activeTab} onChange={(e) => setActiveTab(e.target.value)} style={{ width: '100%', background: theme.bg.tab, color: theme.text.white, border: `1px solid ${theme.borderStrong}`, padding: '12px 10px' }}>
-              {tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
-            </select>
+          <div style={mobileTabGridStyle} role="tablist" aria-label="Admin sections">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  data-testid={`admin-mobile-tab-${tab.id}`}
+                  aria-pressed={isActive}
+                  style={{
+                    ...mobileTabButtonStyle,
+                    background: isActive ? theme.goldSoft : theme.bg.tab,
+                    borderColor: isActive ? theme.gold : theme.border,
+                    color: isActive ? theme.gold : theme.text.muted
+                  }}
+                >
+                  <Icon size={15} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -182,6 +200,9 @@ const adminTitleStyle = { fontSize: 'clamp(22px, 7vw, 28px)', color: theme.text.
 const adminSubtitleStyle = { color: theme.text.muted, marginTop: 4, fontSize: 14, lineHeight: 1.45 };
 const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(145px, 100%), 1fr))', gap: 12, marginBottom: 24 };
 const tabBarStyle = { display: 'flex', gap: 0, marginBottom: 24, flexWrap: 'wrap', overflowX: 'auto' };
+const mobileTabGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 18 };
+const mobileTabButtonStyle = { minHeight: 48, border: `1px solid ${theme.border}`, borderRadius: 10, padding: '9px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 800, cursor: 'pointer', minWidth: 0 };
+
 const contentWrapStyle = { minWidth: 0, overflow: 'hidden' };
 const adminPanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 'clamp(14px, 4vw, 24px)', minWidth: 0, overflow: 'hidden' };
 
