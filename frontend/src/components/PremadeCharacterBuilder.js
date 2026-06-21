@@ -199,44 +199,41 @@ export default function PremadeCharacterBuilder() {
     }
   };
 
-  const createFromTemplate = async (template) => {
-    if (!template) {
-      toast.error('Choose a hero first');
-      return;
+const createFromTemplate = async (template) => {
+  if (!template) {
+    toast.error('Choose a hero first');
+    return;
+  }
+
+  const characterName = name.trim() || template.name || 'New Hero';
+
+  setCreatingTemplateId(template.id);
+
+  try {
+    const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
+    const spellLoadoutId = spellPlans[template.id] || 'rook-balanced';
+    const payload = buildCharacterCreationPayloadFromTemplate(full, {
+      name: characterName,
+      edition,
+      rulesetId,
+      spellLoadoutId,
+    });
+
+    const warnings = getCharacterCreationPayloadWarnings(payload);
+
+    if (warnings.length) {
+      toast.warning(`Created with ${warnings.length} sheet detail${warnings.length === 1 ? '' : 's'} to review.`);
     }
 
-    if (!name.trim()) {
-      toast.error('Enter a character name first');
-      return;
-    }
-
-    setCreatingTemplateId(template.id);
-
-    try {
-      const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
-      const spellLoadoutId = spellPlans[template.id] || 'rook-balanced';
-      const payload = buildCharacterCreationPayloadFromTemplate(full, {
-        name,
-        edition,
-        rulesetId,
-        spellLoadoutId,
-      });
-
-      const warnings = getCharacterCreationPayloadWarnings(payload);
-
-      if (warnings.length) {
-        toast.warning(`Created with ${warnings.length} sheet detail${warnings.length === 1 ? '' : 's'} to review.`);
-      }
-
-      const res = await apiClient.post('/characters', payload);
-      toast.success('Premade hero created');
-      navigate(`/characters/${res.data?.character_id}`);
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || 'Failed to create character from template');
-    } finally {
-      setCreatingTemplateId('');
-    }
-  };
+    const res = await apiClient.post('/characters', payload);
+    toast.success('Premade hero created. You can rename them later.');
+    navigate(`/characters/${res.data?.character_id}`);
+  } catch (e) {
+    toast.error(e?.response?.data?.detail || 'Failed to create character from template');
+  } finally {
+    setCreatingTemplateId('');
+  }
+};
 
   return (
     <main className="premade-page">
