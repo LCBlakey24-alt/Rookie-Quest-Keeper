@@ -270,8 +270,8 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
         data-testid={testId}
         style={inputStyle}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = '#A78BFA';
-          e.currentTarget.style.boxShadow = '0 0 0 2px rgba(124,58,237,0.22)';
+          e.currentTarget.style.borderColor = 'var(--rq-accent-hover, #E0B15C)';
+          e.currentTarget.style.boxShadow = '0 0 0 2px rgba(192, 138, 61, 0.22)';
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = 'var(--rq-border-default, #3A3A3A)';
@@ -309,25 +309,25 @@ function AuthSwitch({ text, actionText, onClick }) {
   );
 }
 
-const pageStyle = { minHeight: '100dvh', position: 'relative', overflowX: 'hidden', overflowY: 'auto', background: '#07111F', WebkitOverflowScrolling: 'touch' };
-const backgroundStyle = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #07111F 0%, #0F172A 48%, #111827 100%)', zIndex: 0, pointerEvents: 'none' };
-const backgroundGlowStyle = { position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 22% 18%, rgba(124,58,237,0.20) 0%, transparent 42%), radial-gradient(ellipse at 80% 78%, rgba(14,165,233,0.14) 0%, transparent 38%)', zIndex: 1, pointerEvents: 'none' };
+const pageStyle = { minHeight: '100dvh', position: 'relative', overflowX: 'hidden', overflowY: 'auto', background: 'var(--rq-bg-main, #120C08)', WebkitOverflowScrolling: 'touch' };
+const backgroundStyle = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, var(--rq-bg-main, #120C08) 0%, var(--rq-bg-panel, #21150E) 52%, var(--rq-bg-panel-alt, #2E1D13) 100%)', zIndex: 0, pointerEvents: 'none' };
+const backgroundGlowStyle = { position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 22% 18%, rgba(192,138,61,0.20) 0%, transparent 42%), radial-gradient(ellipse at 80% 78%, rgba(164,90,50,0.14) 0%, transparent 38%)', zIndex: 1, pointerEvents: 'none' };
 const contentStyle = { position: 'relative', zIndex: 2, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 'max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom))' };
 const logoWrapStyle = { display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 20px', cursor: 'pointer', flexShrink: 0 };
-const logoStyle = { height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 10px rgba(124,58,237,0.45))' };
-const logoTextStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '24px', fontWeight: 900, color: 'var(--rq-text-primary, #FFFFFF)', letterSpacing: '0.08em' };
-const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(15,23,42,0.94)', border: '1px solid rgba(124,58,237,0.30)', borderRadius: '18px', padding: 'clamp(18px, 5vw, 26px)', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
-const titleStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '1.55rem', color: 'var(--rq-text-primary, #FFFFFF)', margin: '0 0 6px 0', fontWeight: 900 };
-const subtitleStyle = { color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px', margin: 0, lineHeight: 1.45 };
-const nextStepNoteStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(124,58,237,0.13)', border: '1px solid rgba(124,58,237,0.34)', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px' };
+const logoStyle = { height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 10px rgba(192,138,61,0.45))' };
+const logoTextStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '24px', fontWeight: 900, color: 'var(--rq-text-primary, #F5E6C8)', letterSpacing: '0.08em' };
+const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(33,21,14,0.94)', border: '1px solid var(--rq-accent-border, rgba(192,138,61,0.34))', borderRadius: '18px', padding: 'clamp(18px, 5vw, 26px)', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
+const titleStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '1.55rem', color: 'var(--rq-text-primary, #F5E6C8)', margin: '0 0 6px 0', fontWeight: 900 };
+const subtitleStyle = { color: 'var(--rq-text-muted, #CDBA98)', fontSize: '14px', margin: 0, lineHeight: 1.45 };
+const nextStepNoteStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'var(--rq-accent-soft, rgba(192,138,61,0.14))', border: '1px solid var(--rq-accent-border, rgba(192,138,61,0.34))', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px' };
 const kidSafeNoteStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45, margin: '-4px 0 14px' };
 const accountChangeNoticeStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(46,139,87,0.12)', border: '1px solid rgba(46,139,87,0.35)', borderRadius: '10px', padding: '10px 12px', marginBottom: '18px' };
 const inputWrapperStyle = { position: 'relative', marginBottom: '16px' };
-const inputStyle = { width: '100%', padding: '14px 16px 14px 48px', background: 'var(--rq-bg-input, #1F1F1F)', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '16px', outline: 'none', transition: 'all 0.15s ease' };
-const iconStyle = { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--rq-accent-primary, #C1121F)' };
-const linkButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #D62839)', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: 800 };
-const primaryButtonStyle = { width: '100%', minHeight: 46, padding: '14px', background: 'var(--rq-accent-primary, #C1121F)', border: '1px solid var(--rq-accent-primary, #C1121F)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-primary, #FFFFFF)', fontSize: '16px', fontWeight: 800, transition: 'all 0.15s ease', boxShadow: '0 4px 16px rgba(193,18,31,0.24)' };
-const secondaryButtonStyle = { width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'transparent', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-sm, 4px)', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '14px', fontWeight: 800, cursor: 'pointer' };
+const inputStyle = { width: '100%', padding: '14px 16px 14px 48px', background: 'var(--rq-bg-input, #1A100B)', border: '1px solid var(--rq-border-default, rgba(192,138,61,0.22))', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-primary, #F5E6C8)', fontSize: '16px', outline: 'none', transition: 'all 0.15s ease' };
+const iconStyle = { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--rq-accent-primary, #C08A3D)' };
+const linkButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #E0B15C)', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: 800 };
+const primaryButtonStyle = { width: '100%', minHeight: 46, padding: '14px', background: 'var(--rq-accent-primary, #C08A3D)', border: '1px solid var(--rq-accent-hover, #E0B15C)', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-inverse, #120C08)', fontSize: '16px', fontWeight: 800, transition: 'all 0.15s ease', boxShadow: '0 4px 16px rgba(192,138,61,0.24)' };
+const secondaryButtonStyle = { width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'transparent', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '14px', fontWeight: 800, cursor: 'pointer' };
 const switchWrapStyle = { textAlign: 'center', marginTop: '24px', color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px' };
-const switchButtonStyle = { background: 'none', border: 'none', color: '#A78BFA', fontWeight: 800, cursor: 'pointer', padding: 0 };
+const switchButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: 800, cursor: 'pointer', padding: 0 };
 const footerStyle = { marginTop: '24px', color: 'var(--rq-text-disabled, #6F6F6F)', fontSize: '13px', paddingBottom: 8 };
