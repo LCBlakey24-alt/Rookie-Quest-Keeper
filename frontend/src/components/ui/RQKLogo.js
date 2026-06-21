@@ -41,14 +41,14 @@ export const RQKLogo = ({
  * Compact inline logo for navigation bars
  */
 export const RQKLogoInline = ({ size = 'small' }) => {
-  const widths = { small: 44, default: 150 };
+  const widths = { small: 112, default: 150 };
   const width = widths[size] || widths.small;
 
   return (
     <img
-      src={size === 'small' ? '/images/logo-mini.png' : '/images/logo-main.png'}
+      src="/images/logo-main.png"
       alt="Rookie Quest Keeper"
-      style={{ width, maxWidth: size === 'small' ? '44px' : '42vw', minWidth: size === 'small' ? '44px' : undefined, height: 'auto', display: 'block', objectFit: 'contain' }}
+      style={{ width, maxWidth: '42vw', height: 'auto', objectFit: 'contain' }}
     />
   );
 };

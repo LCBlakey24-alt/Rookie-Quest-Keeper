@@ -62,14 +62,11 @@
 .landing-brand {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 auto;
   min-width: 0;
 }
 
 .landing-brand img {
-  display: block;
   width: clamp(150px, 18vw, 230px);
-  max-width: min(54vw, 230px);
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(192, 138, 61, 0.42));
@@ -78,7 +75,6 @@
 .landing-brand-compact img {
   width: 46px;
   height: 46px;
-  min-width: 46px;
 }
 
 .landing-nav-actions {
