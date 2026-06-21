@@ -17,13 +17,11 @@ import {
   validateAbilityScores
 } from "../lib/characterRules";
 import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e";
-import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from "../data/spellDatabase";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
+import ClassSubclassPicker from "./builder/ClassSubclassPicker";
 import BackgroundStep from "./builder/full/BackgroundStep";
-import RaceStep from "./builder/full/RaceStep";
-import ClassStep from "./builder/full/ClassStep";
 import { DetailPanel, InfoBanner, Pill, PreviewStat, SelectCard, StepHeader } from "./character-builder/BuilderPrimitives";
 import { builderTheme as theme, detailHeaderStyle, traitChipStyle } from "./character-builder/builderTheme";
 

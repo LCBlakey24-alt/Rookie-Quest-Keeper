@@ -207,7 +207,7 @@
   min-width: 44px;
   background: rgba(192, 138, 61, 0.10);
   border: 1px solid rgba(192, 138, 61, 0.28);
-  color: var(--rq-text-primary, #F5E6C8);
+  color: #FFFFFF;
   border-radius: 10px;
   cursor: pointer;
   font: inherit;
@@ -240,9 +240,9 @@
 .ability-score-card input {
   width: 100%;
   min-height: 50px;
-  background: var(--rq-bg-input, #1A100B);
+  background: #070B18;
   border: 1px solid rgba(192, 138, 61, 0.35);
-  color: var(--rq-text-primary, #F5E6C8);
+  color: #FFFFFF;
   border-radius: 10px;
   text-align: center;
   font-size: 22px;
