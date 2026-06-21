@@ -276,15 +276,15 @@ const createFromTemplate = async (template) => {
 
         <section className="premade-toolbar" aria-label="Premade character setup">
           <label style={labelStyle}>
-            Character Name
-            <input
-              placeholder="Enter your hero’s name..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={inputStyle}
-              data-testid="premade-name"
-            />
-          </label>
+  Character Name Optional
+  <input
+    placeholder="Leave blank to use the premade hero’s name..."
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+    style={inputStyle}
+    data-testid="premade-name"
+  />
+</label>
 
           <label style={labelStyle}>
             Edition
