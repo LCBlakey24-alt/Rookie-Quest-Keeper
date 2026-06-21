@@ -92,6 +92,19 @@ function getIdentity(template) {
   return [template.character_class, ancestry, template.background].filter(Boolean).join(' · ');
 }
 
+function getBriefBackstory(template) {
+  if (!template) return '';
+
+  const heroName = template.name || 'This hero';
+  const heroClass = template.character_class || 'adventurer';
+  const ancestry = template.subrace ? `${template.subrace} ${template.race}` : template.race;
+  const background = template.background || 'wanderer';
+  const role = getRoleLabel(template).toLowerCase();
+  const pitch = template.pitch ? `${template.pitch} ` : '';
+
+  return `${heroName} began life as a ${background.toLowerCase()}, but fate pulled them toward the road as a ${ancestry || 'mysterious'} ${heroClass}. Known for their ${role} instincts, they are ready to join a party and make their mark. ${pitch}Their past gives them a starting point, but the rest of their story is yours to shape.`;
+}
+
 function Pill({ children, tone = 'neutral' }) {
   return <span className={`premade-pill premade-pill-${tone}`}>{children}</span>;
 }
