@@ -38,8 +38,8 @@ html, body, #root {
   overflow-x: hidden;
 }
 /* Restore lighter weights for elements that explicitly need them (Tailwind utilities) */
-.font-normal,
-.font-medium,
+.font-normal { font-weight: 500 !important; }
+.font-medium { font-weight: 600 !important; }
 .font-semibold,
 .font-bold { font-weight: 700 !important; }
 .font-extrabold { font-weight: 800 !important; }

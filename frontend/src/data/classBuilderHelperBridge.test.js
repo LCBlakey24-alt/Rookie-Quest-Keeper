@@ -10,12 +10,16 @@ describe('class builder helper bridge', () => {
     expect(hasClassBuilderPackage('Fighter')).toBe(true);
     expect(hasClassBuilderPackage('Sorcerer')).toBe(true);
     expect(hasClassBuilderPackage('Warlock')).toBe(true);
+    expect(hasClassBuilderPackage('warlock')).toBe(true);
+    expect(hasClassBuilderPackage(' PALADIN ')).toBe(true);
+    expect(hasClassBuilderPackage('sorcerer')).toBe(true);
     expect(hasClassBuilderPackage('Unknown')).toBe(false);
   });
 
   test('returns subclass options from class packages', () => {
     expect(getClassPackageSubclassOptions('Fighter', '2014').map(option => option.key)).toEqual(expect.arrayContaining(['champion', 'battle_master', 'eldritch_knight']));
     expect(getClassPackageSubclassOptions('Sorcerer', '2024').map(option => option.key)).toEqual(expect.arrayContaining(['draconic', 'wild_magic', 'aberrant_mind', 'clockwork_soul']));
+    expect(getClassPackageSubclassOptions('paladin', '2014').map(option => option.key)).toEqual(expect.arrayContaining(['devotion']));
     expect(getClassPackageSubclassOptions('Unknown', '2014')).toEqual([]);
   });
 
@@ -31,7 +35,7 @@ describe('class builder helper bridge', () => {
       needsFightingStyle: true,
     });
 
-    expect(getClassPackageBuilderOptions('Sorcerer', { level: 3, edition: '2024' })).toMatchObject({
+    expect(getClassPackageBuilderOptions('sorcerer', { level: 3, edition: '2024' })).toMatchObject({
       edition: '2024',
       level: 3,
       subclassChoiceLevel: 3,
@@ -40,7 +44,7 @@ describe('class builder helper bridge', () => {
   });
 
   test('builds UI-ready options', () => {
-    const options = getClassBuilderUiOptions('Warlock', { level: 1, edition: '2014' });
+    const options = getClassBuilderUiOptions(' warlock ', { level: 1, edition: '2014' });
 
     expect(options.className).toBe('Warlock');
     expect(options.hasPackage).toBe(true);

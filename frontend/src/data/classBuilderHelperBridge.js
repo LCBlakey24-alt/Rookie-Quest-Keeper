@@ -26,13 +26,27 @@ const PACKAGE_BY_CLASS = {
   Sorcerer: sorcererPackage,
 };
 
+function normalizeClassName(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+const PACKAGE_CLASS_BY_NORMALIZED_NAME = Object.keys(PACKAGE_BY_CLASS).reduce((lookup, className) => {
+  lookup[normalizeClassName(className)] = className;
+  return lookup;
+}, {});
+
+function getCanonicalClassName(className = '') {
+  return PACKAGE_CLASS_BY_NORMALIZED_NAME[normalizeClassName(className)] || String(className || '').trim();
+}
+
 function getClassPackage(className = '') {
-  return PACKAGE_BY_CLASS[String(className || '').trim()] || null;
+  const canonicalClassName = getCanonicalClassName(className);
+  return PACKAGE_BY_CLASS[canonicalClassName] || null;
 }
 
 function getExportName(className = '', suffix = '') {
-  const cleanClassName = String(className || '').trim();
-  return cleanClassName ? `get${cleanClassName}${suffix}` : '';
+  const canonicalClassName = getCanonicalClassName(className);
+  return canonicalClassName ? `get${canonicalClassName}${suffix}` : '';
 }
 
 function normaliseOption(option = {}) {
@@ -91,12 +105,13 @@ export function getClassPackageSubclassOptions(className = '', edition = '2014')
 }
 
 export function getClassBuilderUiOptions(className = '', { level = 1, edition = '2014' } = {}) {
-  const builderOptions = getClassPackageBuilderOptions(className, { level, edition }) || {};
-  const subclassOptions = getClassPackageSubclassOptions(className, edition);
+  const canonicalClassName = getCanonicalClassName(className);
+  const builderOptions = getClassPackageBuilderOptions(canonicalClassName, { level, edition }) || {};
+  const subclassOptions = getClassPackageSubclassOptions(canonicalClassName, edition);
 
   return {
-    className,
-    hasPackage: hasClassBuilderPackage(className),
+    className: canonicalClassName,
+    hasPackage: hasClassBuilderPackage(canonicalClassName),
     builderOptions,
     subclassOptions,
     hasSubclassOptions: subclassOptions.length > 0,
