@@ -17,6 +17,7 @@ import {
   validateAbilityScores
 } from "../lib/characterRules";
 import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e";
+import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from "../data/spellDatabase";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
@@ -39,6 +40,27 @@ const ALL_SKILLS = {
 
 const formatAbility = (a) => a.slice(0, 3).toUpperCase();
 const formatModifier = (m) => (m >= 0 ? `+${m}` : `${m}`);
+
+const abilityModifier = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const toSelectedSpellPayload = (name, fallbackLevel, spellPool = []) => {
+  const spell = spellPool.find(entry => entry.name === name);
+  return { name, level: spell?.level ?? fallbackLevel, school: spell?.school || '' };
+};
+const buildFullBuilderSpellFields = ({ className, scores }) => {
+  const classInfo = SPELLCASTING_CLASSES[className];
+  if (!classInfo || classInfo.subclassOnly) return {};
+  const slots = getSpellSlotsForCaster(classInfo, 1);
+  const ability = classInfo.ability;
+  const abilityMod = abilityModifier(scores?.[ability]);
+
+  return {
+    spellcasting_ability: ability,
+    spell_save_dc: 8 + 2 + abilityMod,
+    spell_attack_bonus: 2 + abilityMod,
+    spell_slots: slots,
+    spell_slots_remaining: slots,
+  };
+};
 
 // Steps definition (spells/equipment steps are conditional, added dynamically)
 const BASE_STEPS = [
@@ -612,9 +634,10 @@ const subclassLabel = {
       payload.fighting_style = fightingStyle || '';
       payload.equipment_choice = equipmentChoice;
       payload.starting_equipment = [...startingEquipmentList, ...backgroundEquipment];
-      payload.cantrips_known = selectedCantrips.map(name => ({ name }));
+      Object.assign(payload, buildFullBuilderSpellFields({ className, scores: finalScores }));
+      payload.cantrips_known = selectedCantrips.map(name => toSelectedSpellPayload(name, 0, srdSpells));
       const spellsKey = spellReq?.type === 'prepared' ? 'spells_prepared' : 'spells_known';
-      payload[spellsKey] = selectedSpells.map(name => ({ name }));
+      payload[spellsKey] = selectedSpells.map(name => toSelectedSpellPayload(name, 1, srdSpells));
       // 2024 origin feat selected during background step
       if (edition === '2024' && originFeat) {
         payload.feats = [{ name: originFeat, source: 'origin (2024 background)' }];
