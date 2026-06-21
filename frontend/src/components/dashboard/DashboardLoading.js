@@ -7,7 +7,7 @@ export default function DashboardLoading({ slowLoad }) {
   return (
     <main style={{ ...pageStyle, display: 'grid', placeItems: 'center' }}>
       <section style={loadingPanelStyle}>
-        <img src="/images/logo-mini.png" alt="ROOK loading" style={{ width: 58, height: 58, objectFit: 'contain' }} />
+        <img src="/images/logo-mini.png" alt="Rookie Quest Keeper loading" style={{ width: 58, height: 58, objectFit: 'contain', display: 'block' }} />
         <div className="loading-spinner" />
         <h1 style={{ color: theme.text, margin: '8px 0 4px', fontSize: 22 }}>Loading your command dashboard…</h1>
         <p style={{ color: theme.textSecondary, margin: 0, lineHeight: 1.5 }}>

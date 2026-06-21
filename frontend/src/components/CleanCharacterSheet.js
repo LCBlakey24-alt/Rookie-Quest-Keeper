@@ -395,7 +395,7 @@ export default function CleanCharacterSheet() {
   if (loading) {
     return (
       <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
-        <img src="/images/logo-mini.png" alt="ROOK" />
+        <img src="/images/logo-mini.png" alt="Rookie Quest Keeper" />
         <p>Loading character...</p>
       </div>
     );
