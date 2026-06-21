@@ -1,5 +1,5 @@
 /* Quest Keeper - Clean SaaS Design System */
-/* Using Montserrat font from index.css */
+/* Uses Rookie Quest Keeper typography tokens from index.css */
 
 /* Global base reset */
 * {
@@ -456,7 +456,7 @@ img, video, canvas, svg {
 }
 
 body {
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif);
   background: var(--bg-black);
   color: var(--text-primary);
   min-height: 100dvh;
@@ -464,9 +464,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Brand Font - Montserrat */
+/* Brand Font - Fraunces display token */
 .brand-font, .logo-title, h1.brand, h2.brand {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-display, 'Fraunces', 'RQKDisplay', Georgia, serif);
   font-weight: 600;
 }
 
@@ -532,13 +532,13 @@ body {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-display, 'Fraunces', 'RQKDisplay', Georgia, serif);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 p, span, div, label, a, button {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
 }
 
 /* ===== PANELS & CARDS ===== */
@@ -573,7 +573,7 @@ p, span, div, label, a, button {
   padding: 12px 16px;
   width: 100%;
   font-size: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   transition: all 0.2s ease;
 }
 
@@ -595,7 +595,7 @@ p, span, div, label, a, button {
   width: 100%;
   min-height: 100px;
   resize: vertical;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   font-size: 14px;
   transition: all 0.2s ease;
   line-height: 1.6;
@@ -616,7 +616,7 @@ p, span, div, label, a, button {
   padding: 12px 24px;
   font-weight: 600;
   font-size: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.15s ease;
   text-transform: uppercase;
@@ -645,7 +645,7 @@ p, span, div, label, a, button {
   padding: 12px 24px;
   font-weight: 600;
   font-size: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -667,7 +667,7 @@ p, span, div, label, a, button {
   padding: 10px 20px;
   font-weight: 600;
   font-size: 13px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -686,7 +686,7 @@ p, span, div, label, a, button {
   padding: 10px 16px;
   font-weight: 600;
   font-size: 13px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -735,7 +735,7 @@ p, span, div, label, a, button {
   border: none;
   color: var(--text-secondary);
   font-size: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -795,7 +795,7 @@ p, span, div, label, a, button {
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 13px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -1154,8 +1154,8 @@ select option {
 .gradient-text { color: var(--accent-red); }
 .rainbow-text { color: var(--accent-red); }
 .text-glow { color: var(--text-primary); }
-.logo-title { font-family: 'Montserrat', sans-serif; font-size: 42px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
-.logo-subtitle { font-family: 'Montserrat', sans-serif; font-size: 24px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
+.logo-title { font-family: var(--rq-font-display, 'Fraunces', 'RQKDisplay', Georgia, serif); font-size: 42px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+.logo-subtitle { font-family: var(--rq-font-sans, 'Manrope', sans-serif); font-size: 24px; color: var(--accent-red); text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
 .stat-box { background: var(--bg-card); border: 1px solid var(--border-default); padding: 16px; text-align: center; }
 .stat-box-green { background: var(--bg-card); border: 1px solid var(--border-default); }
 .stat-box-gold { background: var(--bg-card); border: 1px solid var(--border-default); }
