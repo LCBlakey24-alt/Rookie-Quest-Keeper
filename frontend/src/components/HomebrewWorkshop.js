@@ -9,11 +9,21 @@ import {
 
 
 const theme = {
-  gold: "#7C3AED",
-  goldSoft: "#A78BFA",
-  bg: { primary: "#1F1F23", surface: "#27272B", elevated: "#323235" },
-  text: { primary: "#F8FAFC", secondary: "#94A3B8", muted: "#64748B", warn: "#F59E0B" },
-  border: "rgba(124, 58, 237, 0.28)"
+  gold: "var(--rq-accent-primary, #C08A3D)",
+  goldSoft: "var(--rq-accent-soft, rgba(192, 138, 61, 0.14))",
+  bg: {
+    primary: "var(--rq-bg-main, #120C08)",
+    surface: "var(--rq-bg-panel, #21150E)",
+    elevated: "var(--rq-bg-panel-alt, #2E1D13)"
+  },
+  text: {
+    primary: "var(--rq-text-primary, #F5E6C8)",
+    secondary: "var(--rq-text-secondary, #E6D2AA)",
+    muted: "var(--rq-text-muted, #CDBA98)",
+    inverse: "var(--rq-text-inverse, #120C08)",
+    warn: "var(--rq-warning, #D99A3D)"
+  },
+  border: "var(--rq-border-default, rgba(192, 138, 61, 0.22))"
 };
 
 const TYPES = [
@@ -118,7 +128,7 @@ function FeatureList({ features = [], onChange }) {
         type="button"
         onClick={add}
         style={{
-          padding: "6px 12px", background: "rgba(124,58,237,0.10)",
+          padding: "6px 12px", background: theme.goldSoft,
           border: `1px solid ${theme.border}`, borderRadius: 6,
           color: theme.gold, cursor: "pointer", fontSize: 12, fontWeight: 700
         }}>
@@ -410,7 +420,7 @@ export default function HomebrewWorkshop() {
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "10px 16px",
-                  background: active ? "rgba(124,58,237,0.20)" : "rgba(124,58,237,0.06)",
+                  background: active ? theme.goldSoft : "var(--rq-bg-muted, rgba(192, 138, 61, 0.08))",
                   border: active ? `2px solid ${theme.gold}` : `1px solid ${theme.border}`,
                   borderRadius: 10, color: active ? theme.gold : theme.text.secondary,
                   cursor: "pointer", fontSize: 12, fontWeight: 800, letterSpacing: 1
@@ -437,7 +447,7 @@ export default function HomebrewWorkshop() {
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 padding: "16px",
-                background: "rgba(124,58,237,0.06)",
+                background: "var(--rq-bg-muted, rgba(192, 138, 61, 0.08))",
                 border: `2px dashed ${theme.border}`, borderRadius: 10,
                 color: theme.text.secondary, cursor: parsing ? "not-allowed" : "pointer",
                 fontSize: 13, fontWeight: 700, marginBottom: 12,
@@ -477,7 +487,7 @@ export default function HomebrewWorkshop() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 padding: "10px 16px",
-                background: (parsing || !pasteText.trim()) ? "rgba(124,58,237,0.05)" : "rgba(124,58,237,0.20)",
+                background: (parsing || !pasteText.trim()) ? "var(--rq-bg-muted, rgba(192, 138, 61, 0.08))" : theme.goldSoft,
                 border: `1px solid ${theme.gold}`, borderRadius: 10,
                 color: theme.gold, cursor: (parsing || !pasteText.trim()) ? "not-allowed" : "pointer",
                 fontSize: 13, fontWeight: 800
@@ -526,9 +536,9 @@ export default function HomebrewWorkshop() {
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "10px 18px",
-                  background: saving || !draft.name ? "rgba(124,58,237,0.10)" : theme.gold,
+                  background: saving || !draft.name ? theme.goldSoft : theme.gold,
                   border: "none", borderRadius: 10,
-                  color: saving || !draft.name ? theme.text.muted : "#1F1F23",
+                  color: saving || !draft.name ? theme.text.muted : theme.text.inverse,
                   cursor: saving || !draft.name ? "not-allowed" : "pointer",
                   fontSize: 13, fontWeight: 800, letterSpacing: 0.5
                 }}>

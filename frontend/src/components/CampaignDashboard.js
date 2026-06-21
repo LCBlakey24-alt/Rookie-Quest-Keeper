@@ -26,42 +26,60 @@ import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
 const theme = {
-  bg: { black: '#080B1A', panel: 'rgba(18,23,42,0.96)', card: 'rgba(23,30,51,0.96)' },
-  accent: { primary: '#7C3AED', subtle: 'rgba(124,58,237,0.12)', red: '#7C3AED', redSubtle: 'rgba(124,58,237,0.12)' },
-  text: { white: '#FFFFFF', primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124,58,237,0.42)',
-  gradient: '#7C3AED',
+  bg: {
+    black: 'var(--rq-bg-main, #120C08)',
+    panel: 'rgba(33, 21, 14, 0.96)',
+    card: 'rgba(46, 29, 19, 0.96)'
+  },
+  accent: {
+    primary: 'var(--rq-accent-primary, #C08A3D)',
+    subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
+    red: 'var(--rq-accent-primary, #C08A3D)',
+    redSubtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))'
+  },
+  text: {
+    white: 'var(--rq-text-primary, #F5E6C8)',
+    primary: 'var(--rq-text-primary, #F5E6C8)',
+    secondary: 'var(--rq-text-secondary, #E6D2AA)',
+    muted: 'var(--rq-text-muted, #CDBA98)'
+  },
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+  gradient: 'var(--rq-accent-primary, #C08A3D)',
 };
 
 
 const sessionPrepTheme = {
   bg: {
-    primary: '#1F1F23',
-    surface: '#27272B',
-    elevated: '#323235',
-    panel: '#27272B',
-    card: '#27272B',
-    hover: 'rgba(239, 68, 68, 0.12)',
+    primary: 'var(--rq-bg-main, #120C08)',
+    surface: 'var(--rq-bg-panel, #21150E)',
+    elevated: 'var(--rq-bg-panel-alt, #2E1D13)',
+    panel: 'var(--rq-bg-panel, #21150E)',
+    card: 'var(--rq-bg-panel-alt, #2E1D13)',
+    hover: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
   },
   accent: {
-    primary: '#EF4444',
-    secondary: '#B91C1C',
-    gold: '#EF4444',
-    orange: '#F87171',
-    hover: '#F87171',
-    subtle: 'rgba(239, 68, 68, 0.12)',
+    primary: 'var(--rq-accent-primary, #C08A3D)',
+    secondary: 'var(--rq-accent-active, #A45A32)',
+    gold: 'var(--rq-accent-primary, #C08A3D)',
+    orange: 'var(--rq-accent-hover, #E0B15C)',
+    hover: 'var(--rq-accent-hover, #E0B15C)',
+    subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
     glow: 'none',
-    gm: '#EF4444',
-    gmSubtle: 'rgba(239, 68, 68, 0.12)',
+    gm: 'var(--rq-accent-primary, #C08A3D)',
+    gmSubtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
   },
-  text: { primary: '#FFFFFF', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(239, 68, 68, 0.42)',
-  gradient: '#EF4444',
+  text: {
+    primary: 'var(--rq-text-primary, #F5E6C8)',
+    secondary: 'var(--rq-text-secondary, #E6D2AA)',
+    muted: 'var(--rq-text-muted, #CDBA98)'
+  },
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+  gradient: 'var(--rq-accent-primary, #C08A3D)',
 };
 
 
 const workspacePanelStyle = {
-  background: 'linear-gradient(180deg, rgba(39,39,43,0.94), rgba(31,31,35,0.96))',
+  background: 'linear-gradient(180deg, rgba(46, 29, 19, 0.94), rgba(33, 21, 14, 0.96))',
   border: `1px solid ${theme.border}`,
   borderRadius: 8,
   padding: 'clamp(14px, 2vw, 24px)',
@@ -77,8 +95,8 @@ const desktopContextStyle = {
   gap: 16,
   marginBottom: 14,
   padding: '14px 16px',
-  background: 'rgba(255,255,255,0.035)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(46, 29, 19, 0.72)',
+  border: `1px solid ${theme.border}`,
   borderRadius: 8,
   minWidth: 0,
 };
@@ -208,7 +226,7 @@ function CampaignDashboard() {
           <h1 style={{ color: theme.text.primary, fontSize: 24, fontWeight: 900, margin: '0 0 8px' }}>Campaign could not be loaded</h1>
           <p style={{ color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' }}>{loadError}</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button onClick={fetchCampaign} style={{ background: theme.accent.primary, color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 900 }}><RefreshCw size={16} /> Retry</Button>
+            <Button onClick={fetchCampaign} style={{ background: theme.accent.primary, color: 'var(--rq-text-inverse, #120C08)', border: 'none', borderRadius: 10, fontWeight: 900 }}><RefreshCw size={16} /> Retry</Button>
             <Button onClick={() => navigate('/home')} style={{ background: theme.bg.card, color: theme.text.secondary, border: `1px solid ${theme.border}`, borderRadius: 10, fontWeight: 900 }}><ArrowLeft size={16} /> Back to Home</Button>
           </div>
         </section>
@@ -228,7 +246,7 @@ function CampaignDashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={{ fontSize: 11, color: theme.accent.red, background: theme.accent.redSubtle, padding: '3px 8px', fontWeight: 800 }}>Campaign Prep</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 800 }}>{campaign.system || '5e 2024'}</span></div>
             </div>
           </div>
-          <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={{ display: 'flex', alignItems: 'center', gap: 8, background: theme.accent.red, border: 'none', color: theme.text.white, fontSize: 'clamp(12px, 2vw, 14px)', padding: '10px 16px', minHeight: 44, fontWeight: 800, borderRadius: 10, boxShadow: '0 12px 30px rgba(124,58,237,0.22)' }}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
+          <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={{ display: 'flex', alignItems: 'center', gap: 8, background: theme.accent.red, border: 'none', color: theme.text.white, fontSize: 'clamp(12px, 2vw, 14px)', padding: '10px 16px', minHeight: 44, fontWeight: 800, borderRadius: 10, boxShadow: '0 12px 30px rgba(192, 138, 61, 0.22)' }}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
         </div>
       </header>
 

@@ -52,9 +52,9 @@
 }
 
 .ability-method-grid button.active {
-  border-color: #7C3AED;
-  background: rgba(124, 58, 237, 0.12);
-  box-shadow: 0 0 0 1px rgba(239,68,68,0.10);
+  border-color: var(--rq-accent-primary, #C08A3D);
+  background: rgba(192, 138, 61, 0.12);
+  box-shadow: 0 0 0 1px rgba(192,138,61,0.10);
 }
 
 .ability-method-grid strong {
@@ -77,8 +77,8 @@
 .ability-budget {
   margin-bottom: 14px;
   padding: 10px 12px;
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: rgba(192, 138, 61, 0.08);
+  border: 1px solid rgba(192, 138, 61, 0.25);
   border-radius: 10px;
   font-weight: 800;
 }
@@ -131,8 +131,8 @@
 }
 
 .ability-score-pool button.selected {
-  border-color: #7C3AED;
-  background: rgba(124, 58, 237, 0.14);
+  border-color: var(--rq-accent-primary, #C08A3D);
+  background: rgba(192, 138, 61, 0.14);
   transform: translateY(-1px);
 }
 
@@ -156,7 +156,7 @@
 }
 
 .ability-score-card.primary {
-  border-color: rgba(124, 58, 237, 0.45);
+  border-color: rgba(192, 138, 61, 0.45);
 }
 
 .ability-score-card > span {
@@ -178,8 +178,8 @@
 .ability-assignment {
   min-height: 44px;
   min-width: 44px;
-  background: rgba(124, 58, 237, 0.10);
-  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: rgba(192, 138, 61, 0.10);
+  border: 1px solid rgba(192, 138, 61, 0.28);
   color: #FFFFFF;
   border-radius: 10px;
   cursor: pointer;
@@ -206,15 +206,15 @@
 }
 
 .ability-assignment.filled {
-  border-color: #7C3AED;
-  background: rgba(124, 58, 237, 0.14);
+  border-color: var(--rq-accent-primary, #C08A3D);
+  background: rgba(192, 138, 61, 0.14);
 }
 
 .ability-score-card input {
   width: 100%;
   min-height: 50px;
   background: #070B18;
-  border: 1px solid rgba(124, 58, 237, 0.35);
+  border: 1px solid rgba(192, 138, 61, 0.35);
   color: #FFFFFF;
   border-radius: 10px;
   text-align: center;
@@ -231,7 +231,7 @@
 }
 
 .ability-modifier {
-  color: #7C3AED;
+  color: var(--rq-accent-primary, #C08A3D);
   font-size: 16px;
   font-weight: 950;
 }
@@ -271,7 +271,7 @@
 }
 
 .ability-preview-stat svg {
-  color: #7C3AED;
+  color: var(--rq-accent-primary, #C08A3D);
 }
 
 .ability-preview-stat span {

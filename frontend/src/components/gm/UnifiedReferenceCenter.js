@@ -6,10 +6,22 @@ import { CONDITION_EFFECTS } from '@/data/conditionEffects';
 import { SPELL_DATABASE } from '@/data/spellDatabase';
 
 const theme = {
-  bg: { primary: '#080B1A', surface: '#12172A', elevated: '#171E33' },
-  accent: { primary: '#7C3AED', secondary: '#A78BFA' },
-  text: { primary: '#F8FAFC', secondary: '#D1D5DB', muted: '#9CA3AF' },
-  border: 'rgba(124, 58, 237, 0.38)'
+  bg: {
+    primary: 'var(--rq-bg-main, #120C08)',
+    surface: 'var(--rq-bg-panel, #21150E)',
+    elevated: 'var(--rq-bg-panel-alt, #2E1D13)'
+  },
+  accent: {
+    primary: 'var(--rq-accent-primary, #C08A3D)',
+    secondary: 'var(--rq-accent-hover, #E0B15C)',
+    soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))'
+  },
+  text: {
+    primary: 'var(--rq-text-primary, #F5E6C8)',
+    secondary: 'var(--rq-text-secondary, #E6D2AA)',
+    muted: 'var(--rq-text-muted, #CDBA98)'
+  },
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.22))'
 };
 
 const searchableText = (value) => {
@@ -149,7 +161,7 @@ export default function UnifiedReferenceCenter({ onRollDamage, isCompact = false
                   padding: '5px 8px',
                   borderRadius: '5px',
                   border: `1px solid ${theme.accent.primary}`,
-                  background: 'rgba(124, 58, 237, 0.14)',
+                  background: theme.accent.soft,
                   color: theme.accent.secondary,
                   fontSize: '11px',
                   fontWeight: 700,

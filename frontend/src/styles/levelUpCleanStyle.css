@@ -8,8 +8,8 @@
 
 /* Level-up modal card */
 .App div[style*="max-width: 600px"][style*="max-height: 90vh"] {
-  background: #0D1326 !important;
-  border: 1px solid rgba(124, 58, 237, 0.32) !important;
+  background: var(--rq-bg-panel, #21150E) !important;
+  border: 1px solid rgba(192, 138, 61, 0.32) !important;
   border-radius: 18px !important;
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58) !important;
   max-width: min(680px, calc(100vw - 24px)) !important;
@@ -17,26 +17,26 @@
 
 /* Header area */
 .App div[style*="linear-gradient(135deg, #D4A017"] {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(56, 189, 248, 0.72)) !important;
+  background: linear-gradient(135deg, rgba(192, 138, 61, 0.95), rgba(164, 90, 50, 0.72)) !important;
 }
 
 .App div[style*="linear-gradient(135deg, #D4A017"] h2,
 .App div[style*="linear-gradient(135deg, #D4A017"] p {
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
 }
 
 /* Content typography */
 .App div[style*="max-width: 600px"] h3,
 .App div[style*="max-width: 600px"] h4,
 .App div[style*="max-width: 600px"] strong {
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
 }
 
 .App div[style*="max-width: 600px"] p,
 .App div[style*="max-width: 600px"] span,
 .App div[style*="max-width: 600px"] label,
 .App div[style*="max-width: 600px"] div {
-  color: #D1D5DB;
+  color: var(--rq-text-secondary, #E6D2AA);
 }
 
 /* Option cards/buttons inside modal */
@@ -46,43 +46,43 @@
 }
 
 .App div[style*="max-width: 600px"] button:hover:not(:disabled) {
-  border-color: rgba(124, 58, 237, 0.48) !important;
+  border-color: rgba(192, 138, 61, 0.48) !important;
 }
 
 /* General card-like blocks with legacy gold borders */
 .App div[style*="max-width: 600px"] div[style*="rgba(212, 160, 23"],
 .App div[style*="max-width: 600px"] button[style*="rgba(212, 160, 23"] {
-  background: rgba(124, 58, 237, 0.08) !important;
-  border-color: rgba(124, 58, 237, 0.28) !important;
+  background: rgba(192, 138, 61, 0.08) !important;
+  border-color: rgba(192, 138, 61, 0.28) !important;
 }
 
 .App div[style*="max-width: 600px"] svg {
-  color: #7C3AED !important;
+  color: var(--rq-accent-primary, #C08A3D) !important;
 }
 
 /* Inputs/selects */
 .App div[style*="max-width: 600px"] input,
 .App div[style*="max-width: 600px"] select,
 .App div[style*="max-width: 600px"] textarea {
-  background: #070B18 !important;
+  background: var(--rq-bg-main, #120C08) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #FFFFFF !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
   border-radius: 10px !important;
 }
 
 .App div[style*="max-width: 600px"] input:focus,
 .App div[style*="max-width: 600px"] select:focus,
 .App div[style*="max-width: 600px"] textarea:focus {
-  border-color: #7C3AED !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14) !important;
+  border-color: var(--rq-accent-primary, #C08A3D) !important;
+  box-shadow: 0 0 0 3px rgba(192, 138, 61, 0.14) !important;
   outline: none !important;
 }
 
 /* Footer actions */
 .App div[style*="max-width: 600px"] button[style*="linear-gradient"] {
-  background: #7C3AED !important;
-  border-color: #7C3AED !important;
-  color: #FFFFFF !important;
+  background: var(--rq-accent-primary, #C08A3D) !important;
+  border-color: var(--rq-accent-primary, #C08A3D) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
 }
 
 @media (max-width: 720px) {
