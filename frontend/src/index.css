@@ -2,20 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== ROOK — Dark Navy + Gold (Block A) ===== */
-/* Font: Montserrat (single family) — bold across the app per user spec */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+/* ===== Rookie Quest Keeper brand fonts ===== */
+@font-face {
+  font-family: 'RQKDisplay';
+  src: url('./fonts/CitywormRegular.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
-/* Global font override — every element renders in Montserrat.
-   Default weight is bold (700) per design lock; lighter weights are preserved
-   only where explicit utility classes (font-medium, font-normal) are used. */
+:root {
+  --rq-font-display: 'Recoleta', 'RQKDisplay', Georgia, serif;
+  --rq-font-sans: 'Recoleta', 'RQKDisplay', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Global font override. Display headings prefer Recoleta when available and fall back to the bundled brand display face. */
 *, *::before, *::after {
-  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: var(--rq-font-sans) !important;
   font-weight: 700 !important;
   letter-spacing: 0 !important;
 }
 html, body, #root {
-  font-family: 'Montserrat', system-ui, sans-serif;
+  font-family: var(--rq-font-sans);
   font-weight: 700;
   width: 100%;
   min-height: 100dvh;
@@ -40,41 +48,41 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 
 /* ===== CSS VARIABLES - DUAL THEME SYSTEM ===== */
 :root {
-  /* === ROOK APP THEME === */
-  --background: #080B1A;
-  --foreground: #FFFFFF;
-  --card: #171E33;
-  --card-foreground: #FFFFFF;
-  --popover: #171E33;
-  --popover-foreground: #FFFFFF;
-  --primary: #7C3AED;
-  --primary-foreground: #FFFFFF;
-  --secondary: #38BDF8;
-  --secondary-foreground: #1F1F23;
-  --muted: #12172A;
-  --muted-foreground: #D1D5DB;
-  --accent: rgba(124,58,237,0.14);
-  --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: rgba(124,58,237,0.32);
-  --input: #0D1224;
-  --ring: #A78BFA;
+  /* === Rookie Quest Keeper app theme === */
+  --background: var(--rq-bg-main, #120C08);
+  --foreground: var(--rq-text-primary, #F5E6C8);
+  --card: var(--rq-bg-panel-alt, #2E1D13);
+  --card-foreground: var(--rq-text-primary, #F5E6C8);
+  --popover: var(--rq-bg-panel, #21150E);
+  --popover-foreground: var(--rq-text-primary, #F5E6C8);
+  --primary: var(--rq-accent-primary, #C08A3D);
+  --primary-foreground: var(--rq-text-inverse, #120C08);
+  --secondary: var(--rq-accent-active, #A45A32);
+  --secondary-foreground: var(--rq-text-primary, #F5E6C8);
+  --muted: var(--rq-bg-input, #1A100B);
+  --muted-foreground: var(--rq-text-muted, #CDBA98);
+  --accent: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
+  --accent-foreground: var(--rq-text-primary, #F5E6C8);
+  --destructive: var(--rq-danger, #B44732);
+  --destructive-foreground: var(--rq-text-primary, #F5E6C8);
+  --border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  --input: var(--rq-bg-input, #1A100B);
+  --ring: var(--rq-accent-hover, #E0B15C);
   --radius: 0.5rem;
   
   /* Theme-specific colors */
-  --theme-glow: rgba(124, 58, 237, 0.24);
-  --theme-glow-secondary: rgba(56, 189, 248, 0.18);
+  --theme-glow: rgba(192, 138, 61, 0.22);
+  --theme-glow-secondary: rgba(164, 90, 50, 0.16);
   
   /* Status Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --info: #3B82F6;
+  --success: var(--rq-success, #7A9B66);
+  --warning: var(--rq-warning, #D4953C);
+  --danger: var(--rq-danger, #B44732);
+  --info: var(--rq-accent-hover, #E0B15C);
   
   /* Glass Panel */
-  --glass-bg: rgba(18, 23, 42, 0.76);
-  --glass-border: rgba(124, 58, 237, 0.32);
+  --glass-bg: rgba(33, 21, 14, 0.82);
+  --glass-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
   --glass-blur: 16px;
   
   /* Shadows */
@@ -82,56 +90,56 @@ strong, b, h1, h2, h3, h4, h5, h6 {
   --shadow-glow: 0 0 20px var(--theme-glow);
 }
 
-/* === GM MODE THEME (Midnight Neon) === */
+/* === GM MODE THEME (Velvet Coffee) === */
 [data-theme="gm"] {
-  --background: #080B1A;
-  --foreground: #FFFFFF;
-  --card: #171E33;
-  --card-foreground: #FFFFFF;
-  --popover: #171E33;
-  --popover-foreground: #FFFFFF;
-  --primary: #7C3AED;
-  --primary-foreground: #FFFFFF;
-  --secondary: #38BDF8;
-  --secondary-foreground: #1F1F23;
-  --muted: #12172A;
-  --muted-foreground: #D1D5DB;
-  --accent: rgba(124,58,237,0.14);
-  --accent-foreground: #FFFFFF;
-  --border: rgba(124,58,237,0.32);
-  --input: #0D1224;
-  --ring: #A78BFA;
+  --background: var(--rq-bg-main, #120C08);
+  --foreground: var(--rq-text-primary, #F5E6C8);
+  --card: var(--rq-bg-panel-alt, #2E1D13);
+  --card-foreground: var(--rq-text-primary, #F5E6C8);
+  --popover: var(--rq-bg-panel, #21150E);
+  --popover-foreground: var(--rq-text-primary, #F5E6C8);
+  --primary: var(--rq-accent-primary, #C08A3D);
+  --primary-foreground: var(--rq-text-inverse, #120C08);
+  --secondary: var(--rq-accent-active, #A45A32);
+  --secondary-foreground: var(--rq-text-primary, #F5E6C8);
+  --muted: var(--rq-bg-input, #1A100B);
+  --muted-foreground: var(--rq-text-muted, #CDBA98);
+  --accent: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
+  --accent-foreground: var(--rq-text-primary, #F5E6C8);
+  --border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  --input: var(--rq-bg-input, #1A100B);
+  --ring: var(--rq-accent-hover, #E0B15C);
   
-  --theme-glow: rgba(239, 68, 68, 0.12);
-  --theme-glow-secondary: rgba(248, 113, 113, 0.12);
-  --glass-bg: rgba(39, 39, 43, 0.86);
-  --glass-border: rgba(124, 58, 237, 0.32);
+  --theme-glow: rgba(192, 138, 61, 0.22);
+  --theme-glow-secondary: rgba(164, 90, 50, 0.16);
+  --glass-bg: rgba(33, 21, 14, 0.86);
+  --glass-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
 }
 
-/* === PLAYER MODE THEME (Electric Tundra) === */
+/* === PLAYER MODE THEME (Velvet Coffee) === */
 [data-theme="player"] {
-  --background: #080B1A;
-  --foreground: #FFFFFF;
-  --card: #171E33;
-  --card-foreground: #FFFFFF;
-  --popover: #171E33;
-  --popover-foreground: #FFFFFF;
-  --primary: #7C3AED;
-  --primary-foreground: #FFFFFF;
-  --secondary: #38BDF8;
-  --secondary-foreground: #1F1F23;
-  --muted: #12172A;
-  --muted-foreground: #D1D5DB;
-  --accent: rgba(124,58,237,0.14);
-  --accent-foreground: #FFFFFF;
-  --border: rgba(124,58,237,0.32);
-  --input: #0D1224;
-  --ring: #A78BFA;
+  --background: var(--rq-bg-main, #120C08);
+  --foreground: var(--rq-text-primary, #F5E6C8);
+  --card: var(--rq-bg-panel-alt, #2E1D13);
+  --card-foreground: var(--rq-text-primary, #F5E6C8);
+  --popover: var(--rq-bg-panel, #21150E);
+  --popover-foreground: var(--rq-text-primary, #F5E6C8);
+  --primary: var(--rq-accent-primary, #C08A3D);
+  --primary-foreground: var(--rq-text-inverse, #120C08);
+  --secondary: var(--rq-accent-active, #A45A32);
+  --secondary-foreground: var(--rq-text-primary, #F5E6C8);
+  --muted: var(--rq-bg-input, #1A100B);
+  --muted-foreground: var(--rq-text-muted, #CDBA98);
+  --accent: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
+  --accent-foreground: var(--rq-text-primary, #F5E6C8);
+  --border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  --input: var(--rq-bg-input, #1A100B);
+  --ring: var(--rq-accent-hover, #E0B15C);
   
-  --theme-glow: rgba(239, 68, 68, 0.12);
-  --theme-glow-secondary: rgba(248, 113, 113, 0.12);
-  --glass-bg: rgba(39, 39, 43, 0.86);
-  --glass-border: rgba(124, 58, 237, 0.32);
+  --theme-glow: rgba(192, 138, 61, 0.22);
+  --theme-glow-secondary: rgba(164, 90, 50, 0.16);
+  --glass-bg: rgba(33, 21, 14, 0.86);
+  --glass-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
 }
 
 /* ===== BASE STYLES ===== */
@@ -141,7 +149,7 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 
 body {
   margin: 0;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--rq-font-sans);
   font-weight: 700;
   font-size: 15px;
   line-height: 1.6;
@@ -159,8 +167,8 @@ code {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
+  font-family: var(--rq-font-display) !important;
+  font-weight: 900;
   letter-spacing: 0;
   color: var(--foreground);
   margin: 0;
@@ -172,13 +180,13 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 h4 { font-size: 1.1rem; font-weight: 800; }
 
 p, span, div, label, button, input, textarea, select {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--rq-font-sans);
 }
 
-/* Logo text - ONLY for ROOK branding */
+/* Logo text - only for official Rookie Quest Keeper branding */
 .logo-text, .rook-logo {
-  font-family: 'Montserrat', sans-serif !important;
-  font-weight: 800;
+  font-family: var(--rq-font-display) !important;
+  font-weight: 900;
   letter-spacing: 0;
 }
 
@@ -205,8 +213,8 @@ p, span, div, label, button, input, textarea, select {
 .btn-primary {
   background: var(--primary);
   color: var(--primary-foreground);
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
+  font-family: var(--rq-font-display) !important;
+  font-weight: 900;
   padding: 12px 28px;
   border: none;
   border-radius: 12px;
@@ -223,8 +231,8 @@ p, span, div, label, button, input, textarea, select {
 .btn-secondary {
   background: transparent;
   color: var(--primary);
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
+  font-family: var(--rq-font-display) !important;
+  font-weight: 900;
   padding: 12px 28px;
   border: 1px solid var(--primary);
   border-radius: 12px;
@@ -239,26 +247,26 @@ p, span, div, label, button, input, textarea, select {
 
 /* ===== GRADIENT UTILITIES ===== */
 .gradient-gm {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
+  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
 }
 
 .gradient-player {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
+  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
 }
 
 .gradient-landing {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
+  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
 }
 
 .text-gradient-gm {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
+  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-player {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #C084FC 100%);
+  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

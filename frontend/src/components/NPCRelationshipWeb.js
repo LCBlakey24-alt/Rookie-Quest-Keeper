@@ -10,31 +10,31 @@ import {
 } from 'lucide-react';
 
 
-// GM Theme - Red (Tron Aries)
+// GM theme tokens
 const theme = {
-  primary: '#7C3AED',
-  hover: '#A78BFA',
-  subtle: 'rgba(225, 29, 72, 0.15)',
-  glow: '0 0 20px rgba(225, 29, 72, 0.3)',
-  bg: '#0B0F19',
-  card: '#111827',
-  panel: '#111827',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(124, 58, 237, 0.22)'
+  primary: 'var(--rq-accent-primary, #C08A3D)',
+  hover: 'var(--rq-accent-hover, #E0B46F)',
+  subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.15))',
+  glow: '0 0 20px rgba(192, 138, 61, 0.3)',
+  bg: 'var(--rq-bg-main, #211512)',
+  card: 'var(--rq-bg-card, #2E1D18)',
+  panel: 'var(--rq-bg-card, #2E1D18)',
+  text: 'var(--rq-text-primary, #FFF8EC)',
+  textSecondary: 'var(--rq-text-secondary, #E5D3B7)',
+  muted: 'var(--rq-text-muted, #BFA98C)',
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.26))'
 };
 
 // Relationship types with colors and icons
 const RELATIONSHIP_TYPES = [
   { id: 'ally', label: 'Ally', color: '#22C55E', icon: HandshakeIcon },
   { id: 'enemy', label: 'Enemy', color: '#D97706', icon: Swords },
-  { id: 'family', label: 'Family', color: '#38BDF8', icon: Heart },
-  { id: 'romantic', label: 'Romantic', color: '#38BDF8', icon: Heart },
+  { id: 'family', label: 'Family', color: 'var(--rq-accent-hover, #E0B46F)', icon: Heart },
+  { id: 'romantic', label: 'Romantic', color: 'var(--rq-accent-secondary, #E8B4A0)', icon: Heart },
   { id: 'business', label: 'Business', color: '#14B8A6', icon: Crown },
-  { id: 'rival', label: 'Rival', color: '#A78BFA', icon: AlertCircle },
+  { id: 'rival', label: 'Rival', color: 'var(--rq-accent-primary, #C08A3D)', icon: AlertCircle },
   { id: 'neutral', label: 'Neutral', color: '#6B7280', icon: HelpCircle },
-  { id: 'servant', label: 'Serves', color: '#06B6D4', icon: Shield },
+  { id: 'servant', label: 'Serves', color: 'var(--rq-accent-muted, #A76F3A)', icon: Shield },
 ];
 
 function NPCRelationshipWeb({ campaignId }) {
@@ -277,7 +277,7 @@ function NPCRelationshipWeb({ campaignId }) {
             style={{
               background: linkMode ? theme.primary : 'transparent',
               border: `1px solid ${linkMode ? theme.primary : theme.border}`,
-              color: linkMode ? '#fff' : theme.muted,
+              color: linkMode ? 'var(--rq-text-on-accent, #2A160F)' : theme.muted,
               padding: '8px 14px',
               display: 'flex',
               alignItems: 'center',
@@ -485,7 +485,7 @@ function NPCRelationshipWeb({ campaignId }) {
             top: '12px',
             left: '12px',
             background: theme.primary,
-            color: '#fff',
+            color: 'var(--rq-text-on-accent, #2A160F)',
             padding: '8px 16px',
             fontSize: '12px',
             fontWeight: '400'
@@ -518,7 +518,7 @@ function NPCRelationshipWeb({ campaignId }) {
                 style={{
                   background: theme.primary,
                   border: 'none',
-                  color: '#fff',
+                  color: 'var(--rq-text-on-accent, #2A160F)',
                   padding: '8px 14px',
                   display: 'flex',
                   alignItems: 'center',
@@ -661,7 +661,7 @@ function NPCRelationshipWeb({ campaignId }) {
           <div style={{ display: 'flex', gap: '12px' }}>
             <Button
               onClick={handleAddRelationship}
-              style={{ background: theme.primary, border: 'none', color: '#fff', padding: '10px 20px' }}
+              style={{ background: theme.primary, border: 'none', color: 'var(--rq-text-on-accent, #2A160F)', padding: '10px 20px' }}
             >
               <Save size={16} style={{ marginRight: '8px' }} />
               Save Relationship

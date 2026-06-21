@@ -64,11 +64,10 @@ const productPreviews = [
   }
 ];
 
-function BrandMark() {
+function BrandMark({ compact = false }) {
   return (
-    <div className="landing-brand" aria-label="ROOK">
-      <img src="/images/logo-mini.png" alt="" aria-hidden="true" />
-      <span>ROOK</span>
+    <div className={`landing-brand ${compact ? 'landing-brand-compact' : ''}`} aria-label="Rookie Quest Keeper">
+      <img src={compact ? "/images/logo-mini.png" : "/images/logo-main.png"} alt="Rookie Quest Keeper" />
     </div>
   );
 }
@@ -268,7 +267,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="landing-footer">
-        <BrandMark />
+        <BrandMark compact />
         <p>&copy; {new Date().getFullYear()} Rookie Quest Keeper. All rights reserved.</p>
       </footer>
     </div>

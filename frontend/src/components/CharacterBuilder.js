@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../lib/apiClient";
 import { toast } from "sonner";
 import {
-  User, Sword, Shield, Sparkles, Dices, ChevronLeft, ChevronRight,
+  User, Sword, Dices, ChevronLeft, ChevronRight,
   Save, RotateCcw, BookOpen, Check, Wand2,
-  Scroll, Award, Languages, Backpack
+  Scroll, Award, Backpack
 } from "lucide-react";
 import {
   ABILITIES,
@@ -17,11 +17,15 @@ import {
   validateAbilityScores
 } from "../lib/characterRules";
 import { RACES, CLASSES, BACKGROUNDS, EDITIONS } from "../data/characterRules5e";
-import { getFeatsByEdition } from "../data/levelUpData";
+import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from "../data/spellDatabase";
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
-import ClassSubclassPicker from "./builder/ClassSubclassPicker";
+import BackgroundStep from "./builder/full/BackgroundStep";
+import RaceStep from "./builder/full/RaceStep";
+import ClassStep from "./builder/full/ClassStep";
+import { DetailPanel, InfoBanner, Pill, PreviewStat, SelectCard, StepHeader } from "./character-builder/BuilderPrimitives";
+import { builderTheme as theme, detailHeaderStyle, traitChipStyle } from "./character-builder/builderTheme";
 
 const DRAFT_KEY = "rq_character_builder_draft_v2";
 
@@ -37,6 +41,27 @@ const ALL_SKILLS = {
 
 const formatAbility = (a) => a.slice(0, 3).toUpperCase();
 const formatModifier = (m) => (m >= 0 ? `+${m}` : `${m}`);
+
+const abilityModifier = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const toSelectedSpellPayload = (name, fallbackLevel, spellPool = []) => {
+  const spell = spellPool.find(entry => entry.name === name);
+  return { name, level: spell?.level ?? fallbackLevel, school: spell?.school || '' };
+};
+const buildFullBuilderSpellFields = ({ className, scores }) => {
+  const classInfo = SPELLCASTING_CLASSES[className];
+  if (!classInfo || classInfo.subclassOnly) return {};
+  const slots = getSpellSlotsForCaster(classInfo, 1);
+  const ability = classInfo.ability;
+  const abilityMod = abilityModifier(scores?.[ability]);
+
+  return {
+    spellcasting_ability: ability,
+    spell_save_dc: 8 + 2 + abilityMod,
+    spell_attack_bonus: 2 + abilityMod,
+    spell_slots: slots,
+    spell_slots_remaining: slots,
+  };
+};
 
 // Steps definition (spells/equipment steps are conditional, added dynamically)
 const BASE_STEPS = [
@@ -135,6 +160,16 @@ export default function CharacterBuilder({ onCreateCharacter, editMode = false }
   const [step, setStep] = useState(editMode ? 0 : (initialState.step || 0));
   const [isEditMode] = useState(editMode);
   const [loadingCharacter, setLoadingCharacter] = useState(editMode);
+  const [isBuilderNarrow, setIsBuilderNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const media = window.matchMedia('(max-width: 900px)');
+    const onChange = () => setIsBuilderNarrow(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
   const [name, setName] = useState(initialState.name);
   const [race, setRace] = useState(initialState.race);
   const [subrace, setSubrace] = useState(initialState.subrace);
@@ -600,9 +635,10 @@ const subclassLabel = {
       payload.fighting_style = fightingStyle || '';
       payload.equipment_choice = equipmentChoice;
       payload.starting_equipment = [...startingEquipmentList, ...backgroundEquipment];
-      payload.cantrips_known = selectedCantrips.map(name => ({ name }));
+      Object.assign(payload, buildFullBuilderSpellFields({ className, scores: finalScores }));
+      payload.cantrips_known = selectedCantrips.map(name => toSelectedSpellPayload(name, 0, srdSpells));
       const spellsKey = spellReq?.type === 'prepared' ? 'spells_prepared' : 'spells_known';
-      payload[spellsKey] = selectedSpells.map(name => ({ name }));
+      payload[spellsKey] = selectedSpells.map(name => toSelectedSpellPayload(name, 1, srdSpells));
       // 2024 origin feat selected during background step
       if (edition === '2024' && originFeat) {
         payload.feats = [{ name: originFeat, source: 'origin (2024 background)' }];
@@ -699,365 +735,60 @@ const subclassLabel = {
   );
 
   const renderRaceStep = () => (
-    <div>
-      <StepHeader icon={User} title="Choose Your Race" subtitle="Your ancestry shapes your traits and abilities" color={theme.sunset.pink} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(mergedRaces).map(([key, r]) => (
-          <SelectCard
-            key={key} active={race === key} onClick={() => setRace(key)}
-            color={theme.sunset.pink}
-            title={r.name}
-            subtitle={r.description}
-            data-testid={`race-${key}`}
-            footer={
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                <Pill icon="🏃">{r.speed}ft</Pill>
-                <Pill icon="📐">{r.size}</Pill>
-                {edition === '2014' && r.asi2014 && (
-                  <Pill icon="✨">{r.asi2014.all
-                    ? `+${r.asi2014.all} All`
-                    : Object.entries(r.asi2014).filter(([k]) => k !== 'choice').map(([k, v]) => `+${v} ${k.slice(0, 3).toUpperCase()}`).join(' ')}</Pill>
-                )}
-              </div>
-            }
-          />
-        ))}
-      </div>
-
-      {raceData && (
-        <DetailPanel title={`${raceData.name} Traits`} color={theme.sunset.pink}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px' }}>
-            {raceData.traits.map((t, i) => (
-              <div key={i} style={traitChipStyle}><Sparkles size={12} style={{ flexShrink: 0 }} /> {t}</div>
-            ))}
-          </div>
-          {raceData.languages && (
-            <div style={{ fontSize: '13px', color: theme.text.secondary, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Languages size={14} /> Languages: {raceData.languages.join(', ')}
-            </div>
-          )}
-        </DetailPanel>
-      )}
-
-      {availableSubraces.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <label style={labelStyle}>Choose Subrace</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-            {availableSubraces.map(sr => {
-              const sub = raceData.subraces[sr];
-              return (
-                <SelectCard
-                  key={sr} active={subrace === sr} onClick={() => setSubrace(sr)}
-                  color={theme.sunset.pink}
-                  title={sr}
-                  subtitle={(sub.traits || []).slice(0, 1).join(', ') || 'Subrace'}
-                  data-testid={`subrace-${sr}`}
-                  footer={
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                      {edition === '2014' && sub.asi2014 && Object.entries(sub.asi2014).map(([k, v]) => (
-                        <Pill key={k} icon="✨">+{v} {k.slice(0, 3).toUpperCase()}</Pill>
-                      ))}
-                    </div>
-                  }
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Floating ASI picker (Half-Elf 2014: +1 to two abilities of your choice) */}
-      {edition === '2014' && floatingAsiBudget > 0 && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Distribute {floatingAsiBudget} floating +1{floatingAsiBudget === 1 ? '' : 's'}
-            {' — '}
-            <span style={{ color: totalFloatingSpent === floatingAsiBudget ? theme.success : (theme.accent?.primary || theme.accent), textTransform: 'none' }}>
-              {totalFloatingSpent}/{floatingAsiBudget} assigned
-            </span>
-          </label>
-          <div style={{ fontSize: 12, color: theme.text.muted, marginBottom: 8 }}>
-            Pick {floatingAsiBudget} different abilities to each gain +1. Cannot stack on the same ability.
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
-            {ABILITIES.map(a => {
-              const fixed = (raceData?.asi2014?.[a] || 0) > 0; // fixed bonus already
-              const chosen = !!floatingAsi[a];
-              const disabled = fixed;
-              return (
-                <button
-                  key={a} type="button" disabled={disabled}
-                  data-testid={`floating-asi-${a}`}
-                  onClick={() => {
-                    setFloatingAsi(prev => {
-                      const next = { ...prev };
-                      if (next[a]) delete next[a];
-                      else if (totalFloatingSpent < floatingAsiBudget) next[a] = 1;
-                      else toast.info(`Only ${floatingAsiBudget} floating +1s allowed`);
-                      return next;
-                    });
-                  }}
-                  style={{
-                    padding: '8px 10px', borderRadius: 8,
-                    background: chosen ? 'rgba(16, 185, 129, 0.18)' : disabled ? theme.accent.soft : theme.bg.surface,
-                    border: `1px solid ${chosen ? theme.success : disabled ? theme.accent.line : theme.border}`,
-                    color: disabled ? theme.text.muted : theme.text.primary,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    opacity: disabled ? 0.5 : 1, fontSize: 12, fontWeight: 600
-                  }}>
-                  {chosen ? '✓ ' : ''}{a.charAt(0).toUpperCase() + a.slice(1)}
-                  {fixed && <span style={{ fontSize: 9, display: 'block', color: theme.text.muted }}>Already +{raceData.asi2014[a]}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Language picker (for races with "One of choice") */}
-      {languageBudget > 0 && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Choose {languageBudget} extra language{languageBudget === 1 ? '' : 's'}
-            {' — '}
-            <span style={{ color: chosenLanguages.length === languageBudget ? theme.success : (theme.accent?.primary || theme.accent), textTransform: 'none' }}>
-              {chosenLanguages.length}/{languageBudget} picked
-            </span>
-          </label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {EXTRA_LANGUAGE_OPTIONS.filter(l => !(raceData?.languages || []).includes(l)).map(lang => {
-              const sel = chosenLanguages.includes(lang);
-              return (
-                <button
-                  key={lang} type="button"
-                  data-testid={`language-${lang.toLowerCase()}`}
-                  onClick={() => {
-                    setChosenLanguages(prev => {
-                      if (prev.includes(lang)) return prev.filter(l => l !== lang);
-                      if (prev.length >= languageBudget) {
-                        toast.info(`Only ${languageBudget} language${languageBudget === 1 ? '' : 's'} can be chosen`);
-                        return prev;
-                      }
-                      return [...prev, lang];
-                    });
-                  }}
-                  style={{
-                    padding: '5px 10px', borderRadius: 6, fontSize: 12,
-                    background: sel ? theme.accent.soft : theme.bg.surface,
-                    border: `1px solid ${sel ? (theme.accent?.primary || theme.accent) : theme.border}`,
-                    color: theme.text.primary, cursor: 'pointer'
-                  }}>
-                  {sel ? '✓ ' : ''}{lang}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <RaceStep
+      mergedRaces={mergedRaces}
+      race={race}
+      setRace={setRace}
+      raceData={raceData}
+      subrace={subrace}
+      setSubrace={setSubrace}
+      availableSubraces={availableSubraces}
+      edition={edition}
+      floatingAsi={floatingAsi}
+      setFloatingAsi={setFloatingAsi}
+      floatingAsiBudget={floatingAsiBudget}
+      totalFloatingSpent={totalFloatingSpent}
+      languageBudget={languageBudget}
+      chosenLanguages={chosenLanguages}
+      setChosenLanguages={setChosenLanguages}
+      extraLanguageOptions={EXTRA_LANGUAGE_OPTIONS}
+      theme={theme}
+      labelStyle={labelStyle}
+    />
   );
 
   const renderClassStep = () => (
-    <div>
-      <StepHeader icon={Sword} title="Choose Your Class" subtitle="Your class defines your role and abilities" color={theme.sunset.purple} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(mergedClasses).map(([key, c]) => (
-          <SelectCard
-            key={key} active={className === key} onClick={() => setClassName(key)}
-            color={theme.sunset.purple}
-            title={c.name}
-            subtitle={`Hit Die: d${c.hitDie} • ${c.primaryAbility?.slice(0, 3).toUpperCase()}`}
-            data-testid={`class-${key}`}
-            footer={
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                <Pill icon="❤️">d{c.hitDie} HP</Pill>
-                {c.spellcasting && <Pill icon="✦">Spellcaster</Pill>}
-                <Pill icon="🛡️">{c.savingThrows.map(s => s.slice(0, 3).toUpperCase()).join('/')}</Pill>
-              </div>
-            }
-          />
-        ))}
-      </div>
-
-      {classData && (
-        <DetailPanel title={`${classData.name} Level 1`} color={theme.sunset.purple}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <div style={detailHeaderStyle}>Saving Throws</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {classData.savingThrows.map(s => <span key={s} style={traitChipStyle}><Shield size={12} /> {s.charAt(0).toUpperCase() + s.slice(1)}</span>)}
-              </div>
-              <div style={detailHeaderStyle}>Armor & Weapons</div>
-              <div style={{ fontSize: '13px', color: theme.text.secondary, marginBottom: '12px', lineHeight: 1.6 }}>
-                <div><strong>Armor:</strong> {classData.armorProficiencies.length ? classData.armorProficiencies.join(', ') : 'None'}</div>
-                <div><strong>Weapons:</strong> {Array.isArray(classData.weaponProficiencies) ? classData.weaponProficiencies.join(', ') : ''}</div>
-              </div>
-            </div>
-            <div>
-              <div style={detailHeaderStyle}>Level 1 Features</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {(classData.features?.[1] || []).map(f => <span key={f} style={traitChipStyle}><Sparkles size={12} /> {f}</span>)}
-              </div>
-              <div style={detailHeaderStyle}>Starting Equipment</div>
-              <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.6 }}>
-                {(classData.startingEquipment || []).map((e, i) => <div key={i}>• {e}</div>)}
-              </div>
-            </div>
-          </div>
-        </DetailPanel>
-      )}
-
-      {className && (
-  <ClassSubclassPicker
-    className={className}
-    edition={edition}
-    level={1}
-    classes={mergedClasses}
-    selectedSubclass={subclass}
-    onSubclassChange={setSubclass}
-    label={subclassLabel}
-    required={requiresLevelOneSubclass}
-    requiredText="(REQUIRED at Level 1)"
-    optionalText="(optional now — typically chosen at level 3)"
-    labelStyle={labelStyle}
-    inputStyle={inputStyle}
-    theme={theme}
-  />
-)}
-
-      {/* Fighting Style (Fighter L1, Paladin L2, Ranger L2) */}
-      {FIGHTING_STYLE_CLASSES[className] && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Fighting Style
-            <span style={{ color: className === 'Fighter' ? theme.danger : theme.text.muted, textTransform: 'none', marginLeft: 6 }}>
-              {className === 'Fighter' ? '(REQUIRED at Level 1)' : `(gained at Level ${FIGHTING_STYLE_CLASSES[className].level})`}
-            </span>
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
-            {FIGHTING_STYLE_CLASSES[className].styles.map(style => {
-              const sel = fightingStyle === style;
-              return (
-                <button
-                  key={style} type="button"
-                  data-testid={`fighting-style-${style.toLowerCase().replace(/ /g, '-')}`}
-                  onClick={() => setFightingStyle(sel ? '' : style)}
-                  style={{
-                    padding: '8px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, textAlign: 'left',
-                    background: sel ? 'rgba(239, 68, 68, 0.18)' : theme.bg.surface,
-                    border: `1px solid ${sel ? theme.danger : theme.border}`,
-                    color: theme.text.primary, cursor: 'pointer'
-                  }}>
-                  {sel ? '✓ ' : ''}{style}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <ClassStep
+      mergedClasses={mergedClasses}
+      className={className}
+      setClassName={setClassName}
+      classData={classData}
+      edition={edition}
+      subclass={subclass}
+      setSubclass={setSubclass}
+      subclassLabel={subclassLabel}
+      requiresLevelOneSubclass={requiresLevelOneSubclass}
+      fightingStyle={fightingStyle}
+      setFightingStyle={setFightingStyle}
+      fightingStyleClasses={FIGHTING_STYLE_CLASSES}
+      theme={theme}
+      labelStyle={labelStyle}
+      inputStyle={inputStyle}
+    />
   );
 
   const renderBackgroundStep = () => (
-    <div>
-      <StepHeader icon={Scroll} title="Choose Your Background" subtitle="Your past life shapes your skills and gear" color={theme.sunset.gold} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(mergedBackgrounds).map(([key, b]) => (
-          <SelectCard
-            key={key} active={background === key} onClick={() => setBackground(key)}
-            color={theme.sunset.gold}
-            title={b.name}
-            subtitle={b.description}
-            data-testid={`background-${key}`}
-            footer={
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                {(b.skillProficiencies || []).map(sp => <Pill key={sp} icon="📜">{sp}</Pill>)}
-                {edition === '2024' && b.asi2024 && (
-                  <Pill icon="✨">
-                    {Object.entries(b.asi2024).map(([k, v]) => `+${v} ${k.slice(0, 3).toUpperCase()}`).join(' ')}
-                  </Pill>
-                )}
-              </div>
-            }
-          />
-        ))}
-      </div>
-
-      {backgroundData && (
-        <DetailPanel title={backgroundData.name} color={theme.sunset.gold}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <div style={detailHeaderStyle}>Granted Skills</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {(backgroundData.skillProficiencies || []).map(s => <span key={s} style={traitChipStyle}><Award size={12} /> {s}</span>)}
-              </div>
-              {backgroundData.toolProficiencies && (
-                <>
-                  <div style={detailHeaderStyle}>Tool Proficiencies</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                    {backgroundData.toolProficiencies.map(t => <span key={t} style={traitChipStyle}><Backpack size={12} /> {t}</span>)}
-                  </div>
-                </>
-              )}
-              {backgroundData.feature && (
-                <>
-                  <div style={detailHeaderStyle}>Feature</div>
-                  <div style={traitChipStyle}><Sparkles size={12} /> {backgroundData.feature}</div>
-                </>
-              )}
-            </div>
-            <div>
-              <div style={detailHeaderStyle}>Starting Equipment</div>
-              <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.6 }}>
-                {(backgroundData.equipment || []).map((e, i) => <div key={i}>• {e}</div>)}
-              </div>
-              {edition === '2024' && backgroundData.originFeat2024 && (
-                <div style={{ marginTop: '12px' }}>
-                  <div style={detailHeaderStyle}>2024 Origin Feat</div>
-                  <div style={traitChipStyle}><Sparkles size={12} /> {backgroundData.originFeat2024}</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </DetailPanel>
-      )}
-
-      {/* 2024 Origin Feat picker — required when edition is 2024 */}
-      {edition === '2024' && (
-        <div style={{ marginTop: 20, padding: 14, borderRadius: 12, background: theme.bg.surface, border: `1px solid ${theme.border}` }}>
-          <label style={labelStyle}>
-            2024 Origin Feat
-            <span style={{ color: originFeat ? '#10B981' : '#EF4444', textTransform: 'none', marginLeft: 6 }}>
-              {originFeat ? `✓ ${originFeat}` : '(REQUIRED in 2024 rules)'}
-            </span>
-          </label>
-          <div style={{ fontSize: 12, color: theme.text.muted, marginBottom: 8 }}>
-            Pick a 2024-style Origin feat granted by your background. (Origin feats are a new 2024 PHB feature replacing the 2014 background ASI flow.)
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 6 }}>
-            {getFeatsByEdition('2024', 'origin').map(feat => {
-              const sel = originFeat === feat.name;
-              return (
-                <button
-                  key={feat.name} type="button"
-                  data-testid={`origin-feat-${feat.name.toLowerCase().replace(/\s/g, '-').replace(/[()]/g, '')}`}
-                  onClick={() => setOriginFeat(sel ? '' : feat.name)}
-                  title={feat.description}
-                  style={{
-                    padding: '8px 10px', borderRadius: 8, fontSize: 12, textAlign: 'left',
-                    background: sel ? 'rgba(239, 68, 68, 0.18)' : theme.bg.primary,
-                    border: `1px solid ${sel ? theme.sunset.gold : theme.border}`,
-                    color: theme.text.primary, cursor: 'pointer'
-                  }}>
-                  <div style={{ fontWeight: 700, marginBottom: 2 }}>{sel ? '✓ ' : ''}{feat.name}</div>
-                  <div style={{ fontSize: 10, color: theme.text.muted, lineHeight: 1.4 }}>{feat.description}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <BackgroundStep
+      background={background}
+      setBackground={setBackground}
+      backgroundData={backgroundData}
+      mergedBackgrounds={mergedBackgrounds}
+      edition={edition}
+      originFeat={originFeat}
+      setOriginFeat={setOriginFeat}
+      theme={theme}
+      labelStyle={labelStyle}
+    />
   );
 
   const renderSkillsStep = () => (
@@ -1409,7 +1140,7 @@ const subclassLabel = {
         {/* 2-column: builder panel + sticky live preview */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(220px, 280px)',
+          gridTemplateColumns: isBuilderNarrow ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(220px, 280px)',
           gap: 16,
           marginTop: '16px',
           alignItems: 'flex-start',

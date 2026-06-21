@@ -6,15 +6,15 @@ import React from 'react';
  */
 export const RookIcon = ({ size = 24, className = '', style = {} }) => {
   return (
-    <img 
-      src="/rqk-mascot.png" 
-      alt="ROOK AI"
+    <img
+      src="/images/logo-mini.png"
+      alt="ROOK"
       width={size}
       height={size}
       className={className}
-      style={{ 
+      style={{
         objectFit: 'contain',
-        ...style 
+        ...style
       }}
     />
   );
@@ -25,16 +25,16 @@ export const RookIcon = ({ size = 24, className = '', style = {} }) => {
  */
 export const RookLogo = ({ height = 40, className = '', style = {} }) => {
   return (
-    <img 
-      src="/rqk-logo-mascot.png" 
+    <img
+      src="/images/logo-main.png"
       alt="Rookie Quest Keeper"
       height={height}
       className={className}
-      style={{ 
+      style={{
         height: height,
         width: 'auto',
         objectFit: 'contain',
-        ...style 
+        ...style
       }}
     />
   );
@@ -45,16 +45,16 @@ export const RookLogo = ({ height = 40, className = '', style = {} }) => {
  */
 export const RQKTextLogo = ({ height = 32, className = '', style = {} }) => {
   return (
-    <img 
-      src="/rqk-logo-text.png" 
+    <img
+      src="/images/logo-main.png"
       alt="Rookie Quest Keeper"
       height={height}
       className={className}
-      style={{ 
+      style={{
         height: height,
         width: 'auto',
         objectFit: 'contain',
-        ...style 
+        ...style
       }}
     />
   );
@@ -63,8 +63,8 @@ export const RQKTextLogo = ({ height = 32, className = '', style = {} }) => {
 /**
  * ROOK Badge - for use in buttons and panels
  */
-export const RookBadge = ({ 
-  label = 'ROOK', 
+export const RookBadge = ({
+  label = 'ROOK',
   size = 'default',
   variant = 'default' // 'default', 'glow', 'outline'
 }) => {
@@ -84,26 +84,26 @@ export const RookBadge = ({
     borderRadius: '8px',
     fontSize: s.fontSize,
     fontWeight: '700',
-    fontFamily: "'Cinzel', serif",
+    fontFamily: "var(--rq-font-display, 'Recoleta', 'RQKDisplay', serif)",
     transition: 'all 0.2s ease'
   };
 
   const variants = {
     default: {
-      background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)',
-      color: '#22D3EE',
-      border: '1px solid rgba(34, 211, 238, 0.3)'
+      background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
+      color: 'var(--rq-accent-hover, #E0B15C)',
+      border: '1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))'
     },
     glow: {
-      background: 'linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%)',
-      color: '#ffffff',
+      background: 'linear-gradient(135deg, var(--rq-accent-primary, #C08A3D) 0%, var(--rq-accent-hover, #E0B15C) 100%)',
+      color: 'var(--rq-text-inverse, #120C08)',
       border: 'none',
-      boxShadow: '0 4px 20px rgba(34, 211, 238, 0.4)'
+      boxShadow: '0 4px 20px rgba(192, 138, 61, 0.34)'
     },
     outline: {
       background: 'transparent',
-      color: '#22D3EE',
-      border: '2px solid #22D3EE'
+      color: 'var(--rq-accent-hover, #E0B15C)',
+      border: '2px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))'
     }
   };
 

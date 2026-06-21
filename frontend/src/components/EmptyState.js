@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
-function EmptyState({ icon: Icon, title, description, actionLabel, onAction, color = '#7C3AED' }) {
+function EmptyState({ icon: Icon, title, description, actionLabel, onAction, color = 'var(--rq-accent-primary, #C08A3D)' }) {
   return (
     <div style={{
       display: 'flex',
@@ -25,7 +25,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, onAction, col
         fontSize: '24px',
         fontFamily: "'Montserrat', sans-serif",
         fontWeight: '400',
-        color: '#ffffff',
+        color: 'var(--rq-text-primary, #F5E6C8)',
         marginBottom: '12px'
       }}>
         {title}
@@ -33,7 +33,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, onAction, col
       
       <p style={{
         fontSize: '16px',
-        color: '#94a3b8',
+        color: 'var(--rq-text-muted, #CDBA98)',
         maxWidth: '400px',
         marginBottom: '32px',
         lineHeight: '1.6'

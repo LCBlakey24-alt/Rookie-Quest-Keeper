@@ -1,0 +1,203 @@
+/* Site-wide Velvet Coffee theme bridge.
+   This file is intentionally token-first: it nudges legacy blue/purple/gold pages onto
+   the current coffee surfaces without rewriting route components. */
+
+:root,
+[data-theme="gm"],
+[data-theme="player"] {
+  --background: var(--rq-bg-main, #120C08);
+  --foreground: var(--rq-text-primary, #F5E6C8);
+  --card: var(--rq-bg-panel-alt, #2E1D13);
+  --card-foreground: var(--rq-text-primary, #F5E6C8);
+  --popover: var(--rq-bg-panel, #21150E);
+  --popover-foreground: var(--rq-text-primary, #F5E6C8);
+  --primary: var(--rq-accent-primary, #C08A3D);
+  --primary-foreground: var(--rq-text-inverse, #120C08);
+  --secondary: var(--rq-accent-active, #A45A32);
+  --secondary-foreground: var(--rq-text-primary, #F5E6C8);
+  --muted: var(--rq-bg-input, #1A100B);
+  --muted-foreground: var(--rq-text-muted, #CDBA98);
+  --accent: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
+  --accent-foreground: var(--rq-text-primary, #F5E6C8);
+  --destructive: var(--rq-danger, #B44732);
+  --destructive-foreground: var(--rq-text-primary, #F5E6C8);
+  --border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+  --input: var(--rq-bg-input, #1A100B);
+  --ring: var(--rq-accent-hover, #E0B15C);
+  --theme-glow: rgba(192, 138, 61, 0.22);
+  --theme-glow-secondary: rgba(164, 90, 50, 0.16);
+  --glass-bg: rgba(33, 21, 14, 0.82);
+  --glass-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
+}
+
+html,
+body,
+#root,
+.App {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(192, 138, 61, 0.10), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(164, 90, 50, 0.12), transparent 34%),
+    var(--rq-bg-main, #120C08) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
+}
+
+.loading-screen,
+.clean-sheet-page,
+.character-mode-page,
+.premade-page,
+[data-testid="landing-page"],
+.rq-auth-page,
+main[style*="100vh"],
+main[style*="100dvh"] {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(192, 138, 61, 0.14), transparent 30%),
+    radial-gradient(circle at 85% 10%, rgba(164, 90, 50, 0.12), transparent 34%),
+    var(--rq-bg-main, #120C08) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
+}
+
+.loading-screen p,
+.loading-screen span {
+  color: var(--rq-text-secondary, #E6D2AA) !important;
+}
+
+/* Generic controls shared by landing, login, dashboards, character creation, and GM tools. */
+button,
+.btn,
+.btn-primary,
+.btn-outline,
+input,
+select,
+textarea {
+  border-radius: 10px;
+}
+
+input,
+select,
+textarea,
+.rq-auth-input {
+  background: var(--rq-bg-input, #1A100B) !important;
+  border-color: var(--rq-border-default, rgba(192, 138, 61, 0.22)) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--rq-text-muted, #CDBA98) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--rq-accent-hover, #E0B15C) !important;
+  box-shadow: 0 0 0 3px var(--rq-accent-soft, rgba(192, 138, 61, 0.14)) !important;
+  outline: none !important;
+}
+
+.btn-primary,
+button[data-testid*="create"],
+button[data-testid*="new"],
+button[data-testid*="save"],
+button[data-testid*="open-dm-screen"],
+.rq-auth-primary,
+.landing-button-primary {
+  background: var(--rq-accent-primary, #C08A3D) !important;
+  border-color: var(--rq-accent-hover, #E0B15C) !important;
+  color: var(--rq-text-inverse, #120C08) !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+button[data-testid*="create"]:hover,
+button[data-testid*="new"]:hover,
+button[data-testid*="save"]:hover,
+.rq-auth-primary:hover,
+.landing-button-primary:hover {
+  background: var(--rq-accent-hover, #E0B15C) !important;
+}
+
+.btn-outline,
+.landing-button-ghost,
+.rq-auth-secondary {
+  background: rgba(33, 21, 14, 0.72) !important;
+  border-color: var(--rq-border-default, rgba(192, 138, 61, 0.22)) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
+}
+
+/* Signed-in dashboard and GM workspace surfaces. */
+#player-section,
+#gm-section,
+[data-testid="sourcebook-library"],
+.player-active-panel-fix,
+.player-desktop-context,
+.clean-sheet-panel,
+.clean-sheet-empty,
+.clean-sheet-mobile-tools,
+.clean-sheet-hp-card,
+.clean-sheet-stat-card,
+.landing-feature-card,
+.landing-workflow-item,
+.landing-preview-card,
+.landing-product-frame,
+.rq-auth-panel {
+  background: linear-gradient(180deg, rgba(46, 29, 19, 0.92), rgba(33, 21, 14, 0.96)) !important;
+  border-color: var(--rq-border-default, rgba(192, 138, 61, 0.22)) !important;
+  color: var(--rq-text-primary, #F5E6C8) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34) !important;
+}
+
+#player-section *,
+#gm-section *,
+.clean-sheet-page *,
+.character-mode-page *,
+.premade-page *,
+.rq-auth-page *,
+[data-testid="landing-page"] * {
+  border-color: var(--rq-border-default, rgba(192, 138, 61, 0.22));
+}
+
+#player-section svg,
+#gm-section svg,
+.clean-sheet-page svg,
+.character-mode-page svg,
+.premade-page svg,
+.rq-auth-page svg,
+[data-testid="landing-page"] svg {
+  color: var(--rq-accent-primary, #C08A3D);
+}
+
+.clean-sheet-page {
+  --cs-bg: var(--rq-bg-main, #120C08) !important;
+  --cs-panel: var(--rq-bg-panel, #21150E) !important;
+  --cs-card: var(--rq-bg-panel-alt, #2E1D13) !important;
+  --cs-accent: var(--rq-accent-primary, #C08A3D) !important;
+  --cs-text: var(--rq-text-primary, #F5E6C8) !important;
+  --cs-text-soft: var(--rq-text-secondary, #E6D2AA) !important;
+  --cs-muted: var(--rq-text-muted, #CDBA98) !important;
+  --cs-border: var(--rq-border-default, rgba(192, 138, 61, 0.22)) !important;
+  --cs-border-strong: var(--rq-accent-strong-border, rgba(224, 177, 92, 0.56)) !important;
+  --cs-accent-soft: var(--rq-accent-soft, rgba(192, 138, 61, 0.14)) !important;
+  --cs-accent-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34)) !important;
+  --cs-accent-hover-border: var(--rq-accent-strong-border, rgba(224, 177, 92, 0.56)) !important;
+  --cs-accent-hover-bg: rgba(192, 138, 61, 0.18) !important;
+  --cs-blue-soft: rgba(164, 90, 50, 0.16) !important;
+}
+
+@media (max-width: 900px) {
+  .landing-nav,
+  .landing-hero,
+  .landing-features,
+  .landing-workflow,
+  #player-section,
+  #gm-section,
+  [data-testid="sourcebook-library"] {
+    background: var(--rq-bg-main, #120C08) !important;
+  }
+
+  .rq-auth-content,
+  .character-mode-shell,
+  .premade-shell {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}

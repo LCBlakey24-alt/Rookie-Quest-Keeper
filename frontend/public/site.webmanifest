@@ -1,0 +1,22 @@
+{
+  "short_name": "RQK",
+  "name": "Rookie Quest Keeper",
+  "icons": [
+    {
+      "src": "/images/logo-mini.png",
+      "sizes": "570x526",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo-main.png",
+      "sizes": "664x624",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#120C08",
+  "theme_color": "#120C08"
+}

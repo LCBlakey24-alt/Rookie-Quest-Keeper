@@ -6,6 +6,7 @@ import RookFormFillPanel from '@/components/RookFormFillPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
 import { calculateArmorAc } from '../data/armorRules5e';
+import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '../data/spellDatabase';
 
 // Starter stat arrays by primary ability
 const STAT_ARRAYS = {
@@ -94,6 +95,61 @@ const velvetPanelStyle = {
 const clampLevel = (value) => Math.min(20, Math.max(1, Number.parseInt(value, 10) || 1));
 const abilityModifier = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const formatModifier = (value) => (value >= 0 ? `+${value}` : `${value}`);
+
+const toSpellEntry = (spell) => ({ name: spell.name, level: spell.level || 0, school: spell.school || '', description: spell.description || '' });
+
+const getProgressionCount = (table = {}, level = 1) => {
+  let count = 0;
+  Object.entries(table).forEach(([entryLevel, value]) => {
+    if (Number(entryLevel) <= level) count = Number(value) || count;
+  });
+  return count;
+};
+
+const buildBasicSpellDefaults = ({ characterClass, level, statBlock }) => {
+  const classInfo = SPELLCASTING_CLASSES[characterClass];
+  if (!classInfo || classInfo.subclassOnly) return {};
+
+  const slots = getSpellSlotsForCaster(classInfo, level);
+  if (classInfo.halfCaster && Object.keys(slots).length === 0) return {};
+
+  const ability = classInfo.ability;
+  const abilityMod = abilityModifier(statBlock[ability]);
+  const proficiency = 2 + Math.floor((level - 1) / 4);
+  const spellsByLevel = getSpellsForClass(characterClass);
+  const cantripCount = getProgressionCount(CANTRIPS_KNOWN[characterClass], level);
+  const cantrips = (spellsByLevel.cantrips || []).slice(0, cantripCount).map(toSpellEntry);
+  const maxSpellLevel = Math.max(0, ...Object.keys(slots || {}).map(Number));
+  const leveledPool = [];
+  for (let spellLevel = 1; spellLevel <= maxSpellLevel; spellLevel += 1) {
+    leveledPool.push(...((spellsByLevel[spellLevel] || []).map(spell => ({ ...spell, level: spellLevel }))));
+  }
+
+  const fields = {
+    spellcasting_ability: ability,
+    spell_save_dc: 8 + proficiency + abilityMod,
+    spell_attack_bonus: proficiency + abilityMod,
+    spell_slots: slots,
+    spell_slots_remaining: slots,
+    cantrips_known: cantrips,
+  };
+
+  if (classInfo.type === 'known' || classInfo.pactMagic) {
+    const knownCount = getProgressionCount(SPELLS_KNOWN[characterClass], level);
+    fields.spells_known = leveledPool.slice(0, knownCount).map(toSpellEntry);
+  } else if (characterClass === 'Wizard') {
+    const spellbookCount = Math.max(6, 6 + Math.max(0, level - 1) * 2);
+    fields.spells_known = leveledPool.slice(0, spellbookCount).map(toSpellEntry);
+    fields.spells_prepared = leveledPool.slice(0, Math.max(1, level + abilityMod)).map(toSpellEntry);
+    fields.spell_preparation_loadout = 'rook-balanced';
+  } else {
+    fields.spells_prepared = leveledPool.slice(0, Math.max(1, level + abilityMod)).map(toSpellEntry);
+    fields.spell_preparation_loadout = 'rook-balanced';
+  }
+
+  return fields;
+};
+
 
 const calculateBasicMaxHp = ({ hitDie = 8, constitution = 10, level = 1 } = {}) => {
   const safeLevel = clampLevel(level);
@@ -239,6 +295,12 @@ export default function BasicCharacterBuilder() {
     shieldEquipped,
   }), [characterClass, statBlock, armorChoice, shieldEquipped]);
   const proficiencyBonus = 2 + Math.floor((safeLevel - 1) / 4);
+  const spellDefaults = useMemo(() => buildBasicSpellDefaults({ characterClass, level: safeLevel, statBlock }), [characterClass, safeLevel, statBlock]);
+  const starterSpellNames = useMemo(() => [
+    ...(spellDefaults.cantrips_known || []),
+    ...(spellDefaults.spells_known || []),
+    ...(spellDefaults.spells_prepared || []),
+  ].map(spell => spell.name).filter(Boolean), [spellDefaults]);
   const classFeatures = useMemo(() => buildClassFeaturesThroughLevel(cls, characterClass, safeLevel), [cls, characterClass, safeLevel]);
   const startingEquipment = useMemo(() => Array.from(new Set([
     ...(cls?.startingEquipment || []),
@@ -306,7 +368,8 @@ export default function BasicCharacterBuilder() {
         languages: finalLanguages,
         class_features: classFeatures,
         racial_traits: racialTraits,
-        starting_equipment: startingEquipment
+        starting_equipment: startingEquipment,
+        ...spellDefaults
       };
       const res = await apiClient.post(`/characters`, payload);
       toast.success('Basic character created!');
@@ -364,14 +427,15 @@ export default function BasicCharacterBuilder() {
               Basic Build
             </h1>
             <p style={{ color: velvet.muted, margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
-              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, and languages.
+              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, languages, and starter spells when needed.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
             <AutoFillCard title="You choose" text="Name, edition, level, class, species, background, and defence loadout." />
-            <AutoFillCard title="ROOK fills" text="Stats, HP, AC, gear, traits, starter language choices, and class features." />
+            <AutoFillCard title="ROOK fills" text="Stats, HP, AC, gear, traits, starter language choices, class features, and starter magic where your class needs it." />
             <AutoFillCard title="Still yours" text="Pick class skills and edit the sheet after creation if needed." />
+            {starterSpellNames.length > 0 && <AutoFillCard title="Starter magic" text={starterSpellNames.slice(0, 5).join(', ')} />}
           </div>
         </section>
 

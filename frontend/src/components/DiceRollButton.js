@@ -5,14 +5,14 @@ import DiceRollFlicker from '@/components/DiceRollFlicker';
 
 // Mystic tabletop dice theme
 const theme = {
-  primary: '#7C3AED',
-  cyan: '#A78BFA',
-  hover: '#C084FC',
-  subtle: 'rgba(124, 58, 237, 0.16)',
-  border: 'rgba(124, 58, 237, 0.42)',
+  primary: 'var(--rq-accent-primary, #C08A3D)',
+  cyan: 'var(--rq-accent-hover, #E0B15C)',
+  hover: 'var(--rq-accent-hover, #E0B15C)',
+  subtle: 'rgba(192, 138, 61, 0.16)',
+  border: 'rgba(192, 138, 61, 0.42)',
   crit: '#22C55E',
   fail: '#EF4444',
-  text: '#FFFFFF'
+  text: 'var(--rq-text-primary, #F5E6C8)'
 };
 
 /**
@@ -154,7 +154,7 @@ export function DamageRollButton({
   diceFormula,  // e.g., "2d6+3"
   label = 'Damage',
   damageType = 'slashing',
-  color = '#A78BFA'
+  color = 'var(--rq-accent-hover, #E0B15C)'
 }) {
   const [rolling, setRolling] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -207,9 +207,9 @@ export function DamageRollButton({
 
   // Damage button uses red theme
   const damageTheme = {
-    subtle: 'rgba(124, 58, 237, 0.10)',
-    border: 'rgba(124, 58, 237, 0.38)',
-    hover: 'rgba(124, 58, 237, 0.18)'
+    subtle: 'rgba(192, 138, 61, 0.10)',
+    border: 'rgba(192, 138, 61, 0.38)',
+    hover: 'rgba(192, 138, 61, 0.18)'
   };
 
   return (
@@ -236,7 +236,7 @@ export function DamageRollButton({
       }}
       title={`Click to roll ${diceFormula} ${damageType} damage`}
     >
-      <Dice6 size={12} color={isHovered ? color : '#A78BFA'} style={{ flexShrink: 0 }} />
+      <Dice6 size={12} color={isHovered ? color : 'var(--rq-accent-hover, #E0B15C)'} style={{ flexShrink: 0 }} />
       <span>{diceFormula}</span>
     </button>
       {rollResult && (
