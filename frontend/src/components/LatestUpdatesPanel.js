@@ -25,7 +25,7 @@ export default function LatestUpdatesPanel({ limit = 3, publicOnly = false, comp
           <Sparkles size={18} color={theme.accentHover} />
           <div>
             <p style={eyebrowStyle}>Latest Updates</p>
-            <h2 style={titleStyle}>What’s new in ROOK</h2>
+            <h2 style={titleStyle}>What’s new</h2>
           </div>
         </div>
         <span style={countPillStyle}>{updates.length} update{updates.length === 1 ? '' : 's'}</span>

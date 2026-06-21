@@ -48,7 +48,7 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 
 /* ===== CSS VARIABLES - DUAL THEME SYSTEM ===== */
 :root {
-  /* === ROOK APP THEME === */
+  /* === Rookie Quest Keeper app theme === */
   --background: var(--rq-bg-main, #120C08);
   --foreground: var(--rq-text-primary, #F5E6C8);
   --card: var(--rq-bg-panel-alt, #2E1D13);
@@ -183,7 +183,7 @@ p, span, div, label, button, input, textarea, select {
   font-family: var(--rq-font-sans);
 }
 
-/* Logo text - ONLY for ROOK branding */
+/* Logo text - only for official Rookie Quest Keeper branding */
 .logo-text, .rook-logo {
   font-family: var(--rq-font-display) !important;
   font-weight: 900;
