@@ -84,7 +84,7 @@ export const RookBadge = ({
     borderRadius: '8px',
     fontSize: s.fontSize,
     fontWeight: '700',
-    fontFamily: "var(--rq-font-display, 'Recoleta', 'RQKDisplay', serif)",
+    fontFamily: "var(--rq-font-display, 'Fraunces', 'RQKDisplay', serif)",
     transition: 'all 0.2s ease'
   };
 
