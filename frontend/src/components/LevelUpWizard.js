@@ -385,7 +385,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           maxWidth: '600px',
           maxHeight: '90vh',
           overflow: 'hidden',
-          boxShadow: '0 25px 80px rgba(124, 58, 237, 0.32)'
+          boxShadow: '0 25px 80px rgba(192, 138, 61, 0.24)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -421,7 +421,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   onClick={() => { setIsMulticlassing(false); setMulticlassClass(null); }}
                   style={{
                     padding: '20px',
-                    background: !isMulticlassing ? 'rgba(124, 58, 237, 0.18)' : 'rgba(10, 22, 40, 0.5)',
+                    background: !isMulticlassing ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${!isMulticlassing ? theme.sunset.purple : theme.border}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
@@ -480,7 +480,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       style={{
                         width: '100%',
                         padding: '20px',
-                        background: isMulticlassing ? 'rgba(34, 211, 238, 0.14)' : 'rgba(10, 22, 40, 0.5)',
+                        background: isMulticlassing ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                         border: `2px solid ${isMulticlassing ? theme.sunset.pink : theme.border}`,
                         borderRadius: '12px',
                         cursor: 'pointer',
@@ -526,7 +526,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               onClick={() => setMulticlassClass(cls)}
                               style={{
                                 padding: '14px',
-                                background: multiclassClass === cls ? 'rgba(34, 211, 238, 0.14)' : 'rgba(10, 22, 40, 0.6)',
+                                background: multiclassClass === cls ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                                 border: `1px solid ${multiclassClass === cls ? theme.sunset.gold : theme.border}`,
                                 borderRadius: '8px',
                                 cursor: 'pointer',
@@ -582,7 +582,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   onClick={() => selectHpMethod('average')}
                   style={{
                     padding: '20px',
-                    background: hpMethod === 'average' ? 'rgba(124, 58, 237, 0.18)' : 'rgba(10, 22, 40, 0.5)',
+                    background: hpMethod === 'average' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${hpMethod === 'average' ? theme.sunset.purple : theme.border}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
@@ -608,7 +608,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   onClick={() => selectHpMethod('roll')}
                   style={{
                     padding: '20px',
-                    background: hpMethod === 'roll' ? 'rgba(34, 211, 238, 0.14)' : 'rgba(10, 22, 40, 0.5)',
+                    background: hpMethod === 'roll' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${hpMethod === 'roll' ? theme.sunset.pink : theme.border}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
@@ -634,7 +634,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   onClick={() => selectHpMethod('manual')}
                   style={{
                     padding: '20px',
-                    background: hpMethod === 'manual' ? 'rgba(124, 58, 237, 0.16)' : 'rgba(10, 22, 40, 0.5)',
+                    background: hpMethod === 'manual' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${hpMethod === 'manual' ? theme.sunset.gold : theme.border}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
@@ -686,13 +686,13 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                           alignItems: 'center',
                           justifyContent: 'center',
                           margin: '0 auto',
-                          boxShadow: '0 10px 40px rgba(124, 58, 237, 0.38)',
+                          boxShadow: '0 10px 40px rgba(192, 138, 61, 0.34)',
                           transition: 'transform 0.2s'
                         }}
                         onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
                         onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                       >
-                        <Dices size={48} color="#fff" />
+                        <Dices size={48} color="var(--rq-text-primary, #F5E6C8)" />
                       </button>
                       <p style={{ color: theme.text.muted, marginTop: '16px', fontSize: '13px' }}>
                         Click to roll!
@@ -704,7 +704,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                         width: '120px',
                         height: '120px',
                         borderRadius: '16px',
-                        background: 'rgba(124, 58, 237, 0.18)',
+                        background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
                         border: `3px solid ${theme.sunset.purple}`,
                         display: 'flex',
                         alignItems: 'center',
@@ -764,7 +764,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                     maxWidth: '260px',
                     margin: '0 auto',
                     padding: '18px',
-                    background: 'rgba(10, 22, 40, 0.5)',
+                    background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `1px solid ${hasValidManualHpRoll || !manualHpRoll ? theme.border : '#EF4444'}`,
                     borderRadius: '12px'
                   }}>
@@ -863,7 +863,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {profBonusIncreased && (
                 <div style={{
                   marginTop: '24px',
-                  background: 'rgba(34, 211, 238, 0.10)',
+                  background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
                   border: `1px solid ${theme.sunset.gold}`,
                   borderRadius: '12px',
                   padding: '16px',
@@ -906,7 +906,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                         onClick={() => setSelectedFightingStyle(fs.name)}
                         style={{
                           padding: '14px 16px', textAlign: 'left', borderRadius: '10px', cursor: 'pointer',
-                          background: selectedFightingStyle === fs.name ? 'rgba(124, 58, 237, 0.18)' : 'rgba(10, 22, 40, 0.5)',
+                          background: selectedFightingStyle === fs.name ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                           border: `2px solid ${selectedFightingStyle === fs.name ? theme.sunset.purple : theme.border}`,
                           transition: 'all 0.2s',
                         }}
@@ -938,7 +938,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                         onClick={() => setSelectedSubclass(key)}
                         style={{
                           padding: '16px', textAlign: 'left', borderRadius: '12px', cursor: 'pointer',
-                          background: selectedSubclass === key ? 'rgba(124, 58, 237, 0.18)' : 'rgba(10, 22, 40, 0.5)',
+                          background: selectedSubclass === key ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                           border: `2px solid ${selectedSubclass === key ? theme.sunset.purple : theme.border}`,
                           transition: 'all 0.2s',
                         }}
@@ -951,7 +951,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               {sc.features.filter(f => f.level === newClassLevel).map((f, i) => (
                                 <span key={i} style={{
                                   fontSize: '11px', padding: '2px 8px', borderRadius: '4px',
-                                  background: 'rgba(34, 211, 238, 0.14)', color: '#22D3EE', fontWeight: 500,
+                                  background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: 500,
                                 }}>{f.name}</span>
                               ))}
                             </div>
@@ -989,8 +989,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                           }}
                           style={{
                             padding: '10px 14px', textAlign: 'left', borderRadius: '8px', cursor: 'pointer',
-                            background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(10, 22, 40, 0.4)',
-                            border: `1px solid ${isSelected ? '#3B82F6' : theme.border}`,
+                            background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
+                            border: `1px solid ${isSelected ? 'var(--rq-accent-primary, #C08A3D)' : theme.border}`,
                             opacity: !isSelected && selectedManeuvers.length >= 3 ? 0.4 : 1,
                             transition: 'all 0.2s',
                           }}
@@ -1000,7 +1000,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               <div style={{ color: theme.text.primary, fontWeight: 600, fontSize: '13px' }}>{m.name}</div>
                               <div style={{ color: theme.text.muted, fontSize: '11px', marginTop: '2px' }}>{m.description}</div>
                             </div>
-                            {isSelected && <Check size={16} style={{ color: '#3B82F6', flexShrink: 0 }} />}
+                            {isSelected && <Check size={16} style={{ color: 'var(--rq-accent-primary, #C08A3D)', flexShrink: 0 }} />}
                           </div>
                         </button>
                       );
@@ -1014,7 +1014,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {/* Spellcasting Progression Step */}
           {step === spellcastingStep && isSpellcaster && (
             <div>
-              <h3 style={{ color: '#22D3EE', fontSize: '18px', marginBottom: '8px' }}>
+              <h3 style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontSize: '18px', marginBottom: '8px' }}>
                 Spellcasting Progression
               </h3>
               <p style={{ color: theme.text.secondary, marginBottom: '16px', fontSize: '14px' }}>
@@ -1034,12 +1034,12 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       return (
                         <div key={lvl} style={{
                           padding: '8px 12px', borderRadius: 8, minWidth: 60, textAlign: 'center',
-                          background: isNew ? 'rgba(245,197,66,0.12)' : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${isNew ? 'rgba(245,197,66,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                          background: isNew ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
+                          border: `1px solid ${isNew ? 'rgba(245,197,66,0.4)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
                         }}>
                           <div style={{ fontSize: 10, color: theme.text.muted }}>Lvl {lvl}</div>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: isNew ? '#22D3EE' : theme.text.primary }}>
-                            {count} {isNew && <span style={{ fontSize: 10, color: '#22C55E' }}>+{count - oldCount}</span>}
+                          <div style={{ fontSize: 16, fontWeight: 700, color: isNew ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.primary }}>
+                            {count} {isNew && <span style={{ fontSize: 10, color: 'var(--rq-success, #7A9B66)' }}>+{count - oldCount}</span>}
                           </div>
                         </div>
                       );
@@ -1052,7 +1052,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   <div style={{ color: theme.text.primary, fontSize: 14 }}>
                     {newSlots.slots} slot{newSlots.slots > 1 ? 's' : ''} at spell level {newSlots.level}
                     {(newSlots.slots !== oldSlots.slots || newSlots.level !== oldSlots.level) && (
-                      <span style={{ color: '#22C55E', marginLeft: 8, fontSize: 12 }}>
+                      <span style={{ color: 'var(--rq-success, #7A9B66)', marginLeft: 8, fontSize: 12 }}>
                         {newSlots.slots !== oldSlots.slots && `+${newSlots.slots - (oldSlots.slots || 0)} slot `}
                         {newSlots.level !== oldSlots.level && `(now lvl ${newSlots.level})`}
                       </span>
@@ -1083,7 +1083,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {/* Cantrip Selection */}
               {cantripGain > 0 && (
                 <div style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#22D3EE', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-hover, #E0B15C)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                     Choose {cantripGain} New Cantrip{cantripGain > 1 ? 's' : ''} ({selectedNewCantrips.length}/{cantripGain})
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 140, overflowY: 'auto', padding: 4 }}>
@@ -1097,9 +1097,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                           );
                         }} style={{
                           padding: '6px 12px', borderRadius: 16, fontSize: 12, cursor: 'pointer',
-                          background: isSelected ? 'rgba(77,208,225,0.25)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${isSelected ? '#22D3EE' : 'rgba(255,255,255,0.08)'}`,
-                          color: isSelected ? '#22D3EE' : theme.text.secondary,
+                          background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
+                          border: `1px solid ${isSelected ? 'var(--rq-accent-hover, #E0B15C)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
+                          color: isSelected ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.secondary,
                           fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
                         }} title={cantrip.description}>
                           {cantrip.name} {cantrip.damage && <span style={{ fontSize: 10, opacity: 0.7 }}>({cantrip.damage})</span>}
@@ -1113,7 +1113,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {/* Spell Selection for "known" casters */}
               {classInfo.type === 'known' && spellGain > 0 && (
                 <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#22D3EE', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-hover, #E0B15C)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                     Choose {spellGain} New Spell{spellGain > 1 ? 's' : ''} ({selectedNewSpells.length}/{spellGain})
                   </div>
                   <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, padding: 4 }}>
@@ -1134,9 +1134,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                                   );
                                 }} title={spell.description} style={{
                                   padding: '5px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                                  background: isSelected ? 'rgba(245,197,66,0.2)' : 'rgba(255,255,255,0.03)',
-                                  border: `1px solid ${isSelected ? '#22D3EE' : 'rgba(255,255,255,0.06)'}`,
-                                  color: isSelected ? '#22D3EE' : theme.text.secondary,
+                                  background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
+                                  border: `1px solid ${isSelected ? 'var(--rq-accent-hover, #E0B15C)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
+                                  color: isSelected ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.secondary,
                                   fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
                                 }}>
                                   {spell.name}
@@ -1154,7 +1154,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {/* Wizard spellbook */}
               {isWizard && (
                 <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-active, #A45A32)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                     Add {wizardSpellbookGain} Spells to Spellbook ({selectedNewSpells.length}/{wizardSpellbookGain})
                   </div>
                   <p style={{ color: theme.text.muted, fontSize: 12, marginBottom: 8 }}>
@@ -1178,9 +1178,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                                   );
                                 }} title={spell.description} style={{
                                   padding: '5px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                                  background: isSelected ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
-                                  border: `1px solid ${isSelected ? '#8B5CF6' : 'rgba(255,255,255,0.06)'}`,
-                                  color: isSelected ? '#8B5CF6' : theme.text.secondary,
+                                  background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
+                                  border: `1px solid ${isSelected ? 'var(--rq-accent-active, #A45A32)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
+                                  color: isSelected ? 'var(--rq-accent-active, #A45A32)' : theme.text.secondary,
                                   fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
                                 }}>
                                   {spell.name}
@@ -1199,9 +1199,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {classInfo.type === 'prepared' && !isWizard && (
                 <div style={{
                   padding: 12, borderRadius: 8,
-                  background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)',
+                  background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
                 }}>
-                  <div style={{ color: '#3B82F6', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  <div style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
                     Prepared Spells
                   </div>
                   <div style={{ color: theme.text.muted, fontSize: 12 }}>
@@ -1230,7 +1230,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   style={{
                     flex: 1,
                     padding: '16px',
-                    background: choiceType === 'asi' ? 'rgba(124, 58, 237, 0.18)' : 'rgba(10, 22, 40, 0.5)',
+                    background: choiceType === 'asi' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${choiceType === 'asi' ? theme.sunset.purple : theme.border}`,
                     borderRadius: '10px',
                     cursor: 'pointer',
@@ -1248,7 +1248,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   style={{
                     flex: 1,
                     padding: '16px',
-                    background: choiceType === 'feat' ? 'rgba(34, 211, 238, 0.14)' : 'rgba(10, 22, 40, 0.5)',
+                    background: choiceType === 'feat' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                     border: `2px solid ${choiceType === 'feat' ? theme.sunset.pink : theme.border}`,
                     borderRadius: '10px',
                     cursor: 'pointer',
@@ -1280,7 +1280,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                       
                       return (
                         <div key={ability} style={{
-                          background: 'rgba(10, 22, 40, 0.5)',
+                          background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                           border: `1px solid ${isSelected1 || isSelected2 ? theme.sunset.purple : theme.border}`,
                           borderRadius: '10px',
                           padding: '12px'
@@ -1299,10 +1299,10 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               style={{
                                 flex: 1,
                                 padding: '8px',
-                                background: isSelected1 ? theme.sunset.purple : 'rgba(124, 58, 237, 0.10)',
+                                background: isSelected1 ? theme.sunset.purple : 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
                                 border: 'none',
                                 borderRadius: '6px',
-                                color: isSelected1 ? '#fff' : theme.text.secondary,
+                                color: isSelected1 ? 'var(--rq-text-primary, #F5E6C8)' : theme.text.secondary,
                                 cursor: wouldExceed && !isSelected1 ? 'not-allowed' : 'pointer',
                                 opacity: wouldExceed && !isSelected1 ? 0.5 : 1,
                                 fontSize: '13px'
@@ -1316,10 +1316,10 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               style={{
                                 flex: 1,
                                 padding: '8px',
-                                background: isSelected2 ? theme.sunset.pink : 'rgba(34, 211, 238, 0.10)',
+                                background: isSelected2 ? theme.sunset.pink : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
                                 border: 'none',
                                 borderRadius: '6px',
-                                color: isSelected2 ? '#fff' : theme.text.secondary,
+                                color: isSelected2 ? 'var(--rq-text-primary, #F5E6C8)' : theme.text.secondary,
                                 cursor: wouldExceed && !isSelected2 ? 'not-allowed' : 'pointer',
                                 opacity: wouldExceed && !isSelected2 ? 0.5 : 1,
                                 fontSize: '13px'
@@ -1353,7 +1353,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                         onClick={() => setSelectedFeat(feat)}
                         style={{
                           padding: '12px 16px',
-                          background: selectedFeat?.name === feat.name ? 'rgba(34, 211, 238, 0.14)' : 'rgba(10, 22, 40, 0.5)',
+                          background: selectedFeat?.name === feat.name ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                           border: `1px solid ${selectedFeat?.name === feat.name ? theme.sunset.pink : theme.border}`,
                           borderRadius: '10px',
                           cursor: 'pointer',
@@ -1387,7 +1387,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               </h3>
               
               <div style={{
-                background: 'rgba(10, 22, 40, 0.5)',
+                background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
                 border: `1px solid ${theme.border}`,
                 borderRadius: '12px',
                 padding: '20px'
@@ -1412,14 +1412,14 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   </div>
                   
                   {profBonusIncreased && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(34, 211, 238, 0.10)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary }}>Proficiency Bonus</span>
                       <span style={{ color: theme.sunset.gold, fontWeight: '600' }}>+{oldProfBonus} → +{newProfBonus}</span>
                     </div>
                   )}
                   
                   {isAsiLevel && choiceType === 'asi' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(124, 58, 237, 0.10)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary }}>Ability Increase</span>
                       <span style={{ color: theme.sunset.purple, fontWeight: '600' }}>
                         {ABILITY_SHORT[asiChoices.ability1]} +1, {ABILITY_SHORT[asiChoices.ability2]} +1
@@ -1428,7 +1428,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   )}
                   
                   {isAsiLevel && choiceType === 'feat' && selectedFeat && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(34, 211, 238, 0.10)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary }}>New Feat</span>
                       <span style={{ color: theme.sunset.pink, fontWeight: '600' }}>{selectedFeat.name}</span>
                     </div>
@@ -1436,9 +1436,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   
                   {/* Spell selections summary */}
                   {selectedNewCantrips.length > 0 && (
-                    <div style={{ padding: '10px', background: 'rgba(77,208,225,0.1)', borderRadius: '8px' }}>
+                    <div style={{ padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary, fontSize: 13 }}>New Cantrips: </span>
-                      <span style={{ color: '#22D3EE', fontWeight: '600', fontSize: 13 }}>
+                      <span style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: '600', fontSize: 13 }}>
                         {selectedNewCantrips.map(s => s.name).join(', ')}
                       </span>
                     </div>
@@ -1447,7 +1447,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                     <div style={{ padding: '10px', background: 'rgba(245,197,66,0.1)', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary, fontSize: 13 }}>
                         {isWizard ? 'Spellbook Additions' : 'New Spells'}: </span>
-                      <span style={{ color: '#22D3EE', fontWeight: '600', fontSize: 13 }}>
+                      <span style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: '600', fontSize: 13 }}>
                         {selectedNewSpells.map(s => s.name).join(', ')}
                       </span>
                     </div>
@@ -1455,21 +1455,21 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                   
                   {/* Fighter selections summary */}
                   {selectedFightingStyle && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary }}>Fighting Style</span>
-                      <span style={{ color: '#3B82F6', fontWeight: '600' }}>{selectedFightingStyle}</span>
+                      <span style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontWeight: '600' }}>{selectedFightingStyle}</span>
                     </div>
                   )}
                   {selectedSubclass && hasSubclassChoice && classData?.subclasses?.[selectedSubclass] && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(124, 58, 237, 0.10)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary }}>{classData?.subclass_label || 'Subclass'}</span>
                       <span style={{ color: theme.sunset.purple, fontWeight: '600' }}>{classData.subclasses[selectedSubclass].name}</span>
                     </div>
                   )}
                   {selectedManeuvers.length > 0 && (
-                    <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                    <div style={{ padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
                       <span style={{ color: theme.text.secondary, fontSize: 13 }}>Maneuvers: </span>
-                      <span style={{ color: '#3B82F6', fontWeight: '600', fontSize: 13 }}>
+                      <span style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontWeight: '600', fontSize: 13 }}>
                         {selectedManeuvers.join(', ')}
                       </span>
                     </div>
@@ -1493,7 +1493,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
                               <div key={i} style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
                                 padding: '8px 10px', borderRadius: 6,
-                                background: 'rgba(255,255,255,0.04)',
+                                background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
                                 borderLeft: `3px solid ${typeConfig.color}`,
                               }}>
                                 <span style={{

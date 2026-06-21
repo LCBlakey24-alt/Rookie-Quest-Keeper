@@ -40,6 +40,7 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
   const [assigned, setAssigned] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [rolling, setRolling] = useState(false);
+  const [rollingFaces, setRollingFaces] = useState([]);
 
   const assignedIds = useMemo(() => new Set(Object.values(assigned).filter(Boolean)), [assigned]);
   const poolItems = pool.filter(item => !assignedIds.has(item.id));
@@ -64,15 +65,43 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
     setStats(ABILITIES.reduce((acc, ability) => ({ ...acc, [ability]: null }), {}));
   };
 
-  const rollScores = () => {
-    const scores = Array.from({ length: 6 }, () => {
+  const rollScores = (scores) => {
+    const values = scores || Array.from({ length: 6 }, () => {
       const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
       return rolls[0] + rolls[1] + rolls[2];
     });
-    setPool(makePool(scores, 'roll'));
+    setPool(makePool(values, 'roll'));
     setAssigned({});
     setSelectedId(null);
     setStats(ABILITIES.reduce((acc, ability) => ({ ...acc, [ability]: null }), {}));
+  };
+
+  const runRollAnimation = async () => {
+    if (rolling) return;
+    setRolling(true);
+    setPool([]);
+    setAssigned({});
+    setSelectedId(null);
+    setStats(ABILITIES.reduce((acc, ability) => ({ ...acc, [ability]: null }), {}));
+
+    const scores = Array.from({ length: 6 }, () => {
+      const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
+      return rolls[0] + rolls[1] + rolls[2];
+    }).sort((a, b) => a - b);
+
+    const faces = Array.from({ length: scores.length }, () => null);
+    setRollingFaces(faces);
+
+    for (let i = 0; i < scores.length; i += 1) {
+      for (let value = 1; value <= scores[i]; value += 1) {
+        faces[i] = value;
+        setRollingFaces([...faces]);
+        await new Promise(resolve => setTimeout(resolve, value === scores[i] ? 80 : 28));
+      }
+    }
+
+    rollScores(scores);
+    setRolling(false);
   };
 
   const handleMethod = (nextMethod) => {
@@ -89,11 +118,7 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
     } else if (nextMethod === 'standard') {
       initStandard();
     } else if (nextMethod === 'roll') {
-      setRolling(true);
-      setTimeout(() => {
-        rollScores();
-        setRolling(false);
-      }, 350);
+      runRollAnimation();
     }
   };
 
@@ -187,8 +212,16 @@ export default function AbilitiesStepTap({ method, setMethod, stats, setStats, a
         <>
           <div className="ability-pool-header">
             <span>{rolling ? 'Rolling scores...' : selectedId ? 'Tap an ability to assign selected score' : 'Tap a score, then tap an ability'}</span>
-            <button type="button" onClick={method === 'roll' ? rollScores : resetAssignments}><RotateCcw size={14} /> {method === 'roll' ? 'Reroll' : 'Reset'}</button>
+            <button type="button" onClick={method === 'roll' ? runRollAnimation : resetAssignments} disabled={rolling}><RotateCcw size={14} /> {method === 'roll' ? (rolling ? 'Rolling…' : 'Reroll') : 'Reset'}</button>
           </div>
+
+          {method === 'roll' && rolling && (
+            <div className="ability-roll-animation" data-testid="ability-roll-animation">
+              {rollingFaces.map((face, index) => (
+                <span key={index} className={face == null ? '' : 'active'}>{face ?? '·'}</span>
+              ))}
+            </div>
+          )}
           <div className="ability-score-pool">
             {poolItems.map(item => (
               <button key={item.id} type="button" className={selectedId === item.id ? 'selected' : ''} onClick={() => setSelectedId(selectedId === item.id ? null : item.id)}>

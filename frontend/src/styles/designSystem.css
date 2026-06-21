@@ -121,8 +121,8 @@
   --radius-md: var(--rq-radius-md);
   --radius-lg: var(--rq-radius-lg);
 
-  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Montserrat', var(--font-sans);
+  --font-sans: var(--rq-font-sans, 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif);
+  --font-display: var(--rq-font-display, 'Recoleta', 'RQKDisplay', Georgia, serif);
 
   --rq-bg-panel-soft: var(--rq-bg-panel-alt);
   --rq-text-main: var(--rq-text-primary);

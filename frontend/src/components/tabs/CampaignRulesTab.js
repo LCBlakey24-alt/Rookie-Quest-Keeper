@@ -122,17 +122,17 @@ export default function CampaignRulesTab({ campaignId }) {
 }
 
 const pageStyle = { display: 'grid', gap: 14 };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, background: 'rgba(15,23,42,0.84)', border: '1px solid rgba(124,58,237,0.32)', padding: 16, borderRadius: 16 };
-const eyebrowStyle = { margin: '0 0 5px', color: '#A78BFA', fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase' };
-const titleStyle = { margin: 0, color: '#FFFFFF', fontSize: 'clamp(21px, 2vw, 28px)', fontWeight: 900 };
-const subtitleStyle = { margin: '5px 0 0', color: '#CBD5E1', fontSize: 13, lineHeight: 1.45 };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, background: 'var(--rq-bg-panel, rgba(33, 21, 14, 0.88))', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))', padding: 16, borderRadius: 16 };
+const eyebrowStyle = { margin: '0 0 5px', color: 'var(--rq-accent-hover, #E0B15C)', fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase' };
+const titleStyle = { margin: 0, color: 'var(--rq-text-primary, #F5E6C8)', fontSize: 'clamp(21px, 2vw, 28px)', fontWeight: 900 };
+const subtitleStyle = { margin: '5px 0 0', color: 'var(--rq-text-secondary, #E6D2AA)', fontSize: 13, lineHeight: 1.45 };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 };
 const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 };
-const labelStyle = { display: 'grid', gap: 6, color: '#94A3B8', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.5 };
-const inputStyle = { background: 'rgba(15,23,42,0.88)', color: '#F8FAFC', border: '1px solid rgba(148,163,184,0.24)', borderRadius: 12, padding: '11px 12px', outline: 'none', textTransform: 'none', letterSpacing: 0, fontWeight: 700 };
-const toggleStyle = { display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(15,23,42,0.84)', border: '1px solid rgba(124,58,237,0.26)', borderRadius: 14, padding: 12, color: '#E2E8F0', cursor: 'pointer' };
-const cardStyle = { background: 'rgba(15,23,42,0.84)', border: '1px solid rgba(124,58,237,0.24)', borderRadius: 16, padding: 14 };
+const labelStyle = { display: 'grid', gap: 6, color: 'var(--rq-text-muted, #CDBA98)', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.5 };
+const inputStyle = { background: 'var(--rq-bg-input, #1A100B)', color: 'var(--rq-text-primary, #F5E6C8)', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))', borderRadius: 12, padding: '11px 12px', outline: 'none', textTransform: 'none', letterSpacing: 0, fontWeight: 700 };
+const toggleStyle = { display: 'flex', alignItems: 'center', gap: 10, background: 'var(--rq-bg-panel, rgba(33, 21, 14, 0.88))', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))', borderRadius: 14, padding: 12, color: 'var(--rq-text-primary, #F5E6C8)', cursor: 'pointer' };
+const cardStyle = { background: 'var(--rq-bg-panel, rgba(33, 21, 14, 0.88))', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))', borderRadius: 16, padding: 14 };
 const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 };
-const sectionTitleStyle = { color: '#FFFFFF', margin: 0, fontSize: 17, fontWeight: 900 };
+const sectionTitleStyle = { color: 'var(--rq-text-primary, #F5E6C8)', margin: 0, fontSize: 17, fontWeight: 900 };
 const classGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(112px, 1fr))', gap: 8 };
-const classPillStyle = (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, background: active ? 'rgba(124,58,237,0.20)' : 'rgba(15,23,42,0.86)', border: `1px solid ${active ? 'rgba(167,139,250,0.62)' : 'rgba(148,163,184,0.22)'}`, color: active ? '#FFFFFF' : '#CBD5E1', borderRadius: 999, padding: '8px 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer' });
+const classPillStyle = (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 7, background: active ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, #1A100B)', border: `1px solid ${active ? 'var(--rq-accent-border, rgba(192, 138, 61, 0.34))' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`, color: active ? 'var(--rq-text-primary, #F5E6C8)' : 'var(--rq-text-secondary, #E6D2AA)', borderRadius: 999, padding: '8px 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer' });

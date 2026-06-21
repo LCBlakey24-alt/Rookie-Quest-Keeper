@@ -10,31 +10,31 @@ import {
 } from 'lucide-react';
 
 
-// GM Theme - Red (Tron Aries)
+// GM theme tokens
 const theme = {
-  primary: '#7C3AED',
-  hover: '#A78BFA',
-  subtle: 'rgba(225, 29, 72, 0.15)',
-  glow: '0 0 20px rgba(225, 29, 72, 0.3)',
-  bg: '#0B0F19',
-  card: '#111827',
-  panel: '#111827',
-  text: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  muted: '#808080',
-  border: 'rgba(124, 58, 237, 0.22)'
+  primary: 'var(--rq-accent-primary, #C08A3D)',
+  hover: 'var(--rq-accent-hover, #E0B46F)',
+  subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.15))',
+  glow: '0 0 20px rgba(192, 138, 61, 0.3)',
+  bg: 'var(--rq-bg-main, #211512)',
+  card: 'var(--rq-bg-card, #2E1D18)',
+  panel: 'var(--rq-bg-card, #2E1D18)',
+  text: 'var(--rq-text-primary, #FFF8EC)',
+  textSecondary: 'var(--rq-text-secondary, #E5D3B7)',
+  muted: 'var(--rq-text-muted, #BFA98C)',
+  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.26))'
 };
 
 const EVENT_TYPES = [
-  { id: 'session', label: 'Session', icon: Calendar, color: '#06B6D4' },
-  { id: 'combat', label: 'Combat', icon: Swords, color: '#D97706' },
-  { id: 'npc_met', label: 'NPC Met', icon: Users, color: '#38BDF8' },
-  { id: 'location', label: 'Location', icon: MapPin, color: '#22C55E' },
-  { id: 'quest', label: 'Quest', icon: Flag, color: '#14B8A6' },
-  { id: 'death', label: 'Death', icon: Skull, color: '#6B7280' },
-  { id: 'level_up', label: 'Level Up', icon: Star, color: '#06B6D4' },
-  { id: 'major', label: 'Major Event', icon: Crown, color: '#7C3AED' },
-  { id: 'milestone', label: 'Milestone', icon: Milestone, color: '#38BDF8' }
+  { id: 'session', label: 'Session', icon: Calendar, color: 'var(--rq-accent-muted, #A76F3A)', soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' },
+  { id: 'combat', label: 'Combat', icon: Swords, color: '#D97706', soft: 'rgba(217, 119, 6, 0.14)' },
+  { id: 'npc_met', label: 'NPC Met', icon: Users, color: 'var(--rq-accent-hover, #E0B46F)', soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' },
+  { id: 'location', label: 'Location', icon: MapPin, color: '#22C55E', soft: 'rgba(34, 197, 94, 0.14)' },
+  { id: 'quest', label: 'Quest', icon: Flag, color: '#14B8A6', soft: 'rgba(20, 184, 166, 0.14)' },
+  { id: 'death', label: 'Death', icon: Skull, color: '#6B7280', soft: 'rgba(107, 114, 128, 0.14)' },
+  { id: 'level_up', label: 'Level Up', icon: Star, color: 'var(--rq-accent-primary, #C08A3D)', soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' },
+  { id: 'major', label: 'Major Event', icon: Crown, color: 'var(--rq-accent-primary, #C08A3D)', soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' },
+  { id: 'milestone', label: 'Milestone', icon: Milestone, color: 'var(--rq-accent-hover, #E0B46F)', soft: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' }
 ];
 
 function SessionTimeline({ campaignId }) {
@@ -184,7 +184,7 @@ function SessionTimeline({ campaignId }) {
           style={{
             background: theme.primary,
             border: 'none',
-            color: '#fff',
+            color: 'var(--rq-text-on-accent, #2A160F)',
             padding: '10px 20px',
             display: 'flex',
             alignItems: 'center',
@@ -290,7 +290,7 @@ function SessionTimeline({ campaignId }) {
           <div style={{ display: 'flex', gap: '12px' }}>
             <Button
               onClick={handleAddEvent}
-              style={{ background: theme.primary, border: 'none', color: '#fff', padding: '10px 20px' }}
+              style={{ background: theme.primary, border: 'none', color: 'var(--rq-text-on-accent, #2A160F)', padding: '10px 20px' }}
             >
               <Save size={16} style={{ marginRight: '8px' }} />
               Save Event
@@ -330,7 +330,7 @@ function SessionTimeline({ campaignId }) {
               onClick={() => setFilter(type.id)}
               style={{
                 padding: '6px 14px',
-                background: filter === type.id ? `${type.color}20` : 'transparent',
+                background: filter === type.id ? type.soft : 'transparent',
                 border: `1px solid ${filter === type.id ? type.color : theme.border}`,
                 color: filter === type.id ? type.color : theme.muted,
                 fontSize: '12px',
@@ -396,7 +396,7 @@ function SessionTimeline({ campaignId }) {
                   justifyContent: 'center',
                   zIndex: 1
                 }}>
-                  <span style={{ color: '#fff', fontWeight: '400', fontSize: '14px' }}>
+                  <span style={{ color: 'var(--rq-text-on-accent, #2A160F)', fontWeight: '400', fontSize: '14px' }}>
                     {session === 'Unassigned' ? '?' : session}
                   </span>
                 </div>

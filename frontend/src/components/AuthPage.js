@@ -64,7 +64,7 @@ export default function AuthPage({ onLogin }) {
       const payload = { username: registerData.username.trim(), password: registerData.password };
       if (registerData.email.trim()) payload.email = registerData.email.trim();
       const response = await apiClient.post('/auth/register', payload);
-      toast.success('Account created! Welcome to ROOK!');
+      toast.success('Account created! Welcome to Rookie Quest Keeper!');
       onLogin(response.data.token, response.data.username);
       navigate('/home', { replace: true });
     } catch (error) {
@@ -115,7 +115,7 @@ export default function AuthPage({ onLogin }) {
 
   const authCopy = {
     login: { title: 'Welcome Back', subtitle: 'Sign in to open your dashboard, character sheets, campaigns, and player tools.' },
-    register: { title: 'Create Your ROOK Account', subtitle: 'Make an account, then build your first character or join a campaign from the dashboard.' },
+    register: { title: 'Create Your Account', subtitle: 'Make an account, then build your first character or join a campaign from the dashboard.' },
     forgot: { title: 'Reset Password', subtitle: 'Enter your recovery email and we will send a reset link.' },
     reset: { title: 'New Password', subtitle: 'Choose a new password for your account.' },
   };
@@ -127,8 +127,7 @@ export default function AuthPage({ onLogin }) {
 
       <div style={contentStyle}>
         <div onClick={() => navigate('/')} style={logoWrapStyle}>
-          <img src="/images/logo-mini.png" alt="ROOK" style={logoStyle} />
-          <span style={logoTextStyle}>ROOK</span>
+          <img src="/images/logo-main.png" alt="Rookie Quest Keeper" style={logoStyle} />
         </div>
 
         <div style={panelStyle}>
@@ -178,7 +177,7 @@ export default function AuthPage({ onLogin }) {
                 {loading ? 'Opening dashboard...' : 'Open Dashboard'}
               </PrimaryButton>
 
-              <AuthSwitch text="New to ROOK?" actionText="Create an account" onClick={() => setMode('register')} />
+              <AuthSwitch text="New here?" actionText="Create an account" onClick={() => setMode('register')} />
             </form>
           )}
 
