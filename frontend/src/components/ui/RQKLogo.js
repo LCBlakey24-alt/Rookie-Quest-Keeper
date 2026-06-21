@@ -22,7 +22,7 @@ export const RQKLogo = ({
       />
       {showTagline && (
         <div style={{
-          fontFamily: "var(--rq-font-display, 'Recoleta', 'RQKDisplay', serif)",
+          fontFamily: "var(--rq-font-display, 'Fraunces', 'RQKDisplay', serif)",
           fontSize: size === 'large' ? '13px' : '11px',
           color: 'var(--rq-accent-hover, #E0B15C)',
           letterSpacing: '1px',
