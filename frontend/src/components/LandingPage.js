@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock3,
   HeartPulse,
@@ -15,8 +16,12 @@ import {
   Sparkles,
   Sword,
   Users,
-  Wand2
+  Wand2,
+  X
 } from 'lucide-react';
+import { getLatestUpdates } from '@/data/latestUpdates';
+
+const UPDATE_DISMISS_STORAGE_KEY = 'rqk-dismissed-homepage-updates';
 
 const features = [
   { icon: Users, title: 'Character Builder', desc: 'Create 5e characters, choose rulesets, track sheets, and keep your player tools together.' },
@@ -63,6 +68,143 @@ const productPreviews = [
     ]
   }
 ];
+
+const updateStyles = {
+  section: {
+    width: 'min(1240px, calc(100% - 40px))',
+    margin: '0 auto 34px',
+    padding: '18px',
+    border: '1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))',
+    borderRadius: '12px',
+    background: 'linear-gradient(135deg, rgba(33, 21, 14, 0.94), rgba(46, 29, 19, 0.92))',
+    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.28)',
+  },
+  heading: {
+    display: 'grid',
+    gap: '8px',
+    marginBottom: '14px',
+  },
+  headingTitle: {
+    margin: 0,
+    color: 'var(--rq-text-primary, #F5E6C8)',
+    fontSize: 'clamp(24px, 3vw, 34px)',
+    lineHeight: 1.08,
+    fontWeight: 900,
+  },
+  headingText: {
+    margin: 0,
+    maxWidth: '760px',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+    fontSize: '14px',
+    lineHeight: 1.55,
+    fontWeight: 500,
+  },
+  list: {
+    display: 'grid',
+    gap: '10px',
+  },
+  card: {
+    position: 'relative',
+    overflow: 'hidden',
+    border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+    borderRadius: '10px',
+    background: 'rgba(18, 12, 8, 0.58)',
+  },
+  toggle: {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr)',
+    gap: '12px',
+    alignItems: 'start',
+    padding: '14px 48px 14px 14px',
+    border: 0,
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  chevron: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    borderRadius: '999px',
+    color: 'var(--rq-accent-hover, #E0B15C)',
+    background: 'rgba(192, 138, 61, 0.12)',
+    border: '1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34))',
+    transition: 'transform 0.18s ease',
+  },
+  meta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '7px',
+    alignItems: 'center',
+    marginBottom: '6px',
+    color: 'var(--rq-text-muted, #CDBA98)',
+    fontSize: '11px',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+  },
+  badge: {
+    color: 'var(--rq-text-inverse, #120C08)',
+    background: 'var(--rq-accent-primary, #C08A3D)',
+    borderRadius: '999px',
+    padding: '2px 7px',
+    fontSize: '10px',
+    fontWeight: 900,
+  },
+  title: {
+    display: 'block',
+    color: 'var(--rq-text-primary, #F5E6C8)',
+    fontSize: '17px',
+    lineHeight: 1.25,
+    fontWeight: 900,
+  },
+  summary: {
+    display: 'block',
+    marginTop: '5px',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+    fontSize: '13px',
+    lineHeight: 1.5,
+    fontWeight: 500,
+  },
+  dismiss: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '30px',
+    height: '30px',
+    border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
+    borderRadius: '999px',
+    color: 'var(--rq-text-muted, #CDBA98)',
+    background: 'rgba(18, 12, 8, 0.74)',
+    cursor: 'pointer',
+  },
+  details: {
+    margin: '0 14px 14px 58px',
+    padding: '12px 14px',
+    borderLeft: '2px solid var(--rq-accent-primary, #C08A3D)',
+    borderRadius: '8px',
+    background: 'rgba(192, 138, 61, 0.08)',
+    color: 'var(--rq-text-secondary, #E6D2AA)',
+  },
+};
+
+function readDismissedUpdateIds() {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const stored = window.localStorage.getItem(UPDATE_DISMISS_STORAGE_KEY);
+    const parsed = JSON.parse(stored || '[]');
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
 
 function BrandMark({ compact = false }) {
   return (
@@ -191,6 +333,84 @@ function ProductPreviewCard({ preview }) {
   );
 }
 
+function LandingUpdatesPanel() {
+  const [dismissedIds, setDismissedIds] = useState(readDismissedUpdateIds);
+  const [expandedId, setExpandedId] = useState(null);
+  const updates = getLatestUpdates({ limit: 4, publicOnly: true }).filter(update => !dismissedIds.includes(update.id));
+
+  const dismissUpdate = (updateId) => {
+    const nextDismissedIds = Array.from(new Set([...dismissedIds, updateId]));
+    setDismissedIds(nextDismissedIds);
+    if (expandedId === updateId) setExpandedId(null);
+
+    try {
+      window.localStorage.setItem(UPDATE_DISMISS_STORAGE_KEY, JSON.stringify(nextDismissedIds));
+    } catch {
+      // Dismiss still works for this session if localStorage is unavailable.
+    }
+  };
+
+  if (!updates.length) return null;
+
+  return (
+    <section className="landing-updates" style={updateStyles.section} aria-label="Latest Rookie Quest Keeper updates">
+      <div style={updateStyles.heading}>
+        <span className="landing-kicker">Latest updates</span>
+        <h2 style={updateStyles.headingTitle}>What’s new at the table</h2>
+        <p style={updateStyles.headingText}>Quick, player-friendly notes. Expand an update for the details or dismiss it once you’ve seen enough.</p>
+      </div>
+
+      <div style={updateStyles.list}>
+        {updates.map((update) => {
+          const isExpanded = expandedId === update.id;
+          return (
+            <article key={update.id} style={updateStyles.card}>
+              <button
+                type="button"
+                style={updateStyles.toggle}
+                aria-expanded={isExpanded}
+                onClick={() => setExpandedId(isExpanded ? null : update.id)}
+              >
+                <span style={{ ...updateStyles.chevron, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} aria-hidden="true">
+                  <ChevronDown size={18} />
+                </span>
+                <span>
+                  <span style={updateStyles.meta}>
+                    <span>{update.date}</span>
+                    <span>{update.category}</span>
+                    <strong style={updateStyles.badge}>{update.badge}</strong>
+                  </span>
+                  <span style={updateStyles.title}>{update.title}</span>
+                  <span style={updateStyles.summary}>{update.summary}</span>
+                </span>
+              </button>
+
+              <button
+                type="button"
+                style={updateStyles.dismiss}
+                aria-label={`Dismiss update: ${update.title}`}
+                onClick={() => dismissUpdate(update.id)}
+              >
+                <X size={16} />
+              </button>
+
+              {isExpanded && update.details?.length > 0 && (
+                <div style={updateStyles.details}>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {update.details.map((detail) => (
+                      <li key={detail} style={{ margin: '6px 0', fontSize: 13, lineHeight: 1.5 }}>{detail}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
 
@@ -224,6 +444,8 @@ export default function LandingPage() {
 
           <HeroPreview />
         </section>
+
+        <LandingUpdatesPanel />
 
         <section className="landing-features" aria-label="ROOK features">
           {features.map((feature, index) => {
