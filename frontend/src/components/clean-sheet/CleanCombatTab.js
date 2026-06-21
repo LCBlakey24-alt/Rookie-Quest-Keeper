@@ -6,6 +6,9 @@ import { CLASS_FEATURES } from '@/data/classFeatures';
 import { getFighterProgressionSummary } from '@/data/fighterProgression';
 import BarbarianSummarySection from './BarbarianSummarySection';
 import FighterSummarySection from './FighterSummarySection';
+import MonkSummarySection from './MonkSummarySection';
+import PaladinSummarySection from './PaladinSummarySection';
+import RogueSummarySection from './RogueSummarySection';
 import { ActionSection, AttackCard, FighterFocusPanel, SimpleActionCard } from './CleanCombatTabCards';
 import {
   fmt,
@@ -81,7 +84,13 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
       const raw = resources[rule.key] || {};
       const max = Number(raw.max ?? raw.total ?? rule.maxValue ?? 0) || 0;
       const current = Number(resourceDrafts[rule.key] ?? raw.current ?? raw.remaining ?? max) || 0;
-      return { key: rule.key, label: rule.label, current: Math.max(0, Math.min(max, current)), max };
+      return {
+        key: rule.key,
+        className: rule.className,
+        label: rule.label,
+        current: Math.max(0, Math.min(max, current)),
+        max,
+      };
     }).filter(resource => resource.max > 0);
   }, [character, resourceDrafts]);
 
@@ -124,8 +133,11 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     if (ok !== false) toast.success(`${resource.label}: ${next}/${resource.max}`);
   };
 
-  const spendResourceAndPatch = async (resourceKey, updates, label) => {
-    const resource = classResources.find(item => item.key === resourceKey);
+  const spendResourceAndPatch = async (resourceKey, updates, label, preferredClassName = '') => {
+    const preferred = preferredClassName
+      ? classResources.find(item => item.key === resourceKey && item.className === preferredClassName)
+      : null;
+    const resource = preferred || classResources.find(item => item.key === resourceKey);
     if (!resource || resource.current <= 0 || !onCharacterUpdate) return false;
     const next = Math.max(0, resource.current - 1);
     setResourceDrafts(prev => ({ ...prev, [resource.key]: next }));
@@ -150,20 +162,33 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
       mode: 'healing',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
-    await spendResourceAndPatch('second_wind', { current_hit_points: nextHp }, 'Second Wind');
+    await spendResourceAndPatch('second_wind', { current_hit_points: nextHp }, 'Second Wind', 'Fighter');
   };
 
   const handleActionSurge = async () => {
-    await spendResourceAndPatch('action_surge', {}, 'Action Surge');
+    await spendResourceAndPatch('action_surge', {}, 'Action Surge', 'Fighter');
   };
 
   const handleIndomitable = async () => {
-    await spendResourceAndPatch('indomitable', {}, 'Indomitable');
+    await spendResourceAndPatch('indomitable', {}, 'Indomitable', 'Fighter');
   };
 
   const handleManeuver = async (name) => {
-    const ok = await spendResourceAndPatch('superiority_dice', {}, name);
+    const ok = await spendResourceAndPatch('superiority_dice', {}, name, 'Fighter');
     if (ok) toast.info(`Apply ${name}: add d${fighterPlan.superiorityDie} superiority die where the maneuver says.`);
+  };
+
+  const handleSpendDiscipline = async (technique) => {
+    const labels = { flurry: 'Flurry of Blows', patient: 'Patient Defense', step: 'Step of the Wind' };
+    await spendResourceAndPatch('ki', {}, labels[technique] || 'Monk Discipline', 'Monk');
+  };
+
+  const handleLayOnHands = async () => {
+    await spendResourceAndPatch('lay_on_hands', {}, 'Lay on Hands', 'Paladin');
+  };
+
+  const handleChannelDivinity = async () => {
+    await spendResourceAndPatch('channel_divinity', {}, 'Channel Divinity', 'Paladin');
   };
 
   const useConsumable = async (item) => {
@@ -187,13 +212,16 @@ export default function CleanCombatTab({ character, ac, speed, proficiencyBonus,
     <div className="clean-sheet-combat-wrap"><div className="clean-sheet-grid">
       <section className="clean-sheet-panel clean-sheet-wide"><h2>Combat Quick Tools</h2><div className="clean-sheet-combat-tools">
         <div className="clean-sheet-concentration-box"><span>Concentration</span><input value={concentratingOn} onChange={(event) => saveConcentration(event.target.value)} placeholder="Spell or effect…" aria-label="Concentration spell or effect" /><button type="button" onClick={rollConcentrationSave}>Roll Save {fmt(concentrationMod)}</button>{concentratingOn && <button type="button" onClick={() => saveConcentration('')}>Clear</button>}</div>
-        {classResources.length > 0 && <div className="clean-sheet-resource-grid">{classResources.map(resource => <div key={resource.key} className="clean-sheet-resource-card"><span>{resource.label}</span><strong>{resource.current}/{resource.max}</strong><div><button type="button" onClick={() => updateResource(resource, -1)} disabled={resource.current <= 0}>Use</button><button type="button" onClick={() => updateResource(resource, 1)} disabled={resource.current >= resource.max}>Restore</button></div></div>)}</div>}
+        {classResources.length > 0 && <div className="clean-sheet-resource-grid">{classResources.map(resource => <div key={`${resource.className || 'class'}-${resource.key}`} className="clean-sheet-resource-card"><span>{resource.label}</span><strong>{resource.current}/{resource.max}</strong><div><button type="button" onClick={() => updateResource(resource, -1)} disabled={resource.current <= 0}>Use</button><button type="button" onClick={() => updateResource(resource, 1)} disabled={resource.current >= resource.max}>Restore</button></div></div>)}</div>}
         {consumables.length > 0 && <div className="clean-sheet-consumable-strip"><span>Quick Consumables</span>{consumables.map((item, index) => <button key={`${getItemName(item)}-${index}`} type="button" onClick={() => useConsumable(item)}>{getItemName(item)}{getItemQuantity(item) ? ` x${getItemQuantity(item)}` : ''}</button>)}</div>}
       </div></section>
 
       <FighterFocusPanel fighterLevel={fighterLevel} fighterSubclass={fighterSubclass} fighterPlan={fighterPlan} maneuvers={fighterManeuvers} resources={classResources} onSecondWind={handleSecondWind} onActionSurge={handleActionSurge} onIndomitable={handleIndomitable} onManeuver={handleManeuver} />
       <FighterSummarySection character={character} />
       <BarbarianSummarySection character={character} />
+      <MonkSummarySection character={character} resources={classResources} onSpendDiscipline={handleSpendDiscipline} />
+      <PaladinSummarySection character={character} resources={classResources} onLayOnHands={handleLayOnHands} onChannelDivinity={handleChannelDivinity} />
+      <RogueSummarySection character={character} />
 
       <ActionSection title="Attacks / Spells">{attackOptions.map(attack => <AttackCard key={attack.id} action={attack} onAttack={() => rollAttack(attack)} onDamage={() => rollDamage(attack.damage)} active={pendingDamage?.label === attack.damage.label}>{pendingDamage?.label === attack.damage.label && <div className="clean-sheet-pending-damage"><span>Attack rolled. If it hits, use the damage box on this card.</span><button type="button" onClick={() => setPendingDamage(null)}>Cancel</button></div>}</AttackCard>)}</ActionSection>
       <ActionSection title="Actions"><SimpleActionCard title="Dash" description="Gain extra movement equal to your speed this turn." /><SimpleActionCard title="Disengage" description="Your movement does not provoke opportunity attacks this turn." /><SimpleActionCard title="Dodge" description="Attack rolls against you have disadvantage until your next turn." /><SimpleActionCard title="Help" description="Give an ally advantage on a relevant check or attack." /><SimpleActionCard title="Ready" description="Prepare an action to trigger later this round." /></ActionSection>
