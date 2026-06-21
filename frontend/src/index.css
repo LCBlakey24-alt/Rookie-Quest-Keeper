@@ -12,11 +12,11 @@
 }
 
 :root {
-  --rq-font-display: 'Recoleta', 'RQKDisplay', Georgia, serif;
-  --rq-font-sans: 'Recoleta', 'RQKDisplay', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --rq-font-display: 'Recoleta Bold', 'Recoleta', 'RQKDisplay', Georgia, serif;
+  --rq-font-sans: 'Recoleta Bold', 'Recoleta', 'RQKDisplay', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Global font override. Display headings prefer Recoleta when available and fall back to the bundled brand display face. */
+/* Global font override. Display headings prefer Recoleta Bold when available and fall back to the bundled brand display face. */
 *, *::before, *::after {
   font-family: var(--rq-font-sans) !important;
   font-weight: 700 !important;
