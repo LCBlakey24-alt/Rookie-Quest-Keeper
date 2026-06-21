@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock3,
   HeartPulse,
@@ -15,8 +16,12 @@ import {
   Sparkles,
   Sword,
   Users,
-  Wand2
+  Wand2,
+  X
 } from 'lucide-react';
+import { getLatestUpdates } from '@/data/latestUpdates';
+
+const UPDATE_DISMISS_STORAGE_KEY = 'rqk-dismissed-homepage-updates';
 
 const features = [
   { icon: Users, title: 'Character Builder', desc: 'Create 5e characters, choose rulesets, track sheets, and keep your player tools together.' },
@@ -63,6 +68,18 @@ const productPreviews = [
     ]
   }
 ];
+
+function readDismissedUpdateIds() {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const stored = window.localStorage.getItem(UPDATE_DISMISS_STORAGE_KEY);
+    const parsed = JSON.parse(stored || '[]');
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
 
 function BrandMark({ compact = false }) {
   return (
@@ -191,6 +208,84 @@ function ProductPreviewCard({ preview }) {
   );
 }
 
+function LandingUpdatesPanel() {
+  const [dismissedIds, setDismissedIds] = useState(readDismissedUpdateIds);
+  const [expandedId, setExpandedId] = useState(null);
+  const updates = getLatestUpdates({ limit: 4, publicOnly: true }).filter(update => !dismissedIds.includes(update.id));
+
+  const dismissUpdate = (updateId) => {
+    const nextDismissedIds = Array.from(new Set([...dismissedIds, updateId]));
+    setDismissedIds(nextDismissedIds);
+    if (expandedId === updateId) setExpandedId(null);
+
+    try {
+      window.localStorage.setItem(UPDATE_DISMISS_STORAGE_KEY, JSON.stringify(nextDismissedIds));
+    } catch {
+      // Dismiss still works for this session if localStorage is unavailable.
+    }
+  };
+
+  if (!updates.length) return null;
+
+  return (
+    <section className="landing-updates" aria-label="Latest Rookie Quest Keeper updates">
+      <div className="landing-updates-heading">
+        <span className="landing-kicker">Latest updates</span>
+        <h2>What’s new at the table</h2>
+        <p>Quick, player-friendly notes. Expand an update for the details or dismiss it once you’ve seen enough.</p>
+      </div>
+
+      <div className="landing-updates-list">
+        {updates.map((update) => {
+          const isExpanded = expandedId === update.id;
+          return (
+            <article key={update.id} className={`landing-update-card ${isExpanded ? 'landing-update-card-expanded' : ''}`}>
+              <button
+                type="button"
+                className="landing-update-toggle"
+                aria-expanded={isExpanded}
+                onClick={() => setExpandedId(isExpanded ? null : update.id)}
+              >
+                <span className="landing-update-chevron" aria-hidden="true">
+                  <ChevronDown size={18} />
+                </span>
+                <span className="landing-update-copy">
+                  <span className="landing-update-meta">
+                    <span>{update.date}</span>
+                    <span>{update.category}</span>
+                    <strong>{update.badge}</strong>
+                  </span>
+                  <span className="landing-update-title">{update.title}</span>
+                  <span className="landing-update-summary">{update.summary}</span>
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className="landing-update-dismiss"
+                aria-label={`Dismiss update: ${update.title}`}
+                onClick={() => dismissUpdate(update.id)}
+              >
+                <X size={16} />
+              </button>
+
+              {isExpanded && update.details?.length > 0 && (
+                <div className="landing-update-details">
+                  <ul>
+                    {update.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
 
@@ -224,6 +319,8 @@ export default function LandingPage() {
 
           <HeroPreview />
         </section>
+
+        <LandingUpdatesPanel />
 
         <section className="landing-features" aria-label="ROOK features">
           {features.map((feature, index) => {
