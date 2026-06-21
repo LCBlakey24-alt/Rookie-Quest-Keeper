@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../lib/apiClient";
 import { toast } from "sonner";
 import {
-  User, Sword, Shield, Sparkles, Dices, ChevronLeft, ChevronRight,
+  User, Sword, Dices, ChevronLeft, ChevronRight,
   Save, RotateCcw, BookOpen, Check, Wand2,
   Scroll, Award, Backpack
 } from "lucide-react";
@@ -21,9 +21,9 @@ import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from "../data/spellDatab
 import { SOURCE_CONTENT_LABELS, SOURCE_LEGAL_NOTICE, getSourcesByContent } from "../data/dndSources5e";
 import AbilitiesStep from "./builder/AbilitiesStepTap";
 import PortraitGenerator from "./builder/PortraitGenerator";
-import ClassSubclassPicker from "./builder/ClassSubclassPicker";
 import BackgroundStep from "./builder/full/BackgroundStep";
 import RaceStep from "./builder/full/RaceStep";
+import ClassStep from "./builder/full/ClassStep";
 import { DetailPanel, InfoBanner, Pill, PreviewStat, SelectCard, StepHeader } from "./character-builder/BuilderPrimitives";
 import { builderTheme as theme, detailHeaderStyle, traitChipStyle } from "./character-builder/builderTheme";
 
@@ -758,104 +758,23 @@ const subclassLabel = {
   );
 
   const renderClassStep = () => (
-    <div>
-      <StepHeader icon={Sword} title="Choose Your Class" subtitle="Your class defines your role and abilities" color={theme.sunset.purple} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-        {Object.entries(mergedClasses).map(([key, c]) => (
-          <SelectCard
-            key={key} active={className === key} onClick={() => setClassName(key)}
-            color={theme.sunset.purple}
-            title={c.name}
-            subtitle={`Hit Die: d${c.hitDie} • ${c.primaryAbility?.slice(0, 3).toUpperCase()}`}
-            data-testid={`class-${key}`}
-            footer={
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                <Pill icon="❤️">d{c.hitDie} HP</Pill>
-                {c.spellcasting && <Pill icon="✦">Spellcaster</Pill>}
-                <Pill icon="🛡️">{c.savingThrows.map(s => s.slice(0, 3).toUpperCase()).join('/')}</Pill>
-              </div>
-            }
-          />
-        ))}
-      </div>
-
-      {classData && (
-        <DetailPanel title={`${classData.name} Level 1`} color={theme.sunset.purple}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <div style={detailHeaderStyle}>Saving Throws</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {classData.savingThrows.map(s => <span key={s} style={traitChipStyle}><Shield size={12} /> {s.charAt(0).toUpperCase() + s.slice(1)}</span>)}
-              </div>
-              <div style={detailHeaderStyle}>Armor & Weapons</div>
-              <div style={{ fontSize: '13px', color: theme.text.secondary, marginBottom: '12px', lineHeight: 1.6 }}>
-                <div><strong>Armor:</strong> {classData.armorProficiencies.length ? classData.armorProficiencies.join(', ') : 'None'}</div>
-                <div><strong>Weapons:</strong> {Array.isArray(classData.weaponProficiencies) ? classData.weaponProficiencies.join(', ') : ''}</div>
-              </div>
-            </div>
-            <div>
-              <div style={detailHeaderStyle}>Level 1 Features</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                {(classData.features?.[1] || []).map(f => <span key={f} style={traitChipStyle}><Sparkles size={12} /> {f}</span>)}
-              </div>
-              <div style={detailHeaderStyle}>Starting Equipment</div>
-              <div style={{ fontSize: '12px', color: theme.text.secondary, lineHeight: 1.6 }}>
-                {(classData.startingEquipment || []).map((e, i) => <div key={i}>• {e}</div>)}
-              </div>
-            </div>
-          </div>
-        </DetailPanel>
-      )}
-
-      {className && (
-  <ClassSubclassPicker
-    className={className}
-    edition={edition}
-    level={1}
-    classes={mergedClasses}
-    selectedSubclass={subclass}
-    onSubclassChange={setSubclass}
-    label={subclassLabel}
-    required={requiresLevelOneSubclass}
-    requiredText="(REQUIRED at Level 1)"
-    optionalText="(optional now — typically chosen at level 3)"
-    labelStyle={labelStyle}
-    inputStyle={inputStyle}
-    theme={theme}
-  />
-)}
-
-      {/* Fighting Style (Fighter L1, Paladin L2, Ranger L2) */}
-      {FIGHTING_STYLE_CLASSES[className] && (
-        <div style={{ marginTop: '20px', padding: '14px', borderRadius: '12px', background: theme.accent.soft, border: `1px solid ${theme.accent.line || theme.border}` }}>
-          <label style={labelStyle}>
-            Fighting Style
-            <span style={{ color: className === 'Fighter' ? theme.danger : theme.text.muted, textTransform: 'none', marginLeft: 6 }}>
-              {className === 'Fighter' ? '(REQUIRED at Level 1)' : `(gained at Level ${FIGHTING_STYLE_CLASSES[className].level})`}
-            </span>
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
-            {FIGHTING_STYLE_CLASSES[className].styles.map(style => {
-              const sel = fightingStyle === style;
-              return (
-                <button
-                  key={style} type="button"
-                  data-testid={`fighting-style-${style.toLowerCase().replace(/ /g, '-')}`}
-                  onClick={() => setFightingStyle(sel ? '' : style)}
-                  style={{
-                    padding: '8px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, textAlign: 'left',
-                    background: sel ? 'rgba(239, 68, 68, 0.18)' : theme.bg.surface,
-                    border: `1px solid ${sel ? theme.danger : theme.border}`,
-                    color: theme.text.primary, cursor: 'pointer'
-                  }}>
-                  {sel ? '✓ ' : ''}{style}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <ClassStep
+      mergedClasses={mergedClasses}
+      className={className}
+      setClassName={setClassName}
+      classData={classData}
+      edition={edition}
+      subclass={subclass}
+      setSubclass={setSubclass}
+      subclassLabel={subclassLabel}
+      requiresLevelOneSubclass={requiresLevelOneSubclass}
+      fightingStyle={fightingStyle}
+      setFightingStyle={setFightingStyle}
+      fightingStyleClasses={FIGHTING_STYLE_CLASSES}
+      theme={theme}
+      labelStyle={labelStyle}
+      inputStyle={inputStyle}
+    />
   );
 
   const renderBackgroundStep = () => (
