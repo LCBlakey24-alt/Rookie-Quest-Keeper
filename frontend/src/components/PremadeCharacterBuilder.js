@@ -1053,6 +1053,16 @@ opacity: 0.55;
 cursor: not-allowed;
 }
 
+.premade-card-actions {
+display: grid;
+grid-template-columns: 1fr 1fr;
+border-top: 1px solid rgba(192, 138, 61, 0.18);
+}
+
+.premade-card-actions .premade-card-create {
+border-top: 0;
+}
+
 .premade-preview {
 position: sticky;
 top: 14px;
