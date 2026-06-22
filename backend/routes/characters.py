@@ -143,7 +143,7 @@ async def create_character(
     new_character = PlayerCharacter(
         user_id=username,
         **char_data,
-            max_hit_points=max_hp,
+        max_hit_points=max_hp,
         current_hit_points=character.current_hit_points if character.current_hit_points is not None else max_hp,
         temporary_hit_points=character.temporary_hit_points or 0,
         proficiency_bonus=proficiency_bonus,
