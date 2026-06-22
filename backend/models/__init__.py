@@ -700,7 +700,7 @@ class PlayerCharacterCreate(BaseModel):
     # Optional fields
     armor_class: Optional[int] = 10
     speed: Optional[int] = 30
-        max_hit_points: Optional[int] = None  # Auto-calculate if not provided
+    max_hit_points: Optional[int] = None  # Auto-calculate if not provided
     current_hit_points: Optional[int] = None
     temporary_hit_points: Optional[int] = 0
     hit_dice: Optional[str] = None
