@@ -1097,12 +1097,11 @@ font-weight: 900;
 margin-bottom: 4px;
 }
 
-.premade-card-backstory strong {
-display: block;
-color: #F5E6C8;
+.premade-card-backstory p {
+margin: 0;
+color: #E6D2AA;
 font-size: 12px;
-font-weight: 900;
-margin-bottom: 4px;
+line-height: 1.45;
 }
 
 .premade-preview {
