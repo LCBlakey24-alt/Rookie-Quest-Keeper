@@ -1056,6 +1056,7 @@ cursor: not-allowed;
 .premade-card-actions {
 display: grid;
 grid-template-columns: 1fr 1fr;
+gap: 0;
 border-top: 1px solid rgba(192, 138, 61, 0.18);
 }
 
