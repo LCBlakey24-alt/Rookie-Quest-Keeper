@@ -1071,6 +1071,7 @@ border-right: 1px solid rgba(192, 138, 61, 0.18);
 background: rgba(18, 12, 8, 0.48);
 color: #E6D2AA;
 padding: 10px 12px;
+min-height: 44px;
 font-size: 11px;
 font-weight: 900;
 letter-spacing: 0.7px;
