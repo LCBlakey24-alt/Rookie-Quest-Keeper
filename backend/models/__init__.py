@@ -704,6 +704,7 @@ class PlayerCharacterCreate(BaseModel):
     max_hit_points: Optional[int] = None  # Auto-calculate if not provided
     current_hit_points: Optional[int] = None
     temporary_hit_points: Optional[int] = 0
+    temp_hp: Optional[int] = 0
     hit_dice: Optional[str] = None
     hit_dice_remaining: Optional[int] = None
     alignment: str = "Neutral"
