@@ -1063,6 +1063,9 @@ border-top: 1px solid rgba(192, 138, 61, 0.18);
 .premade-card-actions .premade-card-create {
 border-top: 0;
 min-height: 44px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
 }
 
 .premade-card-secondary {
