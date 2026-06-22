@@ -609,6 +609,7 @@ class PlayerCharacter(BaseModel):
     max_hit_points: int = 10
     current_hit_points: int = 10
     temporary_hit_points: int = 0
+    temp_hp: int = 0
     hit_dice: str = "1d8"  # e.g., "3d10"
     hit_dice_remaining: int = 1
     death_saves_successes: int = 0
