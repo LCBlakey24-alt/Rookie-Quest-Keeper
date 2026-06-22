@@ -102,11 +102,11 @@ async def create_character(
         max_hp = hit_die + constitution_modifier
     
     # Calculate proficiency bonus based on level
-    proficiency_bonus = 2 + ((character.level - 1) // 4)
+    proficiency_bonus = character.proficiency_bonus or (2 + ((character.level - 1) // 4))
     
     # Calculate AC from dexterity if not provided
     armor_class = character.armor_class
-    if armor_class == 10:
+    if armor_class is None:
         dexterity_modifier = (character.dexterity - 10) // 2
         armor_class = 10 + dexterity_modifier
     
