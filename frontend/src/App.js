@@ -50,7 +50,6 @@ const BasicCharacterBuilder = React.lazy(() => import('@/components/BasicCharact
 const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCharacterBuilder'));
 const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
-const PlayerMobileRailSheet = React.lazy(() => import('@/components/PlayerMobileRailSheet'));
 
 function RouteLoadingScreen() {
   return (
@@ -194,17 +193,7 @@ function LivePlayModeRoute() {
 }
 
 function ResponsiveCharacterSheetRoute() {
-  const [isMobileSheet, setIsMobileSheet] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches);
-
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 900px)');
-    const onChange = () => setIsMobileSheet(media.matches);
-    onChange();
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, []);
-
-  return isMobileSheet ? <PlayerMobileRailSheet /> : <CleanCharacterSheet />;
+  return <CleanCharacterSheet />;
 }
 
 function App() {
