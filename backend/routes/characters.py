@@ -112,7 +112,7 @@ async def create_character(
     
     # Prepare character data, excluding fields that will be calculated or explicitly set
     char_data = character.model_dump()
-    excluded_fields = ['max_hit_points', 'current_hit_points', 'temporary_hit_points', 'proficiency_bonus', 'armor_class',
+        excluded_fields = ['max_hit_points', 'current_hit_points', 'temporary_hit_points', 'temp_hp', 'proficiency_bonus', 'armor_class',
                        'hit_dice', 'hit_dice_remaining',
                        'spells_known', 'spells_prepared', 'cantrips_known', 'feats', 'spellcasting_ability', 'spell_save_dc', 'spell_attack_bonus', 'spell_slots', 'spell_slots_remaining', 'edition',
                        'portrait_url', 'campaign_id', 'ruleset_id']
