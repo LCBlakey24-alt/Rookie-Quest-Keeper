@@ -1081,6 +1081,14 @@ background: rgba(192, 138, 61, 0.12);
 color: #F5E6C8;
 }
 
+.premade-card-backstory {
+margin: 0 13px 12px;
+padding: 10px 11px;
+border-left: 2px solid #C08A3D;
+border-radius: 8px;
+background: rgba(192, 138, 61, 0.08);
+}
+
 .premade-preview {
 position: sticky;
 top: 14px;
