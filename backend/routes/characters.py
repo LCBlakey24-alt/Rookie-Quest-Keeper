@@ -146,6 +146,7 @@ async def create_character(
         max_hit_points=max_hp,
         current_hit_points=character.current_hit_points if character.current_hit_points is not None else max_hp,
         temporary_hit_points=character.temporary_hit_points if character.temporary_hit_points is not None else 0,
+        temp_hp=character.temporary_hit_points if character.temporary_hit_points is not None else 0,
         proficiency_bonus=proficiency_bonus,
         armor_class=armor_class,
         hit_dice=character.hit_dice or f"1d{hit_die}",
