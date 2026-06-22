@@ -1063,6 +1063,24 @@ border-top: 1px solid rgba(192, 138, 61, 0.18);
 border-top: 0;
 }
 
+.premade-card-secondary {
+border: 0;
+border-right: 1px solid rgba(192, 138, 61, 0.18);
+background: rgba(18, 12, 8, 0.48);
+color: #E6D2AA;
+padding: 10px 12px;
+font-size: 11px;
+font-weight: 900;
+letter-spacing: 0.7px;
+text-transform: uppercase;
+cursor: pointer;
+}
+
+.premade-card-secondary:hover {
+background: rgba(192, 138, 61, 0.12);
+color: #F5E6C8;
+}
+
 .premade-preview {
 position: sticky;
 top: 14px;
