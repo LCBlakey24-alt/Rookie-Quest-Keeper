@@ -45,10 +45,14 @@ export default function HealthArcWidget({
   const safeCurrent = clamp(currentHp, 0, safeMax);
   const safeTemp = Math.max(0, Number(tempHp) || 0);
   const totalHp = safeCurrent + safeTemp;
-  const visualMax = safeMax + safeTemp;
   const hpPercent = safeCurrent / safeMax;
-  const hpArcPercent = safeCurrent / visualMax;
-  const tempArcPercent = safeTemp / visualMax;
+  const hpProgressLength = Math.round(hpPercent * 100);
+  const availableAfterHp = Math.max(0, 100 - hpProgressLength);
+  const rawTempLength = safeTemp > 0 ? Math.max(8, Math.min(24, Math.round((safeTemp / safeMax) * 24))) : 0;
+  const tempProgressLength = safeTemp > 0 ? Math.min(rawTempLength, availableAfterHp || rawTempLength) : 0;
+  const tempOffsetLength = safeTemp > 0
+    ? (availableAfterHp > 0 ? -hpProgressLength : -(100 - tempProgressLength))
+    : 0;
   const animatedTotalHp = useRollingNumber(totalHp);
   const animatedTempHp = useRollingNumber(safeTemp, 300);
 
@@ -60,9 +64,9 @@ export default function HealthArcWidget({
   }, [hpPercent, safeCurrent]);
 
   const arcStyle = {
-    '--hp-progress-length': `${Math.round(hpArcPercent * 100)}`,
-    '--temp-progress-length': `${Math.round(tempArcPercent * 100)}`,
-    '--temp-offset-length': `${Math.round(hpArcPercent * -100)}`,
+    '--hp-progress-length': `${hpProgressLength}`,
+    '--temp-progress-length': `${tempProgressLength}`,
+    '--temp-offset-length': `${tempOffsetLength}`,
   };
 
   const breakdownText = safeTemp > 0
