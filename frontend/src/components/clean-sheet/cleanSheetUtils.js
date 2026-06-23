@@ -56,6 +56,37 @@ export const getCurrentHp = (character) => Number(character?.current_hit_points 
 export const getTempHp = (character) => Number(character?.temporary_hit_points ?? character?.temp_hp ?? 0) || 0;
 export const clampDeathCount = (value) => Math.max(0, Math.min(3, Number(value) || 0));
 
+export function calculateHpDamage({ currentHp = 0, tempHp = 0, maxHp = 1, amount = 0 } = {}) {
+  const safeAmount = Math.max(0, Number(amount) || 0);
+  const safeTempHp = Math.max(0, Number(tempHp) || 0);
+  const safeCurrentHp = Math.max(0, Math.min(Number(maxHp) || 1, Number(currentHp) || 0));
+  const tempAbsorbed = Math.min(safeTempHp, safeAmount);
+  const remainingDamage = Math.max(0, safeAmount - tempAbsorbed);
+  const nextTempHp = Math.max(0, safeTempHp - tempAbsorbed);
+  const nextCurrentHp = Math.max(0, safeCurrentHp - remainingDamage);
+
+  return {
+    current_hit_points: nextCurrentHp,
+    temporary_hit_points: nextTempHp,
+    temp_hp: nextTempHp,
+    tempAbsorbed,
+    hpDamage: safeCurrentHp - nextCurrentHp,
+    totalApplied: tempAbsorbed + (safeCurrentHp - nextCurrentHp),
+  };
+}
+
+export function calculateHpHealing({ currentHp = 0, maxHp = 1, amount = 0 } = {}) {
+  const safeAmount = Math.max(0, Number(amount) || 0);
+  const safeMaxHp = Math.max(1, Number(maxHp) || 1);
+  const safeCurrentHp = Math.max(0, Math.min(safeMaxHp, Number(currentHp) || 0));
+  const nextCurrentHp = Math.min(safeMaxHp, safeCurrentHp + safeAmount);
+
+  return {
+    current_hit_points: nextCurrentHp,
+    healed: nextCurrentHp - safeCurrentHp,
+  };
+}
+
 export const toArray = (value) => {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (!value) return [];
