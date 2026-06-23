@@ -60,21 +60,9 @@
 }
 
 .rq-health-arc__fill {
-  stroke: #1ed760;
+  stroke: url(#rq-health-arc-gradient);
   stroke-dasharray: var(--hp-progress-length, 0) 100;
-  transition: stroke-dasharray 520ms ease, stroke 260ms ease;
-}
-
-.rq-health-arc--healthy .rq-health-arc__fill {
-  stroke: #1ed760;
-}
-
-.rq-health-arc--wounded .rq-health-arc__fill {
-  stroke: #f5b942;
-}
-
-.rq-health-arc--critical .rq-health-arc__fill {
-  stroke: #ef4444;
+  transition: stroke-dasharray 520ms ease;
 }
 
 .rq-health-arc--down .rq-health-arc__fill {
