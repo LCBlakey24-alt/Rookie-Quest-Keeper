@@ -1,6 +1,7 @@
 import React from 'react';
-import { Dices, Heart, Shield, User, Zap } from 'lucide-react';
+import { Dices, Shield, User, Zap } from 'lucide-react';
 
+import HealthArcWidget from './HealthArcWidget';
 import { fmt } from './cleanSheetUtils';
 import { StatCard } from './CleanSheetCommon';
 
@@ -26,13 +27,9 @@ export default function CleanSheetVitals({
   onRollInitiative,
 }) {
   return (
-    <section className="clean-sheet-vitals">
-      <div className="clean-sheet-hp-card">
-        <div className="clean-sheet-hp-top">
-          <span><Heart size={18} /> HP</span>
-          <strong>{currentHp}/{maxHp}</strong>
-        </div>
-        <div className="clean-sheet-hp-bar"><div style={{ width: `${hpPercent}%` }} /></div>
+    <section className="clean-sheet-vitals clean-sheet-vitals--arc">
+      <div className="clean-sheet-hp-card clean-sheet-hp-card--arc">
+        <HealthArcWidget currentHp={currentHp} maxHp={maxHp} tempHp={tempHp} />
         <div className="clean-sheet-hp-bulk-row">
           <input
             type="number"
@@ -42,8 +39,8 @@ export default function CleanSheetVitals({
             onChange={(event) => onHpAmountChange(event.target.value)}
             aria-label="HP amount"
           />
-          <button onClick={onDamage} disabled={savingHp}>Damage</button>
-          <button onClick={onHeal} disabled={savingHp}>Heal</button>
+          <button onClick={onDamage} disabled={savingHp}>HP -</button>
+          <button onClick={onHeal} disabled={savingHp}>HP +</button>
         </div>
         <div className="clean-sheet-temp-hp-row clean-sheet-temp-hp-bulk-row">
           <span>Temp HP</span>
@@ -56,8 +53,8 @@ export default function CleanSheetVitals({
             onChange={(event) => onTempHpAmountChange(event.target.value)}
             aria-label="Temporary HP amount"
           />
-          <button onClick={onRemoveTempHp} disabled={savingTempHp || tempHp <= 0}>Remove</button>
-          <button onClick={onAddTempHp} disabled={savingTempHp}>Add</button>
+          <button onClick={onRemoveTempHp} disabled={savingTempHp || tempHp <= 0}>Temp -</button>
+          <button onClick={onAddTempHp} disabled={savingTempHp}>Temp +</button>
         </div>
       </div>
       <StatCard icon={Shield} label="AC" value={ac} />
