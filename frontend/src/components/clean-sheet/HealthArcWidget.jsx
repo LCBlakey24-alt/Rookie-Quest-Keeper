@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { HeartPulse, ShieldPlus } from 'lucide-react';
 
-import './HealthArcWidget.css';
+import './HealthArcWidgetSafe.css';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
 
@@ -79,7 +79,7 @@ export default function HealthArcWidget({
           )}
         </div>
       </div>
-      <p className="rq-health-arc__hint">Damage should remove temporary HP first.</p>
+      <p className="rq-health-arc__hint">Temporary HP is used before normal HP.</p>
     </div>
   );
 }
