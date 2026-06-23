@@ -30,7 +30,7 @@
 
 .rq-health-arc__stage {
   position: relative;
-  min-height: 150px;
+  min-height: 174px;
   display: grid;
   place-items: center;
   border-radius: 18px;
@@ -41,9 +41,9 @@
 
 .rq-health-arc__svg {
   position: absolute;
-  top: 10px;
-  width: min(100%, 280px);
-  height: 150px;
+  top: -4px;
+  width: min(100%, 272px);
+  height: 148px;
   overflow: visible;
 }
 
@@ -52,7 +52,11 @@
 .rq-health-arc__temp {
   fill: none;
   stroke-linecap: round;
-  stroke-width: 20;
+}
+
+.rq-health-arc__track,
+.rq-health-arc__fill {
+  stroke-width: 18;
 }
 
 .rq-health-arc__track {
@@ -71,6 +75,7 @@
 
 .rq-health-arc__temp {
   stroke: #f5c84b;
+  stroke-width: 12;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
   transition: stroke-dasharray 420ms ease, stroke-dashoffset 520ms ease;
@@ -81,14 +86,14 @@
   z-index: 1;
   display: grid;
   place-items: center;
-  gap: 4px;
-  margin-top: 28px;
+  gap: 2px;
+  margin-top: 50px;
   text-align: center;
 }
 
 .rq-health-arc__numbers strong {
   color: #fff2c8;
-  font-size: clamp(3rem, 8vw, 4.8rem);
+  font-size: clamp(2.8rem, 7vw, 4.2rem);
   line-height: 0.9;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
@@ -102,7 +107,7 @@
 }
 
 .rq-health-arc__numbers em {
-  margin-top: 4px;
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -135,10 +140,19 @@
 
 @media (max-width: 720px) {
   .rq-health-arc__stage {
-    min-height: 136px;
+    min-height: 164px;
+  }
+
+  .rq-health-arc__svg {
+    top: -8px;
+    width: min(100%, 258px);
+  }
+
+  .rq-health-arc__numbers {
+    margin-top: 50px;
   }
 
   .rq-health-arc__numbers strong {
-    font-size: 3.25rem;
+    font-size: 3rem;
   }
 }
