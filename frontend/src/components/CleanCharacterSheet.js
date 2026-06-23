@@ -181,8 +181,8 @@ export default function CleanCharacterSheet() {
     }
   };
 
-const updateHp = async (delta) => {
-    if (!character || savingHp) return;
+    const updateHp = async (delta) => {
+      if (!character || savingHp) return;
 
     const amount = Math.abs(Number(delta) || 0);
     const result = delta < 0
