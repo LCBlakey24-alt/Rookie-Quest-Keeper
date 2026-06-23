@@ -57,8 +57,9 @@ export default function HealthArcWidget({
   }, [hpPercent, safeCurrent]);
 
   const arcStyle = {
-    '--hp-progress': hpPercent,
-    '--temp-progress': tempPercent,
+    '--hp-progress-length': `${Math.round(hpPercent * 100)}`,
+    '--temp-progress-length': `${Math.round(tempPercent * 100)}`,
+    '--temp-offset-length': `${Math.round(hpPercent * -100)}`,
   };
 
   return (
