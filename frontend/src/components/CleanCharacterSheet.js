@@ -21,6 +21,8 @@ import { getClassFeatures } from '@/data/classFeatures';
 import {
   PASSIVE_SKILLS,
   SHEET_TABS,
+  calculateHpDamage,
+  calculateHpHealing,
   clampDeathCount,
   featureTypeLabel,
   getCurrentHp,
@@ -180,19 +182,35 @@ export default function CleanCharacterSheet() {
   };
 
   const updateHp = async (delta) => {
+    const updateHp = async (delta) => {
     if (!character || savingHp) return;
-    const nextHp = Math.max(0, Math.min(maxHp, currentHp + delta));
-    const updates = { current_hit_points: nextHp };
+
+    const amount = Math.abs(Number(delta) || 0);
+    const result = delta < 0
+      ? calculateHpDamage({ currentHp, tempHp, maxHp, amount })
+      : calculateHpHealing({ currentHp, maxHp, amount });
+
+    const nextHp = result.current_hit_points;
+    const updates = {
+      current_hit_points: nextHp,
+    };
+
+    if (delta < 0) {
+      updates.temporary_hit_points = result.temporary_hit_points;
+      updates.temp_hp = result.temp_hp;
+    }
+
     if (nextHp > 0 && (deathSaveSuccesses || deathSaveFailures)) {
       updates.death_saves_successes = 0;
       updates.death_saves_failures = 0;
     }
+
     setSavingHp(true);
     await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(false);
 
-    if (delta < 0 && character?.concentrating_on) {
-      const damageTaken = Math.abs(delta);
+    if (delta < 0 && character?.concentrating_on && result.hpDamage > 0) {
+      const damageTaken = result.hpDamage;
       const concentrationDC = Math.max(10, Math.floor(damageTaken / 2));
       const spellName = character.concentrating_on?.name || character.concentrating_on;
       toast.warning(`Concentration check! Concentrating on ${spellName} — DC ${concentrationDC} Constitution save`, { duration: 8000 });
