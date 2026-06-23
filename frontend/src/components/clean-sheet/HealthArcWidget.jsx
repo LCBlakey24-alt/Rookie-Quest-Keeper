@@ -44,9 +44,12 @@ export default function HealthArcWidget({
   const safeMax = Math.max(1, Number(maxHp) || 1);
   const safeCurrent = clamp(currentHp, 0, safeMax);
   const safeTemp = Math.max(0, Number(tempHp) || 0);
+  const totalHp = safeCurrent + safeTemp;
+  const visualMax = safeMax + safeTemp;
   const hpPercent = safeCurrent / safeMax;
-  const tempPercent = Math.min(0.22, safeTemp / safeMax);
-  const animatedHp = useRollingNumber(safeCurrent);
+  const hpArcPercent = safeCurrent / visualMax;
+  const tempArcPercent = safeTemp / visualMax;
+  const animatedTotalHp = useRollingNumber(totalHp);
   const animatedTempHp = useRollingNumber(safeTemp, 300);
 
   const hpState = useMemo(() => {
@@ -57,15 +60,19 @@ export default function HealthArcWidget({
   }, [hpPercent, safeCurrent]);
 
   const arcStyle = {
-    '--hp-progress-length': `${Math.round(hpPercent * 100)}`,
-    '--temp-progress-length': `${Math.round(tempPercent * 100)}`,
-    '--temp-offset-length': `${Math.round(hpPercent * -100)}`,
+    '--hp-progress-length': `${Math.round(hpArcPercent * 100)}`,
+    '--temp-progress-length': `${Math.round(tempArcPercent * 100)}`,
+    '--temp-offset-length': `${Math.round(hpArcPercent * -100)}`,
   };
+
+  const breakdownText = safeTemp > 0
+    ? `${safeCurrent} HP + ${safeTemp} Temp`
+    : `${safeCurrent} / ${safeMax} HP`;
 
   return (
     <div className={`rq-health-arc rq-health-arc--${hpState}`} style={arcStyle}>
       <div className="rq-health-arc__label"><HeartPulse size={17} /> {label}</div>
-      <div className="rq-health-arc__stage" aria-label={`Hit points ${safeCurrent} of ${safeMax}${safeTemp ? ` plus ${safeTemp} temporary hit points` : ''}`}>
+      <div className="rq-health-arc__stage" aria-label={`Total HP ${totalHp}. ${breakdownText}.`}>
         <svg className="rq-health-arc__svg" viewBox="0 0 220 132" role="img" aria-hidden="true">
           <defs>
             <linearGradient id="rq-health-arc-gradient" x1="24" y1="108" x2="196" y2="108" gradientUnits="userSpaceOnUse">
@@ -80,14 +87,14 @@ export default function HealthArcWidget({
           {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />}
         </svg>
         <div className="rq-health-arc__numbers">
-          <strong>{animatedHp}</strong>
-          <span>/ {safeMax} HP</span>
+          <strong>{animatedTotalHp}</strong>
+          <span>{breakdownText}</span>
           {safeTemp > 0 && (
-            <em><ShieldPlus size={15} /> +{animatedTempHp} Temp</em>
+            <em><ShieldPlus size={15} /> +{animatedTempHp} Temp HP</em>
           )}
         </div>
       </div>
-      <p className="rq-health-arc__hint">Temporary HP is used before normal HP.</p>
+      <p className="rq-health-arc__hint">Main number includes temp HP.</p>
     </div>
   );
 }
