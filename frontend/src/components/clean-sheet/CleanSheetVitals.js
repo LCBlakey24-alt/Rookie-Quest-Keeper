@@ -1,24 +1,16 @@
 import React from 'react';
-import { Dices, Moon, Shield, User, Zap } from 'lucide-react';
+import { Moon } from 'lucide-react';
 
 import HealthArcWidget from './HealthArcWidget';
-import { fmt } from './cleanSheetUtils';
-import { StatCard } from './CleanSheetCommon';
 
 export default function CleanSheetVitals({
   currentHp,
   maxHp,
-  hpPercent,
   hpAmount,
   tempHp,
   tempHpAmount,
-  ac,
-  dexMod,
-  proficiencyBonus,
-  speed,
   savingHp,
   savingTempHp,
-  hitDice,
   hitDiceRemaining,
   hitDiceTotal,
   onHpAmountChange,
@@ -29,7 +21,6 @@ export default function CleanSheetVitals({
   onAddTempHp,
   onSpendHitDie,
   onShortRest,
-  onRollInitiative,
 }) {
   const hitDiceDisplay = hitDiceRemaining !== undefined && hitDiceTotal !== undefined
     ? `${hitDiceRemaining} / ${hitDiceTotal}`
@@ -54,7 +45,7 @@ export default function CleanSheetVitals({
               onChange={(event) => onHpAmountChange(event.target.value)}
               aria-label="HP amount"
             />
-            <button className="rq-hp-action-button rq-hp-action-button--minus" onClick={onDamage} disabled={savingHp}>HP -</button>
+            <button className="rq-hp-action-button rq-hp-action-button--minus" onClick={onDamage} disabled={savingHp}>Damage</button>
           </div>
 
           <div className="rq-hp-action-panel rq-hp-action-panel--temp">
@@ -79,10 +70,6 @@ export default function CleanSheetVitals({
           </div>
         </div>
       </div>
-      <StatCard icon={Shield} label="AC" value={ac} />
-      <StatCard icon={Zap} label="Initiative" value={fmt(dexMod)} onClick={onRollInitiative} />
-      <StatCard icon={Dices} label="Proficiency" value={fmt(proficiencyBonus)} />
-      <StatCard icon={User} label="Speed" value={`${speed}ft`} />
     </section>
   );
 }
