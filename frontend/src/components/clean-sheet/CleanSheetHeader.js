@@ -1,6 +1,8 @@
 import React from 'react';
 import { ArrowLeft, Dices, Edit3, Shield, TrendingUp, User, Zap } from 'lucide-react';
 
+import './CleanSheetHeaderStats.css';
+
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
