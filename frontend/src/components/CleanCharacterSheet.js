@@ -181,7 +181,6 @@ export default function CleanCharacterSheet() {
     }
   };
 
-  const updateHp = async (delta) => {
     const updateHp = async (delta) => {
     if (!character || savingHp) return;
 
