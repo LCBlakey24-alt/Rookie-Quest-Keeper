@@ -1,8 +1,11 @@
 .clean-sheet-vitals--arc {
-  grid-template-columns: minmax(280px, 1.8fr) repeat(4, minmax(120px, 1fr));
+  grid-template-columns: minmax(280px, 760px);
+  justify-content: start;
 }
 
 .clean-sheet-hp-card--arc {
+  width: 100%;
+  max-width: 760px;
   display: grid;
   gap: 12px;
 }
@@ -213,11 +216,12 @@
 
 @media (max-width: 900px) {
   .clean-sheet-vitals--arc {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .clean-sheet-hp-card--arc {
     grid-column: 1 / -1;
+    max-width: none;
   }
 }
 
