@@ -67,6 +67,14 @@ export default function HealthArcWidget({
       <div className="rq-health-arc__label"><HeartPulse size={17} /> {label}</div>
       <div className="rq-health-arc__stage" aria-label={`Hit points ${safeCurrent} of ${safeMax}${safeTemp ? ` plus ${safeTemp} temporary hit points` : ''}`}>
         <svg className="rq-health-arc__svg" viewBox="0 0 220 132" role="img" aria-hidden="true">
+          <defs>
+            <linearGradient id="rq-health-arc-gradient" x1="24" y1="108" x2="196" y2="108" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#ef4444" />
+              <stop offset="34%" stopColor="#f97316" />
+              <stop offset="62%" stopColor="#f5c84b" />
+              <stop offset="100%" stopColor="#1ed760" />
+            </linearGradient>
+          </defs>
           <path className="rq-health-arc__track" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
           <path className="rq-health-arc__fill" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
           {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />}
