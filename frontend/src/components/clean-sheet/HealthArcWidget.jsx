@@ -47,12 +47,9 @@ export default function HealthArcWidget({
   const totalHp = safeCurrent + safeTemp;
   const hpPercent = safeCurrent / safeMax;
   const hpProgressLength = Math.round(hpPercent * 100);
-  const availableAfterHp = Math.max(0, 100 - hpProgressLength);
   const rawTempLength = safeTemp > 0 ? Math.max(8, Math.min(24, Math.round((safeTemp / safeMax) * 24))) : 0;
-  const tempProgressLength = safeTemp > 0 ? Math.min(rawTempLength, availableAfterHp || rawTempLength) : 0;
-  const tempOffsetLength = safeTemp > 0
-    ? (availableAfterHp > 0 ? -hpProgressLength : -(100 - tempProgressLength))
-    : 0;
+  const tempProgressLength = rawTempLength;
+  const tempOffsetLength = safeTemp > 0 ? -(100 - tempProgressLength) : 0;
   const animatedTotalHp = useRollingNumber(totalHp);
   const animatedTempHp = useRollingNumber(safeTemp, 300);
 
@@ -88,7 +85,7 @@ export default function HealthArcWidget({
           </defs>
           <path className="rq-health-arc__track" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
           <path className="rq-health-arc__fill" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
-          {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />}
+          {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
         </svg>
         <div className="rq-health-arc__numbers">
           <strong>{animatedTotalHp}</strong>
