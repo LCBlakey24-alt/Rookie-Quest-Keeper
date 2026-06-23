@@ -1,0 +1,235 @@
+@import url('https://fonts.googleapis.com/css2?family=Metal+Mania&display=swap');
+
+:root {
+  --rq-blue-eclipse-bg: #0f0e47;
+  --rq-blue-eclipse-bg-deep: #080816;
+  --rq-blue-eclipse-card: #272757;
+  --rq-blue-eclipse-card-soft: #343463;
+  --rq-blue-eclipse-muted: #505081;
+  --rq-blue-eclipse-mist: #8686ac;
+  --rq-blue-eclipse-gold: #d8ad4f;
+  --rq-blue-eclipse-gold-soft: #f2d18a;
+  --rq-blue-eclipse-cream: #f6ead2;
+  --rq-blue-eclipse-ink: #050612;
+  --rq-blue-eclipse-glow: #7c78ff;
+
+  --cs-bg: var(--rq-blue-eclipse-bg-deep);
+  --cs-panel: rgba(39, 39, 87, 0.92);
+  --cs-panel-soft: rgba(80, 80, 129, 0.44);
+  --cs-border: rgba(216, 173, 79, 0.32);
+  --cs-accent: var(--rq-blue-eclipse-gold);
+  --cs-accent-2: var(--rq-blue-eclipse-glow);
+  --cs-text: var(--rq-blue-eclipse-cream);
+  --cs-text-soft: #e6d7bb;
+  --cs-muted: var(--rq-blue-eclipse-mist);
+}
+
+.character-page-v2,
+.clean-sheet-page {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(124, 120, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 80% 0%, rgba(216, 173, 79, 0.12), transparent 28%),
+    linear-gradient(145deg, #080816 0%, #0f0e47 44%, #151433 100%) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+}
+
+.clean-sheet-header,
+.clean-sheet-card,
+.clean-sheet-hp-card,
+.clean-sheet-hp-card--arc,
+.clean-sheet-panel,
+.clean-sheet-section,
+.clean-sheet-tab-panel,
+.clean-sheet-play-tools,
+.clean-sheet-table-focus,
+.clean-sheet-content > section,
+.rq-health-arc__stage,
+.rq-hp-action-panel {
+  border-color: rgba(216, 173, 79, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(39, 39, 87, 0.9), rgba(15, 14, 71, 0.78)) !important;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(246, 234, 210, 0.06) !important;
+}
+
+.clean-sheet-header {
+  background:
+    linear-gradient(90deg, rgba(39, 39, 87, 0.96), rgba(15, 14, 71, 0.9), rgba(39, 39, 87, 0.88)) !important;
+}
+
+.clean-sheet-kicker,
+.rq-health-arc__label,
+.rq-hp-action-panel__title,
+.clean-sheet-header-stat span,
+.clean-sheet-tabs button,
+.clean-sheet-tab,
+.clean-sheet-section-title {
+  color: var(--rq-blue-eclipse-gold-soft) !important;
+}
+
+.clean-sheet-identity h1,
+.clean-sheet-header h1,
+.character-page-v2 h1,
+.character-page-v2 h2,
+.character-page-v2 h3,
+.clean-sheet-content h2,
+.clean-sheet-content h3 {
+  font-family: 'Metal Mania', Georgia, serif !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+  letter-spacing: 0.035em;
+  text-shadow: 0 0 18px rgba(216, 173, 79, 0.18);
+}
+
+.clean-sheet-identity p,
+.clean-sheet-content p,
+.clean-sheet-content span,
+.clean-sheet-content li,
+.clean-sheet-header p {
+  color: var(--cs-text-soft, #e6d7bb);
+}
+
+.clean-sheet-header-stat,
+.clean-sheet-back,
+.clean-sheet-edit,
+.clean-sheet-level,
+.clean-sheet-tabs button,
+.clean-sheet-tab,
+.rq-hp-action-button {
+  border-color: rgba(216, 173, 79, 0.32) !important;
+  background: linear-gradient(180deg, rgba(39, 39, 87, 0.92), rgba(8, 8, 22, 0.82)) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+}
+
+.clean-sheet-level,
+.rq-hp-action-button--temp-plus,
+.rq-hp-action-button--temp-minus {
+  background: linear-gradient(180deg, rgba(216, 173, 79, 0.92), rgba(151, 104, 31, 0.92)) !important;
+  color: #17100a !important;
+  border-color: rgba(246, 234, 210, 0.28) !important;
+}
+
+.clean-sheet-edit,
+.rq-hp-action-button--dice,
+.rq-hp-action-button--rest {
+  background: linear-gradient(180deg, rgba(80, 80, 129, 0.82), rgba(39, 39, 87, 0.86)) !important;
+}
+
+.rq-hp-action-button--plus {
+  background: linear-gradient(180deg, rgba(28, 122, 88, 0.92), rgba(17, 70, 59, 0.92)) !important;
+}
+
+.rq-hp-action-button--minus {
+  background: linear-gradient(180deg, rgba(155, 50, 62, 0.92), rgba(90, 26, 42, 0.92)) !important;
+}
+
+.clean-sheet-header-stat svg,
+.clean-sheet-back svg,
+.clean-sheet-edit svg,
+.clean-sheet-level svg,
+.rq-health-arc__label svg {
+  color: var(--rq-blue-eclipse-gold) !important;
+}
+
+.clean-sheet-tabs,
+.clean-sheet-nav,
+.clean-sheet-table-focus {
+  background: rgba(8, 8, 22, 0.46) !important;
+  border-color: rgba(134, 134, 172, 0.22) !important;
+}
+
+.clean-sheet-tabs button[aria-selected='true'],
+.clean-sheet-tabs button.active,
+.clean-sheet-tab.active,
+.clean-sheet-tab--active {
+  background: linear-gradient(180deg, rgba(216, 173, 79, 0.24), rgba(39, 39, 87, 0.92)) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+  border-color: rgba(216, 173, 79, 0.56) !important;
+}
+
+input,
+textarea,
+select {
+  background: rgba(8, 8, 22, 0.66) !important;
+  border-color: rgba(134, 134, 172, 0.28) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible {
+  outline: 2px solid rgba(124, 120, 255, 0.72) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 980px) {
+  .clean-sheet-header--with-stats {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+  }
+
+  .clean-sheet-back,
+  .clean-sheet-identity,
+  .clean-sheet-header-stat-strip,
+  .clean-sheet-header-actions {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-column: 1 / -1 !important;
+    order: initial !important;
+  }
+
+  .clean-sheet-back {
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  .clean-sheet-identity {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .clean-sheet-identity h1,
+  .clean-sheet-identity p,
+  .clean-sheet-kicker {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+  }
+
+  .clean-sheet-identity h1 {
+    font-size: clamp(2rem, 11vw, 3.4rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  .clean-sheet-header-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .clean-sheet-header-stat-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .clean-sheet-header,
+  .clean-sheet-header--with-stats {
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .clean-sheet-header-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .clean-sheet-header-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
