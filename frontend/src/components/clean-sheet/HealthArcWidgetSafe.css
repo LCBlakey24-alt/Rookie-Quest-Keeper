@@ -128,6 +128,89 @@
   text-align: center;
 }
 
+.rq-hp-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rq-hp-action-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(192, 138, 61, 0.24);
+  background: rgba(6, 9, 18, 0.38);
+}
+
+.rq-hp-action-panel__title {
+  color: var(--cs-text-soft, #e6d2aa);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rq-hp-action-panel input,
+.rq-hp-hitdice-count {
+  width: 100%;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff2c8;
+  font-size: 1.35rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.rq-hp-action-button {
+  min-height: 38px;
+  border-radius: 9px;
+  border: 1px solid rgba(192, 138, 61, 0.34);
+  background: rgba(192, 138, 61, 0.15);
+  color: var(--cs-text, #f5e6c8);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rq-hp-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.rq-hp-action-button--plus {
+  border-color: rgba(45, 212, 120, 0.34);
+  background: rgba(45, 212, 120, 0.13);
+}
+
+.rq-hp-action-button--minus {
+  border-color: rgba(239, 68, 68, 0.38);
+  background: rgba(239, 68, 68, 0.13);
+}
+
+.rq-hp-action-button--temp-plus,
+.rq-hp-action-button--temp-minus {
+  border-color: rgba(245, 200, 75, 0.4);
+  background: rgba(245, 200, 75, 0.13);
+}
+
+.rq-hp-action-button--dice,
+.rq-hp-action-button--rest {
+  border-color: rgba(134, 104, 172, 0.44);
+  background: rgba(39, 39, 87, 0.52);
+}
+
+.rq-hp-action-button--rest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 @media (max-width: 900px) {
   .clean-sheet-vitals--arc {
     grid-template-columns: 1fr 1fr;
@@ -154,5 +237,9 @@
 
   .rq-health-arc__numbers strong {
     font-size: 3rem;
+  }
+
+  .rq-hp-action-grid {
+    grid-template-columns: 1fr;
   }
 }
