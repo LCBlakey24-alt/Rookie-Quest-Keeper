@@ -216,6 +216,10 @@ button:focus-visible {
   .clean-sheet-header-stat-strip {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
+
+  .clean-sheet-table-focus {
+    display: none !important;
+  }
 }
 
 @media (max-width: 620px) {
