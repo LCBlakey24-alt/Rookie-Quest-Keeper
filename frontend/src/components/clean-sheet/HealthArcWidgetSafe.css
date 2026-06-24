@@ -69,7 +69,7 @@
 .rq-health-arc__fill {
   stroke: url(#rq-health-arc-gradient);
   stroke-dasharray: var(--hp-progress-length, 0) 100;
-  transition: stroke-dasharray 520ms ease;
+  transition: stroke-dasharray 1250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .rq-health-arc--down .rq-health-arc__fill {
@@ -81,7 +81,9 @@
   stroke-width: 12;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
-  transition: stroke-dasharray 420ms ease, stroke-dashoffset 520ms ease;
+  transition:
+    stroke-dasharray 950ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+    stroke-dashoffset 1250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .rq-health-arc__numbers {
@@ -135,6 +137,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.rq-hp-action-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .rq-hp-action-panel {
@@ -243,7 +249,8 @@
     font-size: 3rem;
   }
 
-  .rq-hp-action-grid {
+  .rq-hp-action-grid,
+  .rq-hp-action-grid--two {
     grid-template-columns: 1fr;
   }
 }
