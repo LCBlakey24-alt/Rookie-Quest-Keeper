@@ -1,5 +1,21 @@
 export const LATEST_UPDATES = [
   {
+    id: 'blue-eclipse-theme-pass-2026-06-24',
+    date: '2026-06-24',
+    badge: 'Improved',
+    category: 'Design & Polish',
+    title: 'Blue Eclipse theme pass expanded across the app',
+    summary: 'The darker Blue Eclipse direction has been pushed further through the dashboard, character sheet, and HP visuals.',
+    details: [
+      'Moved dashboard theme tokens toward deep navy, blue-purple panels, antique gold accents, and cream text.',
+      'Kept Metal Mania focused on display headings so the app feels more fantasy without hurting readability.',
+      'Changed temporary HP back to a gold bar with a thinner dark-blue outline so it sits cleaner on the HP arc.',
+      'Changed the HP arc to animate through React so HP and temporary HP drain more smoothly rather than snapping.',
+      'Kept the updates panel as a collapsible timeline so users can read more without losing screen space.',
+    ],
+    public: true,
+  },
+  {
     id: 'blue-eclipse-mobile-cleanup-2026-06-24',
     date: '2026-06-24',
     badge: 'New',
