@@ -78,19 +78,20 @@
 }
 
 .rq-health-arc__temp-outline {
-  stroke: rgba(85, 210, 255, 0.95);
-  stroke-width: 18;
+  stroke: rgba(134, 134, 172, 0.32);
+  stroke-width: 10;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
-  filter: drop-shadow(0 0 7px rgba(85, 210, 255, 0.55));
+  filter: drop-shadow(0 0 5px rgba(124, 120, 255, 0.25));
   transition: none;
 }
 
 .rq-health-arc__temp {
-  stroke: #f5c84b;
-  stroke-width: 10;
+  stroke: #272757;
+  stroke-width: 7;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
+  filter: drop-shadow(0 0 4px rgba(134, 134, 172, 0.28));
   transition: none;
 }
 
@@ -126,9 +127,9 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(245, 200, 75, 0.42);
-  background: rgba(245, 200, 75, 0.12);
-  color: #ffd86a;
+  border: 1px solid rgba(134, 134, 172, 0.36);
+  background: rgba(39, 39, 87, 0.32);
+  color: #d8d8ff;
   font-style: normal;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
