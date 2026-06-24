@@ -52,6 +52,7 @@
 
 .rq-health-arc__track,
 .rq-health-arc__fill,
+.rq-health-arc__temp-outline,
 .rq-health-arc__temp {
   fill: none;
   stroke-linecap: round;
@@ -76,9 +77,20 @@
   stroke: #5b1c1c;
 }
 
+.rq-health-arc__temp-outline {
+  stroke: rgba(85, 210, 255, 0.95);
+  stroke-width: 18;
+  stroke-dasharray: var(--temp-progress-length, 0) 100;
+  stroke-dashoffset: var(--temp-offset-length, 0);
+  filter: drop-shadow(0 0 7px rgba(85, 210, 255, 0.55));
+  transition:
+    stroke-dasharray 950ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+    stroke-dashoffset 1250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .rq-health-arc__temp {
   stroke: #f5c84b;
-  stroke-width: 12;
+  stroke-width: 10;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
   transition:
