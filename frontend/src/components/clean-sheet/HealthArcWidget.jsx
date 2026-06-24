@@ -85,6 +85,7 @@ export default function HealthArcWidget({
           </defs>
           <path className="rq-health-arc__track" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
           <path className="rq-health-arc__fill" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
+          {safeTemp > 0 && <path className="rq-health-arc__temp-outline" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
           {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
         </svg>
         <div className="rq-health-arc__numbers">
