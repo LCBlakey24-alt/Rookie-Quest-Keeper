@@ -78,20 +78,20 @@
 }
 
 .rq-health-arc__temp-outline {
-  stroke: rgba(134, 134, 172, 0.32);
+  stroke: rgba(8, 8, 22, 0.96);
   stroke-width: 10;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
-  filter: drop-shadow(0 0 5px rgba(124, 120, 255, 0.25));
+  filter: none;
   transition: none;
 }
 
 .rq-health-arc__temp {
-  stroke: #272757;
-  stroke-width: 7;
+  stroke: #f5c84b;
+  stroke-width: 6;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
-  filter: drop-shadow(0 0 4px rgba(134, 134, 172, 0.28));
+  filter: drop-shadow(0 0 3px rgba(245, 200, 75, 0.24));
   transition: none;
 }
 
