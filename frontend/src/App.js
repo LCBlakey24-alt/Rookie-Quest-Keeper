@@ -21,6 +21,7 @@ import '@/styles/cleanNotesTab.css';
 import '@/styles/levelUpCleanStyle.css';
 import '@/styles/siteVelvetTheme.css';
 import '@/styles/blueEclipseTheme.css';
+import '@/styles/gmBlueEclipseTheme.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
