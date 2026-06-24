@@ -38,6 +38,7 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [overview, setOverview] = useState({ feedback_count: 0, new_feedback_count: 0 });
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState('testing');
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches);
 
@@ -53,17 +54,21 @@ function AdminPage() {
   useEffect(() => { checkAdminAndFetch(); }, []);
 
   const checkAdminAndFetch = async () => {
+    setLoading(true);
+    setAccessDenied(false);
     try {
       const adminCheck = await apiClient.get('/admin/check');
       if (!adminCheck.data.is_admin) {
         toast.error('Admin access required');
-        navigate('/home');
+        setAccessDenied(true);
+        setLoading(false);
         return;
       }
       await fetchData();
     } catch (error) {
-      toast.error('Access denied');
-      navigate('/home');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not verify admin access. Please try again.');
+      setAccessDenied(true);
+      setLoading(false);
     }
   };
 
@@ -123,6 +128,23 @@ function AdminPage() {
   ];
 
   if (loading) return <div style={loadingStyle}><div className="loading-spinner"></div></div>;
+
+  if (accessDenied) {
+    return (
+      <div style={pageStyle}>
+        <div style={containerStyle}>
+          <div style={adminPanelStyle}>
+            <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin access check failed</h1>
+            <p style={adminSubtitleStyle}>The app could not confirm your admin access. This can happen if the mobile browser drops the auth check for a moment.</p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+              <Button onClick={checkAdminAndFetch} style={{ background: theme.gold, color: theme.text.inverse, border: 'none' }}>Try again</Button>
+              <Button onClick={() => navigate('/home')} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.text.muted }}>Back to home</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={pageStyle}>
