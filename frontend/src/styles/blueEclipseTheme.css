@@ -22,10 +22,52 @@
   --cs-text: var(--rq-blue-eclipse-cream);
   --cs-text-soft: #e6d7bb;
   --cs-muted: var(--rq-blue-eclipse-mist);
+
+  --rq-bg-app: var(--rq-blue-eclipse-bg-deep);
+  --rq-bg-page: var(--rq-blue-eclipse-bg-deep);
+  --rq-bg-card: rgba(39, 39, 87, 0.94);
+  --rq-bg-elevated: rgba(52, 52, 99, 0.88);
+  --rq-bg-muted: rgba(80, 80, 129, 0.38);
+  --rq-border-default: rgba(216, 173, 79, 0.32);
+  --rq-border-muted: rgba(134, 134, 172, 0.22);
+  --rq-border-subtle: rgba(246, 234, 210, 0.14);
+  --rq-accent-primary: var(--rq-blue-eclipse-gold);
+  --rq-accent-hover: var(--rq-blue-eclipse-gold-soft);
+  --rq-accent-soft: rgba(216, 173, 79, 0.16);
+  --rq-text-primary: var(--rq-blue-eclipse-cream);
+  --rq-text-secondary: #e6d7bb;
+  --rq-text-muted: var(--rq-blue-eclipse-mist);
+  --rq-text-on-accent: #17100a;
+  --rq-success: #187a62;
+  --rq-success-soft: rgba(24, 122, 98, 0.22);
+  --rq-success-text: #bbf7d0;
+}
+
+html,
+body,
+#root {
+  background: var(--rq-blue-eclipse-bg-deep) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
+}
+
+a {
+  color: var(--rq-blue-eclipse-gold-soft);
 }
 
 .character-page-v2,
-.clean-sheet-page {
+.clean-sheet-page,
+.app-shell,
+.dashboard-page,
+.dashboard-shell,
+.desktop-dashboard,
+.mobile-dashboard,
+.home-page,
+.landing-page,
+.admin-page,
+.auth-page,
+.page-shell,
+.site-page,
+main {
   background:
     radial-gradient(circle at 18% 8%, rgba(124, 120, 255, 0.22), transparent 34%),
     radial-gradient(circle at 80% 0%, rgba(216, 173, 79, 0.12), transparent 28%),
@@ -44,18 +86,43 @@
 .clean-sheet-table-focus,
 .clean-sheet-content > section,
 .rq-health-arc__stage,
-.rq-hp-action-panel {
+.rq-hp-action-panel,
+.dashboard-card,
+.dashboard-panel,
+.dashboard-action-card,
+.action-card,
+.admin-card,
+.admin-panel,
+.character-card,
+.campaign-card,
+.site-card,
+.feature-card,
+.quick-action-card,
+.summary-card,
+.update-card,
+.modal-content,
+.dialog-content,
+.panel,
+.card {
   border-color: rgba(216, 173, 79, 0.28) !important;
   background:
     linear-gradient(180deg, rgba(39, 39, 87, 0.9), rgba(15, 14, 71, 0.78)) !important;
   box-shadow:
     0 18px 40px rgba(0, 0, 0, 0.32),
     inset 0 1px 0 rgba(246, 234, 210, 0.06) !important;
+  color: var(--rq-blue-eclipse-cream) !important;
 }
 
-.clean-sheet-header {
+.clean-sheet-header,
+.dashboard-header,
+.admin-header,
+.home-header,
+.page-header,
+.site-header,
+.app-header {
   background:
     linear-gradient(90deg, rgba(39, 39, 87, 0.96), rgba(15, 14, 71, 0.9), rgba(39, 39, 87, 0.88)) !important;
+  border-color: rgba(216, 173, 79, 0.28) !important;
 }
 
 .clean-sheet-kicker,
@@ -64,7 +131,14 @@
 .clean-sheet-header-stat span,
 .clean-sheet-tabs button,
 .clean-sheet-tab,
-.clean-sheet-section-title {
+.clean-sheet-section-title,
+.dashboard-kicker,
+.dashboard-card small,
+.admin-kicker,
+.eyebrow,
+.kicker,
+.stat-label,
+.section-label {
   color: var(--rq-blue-eclipse-gold-soft) !important;
 }
 
@@ -74,7 +148,13 @@
 .character-page-v2 h2,
 .character-page-v2 h3,
 .clean-sheet-content h2,
-.clean-sheet-content h3 {
+.clean-sheet-content h3,
+.landing-page h1,
+.home-page h1,
+.dashboard-page h1,
+.admin-page h1,
+.page-title,
+.hero-title {
   font-family: 'Metal Mania', Georgia, serif !important;
   color: var(--rq-blue-eclipse-cream) !important;
   letter-spacing: 0.035em;
@@ -85,7 +165,15 @@
 .clean-sheet-content p,
 .clean-sheet-content span,
 .clean-sheet-content li,
-.clean-sheet-header p {
+.clean-sheet-header p,
+.dashboard-page p,
+.dashboard-page span,
+.dashboard-page li,
+.admin-page p,
+.admin-page span,
+.admin-page li,
+.home-page p,
+.landing-page p {
   color: var(--cs-text-soft, #e6d7bb);
 }
 
@@ -95,7 +183,15 @@
 .clean-sheet-level,
 .clean-sheet-tabs button,
 .clean-sheet-tab,
-.rq-hp-action-button {
+.rq-hp-action-button,
+.btn,
+.button,
+.primary-button,
+.secondary-button,
+.dashboard-button,
+.action-button,
+.admin-button,
+button:not(.unstyled):not(.plain-button) {
   border-color: rgba(216, 173, 79, 0.32) !important;
   background: linear-gradient(180deg, rgba(39, 39, 87, 0.92), rgba(8, 8, 22, 0.82)) !important;
   color: var(--rq-blue-eclipse-cream) !important;
@@ -103,7 +199,10 @@
 
 .clean-sheet-level,
 .rq-hp-action-button--temp-plus,
-.rq-hp-action-button--temp-minus {
+.rq-hp-action-button--temp-minus,
+.btn-primary,
+.primary-button,
+button[type='submit'] {
   background: linear-gradient(180deg, rgba(216, 173, 79, 0.92), rgba(151, 104, 31, 0.92)) !important;
   color: #17100a !important;
   border-color: rgba(246, 234, 210, 0.28) !important;
@@ -111,7 +210,9 @@
 
 .clean-sheet-edit,
 .rq-hp-action-button--dice,
-.rq-hp-action-button--rest {
+.rq-hp-action-button--rest,
+.secondary-button,
+.btn-secondary {
   background: linear-gradient(180deg, rgba(80, 80, 129, 0.82), rgba(39, 39, 87, 0.86)) !important;
 }
 
@@ -127,13 +228,20 @@
 .clean-sheet-back svg,
 .clean-sheet-edit svg,
 .clean-sheet-level svg,
-.rq-health-arc__label svg {
+.rq-health-arc__label svg,
+.dashboard-card svg,
+.action-card svg,
+.admin-card svg {
   color: var(--rq-blue-eclipse-gold) !important;
 }
 
 .clean-sheet-tabs,
 .clean-sheet-nav,
-.clean-sheet-table-focus {
+.clean-sheet-table-focus,
+.dashboard-tabs,
+.mobile-dashboard-tabs,
+.tab-list,
+.nav-tabs {
   background: rgba(8, 8, 22, 0.46) !important;
   border-color: rgba(134, 134, 172, 0.22) !important;
 }
@@ -141,7 +249,13 @@
 .clean-sheet-tabs button[aria-selected='true'],
 .clean-sheet-tabs button.active,
 .clean-sheet-tab.active,
-.clean-sheet-tab--active {
+.clean-sheet-tab--active,
+.dashboard-tabs button[aria-selected='true'],
+.dashboard-tabs button.active,
+.mobile-dashboard-tabs button[aria-selected='true'],
+.mobile-dashboard-tabs button.active,
+.tab.active,
+.tab--active {
   background: linear-gradient(180deg, rgba(216, 173, 79, 0.24), rgba(39, 39, 87, 0.92)) !important;
   color: var(--rq-blue-eclipse-cream) !important;
   border-color: rgba(216, 173, 79, 0.56) !important;
@@ -155,12 +269,26 @@ select {
   color: var(--rq-blue-eclipse-cream) !important;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: rgba(230, 215, 187, 0.62) !important;
+}
+
 input:focus,
 textarea:focus,
 select:focus,
 button:focus-visible {
   outline: 2px solid rgba(124, 120, 255, 0.72) !important;
   outline-offset: 2px;
+}
+
+.toast,
+.notice,
+.alert,
+.status-pill,
+.badge,
+.pill {
+  border-color: rgba(216, 173, 79, 0.28) !important;
 }
 
 @media (max-width: 980px) {
