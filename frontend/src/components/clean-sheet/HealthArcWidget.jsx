@@ -1,36 +1,79 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { HeartPulse, ShieldPlus } from 'lucide-react';
 
 import './HealthArcWidgetSafe.css';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
+const easeOutCubic = (progress) => 1 - Math.pow(1 - progress, 3);
 
-function useRollingNumber(value, duration = 420) {
-  const target = Number(value) || 0;
-  const [display, setDisplay] = useState(target);
+function useAnimatedHpDisplay(targetCurrent, targetTemp) {
+  const animationRef = useRef(null);
+  const displayRef = useRef({ current: targetCurrent, temp: targetTemp });
+  const [display, setDisplay] = useState(displayRef.current);
 
   useEffect(() => {
-    const start = Number(display) || 0;
-    if (start === target) return undefined;
+    const from = displayRef.current;
+    const to = { current: targetCurrent, temp: targetTemp };
 
-    const diff = target - start;
-    const steps = Math.min(24, Math.max(6, Math.abs(diff)));
-    const stepTime = Math.max(18, Math.floor(duration / steps));
-    let currentStep = 0;
+    if (from.current === to.current && from.temp === to.temp) return undefined;
 
-    const interval = setInterval(() => {
-      currentStep += 1;
-      const progress = currentStep / steps;
-      const next = Math.round(start + diff * progress);
-      setDisplay(next);
-      if (currentStep >= steps) {
-        setDisplay(target);
-        clearInterval(interval);
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+    const steps = [];
+    const tempIsDropping = to.temp < from.temp;
+    const mainHpIsDropping = to.current < from.current;
+
+    if (tempIsDropping && mainHpIsDropping) {
+      steps.push({
+        from,
+        to: { current: from.current, temp: 0 },
+        duration: 850,
+      });
+      steps.push({
+        from: { current: from.current, temp: 0 },
+        to,
+        duration: 950,
+      });
+    } else {
+      steps.push({ from, to, duration: tempIsDropping || mainHpIsDropping ? 1150 : 850 });
+    }
+
+    let stepIndex = 0;
+    let stepStart = null;
+
+    const runStep = (timestamp) => {
+      const step = steps[stepIndex];
+      if (!step) {
+        displayRef.current = to;
+        setDisplay(to);
+        return;
       }
-    }, stepTime);
 
-    return () => clearInterval(interval);
-  }, [target]);
+      if (stepStart === null) stepStart = timestamp;
+      const rawProgress = Math.min(1, (timestamp - stepStart) / step.duration);
+      const progress = easeOutCubic(rawProgress);
+      const next = {
+        current: step.from.current + (step.to.current - step.from.current) * progress,
+        temp: step.from.temp + (step.to.temp - step.from.temp) * progress,
+      };
+
+      displayRef.current = next;
+      setDisplay(next);
+
+      if (rawProgress >= 1) {
+        stepIndex += 1;
+        stepStart = null;
+      }
+
+      animationRef.current = requestAnimationFrame(runStep);
+    };
+
+    animationRef.current = requestAnimationFrame(runStep);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [targetCurrent, targetTemp]);
 
   return display;
 }
@@ -44,21 +87,26 @@ export default function HealthArcWidget({
   const safeMax = Math.max(1, Number(maxHp) || 1);
   const safeCurrent = clamp(currentHp, 0, safeMax);
   const safeTemp = Math.max(0, Number(tempHp) || 0);
+  const display = useAnimatedHpDisplay(safeCurrent, safeTemp);
+  const displayCurrent = clamp(display.current, 0, safeMax);
+  const displayTemp = Math.max(0, display.temp);
+  const roundedCurrent = Math.round(displayCurrent);
+  const roundedTemp = Math.round(displayTemp);
   const totalHp = safeCurrent + safeTemp;
-  const hpPercent = safeCurrent / safeMax;
+  const displayedTotalHp = roundedCurrent + roundedTemp;
+  const hpPercent = displayCurrent / safeMax;
   const hpProgressLength = Math.round(hpPercent * 100);
-  const rawTempLength = safeTemp > 0 ? Math.max(8, Math.min(24, Math.round((safeTemp / safeMax) * 24))) : 0;
+  const rawTempLength = displayTemp > 0.08 ? Math.max(8, Math.min(24, Math.round((displayTemp / safeMax) * 24))) : 0;
   const tempProgressLength = rawTempLength;
-  const tempOffsetLength = safeTemp > 0 ? -(100 - tempProgressLength) : 0;
-  const animatedTotalHp = useRollingNumber(totalHp);
-  const animatedTempHp = useRollingNumber(safeTemp, 300);
+  const tempOffsetLength = displayTemp > 0.08 ? -(100 - tempProgressLength) : 0;
 
   const hpState = useMemo(() => {
     if (safeCurrent <= 0) return 'down';
-    if (hpPercent < 0.35) return 'critical';
-    if (hpPercent < 0.7) return 'wounded';
+    const targetPercent = safeCurrent / safeMax;
+    if (targetPercent < 0.35) return 'critical';
+    if (targetPercent < 0.7) return 'wounded';
     return 'healthy';
-  }, [hpPercent, safeCurrent]);
+  }, [safeMax, safeCurrent]);
 
   const arcStyle = {
     '--hp-progress-length': `${hpProgressLength}`,
@@ -66,9 +114,9 @@ export default function HealthArcWidget({
     '--temp-offset-length': `${tempOffsetLength}`,
   };
 
-  const breakdownText = safeTemp > 0
-    ? `${safeCurrent} HP + ${safeTemp} Temp`
-    : `${safeCurrent} / ${safeMax} HP`;
+  const breakdownText = roundedTemp > 0
+    ? `${roundedCurrent} HP + ${roundedTemp} Temp`
+    : `${roundedCurrent} / ${safeMax} HP`;
 
   return (
     <div className={`rq-health-arc rq-health-arc--${hpState}`} style={arcStyle}>
@@ -85,14 +133,14 @@ export default function HealthArcWidget({
           </defs>
           <path className="rq-health-arc__track" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
           <path className="rq-health-arc__fill" pathLength="100" d="M 24 108 A 86 86 0 0 1 196 108" />
-          {safeTemp > 0 && <path className="rq-health-arc__temp-outline" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
-          {safeTemp > 0 && <path className="rq-health-arc__temp" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
+          {displayTemp > 0.08 && <path className="rq-health-arc__temp-outline" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
+          {displayTemp > 0.08 && <path className="rq-health-arc__temp" pathLength="100" d="M 30 100 A 80 80 0 0 1 190 100" />}
         </svg>
         <div className="rq-health-arc__numbers">
-          <strong>{animatedTotalHp}</strong>
+          <strong>{displayedTotalHp}</strong>
           <span>{breakdownText}</span>
-          {safeTemp > 0 && (
-            <em><ShieldPlus size={15} /> +{animatedTempHp} Temp HP</em>
+          {roundedTemp > 0 && (
+            <em><ShieldPlus size={15} /> +{roundedTemp} Temp HP</em>
           )}
         </div>
       </div>
