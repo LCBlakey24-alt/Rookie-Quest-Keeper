@@ -22,6 +22,7 @@ export default function CleanSheetVitals({
   onSpendHitDie,
   onShortRest,
 }) {
+  const hasHitDice = hitDiceRemaining !== undefined || hitDiceTotal !== undefined || Boolean(onSpendHitDie) || Boolean(onShortRest);
   const hitDiceDisplay = hitDiceRemaining !== undefined && hitDiceTotal !== undefined
     ? `${hitDiceRemaining} / ${hitDiceTotal}`
     : hitDiceRemaining !== undefined
@@ -33,7 +34,7 @@ export default function CleanSheetVitals({
       <div className="clean-sheet-hp-card clean-sheet-hp-card--arc">
         <HealthArcWidget currentHp={currentHp} maxHp={maxHp} tempHp={tempHp} />
 
-        <div className="rq-hp-action-grid" aria-label="Health actions">
+        <div className={`rq-hp-action-grid ${hasHitDice ? '' : 'rq-hp-action-grid--two'}`} aria-label="Health actions">
           <div className="rq-hp-action-panel rq-hp-action-panel--health">
             <span className="rq-hp-action-panel__title">Heal / HP</span>
             <button className="rq-hp-action-button rq-hp-action-button--plus" onClick={onHeal} disabled={savingHp}>Heal</button>
@@ -62,12 +63,14 @@ export default function CleanSheetVitals({
             <button className="rq-hp-action-button rq-hp-action-button--temp-minus" onClick={onRemoveTempHp} disabled={savingTempHp || tempHp <= 0}>Temp -</button>
           </div>
 
-          <div className="rq-hp-action-panel rq-hp-action-panel--dice">
-            <span className="rq-hp-action-panel__title">Hit Dice</span>
-            <button className="rq-hp-action-button rq-hp-action-button--dice" onClick={onSpendHitDie} disabled={!onSpendHitDie || !hitDiceRemaining}>Use Die</button>
-            <strong className="rq-hp-hitdice-count">{hitDiceDisplay}</strong>
-            <button className="rq-hp-action-button rq-hp-action-button--rest" onClick={onShortRest} disabled={!onShortRest}><Moon size={15} /> Short Rest</button>
-          </div>
+          {hasHitDice && (
+            <div className="rq-hp-action-panel rq-hp-action-panel--dice">
+              <span className="rq-hp-action-panel__title">Hit Dice</span>
+              <button className="rq-hp-action-button rq-hp-action-button--dice" onClick={onSpendHitDie} disabled={!onSpendHitDie || !hitDiceRemaining}>Use Die</button>
+              <strong className="rq-hp-hitdice-count">{hitDiceDisplay}</strong>
+              <button className="rq-hp-action-button rq-hp-action-button--rest" onClick={onShortRest} disabled={!onShortRest}><Moon size={15} /> Short Rest</button>
+            </div>
+          )}
         </div>
       </div>
     </section>
