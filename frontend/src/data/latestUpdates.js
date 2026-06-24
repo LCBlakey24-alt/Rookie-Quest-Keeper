@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'gm-command-centre-polish-2026-06-24',
+    date: '2026-06-24',
+    badge: 'Improved',
+    category: 'GM Screen',
+    title: 'GM screen styled as a Blue Eclipse command centre',
+    summary: 'The live GM screen now has a dedicated Blue Eclipse polish layer so the panel grid feels more like a focused command centre.',
+    details: [
+      'Added dedicated GM screen styling without changing the existing live-session logic.',
+      'Rounded and darkened the GM toolbar, panel frames, panel headers, selects, dice buttons, and scroll areas.',
+      'Kept the existing 1–4 panel GM layout intact while making the screen feel closer to the new character sheet theme.',
+      'Improved the GM screen mobile/tablet behaviour so the page can scroll more naturally when panels stack.',
+    ],
+    public: true,
+  },
+  {
     id: 'blue-eclipse-theme-pass-2026-06-24',
     date: '2026-06-24',
     badge: 'Improved',
