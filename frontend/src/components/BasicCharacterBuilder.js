@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import RookFormFillPanel from '@/components/RookFormFillPanel';
+import BasicCatchUpChoicesPanel, { buildCatchUpLevelProgression } from '@/components/builder/BasicCatchUpChoicesPanel';
 import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
 import { calculateArmorAc } from '../data/armorRules5e';
@@ -244,6 +245,7 @@ export default function BasicCharacterBuilder() {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [armorChoice, setArmorChoice] = useState('ChainMail');
   const [shieldEquipped, setShieldEquipped] = useState(true);
+  const [catchUpSelections, setCatchUpSelections] = useState({});
   const [loading, setLoading] = useState(false);
 
   const cls = CLASSES[characterClass];
@@ -261,6 +263,12 @@ export default function BasicCharacterBuilder() {
 
   // Reset skills when class/background changes
   useEffect(() => { setSelectedSkills([]); }, [characterClass, background]);
+
+  // Keep catch-up selections in step with class/level changes.
+  useEffect(() => {
+    const validIds = new Set((startingChoicePlan.choices || []).map(choice => choice.id));
+    setCatchUpSelections(prev => Object.fromEntries(Object.entries(prev).filter(([id]) => validIds.has(id))));
+  }, [startingChoicePlan]);
 
   // Keep Basic Build defence choices legal and sensible when class changes.
   useEffect(() => {
@@ -346,6 +354,7 @@ export default function BasicCharacterBuilder() {
         name: String(t).split(' (')[0],
         description: String(t)
       }));
+      const levelProgression = buildCatchUpLevelProgression(startingChoicePlan, catchUpSelections);
 
       const payload = {
         name: name.trim(),
@@ -374,8 +383,16 @@ export default function BasicCharacterBuilder() {
         ...spellDefaults
       };
       const res = await apiClient.post(`/characters`, payload);
+      const createdId = res.data?.character_id || res.data?.character?.id;
+      if (createdId && Object.keys(levelProgression).length > 0) {
+        try {
+          await apiClient.patch(`/characters/${createdId}`, { level_progression: levelProgression });
+        } catch (progressionError) {
+          toast.warning('Character created, but catch-up choices could not be saved yet.');
+        }
+      }
       toast.success('Basic character created!');
-      navigate(`/characters/${res.data?.character_id}`);
+      navigate(`/characters/${createdId}`);
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Failed to create character');
     } finally {
@@ -386,8 +403,6 @@ export default function BasicCharacterBuilder() {
   const autoFilledCount = raceLanguageChoiceCount + backgroundLanguageCount;
   const featurePreview = classFeatures.map(feature => feature.name).slice(0, 6).join(', ');
   const extraFeatureCount = Math.max(0, classFeatures.length - 6);
-  const catchUpPreview = startingChoicePlan.choices.slice(0, 8);
-  const extraCatchUpCount = Math.max(0, startingChoicePlan.choices.length - catchUpPreview.length);
   const cannotSubmit = loading || selectedSkills.length !== skillCount;
 
   return (
@@ -499,35 +514,13 @@ export default function BasicCharacterBuilder() {
               </label>
             </div>
 
-            <div style={velvetPanelStyle} data-testid="basic-starting-level-catchup">
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
-                <div>
-                  <h3 style={{ margin: 0, color: velvet.text, fontSize: 15 }}>Starting level catch-up</h3>
-                  <p style={{ margin: '5px 0 0', color: velvet.muted, fontSize: 12, lineHeight: 1.4 }}>
-                    {startingChoicePlan.summary}
-                  </p>
-                </div>
-                <span style={pillStyle}>{startingChoicePlan.requiredCount} required / {startingChoicePlan.optionalCount} optional</span>
-              </div>
-
-              {catchUpPreview.length > 0 ? (
-                <div style={{ display: 'grid', gap: 7 }}>
-                  {catchUpPreview.map(choice => (
-                    <div key={choice.id} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: 8, alignItems: 'start', padding: '7px 0', borderTop: '1px solid rgba(192,138,61,0.14)' }}>
-                      <span style={{ color: velvet.gold, fontSize: 12, fontWeight: 900 }}>Lv {choice.level}</span>
-                      <div>
-                        <strong style={{ color: velvet.text, fontSize: 12 }}>{choice.title}{choice.required ? '' : ' (optional)'}</strong>
-                        <p style={{ margin: '2px 0 0', color: velvet.muted, fontSize: 11, lineHeight: 1.35 }}>{choice.description}</p>
-                        {choice.rook && <p style={{ margin: '3px 0 0', color: velvet.softText, fontSize: 11, lineHeight: 1.35 }}>Rook: {choice.rook}</p>}
-                      </div>
-                    </div>
-                  ))}
-                  {extraCatchUpCount > 0 && <p style={{ margin: 0, color: velvet.muted, fontSize: 11 }}>+{extraCatchUpCount} more prompts for detailed build mode.</p>}
-                </div>
-              ) : (
-                <p style={{ margin: 0, color: velvet.muted, fontSize: 12 }}>No extra catch-up choices needed for this class and level.</p>
-              )}
-            </div>
+            <BasicCatchUpChoicesPanel
+              plan={startingChoicePlan}
+              selections={catchUpSelections}
+              onSelectionChange={setCatchUpSelections}
+              velvet={velvet}
+              pillStyle={pillStyle}
+            />
 
             <div style={velvetPanelStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
