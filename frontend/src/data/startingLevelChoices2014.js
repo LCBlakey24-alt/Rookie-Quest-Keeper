@@ -2,7 +2,6 @@ import {
   CLASS_NAMES_2014,
   clampLevel,
   getClassProgression,
-  getLevelFeatures,
   normaliseClassName,
 } from './classProgressions2014';
 
@@ -128,7 +127,7 @@ export function getStartingLevelChoicePlan(className = '', startingLevel = 1) {
     });
 
   for (let level = 1; level <= targetLevel; level += 1) {
-    const features = getLevelFeatures(normalisedClass, level);
+    const features = progression.featuresByLevel?.[level] || [];
 
     const spellChoice = getSpellChoiceForLevel(normalisedClass, level, features);
     if (spellChoice) choices.push(spellChoice);
