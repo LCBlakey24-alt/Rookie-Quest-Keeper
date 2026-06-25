@@ -1,0 +1,213 @@
+.class-progression-lab {
+  min-height: 100dvh;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  padding: clamp(14px, 4vw, 34px);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(124, 120, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(216, 173, 79, 0.13), transparent 30%),
+    linear-gradient(145deg, #080816 0%, #0f0e47 52%, #151433 100%);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.progression-hero,
+.progression-controls,
+.progression-summary-grid article,
+.progression-card {
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  background: linear-gradient(180deg, rgba(39, 39, 87, 0.92), rgba(8, 8, 22, 0.72));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+}
+
+.progression-hero {
+  display: grid;
+  gap: 10px;
+  padding: clamp(18px, 4vw, 32px);
+  border-radius: 24px;
+}
+
+.progression-hero span,
+.progression-controls span,
+.progression-summary-grid span,
+.progression-card h2,
+.progression-slot-compare span,
+.progression-resource-list span {
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progression-hero h1 {
+  margin: 0;
+  font-family: 'Metal Mania', Georgia, serif;
+  font-size: clamp(3rem, 12vw, 5.8rem);
+  line-height: 0.9;
+}
+
+.progression-hero p,
+.progression-empty,
+.progression-card li,
+.progression-card p {
+  color: var(--rq-text-secondary, #e6d7bb);
+}
+
+.progression-actions,
+.progression-controls,
+.progression-columns,
+.progression-summary-grid,
+.progression-slot-compare,
+.progression-resource-list {
+  display: grid;
+  gap: 12px;
+}
+
+.progression-actions {
+  grid-template-columns: repeat(2, minmax(0, max-content));
+}
+
+.progression-actions a,
+.progression-controls select,
+.progression-controls input {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(216, 173, 79, 0.32);
+  background: rgba(8, 8, 22, 0.68);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.progression-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+}
+
+.progression-controls {
+  grid-template-columns: 1fr 140px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.progression-controls label {
+  display: grid;
+  gap: 6px;
+}
+
+.progression-controls select,
+.progression-controls input {
+  padding: 0 12px;
+}
+
+.progression-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.progression-summary-grid article {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.progression-summary-grid strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1.45rem;
+}
+
+.progression-summary-grid em,
+.progression-resource-list em,
+.progression-resource-list small {
+  color: var(--rq-blue-eclipse-mist, #8686ac);
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.progression-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.progression-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.progression-card h2 {
+  margin: 0;
+}
+
+.progression-card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.progression-card--wide {
+  width: min(100%, 1100px);
+}
+
+.progression-slot-compare {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.progression-slot-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.progression-slot-pills span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  background: rgba(216, 173, 79, 0.12);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.progression-resource-list div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 7px 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(134, 134, 172, 0.2);
+  background: rgba(8, 8, 22, 0.44);
+}
+
+.progression-resource-list svg {
+  color: var(--rq-blue-eclipse-gold, #d8ad4f);
+}
+
+.progression-resource-list strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.progression-resource-list em,
+.progression-resource-list small {
+  grid-column: 2 / -1;
+}
+
+@media (max-width: 760px) {
+  .progression-actions,
+  .progression-controls,
+  .progression-columns,
+  .progression-summary-grid,
+  .progression-slot-compare {
+    grid-template-columns: 1fr;
+  }
+
+  .progression-summary-grid strong {
+    font-size: 1.2rem;
+  }
+}
