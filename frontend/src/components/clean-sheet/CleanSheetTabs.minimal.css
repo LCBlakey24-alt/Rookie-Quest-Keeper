@@ -36,7 +36,10 @@
 .character-page-v2 .clean-sheet-roll-controls,
 .character-page-v2 .clean-sheet-death-saves,
 .character-page-v2 .rq-health-arc__stage,
-.character-page-v2 .rq-hp-action-panel {
+.character-page-v2 .rq-hp-action-panel,
+.character-page-v2 .number-wheel-picker,
+.character-page-v2 .number-wheel-picker__frame,
+.character-page-v2 .number-wheel-picker__item {
   background: transparent !important;
   background-image: none !important;
   border-radius: 0 !important;
@@ -54,7 +57,10 @@
 .character-page-v2 .clean-sheet-skill-card,
 .character-page-v2 .clean-sheet-spell-card,
 .character-page-v2 .clean-sheet-slot-card,
-.character-page-v2 .clean-sheet-item-card {
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-list div,
+.character-page-v2 .clean-sheet-skills div,
+.character-page-v2 .clean-sheet-passives div {
   border: 0 !important;
   border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
 }
@@ -67,7 +73,11 @@
 .character-page-v2 .clean-sheet-inspiration,
 .character-page-v2 .clean-sheet-rest-button,
 .character-page-v2 .clean-sheet-condition-toggle,
-.character-page-v2 .clean-sheet-roll-history-toggle {
+.character-page-v2 .clean-sheet-roll-history-toggle,
+.character-page-v2 .clean-sheet-condition-chip,
+.character-page-v2 .clean-sheet-no-conditions,
+.character-page-v2 .clean-sheet-spell-level,
+.character-page-v2 .clean-sheet-slot-pips i {
   background: transparent !important;
   background-image: none !important;
   border-radius: 0 !important;
@@ -84,14 +94,18 @@
 .character-page-v2 .clean-sheet-portrait,
 .character-page-v2 input,
 .character-page-v2 textarea,
-.character-page-v2 select,
-.character-page-v2 .number-wheel-picker,
-.character-page-v2 .number-wheel-picker__frame,
-.character-page-v2 .number-wheel-picker__item,
-.character-page-v2 .clean-sheet-condition-chip,
-.character-page-v2 .clean-sheet-spell-level {
+.character-page-v2 select {
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 @media (max-width: 760px) {
