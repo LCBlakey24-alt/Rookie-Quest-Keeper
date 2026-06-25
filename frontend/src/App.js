@@ -41,6 +41,7 @@ const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'
 const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
+const PrototypeHub = React.lazy(() => import('@/components/prototype/PrototypeHub'));
 const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/PrototypeMobileLab'));
 const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
 const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
@@ -104,6 +105,7 @@ function AppRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/home" element={<UnifiedDashboard />} />
+          <Route path="/prototype" element={<PrototypeHub />} />
           <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
           <Route path="/prototype-gm" element={<TiaKartaGmPrototype />} />
           <Route path="/player" element={<PlayerDashboard />} />
