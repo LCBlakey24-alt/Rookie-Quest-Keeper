@@ -57,3 +57,39 @@
   color: var(--cs-text, #f6ead2);
   font-size: 0.95rem;
 }
+
+.clean-sheet-progression-pills span,
+.clean-sheet-progression-features span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(134, 134, 172, 0.16);
+  background: rgba(8, 10, 24, 0.24);
+}
+
+.clean-sheet-progression-levelup {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .clean-sheet-progression-strip {
+    grid-template-columns: auto minmax(0, 1fr);
+    order: 5;
+  }
+
+  .clean-sheet-progression-levelup {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 620px) {
+  .clean-sheet-progression-features {
+    display: none;
+  }
+}
