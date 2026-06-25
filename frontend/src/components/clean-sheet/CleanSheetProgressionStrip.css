@@ -1,4 +1,59 @@
 .clean-sheet-progression-strip {
+  grid-column: 1 / -1;
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(134, 134, 172, 0.16);
+}
+
+.clean-sheet-progression-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 173, 79, 0.24);
+  color: var(--cs-accent, #d6a84f);
+  background: rgba(8, 10, 24, 0.3);
+}
+
+.clean-sheet-progression-main {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.clean-sheet-progression-heading,
+.clean-sheet-progression-pills,
+.clean-sheet-progression-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.clean-sheet-progression-heading span,
+.clean-sheet-progression-pills span,
+.clean-sheet-progression-features span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cs-text-soft, #d9c8a5);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.clean-sheet-progression-heading span {
+  color: var(--cs-accent, #d6a84f);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clean-sheet-progression-heading strong {
+  color: var(--cs-text, #f6ead2);
+  font-size: 0.95rem;
 }
