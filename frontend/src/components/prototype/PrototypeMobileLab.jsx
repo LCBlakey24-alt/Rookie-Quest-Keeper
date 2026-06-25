@@ -7,7 +7,6 @@ import CleanSheetVitals from '@/components/clean-sheet/CleanSheetVitals';
 import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import {
-  COMMON_CONDITIONS,
   PASSIVE_SKILLS,
   SHEET_TABS,
   calculateHpDamage,
@@ -259,6 +258,7 @@ export default function PrototypeMobileLab() {
             ))}
           </select>
           <div className="prototype-mobile-header-actions">
+            <Link to="/prototype">Prototype Hub</Link>
             <button type="button" onClick={() => setCharacter(resetPrototypeCharacter(selectedId))}><RotateCcw size={16} /> Reset</button>
             <Link to="/prototype-gm"><ScrollText size={16} /> Tia-Karta GM</Link>
           </div>
@@ -272,12 +272,16 @@ export default function PrototypeMobileLab() {
           tempHpAmount={tempHpAmount}
           savingHp={false}
           savingTempHp={false}
+          hitDice={character.hit_dice}
+          hitDiceRemaining={hitDiceRemaining}
+          hitDiceTotal={hitDieInfo.total}
           onHpAmountChange={setHpAmount}
           onTempHpAmountChange={setTempHpAmount}
           onDamage={() => updateHp(-hpAmount)}
           onHeal={() => updateHp(hpAmount)}
           onRemoveTempHp={() => updateTempHp(-Number(tempHpAmount || 1))}
           onAddTempHp={() => updateTempHp(Number(tempHpAmount || 1))}
+          onSpendHitDie={spendHitDie}
         />
 
         <CleanSheetPlayTools
