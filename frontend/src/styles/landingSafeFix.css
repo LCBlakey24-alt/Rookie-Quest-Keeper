@@ -40,32 +40,27 @@
 .landing-page-clean .landing-workflow-item,
 .landing-page-clean .landing-preview-card,
 .landing-page-clean .preview-panel,
-.landing-page-clean .preview-encounter {
+.landing-page-clean .preview-encounter,
+.landing-page-clean .preview-main,
+.landing-page-clean .preview-sidebar,
+.landing-page-clean .preview-window-bar {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-.landing-page-clean .landing-product-frame,
 .landing-page-clean .landing-feature-card,
 .landing-page-clean .landing-workflow-item {
-  border-radius: 12px;
-  background: rgba(8, 10, 24, 0.42) !important;
-}
-
-.landing-page-clean .preview-main,
-.landing-page-clean .preview-sidebar,
-.landing-page-clean .preview-window-bar,
-.landing-page-clean .preview-panel {
-  background: rgba(8, 10, 24, 0.34) !important;
+  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+  padding: 16px 0 !important;
+  overflow-wrap: anywhere;
 }
 
 .landing-page-clean .landing-features {
   padding-top: 12px;
   padding-bottom: 28px;
-}
-
-.landing-page-clean .landing-feature-card,
-.landing-page-clean .landing-workflow-item {
-  overflow-wrap: anywhere;
 }
 
 .landing-page-clean .landing-workflow-clean {
@@ -79,6 +74,74 @@
 
 .landing-page-clean .landing-workflow-clean .landing-workflow-item {
   min-width: 0;
+}
+
+.dashboard-page .dashboard-card,
+.dashboard-page .dashboard-panel,
+.dashboard-page .dashboard-action-card,
+.dashboard-page .action-card,
+.dashboard-page .character-card,
+.dashboard-page .campaign-card,
+.dashboard-page .summary-card,
+.dashboard-page .update-card,
+.dashboard-page [data-testid="latest-updates-panel"] {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-page .dashboard-card,
+.dashboard-page .dashboard-panel,
+.dashboard-page .action-card,
+.dashboard-page .character-card,
+.dashboard-page .campaign-card {
+  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+  padding: 14px 0 !important;
+}
+
+.character-page-v2 .clean-sheet-card,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-hp-card--arc,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-tab-panel,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-table-focus,
+.character-page-v2 .clean-sheet-content > section,
+.character-page-v2 .rq-health-arc__stage,
+.character-page-v2 .rq-hp-action-panel,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-turn-strip > div,
+.character-page-v2 .clean-sheet-passives > div,
+.character-page-v2 .clean-sheet-roll-controls,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-death-saves {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-table-focus {
+  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+  padding: 14px 0 !important;
+}
+
+.character-page-v2 .clean-sheet-tabs,
+.character-page-v2 .clean-sheet-progression-pills span,
+.character-page-v2 .clean-sheet-progression-features span,
+.character-page-v2 .clean-sheet-progression-build-notes span {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 1040px) {
@@ -105,7 +168,7 @@
     align-items: center !important;
     padding: 8px 14px !important;
     width: 100% !important;
-    border-bottom: 1px solid rgba(216, 173, 79, 0.2) !important;
+    border-bottom: 1px solid rgba(216, 173, 79, 0.18) !important;
     background: rgba(4, 5, 18, 0.94) !important;
   }
 
@@ -131,7 +194,7 @@
     width: 100%;
     min-height: 38px;
     padding: 7px 8px;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     font-size: 12px;
     line-height: 1.1;
     white-space: normal;
@@ -173,6 +236,7 @@
     min-height: 44px;
     padding: 11px 14px;
     white-space: normal;
+    border-radius: 8px !important;
   }
 
   .landing-page-clean .landing-hero-preview {
@@ -181,13 +245,9 @@
 
   .landing-page-clean .landing-features {
     grid-template-columns: 1fr !important;
-    gap: 10px;
+    gap: 0;
     padding-top: 8px !important;
     padding-bottom: 18px !important;
-  }
-
-  .landing-page-clean .landing-feature-card {
-    padding: 14px !important;
   }
 
   .landing-page-clean .landing-feature-card svg {
@@ -215,11 +275,7 @@
   }
 
   .landing-page-clean .landing-workflow-clean .landing-workflow-list {
-    gap: 10px;
-  }
-
-  .landing-page-clean .landing-workflow-item {
-    padding: 14px !important;
+    gap: 0;
   }
 
   .landing-page-clean .landing-footer {
