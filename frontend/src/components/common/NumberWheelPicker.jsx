@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './NumberWheelPicker.css';
 
-const ITEM_HEIGHT = 38;
+const DEFAULT_ITEM_HEIGHT = 38;
+const COMPACT_ITEM_HEIGHT = 34;
 
 function clamp(value, min, max) {
   const number = Number(value);
@@ -22,6 +23,7 @@ export default function NumberWheelPicker({
 }) {
   const wheelRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
+  const itemHeight = compact ? COMPACT_ITEM_HEIGHT : DEFAULT_ITEM_HEIGHT;
   const [internalValue, setInternalValue] = useState(clamp(value, min, max));
 
   const values = useMemo(() => {
@@ -40,9 +42,9 @@ export default function NumberWheelPicker({
     setInternalValue(nextValue);
     const index = values.indexOf(nextValue);
     if (wheelRef.current && index >= 0) {
-      wheelRef.current.scrollTo({ top: index * ITEM_HEIGHT, behavior: 'smooth' });
+      wheelRef.current.scrollTo({ top: index * itemHeight, behavior: 'smooth' });
     }
-  }, [value, min, max, values]);
+  }, [value, min, max, values, itemHeight]);
 
   const commitValue = (nextValue) => {
     if (disabled) return;
@@ -55,7 +57,7 @@ export default function NumberWheelPicker({
     if (disabled || !wheelRef.current) return;
     window.clearTimeout(scrollTimeoutRef.current);
     scrollTimeoutRef.current = window.setTimeout(() => {
-      const index = clamp(Math.round(wheelRef.current.scrollTop / ITEM_HEIGHT), 0, values.length - 1);
+      const index = clamp(Math.round(wheelRef.current.scrollTop / itemHeight), 0, values.length - 1);
       const nextValue = values[index] ?? values[0] ?? min;
       commitValue(nextValue);
     }, 90);
