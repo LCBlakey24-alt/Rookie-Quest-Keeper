@@ -7,6 +7,7 @@ import { RACES, CLASSES, BACKGROUNDS } from '../data/characterRules5e';
 import { buildBasicLanguages, countChoiceLanguages } from '../data/languageChoiceUtils';
 import { calculateArmorAc } from '../data/armorRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '../data/spellDatabase';
+import { getStartingLevelChoicePlan } from '@/data/startingLevelChoices2014';
 
 // Starter stat arrays by primary ability
 const STAT_ARRAYS = {
@@ -67,14 +68,14 @@ const panelStyle = {
   background: 'rgba(33, 21, 14, 0.95)',
   border: '1px solid rgba(192, 138, 61, 0.22)',
   borderRadius: 12,
-  boxShadow: '0 22px 56px rgba(0,0,0,0.48)',
+  boxShadow: 'none',
 };
 
 const pillStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   border: '1px solid rgba(192, 138, 61, 0.46)',
-  background: 'linear-gradient(135deg, rgba(192, 138, 61, 0.22), rgba(164, 90, 50, 0.24))',
+  background: 'rgba(192, 138, 61, 0.16)',
   color: velvet.text,
   borderRadius: 999,
   padding: '4px 8px',
@@ -89,7 +90,7 @@ const velvetPanelStyle = {
   padding: 12,
   borderRadius: 10,
   border: '1px solid rgba(224, 177, 92, 0.24)',
-  background: 'linear-gradient(135deg, rgba(192, 138, 61, 0.12), rgba(164, 90, 50, 0.14))',
+  background: 'rgba(46, 29, 19, 0.48)',
 };
 
 const clampLevel = (value) => Math.min(20, Math.max(1, Number.parseInt(value, 10) || 1));
@@ -249,6 +250,7 @@ export default function BasicCharacterBuilder() {
   const raceData = RACES[race];
   const bgData = BACKGROUNDS[background];
   const safeLevel = clampLevel(level);
+  const startingChoicePlan = useMemo(() => getStartingLevelChoicePlan(characterClass, safeLevel), [characterClass, safeLevel]);
   const armorProficiencies = useMemo(() => getArmorProficiencies(cls), [cls]);
   const allowedArmorOptions = useMemo(() => getAllowedArmorOptions(cls), [cls]);
   const selectedArmorName = armorChoice === 'none' ? null : getArmorName(armorChoice);
@@ -384,6 +386,8 @@ export default function BasicCharacterBuilder() {
   const autoFilledCount = raceLanguageChoiceCount + backgroundLanguageCount;
   const featurePreview = classFeatures.map(feature => feature.name).slice(0, 6).join(', ');
   const extraFeatureCount = Math.max(0, classFeatures.length - 6);
+  const catchUpPreview = startingChoicePlan.choices.slice(0, 8);
+  const extraCatchUpCount = Math.max(0, startingChoicePlan.choices.length - catchUpPreview.length);
   const cannotSubmit = loading || selectedSkills.length !== skillCount;
 
   return (
@@ -427,14 +431,14 @@ export default function BasicCharacterBuilder() {
               Basic Build
             </h1>
             <p style={{ color: velvet.muted, margin: '10px 0 0', fontSize: 14, lineHeight: 1.5, maxWidth: 760 }}>
-              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, languages, and starter spells when needed.
+              Pick the fun choices. ROOK fills in the starter sheet details: ability scores, hit points, armour class, proficiencies, equipment, traits, languages, starter spells, and higher-level catch-up prompts when needed.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
             <AutoFillCard title="You choose" text="Name, edition, level, class, species, background, and defence loadout." />
             <AutoFillCard title="ROOK fills" text="Stats, HP, AC, gear, traits, starter language choices, class features, and starter magic where your class needs it." />
-            <AutoFillCard title="Still yours" text="Pick class skills and edit the sheet after creation if needed." />
+            <AutoFillCard title="Catch-up plan" text={safeLevel > 1 ? `${startingChoicePlan.requiredCount} required and ${startingChoicePlan.optionalCount} optional higher-level prompts.` : 'Level 1 starts use the normal creation choices.'} />
             {starterSpellNames.length > 0 && <AutoFillCard title="Starter magic" text={starterSpellNames.slice(0, 5).join(', ')} />}
           </div>
         </section>
@@ -495,6 +499,36 @@ export default function BasicCharacterBuilder() {
               </label>
             </div>
 
+            <div style={velvetPanelStyle} data-testid="basic-starting-level-catchup">
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
+                <div>
+                  <h3 style={{ margin: 0, color: velvet.text, fontSize: 15 }}>Starting level catch-up</h3>
+                  <p style={{ margin: '5px 0 0', color: velvet.muted, fontSize: 12, lineHeight: 1.4 }}>
+                    {startingChoicePlan.summary}
+                  </p>
+                </div>
+                <span style={pillStyle}>{startingChoicePlan.requiredCount} required / {startingChoicePlan.optionalCount} optional</span>
+              </div>
+
+              {catchUpPreview.length > 0 ? (
+                <div style={{ display: 'grid', gap: 7 }}>
+                  {catchUpPreview.map(choice => (
+                    <div key={choice.id} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: 8, alignItems: 'start', padding: '7px 0', borderTop: '1px solid rgba(192,138,61,0.14)' }}>
+                      <span style={{ color: velvet.gold, fontSize: 12, fontWeight: 900 }}>Lv {choice.level}</span>
+                      <div>
+                        <strong style={{ color: velvet.text, fontSize: 12 }}>{choice.title}{choice.required ? '' : ' (optional)'}</strong>
+                        <p style={{ margin: '2px 0 0', color: velvet.muted, fontSize: 11, lineHeight: 1.35 }}>{choice.description}</p>
+                        {choice.rook && <p style={{ margin: '3px 0 0', color: velvet.softText, fontSize: 11, lineHeight: 1.35 }}>Rook: {choice.rook}</p>}
+                      </div>
+                    </div>
+                  ))}
+                  {extraCatchUpCount > 0 && <p style={{ margin: 0, color: velvet.muted, fontSize: 11 }}>+{extraCatchUpCount} more prompts for detailed build mode.</p>}
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: velvet.muted, fontSize: 12 }}>No extra catch-up choices needed for this class and level.</p>
+              )}
+            </div>
+
             <div style={velvetPanelStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', marginBottom: 10 }}>
                 <div>
@@ -526,7 +560,7 @@ export default function BasicCharacterBuilder() {
                       opacity: armorProficiencies.shields ? 1 : 0.55,
                       fontWeight: 900,
                       background: shieldEquipped
-                        ? 'linear-gradient(135deg, rgba(192, 138, 61, 0.24), rgba(164, 90, 50, 0.28))'
+                        ? 'rgba(192, 138, 61, 0.24)'
                         : input.background,
                     }}
                   >
@@ -560,6 +594,11 @@ export default function BasicCharacterBuilder() {
                   label="Languages"
                   value={finalLanguages.join(', ') || 'None'}
                   helper={autoFilledCount > 0 ? `${autoFilledCount} language choice${autoFilledCount === 1 ? '' : 's'} auto-filled.` : 'Fixed starting languages.'}
+                />
+                <SummaryRow
+                  label="Catch-up prompts"
+                  value={`${startingChoicePlan.requiredCount} required / ${startingChoicePlan.optionalCount} optional`}
+                  helper={startingChoicePlan.summary}
                 />
                 <SummaryRow
                   label={`Class features to level ${safeLevel}`}
@@ -606,7 +645,7 @@ export default function BasicCharacterBuilder() {
                     borderRadius: 7,
                     fontSize: 12,
                     fontWeight: 800,
-                    background: fromBg ? 'rgba(122,155,102,0.12)' : sel ? 'linear-gradient(135deg, rgba(192,138,61,0.24), rgba(164,90,50,0.28))' : velvet.card,
+                    background: fromBg ? 'rgba(122,155,102,0.12)' : sel ? 'rgba(192,138,61,0.24)' : velvet.card,
                     border: `1px solid ${fromBg ? 'rgba(122,155,102,0.4)' : sel ? 'rgba(224,177,92,0.72)' : 'rgba(192,138,61,0.18)'}`,
                     color: velvet.text,
                     cursor: fromBg ? 'not-allowed' : 'pointer',
@@ -630,7 +669,7 @@ export default function BasicCharacterBuilder() {
               fontWeight: 900,
               background: cannotSubmit
                 ? 'rgba(192,138,61,0.18)'
-                : 'linear-gradient(135deg, #C08A3D, #A45A32)',
+                : velvet.gold,
               border: cannotSubmit
                 ? '1px solid rgba(192,138,61,0.24)'
                 : '1px solid rgba(224,177,92,0.72)',
@@ -639,7 +678,7 @@ export default function BasicCharacterBuilder() {
               fontSize: 14,
               textTransform: 'uppercase',
               letterSpacing: 0.7,
-              boxShadow: cannotSubmit ? 'none' : '0 14px 32px rgba(192,138,61,0.24)',
+              boxShadow: 'none',
             }}>
             {loading ? 'Creating...' : 'Create Character'}
           </button>
@@ -663,7 +702,7 @@ function AutoFillCard({ title, text }) {
 
 function PreviewStat({ label, value, helper }) {
   return (
-    <div style={{ border: '1px solid rgba(224,177,92,0.24)', background: 'linear-gradient(135deg, rgba(192,138,61,0.12), rgba(164,90,50,0.12))', borderRadius: 9, padding: 10 }}>
+    <div style={{ border: '1px solid rgba(224,177,92,0.24)', background: 'rgba(46,29,19,0.48)', borderRadius: 9, padding: 10 }}>
       <div style={{ color: velvet.muted, fontSize: 10, fontWeight: 900, letterSpacing: 0.7, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ color: velvet.text, fontSize: 22, fontWeight: 900, marginTop: 2, lineHeight: 1 }}>{value}</div>
       {helper && <div style={{ color: velvet.muted, fontSize: 10, lineHeight: 1.3, marginTop: 4 }}>{helper}</div>}
