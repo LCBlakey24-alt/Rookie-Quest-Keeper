@@ -1,0 +1,102 @@
+.landing-page-clean {
+  isolation: isolate;
+}
+
+.landing-page-clean main,
+.landing-page-clean .landing-nav,
+.landing-page-clean .landing-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.landing-page-clean .landing-nav-actions,
+.landing-page-clean .landing-button {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.landing-page-clean .landing-nav {
+  align-items: center;
+}
+
+.landing-page-clean .landing-hero {
+  padding-top: clamp(32px, 6vw, 58px);
+  padding-bottom: 24px;
+}
+
+.landing-page-clean .landing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.landing-page-clean .landing-product-frame,
+.landing-page-clean .landing-feature-card,
+.landing-page-clean .landing-workflow-item,
+.landing-page-clean .landing-preview-card,
+.landing-page-clean .preview-panel,
+.landing-page-clean .preview-encounter {
+  box-shadow: none !important;
+}
+
+.landing-page-clean .landing-product-frame,
+.landing-page-clean .landing-feature-card,
+.landing-page-clean .landing-workflow-item {
+  border-radius: 12px;
+  background: rgba(8, 10, 24, 0.42) !important;
+}
+
+.landing-page-clean .preview-main,
+.landing-page-clean .preview-sidebar,
+.landing-page-clean .preview-window-bar,
+.landing-page-clean .preview-panel {
+  background: rgba(8, 10, 24, 0.34) !important;
+}
+
+.landing-page-clean .landing-features {
+  padding-top: 12px;
+  padding-bottom: 28px;
+}
+
+.landing-page-clean .landing-workflow-clean {
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  padding-bottom: 42px;
+}
+
+.landing-page-clean .landing-workflow-clean .landing-workflow-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.landing-page-clean .landing-workflow-clean .landing-workflow-item {
+  min-width: 0;
+}
+
+@media (max-width: 1040px) {
+  .landing-page-clean .landing-workflow-clean,
+  .landing-page-clean .landing-workflow-clean .landing-workflow-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .landing-page-clean .landing-nav {
+    position: relative;
+  }
+
+  .landing-page-clean .landing-nav,
+  .landing-page-clean .landing-nav-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing-page-clean .landing-brand {
+    justify-content: center;
+  }
+
+  .landing-page-clean .landing-hero-actions,
+  .landing-page-clean .landing-hero-actions .landing-button {
+    width: 100%;
+  }
+}
