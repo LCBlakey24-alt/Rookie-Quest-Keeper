@@ -136,6 +136,20 @@
   border-color: rgba(216, 173, 79, 0.44) !important;
 }
 
+@media (min-width: 980px) {
+  .character-page-v2 {
+    padding-left: 74px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    position: fixed;
+    left: 14px;
+    top: 34vh;
+    grid-auto-flow: row;
+    z-index: 20;
+  }
+}
+
 @media (max-width: 980px) {
   .clean-sheet-progression-strip {
     grid-template-columns: auto minmax(0, 1fr);
