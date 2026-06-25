@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Coffee, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
+import { Coffee, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
 
 import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
@@ -46,7 +46,6 @@ export default function CleanSheetPlayTools({
   const hitDiceTotal = hitDieInfo.total;
   const hitDieLabel = `d${hitDieInfo.sides}`;
   const safeHitDiceRemaining = Math.max(0, Number(hitDiceRemaining) || 0);
-  const canSpendHitDie = safeHitDiceRemaining > 0 && currentHp < maxHp;
 
   const saveConcentration = () => {
     const spellName = concentrationInput.trim();
@@ -73,13 +72,10 @@ export default function CleanSheetPlayTools({
 
         <div className="clean-sheet-recovery-panel" data-testid="rest-recovery-panel">
           <div className="clean-sheet-recovery-header">
-            <span><Activity size={16} /> Recovery</span>
-            <strong>{safeHitDiceRemaining} / {hitDiceTotal} <em>{hitDieLabel}</em></strong>
+            <span><Coffee size={16} /> Rest & Recovery</span>
+            <strong>Short / Long Rest</strong>
           </div>
-          <div className="clean-sheet-recovery-actions">
-            <button type="button" onClick={onSpendHitDie} disabled={savingQuickState || !canSpendHitDie} data-testid="spend-hit-die-btn">
-              <Activity size={16} /> Use Hit Die
-            </button>
+          <div className="clean-sheet-recovery-actions clean-sheet-recovery-actions--rests">
             <button type="button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
               <Coffee size={17} /> Short Rest
             </button>
@@ -88,7 +84,7 @@ export default function CleanSheetPlayTools({
             </button>
           </div>
           <p className="clean-sheet-recovery-help">
-            Short rest keeps HP as-is unless you spend Hit Dice. Long rest restores HP, clears temp HP, and recovers rest resources.
+            Short rest keeps HP as-is. Long rest restores HP, clears temp HP, and recovers rest resources.
           </p>
         </div>
 
