@@ -1,5 +1,7 @@
 # Rookie Quest Keeper Design System
 
+> Product direction note: for the current long-term app strategy, Blue Eclipse visual direction, Metal Mania display-font rules, responsive layout strategy, and prototype/testing direction, read `docs/rookie-quest-keeper-product-design-vision.md` before major UI work.
+
 ## Instruction for AI Contributors
 
 Any AI assistant, developer, or future contributor editing Rookie Quest Keeper must read and follow this file before making UI or UX changes.

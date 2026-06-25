@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'product-design-vision-2026-06-25',
+    date: '2026-06-25',
+    badge: 'Planned',
+    category: 'Product Direction',
+    title: 'Product and design vision documented',
+    summary: 'The long-term Rookie Quest Keeper direction is now captured in a repo doc covering Blue Eclipse, Metal Mania, responsive layouts, prototype testing, player goals, and GM goals.',
+    details: [
+      'Documented Blue Eclipse as the current visual direction with deep navy surfaces, cream text, antique gold accents, and restrained blue-violet glow.',
+      'Captured the mobile left icon rail, tablet at-the-table dashboard, and desktop wide-workspace strategy.',
+      'Locked in prototype-mode expectations so local testing can continue without affecting live backend data.',
+      'Added the feature-first priority order for class progressions, HP/Temp HP/Hit Dice/rests, resources, conditions, and responsive layouts.',
+    ],
+    public: true,
+  },
+  {
     id: 'class-progression-lab-2026-06-24',
     date: '2026-06-24',
     badge: 'New',
