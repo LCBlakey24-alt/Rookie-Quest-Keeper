@@ -10,7 +10,8 @@ export default function AuthPage({ onLogin }) {
   const navigate = useNavigate();
 
   const initialToken = searchParams.get('token');
-  const initialMode = initialToken ? 'reset' : 'login';
+  const queryMode = searchParams.get('mode');
+  const initialMode = initialToken ? 'reset' : queryMode === 'register' ? 'register' : 'login';
 
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -23,8 +24,15 @@ export default function AuthPage({ onLogin }) {
     if (initialToken) {
       setMode('reset');
       setResetData(prev => ({ ...prev, token: initialToken }));
+      return;
     }
-  }, [initialToken]);
+
+    if (queryMode === 'register') {
+      setMode('register');
+    } else if (queryMode === 'login' || !queryMode) {
+      setMode('login');
+    }
+  }, [initialToken, queryMode]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -259,8 +267,8 @@ export default function AuthPage({ onLogin }) {
 
 function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
   return (
-    <div style={inputWrapperStyle}>
-      <Icon size={18} style={iconStyle} />
+    <div style={inputWrapStyle}>
+      <Icon size={20} style={inputIconStyle} />
       <input
         type={type}
         placeholder={placeholder}
@@ -268,65 +276,46 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
         onChange={(e) => onChange(e.target.value)}
         data-testid={testId}
         style={inputStyle}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'var(--rq-accent-hover, #E0B15C)';
-          e.currentTarget.style.boxShadow = '0 0 0 2px rgba(192, 138, 61, 0.22)';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'var(--rq-border-default, #3A3A3A)';
-          e.currentTarget.style.boxShadow = 'none';
-        }}
       />
     </div>
   );
 }
 
-function PrimaryButton({ children, type = 'button', disabled, testId, style = {} }) {
-  return (
-    <button type={type} disabled={disabled} data-testid={testId} style={{ ...primaryButtonStyle, opacity: disabled ? 0.7 : 1, cursor: disabled ? 'not-allowed' : 'pointer', ...style }}>
-      {children}
-    </button>
-  );
+function PrimaryButton({ children, disabled, type = 'button', testId }) {
+  return <button type={type} disabled={disabled} data-testid={testId} style={primaryButtonStyle}>{children}</button>;
 }
 
-function SecondaryButton({ children, type = 'button', onClick }) {
-  return (
-    <button type={type} onClick={onClick} style={secondaryButtonStyle}>
-      {children}
-    </button>
-  );
+function SecondaryButton({ children, onClick, type = 'button' }) {
+  return <button type={type} onClick={onClick} style={secondaryButtonStyle}>{children}</button>;
 }
 
 function AuthSwitch({ text, actionText, onClick }) {
   return (
-    <div style={switchWrapStyle}>
-      {text}{' '}
-      <button type="button" onClick={onClick} style={switchButtonStyle}>
-        {actionText}
-      </button>
+    <div style={switchStyle}>
+      <span>{text}</span>
+      <button type="button" onClick={onClick} style={switchButtonStyle}>{actionText}</button>
     </div>
   );
 }
 
-const pageStyle = { minHeight: '100dvh', position: 'relative', overflowX: 'hidden', overflowY: 'auto', background: 'var(--rq-bg-main, #120C08)', WebkitOverflowScrolling: 'touch' };
-const backgroundStyle = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, var(--rq-bg-main, #120C08) 0%, var(--rq-bg-panel, #21150E) 52%, var(--rq-bg-panel-alt, #2E1D13) 100%)', zIndex: 0, pointerEvents: 'none' };
-const backgroundGlowStyle = { position: 'fixed', inset: 0, background: 'radial-gradient(ellipse at 22% 18%, rgba(192,138,61,0.20) 0%, transparent 42%), radial-gradient(ellipse at 80% 78%, rgba(164,90,50,0.14) 0%, transparent 38%)', zIndex: 1, pointerEvents: 'none' };
-const contentStyle = { position: 'relative', zIndex: 2, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 'max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom))' };
-const logoWrapStyle = { display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 20px', cursor: 'pointer', flexShrink: 0 };
-const logoStyle = { height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 10px rgba(192,138,61,0.45))' };
-const logoTextStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '24px', fontWeight: 900, color: 'var(--rq-text-primary, #F5E6C8)', letterSpacing: '0.08em' };
-const panelStyle = { width: '100%', maxWidth: '390px', background: 'rgba(33,21,14,0.94)', border: '1px solid var(--rq-accent-border, rgba(192,138,61,0.34))', borderRadius: '18px', padding: 'clamp(18px, 5vw, 26px)', boxShadow: '0 18px 54px rgba(0,0,0,0.38)' };
-const titleStyle = { fontFamily: "'Inter', system-ui, sans-serif", fontSize: '1.55rem', color: 'var(--rq-text-primary, #F5E6C8)', margin: '0 0 6px 0', fontWeight: 900 };
-const subtitleStyle = { color: 'var(--rq-text-muted, #CDBA98)', fontSize: '14px', margin: 0, lineHeight: 1.45 };
-const nextStepNoteStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'var(--rq-accent-soft, rgba(192,138,61,0.14))', border: '1px solid var(--rq-accent-border, rgba(192,138,61,0.34))', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px' };
-const kidSafeNoteStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45, margin: '-4px 0 14px' };
-const accountChangeNoticeStyle = { display: 'flex', alignItems: 'flex-start', gap: '9px', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', lineHeight: 1.45, background: 'rgba(46,139,87,0.12)', border: '1px solid rgba(46,139,87,0.35)', borderRadius: '10px', padding: '10px 12px', marginBottom: '18px' };
-const inputWrapperStyle = { position: 'relative', marginBottom: '16px' };
-const inputStyle = { width: '100%', padding: '14px 16px 14px 48px', background: 'var(--rq-bg-input, #1A100B)', border: '1px solid var(--rq-border-default, rgba(192,138,61,0.22))', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-primary, #F5E6C8)', fontSize: '16px', outline: 'none', transition: 'all 0.15s ease' };
-const iconStyle = { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--rq-accent-primary, #C08A3D)' };
-const linkButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #E0B15C)', fontSize: '13px', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: 800 };
-const primaryButtonStyle = { width: '100%', minHeight: 46, padding: '14px', background: 'var(--rq-accent-primary, #C08A3D)', border: '1px solid var(--rq-accent-hover, #E0B15C)', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-inverse, #120C08)', fontSize: '16px', fontWeight: 800, transition: 'all 0.15s ease', boxShadow: '0 4px 16px rgba(192,138,61,0.24)' };
-const secondaryButtonStyle = { width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'transparent', border: '1px solid var(--rq-border-default, #3A3A3A)', borderRadius: 'var(--rq-radius-md, 6px)', color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '14px', fontWeight: 800, cursor: 'pointer' };
-const switchWrapStyle = { textAlign: 'center', marginTop: '24px', color: 'var(--rq-text-muted, #A0A0A0)', fontSize: '14px' };
-const switchButtonStyle = { background: 'none', border: 'none', color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: 800, cursor: 'pointer', padding: 0 };
-const footerStyle = { marginTop: '24px', color: 'var(--rq-text-disabled, #6F6F6F)', fontSize: '13px', paddingBottom: 8 };
+const pageStyle = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#120C08', position: 'relative', overflow: 'hidden' };
+const backgroundStyle = { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(245,230,200,0.025) 1px, transparent 1px), linear-gradient(180deg, rgba(245,230,200,0.02) 1px, transparent 1px)', backgroundSize: '72px 72px', pointerEvents: 'none' };
+const backgroundGlowStyle = { position: 'absolute', width: 520, height: 520, borderRadius: '50%', background: 'rgba(192,138,61,0.16)', filter: 'blur(96px)', top: '-180px', right: '-120px', pointerEvents: 'none' };
+const contentStyle = { position: 'relative', zIndex: 1, width: 'min(100%, 460px)', display: 'grid', gap: '18px', justifyItems: 'center' };
+const logoWrapStyle = { cursor: 'pointer', display: 'inline-flex', justifyContent: 'center' };
+const logoStyle = { width: 260, maxWidth: '80vw', height: 'auto', filter: 'drop-shadow(0 0 18px rgba(192,138,61,0.32))' };
+const panelStyle = { width: '100%', padding: '24px', borderRadius: 18, background: 'rgba(33,21,14,0.94)', border: '1px solid rgba(192,138,61,0.28)', boxShadow: '0 20px 60px rgba(0,0,0,0.45)' };
+const titleStyle = { margin: 0, color: '#F5E6C8', fontSize: 32, fontWeight: 950, lineHeight: 1.05 };
+const subtitleStyle = { margin: '8px 0 0', color: '#E6D2AA', fontSize: 14, lineHeight: 1.5 };
+const inputWrapStyle = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, padding: '0 12px', minHeight: 48, borderRadius: 12, border: '1px solid rgba(192,138,61,0.24)', background: 'rgba(18,12,8,0.55)' };
+const inputIconStyle = { color: '#C08A3D', flexShrink: 0 };
+const inputStyle = { width: '100%', border: 0, outline: 'none', background: 'transparent', color: '#F5E6C8', fontSize: 15 };
+const primaryButtonStyle = { width: '100%', minHeight: 48, borderRadius: 12, border: '1px solid rgba(224,177,92,0.72)', background: '#C08A3D', color: '#120C08', fontWeight: 950, fontSize: 15, cursor: 'pointer', marginTop: 6 };
+const secondaryButtonStyle = { width: '100%', minHeight: 46, borderRadius: 12, border: '1px solid rgba(192,138,61,0.28)', background: 'rgba(46,29,19,0.82)', color: '#F5E6C8', fontWeight: 850, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 };
+const linkButtonStyle = { border: 0, background: 'transparent', color: '#CDBA98', cursor: 'pointer', fontSize: 12, margin: '0 0 10px', padding: 0, textAlign: 'left' };
+const switchStyle = { display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16, color: '#CDBA98', fontSize: 14 };
+const switchButtonStyle = { border: 0, background: 'transparent', color: '#E0B15C', cursor: 'pointer', fontWeight: 900, padding: 0 };
+const footerStyle = { margin: 0, color: '#CDBA98', fontSize: 12 };
+const nextStepNoteStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: 10, borderRadius: 12, background: 'rgba(122,155,102,0.1)', border: '1px solid rgba(122,155,102,0.26)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.45, marginBottom: 12 };
+const accountChangeNoticeStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: 10, borderRadius: 12, background: 'rgba(192,138,61,0.1)', border: '1px solid rgba(192,138,61,0.26)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.45, marginBottom: 12 };
+const kidSafeNoteStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', color: '#CDBA98', fontSize: 12, lineHeight: 1.4, margin: '-4px 0 12px' };
