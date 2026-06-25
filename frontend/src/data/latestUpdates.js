@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'number-wheel-inputs-2026-06-25',
+    date: '2026-06-25',
+    badge: 'Improved',
+    category: 'Character Sheet',
+    title: 'Number wheel inputs started',
+    summary: 'HP and Temp HP amount controls now use a compact scrolling number wheel, reducing typing during live play.',
+    details: [
+      'Added a reusable NumberWheelPicker component for compact scroll-based numeric selection.',
+      'Replaced HP and Temp HP amount boxes on the clean sheet with wheel pickers.',
+      'Added faded wheel styling so off-centre numbers recede and the chosen value stays focused.',
+      'Moved HP level-up dice flicker into a dramatic centred reveal instead of the generic bottom roll toast.',
+    ],
+    public: true,
+  },
+  {
     id: 'class-progression-comparison-2026-06-25',
     date: '2026-06-25',
     badge: 'Improved',
