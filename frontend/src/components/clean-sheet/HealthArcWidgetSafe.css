@@ -28,18 +28,19 @@
 }
 
 .rq-health-arc__label svg {
-  color: var(--cs-accent, #c08a3d);
+  color: var(--cs-accent, #d8ad4f);
 }
 
 .rq-health-arc__stage {
   position: relative;
-  min-height: 174px;
+  min-height: 164px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(0,0,0,0.08));
-  border: 1px solid rgba(192, 138, 61, 0.22);
-  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid rgba(216, 173, 79, 0.16);
+  overflow: visible;
 }
 
 .rq-health-arc__svg {
@@ -64,7 +65,7 @@
 }
 
 .rq-health-arc__track {
-  stroke: rgba(12, 8, 6, 0.82);
+  stroke: rgba(8, 9, 20, 0.86);
 }
 
 .rq-health-arc__fill {
@@ -91,7 +92,7 @@
   stroke-width: 6;
   stroke-dasharray: var(--temp-progress-length, 0) 100;
   stroke-dashoffset: var(--temp-offset-length, 0);
-  filter: drop-shadow(0 0 3px rgba(245, 200, 75, 0.24));
+  filter: none;
   transition: none;
 }
 
@@ -125,10 +126,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(134, 134, 172, 0.36);
-  background: rgba(39, 39, 87, 0.32);
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
   color: #d8d8ff;
   font-style: normal;
   font-weight: 950;
@@ -155,10 +156,11 @@
 .rq-hp-action-panel {
   display: grid;
   gap: 8px;
-  padding: 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(192, 138, 61, 0.24);
-  background: rgba(6, 9, 18, 0.38);
+  padding: 10px 0;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid rgba(216, 173, 79, 0.16);
+  background: transparent;
 }
 
 .rq-hp-action-panel__title {
@@ -176,9 +178,9 @@
   min-height: 42px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.28);
+  border-radius: 0;
+  border: 1px solid rgba(216, 173, 79, 0.18);
+  background: #0b0d1e;
   color: #fff2c8;
   font-size: 1.35rem;
   font-weight: 950;
@@ -194,9 +196,9 @@
 
 .rq-hp-action-button {
   min-height: 38px;
-  border-radius: 9px;
-  border: 1px solid rgba(192, 138, 61, 0.34);
-  background: rgba(192, 138, 61, 0.15);
+  border-radius: 0;
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  background: transparent;
   color: var(--cs-text, #f5e6c8);
   font-weight: 900;
   cursor: pointer;
@@ -207,26 +209,14 @@
   opacity: 0.46;
 }
 
-.rq-hp-action-button--plus {
-  border-color: rgba(45, 212, 120, 0.34);
-  background: rgba(45, 212, 120, 0.13);
-}
-
-.rq-hp-action-button--minus {
-  border-color: rgba(239, 68, 68, 0.38);
-  background: rgba(239, 68, 68, 0.13);
-}
-
+.rq-hp-action-button--plus,
+.rq-hp-action-button--minus,
 .rq-hp-action-button--temp-plus,
-.rq-hp-action-button--temp-minus {
-  border-color: rgba(245, 200, 75, 0.4);
-  background: rgba(245, 200, 75, 0.13);
-}
-
+.rq-hp-action-button--temp-minus,
 .rq-hp-action-button--dice,
 .rq-hp-action-button--rest {
-  border-color: rgba(134, 104, 172, 0.44);
-  background: rgba(39, 39, 87, 0.52);
+  border-color: rgba(216, 173, 79, 0.28);
+  background: transparent;
 }
 
 .rq-hp-action-button--rest {
@@ -255,7 +245,6 @@
 
   .rq-health-arc__stage {
     min-height: 132px;
-    border-radius: 15px;
   }
 
   .rq-health-arc__svg {
@@ -278,7 +267,6 @@
 
   .rq-health-arc__numbers em {
     margin-top: 5px;
-    padding: 4px 8px;
     font-size: 0.76rem;
   }
 
@@ -294,8 +282,7 @@
 
   .rq-hp-action-panel {
     gap: 5px;
-    padding: 7px;
-    border-radius: 12px;
+    padding: 7px 0;
   }
 
   .rq-hp-action-panel__title {
@@ -308,7 +295,6 @@
   .rq-hp-hitdice-count {
     min-height: 32px;
     font-size: 0.95rem;
-    border-radius: 9px;
   }
 
   .rq-hp-hitdice-count {
@@ -323,6 +309,5 @@
     min-height: 32px;
     padding: 3px;
     font-size: 0.7rem;
-    border-radius: 8px;
   }
 }
