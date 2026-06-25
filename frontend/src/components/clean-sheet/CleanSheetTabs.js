@@ -1,4 +1,5 @@
 import React from 'react';
+import './CleanSheetTabs.minimal.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab }) {
   return (
@@ -7,7 +8,7 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab }) {
         const Icon = tab.icon;
         const selected = activeTab === tab.id;
         return (
-          <button key={tab.id} onClick={() => onSelectTab(tab.id)} className={selected ? 'active' : ''}>
+          <button key={tab.id} onClick={() => onSelectTab(tab.id)} className={selected ? 'active' : ''} aria-label={tab.label} title={tab.label}>
             <Icon size={17} /> <span>{tab.label}</span>
           </button>
         );
