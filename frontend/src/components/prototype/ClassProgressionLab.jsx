@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Home, ListChecks, Shield, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Home, Info, ListChecks, Shield, Sparkles } from 'lucide-react';
 
 import { CLASS_NAMES_2014, clampLevel, getProgressionSnapshot } from '@/data/classProgressions2014';
+import { getAllClassProgressionAudits, getClassProgressionAudit, getProgressionAuditSummary } from '@/data/classProgressionAudit2014';
 import './ClassProgressionLab.css';
 
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
@@ -31,6 +32,12 @@ function getCastingLabel(snapshot) {
   return snapshot.spellcasting;
 }
 
+function getAuditIcon(level) {
+  if (level === 'danger') return <AlertTriangle size={16} />;
+  if (level === 'warning') return <AlertTriangle size={16} />;
+  return <Info size={16} />;
+}
+
 function SlotPills({ slots = {}, spellcasting }) {
   const entries = Object.entries(slots || {});
   if (!entries.length) return <span className="progression-empty">No spell slots</span>;
@@ -54,7 +61,47 @@ function FeatureList({ title, features }) {
   );
 }
 
-function ClassComparisonTable({ snapshots, selectedClass }) {
+function AuditPanel({ audit, summary }) {
+  return (
+    <section className="progression-card progression-card--wide progression-audit-panel">
+      <div className="progression-audit-header">
+        <div>
+          <h2>Progression audit</h2>
+          <p>Checks whether this level is safe to trust before we wire it into real level-up automation.</p>
+        </div>
+        <div className={`progression-audit-status progression-audit-status--${audit.status}`}>
+          {audit.status === 'ready' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+          {audit.status === 'ready' ? 'Ready' : audit.status === 'danger' ? 'Needs fixing' : 'Needs review'}
+        </div>
+      </div>
+
+      <div className="progression-audit-counts" aria-label="Progression audit summary">
+        <article><span>Ready</span><strong>{summary.readyClasses}</strong><em>classes at level {summary.level}</em></article>
+        <article><span>Warnings</span><strong>{summary.warningCount}</strong><em>review items</em></article>
+        <article><span>Danger</span><strong>{summary.dangerCount}</strong><em>blocking issues</em></article>
+        <article><span>Total</span><strong>{summary.totalIssues}</strong><em>audit notes</em></article>
+      </div>
+
+      {audit.issues.length ? (
+        <div className="progression-audit-list">
+          {audit.issues.map((issue, index) => (
+            <div key={`${issue.level}-${issue.message}-${index}`} className={`progression-audit-issue progression-audit-issue--${issue.level}`}>
+              {getAuditIcon(issue.level)}
+              <span>{issue.level}</span>
+              <p>{issue.message}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="progression-audit-ready">No audit issues found for {audit.className} level {audit.level}.</p>
+      )}
+    </section>
+  );
+}
+
+function ClassComparisonTable({ snapshots, audits, selectedClass }) {
+  const auditMap = new Map(audits.map(audit => [audit.className, audit]));
+
   return (
     <section className="progression-card progression-card--wide">
       <h2>All classes at this level</h2>
@@ -63,6 +110,7 @@ function ClassComparisonTable({ snapshots, selectedClass }) {
           <thead>
             <tr>
               <th>Class</th>
+              <th>Audit</th>
               <th>Prof.</th>
               <th>Hit Die</th>
               <th>Subclass</th>
@@ -73,22 +121,26 @@ function ClassComparisonTable({ snapshots, selectedClass }) {
             </tr>
           </thead>
           <tbody>
-            {snapshots.map(row => (
-              <tr key={row.className} className={row.className === selectedClass ? 'is-selected' : undefined}>
-                <td>{row.className}</td>
-                <td>+{row.proficiencyBonus}</td>
-                <td>{row.hitDie}</td>
-                <td>Lv {row.subclassLevel}</td>
-                <td>{row.asiLevels.includes(row.level) ? 'Yes' : '—'}</td>
-                <td>{getCastingLabel(row)}</td>
-                <td><SlotPills slots={row.currentSpellSlots} spellcasting={row.spellcasting} /></td>
-                <td>
-                  {row.resources.length
-                    ? row.resources.map(resource => `${resource.label}: ${formatResourceValue(resource.currentValue)}`).join(' / ')
-                    : '—'}
-                </td>
-              </tr>
-            ))}
+            {snapshots.map(row => {
+              const audit = auditMap.get(row.className);
+              return (
+                <tr key={row.className} className={row.className === selectedClass ? 'is-selected' : undefined}>
+                  <td>{row.className}</td>
+                  <td><span className={`progression-audit-chip progression-audit-chip--${audit?.status || 'ready'}`}>{audit?.status || 'ready'}</span></td>
+                  <td>+{row.proficiencyBonus}</td>
+                  <td>{row.hitDie}</td>
+                  <td>Lv {row.subclassLevel}</td>
+                  <td>{row.asiLevels.includes(row.level) ? 'Yes' : '—'}</td>
+                  <td>{getCastingLabel(row)}</td>
+                  <td><SlotPills slots={row.currentSpellSlots} spellcasting={row.spellcasting} /></td>
+                  <td>
+                    {row.resources.length
+                      ? row.resources.map(resource => `${resource.label}: ${formatResourceValue(resource.currentValue)}`).join(' / ')
+                      : '—'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -100,10 +152,13 @@ export default function ClassProgressionLab() {
   const [className, setClassName] = useState('Warlock');
   const [level, setLevel] = useState(1);
   const snapshot = useMemo(() => getProgressionSnapshot(className, level), [className, level]);
+  const audit = useMemo(() => getClassProgressionAudit(className, level), [className, level]);
+  const auditSummary = useMemo(() => getProgressionAuditSummary(level), [level]);
   const comparisonSnapshots = useMemo(
     () => CLASS_NAMES_2014.map(name => getProgressionSnapshot(name, level)).filter(Boolean),
     [level]
   );
+  const comparisonAudits = useMemo(() => getAllClassProgressionAudits(level), [level]);
 
   if (!snapshot) return null;
 
@@ -144,6 +199,8 @@ export default function ClassProgressionLab() {
           </button>
         ))}
       </section>
+
+      <AuditPanel audit={audit} summary={auditSummary} />
 
       <section className="progression-summary-grid">
         <article><span>Class</span><strong>{snapshot.className}</strong><em>{getCastingLabel(snapshot)}</em></article>
@@ -191,7 +248,7 @@ export default function ClassProgressionLab() {
         ) : <p className="progression-empty">No core class resource tracked for this class yet.</p>}
       </section>
 
-      <ClassComparisonTable snapshots={comparisonSnapshots} selectedClass={snapshot.className} />
+      <ClassComparisonTable snapshots={comparisonSnapshots} audits={comparisonAudits} selectedClass={snapshot.className} />
 
       <section className="progression-card progression-card--wide">
         <h2>Progression audit checklist</h2>
