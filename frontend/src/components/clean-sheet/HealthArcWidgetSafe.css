@@ -185,6 +185,13 @@
   text-align: center;
 }
 
+.rq-hp-hitdice-count em {
+  color: var(--cs-muted, #cdba98);
+  font-size: 0.74rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
 .rq-hp-action-button {
   min-height: 38px;
   border-radius: 9px;
@@ -260,6 +267,43 @@
 
   .rq-hp-action-grid,
   .rq-hp-action-grid--two {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rq-hp-action-panel {
+    gap: 6px;
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .rq-hp-action-panel__title {
+    min-height: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+  }
+
+  .rq-hp-action-panel input,
+  .rq-hp-hitdice-count {
+    min-height: 36px;
+    font-size: 1rem;
+    border-radius: 9px;
+  }
+
+  .rq-hp-hitdice-count {
+    gap: 1px;
+  }
+
+  .rq-hp-hitdice-count em {
+    font-size: 0.62rem;
+  }
+
+  .rq-hp-action-button {
+    min-height: 34px;
+    padding: 4px 3px;
+    font-size: 0.72rem;
+    border-radius: 8px;
   }
 }
