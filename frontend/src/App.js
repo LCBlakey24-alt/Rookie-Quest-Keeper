@@ -23,6 +23,7 @@ import '@/styles/levelUpCleanStyle.css';
 import '@/styles/siteVelvetTheme.css';
 import '@/styles/blueEclipseTheme.css';
 import '@/styles/gmBlueEclipseTheme.css';
+import '@/styles/landingSafeFix.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -94,6 +95,11 @@ function AppRoutes() {
 
   const openShortcuts = useCallback(() => setIsShortcutsOpen(true), []);
   const closeShortcuts = useCallback(() => setIsShortcutsOpen(false), []);
+  const handleAuthLogin = useCallback((token, username) => {
+    setAuthToken(token);
+    if (username) localStorage.setItem(AUTH_USERNAME_KEY, username);
+    if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  }, []);
 
   useKeyboardShortcuts({ onOpenShortcuts: openShortcuts });
 
@@ -104,7 +110,7 @@ function AppRoutes() {
       <Suspense fallback={<RouteLoadingScreen />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth" element={<AuthPage onLogin={handleAuthLogin} />} />
           <Route path="/home" element={<UnifiedDashboard />} />
           <Route path="/prototype" element={<PrototypeHub />} />
           <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
