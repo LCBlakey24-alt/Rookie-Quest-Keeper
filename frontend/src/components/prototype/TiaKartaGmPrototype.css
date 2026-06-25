@@ -1,0 +1,206 @@
+.tia-gm-prototype {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(124, 120, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(216, 173, 79, 0.13), transparent 28%),
+    linear-gradient(145deg, #080816 0%, #0f0e47 48%, #151433 100%);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.tia-gm-rail {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 10px 8px;
+  border-right: 1px solid rgba(216, 173, 79, 0.28);
+  background: rgba(8, 8, 22, 0.78);
+}
+
+.tia-gm-rail button {
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid rgba(134, 134, 172, 0.18);
+  border-radius: 14px;
+  background: rgba(39, 39, 87, 0.56);
+  color: var(--rq-blue-eclipse-mist, #8686ac);
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.tia-gm-rail button svg {
+  color: var(--rq-blue-eclipse-gold, #d8ad4f);
+}
+
+.tia-gm-rail button.active {
+  border-color: rgba(216, 173, 79, 0.58);
+  background: rgba(216, 173, 79, 0.18);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.tia-gm-main {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 14px;
+}
+
+.tia-gm-header,
+.tia-gm-section,
+.tia-gm-card,
+.tia-gm-list div {
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  background: linear-gradient(180deg, rgba(39, 39, 87, 0.9), rgba(8, 8, 22, 0.7));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+}
+
+.tia-gm-header {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.tia-gm-header span,
+.tia-gm-card span {
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.tia-gm-header h1,
+.tia-gm-section h2 {
+  margin: 0;
+  font-family: 'Metal Mania', Georgia, serif;
+  letter-spacing: 0.035em;
+}
+
+.tia-gm-header h1 {
+  font-size: clamp(2.4rem, 11vw, 4rem);
+  line-height: 0.9;
+}
+
+.tia-gm-header p,
+.tia-gm-card p,
+.tia-gm-section p {
+  color: var(--rq-text-secondary, #e6d7bb);
+}
+
+.tia-gm-header-actions a,
+.tia-gm-section button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 12px;
+  border: 1px solid rgba(216, 173, 79, 0.32);
+  background: rgba(216, 173, 79, 0.14);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.tia-gm-section {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.tia-gm-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.tia-gm-card {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.tia-gm-card h3 {
+  margin: 0;
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.tia-gm-card p {
+  margin: 0;
+}
+
+.tia-gm-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tia-gm-list div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.tia-gm-list strong {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(216, 173, 79, 0.18);
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+}
+
+.tia-gm-list p {
+  margin: 0;
+}
+
+.tia-gm-section textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(134, 134, 172, 0.32);
+  background: rgba(8, 8, 22, 0.7);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  padding: 12px;
+  font: inherit;
+}
+
+@media (min-width: 900px) {
+  .tia-gm-prototype {
+    grid-template-columns: 104px minmax(0, 1100px);
+    justify-content: center;
+  }
+
+  .tia-gm-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .tia-gm-prototype {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .tia-gm-rail button span {
+    display: none;
+  }
+
+  .tia-gm-rail {
+    padding: 8px 6px;
+  }
+
+  .tia-gm-main {
+    padding: 10px;
+  }
+}
