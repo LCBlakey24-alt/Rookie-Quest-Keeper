@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import '@/App.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
@@ -28,14 +28,13 @@ import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
-import { toast } from 'sonner';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, clearAuthToken, getAuthToken, setAuthToken } from '@/lib/auth';
+import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
 const AuthPage = React.lazy(() => import('@/components/AuthPage'));
 const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
@@ -89,8 +88,6 @@ function ThemeRouter() {
 }
 
 function AppRoutes() {
-  const location = useLocation();
-  const params = useParams();
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
   const openShortcuts = useCallback(() => setIsShortcutsOpen(true), []);
