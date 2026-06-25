@@ -1,0 +1,88 @@
+.clean-sheet-recovery-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(39, 39, 87, 0.72), rgba(8, 8, 22, 0.58));
+}
+
+.clean-sheet-recovery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.clean-sheet-recovery-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clean-sheet-recovery-header strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1rem;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.clean-sheet-recovery-header em {
+  color: var(--rq-blue-eclipse-mist, #8686ac);
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.clean-sheet-recovery-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.clean-sheet-recovery-actions button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(216, 173, 79, 0.32);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(39, 39, 87, 0.86), rgba(8, 8, 22, 0.76));
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.clean-sheet-recovery-actions button:hover:not(:disabled) {
+  border-color: rgba(242, 209, 138, 0.52);
+  background: linear-gradient(180deg, rgba(80, 80, 129, 0.72), rgba(39, 39, 87, 0.88));
+}
+
+.clean-sheet-recovery-actions button:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
+.clean-sheet-recovery-help {
+  margin: 0;
+  color: var(--rq-text-muted, #8686ac);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.clean-sheet-status-row--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 720px) {
+  .clean-sheet-recovery-actions {
+    grid-template-columns: 1fr;
+  }
+}
