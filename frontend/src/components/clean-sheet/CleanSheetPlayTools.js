@@ -1,7 +1,7 @@
 import React from 'react';
 import { Activity, Coffee, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
 
-import { COMMON_CONDITIONS, fmt } from './cleanSheetUtils';
+import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
 
 export default function CleanSheetPlayTools({
@@ -42,6 +42,12 @@ export default function CleanSheetPlayTools({
   onResetDeathSaves,
   hasInspiration,
 }) {
+  const hitDieInfo = parseHitDie(hitDice);
+  const hitDiceTotal = hitDieInfo.total;
+  const hitDieLabel = `d${hitDieInfo.sides}`;
+  const safeHitDiceRemaining = Math.max(0, Number(hitDiceRemaining) || 0);
+  const canSpendHitDie = safeHitDiceRemaining > 0 && currentHp < maxHp;
+
   const saveConcentration = () => {
     const spellName = concentrationInput.trim();
     if (!spellName) return;
@@ -54,21 +60,36 @@ export default function CleanSheetPlayTools({
         <div><span>Roll mode</span><strong>{rollMode === 'normal' ? 'Normal' : rollMode === 'advantage' ? 'Advantage' : 'Disadvantage'}</strong></div>
         <div><span>Passive Perception</span><strong>{passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10}</strong></div>
         <div><span>Conditions</span><strong>{activeConditions.length ? activeConditions.length : 'None'}</strong></div>
-        <div><span>Hit Dice</span><strong>{hitDiceRemaining}/{hitDice}</strong></div>
+        <div><span>Hit Dice</span><strong>{safeHitDiceRemaining}/{hitDiceTotal} {hitDieLabel}</strong></div>
         <div><span>Concentration</span><strong>{concentratingName || 'None'}</strong></div>
       </section>
 
       <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
-        <div className="clean-sheet-status-row">
+        <div className="clean-sheet-status-row clean-sheet-status-row--single">
           <button type="button" className={`clean-sheet-inspiration ${hasInspiration ? 'active' : ''}`} onClick={onToggleInspiration} disabled={savingQuickState} data-testid="inspiration-toggle">
             <Star size={17} /> {hasInspiration ? 'Inspired' : 'Inspiration'}
           </button>
-          <button type="button" className="clean-sheet-rest-button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
-            <Coffee size={17} /> Short Rest
-          </button>
-          <button type="button" className="clean-sheet-rest-button" onClick={onLongRest} disabled={savingQuickState} data-testid="long-rest-btn">
-            <Moon size={17} /> Long Rest
-          </button>
+        </div>
+
+        <div className="clean-sheet-recovery-panel" data-testid="rest-recovery-panel">
+          <div className="clean-sheet-recovery-header">
+            <span><Activity size={16} /> Recovery</span>
+            <strong>{safeHitDiceRemaining} / {hitDiceTotal} <em>{hitDieLabel}</em></strong>
+          </div>
+          <div className="clean-sheet-recovery-actions">
+            <button type="button" onClick={onSpendHitDie} disabled={savingQuickState || !canSpendHitDie} data-testid="spend-hit-die-btn">
+              <Activity size={16} /> Use Hit Die
+            </button>
+            <button type="button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
+              <Coffee size={17} /> Short Rest
+            </button>
+            <button type="button" onClick={onLongRest} disabled={savingQuickState} data-testid="long-rest-btn">
+              <Moon size={17} /> Long Rest
+            </button>
+          </div>
+          <p className="clean-sheet-recovery-help">
+            Short rest keeps HP as-is unless you spend Hit Dice. Long rest restores HP, clears temp HP, and recovers rest resources.
+          </p>
         </div>
 
         <div className="clean-sheet-roll-controls" data-testid="roll-controls">
@@ -89,12 +110,6 @@ export default function CleanSheetPlayTools({
           {passiveScores.map(([label, value]) => (
             <div key={label}><span>Passive {label}</span><strong>{value}</strong></div>
           ))}
-        </div>
-
-        <div className="clean-sheet-hitdice-row" data-testid="hit-dice-row">
-          <span><Activity size={15} /> Hit Dice</span>
-          <strong>{hitDiceRemaining} / {hitDice}</strong>
-          <button type="button" onClick={onSpendHitDie} disabled={savingQuickState || hitDiceRemaining <= 0 || currentHp >= maxHp}>Spend</button>
         </div>
 
         <div className="clean-sheet-hitdice-row" data-testid="concentration-row" style={{ borderColor: concentratingName ? '#a855f7' : undefined }}>
