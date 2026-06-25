@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ArrowUpCircle, BookOpen, ChevronRight, Sparkles, Zap } from 'lucide-react';
 
 import { getLevelUpProgressionPreview, getPlayerSheetProgression } from '@/data/playerProgressionView2014';
+import './CleanSheetProgressionStrip.css';
 
 function formatResourceValue(value) {
   if (value === null || value === undefined) return '—';
