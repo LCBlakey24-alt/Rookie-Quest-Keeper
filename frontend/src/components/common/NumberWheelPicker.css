@@ -1,0 +1,112 @@
+.number-wheel-picker {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  width: 100%;
+}
+
+.number-wheel-picker__label {
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.number-wheel-picker__frame {
+  position: relative;
+  width: min(100%, 118px);
+  height: 118px;
+  border-radius: 16px;
+  border: 1px solid rgba(216, 173, 79, 0.34);
+  background:
+    linear-gradient(180deg, rgba(8, 8, 22, 0.7), rgba(39, 39, 87, 0.72)),
+    radial-gradient(circle at 50% 50%, rgba(216, 173, 79, 0.12), transparent 68%);
+  box-shadow: inset 0 0 0 1px rgba(246, 234, 210, 0.04), 0 12px 28px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.number-wheel-picker__frame[aria-disabled='true'] {
+  opacity: 0.55;
+}
+
+.number-wheel-picker__selection {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  height: 38px;
+  transform: translateY(-50%);
+  border-radius: 12px;
+  border: 1px solid rgba(242, 209, 138, 0.48);
+  background: rgba(216, 173, 79, 0.12);
+  box-shadow: 0 0 24px rgba(124, 120, 255, 0.18);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.number-wheel-picker__wheel {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 72%, transparent 100%);
+}
+
+.number-wheel-picker__wheel::-webkit-scrollbar {
+  display: none;
+}
+
+.number-wheel-picker__spacer {
+  height: 40px;
+  pointer-events: none;
+}
+
+.number-wheel-picker__wheel button {
+  width: 100%;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: rgba(246, 234, 210, 0.5);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition: color 140ms ease, font-size 140ms ease, opacity 140ms ease, text-shadow 140ms ease;
+}
+
+.number-wheel-picker__wheel button.is-selected {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1.75rem;
+  opacity: 1;
+  text-shadow: 0 0 18px rgba(242, 209, 138, 0.38);
+}
+
+.number-wheel-picker__wheel button:disabled {
+  cursor: not-allowed;
+}
+
+.number-wheel-picker--compact .number-wheel-picker__frame {
+  width: min(100%, 96px);
+  height: 96px;
+  border-radius: 14px;
+}
+
+.number-wheel-picker--compact .number-wheel-picker__selection,
+.number-wheel-picker--compact .number-wheel-picker__wheel button {
+  height: 34px;
+}
+
+.number-wheel-picker--compact .number-wheel-picker__spacer {
+  height: 31px;
+}
+
+.number-wheel-picker--compact .number-wheel-picker__wheel button.is-selected {
+  font-size: 1.42rem;
+}
