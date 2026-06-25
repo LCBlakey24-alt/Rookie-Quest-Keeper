@@ -11,6 +11,16 @@ function formatList(items = []) {
   return items?.length ? items.join(', ') : '—';
 }
 
+function formatResourceValue(value) {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'object' && 'slots' in value && 'level' in value) {
+    const slotLabel = value.slots === 1 ? 'slot' : 'slots';
+    return `${value.slots} ${slotLabel} @ Lv ${value.level}`;
+  }
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
+}
+
 function getCastingLabel(snapshot) {
   if (!snapshot) return '—';
   if (snapshot.spellcasting === 'none') return 'Non-caster';
@@ -74,7 +84,7 @@ function ClassComparisonTable({ snapshots, selectedClass }) {
                 <td><SlotPills slots={row.currentSpellSlots} spellcasting={row.spellcasting} /></td>
                 <td>
                   {row.resources.length
-                    ? row.resources.map(resource => `${resource.label}: ${String(resource.currentValue ?? '—')}`).join(' / ')
+                    ? row.resources.map(resource => `${resource.label}: ${formatResourceValue(resource.currentValue)}`).join(' / ')
                     : '—'}
                 </td>
               </tr>
@@ -172,9 +182,9 @@ export default function ClassProgressionLab() {
               <div key={resource.key}>
                 <Sparkles size={16} />
                 <span>{resource.label}</span>
-                <strong>{String(resource.currentValue ?? '—')}</strong>
+                <strong>{formatResourceValue(resource.currentValue)}</strong>
                 <em>{resource.restore}</em>
-                {resource.nextValue !== resource.currentValue && <small>Next: {String(resource.nextValue ?? '—')}</small>}
+                {resource.nextValue !== resource.currentValue && <small>Next: {formatResourceValue(resource.nextValue)}</small>}
               </div>
             ))}
           </div>
