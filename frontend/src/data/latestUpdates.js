@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'class-progression-comparison-2026-06-25',
+    date: '2026-06-25',
+    badge: 'Improved',
+    category: 'Progressions',
+    title: 'Class progression comparison tools improved',
+    summary: 'The frontend-only Progression Lab now makes it easier to compare 2014 class levels before wiring class resources, spell slots, rests, and level-up automation into live characters.',
+    details: [
+      'Added quick level buttons so levels 1–20 can be checked without typing.',
+      'Expanded the class summary to show primary abilities, saving throws, hit die, subclass level, ASI levels, and spellcasting details.',
+      'Added a current-vs-next spell slot comparison that handles Pact Magic separately from normal spell slots.',
+      'Added an all-class comparison table for the selected level so class inconsistencies are easier to spot quickly.',
+    ],
+    public: true,
+  },
+  {
     id: 'product-design-vision-2026-06-25',
     date: '2026-06-25',
     badge: 'Planned',
