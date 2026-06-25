@@ -1,5 +1,6 @@
 import React from 'react';
 
+import NumberWheelPicker from '@/components/common/NumberWheelPicker';
 import HealthArcWidget from './HealthArcWidget';
 
 export default function CleanSheetVitals({
@@ -32,6 +33,8 @@ export default function CleanSheetVitals({
       ? hitDiceRemaining
       : '—';
   const hitDieLabel = parsedSides ? `d${parsedSides}` : '';
+  const hpWheelMax = Math.max(20, Number(maxHp || 0) + Number(tempHp || 0) + 20, 999);
+  const tempHpWheelMax = Math.max(20, Number(tempHp || 0) + 20, 999);
 
   return (
     <section className="clean-sheet-vitals clean-sheet-vitals--arc">
@@ -42,13 +45,14 @@ export default function CleanSheetVitals({
           <div className="rq-hp-action-panel rq-hp-action-panel--health">
             <span className="rq-hp-action-panel__title">HP</span>
             <button className="rq-hp-action-button rq-hp-action-button--plus" onClick={onHeal} disabled={savingHp}>Heal</button>
-            <input
-              type="number"
-              min="1"
-              max="999"
-              value={hpAmount}
-              onChange={(event) => onHpAmountChange(event.target.value)}
-              aria-label="HP amount"
+            <NumberWheelPicker
+              value={hpAmount || 1}
+              min={1}
+              max={hpWheelMax}
+              compact
+              label="Amount"
+              disabled={savingHp}
+              onChange={(nextValue) => onHpAmountChange(String(nextValue))}
             />
             <button className="rq-hp-action-button rq-hp-action-button--minus" onClick={onDamage} disabled={savingHp}>Damage</button>
           </div>
@@ -56,13 +60,14 @@ export default function CleanSheetVitals({
           <div className="rq-hp-action-panel rq-hp-action-panel--temp">
             <span className="rq-hp-action-panel__title">Temp HP</span>
             <button className="rq-hp-action-button rq-hp-action-button--temp-plus" onClick={onAddTempHp} disabled={savingTempHp}>Add</button>
-            <input
-              type="number"
-              min="1"
-              max="999"
-              value={tempHpAmount}
-              onChange={(event) => onTempHpAmountChange(event.target.value)}
-              aria-label="Temporary HP amount"
+            <NumberWheelPicker
+              value={tempHpAmount || 1}
+              min={1}
+              max={tempHpWheelMax}
+              compact
+              label="Amount"
+              disabled={savingTempHp}
+              onChange={(nextValue) => onTempHpAmountChange(String(nextValue))}
             />
             <button className="rq-hp-action-button rq-hp-action-button--temp-minus" onClick={onRemoveTempHp} disabled={savingTempHp || tempHp <= 0}>Remove</button>
           </div>
