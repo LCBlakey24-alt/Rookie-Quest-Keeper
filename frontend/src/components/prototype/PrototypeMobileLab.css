@@ -106,8 +106,15 @@
 
 .prototype-mobile-header-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.prototype-mobile-header-actions a,
+.prototype-mobile-header-actions button {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 0.82rem;
 }
 
 .prototype-mobile-content {
@@ -217,6 +224,12 @@
 
   .prototype-card--wide {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .prototype-mobile-header-actions {
+    grid-template-columns: 1fr;
   }
 }
 
