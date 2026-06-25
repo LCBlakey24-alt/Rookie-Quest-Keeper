@@ -116,7 +116,7 @@ function SheetLevelUpSplitPanel({ sheetView, levelUpPreview }) {
           <ul>
             <li>Current resources only: {sheetView.currentResources.length ? sheetView.currentResources.map(resource => resource.label).join(', ') : 'none tracked yet'}</li>
             <li>Current spell slots only: {Object.keys(sheetView.currentSpellSlots || {}).length ? 'shown' : 'none'}</li>
-            <li>No future subclasses, ASIs, feats, or spells should be teased on the live sheet.</li>
+            <li>No future subclasses, ASIs, feats, spells, or spell swaps should be teased on the live sheet.</li>
           </ul>
         </article>
         <article>
@@ -127,6 +127,7 @@ function SheetLevelUpSplitPanel({ sheetView, levelUpPreview }) {
             <li>Next features: {levelUpPreview?.gainedFeatures?.length ? levelUpPreview.gainedFeatures.join(', ') : 'none'}</li>
             <li>Subclass choice: {levelUpPreview?.willChooseSubclass ? 'yes' : 'not this level'}</li>
             <li>ASI / feat choice: {levelUpPreview?.willChooseAsi ? 'yes' : 'not this level'}</li>
+            <li>Known spell swap: {levelUpPreview?.spellReplacementOption ? `${levelUpPreview.spellReplacementOption.label} — ${levelUpPreview.spellReplacementOption.timing}` : 'not this class'}</li>
           </ul>
         </article>
       </div>
@@ -238,7 +239,7 @@ export default function ClassProgressionLab() {
       <header className="progression-hero">
         <span><ListChecks size={18} /> Frontend-only progression testing</span>
         <h1>Class Progressions</h1>
-        <p>Check every 2014 class level-by-level before wiring level-up automation, rest recovery, resources, spell slots, and Rook suggestions into the live sheet.</p>
+        <p>Check every 2014 class level-by-level before wiring level-up automation, rest recovery, resources, spell slots, spell swaps, and Rook suggestions into the live sheet.</p>
         <div className="progression-actions">
           <Link to="/prototype"><Home size={16} /> Prototype Hub</Link>
           <Link to="/prototype-mobile"><Shield size={16} /> Class Test Lab</Link>
@@ -327,7 +328,7 @@ export default function ClassProgressionLab() {
         <h2>Progression audit checklist</h2>
         <ul>
           <li>Character pages should only show current usable class data.</li>
-          <li>Future subclasses, ASIs, feats, spells, and next-level features belong in level-up only.</li>
+          <li>Future subclasses, ASIs, feats, spells, spell swaps, and next-level features belong in level-up only.</li>
           <li>Rook suggestions should be optional and based on class, current build, backstory, and available choices.</li>
           <li>Use this page as the source check before adding level-up automation to real characters.</li>
         </ul>
