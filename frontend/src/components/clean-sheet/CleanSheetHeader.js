@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Dices, Edit3, Shield, TrendingUp, User, Zap } from 'lucide-react';
 
+import CleanSheetProgressionStrip from './CleanSheetProgressionStrip';
 import './CleanSheetHeaderStats.css';
 
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
@@ -51,6 +52,7 @@ export default function CleanSheetHeader({ character, subtitle, onBack, onEdit, 
           <Edit3 size={18} /> Edit
         </button>
       </div>
+      <CleanSheetProgressionStrip character={character} onLevelUp={onLevelUp} />
     </header>
   );
 }
