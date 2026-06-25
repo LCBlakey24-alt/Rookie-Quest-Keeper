@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'class-progression-lab-2026-06-24',
+    date: '2026-06-24',
+    badge: 'New',
+    category: 'Progressions',
+    title: 'Class progression lab added',
+    summary: 'A frontend-only progression lab now lets each 2014 class be checked level-by-level before deeper level-up automation is wired in.',
+    details: [
+      'Added a 2014 progression data source for all 12 core classes.',
+      'Tracks hit die, proficiency bonus, saving throws, subclass level, ASI levels, spellcasting type, spell slots, resources, and level unlocks.',
+      'Added a prototype viewer route so classes and levels can be compared quickly without backend calls.',
+      'Linked the Progression Lab from the Prototype Hub for faster testing.',
+    ],
+    public: true,
+  },
+  {
     id: 'health-controls-row-2026-06-24',
     date: '2026-06-24',
     badge: 'Improved',
