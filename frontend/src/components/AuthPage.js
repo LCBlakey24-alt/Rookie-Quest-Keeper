@@ -131,7 +131,6 @@ export default function AuthPage({ onLogin = () => {} }) {
   return (
     <div style={pageStyle}>
       <div style={backgroundStyle} />
-      <div style={backgroundGlowStyle} />
 
       <div style={contentStyle}>
         <button type="button" onClick={() => navigate('/')} style={logoWrapStyle} aria-label="Back to Rookie Quest Keeper home">
@@ -303,30 +302,29 @@ const pageStyle = {
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  padding: '12px 12px 24px',
-  background: '#120C08',
+  padding: '12px 16px 24px',
+  background: '#070814',
   position: 'relative',
   overflowX: 'hidden',
   overflowY: 'auto',
 };
-const backgroundStyle = { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(245,230,200,0.025) 1px, transparent 1px), linear-gradient(180deg, rgba(245,230,200,0.02) 1px, transparent 1px)', backgroundSize: '72px 72px', pointerEvents: 'none' };
-const backgroundGlowStyle = { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'rgba(192,138,61,0.12)', filter: 'blur(84px)', top: '-130px', right: '-110px', pointerEvents: 'none' };
-const contentStyle = { position: 'relative', zIndex: 1, width: 'min(100%, 430px)', display: 'grid', gap: '10px', justifyItems: 'center' };
+const backgroundStyle = { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(245,230,200,0.018) 1px, transparent 1px), linear-gradient(180deg, rgba(245,230,200,0.014) 1px, transparent 1px)', backgroundSize: '72px 72px', pointerEvents: 'none' };
+const contentStyle = { position: 'relative', zIndex: 1, width: 'min(100%, 430px)', display: 'grid', gap: '12px', justifyItems: 'center' };
 const logoWrapStyle = { cursor: 'pointer', display: 'inline-flex', justifyContent: 'center', border: 0, background: 'transparent', padding: 0, margin: 0 };
-const logoStyle = { width: 150, maxWidth: '48vw', height: 'auto', filter: 'drop-shadow(0 0 12px rgba(192,138,61,0.28))' };
-const panelStyle = { width: '100%', padding: '16px', borderRadius: 16, background: 'rgba(33,21,14,0.94)', border: '1px solid rgba(192,138,61,0.28)', boxShadow: '0 14px 38px rgba(0,0,0,0.38)' };
-const headingStyle = { textAlign: 'center', marginBottom: '14px' };
+const logoStyle = { width: 136, maxWidth: '44vw', height: 'auto', filter: 'none' };
+const panelStyle = { width: '100%', padding: '14px 0 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(216,173,79,0.16)', boxShadow: 'none' };
+const headingStyle = { textAlign: 'center', marginBottom: '12px' };
 const titleStyle = { margin: 0, color: '#F5E6C8', fontSize: 28, fontWeight: 950, lineHeight: 1.05 };
 const subtitleStyle = { margin: '6px 0 0', color: '#E6D2AA', fontSize: 13, lineHeight: 1.4 };
-const inputWrapStyle = { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, padding: '0 10px', minHeight: 44, borderRadius: 12, border: '1px solid rgba(192,138,61,0.24)', background: 'rgba(18,12,8,0.55)' };
+const inputWrapStyle = { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, padding: '0 10px', minHeight: 44, borderRadius: 8, border: '1px solid rgba(216,173,79,0.22)', background: '#0b0d1e' };
 const inputIconStyle = { color: '#C08A3D', flexShrink: 0 };
 const inputStyle = { width: '100%', border: 0, outline: 'none', background: 'transparent', color: '#F5E6C8', fontSize: 15 };
-const primaryButtonStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(224,177,92,0.72)', background: '#C08A3D', color: '#120C08', fontWeight: 950, fontSize: 15, cursor: 'pointer', marginTop: 4 };
-const secondaryButtonStyle = { width: '100%', minHeight: 42, marginTop: 8, borderRadius: 12, border: '1px solid rgba(192,138,61,0.28)', background: 'rgba(46,29,19,0.82)', color: '#F5E6C8', fontWeight: 850, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 };
+const primaryButtonStyle = { width: '100%', minHeight: 44, borderRadius: 8, border: '1px solid rgba(224,177,92,0.72)', background: '#C08A3D', color: '#070814', fontWeight: 950, fontSize: 15, cursor: 'pointer', marginTop: 4, boxShadow: 'none' };
+const secondaryButtonStyle = { width: '100%', minHeight: 42, marginTop: 8, borderRadius: 8, border: '1px solid rgba(216,173,79,0.28)', background: 'transparent', color: '#F5E6C8', fontWeight: 850, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'none' };
 const linkButtonStyle = { border: 0, background: 'transparent', color: '#E0B15C', cursor: 'pointer', fontSize: 12, margin: '0 0 8px', padding: 0, textAlign: 'left' };
 const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 12, color: '#CDBA98', fontSize: 14 };
-const switchButtonStyle = { border: 0, background: 'rgba(88,70,190,0.24)', color: '#F5E6C8', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 10 };
+const switchButtonStyle = { border: '1px solid rgba(216,173,79,0.24)', background: 'transparent', color: '#F5E6C8', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 8 };
 const footerStyle = { margin: 0, color: '#CDBA98', fontSize: 12 };
-const nextStepNoteStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: 9, borderRadius: 12, background: 'rgba(122,155,102,0.1)', border: '1px solid rgba(122,155,102,0.26)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
-const accountChangeNoticeStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: 9, borderRadius: 12, background: 'rgba(192,138,61,0.1)', border: '1px solid rgba(192,138,61,0.26)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
+const nextStepNoteStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: '9px 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(122,155,102,0.28)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
+const accountChangeNoticeStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: '9px 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(216,173,79,0.18)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
 const kidSafeNoteStyle = { display: 'flex', gap: 7, alignItems: 'flex-start', color: '#CDBA98', fontSize: 12, lineHeight: 1.3, margin: '-2px 0 9px' };
