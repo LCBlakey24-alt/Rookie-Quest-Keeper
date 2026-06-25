@@ -45,6 +45,7 @@ export default function DiceRollFlicker({
   const [displayValue, setDisplayValue] = useState(total);
   const [settled, setSettled] = useState(true);
   const [fading, setFading] = useState(false);
+  const isHpLevelRoll = String(label || '').startsWith('HP d');
 
   useEffect(() => {
     onCloseRef.current = onClose || onComplete;
@@ -64,9 +65,9 @@ export default function DiceRollFlicker({
     const highestSide = rolls.reduce((max, roll) => Math.max(max, roll.sides || 0), 20);
     const ceiling = Math.max(highestSide, Number(total) + 12, 20);
     const timeouts = [];
-    const flickerDuration = 4000;
-    const holdDuration = 5000;
-    const tickCount = 34;
+    const flickerDuration = isHpLevelRoll ? 4600 : 4000;
+    const holdDuration = isHpLevelRoll ? 4200 : 5000;
+    const tickCount = isHpLevelRoll ? 42 : 34;
 
     setSettled(false);
     setFading(false);
@@ -77,7 +78,7 @@ export default function DiceRollFlicker({
       const delay = Math.round(flickerDuration * Math.pow(progress, 1.85));
       timeouts.push(window.setTimeout(() => {
         if (tick === tickCount) {
-          setDisplayValue(total);
+          setDisplayValue(finalDisplayValue);
           setSettled(true);
         } else {
           setDisplayValue(Math.max(1, Math.floor(Math.random() * ceiling) + 1));
@@ -93,22 +94,31 @@ export default function DiceRollFlicker({
     return () => {
       timeouts.forEach(id => window.clearTimeout(id));
     };
-  }, [visible, label, rolls, total]);
+  }, [visible, label, rolls, total, finalDisplayValue, isHpLevelRoll]);
 
   if (!visible) return null;
 
   const resolvedStatus = isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label;
-  const status = settled ? resolvedStatus : 'Rolling…';
+  const status = settled ? resolvedStatus : (isHpLevelRoll ? 'Rolling hit points…' : 'Rolling…');
   const statusColor = settled && isCrit ? '#22C55E' : settled && isFumble ? '#EF4444' : colors.accent;
+  const shellPosition = isHpLevelRoll
+    ? {
+      left: '50%',
+      top: '50%',
+      transform: `translate(-50%, -50%) scale(${settled ? 1 : 1.04})`,
+    }
+    : {
+      left: '50%',
+      bottom: '58px',
+      transform: `translateX(-50%) scale(${settled ? 1 : 1.03})`,
+    };
 
   return createPortal(
     <div
       aria-live="polite"
       style={{
         position: 'fixed',
-        left: '50%',
-        bottom: '58px',
-        transform: `translateX(-50%) scale(${settled ? 1 : 1.03})`,
+        ...shellPosition,
         zIndex: 3000,
         pointerEvents: 'none',
         fontFamily: "'Montserrat', sans-serif",
@@ -118,40 +128,44 @@ export default function DiceRollFlicker({
     >
       <div
         style={{
-          minWidth: 280,
+          minWidth: isHpLevelRoll ? 330 : 280,
           maxWidth: 'calc(100vw - 32px)',
-          padding: '18px 20px',
-          borderRadius: 18,
+          padding: isHpLevelRoll ? '26px 28px' : '18px 20px',
+          borderRadius: isHpLevelRoll ? 28 : 18,
           background: colors.bg,
           border: `1px solid ${isCrit || isFumble ? statusColor : colors.border}`,
-          boxShadow: `0 12px 36px rgba(0,0,0,0.35), 0 0 0 1px ${isCrit || isFumble ? `${statusColor}33` : 'transparent'}`,
+          boxShadow: isHpLevelRoll
+            ? `0 28px 90px rgba(0,0,0,0.58), 0 0 70px ${statusColor}33, inset 0 0 0 1px rgba(245, 230, 200, 0.06)`
+            : `0 12px 36px rgba(0,0,0,0.35), 0 0 0 1px ${isCrit || isFumble ? `${statusColor}33` : 'transparent'}`,
           display: 'grid',
-          gridTemplateColumns: '52px 1fr',
-          gap: 14,
+          gridTemplateColumns: isHpLevelRoll ? '1fr' : '52px 1fr',
+          gap: isHpLevelRoll ? 16 : 14,
           alignItems: 'center',
+          textAlign: isHpLevelRoll ? 'center' : 'left',
         }}
       >
         <div
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 16,
+            width: isHpLevelRoll ? 72 : 52,
+            height: isHpLevelRoll ? 72 : 52,
+            borderRadius: isHpLevelRoll ? 24 : 16,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             background: `${statusColor}22`,
             border: `1px solid ${statusColor}55`,
             color: statusColor,
+            margin: isHpLevelRoll ? '0 auto' : 0,
           }}
         >
-          <Dices size={24} />
+          <Dices size={isHpLevelRoll ? 34 : 24} />
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: isHpLevelRoll ? 'center' : 'space-between', gap: 12, flexWrap: isHpLevelRoll ? 'wrap' : 'nowrap' }}>
             <div
               style={{
                 color: colors.text,
-                fontSize: 14,
+                fontSize: isHpLevelRoll ? 16 : 14,
                 fontWeight: 800,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -163,13 +177,13 @@ export default function DiceRollFlicker({
             <div
               style={{
                 color: statusColor,
-                fontSize: settled ? 48 : 42,
+                fontSize: isHpLevelRoll ? (settled ? 96 : 82) : (settled ? 48 : 42),
                 lineHeight: 1,
-                fontWeight: 900,
-                minWidth: 82,
-                textAlign: 'right',
+                fontWeight: 950,
+                minWidth: isHpLevelRoll ? '100%' : 82,
+                textAlign: isHpLevelRoll ? 'center' : 'right',
                 transition: 'font-size 220ms ease, text-shadow 220ms ease',
-                textShadow: settled ? `0 0 22px ${statusColor}66` : 'none',
+                textShadow: settled ? `0 0 28px ${statusColor}77` : 'none',
               }}
             >
               {displayValue}
@@ -178,15 +192,15 @@ export default function DiceRollFlicker({
           <div
             style={{
               color: colors.muted,
-              fontSize: 12,
+              fontSize: isHpLevelRoll ? 13 : 12,
               fontWeight: 700,
-              marginTop: 3,
+              marginTop: isHpLevelRoll ? 8 : 3,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
           >
-            {settled ? (rollDetail || label) : 'The dice are still tumbling…'}
+            {settled ? (rollDetail || label) : (isHpLevelRoll ? 'No peeking. The hit die is still spinning…' : 'The dice are still tumbling…')}
           </div>
         </div>
       </div>
