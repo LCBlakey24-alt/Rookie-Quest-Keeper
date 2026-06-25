@@ -1,12 +1,12 @@
 .class-progression-lab {
   min-height: 100dvh;
   display: grid;
-  gap: 16px;
+  gap: clamp(22px, 4vw, 38px);
   align-content: start;
-  padding: clamp(14px, 4vw, 34px);
+  padding: clamp(16px, 4vw, 42px);
   background:
-    radial-gradient(circle at 14% 0%, rgba(124, 120, 255, 0.22), transparent 34%),
-    radial-gradient(circle at 88% 8%, rgba(216, 173, 79, 0.13), transparent 30%),
+    radial-gradient(circle at 14% 0%, rgba(124, 120, 255, 0.20), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(216, 173, 79, 0.12), transparent 30%),
     linear-gradient(145deg, #080816 0%, #0f0e47 52%, #151433 100%);
   color: var(--rq-blue-eclipse-cream, #f6ead2);
 }
@@ -14,18 +14,15 @@
 .progression-hero,
 .progression-controls,
 .progression-level-grid,
-.progression-summary-grid article,
 .progression-card {
-  border: 1px solid rgba(216, 173, 79, 0.28);
-  background: linear-gradient(180deg, rgba(39, 39, 87, 0.92), rgba(8, 8, 22, 0.72));
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+  width: min(100%, 1180px);
 }
 
 .progression-hero {
   display: grid;
-  gap: 10px;
-  padding: clamp(18px, 4vw, 32px);
-  border-radius: 24px;
+  gap: 12px;
+  padding: clamp(18px, 4vw, 34px) 0;
+  border-bottom: 1px solid rgba(216, 173, 79, 0.24);
 }
 
 .progression-hero span,
@@ -36,7 +33,10 @@
 .progression-slot-meta span,
 .progression-resource-list span,
 .progression-audit-counts span,
-.progression-audit-issue span {
+.progression-audit-issue span,
+.progression-visibility-grid span,
+.progression-rook-grid span,
+.progression-rook-header span {
   color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
   font-size: 0.72rem;
   font-weight: 950;
@@ -54,7 +54,8 @@
 .progression-hero p,
 .progression-empty,
 .progression-card li,
-.progression-card p {
+.progression-card p,
+.progression-visibility-grid li {
   color: var(--rq-text-secondary, #e6d7bb);
 }
 
@@ -66,9 +67,11 @@
 .progression-slot-meta,
 .progression-resource-list,
 .progression-audit-list,
-.progression-audit-counts {
+.progression-audit-counts,
+.progression-visibility-grid,
+.progression-rook-grid {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .progression-actions {
@@ -80,9 +83,9 @@
 .progression-controls input,
 .progression-level-grid button {
   min-height: 42px;
-  border-radius: 12px;
+  border-radius: 999px;
   border: 1px solid rgba(216, 173, 79, 0.32);
-  background: rgba(8, 8, 22, 0.68);
+  background: rgba(8, 8, 22, 0.46);
   color: var(--rq-blue-eclipse-cream, #f6ead2);
   text-decoration: none;
   font-weight: 900;
@@ -98,29 +101,26 @@
 
 .progression-controls {
   grid-template-columns: 1fr 140px;
-  padding: 14px;
-  border-radius: 18px;
+  padding: 0;
 }
 
 .progression-controls label {
   display: grid;
-  gap: 6px;
+  gap: 7px;
 }
 
 .progression-controls select,
 .progression-controls input {
-  padding: 0 12px;
+  padding: 0 14px;
 }
 
 .progression-level-grid {
   grid-template-columns: repeat(20, minmax(36px, 1fr));
-  gap: 6px;
-  padding: 10px;
-  border-radius: 18px;
+  gap: 7px;
 }
 
 .progression-level-grid button {
-  min-height: 34px;
+  min-height: 36px;
   cursor: pointer;
 }
 
@@ -131,43 +131,11 @@
   background: rgba(216, 173, 79, 0.2);
 }
 
-.progression-summary-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.progression-summary-grid article {
-  display: grid;
-  gap: 5px;
-  padding: 12px;
-  border-radius: 16px;
-}
-
-.progression-summary-grid strong {
-  color: var(--rq-blue-eclipse-cream, #f6ead2);
-  font-size: 1.2rem;
-  line-height: 1.15;
-}
-
-.progression-summary-grid em,
-.progression-resource-list em,
-.progression-resource-list small,
-.progression-slot-meta em,
-.progression-audit-counts em {
-  color: var(--rq-blue-eclipse-mist, #8686ac);
-  font-style: normal;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.progression-columns {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .progression-card {
   display: grid;
-  gap: 10px;
-  padding: 14px;
-  border-radius: 18px;
+  gap: 16px;
+  padding: 0 0 clamp(20px, 3vw, 30px);
+  border-bottom: 1px solid rgba(134, 134, 172, 0.18);
 }
 
 .progression-card h2 {
@@ -179,27 +147,73 @@
   padding-left: 20px;
 }
 
-.progression-card--wide {
+.progression-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   width: min(100%, 1180px);
 }
 
-.progression-audit-panel {
-  border-color: rgba(242, 209, 138, 0.34);
+.progression-summary-grid article,
+.progression-audit-counts article,
+.progression-visibility-grid article,
+.progression-rook-grid article,
+.progression-resource-list div,
+.progression-audit-issue {
+  border-radius: 16px;
+  background: rgba(8, 8, 22, 0.28);
+  border: 1px solid rgba(134, 134, 172, 0.14);
 }
 
-.progression-audit-header {
+.progression-summary-grid article {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.progression-summary-grid strong,
+.progression-audit-counts strong,
+.progression-visibility-grid strong,
+.progression-rook-grid strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.progression-summary-grid em,
+.progression-resource-list em,
+.progression-resource-list small,
+.progression-slot-meta em,
+.progression-audit-counts em,
+.progression-visibility-grid em,
+.progression-rook-grid em {
+  color: var(--rq-blue-eclipse-mist, #8686ac);
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.progression-columns,
+.progression-visibility-grid,
+.progression-rook-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 1180px);
+}
+
+.progression-audit-header,
+.progression-rook-header {
   display: flex;
   justify-content: space-between;
   gap: 14px;
   align-items: start;
 }
 
-.progression-audit-header p {
+.progression-audit-header p,
+.progression-rook-header p {
   margin: 5px 0 0;
 }
 
 .progression-audit-status,
-.progression-audit-chip {
+.progression-audit-chip,
+.progression-rook-header span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -212,44 +226,43 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+  background: rgba(8, 8, 22, 0.32);
 }
 
 .progression-audit-status--ready,
 .progression-audit-chip--ready {
   color: #a7f3d0;
   border-color: rgba(34, 197, 94, 0.32);
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(34, 197, 94, 0.10);
 }
 
 .progression-audit-status--warning,
 .progression-audit-chip--warning {
   color: #fde68a;
   border-color: rgba(245, 158, 11, 0.34);
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.10);
 }
 
 .progression-audit-status--danger,
 .progression-audit-chip--danger {
   color: #fecaca;
   border-color: rgba(239, 68, 68, 0.36);
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 .progression-audit-counts {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.progression-audit-counts article {
+.progression-audit-counts article,
+.progression-visibility-grid article,
+.progression-rook-grid article {
   display: grid;
-  gap: 4px;
-  padding: 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(134, 134, 172, 0.18);
-  background: rgba(8, 8, 22, 0.36);
+  gap: 6px;
+  padding: 12px;
 }
 
 .progression-audit-counts strong {
-  color: var(--rq-blue-eclipse-cream, #f6ead2);
   font-size: 1.45rem;
 }
 
@@ -259,9 +272,6 @@
   gap: 8px;
   align-items: start;
   padding: 10px;
-  border-radius: 14px;
-  background: rgba(8, 8, 22, 0.42);
-  border: 1px solid rgba(134, 134, 172, 0.18);
 }
 
 .progression-audit-issue svg {
@@ -303,8 +313,8 @@
   padding: 12px;
   border-radius: 14px;
   color: #a7f3d0;
-  border: 1px solid rgba(34, 197, 94, 0.26);
-  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  background: rgba(34, 197, 94, 0.08);
   font-weight: 850;
 }
 
@@ -327,8 +337,8 @@
 .progression-slot-pills span {
   padding: 6px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(216, 173, 79, 0.28);
-  background: rgba(216, 173, 79, 0.12);
+  border: 1px solid rgba(216, 173, 79, 0.24);
+  background: rgba(216, 173, 79, 0.10);
   color: var(--rq-blue-eclipse-cream, #f6ead2);
   font-size: 0.78rem;
   font-weight: 900;
@@ -340,9 +350,6 @@
   gap: 7px 10px;
   align-items: center;
   padding: 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(134, 134, 172, 0.2);
-  background: rgba(8, 8, 22, 0.44);
 }
 
 .progression-resource-list svg {
@@ -356,6 +363,25 @@
 .progression-resource-list em,
 .progression-resource-list small {
   grid-column: 2 / -1;
+}
+
+.progression-visibility-grid ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.progression-rook-reasons {
+  display: grid;
+  gap: 8px;
+}
+
+.progression-rook-reasons p,
+.progression-rook-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(216, 173, 79, 0.08);
+  border: 1px solid rgba(216, 173, 79, 0.18);
 }
 
 .progression-table-wrap {
@@ -392,7 +418,7 @@
 }
 
 .progression-table tr.is-selected td {
-  background: rgba(216, 173, 79, 0.1);
+  background: rgba(216, 173, 79, 0.08);
   color: var(--rq-blue-eclipse-cream, #f6ead2);
 }
 
@@ -418,11 +444,14 @@
   .progression-summary-grid,
   .progression-slot-compare,
   .progression-slot-meta,
-  .progression-audit-counts {
+  .progression-audit-counts,
+  .progression-visibility-grid,
+  .progression-rook-grid {
     grid-template-columns: 1fr;
   }
 
-  .progression-audit-header {
+  .progression-audit-header,
+  .progression-rook-header {
     display: grid;
   }
 
