@@ -22,6 +22,15 @@ function normaliseEntry(entry) {
   };
 }
 
+function flattenProgressionChoices(levelProgression = {}) {
+  return Object.entries(levelProgression || {})
+    .flatMap(([level, entry]) => {
+      const choices = Array.isArray(entry?.choices) ? entry.choices : [];
+      return choices.map(choice => ({ ...choice, level: Number(level) || choice.level || 1 }));
+    })
+    .sort((a, b) => Number(a.level || 0) - Number(b.level || 0));
+}
+
 function FeatureCard({ entry, fallbackSource }) {
   const [expanded, setExpanded] = useState(false);
   const item = normaliseEntry(entry);
@@ -78,6 +87,39 @@ function ChipList({ title, values, emptyText }) {
   );
 }
 
+function BuildReviewSection({ choices }) {
+  if (!choices.length) return null;
+  const reviewCount = choices.filter(choice => choice.status !== 'done').length;
+  const decidedCount = choices.length - reviewCount;
+
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide">
+      <h2>Build Review</h2>
+      <p className="clean-sheet-muted">
+        Choices saved during character creation or starting-level catch-up. Use these to finish anything that was left for full edit or level-up review.
+      </p>
+      <div className="clean-sheet-chip-list">
+        <span>{decidedCount} decided</span>
+        <span>{reviewCount} needs review</span>
+      </div>
+      <div className="clean-sheet-feature-grid">
+        {choices.map(choice => (
+          <article key={choice.id || `${choice.level}-${choice.title}`} className="clean-sheet-feature-card">
+            <div className="clean-sheet-feature-topline">
+              <span>Level {choice.level}</span>
+              <em>{choice.status === 'done' ? 'Decided' : choice.required ? 'Needs review' : 'Optional'}</em>
+            </div>
+            <strong>{choice.title || choice.type}</strong>
+            {choice.selection && <p>{choice.selection}</p>}
+            {choice.note && <p>{choice.note}</p>}
+            {choice.rook_prompt && <p>Rook: {choice.rook_prompt}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function CleanNotesTab({ character, onCharacterUpdate }) {
   const [notes, setNotes] = useState(character?.notes || '');
   const [saving, setSaving] = useState(false);
@@ -114,6 +156,7 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
   const tools = useMemo(() => character?.tool_proficiencies || [], [character]);
   const weapons = useMemo(() => character?.weapon_proficiencies || [], [character]);
   const armour = useMemo(() => character?.armor_proficiencies || character?.armour_proficiencies || [], [character]);
+  const buildReviewChoices = useMemo(() => flattenProgressionChoices(character?.level_progression), [character?.level_progression]);
 
   return (
     <div className="clean-sheet-grid">
@@ -131,6 +174,8 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
           </button>
         </div>
       </section>
+
+      <BuildReviewSection choices={buildReviewChoices} />
 
       <section className="clean-sheet-panel">
         <h2>Personality</h2>
