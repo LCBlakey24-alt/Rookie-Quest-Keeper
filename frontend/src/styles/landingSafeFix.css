@@ -1,3 +1,195 @@
+/* Final loaded UI reset: square, flat, minimalist. */
+
+:root {
+  --rq-min-bg: #070814;
+  --rq-min-line: rgba(216, 173, 79, 0.16);
+  --rq-min-line-strong: rgba(216, 173, 79, 0.32);
+  --rq-min-text: #f6ead2;
+  --rq-min-muted: #aaa6c8;
+  --rq-min-soft: #d9c8a5;
+  --rq-min-accent: #d8ad4f;
+}
+
+html,
+body,
+#root {
+  background: var(--rq-min-bg) !important;
+}
+
+body,
+button,
+input,
+textarea,
+select,
+.character-page-v2,
+.landing-page,
+.dashboard-page,
+.auth-page,
+.home-page,
+.admin-page {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.character-page-v2,
+.clean-sheet-page,
+.dashboard-page,
+.dashboard-shell,
+.home-page,
+.landing-page,
+.auth-page,
+.admin-page,
+.page-shell,
+.site-page,
+main {
+  background: var(--rq-min-bg) !important;
+  background-image: none !important;
+  color: var(--rq-min-text) !important;
+}
+
+.character-page-v2 h1,
+.character-page-v2 h2,
+.character-page-v2 h3,
+.clean-sheet-content h2,
+.clean-sheet-content h3,
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.dashboard-page h1,
+.dashboard-page h2,
+.dashboard-page h3,
+.auth-page h1,
+.auth-page h2,
+.auth-page h3,
+.home-page h1,
+.admin-page h1,
+.page-title,
+.hero-title {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: none !important;
+}
+
+.landing-page-clean .landing-product-frame,
+.landing-page-clean .landing-feature-card,
+.landing-page-clean .landing-workflow-item,
+.landing-page-clean .landing-preview-card,
+.landing-page-clean .preview-panel,
+.landing-page-clean .preview-main,
+.landing-page-clean .preview-sidebar,
+.landing-page-clean .preview-window-bar,
+.landing-page-clean .preview-encounter,
+.dashboard-page [data-testid="latest-updates-panel"],
+.dashboard-page .dashboard-card,
+.dashboard-page .dashboard-panel,
+.dashboard-page .dashboard-action-card,
+.dashboard-page .action-card,
+.dashboard-page .character-card,
+.dashboard-page .campaign-card,
+.dashboard-page .summary-card,
+.dashboard-page .update-card,
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-card,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-hp-card--arc,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-tab-panel,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-table-focus,
+.character-page-v2 .clean-sheet-content > section,
+.character-page-v2 .rq-health-arc__stage,
+.character-page-v2 .rq-hp-action-panel,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-turn-strip > div,
+.character-page-v2 .clean-sheet-passives > div,
+.character-page-v2 .clean-sheet-roll-controls,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-death-saves,
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-reference-match {
+  background: transparent !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.landing-page-clean .landing-feature-card,
+.landing-page-clean .landing-workflow-item,
+.dashboard-page .dashboard-card,
+.dashboard-page .dashboard-panel,
+.dashboard-page .action-card,
+.dashboard-page .character-card,
+.dashboard-page .campaign-card,
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-content > section {
+  border: 0 !important;
+  border-top: 1px solid var(--rq-min-line) !important;
+}
+
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-reference-match,
+.character-page-v2 .clean-sheet-turn-strip > div,
+.character-page-v2 .clean-sheet-passives > div {
+  border: 0 !important;
+  border-top: 1px solid var(--rq-min-line) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.landing-button,
+.dashboard-page button,
+.character-page-v2 button,
+.auth-page button,
+.clean-sheet-back,
+.clean-sheet-edit,
+.clean-sheet-level,
+.rq-hp-action-button {
+  background: transparent !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-color: var(--rq-min-line-strong) !important;
+  color: var(--rq-min-text) !important;
+}
+
+.landing-button-primary,
+.character-page-v2 .clean-sheet-tabs button.active,
+.character-page-v2 .clean-sheet-tab.active,
+.dashboard-page .mobile-dashboard-tabs button.active,
+.dashboard-page .dashboard-tabs button.active,
+.character-page-v2 button[type='submit'],
+.auth-page button[type='submit'] {
+  background: var(--rq-min-accent) !important;
+  background-image: none !important;
+  color: var(--rq-min-bg) !important;
+  border-radius: 0 !important;
+}
+
+input,
+textarea,
+select {
+  background: #0b0d1e !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--rq-min-text) !important;
+}
+
 .landing-page-clean {
   isolation: isolate;
   width: 100%;
@@ -19,136 +211,8 @@
   pointer-events: auto;
 }
 
-.landing-page-clean .landing-nav {
-  align-items: center;
-}
-
-.landing-page-clean .landing-hero {
-  padding-top: clamp(32px, 6vw, 58px);
-  padding-bottom: 24px;
-}
-
-.landing-page-clean .landing-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.landing-page-clean .landing-product-frame,
-.landing-page-clean .landing-feature-card,
-.landing-page-clean .landing-workflow-item,
-.landing-page-clean .landing-preview-card,
-.landing-page-clean .preview-panel,
-.landing-page-clean .preview-encounter,
-.landing-page-clean .preview-main,
-.landing-page-clean .preview-sidebar,
-.landing-page-clean .preview-window-bar {
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.landing-page-clean .landing-feature-card,
-.landing-page-clean .landing-workflow-item {
-  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
-  padding: 16px 0 !important;
-  overflow-wrap: anywhere;
-}
-
-.landing-page-clean .landing-features {
-  padding-top: 12px;
-  padding-bottom: 28px;
-}
-
-.landing-page-clean .landing-workflow-clean {
-  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
-  padding-bottom: 42px;
-}
-
-.landing-page-clean .landing-workflow-clean .landing-workflow-list {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.landing-page-clean .landing-workflow-clean .landing-workflow-item {
-  min-width: 0;
-}
-
-.dashboard-page .dashboard-card,
-.dashboard-page .dashboard-panel,
-.dashboard-page .dashboard-action-card,
-.dashboard-page .action-card,
-.dashboard-page .character-card,
-.dashboard-page .campaign-card,
-.dashboard-page .summary-card,
-.dashboard-page .update-card,
-.dashboard-page [data-testid="latest-updates-panel"] {
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.dashboard-page .dashboard-card,
-.dashboard-page .dashboard-panel,
-.dashboard-page .action-card,
-.dashboard-page .character-card,
-.dashboard-page .campaign-card {
-  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
-  padding: 14px 0 !important;
-}
-
-.character-page-v2 .clean-sheet-card,
-.character-page-v2 .clean-sheet-hp-card,
-.character-page-v2 .clean-sheet-hp-card--arc,
-.character-page-v2 .clean-sheet-panel,
-.character-page-v2 .clean-sheet-section,
-.character-page-v2 .clean-sheet-tab-panel,
-.character-page-v2 .clean-sheet-play-tools,
-.character-page-v2 .clean-sheet-table-focus,
-.character-page-v2 .clean-sheet-content > section,
-.character-page-v2 .rq-health-arc__stage,
-.character-page-v2 .rq-hp-action-panel,
-.character-page-v2 .clean-sheet-recovery-panel,
-.character-page-v2 .clean-sheet-turn-strip > div,
-.character-page-v2 .clean-sheet-passives > div,
-.character-page-v2 .clean-sheet-roll-controls,
-.character-page-v2 .clean-sheet-condition-panel,
-.character-page-v2 .clean-sheet-roll-history-panel,
-.character-page-v2 .clean-sheet-death-saves {
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.character-page-v2 .clean-sheet-panel,
-.character-page-v2 .clean-sheet-section,
-.character-page-v2 .clean-sheet-play-tools,
-.character-page-v2 .clean-sheet-hp-card,
-.character-page-v2 .clean-sheet-table-focus {
-  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
-  padding: 14px 0 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs,
-.character-page-v2 .clean-sheet-progression-pills span,
-.character-page-v2 .clean-sheet-progression-features span,
-.character-page-v2 .clean-sheet-progression-build-notes span {
-  background: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-@media (max-width: 1040px) {
-  .landing-page-clean .landing-workflow-clean,
-  .landing-page-clean .landing-workflow-clean .landing-workflow-list {
-    grid-template-columns: 1fr;
-  }
+.landing-page-clean .landing-hero-preview {
+  display: none !important;
 }
 
 @media (max-width: 760px) {
@@ -168,16 +232,12 @@
     align-items: center !important;
     padding: 8px 14px !important;
     width: 100% !important;
-    border-bottom: 1px solid rgba(216, 173, 79, 0.18) !important;
-    background: rgba(4, 5, 18, 0.94) !important;
-  }
-
-  .landing-page-clean .landing-brand {
-    justify-content: flex-start;
+    border-bottom: 1px solid var(--rq-min-line) !important;
+    background: var(--rq-min-bg) !important;
   }
 
   .landing-page-clean .landing-brand img {
-    width: 82px !important;
+    width: 72px !important;
     max-width: 24vw;
   }
 
@@ -185,19 +245,12 @@
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     gap: 7px;
-    align-items: stretch !important;
-    flex-direction: row !important;
     width: 100%;
   }
 
-  .landing-page-clean .landing-nav-actions .landing-button {
+  .landing-page-clean .landing-nav-actions .landing-button,
+  .landing-page-clean .landing-hero-actions .landing-button {
     width: 100%;
-    min-height: 38px;
-    padding: 7px 8px;
-    border-radius: 8px !important;
-    font-size: 12px;
-    line-height: 1.1;
-    white-space: normal;
   }
 
   .landing-page-clean .landing-hero {
@@ -206,89 +259,57 @@
     padding-bottom: 14px !important;
   }
 
-  .landing-page-clean .landing-kicker {
-    margin-bottom: 10px;
-    font-size: 10px;
-    line-height: 1.25;
-  }
-
   .landing-page-clean .landing-hero h1 {
-    font-size: clamp(34px, 12vw, 46px) !important;
-    line-height: 0.98;
-    overflow-wrap: anywhere;
+    font-size: clamp(32px, 10vw, 42px) !important;
+    line-height: 1 !important;
   }
 
-  .landing-page-clean .landing-hero p {
-    margin: 14px 0 16px;
-    font-size: 15px;
-    line-height: 1.45;
-  }
-
-  .landing-page-clean .landing-hero-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 9px;
-  }
-
-  .landing-page-clean .landing-hero-actions .landing-button {
-    width: 100%;
-    min-height: 44px;
-    padding: 11px 14px;
-    white-space: normal;
-    border-radius: 8px !important;
-  }
-
-  .landing-page-clean .landing-hero-preview {
-    display: none !important;
-  }
-
-  .landing-page-clean .landing-features {
-    grid-template-columns: 1fr !important;
-    gap: 0;
-    padding-top: 8px !important;
-    padding-bottom: 18px !important;
-  }
-
-  .landing-page-clean .landing-feature-card svg {
-    margin-bottom: 8px;
-  }
-
-  .landing-page-clean .landing-feature-card h3 {
-    margin-bottom: 5px;
-    font-size: 18px;
-  }
-
-  .landing-page-clean .landing-feature-card p {
-    font-size: 14px;
-    line-height: 1.42;
-  }
-
-  .landing-page-clean .landing-workflow-clean {
-    padding-top: 12px;
-    padding-bottom: 28px;
-  }
-
-  .landing-page-clean .landing-workflow-copy h2 {
-    font-size: clamp(28px, 10vw, 38px) !important;
-    line-height: 1.02;
-  }
-
+  .landing-page-clean .landing-features,
   .landing-page-clean .landing-workflow-clean .landing-workflow-list {
-    gap: 0;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
   }
 
-  .landing-page-clean .landing-footer {
-    padding: 18px 14px 28px;
+  .character-page-v2 {
+    padding-left: 62px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    position: fixed !important;
+    left: 8px !important;
+    top: 118px !important;
+    bottom: auto !important;
+    z-index: 40 !important;
+    width: 44px !important;
+    max-width: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-auto-flow: row !important;
+    gap: 6px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid var(--rq-min-line-strong) !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button span {
+    display: none !important;
   }
 }
 
 @media (max-width: 390px) {
   .landing-page-clean .landing-nav-actions {
     grid-template-columns: 1fr;
-  }
-
-  .landing-page-clean .landing-brand img {
-    width: 72px !important;
   }
 }
