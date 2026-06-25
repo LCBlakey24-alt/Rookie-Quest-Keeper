@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'health-controls-row-2026-06-24',
+    date: '2026-06-24',
+    badge: 'Improved',
+    category: 'Character Sheet',
+    title: 'HP, Temp HP, and Hit Dice grouped into one row',
+    summary: 'The health controls now line up as HP, Temp HP, and Hit Dice, with Short Rest and Long Rest kept together below as recovery actions.',
+    details: [
+      'Moved Hit Dice into the same health-control row as HP and Temp HP.',
+      'Removed Short Rest from the Hit Dice panel so rest actions stay together.',
+      'Kept Short Rest and Long Rest grouped in the Recovery panel.',
+      'Made the health-control row compact enough to stay side-by-side on mobile prototype screens.',
+    ],
+    public: true,
+  },
+  {
     id: 'local-prototype-lab-2026-06-24',
     date: '2026-06-24',
     badge: 'New',
