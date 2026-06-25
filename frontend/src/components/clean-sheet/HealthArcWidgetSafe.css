@@ -248,47 +248,66 @@
 }
 
 @media (max-width: 720px) {
+  .clean-sheet-hp-card--arc,
+  .rq-health-arc {
+    gap: 8px;
+  }
+
   .rq-health-arc__stage {
-    min-height: 164px;
+    min-height: 132px;
+    border-radius: 15px;
   }
 
   .rq-health-arc__svg {
-    top: -8px;
-    width: min(100%, 258px);
+    top: -16px;
+    width: min(100%, 220px);
+    height: 124px;
   }
 
   .rq-health-arc__numbers {
-    margin-top: 50px;
+    margin-top: 35px;
   }
 
   .rq-health-arc__numbers strong {
-    font-size: 3rem;
+    font-size: 2.55rem;
+  }
+
+  .rq-health-arc__numbers span {
+    font-size: 0.84rem;
+  }
+
+  .rq-health-arc__numbers em {
+    margin-top: 5px;
+    padding: 4px 8px;
+    font-size: 0.76rem;
+  }
+
+  .rq-health-arc__hint {
+    font-size: 0.72rem;
   }
 
   .rq-hp-action-grid,
   .rq-hp-action-grid--two {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .rq-hp-action-panel {
-    gap: 6px;
+    gap: 5px;
     padding: 7px;
     border-radius: 12px;
   }
 
   .rq-hp-action-panel__title {
-    min-height: 24px;
-    display: grid;
-    place-items: center;
+    min-height: auto;
     font-size: 0.58rem;
     letter-spacing: 0.04em;
   }
 
   .rq-hp-action-panel input,
   .rq-hp-hitdice-count {
-    min-height: 36px;
-    font-size: 1rem;
+    min-height: 32px;
+    font-size: 0.95rem;
     border-radius: 9px;
   }
 
@@ -301,9 +320,9 @@
   }
 
   .rq-hp-action-button {
-    min-height: 34px;
-    padding: 4px 3px;
-    font-size: 0.72rem;
+    min-height: 32px;
+    padding: 3px;
+    font-size: 0.7rem;
     border-radius: 8px;
   }
 }
