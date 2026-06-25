@@ -3,8 +3,6 @@ import {
   clampLevel,
   getClassProgression,
   getProgressionSnapshot,
-  getResourceValueAtLevel,
-  getSpellSlotsForClass,
   normaliseClassName,
 } from './classProgressions2014';
 
@@ -73,6 +71,7 @@ const CLASS_ADVICE = {
     abilities: ['Charisma', 'Constitution', 'Dexterity'],
     feats: ['War Caster', 'Eldritch Adept', 'Actor', 'Resilient'],
     spells: ['Hex', 'Armor of Agathys', 'Misty Step', 'Counterspell'],
+    spellSwaps: ['Swap out a spell you rarely cast', 'Replace a low-impact spell with one that fits your pact', 'Pick a spell that benefits from your highest Pact Magic slot'],
     style: 'Lean into patron theme, pact identity, short-rest power, and a small set of iconic spells.',
   },
   Wizard: {
@@ -80,6 +79,19 @@ const CLASS_ADVICE = {
     feats: ['War Caster', 'Observant', 'Resilient', 'Ritual Caster'],
     spells: ['Find Familiar', 'Shield', 'Misty Step', 'Counterspell'],
     style: 'Lean into preparation, rituals, control, and the character’s favourite school of magic.',
+  },
+};
+
+const LEVEL_UP_CLASS_OPTIONS = {
+  Warlock: {
+    spellReplacement: {
+      key: 'warlock_spell_replacement',
+      label: 'Optional known spell swap',
+      timing: 'Every Warlock level-up',
+      description: 'Offer the player the option to replace one known Warlock spell with another Warlock spell they are allowed to cast.',
+      rookPrompt: 'Rook should review spells known, Pact Magic slot level, patron theme, pact boon, backstory, and spells the player rarely uses before suggesting a swap.',
+      showWhen: 'level-up-only',
+    },
   },
 };
 
@@ -183,6 +195,19 @@ function uniqueLimit(items = [], limit = 4) {
   return Array.from(new Set(items.filter(Boolean))).slice(0, limit);
 }
 
+function getClassLevelUpOptions(className = '') {
+  return LEVEL_UP_CLASS_OPTIONS[normaliseClassName(className)] || {};
+}
+
+function getSpellReplacementOption(className = '', targetLevel = 1) {
+  const classOptions = getClassLevelUpOptions(className);
+  if (!classOptions.spellReplacement) return null;
+  return {
+    ...classOptions.spellReplacement,
+    targetLevel: clampLevel(targetLevel),
+  };
+}
+
 export function getPlayerSheetProgression(className = '', level = 1) {
   const normalisedClass = normaliseClassName(className);
   const progression = getClassProgression(normalisedClass);
@@ -195,7 +220,7 @@ export function getPlayerSheetProgression(className = '', level = 1) {
     className: normalisedClass,
     level: safeLevel,
     visibleNowOnly: true,
-    principle: 'Show what the player can use now. Keep future choices, subclasses, ASIs, feats, and upcoming class features inside level-up.',
+    principle: 'Show what the player can use now. Keep future choices, subclasses, ASIs, feats, spell swaps, and upcoming class features inside level-up.',
     currentFeatures: collectFeaturesUpToLevel(progression, safeLevel),
     currentResources: snapshot.resources.map(resource => ({
       key: resource.key,
@@ -208,6 +233,7 @@ export function getPlayerSheetProgression(className = '', level = 1) {
       nextLevel: snapshot.nextLevel,
       nextFeatures: snapshot.nextFeatures,
       nextSpellSlots: snapshot.nextSpellSlots,
+      spellReplacementOption: getSpellReplacementOption(normalisedClass, safeLevel + 1),
       subclassComingAt: safeLevel < snapshot.subclassLevel ? snapshot.subclassLevel : null,
       nextAsiLevel: snapshot.asiLevels.find(asiLevel => asiLevel > safeLevel) || null,
     },
@@ -239,6 +265,7 @@ export function getLevelUpProgressionPreview(className = '', currentLevel = 1) {
     willChooseSubclass: targetLevel === targetSnapshot.subclassLevel,
     willChooseAsi: targetSnapshot.asiLevels.includes(targetLevel),
     spellSlotChanges: getSpellSlotChanges(currentSnapshot.currentSpellSlots, targetSnapshot.currentSpellSlots),
+    spellReplacementOption: getSpellReplacementOption(normalisedClass, targetLevel),
     resourceChanges,
   };
 }
@@ -249,6 +276,7 @@ export function getRookLevelUpSuggestions(character = {}, currentLevel = 1) {
   const backstoryText = getBackstoryText(character);
   const matchingHints = BACKSTORY_HINTS.filter(hint => hint.keywords.some(keyword => backstoryText.includes(keyword)));
   const levelPreview = getLevelUpProgressionPreview(className, currentLevel);
+  const spellReplacementOption = levelPreview?.spellReplacementOption || null;
 
   const abilitySuggestions = uniqueLimit([
     ...matchingHints.flatMap(hint => hint.suggestions.abilities || []),
@@ -262,6 +290,51 @@ export function getRookLevelUpSuggestions(character = {}, currentLevel = 1) {
     ...matchingHints.flatMap(hint => hint.suggestions.spells || []),
     ...classAdvice.spells,
   ], 4);
+  const spellSwapSuggestions = uniqueLimit([
+    ...(classAdvice.spellSwaps || []),
+    ...spellSuggestions.map(spell => `Consider whether ${spell} fits better than a spell you rarely use`),
+  ], 4);
+
+  const suggestions = [
+    {
+      type: 'ability-score',
+      title: 'Ability Score Improvement ideas',
+      options: abilitySuggestions,
+      reason: matchingHints.length
+        ? 'These match both your class needs and the themes Rook spotted in the backstory.'
+        : 'These are the safest class-first ability scores to consider.',
+      showWhen: 'level-up-only',
+    },
+    {
+      type: 'feat',
+      title: 'Feat ideas',
+      options: featSuggestions,
+      reason: matchingHints.length
+        ? 'These feats support the character story as well as the mechanics.'
+        : 'These feats commonly support this class role.',
+      showWhen: 'level-up-only',
+    },
+    {
+      type: 'spell',
+      title: 'Spell ideas',
+      options: spellSuggestions,
+      reason: spellSuggestions.length
+        ? 'These spells are good candidates for the character’s class and story direction.'
+        : 'This class does not normally need spell-pick suggestions unless a subclass grants spellcasting.',
+      showWhen: 'level-up-only',
+    },
+  ];
+
+  if (spellReplacementOption) {
+    suggestions.push({
+      type: 'spell-swap',
+      title: 'Known spell swap check',
+      options: spellSwapSuggestions,
+      reason: `${spellReplacementOption.timing}: ${spellReplacementOption.description}`,
+      showWhen: 'level-up-only',
+      rookPrompt: spellReplacementOption.rookPrompt,
+    });
+  }
 
   return {
     className,
@@ -269,35 +342,7 @@ export function getRookLevelUpSuggestions(character = {}, currentLevel = 1) {
     toLevel: levelPreview?.toLevel || Math.min(20, clampLevel(currentLevel) + 1),
     summary: classAdvice.style,
     backstoryReasons: matchingHints.map(hint => hint.suggestions.reason),
-    suggestions: [
-      {
-        type: 'ability-score',
-        title: 'Ability Score Improvement ideas',
-        options: abilitySuggestions,
-        reason: matchingHints.length
-          ? 'These match both your class needs and the themes Rook spotted in the backstory.'
-          : 'These are the safest class-first ability scores to consider.',
-        showWhen: 'level-up-only',
-      },
-      {
-        type: 'feat',
-        title: 'Feat ideas',
-        options: featSuggestions,
-        reason: matchingHints.length
-          ? 'These feats support the character story as well as the mechanics.'
-          : 'These feats commonly support this class role.',
-        showWhen: 'level-up-only',
-      },
-      {
-        type: 'spell',
-        title: 'Spell ideas',
-        options: spellSuggestions,
-        reason: spellSuggestions.length
-          ? 'These spells are good candidates for the character’s class and story direction.'
-          : 'This class does not normally need spell-pick suggestions unless a subclass grants spellcasting.',
-        showWhen: 'level-up-only',
-      },
-    ],
+    suggestions,
     levelUpContext: levelPreview,
   };
 }
