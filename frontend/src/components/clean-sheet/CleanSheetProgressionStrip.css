@@ -27,7 +27,8 @@
 
 .clean-sheet-progression-heading,
 .clean-sheet-progression-pills,
-.clean-sheet-progression-features {
+.clean-sheet-progression-features,
+.clean-sheet-progression-build-notes {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
@@ -36,7 +37,8 @@
 
 .clean-sheet-progression-heading span,
 .clean-sheet-progression-pills span,
-.clean-sheet-progression-features span {
+.clean-sheet-progression-features span,
+.clean-sheet-progression-build-notes span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -59,11 +61,26 @@
 }
 
 .clean-sheet-progression-pills span,
-.clean-sheet-progression-features span {
+.clean-sheet-progression-features span,
+.clean-sheet-progression-build-notes span {
   padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid rgba(134, 134, 172, 0.16);
   background: rgba(8, 10, 24, 0.24);
+}
+
+.clean-sheet-progression-pills span.needs-review,
+.clean-sheet-progression-build-notes span.needs-review {
+  border-color: rgba(216, 173, 79, 0.38);
+  background: rgba(216, 173, 79, 0.1);
+  color: #f3d08a;
+}
+
+.clean-sheet-progression-pills span.is-decided,
+.clean-sheet-progression-build-notes span.is-decided {
+  border-color: rgba(122, 155, 102, 0.4);
+  background: rgba(122, 155, 102, 0.1);
+  color: #dff0c8;
 }
 
 .clean-sheet-progression-levelup {
@@ -163,7 +180,8 @@
 }
 
 @media (max-width: 620px) {
-  .clean-sheet-progression-features {
+  .clean-sheet-progression-features,
+  .clean-sheet-progression-build-notes {
     display: none;
   }
 
