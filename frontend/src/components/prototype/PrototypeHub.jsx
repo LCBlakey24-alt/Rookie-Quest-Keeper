@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FlaskConical, Home, Map, Shield, Smartphone, Users } from 'lucide-react';
+import { FlaskConical, Home, ListChecks, Map, Shield, Smartphone, Users } from 'lucide-react';
 
 import './PrototypeHub.css';
 
@@ -22,6 +22,13 @@ export default function PrototypeHub() {
           <span>Mobile Class Lab</span>
           <strong>Test all 12 classes</strong>
           <p>HP, temp HP, Hit Dice, rests, class resources, spell slots, conditions, inventory, and notes.</p>
+        </Link>
+
+        <Link to="/prototype-progressions" className="prototype-hub-card">
+          <ListChecks size={28} />
+          <span>Progression Lab</span>
+          <strong>Check every level</strong>
+          <p>Compare class features, proficiency, hit dice, ASI levels, resources, and spell slots from levels 1–20.</p>
         </Link>
 
         <Link to="/prototype-gm" className="prototype-hub-card">
@@ -55,7 +62,8 @@ export default function PrototypeHub() {
         <div>
           <h2>Best testing flow</h2>
           <p>
-            Use the Mobile Class Lab first to find class inconsistencies, then use the Tia-Karta GM Lab to test campaign and GM tools.
+            Use the Mobile Class Lab first to find class inconsistencies, then use the Progression Lab to compare level-by-level rules,
+            then use the Tia-Karta GM Lab to test campaign and GM tools.
           </p>
         </div>
       </section>
