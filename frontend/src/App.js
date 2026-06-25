@@ -44,6 +44,7 @@ const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSession
 const PrototypeHub = React.lazy(() => import('@/components/prototype/PrototypeHub'));
 const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/PrototypeMobileLab'));
 const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
+const ClassProgressionLab = React.lazy(() => import('@/components/prototype/ClassProgressionLab'));
 const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
 const CombatPage = React.lazy(() => import('@/components/CombatPage'));
 const AdminPage = React.lazy(() => import('@/components/AdminPage'));
@@ -76,7 +77,7 @@ function ThemeRouter() {
     const path = location.pathname;
     if (path.startsWith('/gm-screen') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/prototype-mobile')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.LANDING);
@@ -108,6 +109,7 @@ function AppRoutes() {
           <Route path="/prototype" element={<PrototypeHub />} />
           <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
           <Route path="/prototype-gm" element={<TiaKartaGmPrototype />} />
+          <Route path="/prototype-progressions" element={<ClassProgressionLab />} />
           <Route path="/player" element={<PlayerDashboard />} />
           <Route path="/campaign/:campaignId" element={<CampaignDashboard />} />
           <Route path="/gm-screen/:campaignId" element={<LiveSessionGridPage />} />
