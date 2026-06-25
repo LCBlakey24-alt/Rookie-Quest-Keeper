@@ -15,6 +15,7 @@ import '@/styles/cleanCharacterSheet.css';
 import '@/styles/cleanCombatTab.css';
 import '@/styles/mobileSheetPolish.css';
 import '@/styles/cleanSheetInteractions.css';
+import '@/styles/cleanSheetRecovery.css';
 import '@/styles/cleanInventoryTab.css';
 import '@/styles/cleanSpellsTab.css';
 import '@/styles/cleanNotesTab.css';
