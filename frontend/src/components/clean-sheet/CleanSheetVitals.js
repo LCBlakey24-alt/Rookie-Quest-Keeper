@@ -33,8 +33,8 @@ export default function CleanSheetVitals({
       ? hitDiceRemaining
       : '—';
   const hitDieLabel = parsedSides ? `d${parsedSides}` : '';
-  const hpWheelMax = Math.max(20, Number(maxHp || 0) + Number(tempHp || 0) + 20, 999);
-  const tempHpWheelMax = Math.max(20, Number(tempHp || 0) + 20, 999);
+  const hpWheelMax = Math.min(999, Math.max(20, Number(maxHp || 0) + Number(tempHp || 0) + 20, Number(hpAmount || 1)));
+  const tempHpWheelMax = Math.min(999, Math.max(20, Number(tempHp || 0) + 20, Number(tempHpAmount || 1)));
 
   return (
     <section className="clean-sheet-vitals clean-sheet-vitals--arc">
