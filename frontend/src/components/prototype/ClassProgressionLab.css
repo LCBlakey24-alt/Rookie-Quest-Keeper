@@ -13,6 +13,7 @@
 
 .progression-hero,
 .progression-controls,
+.progression-level-grid,
 .progression-summary-grid article,
 .progression-card {
   border: 1px solid rgba(216, 173, 79, 0.28);
@@ -32,6 +33,7 @@
 .progression-summary-grid span,
 .progression-card h2,
 .progression-slot-compare span,
+.progression-slot-meta span,
 .progression-resource-list span {
   color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
   font-size: 0.72rem;
@@ -59,6 +61,7 @@
 .progression-columns,
 .progression-summary-grid,
 .progression-slot-compare,
+.progression-slot-meta,
 .progression-resource-list {
   display: grid;
   gap: 12px;
@@ -70,7 +73,8 @@
 
 .progression-actions a,
 .progression-controls select,
-.progression-controls input {
+.progression-controls input,
+.progression-level-grid button {
   min-height: 42px;
   border-radius: 12px;
   border: 1px solid rgba(216, 173, 79, 0.32);
@@ -104,8 +108,27 @@
   padding: 0 12px;
 }
 
+.progression-level-grid {
+  grid-template-columns: repeat(20, minmax(36px, 1fr));
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+}
+
+.progression-level-grid button {
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.progression-level-grid button:hover,
+.progression-level-grid button.is-active,
+.progression-actions a:hover {
+  border-color: rgba(242, 209, 138, 0.78);
+  background: rgba(216, 173, 79, 0.2);
+}
+
 .progression-summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .progression-summary-grid article {
@@ -117,12 +140,14 @@
 
 .progression-summary-grid strong {
   color: var(--rq-blue-eclipse-cream, #f6ead2);
-  font-size: 1.45rem;
+  font-size: 1.2rem;
+  line-height: 1.15;
 }
 
 .progression-summary-grid em,
 .progression-resource-list em,
-.progression-resource-list small {
+.progression-resource-list small,
+.progression-slot-meta em {
   color: var(--rq-blue-eclipse-mist, #8686ac);
   font-style: normal;
   font-size: 0.78rem;
@@ -150,7 +175,12 @@
 }
 
 .progression-card--wide {
-  width: min(100%, 1100px);
+  width: min(100%, 1180px);
+}
+
+.progression-slot-meta {
+  grid-template-columns: auto 1fr;
+  align-items: center;
 }
 
 .progression-slot-compare {
@@ -198,16 +228,75 @@
   grid-column: 2 / -1;
 }
 
+.progression-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.progression-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+
+.progression-table th,
+.progression-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(134, 134, 172, 0.18);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.progression-table th {
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progression-table td {
+  color: var(--rq-text-secondary, #e6d7bb);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.progression-table tr.is-selected td {
+  background: rgba(216, 173, 79, 0.1);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+}
+
+.progression-table .progression-slot-pills {
+  min-width: 150px;
+}
+
+@media (max-width: 980px) {
+  .progression-level-grid {
+    grid-template-columns: repeat(10, minmax(34px, 1fr));
+  }
+
+  .progression-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   .progression-actions,
   .progression-controls,
   .progression-columns,
   .progression-summary-grid,
-  .progression-slot-compare {
+  .progression-slot-compare,
+  .progression-slot-meta {
     grid-template-columns: 1fr;
   }
 
   .progression-summary-grid strong {
-    font-size: 1.2rem;
+    font-size: 1.08rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .progression-level-grid {
+    grid-template-columns: repeat(5, minmax(34px, 1fr));
   }
 }
