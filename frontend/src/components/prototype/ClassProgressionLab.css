@@ -34,7 +34,9 @@
 .progression-card h2,
 .progression-slot-compare span,
 .progression-slot-meta span,
-.progression-resource-list span {
+.progression-resource-list span,
+.progression-audit-counts span,
+.progression-audit-issue span {
   color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
   font-size: 0.72rem;
   font-weight: 950;
@@ -62,7 +64,9 @@
 .progression-summary-grid,
 .progression-slot-compare,
 .progression-slot-meta,
-.progression-resource-list {
+.progression-resource-list,
+.progression-audit-list,
+.progression-audit-counts {
   display: grid;
   gap: 12px;
 }
@@ -147,7 +151,8 @@
 .progression-summary-grid em,
 .progression-resource-list em,
 .progression-resource-list small,
-.progression-slot-meta em {
+.progression-slot-meta em,
+.progression-audit-counts em {
   color: var(--rq-blue-eclipse-mist, #8686ac);
   font-style: normal;
   font-size: 0.78rem;
@@ -176,6 +181,131 @@
 
 .progression-card--wide {
   width: min(100%, 1180px);
+}
+
+.progression-audit-panel {
+  border-color: rgba(242, 209, 138, 0.34);
+}
+
+.progression-audit-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.progression-audit-header p {
+  margin: 5px 0 0;
+}
+
+.progression-audit-status,
+.progression-audit-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 173, 79, 0.28);
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.progression-audit-status--ready,
+.progression-audit-chip--ready {
+  color: #a7f3d0;
+  border-color: rgba(34, 197, 94, 0.32);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.progression-audit-status--warning,
+.progression-audit-chip--warning {
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, 0.34);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.progression-audit-status--danger,
+.progression-audit-chip--danger {
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.36);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.progression-audit-counts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.progression-audit-counts article {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(134, 134, 172, 0.18);
+  background: rgba(8, 8, 22, 0.36);
+}
+
+.progression-audit-counts strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1.45rem;
+}
+
+.progression-audit-issue {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(8, 8, 22, 0.42);
+  border: 1px solid rgba(134, 134, 172, 0.18);
+}
+
+.progression-audit-issue svg {
+  margin-top: 1px;
+}
+
+.progression-audit-issue p {
+  margin: 0;
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.progression-audit-issue--danger {
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.progression-audit-issue--danger svg,
+.progression-audit-issue--danger span {
+  color: #fca5a5;
+}
+
+.progression-audit-issue--warning {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.progression-audit-issue--warning svg,
+.progression-audit-issue--warning span {
+  color: #fde68a;
+}
+
+.progression-audit-issue--info svg,
+.progression-audit-issue--info span {
+  color: #93c5fd;
+}
+
+.progression-audit-ready {
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  color: #a7f3d0;
+  border: 1px solid rgba(34, 197, 94, 0.26);
+  background: rgba(34, 197, 94, 0.1);
+  font-weight: 850;
 }
 
 .progression-slot-meta {
@@ -235,7 +365,7 @@
 
 .progression-table {
   width: 100%;
-  min-width: 860px;
+  min-width: 940px;
   border-collapse: collapse;
 }
 
@@ -275,7 +405,8 @@
     grid-template-columns: repeat(10, minmax(34px, 1fr));
   }
 
-  .progression-summary-grid {
+  .progression-summary-grid,
+  .progression-audit-counts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -286,8 +417,21 @@
   .progression-columns,
   .progression-summary-grid,
   .progression-slot-compare,
-  .progression-slot-meta {
+  .progression-slot-meta,
+  .progression-audit-counts {
     grid-template-columns: 1fr;
+  }
+
+  .progression-audit-header {
+    display: grid;
+  }
+
+  .progression-audit-issue {
+    grid-template-columns: auto 1fr;
+  }
+
+  .progression-audit-issue p {
+    grid-column: 1 / -1;
   }
 
   .progression-summary-grid strong {
