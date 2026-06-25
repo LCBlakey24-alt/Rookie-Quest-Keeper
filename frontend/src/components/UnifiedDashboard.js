@@ -10,6 +10,7 @@ import DashboardNotice from '@/components/dashboard/DashboardNotice';
 import useCampaignCreation from '@/components/dashboard/useCampaignCreation';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import { pageStyle } from '@/components/dashboard/dashboardStyles';
+import '@/components/dashboard/DashboardMinimal.css';
 
 export default function UnifiedDashboard({ username, onLogout }) {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function UnifiedDashboard({ username, onLogout }) {
   };
 
   return (
-    <main style={pageStyle}>
+    <main style={pageStyle} className="rq-dashboard-minimal">
       <DashboardHeader
         username={username}
         isAdmin={isAdmin}
@@ -78,18 +79,17 @@ export default function UnifiedDashboard({ username, onLogout }) {
         <DesktopDashboard {...dashboardProps} />
       )}
 
-      <DashboardNotice />
+      {slowLoad && <DashboardNotice />}
 
-      {showCreateCampaignModal && (
-        <CreateCampaignModal
-          campaignForm={campaignForm}
-          creatingCampaign={creatingCampaign}
-          onCancel={closeCampaignCreate}
-          onSubmit={handleCreateCampaign}
-          updateCampaignForm={updateCampaignForm}
-          toggleCampaignClass={toggleCampaignClass}
-        />
-      )}
+      <CreateCampaignModal
+        open={showCreateCampaignModal}
+        form={campaignForm}
+        creating={creatingCampaign}
+        onClose={closeCampaignCreate}
+        onChange={updateCampaignForm}
+        onToggleClass={toggleCampaignClass}
+        onSubmit={handleCreateCampaign}
+      />
     </main>
   );
 }
