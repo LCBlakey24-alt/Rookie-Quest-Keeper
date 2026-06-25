@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, Home, Info, ListChecks, Shield
 
 import { CLASS_NAMES_2014, clampLevel, getProgressionSnapshot } from '@/data/classProgressions2014';
 import { getAllClassProgressionAudits, getClassProgressionAudit, getProgressionAuditSummary } from '@/data/classProgressionAudit2014';
+import { getLevelUpProgressionPreview, getPlayerSheetProgression, getRookLevelUpSuggestions } from '@/data/playerProgressionView2014';
 import './ClassProgressionLab.css';
 
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
@@ -99,6 +100,70 @@ function AuditPanel({ audit, summary }) {
   );
 }
 
+function SheetLevelUpSplitPanel({ sheetView, levelUpPreview }) {
+  if (!sheetView) return null;
+  return (
+    <section className="progression-card progression-card--wide progression-visibility-panel">
+      <div>
+        <h2>Character page vs level-up split</h2>
+        <p>{sheetView.principle}</p>
+      </div>
+      <div className="progression-visibility-grid">
+        <article>
+          <span>Character page shows now</span>
+          <strong>{sheetView.currentFeatures.length}</strong>
+          <em>owned features up to level {sheetView.level}</em>
+          <ul>
+            <li>Current resources only: {sheetView.currentResources.length ? sheetView.currentResources.map(resource => resource.label).join(', ') : 'none tracked yet'}</li>
+            <li>Current spell slots only: {Object.keys(sheetView.currentSpellSlots || {}).length ? 'shown' : 'none'}</li>
+            <li>No future subclasses, ASIs, feats, or spells should be teased on the live sheet.</li>
+          </ul>
+        </article>
+        <article>
+          <span>Level-up owns next</span>
+          <strong>{levelUpPreview?.toLevel || '—'}</strong>
+          <em>{levelUpPreview ? `from level ${levelUpPreview.fromLevel}` : 'max level or no preview'}</em>
+          <ul>
+            <li>Next features: {levelUpPreview?.gainedFeatures?.length ? levelUpPreview.gainedFeatures.join(', ') : 'none'}</li>
+            <li>Subclass choice: {levelUpPreview?.willChooseSubclass ? 'yes' : 'not this level'}</li>
+            <li>ASI / feat choice: {levelUpPreview?.willChooseAsi ? 'yes' : 'not this level'}</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function RookSuggestionsPanel({ advice }) {
+  if (!advice) return null;
+  return (
+    <section className="progression-card progression-card--wide progression-rook-panel">
+      <div className="progression-rook-header">
+        <div>
+          <h2>Rook level-up suggestion scaffold</h2>
+          <p>{advice.summary}</p>
+        </div>
+        <span>Level {advice.fromLevel} → {advice.toLevel}</span>
+      </div>
+      {advice.backstoryReasons.length > 0 && (
+        <div className="progression-rook-reasons">
+          {advice.backstoryReasons.map(reason => <p key={reason}>Rook noticed: {reason}</p>)}
+        </div>
+      )}
+      <div className="progression-rook-grid">
+        {advice.suggestions.map(suggestion => (
+          <article key={suggestion.type}>
+            <span>{suggestion.title}</span>
+            <strong>{suggestion.options.length ? suggestion.options.join(', ') : 'No suggestion yet'}</strong>
+            <em>{suggestion.reason}</em>
+          </article>
+        ))}
+      </div>
+      <p className="progression-rook-note">This is a rules-based scaffold for testing. When wired into the real level-up flow, it should use the character’s actual backstory, notes, class, ability scores, current spells, and choices.</p>
+    </section>
+  );
+}
+
 function ClassComparisonTable({ snapshots, audits, selectedClass }) {
   const auditMap = new Map(audits.map(audit => [audit.className, audit]));
 
@@ -154,6 +219,12 @@ export default function ClassProgressionLab() {
   const snapshot = useMemo(() => getProgressionSnapshot(className, level), [className, level]);
   const audit = useMemo(() => getClassProgressionAudit(className, level), [className, level]);
   const auditSummary = useMemo(() => getProgressionAuditSummary(level), [level]);
+  const sheetView = useMemo(() => getPlayerSheetProgression(className, level), [className, level]);
+  const levelUpPreview = useMemo(() => getLevelUpProgressionPreview(className, level), [className, level]);
+  const rookAdvice = useMemo(() => getRookLevelUpSuggestions({
+    character_class: className,
+    backstory: 'A protective adventurer with secrets, old wounds, and a need to keep their friends alive.',
+  }, level), [className, level]);
   const comparisonSnapshots = useMemo(
     () => CLASS_NAMES_2014.map(name => getProgressionSnapshot(name, level)).filter(Boolean),
     [level]
@@ -167,7 +238,7 @@ export default function ClassProgressionLab() {
       <header className="progression-hero">
         <span><ListChecks size={18} /> Frontend-only progression testing</span>
         <h1>Class Progressions</h1>
-        <p>Check every 2014 class level-by-level before wiring level-up automation, rest recovery, resources, and spell slots into the live sheet.</p>
+        <p>Check every 2014 class level-by-level before wiring level-up automation, rest recovery, resources, spell slots, and Rook suggestions into the live sheet.</p>
         <div className="progression-actions">
           <Link to="/prototype"><Home size={16} /> Prototype Hub</Link>
           <Link to="/prototype-mobile"><Shield size={16} /> Class Test Lab</Link>
@@ -201,6 +272,8 @@ export default function ClassProgressionLab() {
       </section>
 
       <AuditPanel audit={audit} summary={auditSummary} />
+      <SheetLevelUpSplitPanel sheetView={sheetView} levelUpPreview={levelUpPreview} />
+      <RookSuggestionsPanel advice={rookAdvice} />
 
       <section className="progression-summary-grid">
         <article><span>Class</span><strong>{snapshot.className}</strong><em>{getCastingLabel(snapshot)}</em></article>
@@ -253,9 +326,9 @@ export default function ClassProgressionLab() {
       <section className="progression-card progression-card--wide">
         <h2>Progression audit checklist</h2>
         <ul>
-          <li>Compare class resource values against the Mobile Class Lab test character.</li>
-          <li>Check spell slots before wiring automatic short-rest or long-rest recovery.</li>
-          <li>Flag subclass-dependent cases before assuming a base class always has spells or resources.</li>
+          <li>Character pages should only show current usable class data.</li>
+          <li>Future subclasses, ASIs, feats, spells, and next-level features belong in level-up only.</li>
+          <li>Rook suggestions should be optional and based on class, current build, backstory, and available choices.</li>
           <li>Use this page as the source check before adding level-up automation to real characters.</li>
         </ul>
       </section>
