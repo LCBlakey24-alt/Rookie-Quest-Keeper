@@ -3,6 +3,7 @@ import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { deriveArmorClass, deriveWeaponAttack } from '@/data/characterCombatDerivations';
 import { ALL_ARMOR, ALL_WEAPONS } from '@/data/equipmentDatabase';
+
 const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
@@ -65,24 +66,6 @@ function getItemKey(item, index = '') {
   return `${getItemName(item).toLowerCase()}-${index}`;
 }
 
-
-function normaliseReferenceItem(item) {
-  const isArmor = ['light', 'medium', 'heavy', 'shield'].includes(String(item?.category || '').toLowerCase()) || item?.ac || item?.acBonus;
-  const isShield = String(item?.category || '').toLowerCase() === 'shield' || String(item?.name || '').toLowerCase().includes('shield');
-  const damageParts = String(item?.damage || '').match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
-  return normaliseItem({
-    name: item?.name || 'Equipment',
-    type: isShield ? 'Shield' : isArmor ? 'Armour' : 'Weapon',
-    quantity: 1,
-    description: [item?.category, Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties, item?.cost ? `Cost: ${item.cost}` : ''].filter(Boolean).join(' • '),
-    damage_dice: damageParts && !isArmor ? damageParts[1] : '',
-    damage_type: damageParts && !isArmor ? (item?.damageType || damageParts[2] || '') : '',
-    range: item?.range || '',
-    properties: Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties || '',
-    ac_bonus: 0,
-  });
-}
-
 function normaliseItem(item) {
   if (typeof item === 'string') return { name: item, type: 'Item', quantity: 1, description: '' };
   return {
@@ -104,6 +87,35 @@ function normaliseItem(item) {
       charisma: Number(item?.stat_bonuses?.charisma ?? 0) || 0,
     },
   };
+}
+
+function normaliseReferenceItem(item) {
+  const isArmor = ['light', 'medium', 'heavy', 'shield'].includes(String(item?.category || '').toLowerCase()) || item?.ac || item?.acBonus;
+  const isShield = String(item?.category || '').toLowerCase() === 'shield' || String(item?.name || '').toLowerCase().includes('shield');
+  const damageParts = String(item?.damage || '').match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
+  return normaliseItem({
+    name: item?.name || 'Equipment',
+    type: isShield ? 'Shield' : isArmor ? 'Armour' : 'Weapon',
+    quantity: 1,
+    description: [item?.category, Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties, item?.cost ? `Cost: ${item.cost}` : ''].filter(Boolean).join(' • '),
+    damage_dice: damageParts && !isArmor ? damageParts[1] : '',
+    damage_type: damageParts && !isArmor ? (item?.damageType || damageParts[2] || '') : '',
+    range: item?.range || '',
+    properties: Array.isArray(item?.properties) ? item.properties.join(', ') : item?.properties || '',
+    ac_bonus: 0,
+  });
+}
+
+function inferEquipSlot(item) {
+  if (item?.equip_slot) return item.equip_slot;
+  const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
+  if (text.includes('shield')) return 'shield';
+  if (text.includes('armour') || text.includes('armor') || text.includes('mail') || text.includes('plate') || text.includes('leather') || text.includes('scale') || text.includes('chain') || text.includes('hide')) return 'armor';
+  if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
+  if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('crossbow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger') || text.includes('spear') || text.includes('lance') || text.includes('hammer') || text.includes('rapier') || text.includes('club') || text.includes('flail') || text.includes('halberd') || text.includes('pike') || text.includes('trident') || text.includes('whip')) return 'mainHand';
+  if (item?.damage_dice) return 'mainHand';
+  if (item?.ac_bonus && !item?.attack_bonus) return 'armor';
+  return null;
 }
 
 function ItemCard({ item, slot, actions }) {
@@ -130,19 +142,6 @@ function ItemCard({ item, slot, actions }) {
   );
 }
 
-
-function inferEquipSlot(item) {
-  if (item?.equip_slot) return item.equip_slot;
-  const text = `${String(item?.type || '')} ${getItemName(item)}`.toLowerCase();
-  if (text.includes('shield')) return 'shield';
-  if (text.includes('armour') || text.includes('armor') || text.includes('mail') || text.includes('plate') || text.includes('leather') || text.includes('scale') || text.includes('chain') || text.includes('hide')) return 'armor';
-  if (text.includes('off hand') || text.includes('offhand')) return 'offHand';
-  if (text.includes('weapon') || text.includes('sword') || text.includes('bow') || text.includes('crossbow') || text.includes('axe') || text.includes('mace') || text.includes('staff') || text.includes('dagger') || text.includes('spear') || text.includes('lance') || text.includes('hammer') || text.includes('rapier') || text.includes('club') || text.includes('flail') || text.includes('halberd') || text.includes('pike') || text.includes('trident') || text.includes('whip')) return 'mainHand';
-  if (item?.damage_dice) return 'mainHand';
-  if (item?.ac_bonus && !item?.attack_bonus) return 'armor';
-  return null;
-}
-
 function CurrencyBlock({ currency = {}, gold }) {
   const values = {
     cp: currency.copper ?? currency.cp ?? 0,
@@ -164,18 +163,20 @@ function CurrencyBlock({ currency = {}, gold }) {
   );
 }
 
-export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll }) {
+export default function CleanInventoryTab({ character, onCharacterUpdate }) {
   const [savingSlot, setSavingSlot] = useState('');
   const [savingItems, setSavingItems] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
   const [itemSearch, setItemSearch] = useState('');
+  const [equipmentSearch, setEquipmentSearch] = useState('');
+  const [equipmentTypeFilter, setEquipmentTypeFilter] = useState('all');
+  const [selectedReferenceKey, setSelectedReferenceKey] = useState('');
 
   const equipped = character?.equipped || {};
   const equipment = character?.equipment || [];
   const inventory = character?.inventory || [];
   const allCarriedItems = [...equipment, ...inventory];
-  const [recomputingEffects, setRecomputingEffects] = useState(false);
 
   const favoriteItems = useMemo(() => allCarriedItems.filter(isFavorite), [allCarriedItems]);
   const consumables = useMemo(() => allCarriedItems.filter(isConsumableLike), [allCarriedItems]);
@@ -192,6 +193,28 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
       .filter(item => `${item.name} ${item.category || ''} ${item.damage || ''}`.toLowerCase().includes(q))
       .slice(0, 6);
   }, [itemSearch]);
+
+  const referenceCatalog = useMemo(() => ([
+    ...ALL_WEAPONS.map(item => ({ key: `weapon-${item.id || item.name}`, kind: 'weapon', label: item.name, item })),
+    ...ALL_ARMOR.map(item => ({ key: `${String(item.category || 'armor') === 'shield' ? 'shield' : 'armor'}-${item.id || item.name}`, kind: String(item.category || '').toLowerCase() === 'shield' ? 'shield' : 'armor', label: item.name, item })),
+  ]), []);
+
+  const filteredReferenceCatalog = useMemo(() => {
+    const q = equipmentSearch.trim().toLowerCase();
+    return referenceCatalog
+      .filter(entry => equipmentTypeFilter === 'all' || entry.kind === equipmentTypeFilter)
+      .filter(entry => !q || `${entry.label} ${entry.kind} ${entry.item?.category || ''} ${entry.item?.damage || ''}`.toLowerCase().includes(q))
+      .slice(0, 80);
+  }, [equipmentSearch, equipmentTypeFilter, referenceCatalog]);
+
+  const selectedReferenceEntry = useMemo(() => referenceCatalog.find(entry => entry.key === selectedReferenceKey) || null, [referenceCatalog, selectedReferenceKey]);
+  const selectedReference = selectedReferenceEntry?.item || null;
+  const selectedReferenceItem = selectedReference ? normaliseReferenceItem(selectedReference) : null;
+  const selectedReferenceSlot = selectedReferenceItem ? inferEquipSlot(selectedReferenceItem) : null;
+  const selectedReferenceAttack = selectedReferenceItem && selectedReferenceSlot === 'mainHand' ? deriveWeaponAttack(selectedReferenceItem, character, Number(character?.proficiency_bonus) || 2) : null;
+  const selectedReferenceAc = selectedReferenceItem && ['armor', 'shield'].includes(selectedReferenceSlot)
+    ? deriveArmorClass({ ...character, equipped: { ...equipped, [selectedReferenceSlot]: selectedReferenceItem } }, { ignoreStoredAc: true })
+    : null;
 
   const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
 
@@ -398,11 +421,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
         </section>
       )}
 
-      <section className="clean-sheet-panel">
-        <h2>Currency</h2>
-        <CurrencyBlock currency={character?.currency || {}} gold={character?.gold} />
-      </section>
-
+      <section className="clean-sheet-panel"><h2>Currency</h2><CurrencyBlock currency={character?.currency || {}} gold={character?.gold} /></section>
       <section className="clean-sheet-panel">
         <h2>Active Item Effects</h2>
         <div className="clean-sheet-currency-grid">
@@ -417,29 +436,11 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
         </div>
       </section>
 
-      {favoriteItems.length > 0 && (
-        <section className="clean-sheet-panel clean-sheet-wide">
-          <h2>Favourite Items</h2>
-          <div className="clean-sheet-item-grid">
-            {favoriteItems.map((item, index) => <ItemCard key={getItemKey(item, index)} item={item} />)}
-          </div>
-        </section>
-      )}
-
-      {consumables.length > 0 && (
-        <section className="clean-sheet-panel clean-sheet-wide">
-          <h2>Consumables</h2>
-          <div className="clean-sheet-item-grid">
-            {consumables.map((item, index) => <ItemCard key={getItemKey(item, index)} item={item} />)}
-          </div>
-        </section>
-      )}
+      {favoriteItems.length > 0 && <section className="clean-sheet-panel clean-sheet-wide"><h2>Favourite Items</h2><div className="clean-sheet-item-grid">{favoriteItems.map((item, index) => <ItemCard key={getItemKey(item, index)} item={item} />)}</div></section>}
+      {consumables.length > 0 && <section className="clean-sheet-panel clean-sheet-wide"><h2>Consumables</h2><div className="clean-sheet-item-grid">{consumables.map((item, index) => <ItemCard key={getItemKey(item, index)} item={item} />)}</div></section>}
 
       <section className="clean-sheet-panel clean-sheet-wide">
-        <div className="clean-sheet-inventory-header">
-          <h2>Add Equipment from List</h2>
-          <span style={{ fontSize: 12, color: 'var(--cs-text-soft)' }}>Pick a weapon, armour, or shield and add it straight to this character.</span>
-        </div>
+        <div className="clean-sheet-inventory-header"><h2>Add Equipment from List</h2><span style={{ fontSize: 12, color: 'var(--cs-text-soft)' }}>Pick a weapon, armour, or shield and add it straight to this character.</span></div>
         <div className="clean-sheet-equipment-tools">
           <input value={equipmentSearch} onChange={event => setEquipmentSearch(event.target.value)} placeholder="Search weapons, armour, shields…" />
           <select value={equipmentTypeFilter} onChange={event => setEquipmentTypeFilter(event.target.value)} aria-label="Filter equipment type">
@@ -459,25 +460,14 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
         </div>
         {selectedReferenceItem && (
           <div className="clean-sheet-equipment-preview">
-            <div>
-              <span>Selected</span>
-              <strong>{selectedReferenceItem.name}</strong>
-              <em>{selectedReferenceItem.description || selectedReferenceEntry?.kind}</em>
-            </div>
-            <div>
-              <span>Will use</span>
-              <strong>{selectedReferenceSlot ? (EQUIP_SLOTS.find(([slot]) => slot === selectedReferenceSlot)?.[1] || selectedReferenceSlot) : 'Inventory only'}</strong>
-              <em>{selectedReferenceAttack ? `${selectedReferenceAttack.attackText} to hit • ${selectedReferenceAttack.damageText} ${selectedReferenceAttack.damageType}` : selectedReferenceAc ? `AC becomes ${selectedReferenceAc}` : 'No slot detected'}</em>
-            </div>
+            <div><span>Selected</span><strong>{selectedReferenceItem.name}</strong><em>{selectedReferenceItem.description || selectedReferenceEntry?.kind}</em></div>
+            <div><span>Will use</span><strong>{selectedReferenceSlot ? (EQUIP_SLOTS.find(([slot]) => slot === selectedReferenceSlot)?.[1] || selectedReferenceSlot) : 'Inventory only'}</strong><em>{selectedReferenceAttack ? `${selectedReferenceAttack.attackText} to hit • ${selectedReferenceAttack.damageText} ${selectedReferenceAttack.damageType}` : selectedReferenceAc ? `AC becomes ${selectedReferenceAc}` : 'No slot detected'}</em></div>
           </div>
         )}
       </section>
 
       <section className="clean-sheet-panel clean-sheet-wide">
-        <div className="clean-sheet-inventory-header">
-          <h2>Carried Items</h2>
-          <input value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder="Search items…" />
-        </div>
+        <div className="clean-sheet-inventory-header"><h2>Carried Items</h2><input value={itemSearch} onChange={e => setItemSearch(e.target.value)} placeholder="Search items…" /></div>
         {referenceMatches.length > 0 && (
           <div className="clean-sheet-reference-match-grid">
             {referenceMatches.map(item => {
@@ -501,30 +491,16 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
                 item={item}
                 actions={(
                   <>
-                    {inferEquipSlot(item) && (
-                      <button type="button" onClick={() => equipItem(inferEquipSlot(item), item)} disabled={savingSlot === inferEquipSlot(item)}>
-                        Quick Equip {EQUIP_SLOTS.find(([s]) => s === inferEquipSlot(item))?.[1] || ''}
-                      </button>
-                    )}
-                    {item?.attunement_required && (
-                      <button type="button" onClick={() => updateInventoryItem(item, index, { attuned: !item?.attuned })} disabled={savingItems}>
-                        {item?.attuned ? 'Unattune' : 'Attune'}
-                      </button>
-                    )}
-                    {EQUIP_SLOTS.map(([slot, label]) => (
-                      <button key={slot} type="button" onClick={() => equipItem(slot, item)} disabled={savingSlot === slot}>
-                        Set {label}
-                      </button>
-                    ))}
+                    {inferEquipSlot(item) && <button type="button" onClick={() => equipItem(inferEquipSlot(item), item)} disabled={savingSlot === inferEquipSlot(item)}>Quick Equip {EQUIP_SLOTS.find(([s]) => s === inferEquipSlot(item))?.[1] || ''}</button>}
+                    {item?.attunement_required && <button type="button" onClick={() => updateInventoryItem(item, index, { attuned: !item?.attuned })} disabled={savingItems}>{item?.attuned ? 'Unattune' : 'Attune'}</button>}
+                    {EQUIP_SLOTS.map(([slot, label]) => <button key={slot} type="button" onClick={() => equipItem(slot, item)} disabled={savingSlot === slot}>Set {label}</button>)}
                     {quantityActions(item, index)}
                   </>
                 )}
               />
             ))}
           </div>
-        ) : (
-          <p className="clean-sheet-muted">No carried items found yet.</p>
-        )}
+        ) : <p className="clean-sheet-muted">No carried items found yet.</p>}
       </section>
     </div>
   );
