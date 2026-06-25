@@ -1,0 +1,40 @@
+.rq-dashboard-minimal,
+.rq-dashboard-minimal * {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  text-shadow: none !important;
+}
+
+.rq-dashboard-minimal {
+  background: #070814 !important;
+  background-image: none !important;
+  color: #f6ead2 !important;
+}
+
+.rq-dashboard-minimal [data-testid="latest-updates-panel"],
+.rq-dashboard-minimal [data-testid="latest-updates-panel"] *,
+.rq-dashboard-minimal button,
+.rq-dashboard-minimal section,
+.rq-dashboard-minimal article,
+.rq-dashboard-minimal div {
+  background-image: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.rq-dashboard-minimal [data-testid="latest-updates-panel"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+  padding: 12px 0 !important;
+  margin: 0 0 12px !important;
+}
+
+.rq-dashboard-minimal [data-testid="latest-updates-panel"] button,
+.rq-dashboard-minimal button {
+  background: transparent !important;
+  border-color: rgba(216, 173, 79, 0.28) !important;
+}
+
+.rq-dashboard-minimal svg {
+  flex-shrink: 0;
+}
