@@ -1,0 +1,131 @@
+.character-page-v2 {
+  background: #070814 !important;
+  background-image: none !important;
+  color: #f6ead2 !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.character-page-v2 h1,
+.character-page-v2 h2,
+.character-page-v2 h3,
+.character-page-v2 button,
+.character-page-v2 input,
+.character-page-v2 textarea,
+.character-page-v2 select {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  text-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-stat-card,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-empty,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-tabs,
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-list div,
+.character-page-v2 .clean-sheet-skills div,
+.character-page-v2 .clean-sheet-passives div,
+.character-page-v2 .clean-sheet-hitdice-row,
+.character-page-v2 .clean-sheet-roll-controls,
+.character-page-v2 .clean-sheet-death-saves,
+.character-page-v2 .rq-health-arc__stage,
+.character-page-v2 .rq-hp-action-panel {
+  background: transparent !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-hp-card,
+.character-page-v2 .clean-sheet-stat-card,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-empty,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-item-card {
+  border: 0 !important;
+  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+}
+
+.character-page-v2 .clean-sheet-back,
+.character-page-v2 .clean-sheet-edit,
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-tabs button,
+.character-page-v2 .rq-hp-action-button,
+.character-page-v2 .clean-sheet-inspiration,
+.character-page-v2 .clean-sheet-rest-button,
+.character-page-v2 .clean-sheet-condition-toggle,
+.character-page-v2 .clean-sheet-roll-history-toggle {
+  background: transparent !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-color: rgba(216, 173, 79, 0.28) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active {
+  background: #d8ad4f !important;
+  background-image: none !important;
+  color: #070814 !important;
+}
+
+.character-page-v2 .clean-sheet-portrait,
+.character-page-v2 input,
+.character-page-v2 textarea,
+.character-page-v2 select,
+.character-page-v2 .number-wheel-picker,
+.character-page-v2 .number-wheel-picker__frame,
+.character-page-v2 .number-wheel-picker__item,
+.character-page-v2 .clean-sheet-condition-chip,
+.character-page-v2 .clean-sheet-spell-level {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  .character-page-v2 {
+    padding-left: 62px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    position: fixed !important;
+    left: 8px !important;
+    top: 112px !important;
+    z-index: 50 !important;
+    width: 44px !important;
+    max-width: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-auto-flow: row !important;
+    gap: 6px !important;
+    overflow: visible !important;
+    border: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button span {
+    display: none !important;
+  }
+}
