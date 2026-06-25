@@ -1,5 +1,20 @@
 export const LATEST_UPDATES = [
   {
+    id: 'rest-recovery-controls-2026-06-24',
+    date: '2026-06-24',
+    badge: 'Improved',
+    category: 'Character Sheet',
+    title: 'Rest and recovery controls grouped together',
+    summary: 'Short Rest, Long Rest, and Hit Dice now sit together as one recovery area instead of being split across the HP controls.',
+    details: [
+      'Added a dedicated Recovery panel on the player sheet.',
+      'Grouped Use Hit Die, Short Rest, and Long Rest together so rest actions are easier to find at the table.',
+      'Improved the Hit Dice display to show remaining dice, total dice, and die size more clearly.',
+      'Kept Short Rest from automatically healing HP; healing remains tied to spending Hit Dice.',
+    ],
+    public: true,
+  },
+  {
     id: 'gm-command-centre-polish-2026-06-24',
     date: '2026-06-24',
     badge: 'Improved',
