@@ -33,6 +33,8 @@
 .character-page-v2 .clean-sheet-empty,
 .character-page-v2 .clean-sheet-mobile-tools,
 .character-page-v2 .clean-sheet-tabs,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-ability,
 .character-page-v2 .clean-sheet-save-card,
 .character-page-v2 .clean-sheet-skill-card,
@@ -62,6 +64,7 @@
 .character-page-v2 .clean-sheet-panel,
 .character-page-v2 .clean-sheet-empty,
 .character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-compact-status,
 .character-page-v2 .clean-sheet-ability,
 .character-page-v2 .clean-sheet-save-card,
 .character-page-v2 .clean-sheet-skill-card,
@@ -73,6 +76,72 @@
 .character-page-v2 .clean-sheet-passives div {
   border: 0 !important;
   border-top: 1px solid var(--rq-line, rgba(255, 255, 255, 0.16)) !important;
+}
+
+.character-page-v2 .clean-sheet-compact-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(52px, 0.45fr) minmax(70px, 0.55fr) minmax(0, 1.5fr);
+  align-items: stretch;
+  gap: 0;
+  margin: 8px 0 10px;
+}
+
+.character-page-v2 .clean-sheet-compact-stat {
+  min-width: 0;
+  padding: 7px 8px 7px 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.character-page-v2 .clean-sheet-compact-stat span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.character-page-v2 .clean-sheet-compact-stat strong {
+  color: var(--rq-text, #ffffff) !important;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.character-page-v2 .clean-sheet-compact-stat em {
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.character-page-v2 .clean-sheet-compact-hp-actions {
+  display: grid;
+  grid-template-columns: 48px 1fr 1fr;
+  gap: 4px;
+  align-items: center;
+  padding: 7px 0;
+}
+
+.character-page-v2 .clean-sheet-compact-hp-actions input {
+  min-width: 0;
+  height: 34px;
+  text-align: center;
+  border: 0 !important;
+  background: var(--rq-surface, #3a3a3a) !important;
+  color: var(--rq-text, #ffffff) !important;
+  padding: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-compact-hp-actions button {
+  min-height: 34px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 8px !important;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .character-page-v2 .clean-sheet-back,
@@ -170,7 +239,26 @@
 
 @media (max-width: 760px) {
   .character-page-v2 {
-    padding-left: 62px !important;
+    padding-left: 58px !important;
+  }
+
+  .character-page-v2 .clean-sheet-compact-status {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 6px;
+  }
+
+  .character-page-v2 .clean-sheet-compact-hp-actions {
+    grid-column: 1 / -1;
+    grid-template-columns: 54px 1fr 1fr;
+    padding-top: 4px;
+  }
+
+  .character-page-v2 .clean-sheet-compact-stat {
+    padding: 6px 6px 6px 0;
+  }
+
+  .character-page-v2 .clean-sheet-compact-stat strong {
+    font-size: 16px;
   }
 
   .character-page-v2 .clean-sheet-tabs {
