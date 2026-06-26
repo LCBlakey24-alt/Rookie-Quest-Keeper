@@ -1,24 +1,24 @@
 export const levelUpTheme = {
   bg: {
-    primary: 'var(--rq-bg-main)',
-    surface: 'var(--rq-bg-panel)',
-    elevated: 'var(--rq-bg-elevated)',
-    panel: 'var(--rq-bg-panel)'
+    primary: 'var(--rq-bg, #070814)',
+    surface: 'transparent',
+    elevated: 'transparent',
+    panel: 'var(--rq-bg, #070814)'
   },
   text: {
-    primary: 'var(--rq-text-primary)',
-    secondary: 'var(--rq-text-secondary)',
-    muted: 'var(--rq-text-muted)'
+    primary: 'var(--rq-text, #f6ead2)',
+    secondary: 'var(--rq-muted, rgba(246, 234, 210, 0.64))',
+    muted: 'var(--rq-muted, rgba(246, 234, 210, 0.64))'
   },
-  border: 'var(--rq-border-default)',
-  borderStrong: 'var(--rq-accent-border)',
+  border: 'transparent',
+  borderStrong: 'transparent',
   sunset: {
-    purple: 'var(--rq-accent-active)',
-    pink: 'var(--rq-accent-primary)',
-    gold: 'var(--rq-accent-hover)'
+    purple: 'var(--rq-primary, #d8ad4f)',
+    pink: 'var(--rq-primary, #d8ad4f)',
+    gold: 'var(--rq-primary, #d8ad4f)'
   },
-  success: 'var(--rq-success)',
-  warning: 'var(--rq-warning)',
-  danger: 'var(--rq-danger)',
-  gradient: 'linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-active))'
+  success: 'var(--rq-heal, #1f9d66)',
+  warning: 'var(--rq-primary, #d8ad4f)',
+  danger: 'var(--rq-damage, #c24141)',
+  gradient: 'var(--rq-primary, #d8ad4f)'
 };
