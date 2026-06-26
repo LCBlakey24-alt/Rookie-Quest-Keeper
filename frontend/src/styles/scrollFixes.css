@@ -1,0 +1,54 @@
+/* Global scroll fixes
+   Keeps pages scrollable with laptop trackpads, mouse wheels, and touch gestures.
+   This is intentionally loaded last so it can override older nested-layout rules. */
+
+html,
+body,
+#root {
+  height: auto !important;
+  min-height: 100% !important;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  scroll-behavior: auto;
+}
+
+body {
+  min-height: 100dvh !important;
+  overscroll-behavior: auto !important;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.App {
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+/* Some app pages used a fixed/nested scroll layout. That can make two-finger
+   trackpad scrolling feel broken unless the pointer is over the exact inner panel.
+   Let the browser/body handle the main vertical scroll instead. */
+body main[style*="overflow-y: auto"],
+body main[style*="overflowY: auto"] {
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body div[style*="display: flex"][style*="overflow: hidden"][style*="position: relative"] {
+  overflow: visible !important;
+}
+
+/* Sidebars and horizontal scrollers should still scroll inside themselves. */
+.sidebar,
+.rq-scroll-x,
+[role="dialog"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+textarea,
+select,
+input {
+  touch-action: auto;
+}
