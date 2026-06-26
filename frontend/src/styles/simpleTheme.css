@@ -9,6 +9,9 @@
   --rq-primary: #d8ad4f;
   --rq-text: #f6ead2;
   --rq-muted: rgba(246, 234, 210, 0.64);
+  --rq-heal: #1f9d66;
+  --rq-damage: #c24141;
+  --rq-temp: #2b8fbf;
   --rq-title-font: 'Metal Mania', 'Cinzel Decorative', Georgia, serif;
   --rq-body-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -228,4 +231,31 @@ select {
 
 #root .number-wheel-picker__selection {
   display: none !important;
+}
+
+#root .rq-hp-action-button--plus,
+#root .rq-hp-action-button--temp-plus,
+#root button[aria-label*='heal' i],
+#root button[aria-label*='healing' i],
+#root button[title*='heal' i],
+#root button[title*='healing' i] {
+  background: var(--rq-heal) !important;
+  border-color: var(--rq-heal) !important;
+  color: #ffffff !important;
+}
+
+#root .rq-hp-action-button--minus,
+#root .rq-hp-action-button--temp-minus,
+#root button[aria-label*='damage' i],
+#root button[title*='damage' i] {
+  background: var(--rq-damage) !important;
+  border-color: var(--rq-damage) !important;
+  color: #ffffff !important;
+}
+
+#root .rq-hp-action-button--dice,
+#root .rq-hp-action-button--rest {
+  border-color: var(--rq-primary) !important;
+  color: var(--rq-text) !important;
+  background: transparent !important;
 }
