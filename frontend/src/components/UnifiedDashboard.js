@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import LatestUpdatesPanel from '@/components/LatestUpdatesPanel';
-import { DesktopDashboard, MobileDashboardTabs } from '@/components/dashboard/DashboardActionCards';
+import { DashboardWorkspace } from '@/components/dashboard/DashboardActionCards';
 import CreateCampaignModal from '@/components/dashboard/CreateCampaignModal';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLoading from '@/components/dashboard/DashboardLoading';
@@ -23,8 +22,6 @@ export default function UnifiedDashboard({ username, onLogout }) {
     refreshing,
     isAdmin,
     smallScreen,
-    mobileTab,
-    setMobileTab,
     recentCharacters,
     recentCampaigns,
     loadDashboard,
@@ -51,6 +48,7 @@ export default function UnifiedDashboard({ username, onLogout }) {
     recentCampaigns,
     siteSettings,
     isAdmin,
+    smallScreen,
     navigate,
     createCharacter,
     openCampaignCreate,
@@ -67,17 +65,7 @@ export default function UnifiedDashboard({ username, onLogout }) {
         onLogout={onLogout}
       />
 
-      {smallScreen ? (
-        <MobileDashboardTabs
-          {...dashboardProps}
-          tab={mobileTab}
-          setTab={setMobileTab}
-        />
-      ) : (
-        <DesktopDashboard {...dashboardProps} />
-      )}
-
-      <LatestUpdatesPanel limit={smallScreen ? 2 : 3} />
+      <DashboardWorkspace {...dashboardProps} />
 
       {slowLoad && <DashboardNotice />}
 
