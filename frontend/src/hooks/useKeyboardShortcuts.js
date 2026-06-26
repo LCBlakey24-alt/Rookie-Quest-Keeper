@@ -1,8 +1,8 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 /**
  * Global keyboard shortcuts for ROOK
- * 
+ *
  * Shortcuts:
  * - R: Toggle dice roller
  * - N: Quick note (when in campaign)
@@ -17,26 +17,24 @@ export function useKeyboardShortcuts({
   onShowHelp,
   onEscape,
   enabled = true
-}) {
+} = {}) {
+  const [openModal, setOpenModal] = useState(false);
+
   const handleKeyDown = useCallback((event) => {
-    // Don't trigger shortcuts when typing in inputs
     const target = event.target;
-    const isTyping = target.tagName === 'INPUT' || 
-                     target.tagName === 'TEXTAREA' || 
+    const isTyping = target.tagName === 'INPUT' ||
+                     target.tagName === 'TEXTAREA' ||
                      target.isContentEditable;
-    
-    // Allow Escape even when typing
+
     if (event.key === 'Escape') {
       onEscape?.();
+      setOpenModal(false);
       return;
     }
-    
-    // Don't trigger other shortcuts when typing
+
     if (isTyping) return;
-    
-    // Don't trigger if modifier keys are pressed (except for ?)
     if (event.ctrlKey || event.altKey || event.metaKey) return;
-    
+
     switch (event.key.toLowerCase()) {
       case 'r':
         event.preventDefault();
@@ -52,7 +50,11 @@ export function useKeyboardShortcuts({
         break;
       case '?':
         event.preventDefault();
-        onShowHelp?.();
+        if (onShowHelp) {
+          onShowHelp();
+        } else {
+          setOpenModal(true);
+        }
         break;
       default:
         break;
@@ -60,11 +62,16 @@ export function useKeyboardShortcuts({
   }, [onToggleDice, onQuickNote, onFocusSearch, onShowHelp, onEscape]);
 
   useEffect(() => {
-    if (!enabled) return;
-    
+    if (!enabled) return undefined;
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown, enabled]);
+
+  return {
+    openModal,
+    setOpenModal,
+  };
 }
 
 export default useKeyboardShortcuts;
