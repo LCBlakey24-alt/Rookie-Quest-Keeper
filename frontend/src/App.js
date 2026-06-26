@@ -31,8 +31,6 @@ import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
-import { KeyboardShortcutsModal } from '@/components/KeyboardShortcuts';
-import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
@@ -91,7 +89,6 @@ function ThemeRouter() {
 function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
   const [username, setUsername] = useState(() => localStorage.getItem(AUTH_USERNAME_KEY) || '');
-  const { openModal } = useKeyboardShortcuts();
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     setAuthToken(token);
@@ -150,7 +147,6 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <GlobalFeedbackButton />
-      <KeyboardShortcutsModal open={openModal} onOpenChange={() => {}} />
     </>
   );
 }
