@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
+
+const initialCampaignForm = {
+  name: '',
+  world_name: '',
+  description: '',
+  rules_edition: '2024',
+};
 
 function safeArray(value) {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
@@ -31,6 +39,9 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   const navigate = useNavigate();
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
+  const [creatingCampaign, setCreatingCampaign] = useState(false);
   const {
     characters,
     campaigns,
@@ -72,9 +83,56 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     await Promise.allSettled([loadDashboard(), checkBackend()]);
   };
 
+  const openCreateCampaign = () => setShowCreateCampaign(true);
+  const closeCreateCampaign = () => {
+    if (!creatingCampaign) setShowCreateCampaign(false);
+  };
+
+  const updateCampaignForm = (field, value) => {
+    setCampaignForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateCampaign = async (event) => {
+    event.preventDefault();
+    const campaignName = campaignForm.name.trim();
+    if (!campaignName) {
+      toast.error('Campaign name is required');
+      return;
+    }
+
+    try {
+      setCreatingCampaign(true);
+      const payload = {
+        name: campaignName,
+        description: campaignForm.description.trim(),
+        world_name: campaignForm.world_name.trim(),
+        rules_edition: campaignForm.rules_edition,
+        system: campaignForm.rules_edition === '2024' ? '5e 2024 Compatible' : '5e 2014 Compatible',
+        world_genre: 'fantasy',
+        world_setting: 'custom',
+        world_setting_notes: '',
+        allow_exploding_dice: false,
+        allow_epic_levels: false,
+        max_character_level: 20,
+        available_classes: [],
+      };
+      const response = await apiClient.post('/campaigns', payload);
+      const campaignId = response.data?.id || response.data?._id;
+      toast.success('Campaign created');
+      setCampaignForm(initialCampaignForm);
+      setShowCreateCampaign(false);
+      await loadDashboard();
+      if (campaignId) navigate(`/campaign/${campaignId}`);
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to create campaign');
+    } finally {
+      setCreatingCampaign(false);
+    }
+  };
+
   const openPrimaryCampaign = () => {
     if (primaryCampaign?.id) navigate(`/campaign/${primaryCampaign.id}`);
-    else refreshEverything();
+    else openCreateCampaign();
   };
 
   if (loading) {
@@ -125,9 +183,9 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         />
         <ContinuePanel
           label="GM workspace"
-          title={primaryCampaign ? campaignTitle(primaryCampaign) : 'No campaign yet'}
-          text={primaryCampaign ? campaignMeta(primaryCampaign) : 'Campaign tools are being rebuilt safely after the crash fix.'}
-          action={primaryCampaign ? 'Open Campaign' : 'Refresh'}
+          title={primaryCampaign ? campaignTitle(primaryCampaign) : 'Create your first campaign'}
+          text={primaryCampaign ? campaignMeta(primaryCampaign) : 'Start a campaign space for prep, players, homebrew, notes, and sessions.'}
+          action={primaryCampaign ? 'Open Campaign' : 'Create Campaign'}
           onClick={openPrimaryCampaign}
         />
       </section>
@@ -142,7 +200,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         <ActionCard
           title="Create Character"
           text="Start a new character using the builder flow."
-          meta="Ready"
+          meta="Player setup"
           onClick={() => navigate('/characters/new')}
         />
         <ActionCard
@@ -150,6 +208,12 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           text="Open your latest campaign space."
           meta={`${safeCampaigns.length} campaign${safeCampaigns.length === 1 ? '' : 's'}`}
           onClick={openPrimaryCampaign}
+        />
+        <ActionCard
+          title="Create Campaign"
+          text="Set up a campaign, world name, rules edition, and GM workspace."
+          meta="GM setup"
+          onClick={openCreateCampaign}
         />
       </section>
 
@@ -165,7 +229,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           ))}
         </SummaryPanel>
 
-        <SummaryPanel title="GM Campaigns" emptyText="No campaigns yet. Campaign creation tools are coming back after this stability pass." actionLabel="Refresh Campaigns" onAction={refreshEverything}>
+        <SummaryPanel title="GM Campaigns" emptyText="No campaigns yet. Create one to start preparing sessions." actionLabel="Create Campaign" onAction={openCreateCampaign}>
           {latestCampaigns.map((campaign, index) => (
             <ListButton
               key={campaign?.id || `campaign-${index}`}
@@ -184,6 +248,16 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </div>
         <button type="button" onClick={checkBackend} style={linkButtonStyle}><span>Check backend</span></button>
       </section>
+
+      {showCreateCampaign && (
+        <CreateCampaignDialog
+          form={campaignForm}
+          creating={creatingCampaign}
+          onChange={updateCampaignForm}
+          onSubmit={handleCreateCampaign}
+          onClose={closeCreateCampaign}
+        />
+      )}
     </main>
   );
 }
@@ -262,6 +336,52 @@ function ListButton({ title, meta, onClick }) {
       </span>
       <span style={arrowStyle} aria-hidden="true">›</span>
     </button>
+  );
+}
+
+function CreateCampaignDialog({ form, creating, onChange, onSubmit, onClose }) {
+  return (
+    <div style={modalOverlayStyle} role="presentation">
+      <section style={modalPanelStyle} role="dialog" aria-modal="true" aria-labelledby="create-campaign-title">
+        <div style={modalHeaderStyle}>
+          <div>
+            <p style={eyebrowStyle}>GM setup</p>
+            <h2 id="create-campaign-title" style={modalTitleStyle}>Create Campaign</h2>
+          </div>
+          <button type="button" onClick={onClose} disabled={creating} style={closeButtonStyle} aria-label="Close create campaign"><span>×</span></button>
+        </div>
+
+        <form onSubmit={onSubmit} style={modalFormStyle}>
+          <CampaignField label="Campaign name" value={form.name} onChange={(value) => onChange('name', value)} placeholder="Tia Karta" required />
+          <CampaignField label="World name" value={form.world_name} onChange={(value) => onChange('world_name', value)} placeholder="Optional" />
+          <label style={fieldWrapStyle}>
+            <span style={fieldLabelStyle}>Rules edition</span>
+            <select value={form.rules_edition} onChange={(event) => onChange('rules_edition', event.target.value)} style={fieldInputStyle}>
+              <option value="2024">5e 2024 Compatible</option>
+              <option value="2014">5e 2014 Compatible</option>
+            </select>
+          </label>
+          <label style={fieldWrapStyle}>
+            <span style={fieldLabelStyle}>Campaign notes</span>
+            <textarea value={form.description} onChange={(event) => onChange('description', event.target.value)} placeholder="What is this campaign about?" style={{ ...fieldInputStyle, minHeight: 92, paddingTop: 11, resize: 'vertical' }} />
+          </label>
+
+          <div style={modalActionsStyle}>
+            <button type="button" onClick={onClose} disabled={creating} style={buttonStyle}><span>Cancel</span></button>
+            <button type="submit" disabled={creating} style={continueButtonStyle}><span>{creating ? 'Creating...' : 'Create Campaign'}</span></button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function CampaignField({ label, value, onChange, placeholder, required = false }) {
+  return (
+    <label style={fieldWrapStyle}>
+      <span style={fieldLabelStyle}>{label}</span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} style={fieldInputStyle} />
+    </label>
   );
 }
 
@@ -393,3 +513,34 @@ const listButtonStyle = { width: '100%', display: 'flex', justifyContent: 'space
 const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
 const systemPanelStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' };
 const loadingStyle = { width: 'min(520px, 100%)', margin: '12vh auto 0', display: 'grid', justifyItems: 'center', gap: 10, textAlign: 'center' };
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 80,
+  background: 'rgba(0,0,0,0.72)',
+  display: 'grid',
+  placeItems: 'center',
+  padding: 16,
+};
+
+const modalPanelStyle = {
+  width: 'min(560px, 100%)',
+  maxHeight: 'min(90dvh, 720px)',
+  overflowY: 'auto',
+  background: 'var(--rq-bg, #242424)',
+  border: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
+  borderRadius: 0,
+  padding: 18,
+  boxShadow: 'none',
+  color: '#ffffff',
+};
+
+const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingBottom: 12, marginBottom: 14 };
+const modalTitleStyle = { ...continueTitleStyle, fontSize: 28 };
+const closeButtonStyle = { width: 40, height: 40, border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', fontSize: 26, lineHeight: 1, cursor: 'pointer' };
+const modalFormStyle = { display: 'grid', gap: 12 };
+const fieldWrapStyle = { display: 'grid', gap: 6 };
+const fieldLabelStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: fontStack };
+const fieldInputStyle = { width: '100%', minHeight: 44, border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', padding: '0 11px', fontFamily: fontStack, fontSize: 15, outline: 'none' };
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, marginTop: 4 };
