@@ -1,24 +1,24 @@
 export const levelUpTheme = {
   bg: {
-    primary: 'var(--rq-bg, #070814)',
+    primary: 'var(--rq-bg, #303030)',
     surface: 'transparent',
     elevated: 'transparent',
-    panel: 'var(--rq-bg, #070814)'
+    panel: 'var(--rq-bg, #303030)'
   },
   text: {
-    primary: 'var(--rq-text, #f6ead2)',
-    secondary: 'var(--rq-muted, rgba(246, 234, 210, 0.64))',
-    muted: 'var(--rq-muted, rgba(246, 234, 210, 0.64))'
+    primary: 'var(--rq-text, #ffffff)',
+    secondary: 'var(--rq-muted, rgba(255, 255, 255, 0.68))',
+    muted: 'var(--rq-muted, rgba(255, 255, 255, 0.68))'
   },
   border: 'transparent',
   borderStrong: 'transparent',
   sunset: {
-    purple: 'var(--rq-primary, #d8ad4f)',
-    pink: 'var(--rq-primary, #d8ad4f)',
-    gold: 'var(--rq-primary, #d8ad4f)'
+    purple: 'var(--rq-primary, #d00000)',
+    pink: 'var(--rq-primary, #d00000)',
+    gold: 'var(--rq-primary, #d00000)'
   },
   success: 'var(--rq-heal, #1f9d66)',
-  warning: 'var(--rq-primary, #d8ad4f)',
-  danger: 'var(--rq-damage, #c24141)',
-  gradient: 'var(--rq-primary, #d8ad4f)'
+  warning: 'var(--rq-primary, #d00000)',
+  danger: 'var(--rq-damage, #d00000)',
+  gradient: 'var(--rq-primary, #d00000)'
 };
