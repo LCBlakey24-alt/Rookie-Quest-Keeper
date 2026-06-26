@@ -71,6 +71,39 @@ const gmList = [
   'Build towards a shared table hub instead of separate sheets, files, and chats.',
 ];
 
+const playerSide = [
+  'A play-focused character sheet that keeps stats, actions, spells, inventory, features, and notes separated into clear sections.',
+  'Quick access to HP, temp HP, AC, speed, conditions, rests, dice rolls, actions, bonus actions, and reactions.',
+  'Spell and inventory management that helps players organise what they know, what they have prepared, and what they are carrying.',
+  'A structure that helps newer players understand their options without forcing experienced players through a childish interface.',
+];
+
+const gmSide = [
+  'Campaign spaces for prep, notes, homebrew, table tools, feedback, and future live-session control.',
+  'A GM direction built around sending items, equipment, rewards, and secrets to players without stopping the game.',
+  'Location and world tools planned around tracking places, distance between locations, travel notes, and campaign movement.',
+  'Homebrew support for custom items, equipment, rules, and campaign-specific content that can link into player sheets.',
+];
+
+const tableFlowRoadmap = [
+  {
+    title: 'Send items in a few clicks',
+    text: 'The goal is for GMs to create or choose an item and send it straight to a player sheet without leaving the flow of the session.',
+  },
+  {
+    title: 'Secrets shared cleanly',
+    text: 'Private clues, whispers, hidden notes, and player-specific information can become screen-ready moments instead of side messages.',
+  },
+  {
+    title: 'Homebrew that spreads through the table',
+    text: 'Custom rulesets, items, equipment, and campaign content should be able to link across the campaign so every connected sheet can use it.',
+  },
+  {
+    title: 'Campaign movement and locations',
+    text: 'The GM side is being shaped toward location tracking, distances, travel context, and world information that can support session prep.',
+  },
+];
+
 const differencePoints = [
   'Not just a database for character stats — it is designed around using the sheet during play.',
   'Beginner-friendly without feeling childish; useful for rookies, regular players, and GMs.',
@@ -170,15 +203,50 @@ export default function LandingPage() {
           })}
         </section>
 
-        <section className="landing-two-columns" aria-label="Player and game master benefits">
+        <section className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
           <article>
+            <p className="landing-kicker">Player side</p>
             <h2><Users size={22} /> Players get clarity</h2>
+            <ul>
+              {playerSide.map(item => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
+          <article>
+            <p className="landing-kicker">GM side</p>
+            <h2><Crown size={22} /> GMs keep control</h2>
+            <ul>
+              {gmSide.map(item => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
+        </section>
+
+        <section className="landing-roadmap" aria-label="Live table flow roadmap">
+          <div className="landing-roadmap-heading">
+            <p className="landing-kicker">Built toward live table flow</p>
+            <h2>The GM should not have to stop the game to hand something to a player.</h2>
+            <p>
+              Rookie Quest Keeper is being built toward a connected table experience where items, secrets, homebrew, rules, and campaign information can move between GM and player screens smoothly.
+            </p>
+          </div>
+          <div className="landing-roadmap-grid">
+            {tableFlowRoadmap.map(point => (
+              <article key={point.title}>
+                <h3>{point.title}</h3>
+                <p>{point.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="landing-two-columns" aria-label="Current player and game master benefits">
+          <article>
+            <h2><Users size={22} /> What players use it for</h2>
             <ul>
               {playerList.map(item => <li key={item}>{item}</li>)}
             </ul>
           </article>
           <article>
-            <h2><Crown size={22} /> GMs get structure</h2>
+            <h2><Crown size={22} /> What GMs use it for</h2>
             <ul>
               {gmList.map(item => <li key={item}>{item}</li>)}
             </ul>
