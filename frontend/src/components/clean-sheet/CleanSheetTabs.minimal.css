@@ -1,11 +1,7 @@
 .character-page-v2 {
-  --rq-tab-bg: #3a3a3a;
-  --rq-tab-hover: #444444;
-  --rq-tab-active: #d00000;
-  --rq-tab-text: #f6ead2;
-  background: #070814 !important;
+  background: var(--rq-bg, #303030) !important;
   background-image: none !important;
-  color: #f6ead2 !important;
+  color: var(--rq-text, #ffffff) !important;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
@@ -14,6 +10,10 @@
 .character-page-v2 .clean-sheet-section-title,
 .character-page-v2 .clean-sheet-identity h1 {
   font-family: 'Metal Mania', 'Cinzel Decorative', Georgia, serif !important;
+  color: var(--rq-text, #ffffff) !important;
+  letter-spacing: 0.045em !important;
+  -webkit-text-stroke: 0.35px var(--rq-bg, #303030);
+  paint-order: stroke fill;
   text-shadow: none !important;
 }
 
@@ -72,7 +72,7 @@
 .character-page-v2 .clean-sheet-skills div,
 .character-page-v2 .clean-sheet-passives div {
   border: 0 !important;
-  border-top: 1px solid rgba(246, 234, 210, 0.14) !important;
+  border-top: 1px solid var(--rq-line, rgba(255, 255, 255, 0.16)) !important;
 }
 
 .character-page-v2 .clean-sheet-back,
@@ -104,9 +104,9 @@
   position: relative !important;
   overflow: hidden !important;
   isolation: isolate !important;
-  background: var(--rq-tab-bg) !important;
+  background: var(--rq-tab-bg, #3a3a3a) !important;
   background-image: none !important;
-  color: var(--rq-tab-text) !important;
+  color: var(--rq-tab-text, #ffffff) !important;
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -118,7 +118,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--rq-tab-active);
+  background: var(--rq-tab-active, #d00000);
   opacity: 0;
   z-index: -1;
   transition: width 220ms ease, opacity 120ms ease;
@@ -126,7 +126,7 @@
 
 .character-page-v2 .clean-sheet-tabs button:hover,
 .character-page-v2 .clean-sheet-tabs button:focus-visible {
-  background: var(--rq-tab-hover) !important;
+  background: var(--rq-tab-hover, #444444) !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button:hover::before,
@@ -136,7 +136,7 @@
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: var(--rq-tab-bg) !important;
+  background: var(--rq-tab-bg, #3a3a3a) !important;
   background-image: none !important;
   color: #ffffff !important;
 }
