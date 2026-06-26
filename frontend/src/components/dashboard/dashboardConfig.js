@@ -1,17 +1,17 @@
 export const theme = {
-  bg: '#070814',
+  bg: 'var(--rq-bg, #303030)',
   panel: 'transparent',
   panelSoft: 'transparent',
   elevated: 'transparent',
-  border: 'rgba(216, 173, 79, 0.16)',
-  borderStrong: 'rgba(216, 173, 79, 0.30)',
-  accent: '#D8AD4F',
-  accentHover: '#E6C775',
+  border: 'var(--rq-line, rgba(255, 255, 255, 0.16))',
+  borderStrong: 'transparent',
+  accent: 'var(--rq-primary, #d00000)',
+  accentHover: 'var(--rq-primary, #d00000)',
   accentSoft: 'transparent',
-  player: '#D8AD4F',
-  text: '#F6EAD2',
-  textSecondary: '#D9C8A5',
-  muted: '#AAA6C8',
+  player: 'var(--rq-primary, #d00000)',
+  text: 'var(--rq-text, #ffffff)',
+  textSecondary: 'var(--rq-muted, rgba(255, 255, 255, 0.68))',
+  muted: 'var(--rq-muted, rgba(255, 255, 255, 0.68))',
 };
 
 export const defaultSiteSettings = {
