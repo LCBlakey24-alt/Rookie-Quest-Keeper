@@ -6,11 +6,50 @@ import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 
+const campaignTypes = {
+  one_shot: 'One-shot',
+  mini_campaign: 'Mini campaign',
+  long_campaign: 'Long campaign',
+  open_table: 'Open table',
+};
+
+const startingPoints = {
+  session_zero: 'Session zero first',
+  tavern_start: 'Classic tavern start',
+  mid_action: 'Start mid-action',
+  custom_world: 'Homebrew world intro',
+  published_adventure: 'Published adventure',
+};
+
+const worldToneOptions = {
+  custom: 'Custom Setting',
+  high_fantasy: 'High Fantasy',
+  classic_fantasy: 'Classic Sword & Sorcery',
+  epic_fantasy: 'Epic Fantasy',
+  gothic_horror: 'Gothic Horror',
+  magipunk_noir: 'Magipunk / Noir',
+  planar_adventure: 'Planar Adventure',
+  fantasy_space: 'Fantasy Space',
+};
+
+const sessionZeroOptions = [
+  { id: 'safety', label: 'Safety tools and table boundaries' },
+  { id: 'tone', label: 'Tone, themes, and campaign style' },
+  { id: 'party_roles', label: 'Party roles and character links' },
+  { id: 'house_rules', label: 'House rules and rules edition' },
+  { id: 'schedule', label: 'Schedule, attendance, and session length' },
+  { id: 'rewards', label: 'Loot, levelling, and rewards' },
+];
+
 const initialCampaignForm = {
   name: '',
   world_name: '',
   description: '',
   rules_edition: '2024',
+  campaign_type: 'long_campaign',
+  starting_point: 'session_zero',
+  world_setting: 'custom',
+  session_zero: ['safety', 'tone', 'party_roles', 'house_rules'],
 };
 
 function safeArray(value) {
@@ -33,6 +72,28 @@ function campaignTitle(campaign) {
 
 function campaignMeta(campaign) {
   return `${campaign?.player_count || 0} players · ${campaign?.system || campaign?.setting || 'Fantasy'}`;
+}
+
+function buildWorldSettingNotes(form) {
+  const checkedItems = sessionZeroOptions
+    .filter(item => form.session_zero.includes(item.id))
+    .map(item => item.label);
+
+  const setupLines = [
+    `Campaign type: ${campaignTypes[form.campaign_type] || form.campaign_type}`,
+    `Starting point: ${startingPoints[form.starting_point] || form.starting_point}`,
+    `World tone: ${worldToneOptions[form.world_setting] || form.world_setting}`,
+  ];
+
+  if (checkedItems.length) {
+    setupLines.push(`Session zero checklist: ${checkedItems.join('; ')}`);
+  }
+
+  if (form.description.trim()) {
+    setupLines.push(`GM notes: ${form.description.trim()}`);
+  }
+
+  return setupLines.join('\n');
 }
 
 export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) {
@@ -92,6 +153,14 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     setCampaignForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const toggleSessionZero = (id) => {
+    setCampaignForm(prev => {
+      const current = Array.isArray(prev.session_zero) ? prev.session_zero : [];
+      const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id];
+      return { ...prev, session_zero: next };
+    });
+  };
+
   const handleCreateCampaign = async (event) => {
     event.preventDefault();
     const campaignName = campaignForm.name.trim();
@@ -102,6 +171,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
 
     try {
       setCreatingCampaign(true);
+      const worldSettingNotes = buildWorldSettingNotes(campaignForm);
       const payload = {
         name: campaignName,
         description: campaignForm.description.trim(),
@@ -109,8 +179,8 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         rules_edition: campaignForm.rules_edition,
         system: campaignForm.rules_edition === '2024' ? '5e 2024 Compatible' : '5e 2014 Compatible',
         world_genre: 'fantasy',
-        world_setting: 'custom',
-        world_setting_notes: '',
+        world_setting: campaignForm.world_setting,
+        world_setting_notes: worldSettingNotes,
         allow_exploding_dice: false,
         allow_epic_levels: false,
         max_character_level: 20,
@@ -211,7 +281,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         />
         <ActionCard
           title="Create Campaign"
-          text="Set up a campaign, world name, rules edition, and GM workspace."
+          text="Set up campaign type, starting point, rules edition, and session zero."
           meta="GM setup"
           onClick={openCreateCampaign}
         />
@@ -254,6 +324,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           form={campaignForm}
           creating={creatingCampaign}
           onChange={updateCampaignForm}
+          onToggleSessionZero={toggleSessionZero}
           onSubmit={handleCreateCampaign}
           onClose={closeCreateCampaign}
         />
@@ -339,7 +410,7 @@ function ListButton({ title, meta, onClick }) {
   );
 }
 
-function CreateCampaignDialog({ form, creating, onChange, onSubmit, onClose }) {
+function CreateCampaignDialog({ form, creating, onChange, onToggleSessionZero, onSubmit, onClose }) {
   return (
     <div style={modalOverlayStyle} role="presentation">
       <section style={modalPanelStyle} role="dialog" aria-modal="true" aria-labelledby="create-campaign-title">
@@ -354,17 +425,36 @@ function CreateCampaignDialog({ form, creating, onChange, onSubmit, onClose }) {
         <form onSubmit={onSubmit} style={modalFormStyle}>
           <CampaignField label="Campaign name" value={form.name} onChange={(value) => onChange('name', value)} placeholder="Tia Karta" required />
           <CampaignField label="World name" value={form.world_name} onChange={(value) => onChange('world_name', value)} placeholder="Optional" />
-          <label style={fieldWrapStyle}>
-            <span style={fieldLabelStyle}>Rules edition</span>
-            <select value={form.rules_edition} onChange={(event) => onChange('rules_edition', event.target.value)} style={fieldInputStyle}>
-              <option value="2024">5e 2024 Compatible</option>
-              <option value="2014">5e 2014 Compatible</option>
-            </select>
-          </label>
+
+          <div style={modalSplitStyle}>
+            <CampaignSelect label="Campaign type" value={form.campaign_type} onChange={(value) => onChange('campaign_type', value)} options={campaignTypes} />
+            <CampaignSelect label="Starting point" value={form.starting_point} onChange={(value) => onChange('starting_point', value)} options={startingPoints} />
+          </div>
+
+          <div style={modalSplitStyle}>
+            <CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition', value)} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} />
+            <CampaignSelect label="World tone" value={form.world_setting} onChange={(value) => onChange('world_setting', value)} options={worldToneOptions} />
+          </div>
+
+          <fieldset style={checklistStyle}>
+            <legend style={fieldLabelStyle}>Session zero checklist</legend>
+            {sessionZeroOptions.map(item => (
+              <label key={item.id} style={checkboxRowStyle}>
+                <input type="checkbox" checked={form.session_zero.includes(item.id)} onChange={() => onToggleSessionZero(item.id)} />
+                <span>{item.label}</span>
+              </label>
+            ))}
+          </fieldset>
+
           <label style={fieldWrapStyle}>
             <span style={fieldLabelStyle}>Campaign notes</span>
             <textarea value={form.description} onChange={(event) => onChange('description', event.target.value)} placeholder="What is this campaign about?" style={{ ...fieldInputStyle, minHeight: 92, paddingTop: 11, resize: 'vertical' }} />
           </label>
+
+          <div style={setupPreviewStyle}>
+            <p style={eyebrowStyle}>Saved setup context</p>
+            <p style={mutedStyle}>Campaign type, starting point, tone, checklist, and notes will be saved into the campaign world context for your GM tools.</p>
+          </div>
 
           <div style={modalActionsStyle}>
             <button type="button" onClick={onClose} disabled={creating} style={buttonStyle}><span>Cancel</span></button>
@@ -381,6 +471,19 @@ function CampaignField({ label, value, onChange, placeholder, required = false }
     <label style={fieldWrapStyle}>
       <span style={fieldLabelStyle}>{label}</span>
       <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} style={fieldInputStyle} />
+    </label>
+  );
+}
+
+function CampaignSelect({ label, value, onChange, options }) {
+  return (
+    <label style={fieldWrapStyle}>
+      <span style={fieldLabelStyle}>{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} style={fieldInputStyle}>
+        {Object.entries(options).map(([optionValue, labelText]) => (
+          <option key={optionValue} value={optionValue}>{labelText}</option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -525,8 +628,8 @@ const modalOverlayStyle = {
 };
 
 const modalPanelStyle = {
-  width: 'min(560px, 100%)',
-  maxHeight: 'min(90dvh, 720px)',
+  width: 'min(620px, 100%)',
+  maxHeight: 'min(90dvh, 760px)',
   overflowY: 'auto',
   background: 'var(--rq-bg, #242424)',
   border: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
@@ -540,7 +643,11 @@ const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', ali
 const modalTitleStyle = { ...continueTitleStyle, fontSize: 28 };
 const closeButtonStyle = { width: 40, height: 40, border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', fontSize: 26, lineHeight: 1, cursor: 'pointer' };
 const modalFormStyle = { display: 'grid', gap: 12 };
+const modalSplitStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 };
 const fieldWrapStyle = { display: 'grid', gap: 6 };
 const fieldLabelStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: fontStack };
 const fieldInputStyle = { width: '100%', minHeight: 44, border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', padding: '0 11px', fontFamily: fontStack, fontSize: 15, outline: 'none' };
+const checklistStyle = { border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, padding: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, margin: 0 };
+const checkboxRowStyle = { display: 'flex', alignItems: 'flex-start', gap: 8, color: '#ffffff', fontSize: 13, lineHeight: 1.3, fontFamily: fontStack };
+const setupPreviewStyle = { borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 10 };
 const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, marginTop: 4 };
