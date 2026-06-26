@@ -2,50 +2,78 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
-  Plus, Edit, Trash2, MapPin, Loader, Store, ChevronDown, ChevronUp,
-  Building, Beer, Church, Hammer, Home, BookOpen, X, Wand2, Check, Search
+  Plus,
+  Edit,
+  Trash2,
+  MapPin,
+  Loader,
+  Store,
+  ChevronDown,
+  ChevronUp,
+  Building,
+  Beer,
+  Church,
+  Hammer,
+  Home,
+  BookOpen,
+  X,
+  Wand2,
+  Check,
+  Search,
+  Globe,
+  Compass,
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import apiClient from '@/lib/apiClient';
 
+const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
 const rq = {
-  panel: 'var(--rq-bg-panel, #242424)',
-  input: 'var(--rq-bg-input, #1F1F1F)',
-  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderDefault: 'var(--rq-border-default, #3A3A3A)',
-  accent: 'var(--rq-accent-primary, #C1121F)',
-  accentHover: 'var(--rq-accent-hover, #D62839)',
-  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
-  text: 'var(--rq-text-primary, #FFFFFF)',
-  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
-  muted: 'var(--rq-text-muted, #A0A0A0)',
-  success: 'var(--rq-success, #2E8B57)',
-  danger: 'var(--rq-danger, #C1121F)',
-  radius: 'var(--rq-radius-md, 6px)',
-  radiusSm: 'var(--rq-radius-sm, 4px)',
+  bg: '#242424',
+  panel: '#2f2f2f',
+  card: '#3a3a3a',
+  input: '#242424',
+  line: 'rgba(255,255,255,0.16)',
+  lineStrong: 'rgba(255,255,255,0.22)',
+  accent: '#d00000',
+  accentHover: '#ff3b3b',
+  text: '#ffffff',
+  muted: 'rgba(255,255,255,0.62)',
+  soft: 'rgba(255,255,255,0.74)',
 };
+
+const LOCATION_TYPES = [
+  { id: 'region', label: 'Region / Continent', hint: 'Large areas, kingdoms, continents, wild regions.', icon: Globe },
+  { id: 'settlement', label: 'City / Town / Settlement', hint: 'Cities, towns, villages, camps, ports.', icon: Building },
+  { id: 'dungeon', label: 'Dungeon / Ruin', hint: 'Dungeons, ruins, tombs, lairs, fortresses.', icon: Compass },
+  { id: 'wilderness', label: 'Wilderness', hint: 'Forests, mountains, deserts, seas, roads.', icon: MapPin },
+  { id: 'landmark', label: 'Landmark', hint: 'Famous places, monuments, towers, portals.', icon: MapPin },
+  { id: 'base', label: 'Base / Hideout', hint: 'Party bases, faction bases, safehouses.', icon: Home },
+  { id: 'realm', label: 'Plane / Realm', hint: 'Other planes, afterlives, pocket worlds.', icon: Globe },
+  { id: 'other', label: 'Other', hint: 'Anything that does not neatly fit elsewhere.', icon: MapPin },
+];
 
 const PLACE_TYPES = [
   { id: 'shop', label: 'Shop', icon: Store },
-  { id: 'tavern', label: 'Tavern/Inn', icon: Beer },
-  { id: 'temple', label: 'Temple', icon: Church },
-  { id: 'blacksmith', label: 'Blacksmith', icon: Hammer },
-  { id: 'guild', label: 'Guild Hall', icon: Building },
-  { id: 'library', label: 'Library', icon: BookOpen },
+  { id: 'tavern', label: 'Tavern / Inn', icon: Beer },
+  { id: 'temple', label: 'Temple / Shrine', icon: Church },
+  { id: 'blacksmith', label: 'Blacksmith / Workshop', icon: Hammer },
+  { id: 'guild', label: 'Guild / Faction Hall', icon: Building },
+  { id: 'library', label: 'Library / Archive', icon: BookOpen },
   { id: 'residence', label: 'Residence', icon: Home },
-  { id: 'other', label: 'Other', icon: MapPin }
+  { id: 'landmark', label: 'Local Landmark', icon: MapPin },
+  { id: 'other', label: 'Other', icon: MapPin },
 ];
 
 const emptyLocationForm = {
   name: '',
-  location_type: '',
+  location_type: 'settlement',
   description: '',
   notable_npcs: '',
-  notes: ''
+  notes: '',
 };
 
 const emptyPlaceForm = {
@@ -54,8 +82,32 @@ const emptyPlaceForm = {
   description: '',
   owner: '',
   services: '',
-  notes: ''
+  notes: '',
 };
+
+function typeLabel(typeId) {
+  return LOCATION_TYPES.find(type => type.id === typeId)?.label || typeId || 'Location';
+}
+
+function typeHint(typeId) {
+  return LOCATION_TYPES.find(type => type.id === typeId)?.hint || '';
+}
+
+function placeTypeLabel(typeId) {
+  return PLACE_TYPES.find(type => type.id === typeId)?.label || typeId || 'Place';
+}
+
+function placeTypeIcon(typeId) {
+  return PLACE_TYPES.find(type => type.id === typeId)?.icon || MapPin;
+}
+
+function sortLocations(items) {
+  return [...items].sort((a, b) => {
+    const typeCompare = typeLabel(a.location_type).localeCompare(typeLabel(b.location_type));
+    if (typeCompare !== 0) return typeCompare;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+}
 
 function LocationsTab({ campaignId }) {
   const [locations, setLocations] = useState([]);
@@ -63,18 +115,19 @@ function LocationsTab({ campaignId }) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [formData, setFormData] = useState(emptyLocationForm);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiGenerating, setAiGenerating] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
   const [expandedLocations, setExpandedLocations] = useState({});
-  const [generationType, setGenerationType] = useState('location');
-  const [selectedLocationForPlace, setSelectedLocationForPlace] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [deletingLocation, setDeletingLocation] = useState(null);
   const [showPlaceDialog, setShowPlaceDialog] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [deletingLocation, setDeletingLocation] = useState(null);
   const [placeFormData, setPlaceFormData] = useState(emptyPlaceForm);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [lastGenerated, setLastGenerated] = useState(null);
+  const [generationType, setGenerationType] = useState('location');
+  const [selectedLocationForPlace, setSelectedLocationForPlace] = useState('');
 
   useEffect(() => {
     fetchLocations();
@@ -82,8 +135,9 @@ function LocationsTab({ campaignId }) {
 
   const fetchLocations = async () => {
     try {
+      setLoading(true);
       const response = await apiClient.get(`/campaigns/${campaignId}/locations`);
-      setLocations(response.data || []);
+      setLocations(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to load locations');
     } finally {
@@ -91,17 +145,32 @@ function LocationsTab({ campaignId }) {
     }
   };
 
+  const sortedLocations = useMemo(() => sortLocations(locations), [locations]);
+
   const filteredLocations = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-    if (!query) return locations;
-    return locations.filter(location =>
-      location.name?.toLowerCase().includes(query) ||
-      location.location_type?.toLowerCase().includes(query) ||
-      location.description?.toLowerCase().includes(query)
-    );
-  }, [locations, searchTerm]);
+    return sortedLocations.filter(location => {
+      const matchesType = typeFilter === 'all' || location.location_type === typeFilter;
+      const matchesSearch = !query || [
+        location.name,
+        typeLabel(location.location_type),
+        location.location_type,
+        location.description,
+        location.notable_npcs,
+        location.notes,
+        ...(location.places_of_interest || []).flatMap(place => [place.name, place.description, place.owner, place.services, place.notes]),
+      ].some(value => String(value || '').toLowerCase().includes(query));
+      return matchesType && matchesSearch;
+    });
+  }, [sortedLocations, searchTerm, typeFilter]);
 
-  const resetForm = () => {
+  const stats = useMemo(() => {
+    const places = locations.reduce((total, location) => total + (location.places_of_interest?.length || 0), 0);
+    const types = new Set(locations.map(location => location.location_type).filter(Boolean));
+    return { locations: locations.length, places, types: types.size };
+  }, [locations]);
+
+  const resetLocationForm = () => {
     setFormData(emptyLocationForm);
     setEditingLocation(null);
     setShowDialog(false);
@@ -121,16 +190,24 @@ function LocationsTab({ campaignId }) {
       return;
     }
 
+    const payload = {
+      name: formData.name.trim(),
+      location_type: formData.location_type || 'other',
+      description: formData.description.trim(),
+      notable_npcs: formData.notable_npcs.trim(),
+      notes: formData.notes.trim(),
+    };
+
     try {
       if (editingLocation) {
-        await apiClient.put(`/campaigns/${campaignId}/locations/${editingLocation.id}`, formData);
-        toast.success('Location updated!');
+        await apiClient.put(`/campaigns/${campaignId}/locations/${editingLocation.id}`, payload);
+        toast.success('Location updated');
       } else {
-        await apiClient.post(`/campaigns/${campaignId}/locations`, formData);
-        toast.success('Location added!');
+        await apiClient.post(`/campaigns/${campaignId}/locations`, payload);
+        toast.success('Location added');
       }
       await fetchLocations();
-      resetForm();
+      resetLocationForm();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save location');
     }
@@ -140,10 +217,10 @@ function LocationsTab({ campaignId }) {
     setEditingLocation(location);
     setFormData({
       name: location.name || '',
-      location_type: location.location_type || '',
+      location_type: location.location_type || 'other',
       description: location.description || '',
       notable_npcs: location.notable_npcs || '',
-      notes: location.notes || ''
+      notes: location.notes || '',
     });
     setShowDialog(true);
   };
@@ -158,7 +235,7 @@ function LocationsTab({ campaignId }) {
     try {
       const location = locations.find(item => item.id === locationId);
       await apiClient.delete(`/campaigns/${campaignId}/locations/${locationId}`);
-      toast.success(`${location?.name || 'Location'} removed`, { description: 'Location has been deleted' });
+      toast.success(`${location?.name || 'Location'} removed`);
       setDeletingLocation(null);
       await fetchLocations();
     } catch (error) {
@@ -183,11 +260,11 @@ function LocationsTab({ campaignId }) {
     setEditingPlace(place);
     setPlaceFormData({
       name: place.name || '',
-      place_type: place.place_type || 'shop',
+      place_type: place.place_type || 'other',
       description: place.description || '',
       owner: place.owner || '',
       services: place.services || '',
-      notes: place.notes || ''
+      notes: place.notes || '',
     });
     setShowPlaceDialog(true);
   };
@@ -199,15 +276,25 @@ function LocationsTab({ campaignId }) {
       return;
     }
 
+    const payload = {
+      name: placeFormData.name.trim(),
+      place_type: placeFormData.place_type || 'other',
+      description: placeFormData.description.trim(),
+      owner: placeFormData.owner.trim(),
+      services: placeFormData.services.trim(),
+      notes: placeFormData.notes.trim(),
+    };
+
     try {
       if (editingPlace) {
-        await apiClient.put(`/campaigns/${campaignId}/locations/${selectedLocationId}/places/${editingPlace.id}`, placeFormData);
-        toast.success('Place updated!');
+        await apiClient.put(`/campaigns/${campaignId}/locations/${selectedLocationId}/places/${editingPlace.id}`, payload);
+        toast.success('Place updated');
       } else {
-        await apiClient.post(`/campaigns/${campaignId}/locations/${selectedLocationId}/places`, placeFormData);
-        toast.success('Place added!');
+        await apiClient.post(`/campaigns/${campaignId}/locations/${selectedLocationId}/places`, payload);
+        toast.success('Place added');
       }
       await fetchLocations();
+      setExpandedLocations(prev => ({ ...prev, [selectedLocationId]: true }));
       resetPlaceForm();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save place');
@@ -225,16 +312,13 @@ function LocationsTab({ campaignId }) {
     }
   };
 
-  const getPlaceIcon = (placeType) => PLACE_TYPES.find(type => type.id === placeType)?.icon || MapPin;
-
   const handleRookGenerate = async () => {
     if (!aiPrompt.trim()) {
-      toast.error('Please describe what you want Rook to create');
+      toast.error('Describe what you want Rook to create');
       return;
     }
-
     if (generationType === 'place' && !selectedLocationForPlace) {
-      toast.error('Please select a location for the place of interest');
+      toast.error('Choose a location for this place of interest');
       return;
     }
 
@@ -244,18 +328,13 @@ function LocationsTab({ campaignId }) {
       const requestData = {
         prompt: aiPrompt,
         entity_type: generationType === 'place' ? 'place_of_interest' : 'location',
-        campaign_id: campaignId
+        campaign_id: campaignId,
       };
       if (generationType === 'place') requestData.location_id = selectedLocationForPlace;
 
       const response = await apiClient.post('/rook/generate', requestData);
-
-      if (response.data.success) {
-        toast.success(
-          generationType === 'place'
-            ? `Rook added ${response.data.entity_name}!`
-            : `Rook added ${response.data.entity_name} to your world!`
-        );
+      if (response.data?.success) {
+        toast.success(generationType === 'place' ? `Rook added ${response.data.entity_name}` : `Rook added ${response.data.entity_name} to your world`);
         setLastGenerated(response.data);
         setAiPrompt('');
         await fetchLocations();
@@ -272,120 +351,139 @@ function LocationsTab({ campaignId }) {
 
   if (loading) {
     return (
-      <div>
-        <h2 className="medieval-heading" style={headingStyle}>Locations</h2>
+      <section style={pageStyle}>
+        <h2 style={titleStyle}>Locations</h2>
         <LoadingSkeleton type="grid" count={3} />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="campaign-management-grid" style={layoutStyle}>
-      <div>
-        <div style={topBarStyle}>
-          <h2 className="medieval-heading" style={headingStyle}>
-            Locations <span style={countStyle}>({filteredLocations.length})</span>
-          </h2>
-          <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
-            <DialogTrigger asChild>
-              <Button data-testid="add-location-btn" className="btn-primary" style={inlineButtonStyle}>
-                <Plus size={18} />
-                Add Location
-              </Button>
-            </DialogTrigger>
-            <LocationDialog editingLocation={editingLocation} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onCancel={resetForm} />
-          </Dialog>
+    <section style={pageStyle}>
+      <header style={headerStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>World Bible</p>
+          <h2 style={titleStyle}>Locations</h2>
+          <p style={subtitleStyle}>Reusable places for any campaign: regions, settlements, dungeons, wilderness, landmarks, bases, realms, and local points of interest.</p>
         </div>
+        <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetLocationForm(); setShowDialog(open); }}>
+          <DialogTrigger asChild>
+            <Button data-testid="add-location-btn" style={primaryButtonStyle}>
+              <Plus size={18} /> Add Location
+            </Button>
+          </DialogTrigger>
+          <LocationDialog editingLocation={editingLocation} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onCancel={resetLocationForm} />
+        </Dialog>
+      </header>
 
-        {locations.length > 3 && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={18} style={searchIconStyle} />
-              <Input
-                placeholder="Search locations by name, type, or description..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="input"
-                style={{ paddingLeft: '40px' }}
-              />
-            </div>
-          </div>
-        )}
+      <section style={importRuleStyle}>
+        <p style={ruleLabelStyle}>Import rule</p>
+        <p style={ruleTextStyle}>Only add a thing here if it is a place. People go in NPCs & Figures. Organisations, gods, governments, and cults go in Powers & Factions. Past events go in Chronicle.</p>
+      </section>
 
-        {locations.length === 0 ? (
-          <EmptyState
-            icon={MapPin}
-            title="No Locations Yet"
-            description="Build your world by adding locations. Create cities, dungeons, forests, and more. Ask Rook to draft text entries for you."
-            actionLabel="Create Your First Location"
-            onAction={() => setShowDialog(true)}
-            color={rq.accent}
+      <section style={statsStyle}>
+        <Stat label="Locations" value={stats.locations} />
+        <Stat label="Places of interest" value={stats.places} />
+        <Stat label="Types used" value={stats.types} />
+      </section>
+
+      <section style={controlsStyle}>
+        <div style={searchWrapStyle}>
+          <Search size={18} style={searchIconStyle} />
+          <Input
+            placeholder="Search names, types, descriptions, NPCs, notes, or places..."
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            style={searchInputStyle}
           />
-        ) : filteredLocations.length === 0 ? (
-          <Card style={emptyCardStyle}>
-            <p style={{ color: rq.muted }}>No locations found matching "{searchTerm}"</p>
-            <Button onClick={() => setSearchTerm('')} className="btn-outline" style={{ marginTop: '12px' }}>Clear Search</Button>
-          </Card>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {filteredLocations.map(location => (
-              <LocationCard
-                key={location.id}
-                location={location}
-                isExpanded={!!expandedLocations[location.id]}
-                isNewlyCreated={lastGenerated?.entity_id === location.id}
-                deletingLocation={deletingLocation}
-                onToggle={() => toggleLocationExpand(location.id)}
-                onEdit={() => handleEdit(location)}
-                onDelete={() => handleDelete(location.id)}
-                onCancelDelete={() => setDeletingLocation(null)}
-                onAddPlace={() => openAddPlaceDialog(location.id)}
-                onEditPlace={(place) => openEditPlaceDialog(location.id, place)}
-                onDeletePlace={(placeId) => handleDeletePlace(location.id, placeId)}
-                getPlaceIcon={getPlaceIcon}
-                lastGenerated={lastGenerated}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+        <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} style={selectStyle} aria-label="Filter locations by type">
+          <option value="all">All location types</option>
+          {LOCATION_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
+        </select>
+      </section>
 
-      <RookPanel
-        locations={locations}
-        aiPrompt={aiPrompt}
-        setAiPrompt={setAiPrompt}
-        aiGenerating={aiGenerating}
-        generationType={generationType}
-        setGenerationType={setGenerationType}
-        selectedLocationForPlace={selectedLocationForPlace}
-        setSelectedLocationForPlace={setSelectedLocationForPlace}
-        lastGenerated={lastGenerated}
-        onGenerate={handleRookGenerate}
-      />
+      <div style={layoutStyle}>
+        <main style={{ minWidth: 0 }}>
+          {locations.length === 0 ? (
+            <EmptyState
+              icon={MapPin}
+              title="No locations yet"
+              description="Start broad with regions or settlements, then add smaller places of interest inside them."
+              actionLabel="Create Your First Location"
+              onAction={() => setShowDialog(true)}
+              color={rq.accent}
+            />
+          ) : filteredLocations.length === 0 ? (
+            <section style={emptyCardStyle}>
+              <p style={mutedTextStyle}>No locations found for that search/filter.</p>
+              <Button onClick={() => { setSearchTerm(''); setTypeFilter('all'); }} style={secondaryButtonStyle}>Clear filters</Button>
+            </section>
+          ) : (
+            <div style={cardsStyle}>
+              {filteredLocations.map(location => (
+                <LocationCard
+                  key={location.id}
+                  location={location}
+                  isExpanded={!!expandedLocations[location.id]}
+                  isNewlyCreated={lastGenerated?.entity_id === location.id}
+                  deletingLocation={deletingLocation}
+                  onToggle={() => toggleLocationExpand(location.id)}
+                  onEdit={() => handleEdit(location)}
+                  onDelete={() => handleDelete(location.id)}
+                  onCancelDelete={() => setDeletingLocation(null)}
+                  onAddPlace={() => openAddPlaceDialog(location.id)}
+                  onEditPlace={(place) => openEditPlaceDialog(location.id, place)}
+                  onDeletePlace={(placeId) => handleDeletePlace(location.id, placeId)}
+                  lastGenerated={lastGenerated}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+
+        <RookPanel
+          locations={locations}
+          aiPrompt={aiPrompt}
+          setAiPrompt={setAiPrompt}
+          aiGenerating={aiGenerating}
+          generationType={generationType}
+          setGenerationType={setGenerationType}
+          selectedLocationForPlace={selectedLocationForPlace}
+          setSelectedLocationForPlace={setSelectedLocationForPlace}
+          lastGenerated={lastGenerated}
+          onGenerate={handleRookGenerate}
+        />
+      </div>
 
       <Dialog open={showPlaceDialog} onOpenChange={(open) => { if (!open) resetPlaceForm(); setShowPlaceDialog(open); }}>
         <PlaceDialog editingPlace={editingPlace} placeFormData={placeFormData} setPlaceFormData={setPlaceFormData} onSubmit={handlePlaceSubmit} onCancel={resetPlaceForm} />
       </Dialog>
 
-      <style>{`@keyframes glow-pulse { 0% { box-shadow: 0 0 20px rgba(193,18,31,0.5); } 100% { box-shadow: 0 0 0 rgba(193,18,31,0); } }`}</style>
-    </div>
+      <style>{`@keyframes rq-location-pulse { 0% { box-shadow: 0 0 0 2px rgba(208,0,0,0.45); } 100% { box-shadow: none; } }`}</style>
+    </section>
   );
+}
+
+function Stat({ label, value }) {
+  return <div style={statStyle}><strong style={statValueStyle}>{value}</strong><span style={statLabelStyle}>{label}</span></div>;
 }
 
 function LocationDialog({ editingLocation, formData, setFormData, onSubmit, onCancel }) {
   return (
     <DialogContent className="modal" style={dialogStyle}>
       <DialogHeader>
-        <DialogTitle className="medieval-heading" style={dialogTitleStyle}>{editingLocation ? 'Edit Location' : 'Add Location'}</DialogTitle>
+        <DialogTitle style={dialogTitleStyle}>{editingLocation ? 'Edit Location' : 'Add Location'}</DialogTitle>
       </DialogHeader>
-      <form onSubmit={onSubmit} style={{ marginTop: '20px' }}>
+      <form onSubmit={onSubmit} style={formStyle}>
         <div style={twoColumnStyle}>
-          <TextField label="Name" testId="location-name-input" value={formData.name} onChange={(value) => setFormData({ ...formData, name: value })} required />
-          <TextField label="Type" testId="location-type-input" value={formData.location_type} onChange={(value) => setFormData({ ...formData, location_type: value })} placeholder="City, Dungeon, Forest..." />
+          <TextField label="Name" testId="location-name-input" value={formData.name} onChange={(value) => setFormData({ ...formData, name: value })} placeholder="Neremore, Blackmere, Western Kingdoms..." required />
+          <SelectField label="Type" testId="location-type-input" value={formData.location_type} onChange={(value) => setFormData({ ...formData, location_type: value })} options={LOCATION_TYPES} />
         </div>
-        <TextAreaField label="Description" testId="location-description-input" value={formData.description} onChange={(value) => setFormData({ ...formData, description: value })} minHeight="100px" />
-        <TextField label="Notable NPCs" testId="location-npcs-input" value={formData.notable_npcs} onChange={(value) => setFormData({ ...formData, notable_npcs: value })} placeholder="Key NPCs found here..." />
-        <TextAreaField label="Notes" testId="location-notes-input" value={formData.notes} onChange={(value) => setFormData({ ...formData, notes: value })} />
+        <p style={hintTextStyle}>{typeHint(formData.location_type)}</p>
+        <TextAreaField label="Description" testId="location-description-input" value={formData.description} onChange={(value) => setFormData({ ...formData, description: value })} minHeight={130} placeholder="What is this place? What would players notice or know?" />
+        <TextField label="Notable NPCs" testId="location-npcs-input" value={formData.notable_npcs} onChange={(value) => setFormData({ ...formData, notable_npcs: value })} placeholder="Names only or short notes. Full NPCs go in NPCs & Figures." />
+        <TextAreaField label="GM notes" testId="location-notes-input" value={formData.notes} onChange={(value) => setFormData({ ...formData, notes: value })} placeholder="Secrets, hooks, changes, travel notes, hidden truths." />
         <FormActions onCancel={onCancel} submitTestId="location-submit-btn" submitText={editingLocation ? 'Update Location' : 'Add Location'} />
       </form>
     </DialogContent>
@@ -394,33 +492,19 @@ function LocationDialog({ editingLocation, formData, setFormData, onSubmit, onCa
 
 function PlaceDialog({ editingPlace, placeFormData, setPlaceFormData, onSubmit, onCancel }) {
   return (
-    <DialogContent className="modal" style={{ ...dialogStyle, maxWidth: '550px' }}>
+    <DialogContent className="modal" style={{ ...dialogStyle, maxWidth: 560 }}>
       <DialogHeader>
-        <DialogTitle className="medieval-heading" style={{ ...dialogTitleStyle, display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Store size={22} style={{ color: rq.accent }} />
-          {editingPlace ? 'Edit Place' : 'Add Place of Interest'}
-        </DialogTitle>
+        <DialogTitle style={dialogTitleStyle}>{editingPlace ? 'Edit Place of Interest' : 'Add Place of Interest'}</DialogTitle>
       </DialogHeader>
-      <form onSubmit={onSubmit} style={{ marginTop: '16px' }}>
+      <form onSubmit={onSubmit} style={formStyle}>
         <div style={twoColumnStyle}>
-          <TextField label="Name" testId="place-name-input" value={placeFormData.name} onChange={(value) => setPlaceFormData({ ...placeFormData, name: value })} placeholder="e.g., The Rusty Tankard" required />
-          <div>
-            <label style={labelStyle}>Type</label>
-            <select
-              data-testid="place-type-select"
-              value={placeFormData.place_type}
-              onChange={(event) => setPlaceFormData({ ...placeFormData, place_type: event.target.value })}
-              className="input"
-              style={{ height: '40px', width: '100%' }}
-            >
-              {PLACE_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}
-            </select>
-          </div>
+          <TextField label="Name" testId="place-name-input" value={placeFormData.name} onChange={(value) => setPlaceFormData({ ...placeFormData, name: value })} placeholder="The Rusty Tankard, Queen's Gate, Old Catacombs..." required />
+          <SelectField label="Type" testId="place-type-select" value={placeFormData.place_type} onChange={(value) => setPlaceFormData({ ...placeFormData, place_type: value })} options={PLACE_TYPES} />
         </div>
-        <TextField label="Owner/Proprietor" testId="place-owner-input" value={placeFormData.owner} onChange={(value) => setPlaceFormData({ ...placeFormData, owner: value })} placeholder="e.g., Grumgar the Dwarf" />
-        <TextAreaField label="Description" testId="place-description-input" value={placeFormData.description} onChange={(value) => setPlaceFormData({ ...placeFormData, description: value })} minHeight="80px" placeholder="Describe this place..." />
-        <TextAreaField label="Services/Items Offered" testId="place-services-input" value={placeFormData.services} onChange={(value) => setPlaceFormData({ ...placeFormData, services: value })} minHeight="60px" placeholder="What can players buy, do, or find here?" />
-        <TextAreaField label="Notes" testId="place-notes-input" value={placeFormData.notes} onChange={(value) => setPlaceFormData({ ...placeFormData, notes: value })} placeholder="GM notes, secrets, hooks..." />
+        <TextField label="Owner / linked NPC" testId="place-owner-input" value={placeFormData.owner} onChange={(value) => setPlaceFormData({ ...placeFormData, owner: value })} placeholder="Optional. Full NPCs still belong in NPCs & Figures." />
+        <TextAreaField label="Description" testId="place-description-input" value={placeFormData.description} onChange={(value) => setPlaceFormData({ ...placeFormData, description: value })} minHeight={90} placeholder="What is this smaller place inside the location?" />
+        <TextAreaField label="Services / purpose" testId="place-services-input" value={placeFormData.services} onChange={(value) => setPlaceFormData({ ...placeFormData, services: value })} minHeight={70} placeholder="What can players buy, learn, do, unlock, or discover here?" />
+        <TextAreaField label="GM notes" testId="place-notes-input" value={placeFormData.notes} onChange={(value) => setPlaceFormData({ ...placeFormData, notes: value })} placeholder="Hooks, secrets, clues, changes, or hidden uses." />
         <FormActions onCancel={onCancel} submitTestId="place-submit-btn" submitText={editingPlace ? 'Update Place' : 'Add Place'} />
       </form>
     </DialogContent>
@@ -429,242 +513,252 @@ function PlaceDialog({ editingPlace, placeFormData, setPlaceFormData, onSubmit, 
 
 function TextField({ label, testId, value, onChange, placeholder, required = false }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={labelStyle}>{label}</label>
-      <Input data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} className="input" placeholder={placeholder} required={required} />
-    </div>
+    <label style={fieldStyle}>
+      <span style={labelStyle}>{label}</span>
+      <Input data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} style={inputStyle} />
+    </label>
   );
 }
 
-function TextAreaField({ label, testId, value, onChange, placeholder, minHeight = '80px' }) {
+function SelectField({ label, testId, value, onChange, options }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={labelStyle}>{label}</label>
-      <textarea data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} className="textarea" style={{ minHeight }} placeholder={placeholder} />
-    </div>
+    <label style={fieldStyle}>
+      <span style={labelStyle}>{label}</span>
+      <select data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} style={selectStyle}>
+        {options.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function TextAreaField({ label, testId, value, onChange, placeholder, minHeight = 90 }) {
+  return (
+    <label style={fieldStyle}>
+      <span style={labelStyle}>{label}</span>
+      <textarea data-testid={testId} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} style={{ ...textareaStyle, minHeight }} />
+    </label>
   );
 }
 
 function FormActions({ onCancel, submitText, submitTestId }) {
   return (
-    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-      <Button type="button" className="btn-secondary" onClick={onCancel}>Cancel</Button>
-      <Button data-testid={submitTestId} type="submit" className="btn-primary">{submitText}</Button>
+    <div style={formActionsStyle}>
+      <Button type="button" onClick={onCancel} style={secondaryButtonStyle}>Cancel</Button>
+      <Button data-testid={submitTestId} type="submit" style={primaryButtonStyle}>{submitText}</Button>
     </div>
   );
 }
 
-function LocationCard({ location, isExpanded, isNewlyCreated, deletingLocation, onToggle, onEdit, onDelete, onCancelDelete, onAddPlace, onEditPlace, onDeletePlace, getPlaceIcon, lastGenerated }) {
+function LocationCard({ location, isExpanded, isNewlyCreated, deletingLocation, onToggle, onEdit, onDelete, onCancelDelete, onAddPlace, onEditPlace, onDeletePlace, lastGenerated }) {
   const places = location.places_of_interest || [];
+  const LocationIcon = LOCATION_TYPES.find(type => type.id === location.location_type)?.icon || MapPin;
 
   return (
-    <Card data-testid={`location-card-${location.id}`} className="card" style={{ overflow: 'visible', animation: isNewlyCreated ? 'glow-pulse 2s ease-out' : 'none', border: isNewlyCreated ? `2px solid ${rq.accent}` : `1px solid ${rq.border}` }}>
-      <CardHeader>
-        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
-          <MapPin size={24} style={{ color: rq.accent, marginTop: '4px' }} />
-          <div style={{ flex: 1 }}>
-            <CardTitle className="medieval-heading" style={cardTitleStyle}>
-              {location.name}
-              {isNewlyCreated && <span style={newBadgeStyle}><Check size={14} /> Just created</span>}
-            </CardTitle>
-            {location.location_type && <p style={typeTextStyle}>{location.location_type}</p>}
+    <article data-testid={`location-card-${location.id}`} style={{ ...locationCardStyle, animation: isNewlyCreated ? 'rq-location-pulse 1.6s ease-out' : 'none' }}>
+      <header style={locationHeaderStyle}>
+        <div style={locationIconStyle}><LocationIcon size={22} /></div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={titleRowStyle}>
+            <h3 style={locationTitleStyle}>{location.name || 'Unnamed Location'}</h3>
+            {isNewlyCreated && <span style={newBadgeStyle}><Check size={13} /> Just created</span>}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button data-testid={`edit-location-btn-${location.id}`} onClick={onEdit} className="btn-secondary" style={{ padding: '8px' }}><Edit size={14} /></Button>
-            {deletingLocation === location.id ? (
-              <div style={deleteConfirmStyle}>
-                <span style={{ fontSize: '11px', color: rq.text, whiteSpace: 'nowrap' }}>Delete?</span>
-                <Button data-testid={`confirm-delete-location-${location.id}`} onClick={onDelete} className="btn-icon" style={confirmDeleteButtonStyle}><Check size={12} /></Button>
-                <Button onClick={onCancelDelete} className="btn-icon" style={smallIconButtonStyle}><X size={12} /></Button>
-              </div>
-            ) : (
-              <Button data-testid={`delete-location-btn-${location.id}`} onClick={onDelete} className="btn-danger" style={{ padding: '8px' }}><Trash2 size={14} /></Button>
-            )}
-          </div>
+          <p style={typeTextStyle}>{typeLabel(location.location_type)}</p>
         </div>
-      </CardHeader>
-      <CardContent>
-        {location.description && <p style={descriptionStyle}>{location.description}</p>}
-        {location.notable_npcs && (
-          <InfoBox title="Notable NPCs" value={location.notable_npcs} />
-        )}
-        {location.notes && <p style={notesStyle}>{location.notes}</p>}
-
-        <div style={placesSectionStyle}>
-          <div style={placesHeaderStyle}>
-            <button onClick={onToggle} data-testid={`toggle-places-${location.id}`} style={toggleButtonStyle}>
-              <Store size={16} style={{ color: rq.accent }} />
-              <span style={placesTitleStyle}>PLACES OF INTEREST ({places.length})</span>
-              {isExpanded ? <ChevronUp size={16} style={{ color: rq.accent }} /> : <ChevronDown size={16} style={{ color: rq.accent }} />}
-            </button>
-            <Button data-testid={`add-place-btn-${location.id}`} onClick={onAddPlace} className="btn-outline" style={addPlaceButtonStyle}>
-              <Plus size={12} /> Add Place
-            </Button>
-          </div>
-
-          {isExpanded && places.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {places.map(place => (
-                <PlaceCard key={place.id} place={place} TypeIcon={getPlaceIcon(place.place_type)} isNewPlace={lastGenerated?.entity_id === place.id} onEdit={() => onEditPlace(place)} onDelete={() => onDeletePlace(place.id)} />
-              ))}
+        <div style={cardActionsStyle}>
+          <Button data-testid={`edit-location-btn-${location.id}`} onClick={onEdit} style={iconButtonStyle}><Edit size={14} /></Button>
+          {deletingLocation === location.id ? (
+            <div style={deleteConfirmStyle}>
+              <span style={deleteTextStyle}>Delete?</span>
+              <Button data-testid={`confirm-delete-location-${location.id}`} onClick={onDelete} style={dangerMiniStyle}><Check size={12} /></Button>
+              <Button onClick={onCancelDelete} style={iconButtonStyle}><X size={12} /></Button>
             </div>
+          ) : (
+            <Button data-testid={`delete-location-btn-${location.id}`} onClick={onDelete} style={dangerIconStyle}><Trash2 size={14} /></Button>
           )}
-
-          {isExpanded && places.length === 0 && <p style={emptyPlacesStyle}>No places added yet. Add shops, taverns, temples, and more.</p>}
         </div>
-      </CardContent>
-    </Card>
-  );
-}
+      </header>
 
-function PlaceCard({ place, TypeIcon, isNewPlace, onEdit, onDelete }) {
-  const typeLabel = PLACE_TYPES.find(type => type.id === place.place_type)?.label || 'Place';
-
-  return (
-    <div data-testid={`place-card-${place.id}`} style={{ ...placeCardStyle, border: isNewPlace ? `2px solid ${rq.accent}` : `1px solid ${rq.border}` }}>
-      <div style={placeTopRowStyle}>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <TypeIcon size={18} style={{ color: rq.accent }} />
-          <div>
-            <h5 style={placeTitleStyle}>{place.name}{isNewPlace && <Check size={12} style={{ color: rq.accent }} />}</h5>
-            <span style={placeTypeBadgeStyle}>{typeLabel}</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button data-testid={`edit-place-btn-${place.id}`} onClick={onEdit} style={placeActionButtonStyle}><Edit size={12} /></button>
-          <button data-testid={`delete-place-btn-${place.id}`} onClick={onDelete} style={placeDangerButtonStyle}><X size={12} /></button>
-        </div>
+      {location.description && <p style={descriptionStyle}>{location.description}</p>}
+      <div style={infoGridStyle}>
+        {location.notable_npcs && <InfoBox title="Notable NPCs" value={location.notable_npcs} />}
+        {location.notes && <InfoBox title="GM Notes" value={location.notes} muted />}
       </div>
-      {place.owner && <p style={placeMetaStyle}><strong>Owner:</strong> {place.owner}</p>}
-      {place.description && <p style={placeDescriptionStyle}>{place.description}</p>}
-      {place.services && <InfoBox title="Services/Items" value={place.services} compact />}
-      {place.notes && <p style={placeNotesStyle}>{place.notes}</p>}
+
+      <section style={placesSectionStyle}>
+        <div style={placesHeaderStyle}>
+          <button onClick={onToggle} data-testid={`toggle-places-${location.id}`} style={toggleButtonStyle}>
+            <Store size={16} />
+            <span>Places of interest ({places.length})</span>
+            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          <Button data-testid={`add-place-btn-${location.id}`} onClick={onAddPlace} style={smallButtonStyle}><Plus size={12} /> Add Place</Button>
+        </div>
+
+        {isExpanded && places.length > 0 && (
+          <div style={placesListStyle}>
+            {places.map(place => (
+              <PlaceCard key={place.id} place={place} isNewPlace={lastGenerated?.entity_id === place.id} onEdit={() => onEditPlace(place)} onDelete={() => onDeletePlace(place.id)} />
+            ))}
+          </div>
+        )}
+        {isExpanded && places.length === 0 && <p style={emptyPlacesStyle}>No smaller places added yet. Add shops, gates, temples, hideouts, landmarks, rooms, or clues inside this location.</p>}
+      </section>
+    </article>
+  );
+}
+
+function InfoBox({ title, value, muted = false }) {
+  return (
+    <div style={infoBoxStyle}>
+      <strong style={infoTitleStyle}>{title}</strong>
+      <p style={{ ...infoValueStyle, color: muted ? rq.muted : rq.soft }}>{value}</p>
     </div>
   );
 }
 
-function InfoBox({ title, value, compact = false }) {
+function PlaceCard({ place, isNewPlace, onEdit, onDelete }) {
+  const TypeIcon = placeTypeIcon(place.place_type);
   return (
-    <div style={compact ? compactInfoBoxStyle : infoBoxStyle}>
-      <p style={infoTitleStyle}>{title}</p>
-      <p style={infoValueStyle}>{value}</p>
-    </div>
+    <article style={{ ...placeCardStyle, animation: isNewPlace ? 'rq-location-pulse 1.6s ease-out' : 'none' }}>
+      <div style={placeIconStyle}><TypeIcon size={17} /></div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <h4 style={placeTitleStyle}>{place.name}</h4>
+        <p style={placeMetaStyle}>{placeTypeLabel(place.place_type)}</p>
+        {place.description && <p style={placeTextStyle}>{place.description}</p>}
+        {place.owner && <p style={placeSmallStyle}><strong>Linked NPC:</strong> {place.owner}</p>}
+        {place.services && <p style={placeSmallStyle}><strong>Purpose:</strong> {place.services}</p>}
+        {place.notes && <p style={placeNoteStyle}>{place.notes}</p>}
+      </div>
+      <div style={placeActionsStyle}>
+        <Button onClick={onEdit} style={iconButtonStyle}><Edit size={12} /></Button>
+        <Button onClick={onDelete} style={dangerIconStyle}><Trash2 size={12} /></Button>
+      </div>
+    </article>
   );
 }
 
 function RookPanel({ locations, aiPrompt, setAiPrompt, aiGenerating, generationType, setGenerationType, selectedLocationForPlace, setSelectedLocationForPlace, lastGenerated, onGenerate }) {
   return (
-    <div className="ai-assistant-panel" style={{ position: 'sticky', top: '20px', height: 'fit-content' }}>
-      <Card className="parchment-dark" style={rookPanelStyle}>
-        <CardHeader>
-          <CardTitle className="medieval-heading" style={rookTitleStyle}>
-            <Wand2 size={20} style={{ color: rq.accent }} />
-            Rook Location Helper
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p style={rookIntroStyle}>Ask Rook to draft and auto-save text entries for locations or places of interest.</p>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={rookLabelStyle}>What to create?</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <ToggleButton active={generationType === 'location'} onClick={() => setGenerationType('location')} icon={MapPin} label="Location" />
-              <ToggleButton active={generationType === 'place'} onClick={() => setGenerationType('place')} icon={Store} label="Place" />
-            </div>
-          </div>
+    <aside style={rookPanelStyle}>
+      <div style={rookHeaderStyle}>
+        <Wand2 size={20} />
+        <div>
+          <h3 style={sideTitleStyle}>Rook location helper</h3>
+          <p style={sideTextStyle}>Draft a generic place entry, then sort it into the right reusable location box.</p>
+        </div>
+      </div>
 
-          {generationType === 'place' && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={rookLabelStyle}>Add to which location?</label>
-              <select value={selectedLocationForPlace} onChange={(event) => setSelectedLocationForPlace(event.target.value)} className="input" style={{ width: '100%', borderColor: rq.accent }}>
-                <option value="">Select a location...</option>
-                {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
-              </select>
-            </div>
-          )}
+      <div style={generationToggleStyle}>
+        <button type="button" onClick={() => setGenerationType('location')} style={toggleChoiceStyle(generationType === 'location')}>Location</button>
+        <button type="button" onClick={() => setGenerationType('place')} style={toggleChoiceStyle(generationType === 'place')}>Place inside location</button>
+      </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={rookLabelStyle}>{generationType === 'place' ? 'Describe the place' : 'Describe the location'}</label>
-            <textarea
-              data-testid="rook-location-prompt"
-              value={aiPrompt}
-              onChange={(event) => setAiPrompt(event.target.value)}
-              className="textarea"
-              style={{ minHeight: '100px', fontSize: '13px', borderColor: rq.accent }}
-              placeholder={generationType === 'place' ? 'Example: A seedy tavern where criminals meet to plan heists' : 'Example: A bustling port city with secret underground markets'}
-            />
-          </div>
-          <Button data-testid="summon-location-btn" onClick={onGenerate} disabled={aiGenerating} className="btn-primary" style={rookButtonStyle}>
-            {aiGenerating ? <><Loader size={16} className="animate-spin" />Rook is drafting...</> : <><Wand2 size={16} />{generationType === 'place' ? 'Ask Rook for Place' : 'Ask Rook for Location'}</>}
-          </Button>
+      {generationType === 'place' && (
+        <label style={fieldStyle}>
+          <span style={labelStyle}>Parent location</span>
+          <select value={selectedLocationForPlace} onChange={(event) => setSelectedLocationForPlace(event.target.value)} style={selectStyle}>
+            <option value="">Choose a location</option>
+            {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
+          </select>
+        </label>
+      )}
 
-          {lastGenerated && (
-            <div style={lastGeneratedStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <Check size={16} style={{ color: rq.accent }} />
-                <span style={{ color: rq.accent, fontWeight: 900, fontSize: '13px' }}>Created</span>
-              </div>
-              <p style={{ color: rq.text, fontSize: '14px', fontWeight: 900 }}>{lastGenerated.entity_name}</p>
-              <p style={{ color: rq.muted, fontSize: '12px', marginTop: '4px' }}>Use the edit button on the card to make changes.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <label style={fieldStyle}>
+        <span style={labelStyle}>Prompt</span>
+        <textarea
+          value={aiPrompt}
+          onChange={(event) => setAiPrompt(event.target.value)}
+          placeholder={generationType === 'place' ? 'A secret black-market shop under a ruined bridge...' : 'A rebuilt capital city with political tension and old buried secrets...'}
+          style={{ ...textareaStyle, minHeight: 120 }}
+        />
+      </label>
+
+      <Button onClick={onGenerate} disabled={aiGenerating} style={primaryButtonStyle}>
+        {aiGenerating ? <><Loader size={16} className="spin" /> Creating...</> : <><Wand2 size={16} /> Ask Rook</>}
+      </Button>
+
+      {lastGenerated && (
+        <div style={generatedBoxStyle}>
+          <p style={ruleLabelStyle}>Last created</p>
+          <p style={sideTextStyle}>{lastGenerated.entity_name || 'New entry added'}</p>
+        </div>
+      )}
+    </aside>
   );
 }
 
-function ToggleButton({ active, onClick, icon: Icon, label }) {
-  return (
-    <button type="button" onClick={onClick} style={toggleStyle(active)}>
-      <Icon size={14} /> {label}
-    </button>
-  );
-}
-
-const layoutStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 'clamp(14px, 4vw, 24px)', minWidth: 0 };
-const topBarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' };
-const headingStyle = { fontSize: '28px', color: rq.text, marginBottom: '24px' };
-const countStyle = { fontSize: '18px', color: rq.muted };
-const inlineButtonStyle = { display: 'flex', gap: '8px', borderRadius: rq.radiusSm };
-const searchIconStyle = { position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: rq.muted };
-const emptyCardStyle = { padding: '40px', textAlign: 'center', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius };
-const dialogStyle = { maxWidth: '600px', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius };
-const dialogTitleStyle = { fontSize: '24px', color: rq.text };
-const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' };
-const labelStyle = { display: 'block', marginBottom: '8px', fontSize: '14px', color: rq.accentHover, fontWeight: 900 };
-const cardTitleStyle = { fontSize: '20px', color: rq.text, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' };
-const newBadgeStyle = { fontSize: '12px', color: rq.accent, display: 'flex', alignItems: 'center', gap: '4px' };
-const typeTextStyle = { fontSize: '14px', color: rq.accentHover };
-const deleteConfirmStyle = { display: 'flex', gap: '4px', alignItems: 'center', padding: '4px 8px', background: rq.accentSoft, borderRadius: rq.radiusSm, border: `1px solid ${rq.border}` };
-const confirmDeleteButtonStyle = { background: rq.danger, minHeight: '28px', minWidth: '28px', padding: '4px' };
-const smallIconButtonStyle = { minHeight: '28px', minWidth: '28px', padding: '4px' };
-const descriptionStyle = { fontSize: '14px', color: rq.text, marginBottom: '12px', lineHeight: '1.5' };
-const notesStyle = { fontSize: '12px', color: rq.muted, marginBottom: '12px', fontStyle: 'italic' };
-const placesSectionStyle = { marginTop: '16px', borderTop: `1px solid ${rq.borderDefault}`, paddingTop: '16px' };
-const placesHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '12px', flexWrap: 'wrap' };
-const toggleButtonStyle = { background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0 };
-const placesTitleStyle = { color: rq.accent, fontSize: '13px', fontWeight: 900 };
-const addPlaceButtonStyle = { padding: '4px 10px', fontSize: '11px', borderColor: rq.accent, color: rq.accent, display: 'flex', gap: '4px', alignItems: 'center', borderRadius: rq.radiusSm };
-const emptyPlacesStyle = { fontSize: '12px', color: rq.muted, fontStyle: 'italic', textAlign: 'center', padding: '12px' };
-const placeCardStyle = { background: rq.input, borderRadius: rq.radiusSm, padding: '12px 14px' };
-const placeTopRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px', gap: '12px' };
-const placeTitleStyle = { color: rq.text, fontSize: '14px', fontWeight: 900, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' };
-const placeTypeBadgeStyle = { fontSize: '10px', color: rq.accent, background: rq.accentSoft, padding: '2px 8px', borderRadius: rq.radiusSm, fontWeight: 900 };
-const placeActionButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, color: rq.accent, padding: '4px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
-const placeDangerButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, color: rq.danger, padding: '4px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
-const placeMetaStyle = { fontSize: '12px', color: rq.textSecondary, marginBottom: '4px' };
-const placeDescriptionStyle = { fontSize: '12px', color: rq.muted, marginBottom: '4px', lineHeight: '1.4' };
-const placeNotesStyle = { fontSize: '11px', color: rq.muted, marginTop: '6px', fontStyle: 'italic' };
-const infoBoxStyle = { marginBottom: '12px', padding: '8px', background: rq.accentSoft, borderRadius: rq.radiusSm, border: `1px solid ${rq.border}` };
-const compactInfoBoxStyle = { marginTop: '6px', padding: '6px 8px', background: rq.accentSoft, borderRadius: rq.radiusSm, border: `1px solid ${rq.border}` };
-const infoTitleStyle = { fontSize: '12px', color: rq.accentHover, marginBottom: '4px', fontWeight: 900 };
-const infoValueStyle = { fontSize: '14px', color: rq.text };
-const rookPanelStyle = { border: `1px solid ${rq.border}`, background: rq.panel, borderRadius: rq.radius };
-const rookTitleStyle = { fontSize: '20px', color: rq.text, display: 'flex', alignItems: 'center', gap: '8px' };
-const rookIntroStyle = { fontSize: '13px', color: rq.textSecondary, marginBottom: '16px', lineHeight: '1.5' };
-const rookLabelStyle = { display: 'block', marginBottom: '8px', fontSize: '12px', color: rq.accentHover, fontWeight: 900 };
-const rookButtonStyle = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: rq.radiusSm };
-const toggleStyle = (active) => ({ flex: 1, padding: '8px 12px', borderRadius: rq.radiusSm, border: active ? `1px solid ${rq.accent}` : `1px solid ${rq.borderDefault}`, background: active ? rq.accentSoft : 'transparent', color: active ? rq.accentHover : rq.muted, fontSize: '12px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' });
-const lastGeneratedStyle = { marginTop: '16px', padding: '12px', background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm };
+const pageStyle = { display: 'grid', gap: 16, fontFamily: fontStack };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 16 };
+const eyebrowStyle = { margin: '0 0 5px', color: rq.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
+const titleStyle = { margin: 0, color: rq.text, fontSize: 'clamp(26px, 4vw, 42px)', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.02 };
+const subtitleStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 14, lineHeight: 1.45, maxWidth: 780 };
+const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.accent, color: rq.text, padding: '0 14px', fontWeight: 950, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: rq.card, color: rq.text, padding: '0 14px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
+const smallButtonStyle = { ...secondaryButtonStyle, minHeight: 34, padding: '0 10px', fontSize: 12 };
+const importRuleStyle = { background: rq.panel, borderLeft: `6px solid ${rq.accent}`, padding: 14, display: 'grid', gap: 4 };
+const ruleLabelStyle = { margin: 0, color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950 };
+const ruleTextStyle = { margin: 0, color: rq.soft, lineHeight: 1.45, fontSize: 14 };
+const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', borderTop: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}` };
+const statStyle = { minHeight: 68, padding: '12px 14px', display: 'grid', alignContent: 'center', gap: 3, borderRight: `1px solid ${rq.line}` };
+const statValueStyle = { color: rq.text, fontSize: 24, fontWeight: 950 };
+const statLabelStyle = { color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 };
+const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(190px, 280px)', gap: 10 };
+const searchWrapStyle = { position: 'relative', minWidth: 0 };
+const searchIconStyle = { position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: rq.muted, zIndex: 1 };
+const searchInputStyle = { ...inputBaseStyle(), paddingLeft: 40 };
+const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 340px)', gap: 16, alignItems: 'start' };
+const cardsStyle = { display: 'grid', gap: 14 };
+const emptyCardStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 18, display: 'grid', gap: 12, justifyItems: 'start' };
+const mutedTextStyle = { margin: 0, color: rq.soft };
+const dialogStyle = { maxWidth: 680, background: rq.bg, backgroundColor: rq.bg, border: `1px solid ${rq.lineStrong}`, borderRadius: 0, color: rq.text, boxShadow: 'none', fontFamily: fontStack };
+const dialogTitleStyle = { color: rq.text, fontSize: 26, fontWeight: 950, letterSpacing: '-0.03em', fontFamily: fontStack };
+const formStyle = { display: 'grid', gap: 12, marginTop: 16 };
+const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 };
+const fieldStyle = { display: 'grid', gap: 6 };
+const labelStyle = { color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+function inputBaseStyle() { return { width: '100%', minHeight: 44, border: `1px solid ${rq.lineStrong}`, borderRadius: 0, background: rq.input, color: rq.text, padding: '0 11px', fontFamily: fontStack, fontSize: 14, outline: 'none', colorScheme: 'dark' }; }
+const inputStyle = inputBaseStyle();
+const selectStyle = { ...inputBaseStyle(), appearance: 'auto' };
+const textareaStyle = { width: '100%', border: `1px solid ${rq.lineStrong}`, borderRadius: 0, background: rq.input, color: rq.text, padding: 12, fontFamily: fontStack, fontSize: 14, outline: 'none', resize: 'vertical', lineHeight: 1.45, colorScheme: 'dark' };
+const hintTextStyle = { margin: '-4px 0 2px', color: rq.muted, fontSize: 12, lineHeight: 1.35 };
+const formActionsStyle = { display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', borderTop: `1px solid ${rq.line}`, paddingTop: 12, marginTop: 4 };
+const locationCardStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 0, color: rq.text };
+const locationHeaderStyle = { display: 'flex', alignItems: 'flex-start', gap: 12, padding: 14, borderBottom: `1px solid ${rq.line}` };
+const locationIconStyle = { width: 42, height: 42, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `5px solid ${rq.accent}`, flex: '0 0 auto' };
+const titleRowStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
+const locationTitleStyle = { margin: 0, color: rq.text, fontSize: 21, fontWeight: 950, letterSpacing: '-0.02em' };
+const typeTextStyle = { margin: '4px 0 0', color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 };
+const cardActionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
+const iconButtonStyle = { minWidth: 34, minHeight: 34, border: 0, borderRadius: 0, background: rq.panel, color: rq.text, padding: 0, display: 'grid', placeItems: 'center' };
+const dangerIconStyle = { ...iconButtonStyle, background: 'rgba(208,0,0,0.28)' };
+const dangerMiniStyle = { ...iconButtonStyle, background: rq.accent };
+const deleteConfirmStyle = { display: 'flex', alignItems: 'center', gap: 6, background: rq.panel, padding: 4 };
+const deleteTextStyle = { color: rq.text, fontSize: 11, fontWeight: 900 };
+const newBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, background: rq.accent, color: rq.text, padding: '4px 7px', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const descriptionStyle = { margin: 0, padding: 14, color: rq.soft, lineHeight: 1.5, borderBottom: `1px solid ${rq.line}` };
+const infoGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0 };
+const infoBoxStyle = { padding: 14, borderBottom: `1px solid ${rq.line}`, borderRight: `1px solid ${rq.line}` };
+const infoTitleStyle = { display: 'block', color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950, marginBottom: 6 };
+const infoValueStyle = { margin: 0, lineHeight: 1.45, whiteSpace: 'pre-wrap' };
+const placesSectionStyle = { padding: 14, display: 'grid', gap: 12 };
+const placesHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' };
+const toggleButtonStyle = { border: 0, background: 'transparent', color: rq.text, padding: 0, display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 950, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: 12, fontFamily: fontStack };
+const placesListStyle = { display: 'grid', gap: 10 };
+const emptyPlacesStyle = { margin: 0, color: rq.muted, lineHeight: 1.4, fontSize: 13 };
+const placeCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', background: rq.panel, border: `1px solid ${rq.line}`, padding: 12 };
+const placeIconStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `4px solid ${rq.accent}`, flex: '0 0 auto' };
+const placeTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950 };
+const placeMetaStyle = { margin: '3px 0 0', color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 };
+const placeTextStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.42, fontSize: 13 };
+const placeSmallStyle = { margin: '6px 0 0', color: rq.soft, lineHeight: 1.35, fontSize: 12 };
+const placeNoteStyle = { margin: '8px 0 0', color: rq.muted, lineHeight: 1.35, fontSize: 12, background: rq.bg, padding: 8 };
+const placeActionsStyle = { display: 'flex', gap: 6 };
+const rookPanelStyle = { position: 'sticky', top: 80, display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, padding: 14 };
+const rookHeaderStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', color: rq.text };
+const sideTitleStyle = { margin: 0, color: rq.text, fontSize: 18, fontWeight: 950 };
+const sideTextStyle = { margin: '4px 0 0', color: rq.soft, lineHeight: 1.4, fontSize: 13 };
+const generationToggleStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: `1px solid ${rq.line}` };
+const toggleChoiceStyle = (active) => ({ border: 0, borderRight: `1px solid ${rq.line}`, background: active ? rq.accent : rq.panel, color: rq.text, padding: '10px 8px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
+const generatedBoxStyle = { background: rq.panel, borderLeft: `5px solid ${rq.accent}`, padding: 10 };
 
 export default LocationsTab;
