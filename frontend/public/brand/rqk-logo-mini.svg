@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">RQK</title>
+  <desc id="desc">R stacked above Q, with a larger K to the right.</desc>
+  <g fill="#F6EAD2" font-family="Metal Mania, Cinzel Decorative, Georgia, serif" text-anchor="middle">
+    <text x="72" y="92" font-size="78">R</text>
+    <text x="72" y="184" font-size="78">Q</text>
+    <text x="166" y="178" font-size="170">K</text>
+  </g>
+</svg>
