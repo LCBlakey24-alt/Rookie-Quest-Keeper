@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import useDashboardData from '@/components/dashboard/useDashboardData';
+import apiClient from '@/lib/apiClient';
 
 function safeArray(value) {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
@@ -28,6 +29,8 @@ function campaignMeta(campaign) {
 
 export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) {
   const navigate = useNavigate();
+  const [backendStatus, setBackendStatus] = useState('Checking');
+  const [backendCheckedAt, setBackendCheckedAt] = useState('');
   const {
     characters,
     campaigns,
@@ -47,9 +50,31 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   const primaryCharacter = latestCharacters[0];
   const primaryCampaign = latestCampaigns[0];
 
+  const checkBackend = async () => {
+    setBackendStatus('Checking');
+    const startedAt = Date.now();
+    try {
+      await apiClient.get('/health', { timeout: 8000 });
+      const elapsed = Date.now() - startedAt;
+      setBackendStatus(elapsed > 3000 ? 'Slow' : 'Ready');
+    } catch {
+      setBackendStatus('Offline');
+    } finally {
+      setBackendCheckedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }
+  };
+
+  useEffect(() => {
+    checkBackend();
+  }, []);
+
+  const refreshEverything = async () => {
+    await Promise.allSettled([loadDashboard(), checkBackend()]);
+  };
+
   const openPrimaryCampaign = () => {
     if (primaryCampaign?.id) navigate(`/campaign/${primaryCampaign.id}`);
-    else loadDashboard();
+    else refreshEverything();
   };
 
   if (loading) {
@@ -77,7 +102,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </div>
         <div style={headerButtonsStyle}>
           {isAdmin && <DashboardButton onClick={() => navigate('/admin')}>Admin</DashboardButton>}
-          <DashboardButton onClick={loadDashboard} disabled={refreshing}>{refreshing ? 'Refreshing...' : 'Refresh'}</DashboardButton>
+          <DashboardButton onClick={refreshEverything} disabled={refreshing}>{refreshing ? 'Refreshing...' : 'Refresh'}</DashboardButton>
           <DashboardButton onClick={() => navigate('/account')}>Account</DashboardButton>
           <DashboardButton onClick={onLogout}>Logout</DashboardButton>
         </div>
@@ -86,8 +111,8 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
       <section style={statusBarStyle} aria-label="Dashboard status">
         <StatChip label="Characters" value={safeCharacters.length} />
         <StatChip label="Campaigns" value={safeCampaigns.length} />
-        <StatChip label="Mode" value="Stable" />
-        <StatChip label="Backend" value={slowLoad ? 'Waking' : 'Ready'} />
+        <StatChip label="Access" value={isAdmin ? 'Admin' : 'Player'} />
+        <StatChip label="Backend" value={backendStatus} tone={backendStatus} />
       </section>
 
       <section style={continueGridStyle} aria-label="Continue where you left off">
@@ -140,7 +165,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           ))}
         </SummaryPanel>
 
-        <SummaryPanel title="GM Campaigns" emptyText="No campaigns yet. Campaign creation tools are coming back after this stability pass." actionLabel="Refresh Campaigns" onAction={loadDashboard}>
+        <SummaryPanel title="GM Campaigns" emptyText="No campaigns yet. Campaign creation tools are coming back after this stability pass." actionLabel="Refresh Campaigns" onAction={refreshEverything}>
           {latestCampaigns.map((campaign, index) => (
             <ListButton
               key={campaign?.id || `campaign-${index}`}
@@ -152,25 +177,41 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </SummaryPanel>
       </section>
 
-      <section style={noticeStyle}>
-        <p style={eyebrowStyle}>Stability mode</p>
-        <p style={mutedStyle}>The dashboard is now running on a safer shell while the full module version is rebuilt piece by piece.</p>
+      <section style={systemPanelStyle}>
+        <div>
+          <p style={eyebrowStyle}>System status</p>
+          <p style={mutedStyle}>{statusMessage(backendStatus, backendCheckedAt)}</p>
+        </div>
+        <button type="button" onClick={checkBackend} style={linkButtonStyle}><span>Check backend</span></button>
       </section>
     </main>
   );
+}
+
+function statusMessage(status, checkedAt) {
+  if (status === 'Ready') return `Backend is responding normally${checkedAt ? ` · checked ${checkedAt}` : ''}.`;
+  if (status === 'Slow') return `Backend responded, but slowly${checkedAt ? ` · checked ${checkedAt}` : ''}. This can happen when a free host wakes up.`;
+  if (status === 'Offline') return `Backend health check failed${checkedAt ? ` · checked ${checkedAt}` : ''}. Try refresh, then check the host if it continues.`;
+  return 'Checking backend health...';
 }
 
 function DashboardButton({ children, onClick, disabled = false }) {
   return <button type="button" onClick={onClick} disabled={disabled} style={buttonStyle}><span>{children}</span></button>;
 }
 
-function StatChip({ label, value }) {
+function StatChip({ label, value, tone }) {
   return (
     <div style={statChipStyle}>
-      <span style={statValueStyle}>{value}</span>
+      <span style={{ ...statValueStyle, color: statusColor(tone) }}>{value}</span>
       <span style={statLabelStyle}>{label}</span>
     </div>
   );
+}
+
+function statusColor(tone) {
+  if (tone === 'Offline') return '#ff8a8a';
+  if (tone === 'Slow' || tone === 'Checking') return '#ffd27a';
+  return '#ffffff';
 }
 
 function ContinuePanel({ label, title, text, action, onClick }) {
@@ -350,5 +391,5 @@ const sectionTitleStyle = { margin: 0, color: '#ffffff', fontSize: 20, fontWeigh
 const linkButtonStyle = { border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', padding: '8px 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const listButtonStyle = { width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: 0, borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))', background: 'transparent', color: '#ffffff', padding: '12px 0', cursor: 'pointer', textAlign: 'left', fontFamily: fontStack };
 const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
-const noticeStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12 };
+const systemPanelStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' };
 const loadingStyle = { width: 'min(520px, 100%)', margin: '12vh auto 0', display: 'grid', justifyItems: 'center', gap: 10, textAlign: 'center' };
