@@ -35,6 +35,7 @@ import { Toaster } from '@/components/ui/sonner';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
+import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
@@ -142,6 +143,7 @@ function AppRoutes() {
     <>
       <ThemeRouter />
       <GlobalActionFillEffects />
+      <GlobalScrollRecovery />
       <ImpersonationBanner />
       <Routes>
         <Route path="/" element={<LandingPage />} />
