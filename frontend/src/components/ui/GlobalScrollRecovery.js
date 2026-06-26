@@ -25,6 +25,40 @@ function pageCanScroll(deltaY) {
   return false;
 }
 
+function isCampaignGroupButton(element) {
+  return element instanceof HTMLElement
+    && element.matches('button[data-testid^="group-"]')
+    && element.closest('.sidebar');
+}
+
+function setGroupChildrenVisible(groupWrapper, visible) {
+  if (!groupWrapper) return;
+  const buttons = Array.from(groupWrapper.querySelectorAll(':scope > button'));
+  buttons.forEach((button, index) => {
+    if (index === 0) return;
+    button.style.display = visible ? 'flex' : 'none';
+  });
+}
+
+function setGroupArrow(groupButton, expanded) {
+  if (!groupButton) return;
+  groupButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  const icon = groupButton.querySelector('svg');
+  if (icon) {
+    icon.style.transform = expanded ? 'rotate(90deg)' : 'rotate(0deg)';
+    icon.style.transition = 'transform 120ms ease';
+  }
+}
+
+function toggleCampaignGroup(groupButton) {
+  const groupWrapper = groupButton?.parentElement;
+  if (!groupWrapper) return;
+  const nextExpanded = groupWrapper.dataset.rqExpanded !== 'true';
+  groupWrapper.dataset.rqExpanded = nextExpanded ? 'true' : 'false';
+  setGroupChildrenVisible(groupWrapper, nextExpanded);
+  setGroupArrow(groupButton, nextExpanded);
+}
+
 export default function GlobalScrollRecovery() {
   useEffect(() => {
     const onWheel = (event) => {
@@ -35,12 +69,39 @@ export default function GlobalScrollRecovery() {
       event.preventDefault();
     };
 
+    const onCampaignGroupClick = (event) => {
+      const groupButton = event.target instanceof Element
+        ? event.target.closest('button[data-testid^="group-"]')
+        : null;
+
+      if (!isCampaignGroupButton(groupButton)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+      toggleCampaignGroup(groupButton);
+    };
+
+    const initialiseCampaignGroups = () => {
+      document.querySelectorAll('.sidebar button[data-testid^="group-"]').forEach((groupButton) => {
+        const groupWrapper = groupButton.parentElement;
+        if (!groupWrapper || groupWrapper.dataset.rqExpanded) return;
+        groupWrapper.dataset.rqExpanded = 'true';
+        groupButton.setAttribute('aria-expanded', 'true');
+      });
+    };
+
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     document.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    document.addEventListener('click', onCampaignGroupClick, { capture: true });
+    const groupObserver = new MutationObserver(initialiseCampaignGroups);
+    groupObserver.observe(document.body, { childList: true, subtree: true });
+    initialiseCampaignGroups();
 
     return () => {
       window.removeEventListener('wheel', onWheel, { capture: true });
       document.removeEventListener('wheel', onWheel, { capture: true });
+      document.removeEventListener('click', onCampaignGroupClick, { capture: true });
+      groupObserver.disconnect();
     };
   }, []);
 
