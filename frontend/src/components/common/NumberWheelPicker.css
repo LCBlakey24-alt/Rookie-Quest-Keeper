@@ -17,12 +17,10 @@
   position: relative;
   width: min(100%, 118px);
   height: 118px;
-  border-radius: 16px;
-  border: 1px solid rgba(216, 173, 79, 0.34);
-  background:
-    linear-gradient(180deg, rgba(8, 8, 22, 0.7), rgba(39, 39, 87, 0.72)),
-    radial-gradient(circle at 50% 50%, rgba(216, 173, 79, 0.12), transparent 68%);
-  box-shadow: inset 0 0 0 1px rgba(246, 234, 210, 0.04), 0 12px 28px rgba(0, 0, 0, 0.25);
+  border-radius: 0;
+  border: 1px solid rgba(216, 173, 79, 0.22);
+  background: transparent;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -32,15 +30,16 @@
 
 .number-wheel-picker__selection {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 0;
+  right: 0;
   top: 50%;
   height: 38px;
   transform: translateY(-50%);
-  border-radius: 12px;
-  border: 1px solid rgba(242, 209, 138, 0.48);
-  background: rgba(216, 173, 79, 0.12);
-  box-shadow: 0 0 24px rgba(124, 120, 255, 0.18);
+  border-radius: 0;
+  border-top: 1px solid rgba(242, 209, 138, 0.38);
+  border-bottom: 1px solid rgba(242, 209, 138, 0.38);
+  background: transparent;
+  box-shadow: none;
   pointer-events: none;
   z-index: 1;
 }
@@ -72,20 +71,21 @@
   align-items: center;
   justify-content: center;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: rgba(246, 234, 210, 0.5);
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
   scroll-snap-align: center;
-  transition: color 140ms ease, font-size 140ms ease, opacity 140ms ease, text-shadow 140ms ease;
+  transition: color 140ms ease, font-size 140ms ease, opacity 140ms ease;
 }
 
 .number-wheel-picker__wheel button.is-selected {
   color: var(--rq-blue-eclipse-cream, #f6ead2);
   font-size: 1.75rem;
   opacity: 1;
-  text-shadow: 0 0 18px rgba(242, 209, 138, 0.38);
+  text-shadow: none;
 }
 
 .number-wheel-picker__wheel button:disabled {
@@ -95,7 +95,7 @@
 .number-wheel-picker--compact .number-wheel-picker__frame {
   width: min(100%, 96px);
   height: 96px;
-  border-radius: 14px;
+  border-radius: 0;
 }
 
 .number-wheel-picker--compact .number-wheel-picker__selection,
