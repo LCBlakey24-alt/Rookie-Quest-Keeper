@@ -3,14 +3,15 @@ import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { getLatestUpdates } from '@/data/latestUpdates';
 
 const theme = {
-  panel: 'var(--rq-bg-card, rgba(36, 24, 21, 0.96))',
-  panelSoft: 'var(--rq-bg-elevated, rgba(48, 32, 27, 0.72))',
-  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.26))',
-  accent: 'var(--rq-accent-primary, #C08A3D)',
-  accentHover: 'var(--rq-accent-hover, #E0B46F)',
-  text: 'var(--rq-text-primary, #FFF8EC)',
-  textSecondary: 'var(--rq-text-secondary, #E5D3B7)',
-  muted: 'var(--rq-text-muted, #BFA98C)',
+  panel: 'transparent',
+  panelSoft: 'transparent',
+  border: 'rgba(216, 173, 79, 0.16)',
+  borderStrong: 'rgba(216, 173, 79, 0.30)',
+  accent: 'var(--rq-accent-primary, #D8AD4F)',
+  accentHover: 'var(--rq-accent-hover, #E6C775)',
+  text: 'var(--rq-text-primary, #F6EAD2)',
+  textSecondary: 'var(--rq-text-secondary, #D9C8A5)',
+  muted: 'var(--rq-text-muted, #AAA6C8)',
 };
 
 export default function LatestUpdatesPanel({ limit = 5, publicOnly = false, compact = false }) {
@@ -112,42 +113,35 @@ function formatDate(date) {
 }
 
 const panelStyle = (compact, collapsed, isSmallScreen) => ({
-  background: theme.panel,
-  border: `1px solid ${theme.border}`,
-  borderRadius: isSmallScreen ? 12 : collapsed ? 999 : 14,
-  padding: isSmallScreen ? '10px 12px' : collapsed ? '10px 12px' : compact ? 16 : 18,
-  margin: compact ? '18px auto' : isSmallScreen ? '0 0 12px' : '0 0 16px',
+  background: 'transparent',
+  border: 0,
+  borderTop: `1px solid ${theme.border}`,
+  borderRadius: 0,
+  padding: isSmallScreen ? '12px 0' : compact ? '14px 0' : '16px 0',
+  margin: compact ? '16px auto' : isSmallScreen ? '0 0 10px' : '0 0 14px',
   maxWidth: compact ? 1180 : '100%',
   color: theme.text,
   boxShadow: 'none',
   overflow: 'hidden',
 });
 
-const headerStyle = (collapsed, isSmallScreen) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: isSmallScreen ? 8 : 12,
-  flexWrap: isSmallScreen ? 'nowrap' : collapsed ? 'nowrap' : 'wrap',
-  marginBottom: collapsed ? 0 : 12,
-});
-
+const headerStyle = (collapsed, isSmallScreen) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: isSmallScreen ? 8 : 12, flexWrap: 'nowrap', marginBottom: collapsed ? 0 : 12 });
 const titleWrapStyle = { display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 };
 const eyebrowStyle = { color: theme.accentHover, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 900, margin: '0 0 2px' };
 const titleStyle = { color: theme.text, fontSize: 'clamp(14px, 4vw, 20px)', fontWeight: 900, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 };
-const toggleButtonStyle = (isSmallScreen) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, border: `1px solid ${theme.border}`, borderRadius: 999, background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', color: theme.accentHover, padding: isSmallScreen ? '6px 8px' : '7px 10px', fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: 0.6 });
-const collapsedSummaryStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.35, margin: '7px 2px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' };
+const toggleButtonStyle = (isSmallScreen) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, border: `1px solid ${theme.borderStrong}`, borderRadius: 0, background: 'transparent', color: theme.accentHover, padding: isSmallScreen ? '6px 8px' : '7px 10px', fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: 0.6 });
+const collapsedSummaryStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.35, margin: '7px 0 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' };
 const timelineStyle = { display: 'grid', gap: 0 };
 const timelineItemStyle = { display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr)', gap: 8, position: 'relative' };
 const timelineRailStyle = { position: 'relative', display: 'grid', justifyItems: 'center' };
-const timelineDotStyle = (featured) => ({ width: featured ? 12 : 9, height: featured ? 12 : 9, marginTop: 16, borderRadius: 999, border: `2px solid ${theme.accentHover}`, background: featured ? theme.accent : theme.panelSoft, boxShadow: featured ? '0 0 12px rgba(224,180,111,0.3)' : 'none', zIndex: 1 });
-const timelineLineStyle = { position: 'absolute', top: 30, bottom: -6, width: 2, background: 'var(--rq-border-muted, rgba(255,248,236,0.12))' };
-const updateStyle = (featured) => ({ background: theme.panelSoft, border: `1px solid ${featured ? theme.border : 'var(--rq-border-muted, rgba(255,248,236,0.08))'}`, borderRadius: 10, padding: 11, minWidth: 0, marginBottom: 8 });
+const timelineDotStyle = (featured) => ({ width: featured ? 12 : 9, height: featured ? 12 : 9, marginTop: 16, borderRadius: 0, border: `2px solid ${theme.accentHover}`, background: featured ? theme.accent : 'transparent', boxShadow: 'none', zIndex: 1 });
+const timelineLineStyle = { position: 'absolute', top: 30, bottom: -6, width: 1, background: theme.border };
+const updateStyle = () => ({ background: 'transparent', border: 0, borderTop: `1px solid ${theme.border}`, borderRadius: 0, padding: '11px 0', minWidth: 0, marginBottom: 0 });
 const updateToplineStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 };
-const badgeStyle = (badge) => ({ color: badge === 'Complete' ? 'var(--rq-success-text, #BBF7D0)' : 'var(--rq-text-on-accent, #2A160F)', background: badge === 'Fixed' ? 'var(--rq-success, #0F766E)' : badge === 'Complete' ? 'var(--rq-success-soft, rgba(34,197,94,0.18))' : theme.accent, border: '1px solid var(--rq-border-subtle, rgba(255,248,236,0.14))', borderRadius: 999, padding: '3px 7px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.6 });
+const badgeStyle = () => ({ color: theme.accentHover, background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: 0, padding: '3px 6px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.6 });
 const categoryStyle = { color: theme.accentHover, fontSize: 10, fontWeight: 900 };
 const dateStyle = { color: theme.muted, fontSize: 10, fontWeight: 800 };
 const updateTitleStyle = { color: theme.text, fontSize: 14, fontWeight: 900, margin: '0 0 5px' };
 const summaryStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.4, margin: 0 };
-const detailsButtonStyle = { marginTop: 9, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: 999, color: theme.accentHover, padding: '6px 10px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
+const detailsButtonStyle = { marginTop: 9, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: `1px solid ${theme.borderStrong}`, borderRadius: 0, color: theme.accentHover, padding: '6px 10px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
 const detailsListStyle = { margin: '9px 0 0', paddingLeft: 18, color: theme.textSecondary, fontSize: 12, lineHeight: 1.45 };
