@@ -27,6 +27,7 @@ import '@/styles/landingSafeFix.css';
 import '@/styles/simpleTheme.css';
 import '@/styles/landingFinal.css';
 import '@/styles/actionFillAnimations.css';
+import '@/styles/scrollFixes.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -164,22 +165,21 @@ function AppRoutes() {
         <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode /> : <Navigate to="/auth" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
+      <GlobalFeedbackButton />
+      <Toaster position="top-right" richColors theme="dark" />
     </>
   );
 }
 
 function App() {
+  installRollBurstPersistence();
   return (
     <ThemeProvider>
       <BrowserRouter>
         <Suspense fallback={<RouteLoadingScreen />}>
           <AppRoutes />
         </Suspense>
-        <Toaster position="top-center" richColors />
       </BrowserRouter>
     </ThemeProvider>
   );
