@@ -7,6 +7,12 @@
 
 .character-page-v2 h1,
 .character-page-v2 h2,
+.character-page-v2 .clean-sheet-section-title,
+.character-page-v2 .clean-sheet-identity h1 {
+  font-family: 'Metal Mania', 'Cinzel Decorative', Georgia, serif !important;
+  text-shadow: none !important;
+}
+
 .character-page-v2 h3,
 .character-page-v2 button,
 .character-page-v2 input,
