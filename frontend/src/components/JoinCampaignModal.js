@@ -10,8 +10,10 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
   const [joinCode, setJoinCode] = useState('');
   const [joining, setJoining] = useState(false);
 
+  const cleanCode = joinCode.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+
   const handleJoin = async () => {
-    if (!joinCode || joinCode.trim().length !== 6) {
+    if (!cleanCode || cleanCode.length !== 6) {
       toast.error('Invalid join code', {
         description: 'Please enter a 6-character code'
       });
@@ -20,22 +22,23 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
 
     setJoining(true);
     try {
-      const response = await apiClient.post('/campaigns/join', {
-        join_code: joinCode.toUpperCase().trim(),
+      const response = await apiClient.post('/campaign-invites/join', {
+        join_code: cleanCode,
         character_id: characterId
       });
 
+      const campaign = response.data?.campaign || response.data;
       toast.success('Successfully joined campaign!', {
-        description: `${characterName} is now part of ${response.data.campaign.name}`,
+        description: `${characterName || 'Your character'} is now part of ${campaign?.name || 'the campaign'}`,
         duration: 5000
       });
 
-      if (onSuccess) onSuccess(response.data.campaign);
+      if (onSuccess) onSuccess(campaign);
       setJoinCode('');
       onOpenChange(false);
     } catch (error) {
       toast.error('Failed to join campaign', {
-        description: error?.response?.data?.detail || 'Invalid code or campaign not found'
+        description: error?.formattedDetail || error?.response?.data?.detail || 'Invalid code or campaign not found'
       });
     } finally {
       setJoining(false);
@@ -46,60 +49,44 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal" style={modalStyle}>
         <DialogHeader>
-          <DialogTitle className="medieval-heading" style={titleStyle}>
-            <Link2 size={24} color="var(--rq-accent-primary, #C1121F)" />
+          <DialogTitle style={titleStyle}>
+            <Link2 size={22} color="#d00000" />
             Join Campaign
           </DialogTitle>
         </DialogHeader>
 
-        <div style={{ marginTop: '24px' }}>
+        <div style={{ marginTop: 18 }}>
           <p style={bodyTextStyle}>
-            Enter the 6-character join code provided by your Game Master to link <strong style={strongStyle}>{characterName}</strong> to their campaign.
+            Enter the 6-character join code provided by your Game Master to link <strong style={strongStyle}>{characterName || 'your character'}</strong> to their campaign.
           </p>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={labelStyle}>
-              Campaign Join Code
-            </label>
+          <div style={{ marginBottom: 18 }}>
+            <label style={labelStyle}>Campaign Join Code</label>
             <div style={{ position: 'relative' }}>
               <Input
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+                value={cleanCode}
+                onChange={(e) => setJoinCode(e.target.value)}
                 placeholder="ABC123"
                 className="input"
                 style={codeInputStyle}
                 maxLength={6}
                 autoFocus
               />
-              <Key size={20} color="var(--rq-text-muted, #A0A0A0)" style={keyIconStyle} />
+              <Key size={20} color="rgba(255,255,255,0.68)" style={keyIconStyle} />
             </div>
-            <p style={helpTextStyle}>
-              The code is case-insensitive and exactly 6 characters.
-            </p>
+            <p style={helpTextStyle}>The code is case-insensitive and exactly 6 characters.</p>
           </div>
 
           <div style={tipBoxStyle}>
             <p style={tipTextStyle}>
-              💡 <strong>Tip:</strong> Ask your GM for the campaign join code. They can find it in their campaign settings.
+              Ask your GM for the campaign join code. They can generate one from the campaign list on their dashboard.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <Button onClick={() => onOpenChange(false)} className="btn-outline">
-              Cancel
-            </Button>
-            <Button onClick={handleJoin} disabled={joining || joinCode.trim().length !== 6} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {joining ? (
-                <>
-                  <Loader className="spin" size={18} />
-                  Joining...
-                </>
-              ) : (
-                <>
-                  <Check size={18} />
-                  Join Campaign
-                </>
-              )}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            <Button onClick={() => onOpenChange(false)} className="btn-outline" style={secondaryButtonStyle}>Cancel</Button>
+            <Button onClick={handleJoin} disabled={joining || cleanCode.length !== 6} className="btn-primary" style={primaryButtonStyle}>
+              {joining ? <><Loader className="spin" size={18} /> Joining...</> : <><Check size={18} /> Join Campaign</>}
             </Button>
           </div>
         </div>
@@ -108,75 +95,112 @@ function JoinCampaignModal({ characterId, characterName, open, onOpenChange, onS
   );
 }
 
+const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
 const modalStyle = {
-  maxWidth: '500px',
-  background: 'var(--rq-bg-panel, #242424)',
-  border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderRadius: 'var(--rq-radius-md, 6px)',
-  color: 'var(--rq-text-primary, #FFFFFF)'
+  maxWidth: 500,
+  background: '#242424',
+  backgroundColor: '#242424',
+  border: '1px solid rgba(255,255,255,0.18)',
+  borderRadius: 0,
+  color: '#ffffff',
+  boxShadow: 'none',
+  fontFamily: fontStack,
 };
 
 const titleStyle = {
-  fontSize: '24px',
-  color: 'var(--rq-text-primary, #FFFFFF)',
+  fontSize: 24,
+  color: '#ffffff',
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
-  fontWeight: 900
+  gap: 10,
+  fontWeight: 950,
+  fontFamily: fontStack,
 };
 
 const bodyTextStyle = {
-  color: 'var(--rq-text-secondary, #D6D6D6)',
-  fontSize: '14px',
-  marginBottom: '20px',
-  lineHeight: '1.6'
+  color: 'rgba(255,255,255,0.72)',
+  fontSize: 14,
+  marginBottom: 18,
+  lineHeight: 1.5,
+  fontFamily: fontStack,
 };
 
-const strongStyle = { color: 'var(--rq-text-primary, #FFFFFF)', fontWeight: 900 };
+const strongStyle = { color: '#ffffff', fontWeight: 950 };
 
 const labelStyle = {
   display: 'block',
-  marginBottom: '8px',
-  color: 'var(--rq-accent-hover, #D62839)',
-  fontSize: '14px',
-  fontWeight: 800
+  marginBottom: 8,
+  color: 'rgba(255,255,255,0.68)',
+  fontSize: 12,
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  fontFamily: fontStack,
 };
 
 const codeInputStyle = {
-  fontSize: '24px',
-  fontWeight: 900,
+  fontSize: 24,
+  fontWeight: 950,
   textAlign: 'center',
-  letterSpacing: '4px',
-  paddingLeft: '48px',
-  borderRadius: 'var(--rq-radius-sm, 4px)'
+  letterSpacing: 4,
+  paddingLeft: 48,
+  borderRadius: 0,
+  background: '#3a3a3a',
+  color: '#ffffff',
+  border: '1px solid rgba(255,255,255,0.18)',
+  fontFamily: fontStack,
 };
 
 const keyIconStyle = {
   position: 'absolute',
-  left: '16px',
+  left: 16,
   top: '50%',
   transform: 'translateY(-50%)'
 };
 
 const helpTextStyle = {
-  color: 'var(--rq-text-muted, #A0A0A0)',
-  fontSize: '12px',
-  marginTop: '8px'
+  color: 'rgba(255,255,255,0.58)',
+  fontSize: 12,
+  marginTop: 8,
+  fontFamily: fontStack,
 };
 
 const tipBoxStyle = {
-  padding: '16px',
-  background: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
-  border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))',
-  borderRadius: 'var(--rq-radius-sm, 4px)',
-  marginBottom: '24px'
+  padding: 12,
+  background: '#3a3a3a',
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: 0,
+  marginBottom: 18,
 };
 
 const tipTextStyle = {
-  color: 'var(--rq-text-secondary, #D6D6D6)',
-  fontSize: '13px',
-  lineHeight: '1.6',
-  margin: 0
+  color: 'rgba(255,255,255,0.72)',
+  fontSize: 13,
+  lineHeight: 1.45,
+  margin: 0,
+  fontFamily: fontStack,
+};
+
+const secondaryButtonStyle = {
+  border: 0,
+  borderRadius: 0,
+  background: '#3a3a3a',
+  color: '#ffffff',
+  fontWeight: 900,
+  fontFamily: fontStack,
+};
+
+const primaryButtonStyle = {
+  border: 0,
+  borderRadius: 0,
+  background: '#d00000',
+  color: '#ffffff',
+  fontWeight: 950,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  fontFamily: fontStack,
 };
 
 export default JoinCampaignModal;
