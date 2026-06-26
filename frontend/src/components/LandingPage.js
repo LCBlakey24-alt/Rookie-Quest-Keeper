@@ -1,24 +1,82 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, ChevronRight, Library, MessageSquare, ShieldCheck, Swords, Users } from 'lucide-react';
+import {
+  Backpack,
+  BookOpen,
+  ChevronRight,
+  Crown,
+  HeartPulse,
+  Library,
+  ListChecks,
+  MessageSquare,
+  ShieldCheck,
+  Sparkles,
+  Swords,
+  Users
+} from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 
 const featureGroups = [
   {
     icon: Users,
-    title: 'Players',
-    items: ['Character sheets', 'HP and actions', 'Spells and inventory'],
+    title: 'For players',
+    items: ['Clear character sheets', 'Quick HP and actions', 'Spells, inventory, notes, and level-ups'],
   },
   {
     icon: Swords,
-    title: 'At the table',
-    items: ['Fast mobile tabs', 'Rolls and conditions', 'Level-up support'],
+    title: 'For the table',
+    items: ['Find what you can do on your turn', 'Less scrolling during combat', 'Built around real session flow'],
   },
   {
-    icon: Library,
-    title: 'Game Masters',
-    items: ['Campaign spaces', 'Notes and prep', 'Homebrew tools'],
+    icon: Crown,
+    title: 'For game masters',
+    items: ['Campaign spaces', 'Notes, prep, homebrew, and feedback', 'One place for table tools to grow'],
   },
+];
+
+const playBenefits = [
+  {
+    icon: ListChecks,
+    title: 'Know what you can do',
+    text: 'Actions, bonus actions, reactions, HP, conditions, resources, and key combat choices are organised around the player turn.',
+  },
+  {
+    icon: HeartPulse,
+    title: 'Built for phones at the table',
+    text: 'Compact tabs and quick status tools mean players do not have to scroll forever to find HP, AC, speed, skills, or actions.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Spells without the mess',
+    text: 'Keep spell management separate from spell use, so known and prepared spells can be organised without burying combat choices.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Level-up support',
+    text: 'Level-up choices, character progress, and saved decisions can live beside the sheet instead of being lost in notes or old messages.',
+  },
+];
+
+const playerList = [
+  'See ability scores, saving throws, and skills in one focused Stats tab.',
+  'Use an Actions tab for combat choices instead of hunting through the whole sheet.',
+  'Track HP, temp HP, AC, speed, conditions, rests, and dice rolls quickly.',
+  'Manage spells, inventory, features, and notes without mixing everything together.',
+];
+
+const gmList = [
+  'Keep campaigns, prep, notes, homebrew, and table tools in one workspace.',
+  'Support newer players without needing to explain the same rules every round.',
+  'Use feedback/admin tools to shape what the app needs next.',
+  'Build towards a shared table hub instead of separate sheets, files, and chats.',
+];
+
+const differencePoints = [
+  'Not just a database for character stats — it is designed around using the sheet during play.',
+  'Beginner-friendly without feeling childish; useful for rookies, regular players, and GMs.',
+  'Mobile-first layout choices, because most players check sheets on phones at the table.',
+  'Player and GM tools are being built into the same ecosystem, so the whole table can benefit.',
+  'Feedback is built in, meaning the site can grow around actual table problems rather than guesswork.',
 ];
 
 export default function LandingPage() {
@@ -48,10 +106,10 @@ export default function LandingPage() {
             <BrandMainLogo height={150} />
           </div>
 
-          <p className="landing-kicker">Simple tools for players and game masters</p>
-          <h1>Character sheets and campaign tools that stay out of the way.</h1>
+          <p className="landing-kicker">Character sheets • Campaign tools • Table support</p>
+          <h1>Character sheets that help players actually play.</h1>
           <p className="landing-final-intro">
-            Build characters, track actions, manage spells and inventory, prep campaigns, and keep the table moving from one clean workspace.
+            Rookie Quest Keeper brings player sheets, turn actions, spells, inventory, level-up choices, GM prep, homebrew, and feedback tools into one clean table workspace.
           </p>
 
           <div className="landing-hero-actions">
@@ -61,6 +119,12 @@ export default function LandingPage() {
             <button type="button" className="landing-button landing-button-ghost landing-button-large" onClick={goLogin}>
               I already have an account
             </button>
+          </div>
+
+          <div className="landing-proof-strip" aria-label="Rookie Quest Keeper focus areas">
+            <span>Mobile-first sheets</span>
+            <span>Actions-first play</span>
+            <span>GM-ready campaigns</span>
           </div>
         </section>
 
@@ -78,19 +142,79 @@ export default function LandingPage() {
           })}
         </section>
 
+        <section className="landing-marketing-block landing-marketing-split" aria-label="Why Rookie Quest Keeper exists">
+          <div>
+            <p className="landing-kicker">The problem</p>
+            <h2>Most digital sheets store information. That is not enough at the table.</h2>
+          </div>
+          <div>
+            <p>
+              Players do not just need a list of numbers. They need to know what they can do, where their important choices are, what changed after a rest, which spells are ready, and how to level up without derailing the session.
+            </p>
+            <p>
+              Rookie Quest Keeper is being shaped around those real table moments: “What can I do?”, “Where is that feature?”, “How much HP do I have?”, and “What do I need next?”
+            </p>
+          </div>
+        </section>
+
+        <section className="landing-benefit-grid" aria-label="Built for actual play">
+          {playBenefits.map((benefit) => {
+            const Icon = benefit.icon;
+            return (
+              <article key={benefit.title} className="landing-benefit-card">
+                <Icon size={24} />
+                <h2>{benefit.title}</h2>
+                <p>{benefit.text}</p>
+              </article>
+            );
+          })}
+        </section>
+
+        <section className="landing-two-columns" aria-label="Player and game master benefits">
+          <article>
+            <h2><Users size={22} /> Players get clarity</h2>
+            <ul>
+              {playerList.map(item => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
+          <article>
+            <h2><Crown size={22} /> GMs get structure</h2>
+            <ul>
+              {gmList.map(item => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
+        </section>
+
+        <section className="landing-marketing-block" aria-label="What makes Rookie Quest Keeper different">
+          <p className="landing-kicker">Why it is different</p>
+          <h2>Designed around table flow, not spreadsheet energy.</h2>
+          <div className="landing-difference-list">
+            {differencePoints.map(point => <p key={point}>{point}</p>)}
+          </div>
+        </section>
+
         <section className="landing-final-strip" aria-label="Design approach">
           <div>
             <BookOpen size={22} />
             <span>Mobile-first sheets</span>
           </div>
           <div>
-            <ShieldCheck size={22} />
-            <span>Clean GM spaces</span>
+            <Backpack size={22} />
+            <span>Inventory and spells</span>
           </div>
           <div>
             <MessageSquare size={22} />
             <span>Feedback built in</span>
           </div>
+        </section>
+
+        <section className="landing-final-cta" aria-label="Start using Rookie Quest Keeper">
+          <ShieldCheck size={28} />
+          <h2>Start simple. Build deeper when your table needs it.</h2>
+          <p>Create a character, open the sheet, and start shaping the tools around how your group actually plays.</p>
+          <button type="button" className="landing-button landing-button-primary landing-button-large" onClick={goRegister}>
+            Create Your Account <ChevronRight size={18} />
+          </button>
         </section>
       </main>
 
