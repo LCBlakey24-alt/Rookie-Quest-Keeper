@@ -99,6 +99,8 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [pendingInvite, setPendingInvite] = useState(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
   const {
     characters,
     campaigns,
@@ -206,6 +208,44 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     setPendingDelete({ type: 'campaign', id: campaign.id, name: campaignTitle(campaign), endpoint: `/campaigns/${campaign.id}` });
   };
 
+  const requestJoinCode = async (campaign) => {
+    if (!campaign?.id) return;
+    try {
+      setInviteLoading(true);
+      const response = await apiClient.get(`/campaign-invites/${campaign.id}`);
+      setPendingInvite({ ...response.data, campaign_name: response.data?.campaign_name || campaignTitle(campaign) });
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to get join code');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const rotateJoinCode = async () => {
+    if (!pendingInvite?.campaign_id) return;
+    try {
+      setInviteLoading(true);
+      const response = await apiClient.post(`/campaign-invites/${pendingInvite.campaign_id}`);
+      setPendingInvite(response.data);
+      toast.success('New join code generated');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to rotate join code');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const copyJoinCode = async () => {
+    const code = pendingInvite?.join_code;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success('Join code copied');
+    } catch {
+      toast.info(`Join code: ${code}`);
+    }
+  };
+
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
@@ -304,6 +344,8 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
               title={campaignTitle(campaign)}
               meta={campaignMeta(campaign)}
               onOpen={() => campaign?.id && navigate(`/campaign/${campaign.id}`)}
+              onSecondary={() => requestJoinCode(campaign)}
+              secondaryLabel={inviteLoading ? 'Loading...' : 'Code'}
               onDelete={() => requestDeleteCampaign(campaign)}
               deleteLabel="Delete campaign"
             />
@@ -336,6 +378,16 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           deleting={deleting}
           onCancel={() => !deleting && setPendingDelete(null)}
           onConfirm={confirmDelete}
+        />
+      )}
+
+      {pendingInvite && (
+        <JoinCodeDialog
+          invite={pendingInvite}
+          loading={inviteLoading}
+          onClose={() => !inviteLoading && setPendingInvite(null)}
+          onCopy={copyJoinCode}
+          onRotate={rotateJoinCode}
         />
       )}
     </main>
@@ -376,14 +428,38 @@ function SummaryPanel({ title, emptyText, actionLabel, onAction, children }) {
   return <section style={panelStyle}><div style={panelHeaderStyle}><h2 style={sectionTitleStyle}>{title}</h2><button type="button" onClick={onAction} style={linkButtonStyle}><span>{actionLabel}</span></button></div>{hasItems ? <div style={{ display: 'grid', gap: 0 }}>{children}</div> : <p style={mutedStyle}>{emptyText}</p>}</section>;
 }
 
-function ListRow({ title, meta, onOpen, onDelete, deleteLabel }) {
+function ListRow({ title, meta, onOpen, onSecondary, secondaryLabel, onDelete, deleteLabel }) {
   return (
     <div style={listRowStyle}>
       <button type="button" onClick={onOpen} style={listOpenButtonStyle}>
         <span style={{ minWidth: 0 }}><strong style={listTitleStyle}>{title}</strong><span style={cardMetaStyle}>{meta}</span></span>
         <span style={arrowStyle} aria-hidden="true">›</span>
       </button>
+      {secondaryLabel && <button type="button" onClick={onSecondary} style={smallButtonStyle}><span>{secondaryLabel}</span></button>}
       <button type="button" onClick={onDelete} style={deleteButtonStyle} aria-label={deleteLabel}><span>Delete</span></button>
+    </div>
+  );
+}
+
+function JoinCodeDialog({ invite, loading, onClose, onCopy, onRotate }) {
+  return (
+    <div style={modalOverlayStyle} role="presentation">
+      <section style={modalPanelStyle} role="dialog" aria-modal="true" aria-labelledby="join-code-title">
+        <div style={modalHeaderStyle}>
+          <div>
+            <p style={eyebrowStyle}>Player invite</p>
+            <h2 id="join-code-title" style={modalTitleStyle}>{invite.campaign_name || 'Campaign'} join code</h2>
+          </div>
+          <button type="button" onClick={onClose} disabled={loading} style={closeButtonStyle} aria-label="Close join code"><span>×</span></button>
+        </div>
+        <div style={joinCodeBoxStyle}>{invite.join_code || '------'}</div>
+        <p style={mutedStyle}>Give this 6-character code to players. They can use Join Campaign and select which character to link.</p>
+        <div style={modalActionsStyle}>
+          <button type="button" onClick={onClose} disabled={loading} style={buttonStyle}><span>Close</span></button>
+          <button type="button" onClick={onRotate} disabled={loading} style={smallButtonStyle}><span>{loading ? 'Generating...' : 'Generate New Code'}</span></button>
+          <button type="button" onClick={onCopy} disabled={loading || !invite.join_code} style={continueButtonStyle}><span>Copy Code</span></button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -489,8 +565,9 @@ const panelStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 
 const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' };
 const sectionTitleStyle = { margin: 0, color: '#ffffff', fontSize: 20, fontWeight: 950, fontFamily: fontStack };
 const linkButtonStyle = { border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '8px 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const listRowStyle = { width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'stretch', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.16)' };
+const listRowStyle = { width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', alignItems: 'stretch', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.16)' };
 const listOpenButtonStyle = { minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: 0, background: 'transparent', color: '#ffffff', padding: '12px 0', cursor: 'pointer', textAlign: 'left', fontFamily: fontStack };
+const smallButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const deleteButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: 'rgba(208,0,0,0.36)', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 13px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
@@ -511,4 +588,5 @@ const optionStyle = { backgroundColor: '#3a3a3a', background: '#3a3a3a', color: 
 const checklistStyle = { border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, padding: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, margin: 0, background: '#242424' };
 const checkboxRowStyle = { display: 'flex', alignItems: 'flex-start', gap: 8, color: '#ffffff', fontSize: 13, lineHeight: 1.3, fontFamily: fontStack };
 const setupPreviewStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 10, background: '#242424' };
+const joinCodeBoxStyle = { background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.18)', color: '#ffffff', fontSize: 'clamp(34px, 9vw, 64px)', fontWeight: 950, letterSpacing: '0.16em', textAlign: 'center', padding: '18px 12px', marginBottom: 12, fontFamily: fontStack };
 const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 12, marginTop: 14, background: '#242424' };
