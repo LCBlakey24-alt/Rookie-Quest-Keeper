@@ -1,4 +1,8 @@
 .character-page-v2 {
+  --rq-tab-bg: #3a3a3a;
+  --rq-tab-hover: #444444;
+  --rq-tab-active: #d00000;
+  --rq-tab-text: #f6ead2;
   background: #070814 !important;
   background-image: none !important;
   color: #f6ead2 !important;
@@ -68,13 +72,12 @@
 .character-page-v2 .clean-sheet-skills div,
 .character-page-v2 .clean-sheet-passives div {
   border: 0 !important;
-  border-top: 1px solid rgba(216, 173, 79, 0.16) !important;
+  border-top: 1px solid rgba(246, 234, 210, 0.14) !important;
 }
 
 .character-page-v2 .clean-sheet-back,
 .character-page-v2 .clean-sheet-edit,
 .character-page-v2 .clean-sheet-level,
-.character-page-v2 .clean-sheet-tabs button,
 .character-page-v2 .rq-hp-action-button,
 .character-page-v2 .clean-sheet-inspiration,
 .character-page-v2 .clean-sheet-rest-button,
@@ -88,13 +91,64 @@
   background-image: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  border-color: rgba(216, 173, 79, 0.28) !important;
+  border-color: transparent !important;
+}
+
+.character-page-v2 .clean-sheet-tabs {
+  gap: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  background: var(--rq-tab-bg) !important;
+  background-image: none !important;
+  color: var(--rq-tab-text) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: color 160ms ease, background 160ms ease !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--rq-tab-active);
+  opacity: 0;
+  z-index: -1;
+  transition: width 220ms ease, opacity 120ms ease;
+}
+
+.character-page-v2 .clean-sheet-tabs button:hover,
+.character-page-v2 .clean-sheet-tabs button:focus-visible {
+  background: var(--rq-tab-hover) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button:hover::before,
+.character-page-v2 .clean-sheet-tabs button:focus-visible::before {
+  width: 5px;
+  opacity: 1;
 }
 
 .character-page-v2 .clean-sheet-tabs button.active {
-  background: #d8ad4f !important;
+  background: var(--rq-tab-bg) !important;
   background-image: none !important;
-  color: #070814 !important;
+  color: #ffffff !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active::before {
+  width: 100%;
+  opacity: 1;
+}
+
+.character-page-v2 .clean-sheet-tabs button > * {
+  position: relative;
+  z-index: 1;
 }
 
 .character-page-v2 .clean-sheet-portrait,
@@ -130,7 +184,7 @@
     padding: 0 !important;
     display: grid !important;
     grid-auto-flow: row !important;
-    gap: 6px !important;
+    gap: 0 !important;
     overflow: visible !important;
     border: 0 !important;
   }
@@ -143,6 +197,15 @@
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button:hover::before,
+  .character-page-v2 .clean-sheet-tabs button:focus-visible::before {
+    width: 5px;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button.active::before {
+    width: 100%;
   }
 
   .character-page-v2 .clean-sheet-tabs button span {
