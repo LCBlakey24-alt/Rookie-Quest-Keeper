@@ -24,6 +24,7 @@ import '@/styles/siteVelvetTheme.css';
 import '@/styles/blueEclipseTheme.css';
 import '@/styles/gmBlueEclipseTheme.css';
 import '@/styles/landingSafeFix.css';
+import '@/styles/simpleTheme.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -62,9 +63,9 @@ function RouteLoadingScreen() {
   return (
     <div className="loading-screen">
       <div className="loading-spinner">
-        <img className="loading-logo" src="/images/logo-mini.png" alt="ROOK loading" />
+        <img className="loading-logo" src="/brand/rqk-logo-mini.svg" alt="RQK loading" />
       </div>
-      <p style={{ color: '#CBD5E1', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
+      <p style={{ color: '#F6EAD2', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
     </div>
   );
 }
@@ -80,7 +81,7 @@ function ThemeRouter() {
     } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
     } else {
-      setTheme(THEMES.LANDING);
+      setTheme(THEMES.PLAYER);
     }
   }, [location.pathname, setTheme]);
   
@@ -88,76 +89,83 @@ function ThemeRouter() {
 }
 
 function AppRoutes() {
-  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
+  const [username, setUsername] = useState(() => localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  const { openModal } = useKeyboardShortcuts();
 
-  const openShortcuts = useCallback(() => setIsShortcutsOpen(true), []);
-  const closeShortcuts = useCallback(() => setIsShortcutsOpen(false), []);
-  const handleAuthLogin = useCallback((token, username) => {
+  const handleAuthLogin = useCallback((token, nextUsername) => {
     setAuthToken(token);
-    if (username) localStorage.setItem(AUTH_USERNAME_KEY, username);
-    if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+    if (nextUsername) {
+      localStorage.setItem(AUTH_USERNAME_KEY, nextUsername);
+      setUsername(nextUsername);
+    }
+    if (token) {
+      apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+      setIsAuthenticated(true);
+    }
   }, []);
 
-  useKeyboardShortcuts({ onOpenShortcuts: openShortcuts });
+  useEffect(() => {
+    const token = getAuthToken();
+    setIsAuthenticated(Boolean(token));
+    setUsername(localStorage.getItem(AUTH_USERNAME_KEY) || '');
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('dm_token');
+    localStorage.removeItem(AUTH_USERNAME_KEY);
+    delete apiClient.defaults.headers.common.Authorization;
+    setIsAuthenticated(false);
+    setUsername('');
+    window.location.href = '/';
+  };
 
   return (
     <>
       <ThemeRouter />
       <ImpersonationBanner />
-      <Suspense fallback={<RouteLoadingScreen />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage onLogin={handleAuthLogin} />} />
-          <Route path="/home" element={<UnifiedDashboard />} />
-          <Route path="/prototype" element={<PrototypeHub />} />
-          <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
-          <Route path="/prototype-gm" element={<TiaKartaGmPrototype />} />
-          <Route path="/prototype-progressions" element={<ClassProgressionLab />} />
-          <Route path="/player" element={<PlayerDashboard />} />
-          <Route path="/campaign/:campaignId" element={<CampaignDashboard />} />
-          <Route path="/gm-screen/:campaignId" element={<LiveSessionGridPage />} />
-          <Route path="/player-campaign/:campaignId" element={<MobilePlayerCampaignView />} />
-          <Route path="/combat/:encounterId" element={<CombatPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/account" element={<AccountSettings />} />
-          <Route path="/homebrew" element={<HomebrewWorkshop />} />
-          <Route path="/characters/new" element={<CharacterCreationModePicker />} />
-          <Route path="/characters/new/basic" element={<BasicCharacterBuilder />} />
-          <Route path="/characters/new/premade" element={<PremadeCharacterBuilder />} />
-          <Route path="/characters/new/kids" element={<KidsCharacterBuilder />} />
-          <Route path="/characters/:characterId" element={<CleanCharacterSheet />} />
-          <Route path="/characters/:characterId/edit" element={<CharacterBuilder editMode />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage onLogin={handleAuthLogin} />} />
+        <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
+        <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
+        <Route path="/prototype" element={<PrototypeHub />} />
+        <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
+        <Route path="/prototype-gm" element={<TiaKartaGmPrototype />} />
+        <Route path="/prototype-progressions" element={<ClassProgressionLab />} />
+        <Route path="/mobile" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
+        <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/account" element={isAuthenticated ? <AccountSettings /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode /> : <Navigate to="/auth" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <GlobalFeedbackButton />
-      <KeyboardShortcutsModal isOpen={isShortcutsOpen} onClose={closeShortcuts} />
+      <KeyboardShortcutsModal open={openModal} onOpenChange={() => {}} />
     </>
   );
 }
 
-function AuthRestorer({ children }) {
-  useEffect(() => {
-    const token = getAuthToken();
-    if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
-  }, []);
-
-  return children;
-}
-
-export default function App() {
-  useEffect(() => {
-    installRollBurstPersistence();
-  }, []);
-
+function App() {
   return (
     <ThemeProvider>
-      <AuthRestorer>
-        <BrowserRouter>
+      <BrowserRouter>
+        <Suspense fallback={<RouteLoadingScreen />}>
           <AppRoutes />
-          <Toaster richColors position="top-center" />
-        </BrowserRouter>
-      </AuthRestorer>
+        </Suspense>
+        <Toaster position="top-center" richColors />
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
+
+export default App;
