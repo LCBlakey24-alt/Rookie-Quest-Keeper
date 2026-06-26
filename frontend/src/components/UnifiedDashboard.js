@@ -447,59 +447,68 @@ function CampaignField({ label, value, onChange, placeholder, required = false }
 }
 
 function CampaignSelect({ label, value, onChange, options }) {
-  return <label style={fieldWrapStyle}><span style={fieldLabelStyle}>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)} style={fieldInputStyle}>{Object.entries(options).map(([optionValue, labelText]) => <option key={optionValue} value={optionValue}>{labelText}</option>)}</select></label>;
+  return (
+    <label style={fieldWrapStyle}>
+      <span style={fieldLabelStyle}>{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} style={selectInputStyle}>
+        {Object.entries(options).map(([optionValue, labelText]) => <option key={optionValue} value={optionValue} style={optionStyle}>{labelText}</option>)}
+      </select>
+    </label>
+  );
 }
 
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const pageStyle = { minHeight: '100dvh', background: 'var(--rq-bg, #242424)', color: 'var(--rq-text, #ffffff)', padding: 'clamp(14px, 3vw, 28px)', display: 'grid', alignContent: 'start', gap: 20, fontFamily: fontStack };
-const headerStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap', borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingBottom: 14 };
+const pageStyle = { minHeight: '100dvh', background: '#242424', color: '#ffffff', padding: 'clamp(14px, 3vw, 28px)', display: 'grid', alignContent: 'start', gap: 20, fontFamily: fontStack };
+const headerStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 14 };
 const brandRowStyle = { display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 };
-const logoTileStyle = { width: 52, height: 52, display: 'grid', placeItems: 'center', background: 'var(--rq-surface, #3a3a3a)', flex: '0 0 auto' };
+const logoTileStyle = { width: 52, height: 52, display: 'grid', placeItems: 'center', background: '#3a3a3a', flex: '0 0 auto' };
 const headerButtonsStyle = { display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' };
-const eyebrowStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950, fontFamily: fontStack };
+const eyebrowStyle = { margin: 0, color: 'rgba(255,255,255,0.68)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950, fontFamily: fontStack };
 const titleStyle = { margin: '2px 0 4px', color: '#ffffff', fontSize: 'clamp(28px, 5vw, 46px)', lineHeight: 1.02, fontWeight: 950, letterSpacing: '-0.04em', fontFamily: fontStack };
-const mutedStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,255,255,0.68))', lineHeight: 1.42, fontSize: 14, fontFamily: fontStack };
-const buttonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', fontWeight: 900, padding: '0 13px', cursor: 'pointer', fontFamily: fontStack };
-const statusBarStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 0, borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))' };
-const statChipStyle = { minHeight: 68, display: 'grid', alignContent: 'center', gap: 3, padding: '10px 14px', borderRight: '1px solid var(--rq-line, rgba(255,255,255,0.16))' };
+const mutedStyle = { margin: 0, color: 'rgba(255,255,255,0.68)', lineHeight: 1.42, fontSize: 14, fontFamily: fontStack };
+const buttonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', fontWeight: 900, padding: '0 13px', cursor: 'pointer', fontFamily: fontStack };
+const statusBarStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 0, borderTop: '1px solid rgba(255,255,255,0.16)', borderBottom: '1px solid rgba(255,255,255,0.16)' };
+const statChipStyle = { minHeight: 68, display: 'grid', alignContent: 'center', gap: 3, padding: '10px 14px', borderRight: '1px solid rgba(255,255,255,0.16)' };
 const statValueStyle = { color: '#ffffff', fontSize: 22, fontWeight: 950, lineHeight: 1, fontFamily: fontStack };
-const statLabelStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, fontFamily: fontStack };
+const statLabelStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, fontFamily: fontStack };
 const continueGridStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 };
-const continuePanelStyle = { background: 'var(--rq-surface, #3a3a3a)', border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, padding: 16, display: 'grid', gap: 9, position: 'relative' };
-const redRuleStyle = { width: 42, height: 5, background: 'var(--rq-primary, #d00000)', display: 'block' };
+const continuePanelStyle = { background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 0, padding: 16, display: 'grid', gap: 9, position: 'relative' };
+const redRuleStyle = { width: 42, height: 5, background: '#d00000', display: 'block' };
 const continueTitleStyle = { margin: 0, color: '#ffffff', fontSize: 'clamp(20px, 3vw, 28px)', lineHeight: 1.08, fontWeight: 950, letterSpacing: '-0.02em', fontFamily: fontStack };
 const continueButtonStyle = { justifySelf: 'start', minHeight: 40, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 13px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const heroGridStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))' };
-const actionCardStyle = { minHeight: 132, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: 0, borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))', background: 'transparent', color: '#ffffff', padding: '18px 16px 18px 0', cursor: 'pointer', borderRadius: 0, fontFamily: fontStack };
-const cardAccentStyle = { width: 6, height: 42, background: 'var(--rq-primary, #d00000)', flex: '0 0 auto' };
+const heroGridStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, borderTop: '1px solid rgba(255,255,255,0.16)' };
+const actionCardStyle = { minHeight: 132, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: 0, borderBottom: '1px solid rgba(255,255,255,0.16)', background: 'transparent', color: '#ffffff', padding: '18px 16px 18px 0', cursor: 'pointer', borderRadius: 0, fontFamily: fontStack };
+const cardAccentStyle = { width: 6, height: 42, background: '#d00000', flex: '0 0 auto' };
 const actionTextWrapStyle = { display: 'grid', gap: 6, minWidth: 0, flex: 1 };
 const cardTitleStyle = { color: '#ffffff', fontSize: 18, fontWeight: 950, fontFamily: fontStack };
-const cardTextStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14, lineHeight: 1.4, fontFamily: fontStack };
-const cardMetaStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: fontStack };
+const cardTextStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 14, lineHeight: 1.4, fontFamily: fontStack };
+const cardMetaStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: fontStack };
 const arrowStyle = { color: '#ffffff', fontSize: 24, lineHeight: 1, opacity: 0.72 };
 const twoColumnStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 };
-const panelStyle = { borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 14 };
+const panelStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 14 };
 const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' };
 const sectionTitleStyle = { margin: 0, color: '#ffffff', fontSize: 20, fontWeight: 950, fontFamily: fontStack };
-const linkButtonStyle = { border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', padding: '8px 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const listRowStyle = { width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'stretch', gap: 8, borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))' };
+const linkButtonStyle = { border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '8px 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const listRowStyle = { width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'stretch', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.16)' };
 const listOpenButtonStyle = { minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: 0, background: 'transparent', color: '#ffffff', padding: '12px 0', cursor: 'pointer', textAlign: 'left', fontFamily: fontStack };
-const deleteButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: 'rgba(208,0,0,0.24)', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const deleteButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: 'rgba(208,0,0,0.36)', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 13px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
-const systemPanelStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' };
+const systemPanelStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' };
 const loadingStyle = { width: 'min(520px, 100%)', margin: '12vh auto 0', display: 'grid', justifyItems: 'center', gap: 10, textAlign: 'center' };
-const modalOverlayStyle = { position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,0.72)', display: 'grid', placeItems: 'center', padding: 16 };
-const modalPanelStyle = { width: 'min(620px, 100%)', maxHeight: 'min(90dvh, 760px)', overflowY: 'auto', background: 'var(--rq-bg, #242424)', border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, padding: 18, boxShadow: 'none', color: '#ffffff' };
-const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingBottom: 12, marginBottom: 14 };
+const modalOverlayStyle = { position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)', display: 'grid', placeItems: 'center', padding: 16 };
+const modalPanelStyle = { width: 'min(620px, 100%)', maxHeight: 'min(90dvh, 760px)', overflowY: 'auto', background: '#242424', backgroundColor: '#242424', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, padding: 18, boxShadow: 'none', color: '#ffffff', opacity: 1 };
+const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 12, marginBottom: 14, background: '#242424' };
 const modalTitleStyle = { ...continueTitleStyle, fontSize: 28 };
-const closeButtonStyle = { width: 40, height: 40, border: 0, borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', fontSize: 26, lineHeight: 1, cursor: 'pointer' };
-const modalFormStyle = { display: 'grid', gap: 12 };
+const closeButtonStyle = { width: 40, height: 40, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', fontSize: 26, lineHeight: 1, cursor: 'pointer' };
+const modalFormStyle = { display: 'grid', gap: 12, background: '#242424' };
 const modalSplitStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 };
 const fieldWrapStyle = { display: 'grid', gap: 6 };
-const fieldLabelStyle = { color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: fontStack };
-const fieldInputStyle = { width: '100%', minHeight: 44, border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, background: 'var(--rq-surface, #3a3a3a)', color: '#ffffff', padding: '0 11px', fontFamily: fontStack, fontSize: 15, outline: 'none' };
-const checklistStyle = { border: '1px solid var(--rq-line, rgba(255,255,255,0.16))', borderRadius: 0, padding: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, margin: 0 };
+const fieldLabelStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: fontStack };
+const fieldInputStyle = { width: '100%', minHeight: 44, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, background: '#3a3a3a', backgroundColor: '#3a3a3a', color: '#ffffff', padding: '0 11px', fontFamily: fontStack, fontSize: 15, outline: 'none', colorScheme: 'dark' };
+const selectInputStyle = { ...fieldInputStyle, appearance: 'auto' };
+const optionStyle = { backgroundColor: '#3a3a3a', background: '#3a3a3a', color: '#ffffff' };
+const checklistStyle = { border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, padding: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, margin: 0, background: '#242424' };
 const checkboxRowStyle = { display: 'flex', alignItems: 'flex-start', gap: 8, color: '#ffffff', fontSize: 13, lineHeight: 1.3, fontFamily: fontStack };
-const setupPreviewStyle = { borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 10 };
-const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))', paddingTop: 12, marginTop: 14 };
+const setupPreviewStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 10, background: '#242424' };
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 12, marginTop: 14, background: '#242424' };
