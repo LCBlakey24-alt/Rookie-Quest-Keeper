@@ -9,6 +9,7 @@
   --rq-primary: #d8ad4f;
   --rq-text: #f6ead2;
   --rq-muted: rgba(246, 234, 210, 0.64);
+  --rq-line: rgba(246, 234, 210, 0.18);
   --rq-heal: #1f9d66;
   --rq-damage: #c24141;
   --rq-temp: #2b8fbf;
@@ -158,7 +159,7 @@ select {
   border-radius: 0 !important;
   box-shadow: none !important;
   background-image: none !important;
-  border-color: var(--rq-primary) !important;
+  border-color: transparent !important;
 }
 
 #root button,
@@ -184,7 +185,7 @@ select {
 #root .dashboard-tabs button.active {
   background: var(--rq-primary) !important;
   color: var(--rq-bg) !important;
-  border-color: var(--rq-primary) !important;
+  border-color: transparent !important;
 }
 
 #root input,
@@ -195,7 +196,8 @@ select {
   background: transparent !important;
   background-image: none !important;
   color: var(--rq-text) !important;
-  border-color: rgba(216, 173, 79, 0.46) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rq-line) !important;
 }
 
 #root input::placeholder,
@@ -227,6 +229,7 @@ select {
   box-shadow: none !important;
   background: transparent !important;
   background-image: none !important;
+  border-color: transparent !important;
 }
 
 #root .number-wheel-picker__selection {
@@ -240,7 +243,7 @@ select {
 #root button[title*='heal' i],
 #root button[title*='healing' i] {
   background: var(--rq-heal) !important;
-  border-color: var(--rq-heal) !important;
+  border-color: transparent !important;
   color: #ffffff !important;
 }
 
@@ -249,13 +252,13 @@ select {
 #root button[aria-label*='damage' i],
 #root button[title*='damage' i] {
   background: var(--rq-damage) !important;
-  border-color: var(--rq-damage) !important;
+  border-color: transparent !important;
   color: #ffffff !important;
 }
 
 #root .rq-hp-action-button--dice,
 #root .rq-hp-action-button--rest {
-  border-color: var(--rq-primary) !important;
+  border-color: transparent !important;
   color: var(--rq-text) !important;
   background: transparent !important;
 }
