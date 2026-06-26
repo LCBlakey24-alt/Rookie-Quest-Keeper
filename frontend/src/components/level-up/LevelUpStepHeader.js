@@ -5,58 +5,69 @@ import { levelUpTheme as theme } from './levelUpTheme';
 export default function LevelUpStepHeader({ onClose, characterName, characterClass, currentLevel, newLevel, totalSteps, step }) {
   return (
     <div style={{
-      background: theme.gradient,
-      padding: '24px',
-      position: 'relative'
+      background: 'transparent',
+      padding: '24px 0 18px',
+      position: 'relative',
+      borderBottom: '1px solid var(--rq-line, rgba(246, 234, 210, 0.18))'
     }}>
       <button
         onClick={onClose}
+        aria-label="Close level up"
         style={{
           position: 'absolute',
-          top: '16px',
-          right: '16px',
-          background: 'rgba(0,0,0,0.2)',
+          top: '0',
+          right: '0',
+          background: 'transparent',
           border: 'none',
-          borderRadius: '50%',
+          borderRadius: 0,
           padding: '8px',
           cursor: 'pointer',
-          color: '#fff'
+          color: theme.text.primary
         }}
       >
         <X size={20} />
       </button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', paddingRight: '42px' }}>
         <div style={{
-          width: '60px',
-          height: '60px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.2)',
+          width: '34px',
+          height: '34px',
+          borderRadius: 0,
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <Sparkles size={32} color="#fff" />
+          <Sparkles size={26} color="var(--rq-primary, #d8ad4f)" />
         </div>
         <div>
-          <h2 style={{ fontSize: '24px', color: '#fff', margin: 0, fontWeight: '600' }}>
-            Level Up!
+          <h2 style={{
+            fontSize: '28px',
+            color: theme.text.primary,
+            margin: 0,
+            fontWeight: 400,
+            fontFamily: "var(--rq-title-font, 'Metal Mania', Georgia, serif)",
+            letterSpacing: '0.045em',
+            WebkitTextStroke: '0.35px var(--rq-bg, #070814)',
+            paintOrder: 'stroke fill'
+          }}>
+            Level Up
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0', fontSize: '15px' }}>
+          <p style={{ color: theme.text.secondary, margin: '4px 0 0', fontSize: '14px' }}>
             {characterName} • {characterClass} {currentLevel} → {newLevel}
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+      <div style={{ display: 'flex', gap: '6px', marginTop: '18px' }} aria-label="Level up progress">
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div
             key={i}
             style={{
               flex: 1,
-              height: '4px',
-              borderRadius: '2px',
-              background: i < step ? '#fff' : 'rgba(255,255,255,0.3)',
-              transition: 'background 0.3s'
+              height: '3px',
+              borderRadius: 0,
+              background: i < step ? 'var(--rq-primary, #d8ad4f)' : 'var(--rq-line, rgba(246, 234, 210, 0.18))',
+              transition: 'background 0.2s'
             }}
           />
         ))}
