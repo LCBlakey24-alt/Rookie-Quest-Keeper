@@ -1,95 +1,126 @@
-/* Clean level-up modal styling
-   Scoped mostly by modal-like inline dimensions to avoid touching unrelated pages. */
+/*
+  Level-up UI reset.
+  Keep this aligned with simpleTheme.css:
+  one dark background, cream text, no gradients, no rounded cards, no gold outlines.
+*/
 
-/* Backdrop containing the level-up modal */
 .App div[style*="backdrop-filter: blur(8px)"] {
-  background: rgba(0, 0, 0, 0.82) !important;
+  background: rgba(7, 8, 20, 0.96) !important;
+  backdrop-filter: none !important;
 }
 
-/* Level-up modal card */
 .App div[style*="max-width: 600px"][style*="max-height: 90vh"] {
-  background: var(--rq-bg-panel, #21150E) !important;
-  border: 1px solid rgba(192, 138, 61, 0.32) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58) !important;
+  background: var(--rq-bg, #070814) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   max-width: min(680px, calc(100vw - 24px)) !important;
 }
 
-/* Header area */
 .App div[style*="linear-gradient(135deg, #D4A017"] {
-  background: linear-gradient(135deg, rgba(192, 138, 61, 0.95), rgba(164, 90, 50, 0.72)) !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rq-line, rgba(246, 234, 210, 0.18)) !important;
 }
 
-.App div[style*="linear-gradient(135deg, #D4A017"] h2,
+.App div[style*="linear-gradient(135deg, #D4A017"] h2 {
+  color: var(--rq-text, #f6ead2) !important;
+  font-family: var(--rq-title-font, 'Metal Mania', Georgia, serif) !important;
+  letter-spacing: 0.045em !important;
+  -webkit-text-stroke: 0.35px var(--rq-bg, #070814);
+  paint-order: stroke fill;
+  text-shadow: none !important;
+}
+
 .App div[style*="linear-gradient(135deg, #D4A017"] p {
-  color: var(--rq-text-primary, #F5E6C8) !important;
+  color: var(--rq-muted, rgba(246, 234, 210, 0.64)) !important;
+  font-family: var(--rq-body-font, Inter, ui-sans-serif, system-ui, sans-serif) !important;
+  text-shadow: none !important;
 }
 
-/* Content typography */
 .App div[style*="max-width: 600px"] h3,
-.App div[style*="max-width: 600px"] h4,
+.App div[style*="max-width: 600px"] h4 {
+  color: var(--rq-text, #f6ead2) !important;
+  font-family: var(--rq-title-font, 'Metal Mania', Georgia, serif) !important;
+  letter-spacing: 0.035em !important;
+  text-shadow: none !important;
+}
+
 .App div[style*="max-width: 600px"] strong {
-  color: var(--rq-text-primary, #F5E6C8) !important;
+  color: var(--rq-text, #f6ead2) !important;
 }
 
 .App div[style*="max-width: 600px"] p,
 .App div[style*="max-width: 600px"] span,
 .App div[style*="max-width: 600px"] label,
 .App div[style*="max-width: 600px"] div {
-  color: var(--rq-text-secondary, #E6D2AA);
+  color: var(--rq-muted, rgba(246, 234, 210, 0.64)) !important;
+  text-shadow: none !important;
 }
 
-/* Option cards/buttons inside modal */
 .App div[style*="max-width: 600px"] button {
-  border-radius: 10px !important;
+  border-radius: 0 !important;
   min-height: 42px;
+  box-shadow: none !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  font-family: var(--rq-body-font, Inter, ui-sans-serif, system-ui, sans-serif) !important;
 }
 
 .App div[style*="max-width: 600px"] button:hover:not(:disabled) {
-  border-color: rgba(192, 138, 61, 0.48) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
-/* General card-like blocks with legacy gold borders */
 .App div[style*="max-width: 600px"] div[style*="rgba(212, 160, 23"],
-.App div[style*="max-width: 600px"] button[style*="rgba(212, 160, 23"] {
-  background: rgba(192, 138, 61, 0.08) !important;
-  border-color: rgba(192, 138, 61, 0.28) !important;
+.App div[style*="max-width: 600px"] button[style*="rgba(212, 160, 23"],
+.App div[style*="max-width: 600px"] div[style*="rgba(192, 138, 61"],
+.App div[style*="max-width: 600px"] button[style*="rgba(192, 138, 61"] {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .App div[style*="max-width: 600px"] svg {
-  color: var(--rq-accent-primary, #C08A3D) !important;
+  color: var(--rq-primary, #d8ad4f) !important;
 }
 
-/* Inputs/selects */
 .App div[style*="max-width: 600px"] input,
 .App div[style*="max-width: 600px"] select,
 .App div[style*="max-width: 600px"] textarea {
-  background: var(--rq-bg-main, #120C08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: var(--rq-text-primary, #F5E6C8) !important;
-  border-radius: 10px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rq-line, rgba(246, 234, 210, 0.18)) !important;
+  color: var(--rq-text, #f6ead2) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .App div[style*="max-width: 600px"] input:focus,
 .App div[style*="max-width: 600px"] select:focus,
 .App div[style*="max-width: 600px"] textarea:focus {
-  border-color: var(--rq-accent-primary, #C08A3D) !important;
-  box-shadow: 0 0 0 3px rgba(192, 138, 61, 0.14) !important;
+  border-color: var(--rq-text, #f6ead2) !important;
+  box-shadow: none !important;
   outline: none !important;
 }
 
-/* Footer actions */
-.App div[style*="max-width: 600px"] button[style*="linear-gradient"] {
-  background: var(--rq-accent-primary, #C08A3D) !important;
-  border-color: var(--rq-accent-primary, #C08A3D) !important;
-  color: var(--rq-text-primary, #F5E6C8) !important;
+.App div[style*="max-width: 600px"] button[style*="linear-gradient"],
+.App div[style*="max-width: 600px"] button[type="submit"] {
+  background: var(--rq-primary, #d8ad4f) !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  color: var(--rq-bg, #070814) !important;
 }
 
 @media (max-width: 720px) {
   .App div[style*="max-width: 600px"][style*="max-height: 90vh"] {
     width: calc(100vw - 16px) !important;
     max-height: calc(100vh - 16px) !important;
-    border-radius: 14px !important;
+    border-radius: 0 !important;
   }
 
   .App div[style*="max-width: 600px"] div[style*="padding: 24px"] {
