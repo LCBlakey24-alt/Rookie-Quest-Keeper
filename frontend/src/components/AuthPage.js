@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowLeft, ShieldCheck } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
-import { RookLogo } from '@/components/ui/RookIcon';
+import { BrandMainLogo } from '@/components/ui/BrandLogo';
 
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
@@ -52,7 +52,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     try {
       const response = await apiClient.post('/auth/login', payload);
       toast.success('Welcome back!');
-      onLogin(response.data.token, response.data.username);
+      onLogin(response.data.token, response.data.username || identifier);
       navigate('/home', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Login failed'));
@@ -74,7 +74,7 @@ export default function AuthPage({ onLogin = () => {} }) {
       if (registerData.email.trim()) payload.email = registerData.email.trim();
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
-      onLogin(response.data.token, response.data.username);
+      onLogin(response.data.token, response.data.username || payload.username);
       navigate('/home', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Registration failed'));
@@ -123,23 +123,22 @@ export default function AuthPage({ onLogin = () => {} }) {
   };
 
   const authCopy = {
-    login: { title: 'Welcome Back', subtitle: 'Sign in to open your dashboard, sheets, campaigns, and player tools.' },
-    register: { title: 'Create Account', subtitle: 'Make an account, then build your first character or join a campaign.' },
-    forgot: { title: 'Reset Password', subtitle: 'Enter your recovery email and we will send a reset link.' },
-    reset: { title: 'New Password', subtitle: 'Choose a new password for your account.' },
+    login: { title: 'Welcome back', subtitle: 'Sign in to open your dashboard, sheets, campaigns, and player tools.' },
+    register: { title: 'Create account', subtitle: 'Make an account, then build your first character or join a campaign.' },
+    forgot: { title: 'Reset password', subtitle: 'Enter your recovery email and we will send a reset link.' },
+    reset: { title: 'New password', subtitle: 'Choose a new password for your account.' },
   };
 
   return (
     <div style={pageStyle}>
-      <div style={backgroundStyle} />
-
       <div style={contentStyle}>
-        <button type="button" onClick={() => navigate('/')} style={logoWrapStyle} aria-label="Back to Rookie Quest Keeper home">
-          <RookLogo height={56} />
+        <button type="button" onClick={() => navigate('/')} style={logoWrapStyle} data-no-fill-animation="true" aria-label="Back to Rookie Quest Keeper home">
+          <BrandMainLogo height={104} />
         </button>
 
         <div style={panelStyle}>
           <div style={headingStyle}>
+            <p style={eyebrowStyle}>Rookie Quest Keeper</p>
             <h1 style={titleStyle}>{authCopy[mode]?.title}</h1>
             <p style={subtitleStyle}>{authCopy[mode]?.subtitle}</p>
           </div>
@@ -178,7 +177,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               />
 
               <button type="button" onClick={() => setMode('forgot')} style={linkButtonStyle}>
-                Forgot password?
+                <span>Forgot password?</span>
               </button>
 
               <PrimaryButton type="submit" disabled={loading} testId="login-btn">
@@ -237,7 +236,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               </PrimaryButton>
 
               <SecondaryButton type="button" onClick={() => setMode('login')}>
-                <ArrowLeft size={16} /> Back to login
+                <ArrowLeft size={16} /> <span>Back to login</span>
               </SecondaryButton>
             </form>
           )}
@@ -259,7 +258,7 @@ export default function AuthPage({ onLogin = () => {} }) {
           )}
         </div>
 
-        <p style={footerStyle}>© 2026 Rookie Quest Keeper</p>
+        <p style={footerStyle}>© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
     </div>
   );
@@ -282,7 +281,7 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
 }
 
 function PrimaryButton({ children, disabled, type = 'button', testId }) {
-  return <button type={type} disabled={disabled} data-testid={testId} style={primaryButtonStyle}>{children}</button>;
+  return <button type={type} disabled={disabled} data-testid={testId} style={primaryButtonStyle}><span>{children}</span></button>;
 }
 
 function SecondaryButton({ children, onClick, type = 'button' }) {
@@ -293,7 +292,7 @@ function AuthSwitch({ text, actionText, onClick }) {
   return (
     <div style={switchStyle}>
       <span>{text}</span>
-      <button type="button" onClick={onClick} style={switchButtonStyle}>{actionText}</button>
+      <button type="button" onClick={onClick} style={switchButtonStyle}><span>{actionText}</span></button>
     </div>
   );
 }
@@ -303,28 +302,137 @@ const pageStyle = {
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  padding: '12px 16px 24px',
-  background: '#070814',
+  padding: '16px 16px 24px',
+  background: 'var(--rq-bg, #242424)',
   position: 'relative',
   overflowX: 'hidden',
   overflowY: 'auto',
+  color: 'var(--rq-text, #ffffff)',
 };
-const backgroundStyle = { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(90deg, rgba(245,230,200,0.018) 1px, transparent 1px), linear-gradient(180deg, rgba(245,230,200,0.014) 1px, transparent 1px)', backgroundSize: '72px 72px', pointerEvents: 'none' };
-const contentStyle = { position: 'relative', zIndex: 1, width: 'min(100%, 430px)', display: 'grid', gap: '12px', justifyItems: 'center' };
-const logoWrapStyle = { cursor: 'pointer', display: 'inline-flex', justifyContent: 'center', border: 0, background: 'transparent', padding: 0, margin: 0, color: '#F6EAD2' };
-const panelStyle = { width: '100%', padding: '14px 0 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(216,173,79,0.16)', boxShadow: 'none' };
-const headingStyle = { textAlign: 'center', marginBottom: '12px' };
-const titleStyle = { margin: 0, color: '#F5E6C8', fontSize: 28, fontWeight: 950, lineHeight: 1.05 };
-const subtitleStyle = { margin: '6px 0 0', color: '#E6D2AA', fontSize: 13, lineHeight: 1.4 };
-const inputWrapStyle = { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, padding: '0 10px', minHeight: 44, borderRadius: 0, border: '1px solid rgba(216,173,79,0.22)', background: '#0b0d1e' };
-const inputIconStyle = { color: '#C08A3D', flexShrink: 0 };
-const inputStyle = { width: '100%', border: 0, outline: 'none', background: 'transparent', color: '#F5E6C8', fontSize: 15 };
-const primaryButtonStyle = { width: '100%', minHeight: 44, borderRadius: 0, border: '1px solid rgba(224,177,92,0.72)', background: '#C08A3D', color: '#070814', fontWeight: 950, fontSize: 15, cursor: 'pointer', marginTop: 4, boxShadow: 'none' };
-const secondaryButtonStyle = { width: '100%', minHeight: 42, marginTop: 8, borderRadius: 0, border: '1px solid rgba(216,173,79,0.28)', background: 'transparent', color: '#F5E6C8', fontWeight: 850, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'none' };
-const linkButtonStyle = { border: 0, background: 'transparent', color: '#E0B15C', cursor: 'pointer', fontSize: 12, margin: '0 0 8px', padding: 0, textAlign: 'left' };
-const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 12, color: '#CDBA98', fontSize: 14 };
-const switchButtonStyle = { border: '1px solid rgba(216,173,79,0.24)', background: 'transparent', color: '#F5E6C8', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 0 };
-const footerStyle = { margin: 0, color: '#CDBA98', fontSize: 12 };
-const nextStepNoteStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: '9px 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(122,155,102,0.28)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
-const accountChangeNoticeStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', padding: '9px 0', borderRadius: 0, background: 'transparent', border: 0, borderTop: '1px solid rgba(216,173,79,0.18)', color: '#E6D2AA', fontSize: 12, lineHeight: 1.35, marginBottom: 9 };
-const kidSafeNoteStyle = { display: 'flex', gap: 7, alignItems: 'flex-start', color: '#CDBA98', fontSize: 12, lineHeight: 1.3, margin: '-2px 0 9px' };
+
+const contentStyle = {
+  position: 'relative',
+  zIndex: 1,
+  width: 'min(100%, 430px)',
+  display: 'grid',
+  gap: 14,
+  justifyItems: 'center',
+};
+
+const logoWrapStyle = {
+  cursor: 'pointer',
+  display: 'inline-flex',
+  justifyContent: 'center',
+  border: 0,
+  background: 'transparent',
+  padding: 0,
+  margin: '0 0 2px',
+  color: 'var(--rq-text, #ffffff)',
+};
+
+const panelStyle = {
+  width: '100%',
+  padding: '16px 0 0',
+  borderRadius: 0,
+  background: 'transparent',
+  border: 0,
+  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
+  boxShadow: 'none',
+};
+
+const headingStyle = { textAlign: 'center', marginBottom: 14 };
+const eyebrowStyle = { margin: '0 0 6px', color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.11em', fontWeight: 950 };
+const titleStyle = { margin: 0, color: 'var(--rq-text, #ffffff)', fontSize: 30, fontWeight: 950, lineHeight: 1.05, letterSpacing: '-0.02em' };
+const subtitleStyle = { margin: '7px auto 0', maxWidth: 360, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14, lineHeight: 1.42 };
+
+const inputWrapStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 9,
+  marginBottom: 9,
+  padding: '0 10px',
+  minHeight: 46,
+  borderRadius: 0,
+  border: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
+  background: 'var(--rq-surface, #3a3a3a)',
+};
+
+const inputIconStyle = { color: 'var(--rq-primary, #d00000)', flexShrink: 0 };
+const inputStyle = { width: '100%', border: 0, outline: 'none', background: 'transparent', color: 'var(--rq-text, #ffffff)', fontSize: 15 };
+
+const primaryButtonStyle = {
+  width: '100%',
+  minHeight: 46,
+  borderRadius: 0,
+  border: 0,
+  background: 'var(--rq-surface, #3a3a3a)',
+  color: 'var(--rq-text, #ffffff)',
+  fontWeight: 950,
+  fontSize: 15,
+  cursor: 'pointer',
+  marginTop: 6,
+  boxShadow: 'none',
+};
+
+const secondaryButtonStyle = {
+  width: '100%',
+  minHeight: 42,
+  marginTop: 8,
+  borderRadius: 0,
+  border: 0,
+  background: 'var(--rq-surface, #3a3a3a)',
+  color: 'var(--rq-text, #ffffff)',
+  fontWeight: 850,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+  boxShadow: 'none',
+};
+
+const linkButtonStyle = {
+  border: 0,
+  background: 'transparent',
+  color: 'var(--rq-text, #ffffff)',
+  cursor: 'pointer',
+  fontSize: 12,
+  margin: '0 0 8px',
+  padding: '6px 0',
+  textAlign: 'left',
+  fontWeight: 900,
+};
+
+const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 13, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14 };
+const switchButtonStyle = { border: 0, background: 'var(--rq-surface, #3a3a3a)', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 0 };
+const footerStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12 };
+
+const nextStepNoteStyle = {
+  display: 'flex',
+  gap: 8,
+  alignItems: 'flex-start',
+  padding: '10px 0',
+  borderRadius: 0,
+  background: 'transparent',
+  border: 0,
+  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
+  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+  fontSize: 12,
+  lineHeight: 1.35,
+  marginBottom: 10,
+};
+
+const accountChangeNoticeStyle = {
+  ...nextStepNoteStyle,
+  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+};
+
+const kidSafeNoteStyle = {
+  display: 'flex',
+  gap: 7,
+  alignItems: 'flex-start',
+  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+  fontSize: 12,
+  lineHeight: 1.3,
+  margin: '-2px 0 9px',
+};
