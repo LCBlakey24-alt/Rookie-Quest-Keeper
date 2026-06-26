@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronRight, Crown, Home, Library, MessageSquare, Plus, Shield, Sword, Upload, User, Users } from 'lucide-react';
+import { ChevronRight, Crown, Home, Library, MessageSquare, Plus, Shield, Swords, Upload, User, Users } from 'lucide-react';
 
 import LatestUpdatesPanel from '@/components/LatestUpdatesPanel';
 import { theme } from './dashboardConfig';
@@ -23,6 +23,10 @@ import {
 
 function safeArray(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
+}
+
+function safeIcon(Icon) {
+  return Icon || ChevronRight;
 }
 
 function characterTitle(character) {
@@ -61,12 +65,13 @@ export function DashboardWorkspace(props) {
     <section style={workspaceStyle(smallScreen)} aria-label="Dashboard workspace">
       <nav style={sideRailStyle(smallScreen)} aria-label="Dashboard sections">
         {tabs.map(tab => {
-          const Icon = tab.icon;
+          const Icon = safeIcon(tab.icon);
           const active = tab.id === currentTab;
           return (
             <button
               key={tab.id}
               type="button"
+              className={active ? 'rq-side-tab is-active' : 'rq-side-tab'}
               onClick={() => setActiveTab(tab.id)}
               style={sideTabStyle(active, smallScreen)}
               aria-current={active ? 'page' : undefined}
@@ -96,7 +101,8 @@ export function MobileDashboardTabs(props) {
 }
 
 export function HeaderButton({ icon: Icon, label, onClick, disabled }) {
-  return <button type="button" onClick={onClick} disabled={disabled} style={headerButtonStyle(disabled)}><Icon size={16} /><span>{label}</span></button>;
+  const SafeIcon = safeIcon(Icon);
+  return <button type="button" onClick={onClick} disabled={disabled} style={headerButtonStyle(disabled)}><SafeIcon size={16} /><span>{label}</span></button>;
 }
 
 function DashboardTabContent(props) {
@@ -133,7 +139,7 @@ function HomeTab(props) {
   return (
     <>
       <section style={quickGridStyle}>
-        <ActionCard icon={Sword} title="Player Area" text="Open your characters and player tools." meta="Characters" onClick={() => props.navigate('/player')} primary />
+        <ActionCard icon={Swords} title="Player Area" text="Open your characters and player tools." meta="Characters" onClick={() => props.navigate('/player')} primary />
         <ActionCard icon={Crown} title="GM Area" text="Open campaigns, prep tools, players, and notes." meta="Campaigns" onClick={() => scrollToSection('campaign-summary')} />
         <ActionCard icon={Plus} title="Create Character" text="Start a new character with the builder flow." meta={props.siteSettings?.character_creation_enabled === false ? 'Disabled' : 'Ready'} onClick={props.createCharacter} disabled={props.siteSettings?.character_creation_enabled === false} />
       </section>
@@ -146,7 +152,7 @@ function HomeTab(props) {
 function PlayerActionCards({ characters = [], navigate, createCharacter, siteSettings = {} }) {
   const characterCount = safeArray(characters).length;
   return <>
-    <ActionCard icon={Sword} title="Player Dashboard" text="Open your characters, joined campaigns, player notes, and join-code tools." meta={`${characterCount} character${characterCount === 1 ? '' : 's'}`} onClick={() => navigate('/player')} primary />
+    <ActionCard icon={Swords} title="Player Dashboard" text="Open your characters, joined campaigns, player notes, and join-code tools." meta={`${characterCount} character${characterCount === 1 ? '' : 's'}`} onClick={() => navigate('/player')} primary />
     <ActionCard icon={Plus} title="Create Character" text="Start a new character using the available character creation flows." meta={siteSettings?.character_creation_enabled === false ? 'Disabled by admin' : 'Ready'} onClick={createCharacter} disabled={siteSettings?.character_creation_enabled === false} />
   </>;
 }
@@ -178,10 +184,11 @@ function CampaignsSummary({ recentCampaigns, navigate, openCampaignCreate }) {
 }
 
 function SimplePage({ title, text, action, onAction, icon: Icon }) {
+  const SafeIcon = safeIcon(Icon);
   return (
     <section style={panelStyle}>
       <div style={panelHeaderStyle}>
-        <h2 style={panelTitleStyle}><Icon size={20} /> {title}</h2>
+        <h2 style={panelTitleStyle}><SafeIcon size={20} /> {title}</h2>
       </div>
       <p style={{ color: theme.textSecondary, margin: '0 0 14px', lineHeight: 1.45 }}>{text}</p>
       <button type="button" onClick={onAction} style={redActionButtonStyle}>{action}</button>
@@ -195,12 +202,14 @@ function scrollToSection(id) {
 }
 
 function ActionCard({ icon: Icon, title, text, meta, onClick, primary = false, disabled = false }) {
-  return <button type="button" onClick={onClick} disabled={disabled} style={actionCardStyle(primary, disabled)}><div style={actionIconStyle(primary)}><Icon size={24} /></div><div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}><div style={actionTitleStyle}>{title}</div><div style={actionTextStyle}>{text}</div><div style={actionMetaStyle(disabled)}>{meta}</div></div><ChevronRight size={20} color={disabled ? theme.muted : theme.accentHover} /></button>;
+  const SafeIcon = safeIcon(Icon);
+  return <button type="button" onClick={onClick} disabled={disabled} style={actionCardStyle(primary, disabled)}><div style={actionIconStyle(primary)}><SafeIcon size={24} /></div><div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}><div style={actionTitleStyle}>{title}</div><div style={actionTextStyle}>{text}</div><div style={actionMetaStyle(disabled)}>{meta}</div></div><ChevronRight size={20} color={disabled ? theme.muted : theme.accentHover} /></button>;
 }
 
 function SummaryPanel({ id, icon: Icon, title, emptyTitle, emptyText, actionLabel, onAction, children }) {
+  const SafeIcon = safeIcon(Icon);
   const hasItems = React.Children.count(children) > 0;
-  return <section id={id} style={panelStyle}><div style={panelHeaderStyle}><h2 style={panelTitleStyle}><Icon size={20} /> {title}</h2><button type="button" onClick={onAction} style={smallLinkButtonStyle}>{actionLabel}</button></div>{hasItems ? <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{children}</div> : <div style={emptyStyle}><h3 style={{ color: theme.text, margin: '0 0 6px' }}>{emptyTitle}</h3><p style={{ color: theme.muted, margin: 0 }}>{emptyText}</p></div>}</section>;
+  return <section id={id} style={panelStyle}><div style={panelHeaderStyle}><h2 style={panelTitleStyle}><SafeIcon size={20} /> {title}</h2><button type="button" onClick={onAction} style={smallLinkButtonStyle}>{actionLabel}</button></div>{hasItems ? <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{children}</div> : <div style={emptyStyle}><h3 style={{ color: theme.text, margin: '0 0 6px' }}>{emptyTitle}</h3><p style={{ color: theme.muted, margin: 0 }}>{emptyText}</p></div>}</section>;
 }
 
 function ListItem({ title, meta, onClick }) {
