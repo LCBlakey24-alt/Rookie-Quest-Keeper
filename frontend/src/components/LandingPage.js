@@ -14,6 +14,7 @@ import {
   Users,
   Wand2
 } from 'lucide-react';
+import { RookIcon, RookLogo } from '@/components/ui/RookIcon';
 
 const features = [
   { icon: Users, title: 'Build characters', desc: 'Create playable 5e characters, choose a starting level, and keep sheets readable at the table.' },
@@ -31,7 +32,7 @@ const workflow = [
 function BrandMark({ compact = false }) {
   return (
     <div className={`landing-brand ${compact ? 'landing-brand-compact' : ''}`} aria-label="Rookie Quest Keeper">
-      <img src={compact ? "/images/logo-mini.png" : "/images/logo-main.png"} alt="Rookie Quest Keeper" />
+      {compact ? <RookIcon size={42} /> : <RookLogo height={58} />}
     </div>
   );
 }
