@@ -103,15 +103,23 @@ export default function PlayerDashboard() {
 
   const loadPlayerData = async () => {
     try {
-      const [charactersRes, campaignsRes, handoutsRes] = await Promise.all([
+      const [charactersRes, gmCampaignsRes, joinedCampaignsRes, handoutsRes] = await Promise.all([
         apiClient.get('/characters').catch(() => ({ data: [] })),
         apiClient.get('/campaigns').catch(() => ({ data: [] })),
+        apiClient.get('/campaign-invites/joined/list').catch(() => ({ data: [] })),
         apiClient.get('/player/handouts').catch(() => ({ data: [] })),
       ]);
 
       const handouts = Array.isArray(handoutsRes.data) ? handoutsRes.data : [];
+      const gmCampaigns = Array.isArray(gmCampaignsRes.data) ? gmCampaignsRes.data : gmCampaignsRes.data?.campaigns || [];
+      const joinedCampaigns = Array.isArray(joinedCampaignsRes.data) ? joinedCampaignsRes.data : joinedCampaignsRes.data?.campaigns || [];
+      const campaignMap = new Map();
+      [...gmCampaigns, ...joinedCampaigns].forEach(campaign => {
+        if (campaign?.id) campaignMap.set(campaign.id, campaign);
+      });
+
       setCharacters(Array.isArray(charactersRes.data) ? charactersRes.data : charactersRes.data?.characters || []);
-      setCampaigns(Array.isArray(campaignsRes.data) ? campaignsRes.data : campaignsRes.data?.campaigns || []);
+      setCampaigns(Array.from(campaignMap.values()));
       setHandoutSummary({
         total: handouts.length,
         unread: handouts.filter(handout => !handout.read).length,
@@ -220,242 +228,123 @@ export default function PlayerDashboard() {
         </div>
       </section>
 
-      <nav style={tabBarStyle} aria-label="Player dashboard tabs">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          const active = activeTab === tab.id;
-          return (
-            <button key={tab.id} data-testid={tab.testId} type="button" onClick={() => setActiveTab(tab.id)} style={tabButtonStyle(active)}>
-              <Icon size={16} />
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                {tab.label}
-                {tab.id === 'handouts' && handoutSummary.unread > 0 && (
-                  <span style={tabBadgeStyle}>{handoutSummary.unread}</span>
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-
-
-      <section className="player-desktop-context" style={desktopContextStyle}>
-        <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}>Current Space</p>
-          <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
-        </div>
-        <div style={summaryGridStyle}>
-          {playerSummaryCards.map(card => {
-            const Icon = card.icon;
+      <section style={tabShellStyle}>
+        <div style={tabListStyle} role="tablist" aria-label="Player dashboard tabs">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
             return (
-              <div key={card.label} style={summaryCardStyle}>
-                <Icon size={16} color={rq.accentHover} />
-                <div style={{ minWidth: 0 }}>
-                  <p style={summaryLabelStyle}>{card.label}</p>
-                  <strong style={summaryValueStyle}>{card.value}</strong>
-                  <span style={summaryDetailStyle}>{card.detail}</span>
-                </div>
-              </div>
+              <button
+                key={tab.id}
+                data-testid={tab.testId}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveTab(tab.id)}
+                style={tabButtonStyle(active)}
+              >
+                <Icon size={16} />
+                {tab.label}
+              </button>
             );
           })}
         </div>
+
+        <div style={tabContentStyle}>
+          {activeTab === 'characters' && (
+            <div style={gridStyle}>
+              {characters.length === 0 ? (
+                <EmptyState title="No characters yet" text="Create your first character to begin playing." action="Create Character" onAction={() => navigate('/characters/new')} />
+              ) : characters.map(character => (
+                <Card key={character.id} style={cardStyle}>
+                  <CardContent style={cardContentStyle}>
+                    <div>
+                      <p style={eyebrowStyle}>Character</p>
+                      <h2 style={cardTitleStyle}>{character.name || 'Unnamed Character'}</h2>
+                      <p style={cardTextStyle}>Level {character.level || 1} {character.race || ''} {character.character_class || 'Adventurer'}</p>
+                    </div>
+                    <Button onClick={() => navigate(`/characters/${character.id}`)} className="btn-outline" style={actionButtonStyle}>
+                      Open Sheet <ChevronRight size={16} />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'campaigns' && (
+            <div style={gridStyle}>
+              {linkedCampaigns.length === 0 ? (
+                <EmptyState title="No linked campaigns" text="Use a join code from your GM to link a character to a campaign." action="Join Campaign" onAction={openJoinFlow} />
+              ) : linkedCampaigns.map(campaign => (
+                <Card key={campaign.id} style={cardStyle}>
+                  <CardContent style={cardContentStyle}>
+                    <div>
+                      <p style={eyebrowStyle}>{campaign.member_role ? 'Joined Campaign' : 'Campaign'}</p>
+                      <h2 style={cardTitleStyle}>{campaign.name || 'Linked Campaign'}</h2>
+                      <p style={cardTextStyle}>{campaign.description || campaign.from_character ? `Linked via ${campaign.from_character || 'your character'}` : 'Campaign linked to your player account.'}</p>
+                    </div>
+                    <Button onClick={() => navigate(`/campaign/${campaign.id}`)} className="btn-outline" style={actionButtonStyle}>
+                      Open Campaign <ChevronRight size={16} />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'notes' && <PlayerNotesTab />}
+          {activeTab === 'handouts' && <PlayerHandoutsPanel summary={handoutSummary} />}
+        </div>
       </section>
-
-      {activeTab === 'characters' && <CharactersTab characters={characters} navigate={navigate} onCreate={() => navigate('/characters/new')} onJoin={openJoinFlow} />}
-      {activeTab === 'campaigns' && <CampaignsTab campaigns={linkedCampaigns} navigate={navigate} onJoin={openJoinFlow} />}
-      {activeTab === 'notes' && <PlayerNotesTab campaigns={linkedCampaigns} />}
-      {activeTab === 'handouts' && <PlayerHandoutsPanel />}
-
-      <style>{`@media (max-width: 1024px) { .player-desktop-context { display: none !important; } } @media (max-width: 720px) { .player-dashboard-actions { width: 100%; } }`}</style>
 
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
-        characterName={selectedCharacter?.name || 'this character'}
+        characterName={selectedCharacter?.name || 'Selected character'}
         open={joinOpen}
         onOpenChange={setJoinOpen}
-        onSuccess={async (campaign) => {
-          await loadPlayerData();
-          setActiveTab('campaigns');
-          if (campaign?.id) navigate(`/campaign/${campaign.id}`);
-        }}
+        onSuccess={() => loadPlayerData()}
       />
     </main>
   );
 }
 
-
-function ActiveCharacterPanel({ character, navigate, onJoin, onOpenHandouts, handoutSummary }) {
-  const hp = character.current_hp ?? character.hit_points ?? character.hp ?? '—';
-  const maxHp = character.max_hp ?? character.max_hit_points ?? character.hit_points_max ?? null;
-  const ac = character.armor_class ?? character.ac ?? '—';
-  const campaignName = character.campaign_name || 'Not linked yet';
-  const subtitle = [`Level ${character.level || 1}`, character.race, character.character_class || character.class_name || 'Adventurer']
-    .filter(Boolean)
-    .join(' • ');
-
+function EmptyState({ title, text, action, onAction }) {
   return (
-    <section className="player-active-panel-fix" style={activeCharacterStyle}>
-      <div style={{ minWidth: 0 }}>
-        <p style={eyebrowStyle}>Active Character</p>
-        <h2 style={activeCharacterTitleStyle}>{character.name || 'Unnamed Character'}</h2>
-        <p style={activeCharacterSubtitleStyle}>{subtitle}</p>
-        <p style={linkedTextStyle}>Campaign: {campaignName}</p>
-      </div>
-      <div style={activeCharacterStatsStyle} aria-label="Active character quick stats">
-        <MiniStat label="HP" value={maxHp ? `${hp}/${maxHp}` : hp} />
-        <MiniStat label="AC" value={ac} />
-        <MiniStat label="Clues" value={handoutSummary.unread ? `${handoutSummary.unread} new` : handoutSummary.saved || handoutSummary.total || 0} />
-      </div>
-      <div style={activeCharacterActionsStyle}>
-        <Button onClick={() => navigate(`/characters/${character.id}`)} className="btn-primary" style={actionButtonStyle}>Open Sheet</Button>
-        <Button onClick={onOpenHandouts} className="btn-outline" style={actionButtonStyle}>Clues</Button>
-        <Button onClick={onJoin} className="btn-outline" style={actionButtonStyle}>Join Code</Button>
-      </div>
-    </section>
-  );
-}
-
-function MiniStat({ label, value }) {
-  return (
-    <div style={miniStatStyle}>
-      <span style={miniStatLabelStyle}>{label}</span>
-      <strong style={miniStatValueStyle}>{value}</strong>
+    <div style={emptyStyle}>
+      <h2 style={cardTitleStyle}>{title}</h2>
+      <p style={cardTextStyle}>{text}</p>
+      <Button onClick={onAction} className="btn-primary" style={actionButtonStyle}>{action}</Button>
     </div>
   );
 }
 
-function CharactersTab({ characters, navigate, onCreate, onJoin }) {
-  if (characters.length === 0) {
-    return (
-      <EmptyPanel
-        icon={Shield}
-        title="No characters yet"
-        text="Create your first character, then use a GM join code to link them to a campaign."
-        action={<Button onClick={onCreate} className="btn-primary"><Plus size={16} style={{ marginRight: 8 }} />Create Character</Button>}
-      />
-    );
-  }
-
-  return (
-    <section style={gridStyle}>
-      {characters.map(character => (
-        <Card key={character.id} style={cardStyle} data-testid={`player-character-${character.id}`}>
-          <CardContent style={cardContentStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ minWidth: 0 }}>
-                <h2 style={cardTitleStyle}>{character.name || 'Unnamed Character'}</h2>
-                <p style={cardMetaStyle}>Level {character.level || 1} {character.race ? `${character.race} ` : ''}{character.character_class || character.class_name || 'Adventurer'}</p>
-                {character.campaign_name && <p style={linkedTextStyle}>Linked to {character.campaign_name}</p>}
-              </div>
-              <Shield size={24} color={rq.accent} />
-            </div>
-            <div style={characterCardStatsStyle}>
-              <CharacterCardStat label="HP" value={formatCharacterHp(character)} />
-              <CharacterCardStat label="AC" value={character.armor_class ?? character.ac ?? '—'} />
-              <CharacterCardStat label="Campaign" value={character.campaign_name ? 'Linked' : 'Solo'} />
-            </div>
-            <div style={cardActionsStyle}>
-              <Button onClick={() => navigate(`/characters/${character.id}`)} className="btn-primary" style={cardButtonStyle}>Open Sheet <ChevronRight size={14} /></Button>
-              <Button onClick={onJoin} className="btn-outline" style={cardButtonStyle}>Join Code</Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </section>
-  );
-}
-
-
-function formatCharacterHp(character) {
-  const current = character.current_hp ?? character.hit_points ?? character.hp ?? '—';
-  const max = character.max_hp ?? character.max_hit_points ?? character.hit_points_max;
-  return max ? `${current}/${max}` : current;
-}
-
-function CharacterCardStat({ label, value }) {
-  return (
-    <div style={characterCardStatStyle}>
-      <span style={characterCardStatLabelStyle}>{label}</span>
-      <strong style={characterCardStatValueStyle}>{value}</strong>
-    </div>
-  );
-}
-
-function CampaignsTab({ campaigns, navigate, onJoin }) {
-  if (campaigns.length === 0) {
-    return (
-      <EmptyPanel
-        icon={BookOpen}
-        title="No linked campaigns yet"
-        text="Ask your GM for a join code, then link one of your characters to their campaign."
-        action={<Button onClick={onJoin} data-testid="join-campaign-empty-btn" className="btn-primary"><Link2 size={16} style={{ marginRight: 8 }} />Join Campaign</Button>}
-      />
-    );
-  }
-
-  return (
-    <section style={gridStyle}>
-      {campaigns.map(campaign => (
-        <Card key={campaign.id} style={cardStyle} data-testid={`player-campaign-${campaign.id}`}>
-          <CardContent style={cardContentStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ minWidth: 0 }}>
-                <h2 style={cardTitleStyle}>{campaign.name || 'Campaign'}</h2>
-                <p style={cardMetaStyle}>{campaign.description || campaign.setting || campaign.world_setting_notes || 'No summary yet.'}</p>
-                {campaign.from_character && <p style={linkedTextStyle}>Linked through {campaign.from_character}</p>}
-              </div>
-              <Users size={24} color={rq.accent} />
-            </div>
-            <div style={cardActionsStyle}>
-              <Button onClick={() => navigate(`/campaign/${campaign.id}`)} className="btn-primary" style={cardButtonStyle}>Open Campaign <ChevronRight size={14} /></Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </section>
-  );
-}
-
-function EmptyPanel({ icon: Icon, title, text, action }) {
-  return (
-    <section style={emptyPanelStyle}>
-      <Icon size={42} color={rq.accent} style={{ opacity: 0.75 }} />
-      <h2 style={emptyTitleStyle}>{title}</h2>
-      <p style={emptyTextStyle}>{text}</p>
-      {action}
-    </section>
-  );
-}
-
-const pageStyle = { minHeight: '100vh', background: rq.bg, padding: 'var(--rq-space-page, 24px)', color: rq.text, maxWidth: 1680, margin: '0 auto' };
-const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '20px', flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '20px' };
-const iconButtonStyle = { minWidth: 40, height: 40, padding: 0, borderRadius: rq.radiusSm };
-const eyebrowStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 4px' };
-const titleStyle = { color: rq.text, fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
-const subtitleStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.5, margin: '8px 0 0', maxWidth: 720 };
-const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' };
-const desktopContextStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(420px, 0.9fr)', gap: '18px', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(164,90,50,0.10), rgba(193,18,31,0.06))', border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '18px', marginBottom: '18px', boxShadow: '0 18px 50px rgba(0,0,0,0.20)' };
-const desktopTitleStyle = { color: rq.text, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 900, margin: 0, lineHeight: 1.1 };
-const desktopTextStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.55, margin: '8px 0 0', maxWidth: 760 };
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px', minWidth: 0 };
-const summaryCardStyle = { display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, background: 'rgba(255,255,255,0.055)', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '12px' };
-const summaryLabelStyle = { color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, margin: '0 0 4px' };
-const summaryValueStyle = { display: 'block', color: rq.text, fontSize: 16, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const summaryDetailStyle = { display: 'block', color: rq.textSecondary, fontSize: 12, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const actionButtonStyle = { display: 'flex', alignItems: 'center', gap: '8px', borderRadius: rq.radiusSm, fontWeight: 900 };
-const joinStripStyle = { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: '12px', marginBottom: '18px' };
-const joinLabelStyle = { color: rq.textSecondary, fontSize: 13, fontWeight: 900 };
-const selectStyle = { minWidth: 220, flex: '1 1 220px', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px' };
-const tabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '8px', marginBottom: '20px' };
-const tabButtonStyle = (active) => ({ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: active ? rq.accentSoft : rq.panel, border: `1px solid ${active ? rq.accent : rq.border}`, color: active ? rq.accentHover : rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer', fontWeight: 900 });
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '16px' };
-const cardStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius };
-const cardContentStyle = { padding: '18px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' };
-const cardTitleStyle = { color: rq.text, fontSize: 18, fontWeight: 900, margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const cardMetaStyle = { color: rq.textSecondary, fontSize: 13, lineHeight: 1.5, margin: 0 };
-const linkedTextStyle = { color: rq.accentHover, fontSize: 12, fontWeight: 900, margin: '8px 0 0' };
-const cardActionsStyle = { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: 'auto' };
-const cardButtonStyle = { display: 'flex', alignItems: 'center', gap: '6px', borderRadius: rq.radiusSm, minHeight: 34, padding: '7px 11px', fontSize: 12 };
-const emptyPanelStyle = { background: rq.panel, border: `1px dashed ${rq.border}`, borderRadius: rq.radius, padding: '30px 18px', textAlign: 'center' };
-const emptyTitleStyle = { color: rq.text, fontSize: 19, fontWeight: 900, margin: '12px 0 7px' };
-const emptyTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 520, margin: '0 auto 16px' };
+const pageStyle = { minHeight: '100vh', background: rq.bg, color: rq.text, padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' };
+const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' };
+const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
+const eyebrowStyle = { margin: 0, color: rq.accentHover, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '11px', fontWeight: 900 };
+const titleStyle = { margin: '4px 0 6px', color: rq.text, fontSize: 'clamp(28px, 5vw, 44px)', lineHeight: 1.02 };
+const subtitleStyle = { margin: 0, color: rq.textSecondary, maxWidth: '640px' };
+const actionButtonStyle = { minHeight: '40px', borderRadius: rq.radiusSm, display: 'inline-flex', alignItems: 'center', gap: '8px' };
+const iconButtonStyle = { width: 42, height: 42, borderRadius: rq.radiusSm };
+const joinStripStyle = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: '12px' };
+const joinLabelStyle = { color: rq.textSecondary, fontWeight: 800, fontSize: '13px' };
+const selectStyle = { minHeight: 40, minWidth: 220, background: rq.input, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '0 10px' };
+const desktopContextStyle = { display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: '18px' };
+const desktopTitleStyle = { margin: 0, color: rq.text, fontSize: '24px' };
+const desktopTextStyle = { margin: '6px 0 0', color: rq.textSecondary, maxWidth: '640px', lineHeight: 1.5 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(130px, 1fr))', gap: '10px', minWidth: 'min(100%, 460px)' };
+const summaryCardStyle = { display: 'flex', gap: '10px', alignItems: 'flex-start', background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '12px' };
+const summaryLabelStyle = { margin: 0, color: rq.muted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 900 };
+const summaryValueStyle = { display: 'block', color: rq.text, fontSize: '16px', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const summaryDetailStyle = { display: 'block', color: rq.textSecondary, fontSize: '12px', marginTop: '2px' };
+const tabShellStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, overflow: 'hidden' };
+const tabListStyle = { display: 'flex', gap: 0, flexWrap: 'wrap', borderBottom: `1px solid ${rq.borderDefault}` };
+const tabButtonStyle = (active) => ({ border: 0, borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accentSoft : 'transparent', color: active ? rq.accentHover : rq.textSecondary, padding: '12px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 900, cursor: 'pointer' });
+const tabContentStyle = { padding: '18px' };
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' };
+const cardStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius };
+const cardContentStyle = { padding: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center' };
+const cardTitleStyle = { margin: '4px 0', color: rq.text, fontSize: '20px' };
+const cardTextStyle = { margin: 0, color: rq.textSecondary, lineHeight: 1.45 };
+const emptyStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radius, padding: '24px', textAlign: 'center' };
