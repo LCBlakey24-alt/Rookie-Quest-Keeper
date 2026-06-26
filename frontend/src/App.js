@@ -146,7 +146,7 @@ function AppRoutes() {
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <CharacterBuilder editMode /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <GlobalFeedbackButton />
+      <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
     </>
   );
 }
