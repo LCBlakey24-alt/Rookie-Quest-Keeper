@@ -58,13 +58,30 @@ const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCha
 const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
 
+const LOADING_TIPS = [
+  'Table tip: decide your action, bonus action, and movement before your turn starts to keep combat snappy.',
+  'Rules reminder: reactions are usually limited to one per round, so use them when they matter.',
+  'GM tip: secrets hit harder when players receive them at the exact moment they become useful.',
+  'Player tip: if you are not sure what to do, check your Actions tab first — attack, help, dodge, dash, hide, and ready are all valid choices.',
+  'Table tip: write down names of NPCs as soon as they appear. Future-you will be deeply smug about it.',
+  'Spell tip: prepared spells are your daily toolkit; known spells are the wider list your character has learned.',
+  'GM tip: reward items are more exciting when they arrive instantly and clearly on the player sheet.',
+  'Player tip: conditions can change your whole turn. Check them before rolling.',
+  'Table tip: a fast ruling now is often better than a perfect ruling after ten minutes of book diving.',
+  'Character tip: your best move is not always damage — helping, protecting, moving, or setting up an ally can win the scene.'
+];
+
 function RouteLoadingScreen() {
+  const tip = React.useMemo(() => LOADING_TIPS[Math.floor(Math.random() * LOADING_TIPS.length)], []);
   return (
-    <div className="loading-screen">
+    <div className="loading-screen" role="status" aria-live="polite">
       <div className="loading-spinner">
         <img className="loading-logo" src="/brand/rqk-logo-mini.svg" alt="RQK loading" />
       </div>
-      <p style={{ color: '#F6EAD2', marginTop: 12, fontWeight: 800 }}>Opening your dashboard…</p>
+      <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening your next page…</p>
+      <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>
+        {tip}
+      </p>
     </div>
   );
 }
