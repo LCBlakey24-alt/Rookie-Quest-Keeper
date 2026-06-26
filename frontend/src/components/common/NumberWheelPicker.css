@@ -1,6 +1,6 @@
 .number-wheel-picker {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   justify-items: center;
   width: 100%;
 }
@@ -17,8 +17,8 @@
   position: relative;
   width: min(100%, 118px);
   height: 118px;
+  border: 0;
   border-radius: 0;
-  border: 1px solid rgba(216, 173, 79, 0.22);
   background: transparent;
   box-shadow: none;
   overflow: hidden;
@@ -29,19 +29,7 @@
 }
 
 .number-wheel-picker__selection {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 38px;
-  transform: translateY(-50%);
-  border-radius: 0;
-  border-top: 1px solid rgba(242, 209, 138, 0.38);
-  border-bottom: 1px solid rgba(242, 209, 138, 0.38);
-  background: transparent;
-  box-shadow: none;
-  pointer-events: none;
-  z-index: 1;
+  display: none;
 }
 
 .number-wheel-picker__wheel {
@@ -51,8 +39,8 @@
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 72%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
 }
 
 .number-wheel-picker__wheel::-webkit-scrollbar {
@@ -72,18 +60,21 @@
   justify-content: center;
   border: 0;
   border-radius: 0;
-  background: transparent;
-  color: rgba(246, 234, 210, 0.5);
+  background: transparent !important;
+  background-image: none !important;
+  color: rgba(246, 234, 210, 0.42);
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
   scroll-snap-align: center;
+  box-shadow: none !important;
+  outline: none;
   transition: color 140ms ease, font-size 140ms ease, opacity 140ms ease;
 }
 
 .number-wheel-picker__wheel button.is-selected {
   color: var(--rq-blue-eclipse-cream, #f6ead2);
-  font-size: 1.75rem;
+  font-size: 1.9rem;
   opacity: 1;
   text-shadow: none;
 }
@@ -95,10 +86,8 @@
 .number-wheel-picker--compact .number-wheel-picker__frame {
   width: min(100%, 96px);
   height: 96px;
-  border-radius: 0;
 }
 
-.number-wheel-picker--compact .number-wheel-picker__selection,
 .number-wheel-picker--compact .number-wheel-picker__wheel button {
   height: 34px;
 }
@@ -108,5 +97,5 @@
 }
 
 .number-wheel-picker--compact .number-wheel-picker__wheel button.is-selected {
-  font-size: 1.42rem;
+  font-size: 1.55rem;
 }
