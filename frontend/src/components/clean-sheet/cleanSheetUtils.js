@@ -1,4 +1,4 @@
-import { Backpack, BookOpen, Edit3, Sparkles, Swords } from 'lucide-react';
+import { Backpack, BookOpen, ChartNoAxesColumn, Edit3, ListChecks, Sparkles, Swords, TrendingUp } from 'lucide-react';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -42,11 +42,13 @@ export const COMMON_CONDITIONS = [
 ];
 
 export const SHEET_TABS = [
-  { id: 'overview', label: 'Overview', icon: Sparkles },
-  { id: 'combat', label: 'Combat', icon: Swords },
+  { id: 'stats', label: 'Stats', icon: ChartNoAxesColumn },
+  { id: 'actions', label: 'Actions', icon: Swords },
   { id: 'spells', label: 'Spells', icon: BookOpen },
   { id: 'inventory', label: 'Inventory', icon: Backpack },
+  { id: 'features', label: 'Features', icon: ListChecks },
   { id: 'notes', label: 'Notes', icon: Edit3 },
+  { id: 'levelup', label: 'Level Up', icon: TrendingUp, action: 'levelup' },
 ];
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
