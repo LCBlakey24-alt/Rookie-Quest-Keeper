@@ -6,12 +6,12 @@ import apiClient from '@/lib/apiClient';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
+import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
+import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
 import CleanSheetOverviewTab from '@/components/clean-sheet/CleanSheetOverviewTab';
 import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
-import CleanSheetTableFocus from '@/components/clean-sheet/CleanSheetTableFocus';
 import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
-import CleanSheetVitals from '@/components/clean-sheet/CleanSheetVitals';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
@@ -45,7 +45,7 @@ export default function CleanCharacterSheet() {
   const [savingQuickState, setSavingQuickState] = useState(false);
   const [hpAmount, setHpAmount] = useState(1);
   const [tempHpAmount, setTempHpAmount] = useState(1);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('stats');
   const [rollBurst, setRollBurst] = useState(null);
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
   const [rollHistory, setRollHistory] = useState([]);
@@ -100,11 +100,6 @@ export default function CleanCharacterSheet() {
   const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
-
-  const hpPercent = useMemo(() => {
-    if (!maxHp) return 0;
-    return Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100)));
-  }, [currentHp, maxHp]);
 
   const passiveScores = useMemo(() => {
     return PASSIVE_SKILLS.map(([skill, ability]) => {
@@ -181,8 +176,8 @@ export default function CleanCharacterSheet() {
     }
   };
 
-    const updateHp = async (delta) => {
-      if (!character || savingHp) return;
+  const updateHp = async (delta) => {
+    if (!character || savingHp) return;
 
     const amount = Math.abs(Number(delta) || 0);
     const result = delta < 0
@@ -409,10 +404,59 @@ export default function CleanCharacterSheet() {
     );
   };
 
+  const handleSelectTab = (tab) => {
+    if (tab?.action === 'levelup') {
+      setShowLevelUpWizard(true);
+      return;
+    }
+    setActiveTab(tab?.id || tab);
+  };
+
+  const playTools = (
+    <CleanSheetPlayTools
+      activeConditions={activeConditions}
+      concentratingName={concentratingName}
+      concentrationInput={concentrationInput}
+      currentHp={currentHp}
+      deathSaveFailures={deathSaveFailures}
+      deathSaveSuccesses={deathSaveSuccesses}
+      exhaustionLevel={exhaustionLevel}
+      hasInspiration={hasInspiration}
+      hitDice={hitDice}
+      hitDiceRemaining={hitDiceRemaining}
+      maxHp={maxHp}
+      passiveScores={passiveScores}
+      rollBonus={rollBonus}
+      rollHistory={rollHistory}
+      rollMode={rollMode}
+      savingQuickState={savingQuickState}
+      showConditionPicker={showConditionPicker}
+      showConcentrationInput={showConcentrationInput}
+      showDeathSaves={showDeathSaves}
+      showRollHistory={showRollHistory}
+      onEndConcentration={endConcentration}
+      onLongRest={() => handleRest('long')}
+      onRollBonusChange={setRollBonus}
+      onRollDeathSave={rollDeathSave}
+      onRollHistoryToggle={setShowRollHistory}
+      onRollModeChange={setRollMode}
+      onSaveConcentration={saveConcentration}
+      onSetConcentrationInput={setConcentrationInput}
+      onShortRest={() => handleRest('short')}
+      onShowConditionPickerChange={setShowConditionPicker}
+      onShowConcentrationInputChange={setShowConcentrationInput}
+      onSpendHitDie={spendHitDie}
+      onToggleCondition={toggleCondition}
+      onToggleDeathSave={setDeathSaveCount}
+      onToggleInspiration={toggleInspiration}
+      onResetDeathSaves={resetDeathSaves}
+    />
+  );
+
   if (loading) {
     return (
       <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
-        <img src="/images/logo-mini.png" alt="Rookie Quest Keeper" />
+        <img src="/brand/rqk-logo-mini.svg" alt="Rookie Quest Keeper" />
         <p>Loading character...</p>
       </div>
     );
@@ -434,8 +478,6 @@ export default function CleanCharacterSheet() {
     character.subclass ? `(${character.subclass})` : null,
     `Lv ${character.level || 1}`,
   ].filter(Boolean).join(' • ');
-
-  const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   return (
     <div className="clean-sheet-page character-page-v2">
@@ -476,77 +518,54 @@ export default function CleanCharacterSheet() {
         onLevelUp={() => setShowLevelUpWizard(true)}
       />
 
-      <CleanSheetVitals
+      <CleanSheetCompactStatus
         currentHp={currentHp}
         maxHp={maxHp}
-        hpPercent={hpPercent}
-        hpAmount={hpAmount}
         tempHp={tempHp}
-        tempHpAmount={tempHpAmount}
+        hpAmount={hpAmount}
         ac={ac}
-        dexMod={dexMod}
-        proficiencyBonus={proficiencyBonus}
         speed={speed}
         savingHp={savingHp}
-        savingTempHp={savingTempHp}
         onHpAmountChange={setHpAmount}
-        onTempHpAmountChange={setTempHpAmount}
         onDamage={() => updateHp(-getSafeAmount(hpAmount))}
         onHeal={() => updateHp(getSafeAmount(hpAmount))}
-        onRemoveTempHp={() => updateTempHp(-getSafeAmount(tempHpAmount))}
-        onAddTempHp={() => updateTempHp(getSafeAmount(tempHpAmount))}
-        onRollInitiative={() => makeRoll('Initiative', dexMod)}
       />
 
-      <CleanSheetTableFocus
-        onSelectTab={setActiveTab}
-        onLevelUp={() => setShowLevelUpWizard(true)}
-      />
-
-      <CleanSheetPlayTools
-        activeConditions={activeConditions}
-        concentratingName={concentratingName}
-        concentrationInput={concentrationInput}
-        currentHp={currentHp}
-        deathSaveFailures={deathSaveFailures}
-        deathSaveSuccesses={deathSaveSuccesses}
-        exhaustionLevel={exhaustionLevel}
-        hasInspiration={hasInspiration}
-        hitDice={hitDice}
-        hitDiceRemaining={hitDiceRemaining}
-        maxHp={maxHp}
-        passiveScores={passiveScores}
-        rollBonus={rollBonus}
-        rollHistory={rollHistory}
-        rollMode={rollMode}
-        savingQuickState={savingQuickState}
-        showConditionPicker={showConditionPicker}
-        showConcentrationInput={showConcentrationInput}
-        showDeathSaves={showDeathSaves}
-        showRollHistory={showRollHistory}
-        onEndConcentration={endConcentration}
-        onLongRest={() => handleRest('long')}
-        onRollBonusChange={setRollBonus}
-        onRollDeathSave={rollDeathSave}
-        onRollHistoryToggle={setShowRollHistory}
-        onRollModeChange={setRollMode}
-        onSaveConcentration={saveConcentration}
-        onSetConcentrationInput={setConcentrationInput}
-        onShortRest={() => handleRest('short')}
-        onShowConditionPickerChange={setShowConditionPicker}
-        onShowConcentrationInputChange={setShowConcentrationInput}
-        onSpendHitDie={spendHitDie}
-        onToggleCondition={toggleCondition}
-        onToggleDeathSave={setDeathSaveCount}
-        onToggleInspiration={toggleInspiration}
-        onResetDeathSaves={resetDeathSaves}
-      />
-
-      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={setActiveTab} />
+      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} />
 
       <main className="clean-sheet-content">
-        {activeTab === 'overview' && (
+        {activeTab === 'stats' && (
           <CleanSheetOverviewTab
+            character={character}
+            proficiencyBonus={proficiencyBonus}
+            saveProficiencies={saveProficiencies}
+            skillProficiencies={skillProficiencies}
+            onRoll={makeRoll}
+          />
+        )}
+
+        {activeTab === 'actions' && (
+          <>
+            {playTools}
+            <CleanCombatTab
+              character={character}
+              ac={ac}
+              speed={speed}
+              proficiencyBonus={proficiencyBonus}
+              onRoll={makeRoll}
+              onCharacterUpdate={patchCharacter}
+              onDiceResult={(entry) => {
+                setRollBurst(entry);
+                setRollHistory(prev => [entry, ...prev].slice(0, 12));
+              }}
+            />
+          </>
+        )}
+
+        {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
+        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
+        {activeTab === 'features' && (
+          <CleanSheetFeaturesTab
             ac={ac}
             actionEconomyGroups={actionEconomyGroups}
             character={character}
@@ -555,30 +574,10 @@ export default function CleanCharacterSheet() {
             proficiencyBonus={proficiencyBonus}
             proficiencySummary={proficiencySummary}
             rulesEdition={rulesEdition}
-            saveProficiencies={saveProficiencies}
-            skillProficiencies={skillProficiencies}
             speed={speed}
             onOpenInventory={() => setActiveTab('inventory')}
-            onRoll={makeRoll}
           />
         )}
-
-        {activeTab === 'combat' && (
-          <CleanCombatTab
-            character={character}
-            ac={ac}
-            speed={speed}
-            proficiencyBonus={proficiencyBonus}
-            onRoll={makeRoll}
-            onCharacterUpdate={patchCharacter}
-            onDiceResult={(entry) => {
-              setRollBurst(entry);
-              setRollHistory(prev => [entry, ...prev].slice(0, 12));
-            }}
-          />
-        )}
-        {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
-        {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
 
