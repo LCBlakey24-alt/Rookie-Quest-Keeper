@@ -3,14 +3,14 @@
   "name": "Rookie Quest Keeper",
   "icons": [
     {
-      "src": "/rook-favicon.svg",
-      "sizes": "64x64",
+      "src": "/brand/rqk-logo-mini.svg",
+      "sizes": "256x256",
       "type": "image/svg+xml",
       "purpose": "any"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#070814",
-  "theme_color": "#070814"
+  "background_color": "#242424",
+  "theme_color": "#242424"
 }
