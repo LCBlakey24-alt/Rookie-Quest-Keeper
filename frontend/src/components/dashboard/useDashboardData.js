@@ -9,6 +9,10 @@ function getSmallScreen() {
   return window.matchMedia('(max-width: 900px)').matches;
 }
 
+function safeRecords(value) {
+  return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
+}
+
 export default function useDashboardData() {
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
@@ -29,8 +33,8 @@ export default function useDashboardData() {
         apiClient.get('/admin/check').catch(() => ({ data: { is_admin: false } })),
         apiClient.get('/site-settings').catch(() => ({ data: {} })),
       ]);
-      setCharacters(Array.isArray(charsRes.data) ? charsRes.data : []);
-      setCampaigns(Array.isArray(campsRes.data) ? campsRes.data : []);
+      setCharacters(safeRecords(charsRes.data));
+      setCampaigns(safeRecords(campsRes.data));
       setIsAdmin(!!adminRes.data?.is_admin);
       setSiteSettings(prev => ({ ...prev, ...(settingsRes.data || {}) }));
     } catch (error) {
@@ -60,11 +64,11 @@ export default function useDashboardData() {
     return () => media.removeEventListener('change', onChange);
   }, []);
 
-  const recentCharacters = useMemo(() => [...characters]
+  const recentCharacters = useMemo(() => safeRecords(characters)
     .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
     .slice(0, 4), [characters]);
 
-  const recentCampaigns = useMemo(() => [...campaigns]
+  const recentCampaigns = useMemo(() => safeRecords(campaigns)
     .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
     .slice(0, 4), [campaigns]);
 
