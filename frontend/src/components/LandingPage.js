@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Backpack,
@@ -15,6 +15,8 @@ import {
   Users
 } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+
+const BUTTON_FILL_DELAY_MS = 560;
 
 const featureGroups = [
   {
@@ -114,8 +116,21 @@ const differencePoints = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const goLogin = () => navigate('/auth');
-  const goRegister = () => navigate('/auth?mode=register');
+  const [transitionTarget, setTransitionTarget] = useState(null);
+  const navigationTimeoutRef = useRef(null);
+
+  const navigateWithFill = useCallback((target) => {
+    if (navigationTimeoutRef.current) return;
+    setTransitionTarget(target);
+    navigationTimeoutRef.current = window.setTimeout(() => {
+      navigate(target);
+    }, BUTTON_FILL_DELAY_MS);
+  }, [navigate]);
+
+  const buttonClass = (baseClass, target) => `${baseClass}${transitionTarget === target ? ' is-transitioning' : ''}`;
+  const isTransitioning = Boolean(transitionTarget);
+  const goLogin = () => navigateWithFill('/auth');
+  const goRegister = () => navigateWithFill('/auth?mode=register');
 
   return (
     <div data-testid="landing-page" className="landing-page landing-page-clean landing-page-final">
@@ -124,11 +139,11 @@ export default function LandingPage() {
           <BrandMiniLogo size={46} />
         </button>
         <div className="landing-nav-actions">
-          <button data-testid="landing-signin-btn" type="button" className="landing-button landing-button-ghost" onClick={goLogin}>
-            Sign In
+          <button data-testid="landing-signin-btn" type="button" className={buttonClass('landing-button landing-button-ghost', '/auth')} onClick={goLogin} disabled={isTransitioning} aria-busy={transitionTarget === '/auth'}>
+            <span>Sign In</span>
           </button>
-          <button data-testid="landing-getstarted-btn" type="button" className="landing-button landing-button-primary" onClick={goRegister}>
-            Create Account
+          <button data-testid="landing-getstarted-btn" type="button" className={buttonClass('landing-button landing-button-primary', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
+            <span>Create Account</span>
           </button>
         </div>
       </nav>
@@ -146,11 +161,11 @@ export default function LandingPage() {
           </p>
 
           <div className="landing-hero-actions">
-            <button data-testid="landing-cta-btn" type="button" className="landing-button landing-button-primary landing-button-large" onClick={goRegister}>
-              Build Your First Character <ChevronRight size={18} />
+            <button data-testid="landing-cta-btn" type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
+              <span>Build Your First Character</span> <ChevronRight size={18} />
             </button>
-            <button type="button" className="landing-button landing-button-ghost landing-button-large" onClick={goLogin}>
-              I already have an account
+            <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/auth')} onClick={goLogin} disabled={isTransitioning} aria-busy={transitionTarget === '/auth'}>
+              <span>I already have an account</span>
             </button>
           </div>
 
@@ -280,8 +295,8 @@ export default function LandingPage() {
           <ShieldCheck size={28} />
           <h2>Start simple. Build deeper when your table needs it.</h2>
           <p>Create a character, open the sheet, and start shaping the tools around how your group actually plays.</p>
-          <button type="button" className="landing-button landing-button-primary landing-button-large" onClick={goRegister}>
-            Create Your Account <ChevronRight size={18} />
+          <button type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
+            <span>Create Your Account</span> <ChevronRight size={18} />
           </button>
         </section>
       </main>
