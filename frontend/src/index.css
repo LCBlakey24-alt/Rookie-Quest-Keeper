@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=New+Rocker&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,11 +14,11 @@
 }
 
 :root {
-  --rq-font-display: 'Fraunces', 'RQKDisplay', Georgia, serif;
+  --rq-font-display: 'New Rocker', 'RQKDisplay', Georgia, serif;
   --rq-font-sans: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Global font base. Display headings use Fraunces; body/UI text uses Manrope with system fallbacks. */
+/* Global font base. Display headings use New Rocker; body/UI text uses Manrope with system fallbacks. */
 *, *::before, *::after {
   font-family: var(--rq-font-sans) !important;
   letter-spacing: 0;
@@ -118,165 +118,3 @@ strong, b, h1, h2, h3, h4, h5, h6 {
 }
 
 /* === PLAYER MODE THEME (Velvet Coffee) === */
-[data-theme="player"] {
-  --background: var(--rq-bg-main, #120C08);
-  --foreground: var(--rq-text-primary, #F5E6C8);
-  --card: var(--rq-bg-panel-alt, #2E1D13);
-  --card-foreground: var(--rq-text-primary, #F5E6C8);
-  --popover: var(--rq-bg-panel, #21150E);
-  --popover-foreground: var(--rq-text-primary, #F5E6C8);
-  --primary: var(--rq-accent-primary, #C08A3D);
-  --primary-foreground: var(--rq-text-inverse, #120C08);
-  --secondary: var(--rq-accent-active, #A45A32);
-  --secondary-foreground: var(--rq-text-primary, #F5E6C8);
-  --muted: var(--rq-bg-input, #1A100B);
-  --muted-foreground: var(--rq-text-muted, #CDBA98);
-  --accent: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
-  --accent-foreground: var(--rq-text-primary, #F5E6C8);
-  --border: var(--rq-border-default, rgba(192, 138, 61, 0.22));
-  --input: var(--rq-bg-input, #1A100B);
-  --ring: var(--rq-accent-hover, #E0B15C);
-  
-  --theme-glow: rgba(192, 138, 61, 0.22);
-  --theme-glow-secondary: rgba(164, 90, 50, 0.16);
-  --glass-bg: rgba(33, 21, 14, 0.86);
-  --glass-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
-}
-
-/* ===== BASE STYLES ===== */
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: var(--rq-font-sans);
-  font-weight: 500;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--foreground);
-  background: var(--background);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100dvh;
-  overscroll-behavior: none;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
-
-/* ===== TYPOGRAPHY ===== */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--rq-font-display) !important;
-  font-weight: 900;
-  letter-spacing: 0;
-  color: var(--foreground);
-  margin: 0;
-}
-
-h1 { font-size: 2.5rem; font-weight: 800; }
-h2 { font-size: 1.75rem; font-weight: 800; }
-h3 { font-size: 1.25rem; font-weight: 800; }
-h4 { font-size: 1.1rem; font-weight: 800; }
-
-p, span, div, label, button, input, textarea, select {
-  font-family: var(--rq-font-sans);
-}
-
-p, label, input, textarea, select {
-  font-weight: 500;
-}
-
-button {
-  font-weight: 700;
-}
-
-/* Logo text - only for official Rookie Quest Keeper branding */
-.logo-text, .rook-logo {
-  font-family: var(--rq-font-display) !important;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-/* ===== GLASSMORPHISM PANELS ===== */
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.glass-panel-strong {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow), var(--shadow-glow);
-}
-
-/* ===== THEME-AWARE BUTTONS ===== */
-.btn-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  font-family: var(--rq-font-display) !important;
-  font-weight: 900;
-  padding: 12px 28px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 20px var(--theme-glow);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px var(--theme-glow);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--primary);
-  font-family: var(--rq-font-display) !important;
-  font-weight: 900;
-  padding: 12px 28px;
-  border: 1px solid var(--primary);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateY(-1px);
-}
-
-/* ===== GRADIENT UTILITIES ===== */
-.gradient-gm {
-  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
-}
-
-.gradient-player {
-  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
-}
-
-.gradient-landing {
-  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
-}
-
-.text-gradient-gm {
-  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.text-gradient-player {
-  background: linear-gradient(135deg, var(--rq-accent-active, #A45A32) 0%, var(--rq-accent-primary, #C08A3D) 55%, var(--rq-accent-hover, #E0B15C) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
