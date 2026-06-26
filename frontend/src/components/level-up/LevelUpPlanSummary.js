@@ -6,15 +6,16 @@ export default function LevelUpPlanSummary({ items }) {
     <div data-testid="levelup-plan-summary" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-      gap: '8px',
-      marginBottom: '14px'
+      gap: 0,
+      marginBottom: '18px',
+      borderTop: '1px solid var(--rq-line, rgba(246, 234, 210, 0.18))'
     }}>
       {items.map((item) => (
         <div key={item.label} style={{
-          border: `1px solid ${theme.border}`,
-          background: 'rgba(13, 18, 36, 0.72)',
-          borderRadius: '10px',
-          padding: '10px',
+          border: 0,
+          background: 'transparent',
+          borderRadius: 0,
+          padding: '10px 8px 10px 0',
           minWidth: 0
         }}>
           <div style={{ color: theme.text.muted, fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
