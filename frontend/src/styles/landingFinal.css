@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   gap: clamp(20px, 4vw, 44px);
+  text-align: center;
 }
 
 .landing-page-final,
@@ -19,8 +20,16 @@
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
+}
+
+.landing-final-nav {
+  flex-wrap: wrap;
+}
+
+.landing-final-footer {
+  flex-direction: column;
 }
 
 .landing-logo-button {
@@ -36,6 +45,7 @@
 .landing-page-final .landing-hero-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -81,25 +91,30 @@
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
+  justify-items: center;
   gap: clamp(22px, 4vw, 44px);
 }
 
 .landing-final-hero {
+  width: min(860px, 100%);
   display: grid;
-  justify-items: start;
+  justify-items: center;
   gap: 16px;
   padding: clamp(14px, 5vw, 56px) 0 clamp(8px, 3vw, 28px);
 }
 
 .landing-final-logo-wrap {
   width: min(760px, 100%);
-  margin-bottom: 2px;
+  margin: 0 auto 2px;
+  display: flex;
+  justify-content: center;
 }
 
 .landing-final-logo-wrap img {
   width: min(720px, 100%) !important;
   height: auto !important;
   display: block;
+  margin: 0 auto;
 }
 
 .landing-page-final .landing-kicker {
@@ -112,7 +127,7 @@
 }
 
 .landing-page-final h1 {
-  margin: 0;
+  margin: 0 auto;
   max-width: 780px;
   color: #ffffff !important;
   font-family: var(--rq-title-font, 'Metal Mania', Georgia, serif) !important;
@@ -126,13 +141,14 @@
 
 .landing-final-intro {
   max-width: 720px;
-  margin: 0;
+  margin: 0 auto;
   color: rgba(255, 255, 255, 0.78) !important;
   font-size: clamp(16px, 2.3vw, 20px);
   line-height: 1.45;
 }
 
 .landing-final-features {
+  width: min(960px, 100%);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
@@ -143,9 +159,10 @@
   background: transparent !important;
   border: 0 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
-  padding: 18px 18px 18px 0;
+  padding: 18px 14px;
   border-radius: 0 !important;
   box-shadow: none !important;
+  text-align: center;
 }
 
 .landing-final-feature h2 {
@@ -156,6 +173,7 @@
   font-weight: 900;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -170,6 +188,7 @@
   padding: 0;
   margin: 0;
   display: grid;
+  justify-items: center;
   gap: 7px;
 }
 
@@ -190,6 +209,7 @@
 }
 
 .landing-final-strip {
+  width: min(960px, 100%);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
@@ -201,8 +221,9 @@
   min-height: 58px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
-  padding: 10px 14px 10px 0;
+  padding: 10px 14px;
   color: #ffffff;
   font-weight: 900;
 }
@@ -227,11 +248,13 @@
   }
 
   .landing-final-nav {
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
   }
 
   .landing-page-final .landing-nav-actions {
-    justify-content: flex-end;
+    width: 100%;
+    justify-content: center;
   }
 
   .landing-page-final .landing-button {
@@ -267,7 +290,7 @@
   }
 
   .landing-final-feature {
-    padding-right: 0;
+    padding: 16px 0;
   }
 
   .landing-final-strip div {
