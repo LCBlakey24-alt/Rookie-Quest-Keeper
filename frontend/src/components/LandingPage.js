@@ -45,13 +45,13 @@ export default function LandingPage() {
       <main className="landing-final-main">
         <section className="landing-final-hero">
           <div className="landing-final-logo-wrap">
-            <BrandMainLogo height={170} />
+            <BrandMainLogo height={150} />
           </div>
 
           <p className="landing-kicker">Simple tools for players and game masters</p>
-          <h1>Build. Play. Keep the table moving.</h1>
+          <h1>Character sheets and campaign tools that stay out of the way.</h1>
           <p className="landing-final-intro">
-            Rookie Quest Keeper keeps character sheets, campaign tools, notes, actions, spells, inventory, and level-up choices in one clean workspace.
+            Build characters, track actions, manage spells and inventory, prep campaigns, and keep the table moving from one clean workspace.
           </p>
 
           <div className="landing-hero-actions">
