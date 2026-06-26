@@ -100,6 +100,7 @@ export default function CleanCharacterSheet() {
   const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
+  const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   const passiveScores = useMemo(() => {
     return PASSIVE_SKILLS.map(([skill, ability]) => {
