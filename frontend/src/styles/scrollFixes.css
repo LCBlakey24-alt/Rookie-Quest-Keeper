@@ -75,3 +75,45 @@ select,
 input {
   touch-action: auto;
 }
+
+/* Final hover correction: older global action animation only filled a 6px red strip.
+   Hover and keyboard focus should fill the whole action/tab red. */
+@media (hover: hover) and (pointer: fine) {
+  #root button:not(:disabled):hover::before,
+  #root button:not(:disabled):focus-visible::before,
+  #root [role='button']:not([aria-disabled='true']):hover::before,
+  #root [role='button']:not([aria-disabled='true']):focus-visible::before,
+  #root a.button:hover::before,
+  #root a.button:focus-visible::before,
+  #root a.btn:hover::before,
+  #root a.btn:focus-visible::before,
+  #root .landing-button:not(:disabled):hover::before,
+  #root .landing-button:not(:disabled):focus-visible::before,
+  #root .dashboard-button:not(:disabled):hover::before,
+  #root .dashboard-button:not(:disabled):focus-visible::before,
+  #root .action-button:not(:disabled):hover::before,
+  #root .action-button:not(:disabled):focus-visible::before,
+  #root .clean-sheet-tabs button:not(:disabled):hover::before,
+  #root .clean-sheet-tabs button:not(:disabled):focus-visible::before,
+  #root .mobile-dashboard-tabs button:not(:disabled):hover::before,
+  #root .mobile-dashboard-tabs button:not(:disabled):focus-visible::before,
+  #root .dashboard-tabs button:not(:disabled):hover::before,
+  #root .dashboard-tabs button:not(:disabled):focus-visible::before,
+  #root .rq-side-tab:not(:disabled):hover::before,
+  #root .rq-side-tab:not(:disabled):focus-visible::before {
+    width: 100% !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Dashboard list rows used to start at the exact left edge, so the old red bar
+   could sit over campaign/character text. Keep a safe inset on hoverable rows. */
+#root button[style*="text-align: left"],
+#root button[style*="textAlign: left"] {
+  padding-left: max(12px, var(--rq-row-safe-left, 12px)) !important;
+}
+
+#root .sidebar button[style*="text-align: left"],
+#root .sidebar button[style*="textAlign: left"] {
+  padding-left: 32px !important;
+}
