@@ -25,6 +25,7 @@ import '@/styles/blueEclipseTheme.css';
 import '@/styles/gmBlueEclipseTheme.css';
 import '@/styles/landingSafeFix.css';
 import '@/styles/simpleTheme.css';
+import '@/styles/landingFinal.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
