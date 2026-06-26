@@ -1,0 +1,191 @@
+/*
+  Global action fill layer.
+  Mouse: hover previews the fill from the left.
+  Touch/click: GlobalActionFillEffects adds .rq-fill-clicked so the control fills fully.
+  Active tabs/buttons stay filled when they already expose active/selected state.
+*/
+
+:root {
+  --rq-action-fill-speed: 360ms;
+  --rq-action-fill-click-speed: 260ms;
+}
+
+#root button,
+#root [role='button'],
+#root a.button,
+#root a.btn,
+#root .landing-button,
+#root .dashboard-button,
+#root .action-button,
+#root .clean-sheet-tabs button,
+#root .mobile-dashboard-tabs button,
+#root .dashboard-tabs button,
+#root .rq-side-tab,
+#root .clean-sheet-back,
+#root .clean-sheet-edit,
+#root .clean-sheet-level {
+  --rq-fill-color: var(--rq-primary, #d00000);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+#root button::before,
+#root [role='button']::before,
+#root a.button::before,
+#root a.btn::before,
+#root .landing-button::before,
+#root .dashboard-button::before,
+#root .action-button::before,
+#root .clean-sheet-tabs button::before,
+#root .mobile-dashboard-tabs button::before,
+#root .dashboard-tabs button::before,
+#root .rq-side-tab::before,
+#root .clean-sheet-back::before,
+#root .clean-sheet-edit::before,
+#root .clean-sheet-level::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--rq-fill-color, var(--rq-primary, #d00000));
+  opacity: 0;
+  z-index: -1;
+  transition: width var(--rq-action-fill-speed) cubic-bezier(.2,.8,.2,1), opacity 120ms ease;
+}
+
+#root button > *,
+#root [role='button'] > *,
+#root a.button > *,
+#root a.btn > *,
+#root .landing-button > *,
+#root .dashboard-button > *,
+#root .action-button > *,
+#root .clean-sheet-tabs button > *,
+#root .mobile-dashboard-tabs button > *,
+#root .dashboard-tabs button > *,
+#root .rq-side-tab > *,
+#root .clean-sheet-back > *,
+#root .clean-sheet-edit > *,
+#root .clean-sheet-level > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #root button:not(:disabled):hover::before,
+  #root button:not(:disabled):focus-visible::before,
+  #root [role='button']:not([aria-disabled='true']):hover::before,
+  #root [role='button']:not([aria-disabled='true']):focus-visible::before,
+  #root a.button:hover::before,
+  #root a.button:focus-visible::before,
+  #root a.btn:hover::before,
+  #root a.btn:focus-visible::before,
+  #root .landing-button:not(:disabled):hover::before,
+  #root .landing-button:not(:disabled):focus-visible::before,
+  #root .dashboard-button:not(:disabled):hover::before,
+  #root .dashboard-button:not(:disabled):focus-visible::before,
+  #root .action-button:not(:disabled):hover::before,
+  #root .action-button:not(:disabled):focus-visible::before,
+  #root .clean-sheet-tabs button:not(:disabled):hover::before,
+  #root .clean-sheet-tabs button:not(:disabled):focus-visible::before,
+  #root .mobile-dashboard-tabs button:not(:disabled):hover::before,
+  #root .mobile-dashboard-tabs button:not(:disabled):focus-visible::before,
+  #root .dashboard-tabs button:not(:disabled):hover::before,
+  #root .dashboard-tabs button:not(:disabled):focus-visible::before,
+  #root .rq-side-tab:not(:disabled):hover::before,
+  #root .rq-side-tab:not(:disabled):focus-visible::before {
+    width: 6px;
+    opacity: 1;
+  }
+}
+
+#root button.rq-fill-clicked::before,
+#root [role='button'].rq-fill-clicked::before,
+#root a.button.rq-fill-clicked::before,
+#root a.btn.rq-fill-clicked::before,
+#root .landing-button.rq-fill-clicked::before,
+#root .dashboard-button.rq-fill-clicked::before,
+#root .action-button.rq-fill-clicked::before,
+#root .clean-sheet-tabs button.rq-fill-clicked::before,
+#root .mobile-dashboard-tabs button.rq-fill-clicked::before,
+#root .dashboard-tabs button.rq-fill-clicked::before,
+#root .rq-side-tab.rq-fill-clicked::before,
+#root .clean-sheet-back.rq-fill-clicked::before,
+#root .clean-sheet-edit.rq-fill-clicked::before,
+#root .clean-sheet-level.rq-fill-clicked::before,
+#root button:active::before,
+#root [role='button']:active::before,
+#root a.button:active::before,
+#root a.btn:active::before {
+  width: 100%;
+  opacity: 1;
+  transition-duration: var(--rq-action-fill-click-speed);
+}
+
+#root button.active::before,
+#root button[aria-selected='true']::before,
+#root button[aria-current='page']::before,
+#root button[aria-pressed='true']::before,
+#root [role='button'][aria-selected='true']::before,
+#root [role='tab'][aria-selected='true']::before,
+#root .clean-sheet-tabs button.active::before,
+#root .mobile-dashboard-tabs button.active::before,
+#root .dashboard-tabs button.active::before,
+#root .rq-side-tab.is-active::before,
+#root .rq-side-tab.active::before,
+#root .landing-button.is-transitioning::before {
+  width: 100%;
+  opacity: 1;
+}
+
+#root button.active,
+#root button[aria-selected='true'],
+#root button[aria-current='page'],
+#root button[aria-pressed='true'],
+#root [role='button'][aria-selected='true'],
+#root [role='tab'][aria-selected='true'],
+#root .clean-sheet-tabs button.active,
+#root .mobile-dashboard-tabs button.active,
+#root .dashboard-tabs button.active,
+#root .rq-side-tab.is-active,
+#root .rq-side-tab.active,
+#root .landing-button.is-transitioning {
+  color: var(--rq-text, #ffffff) !important;
+}
+
+#root .rq-hp-action-button--plus,
+#root .rq-hp-action-button--temp-plus,
+#root button[aria-label*='heal' i],
+#root button[title*='heal' i] {
+  --rq-fill-color: var(--rq-heal, #1f9d66);
+}
+
+#root .rq-hp-action-button--minus,
+#root .rq-hp-action-button--temp-minus,
+#root button[aria-label*='damage' i],
+#root button[title*='damage' i] {
+  --rq-fill-color: var(--rq-damage, #d00000);
+}
+
+#root .rq-hp-action-button--temp,
+#root button[aria-label*='temp' i],
+#root button[title*='temp' i] {
+  --rq-fill-color: var(--rq-temp, #2b8fbf);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root button::before,
+  #root [role='button']::before,
+  #root a.button::before,
+  #root a.btn::before,
+  #root .landing-button::before,
+  #root .dashboard-button::before,
+  #root .action-button::before,
+  #root .clean-sheet-tabs button::before,
+  #root .mobile-dashboard-tabs button::before,
+  #root .dashboard-tabs button::before,
+  #root .rq-side-tab::before {
+    transition: none !important;
+  }
+}
