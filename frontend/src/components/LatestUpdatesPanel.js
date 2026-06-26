@@ -3,15 +3,11 @@ import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { getLatestUpdates } from '@/data/latestUpdates';
 
 const theme = {
-  panel: 'transparent',
-  panelSoft: 'transparent',
-  border: 'rgba(216, 173, 79, 0.16)',
-  borderStrong: 'rgba(216, 173, 79, 0.30)',
-  accent: 'var(--rq-accent-primary, #D8AD4F)',
-  accentHover: 'var(--rq-accent-hover, #E6C775)',
-  text: 'var(--rq-text-primary, #F6EAD2)',
-  textSecondary: 'var(--rq-text-secondary, #D9C8A5)',
-  muted: 'var(--rq-text-muted, #AAA6C8)',
+  border: 'var(--rq-line, rgba(255, 255, 255, 0.16))',
+  accent: 'var(--rq-primary, #d00000)',
+  text: 'var(--rq-text, #ffffff)',
+  textSecondary: 'var(--rq-muted, rgba(255, 255, 255, 0.68))',
+  muted: 'var(--rq-muted, rgba(255, 255, 255, 0.68))',
 };
 
 export default function LatestUpdatesPanel({ limit = 5, publicOnly = false, compact = false }) {
@@ -38,10 +34,10 @@ export default function LatestUpdatesPanel({ limit = 5, publicOnly = false, comp
   };
 
   return (
-    <section data-testid="latest-updates-panel" style={panelStyle(compact, collapsed, isSmallScreen)}>
+    <section data-testid="latest-updates-panel" style={panelStyle(compact, isSmallScreen)}>
       <header style={headerStyle(collapsed, isSmallScreen)}>
         <div style={titleWrapStyle}>
-          <Sparkles size={isSmallScreen ? 15 : 18} color={theme.accentHover} />
+          <Sparkles size={isSmallScreen ? 15 : 18} color={theme.accent} />
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Latest Updates</p>
             <h2 style={titleStyle}>{collapsed ? latest.title : 'What’s new'}</h2>
@@ -72,9 +68,9 @@ export default function LatestUpdatesPanel({ limit = 5, publicOnly = false, comp
                   <span style={timelineDotStyle(index === 0)} />
                   {index !== updates.length - 1 && <span style={timelineLineStyle} />}
                 </div>
-                <div style={updateStyle(index === 0)}>
+                <div style={updateStyle}>
                   <div style={updateToplineStyle}>
-                    <span style={badgeStyle(update.badge)}>{update.badge}</span>
+                    <span style={badgeStyle}>{update.badge}</span>
                     <span style={categoryStyle}>{update.category}</span>
                     <time style={dateStyle} dateTime={update.date}>{formatDate(update.date)}</time>
                   </div>
@@ -112,13 +108,13 @@ function formatDate(date) {
   }
 }
 
-const panelStyle = (compact, collapsed, isSmallScreen) => ({
+const panelStyle = (compact, isSmallScreen) => ({
   background: 'transparent',
   border: 0,
   borderTop: `1px solid ${theme.border}`,
   borderRadius: 0,
   padding: isSmallScreen ? '12px 0' : compact ? '14px 0' : '16px 0',
-  margin: compact ? '16px auto' : isSmallScreen ? '0 0 10px' : '0 0 14px',
+  margin: compact ? '16px auto' : isSmallScreen ? '8px 0 10px' : '0 0 14px',
   maxWidth: compact ? 1180 : '100%',
   color: theme.text,
   boxShadow: 'none',
@@ -127,21 +123,21 @@ const panelStyle = (compact, collapsed, isSmallScreen) => ({
 
 const headerStyle = (collapsed, isSmallScreen) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: isSmallScreen ? 8 : 12, flexWrap: 'nowrap', marginBottom: collapsed ? 0 : 12 });
 const titleWrapStyle = { display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 };
-const eyebrowStyle = { color: theme.accentHover, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 900, margin: '0 0 2px' };
+const eyebrowStyle = { color: theme.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 900, margin: '0 0 2px' };
 const titleStyle = { color: theme.text, fontSize: 'clamp(14px, 4vw, 20px)', fontWeight: 900, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 };
-const toggleButtonStyle = (isSmallScreen) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, border: `1px solid ${theme.borderStrong}`, borderRadius: 0, background: 'transparent', color: theme.accentHover, padding: isSmallScreen ? '6px 8px' : '7px 10px', fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: 0.6 });
+const toggleButtonStyle = (isSmallScreen) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, border: 0, borderRadius: 0, background: 'transparent', color: theme.text, padding: isSmallScreen ? '6px 0' : '7px 0', fontSize: 10, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: 0.6 });
 const collapsedSummaryStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.35, margin: '7px 0 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' };
 const timelineStyle = { display: 'grid', gap: 0 };
 const timelineItemStyle = { display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr)', gap: 8, position: 'relative' };
 const timelineRailStyle = { position: 'relative', display: 'grid', justifyItems: 'center' };
-const timelineDotStyle = (featured) => ({ width: featured ? 12 : 9, height: featured ? 12 : 9, marginTop: 16, borderRadius: 0, border: `2px solid ${theme.accentHover}`, background: featured ? theme.accent : 'transparent', boxShadow: 'none', zIndex: 1 });
+const timelineDotStyle = (featured) => ({ width: featured ? 12 : 9, height: featured ? 12 : 9, marginTop: 16, borderRadius: 0, border: 0, background: theme.accent, boxShadow: 'none', zIndex: 1 });
 const timelineLineStyle = { position: 'absolute', top: 30, bottom: -6, width: 1, background: theme.border };
-const updateStyle = () => ({ background: 'transparent', border: 0, borderTop: `1px solid ${theme.border}`, borderRadius: 0, padding: '11px 0', minWidth: 0, marginBottom: 0 });
+const updateStyle = { background: 'transparent', border: 0, borderTop: `1px solid ${theme.border}`, borderRadius: 0, padding: '11px 0', minWidth: 0, marginBottom: 0 };
 const updateToplineStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 };
-const badgeStyle = () => ({ color: theme.accentHover, background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: 0, padding: '3px 6px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.6 });
-const categoryStyle = { color: theme.accentHover, fontSize: 10, fontWeight: 900 };
+const badgeStyle = { color: theme.text, background: 'var(--rq-primary, #d00000)', border: 0, borderRadius: 0, padding: '3px 6px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.6 };
+const categoryStyle = { color: theme.muted, fontSize: 10, fontWeight: 900 };
 const dateStyle = { color: theme.muted, fontSize: 10, fontWeight: 800 };
 const updateTitleStyle = { color: theme.text, fontSize: 14, fontWeight: 900, margin: '0 0 5px' };
 const summaryStyle = { color: theme.textSecondary, fontSize: 12, lineHeight: 1.4, margin: 0 };
-const detailsButtonStyle = { marginTop: 9, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: `1px solid ${theme.borderStrong}`, borderRadius: 0, color: theme.accentHover, padding: '6px 10px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
+const detailsButtonStyle = { marginTop: 9, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: 0, borderRadius: 0, color: theme.text, padding: '6px 0', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
 const detailsListStyle = { margin: '9px 0 0', paddingLeft: 18, color: theme.textSecondary, fontSize: 12, lineHeight: 1.45 };
