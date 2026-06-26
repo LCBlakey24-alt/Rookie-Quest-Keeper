@@ -52,10 +52,14 @@
 }
 
 .landing-page-final .landing-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 42px;
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+  background: #3a3a3a !important;
   background-image: none !important;
   padding: 0 14px;
   color: #ffffff !important;
@@ -65,13 +69,26 @@
   justify-content: center;
   gap: 7px;
   cursor: pointer;
+  transition: background 160ms ease, opacity 160ms ease;
 }
 
-.landing-page-final .landing-button-primary {
-  background: #d00000 !important;
-  color: #ffffff !important;
+.landing-page-final .landing-button::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: #d00000;
+  z-index: -1;
+  opacity: 0;
+  transition: width 520ms cubic-bezier(.2,.8,.2,1), opacity 120ms ease;
 }
 
+.landing-page-final .landing-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-page-final .landing-button-primary,
 .landing-page-final .landing-button-ghost {
   background: #3a3a3a !important;
   color: #ffffff !important;
@@ -82,10 +99,25 @@
   background: #444444 !important;
 }
 
-.landing-page-final .landing-button-primary:hover,
-.landing-page-final .landing-button-primary:focus-visible {
-  background: #d00000 !important;
-  filter: brightness(1.08);
+.landing-page-final .landing-button:hover::before,
+.landing-page-final .landing-button:focus-visible::before {
+  width: 6px;
+  opacity: 1;
+}
+
+.landing-page-final .landing-button.is-transitioning {
+  background: #3a3a3a !important;
+  pointer-events: none;
+}
+
+.landing-page-final .landing-button.is-transitioning::before {
+  width: 100%;
+  opacity: 1;
+}
+
+.landing-page-final .landing-button:disabled:not(.is-transitioning) {
+  opacity: 0.64;
+  cursor: wait;
 }
 
 .landing-final-main {
