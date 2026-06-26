@@ -67,8 +67,6 @@ export default function UnifiedDashboard({ username, onLogout }) {
         onLogout={onLogout}
       />
 
-      <LatestUpdatesPanel limit={3} />
-
       {smallScreen ? (
         <MobileDashboardTabs
           {...dashboardProps}
@@ -78,6 +76,8 @@ export default function UnifiedDashboard({ username, onLogout }) {
       ) : (
         <DesktopDashboard {...dashboardProps} />
       )}
+
+      <LatestUpdatesPanel limit={smallScreen ? 2 : 3} />
 
       {slowLoad && <DashboardNotice />}
 
