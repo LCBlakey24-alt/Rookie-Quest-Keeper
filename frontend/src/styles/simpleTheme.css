@@ -60,6 +60,9 @@ select {
 #root .character-mode-card h2 {
   font-family: var(--rq-title-font) !important;
   color: var(--rq-text) !important;
+  letter-spacing: 0.045em !important;
+  -webkit-text-stroke: 0.35px var(--rq-bg);
+  paint-order: stroke fill;
   text-shadow: none !important;
 }
 
