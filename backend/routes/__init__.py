@@ -22,6 +22,7 @@ from routes.events import router as events_router
 from routes.character_templates import router as character_templates_router
 from routes.homebrew import router as homebrew_router
 from routes.handouts import router as handouts_router
+from routes.story_arcs import router as story_arcs_router
 
 all_routers = [
     auth_router,
@@ -50,4 +51,5 @@ all_routers = [
     # Paid image-generation routes intentionally not registered for now.
     homebrew_router,
     handouts_router,
+    story_arcs_router,
 ]
