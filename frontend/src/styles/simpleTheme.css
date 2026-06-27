@@ -51,7 +51,12 @@ select {
 #root .admin-page,
 #root .character-page-v2,
 #root .clean-sheet-page,
-#root .character-mode-page {
+#root .character-mode-page,
+#root .gm-page,
+#root .gm-screen,
+#root .live-session-page,
+#root .combat-page,
+#root .encounter-page {
   background: var(--rq-bg) !important;
   background-image: none !important;
   color: var(--rq-text) !important;
@@ -93,7 +98,17 @@ select {
 #root label,
 #root .muted,
 #root .text-muted,
-#root .clean-sheet-muted {
+#root .clean-sheet-muted,
+#root .text-slate-400,
+#root .text-slate-500,
+#root .text-gray-400,
+#root .text-gray-500,
+#root .text-blue-200,
+#root .text-blue-300,
+#root .text-purple-200,
+#root .text-purple-300,
+#root .text-amber-200,
+#root .text-amber-300 {
   color: var(--rq-muted) !important;
 }
 
@@ -105,6 +120,8 @@ select {
 #root nav,
 #root .card,
 #root .panel,
+#root .card-glow,
+#root .glow-panel,
 #root .dashboard-card,
 #root .dashboard-panel,
 #root .action-card,
@@ -128,11 +145,28 @@ select {
 #root .rq-hp-action-panel,
 #root .landing-feature-card,
 #root .landing-workflow-item,
+#root .rook-share-alert,
 #root [data-testid="latest-updates-panel"] {
-  background: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
+}
+
+#root .card-glow,
+#root .glow-panel,
+#root .dashboard-card,
+#root .dashboard-panel,
+#root .action-card,
+#root .summary-card,
+#root .character-card,
+#root .campaign-card,
+#root .clean-sheet-panel,
+#root .clean-sheet-section,
+#root .landing-feature-card,
+#root .landing-workflow-item,
+#root .rook-share-alert {
+  background: var(--rq-surface) !important;
+  border: 1px solid var(--rq-line) !important;
 }
 
 #root section,
@@ -152,7 +186,7 @@ select {
 #root .clean-sheet-stat-card,
 #root .landing-feature-card,
 #root .landing-workflow-item {
-  border: 0 !important;
+  border-radius: 0 !important;
 }
 
 #root button,
@@ -214,8 +248,63 @@ select {
 
 #root input,
 #root textarea,
-#root select {
+#root select,
+#root .input-glow {
   border-radius: 0 !important;
   box-shadow: none !important;
-  background: transparent !important;
+  background: var(--rq-bg) !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-line) !important;
+}
+
+/* Old blue / purple / gold utility colours should not leak into GM tools. */
+#root .border-blue-500,
+#root .border-blue-600,
+#root .border-purple-500,
+#root .border-purple-600,
+#root .border-amber-500,
+#root .border-yellow-500,
+#root [style*="#4a7dff"],
+#root [style*="#1e40af"],
+#root [style*="#a855f7"],
+#root [style*="#C08A3D"],
+#root [style*="#E0B15C"] {
+  border-color: var(--rq-primary) !important;
+}
+
+#root .text-blue-400,
+#root .text-blue-500,
+#root .text-purple-400,
+#root .text-purple-500,
+#root .text-amber-400,
+#root .text-yellow-400,
+#root [style*="#4a7dff"],
+#root [style*="#bfdbfe"],
+#root [style*="#93c5fd"],
+#root [style*="#a855f7"],
+#root [style*="#C08A3D"],
+#root [style*="#E0B15C"] {
+  color: var(--rq-text) !important;
+}
+
+#root .bg-blue-500,
+#root .bg-blue-600,
+#root .bg-purple-500,
+#root .bg-purple-600,
+#root .bg-amber-500,
+#root .bg-yellow-500,
+#root [style*="linear-gradient"],
+#root [style*="radial-gradient"] {
+  background: var(--rq-surface) !important;
+  background-image: none !important;
+}
+
+#root button:hover,
+#root [role='button']:hover,
+#root .dashboard-button:hover,
+#root .action-button:hover,
+#root .btn:hover,
+#root .button:hover {
+  color: var(--rq-text) !important;
 }
