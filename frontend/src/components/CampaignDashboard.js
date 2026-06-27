@@ -27,14 +27,14 @@ import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
-const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
 
 const theme = {
   bg: { black: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', red: '#d00000', redSubtle: 'rgba(208,0,0,0.18)', hover: '#ff3b3b' },
+  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', hover: '#ff3b3b' },
   text: { white: '#ffffff', primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
   border: 'rgba(255,255,255,0.16)',
-  gradient: '#d00000',
 };
 
 const sessionPrepTheme = {
@@ -44,12 +44,6 @@ const sessionPrepTheme = {
   border: 'rgba(255,255,255,0.16)',
   gradient: '#d00000',
 };
-
-const workspacePanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 'clamp(14px, 2vw, 24px)', minHeight: 500, minWidth: 0, boxShadow: 'none' };
-const desktopContextStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 14, padding: '14px 16px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, minWidth: 0 };
-const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.text.muted, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: fontStack };
-const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 950, overflowWrap: 'anywhere', fontFamily: fontStack };
-const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.bg.panel, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap', fontFamily: fontStack };
 
 const tabGroups = [
   { id: 'command', label: 'Command', icon: Monitor, tabs: [
@@ -181,7 +175,20 @@ function CampaignDashboard() {
     const isHovered = hoveredTab === tab.id && !isActive;
     const Icon = tab.icon;
     return (
-      <button key={tab.id} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => setHoveredTab(tab.id)} onMouseLeave={() => setHoveredTab(null)} data-testid={`${tab.id}-tab`} style={{ position: 'relative', padding: isNested ? '10px 16px 10px 32px' : '12px 16px', border: 'none', background: isActive ? theme.accent.primary : (isHovered ? theme.accent.primary : 'transparent'), color: theme.text.white, fontWeight: 850, fontSize: isNested ? 13 : 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', minHeight: isNested ? 40 : 44, borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack }}>
+      <button
+        key={tab.id}
+        onClick={() => handleTabClick(tab.id)}
+        onMouseEnter={() => setHoveredTab(tab.id)}
+        onMouseLeave={() => setHoveredTab(null)}
+        data-testid={`${tab.id}-tab`}
+        style={{
+          ...tabButtonStyle,
+          padding: isNested ? '10px 16px 10px 34px' : '12px 16px',
+          minHeight: isNested ? 40 : 44,
+          fontSize: isNested ? 13 : 14,
+          background: isActive ? theme.accent.primary : (isHovered ? theme.accent.primary : 'transparent'),
+        }}
+      >
         <Icon size={isNested ? 16 : 18} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
       </button>
@@ -193,9 +200,15 @@ function CampaignDashboard() {
     const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
     const Icon = group.icon;
     return (
-      <button key={`group-${group.id}`} onClick={() => toggleGroup(group.id)} data-testid={`group-${group.id}`} aria-expanded={isExpanded ? 'true' : 'false'} style={{ padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack }}>
-        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        <Icon size={14} />
+      <button
+        key={`group-${group.id}`}
+        onClick={() => toggleGroup(group.id)}
+        data-testid={`group-${group.id}`}
+        aria-expanded={isExpanded ? 'true' : 'false'}
+        style={{ ...groupHeaderStyle, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted }}
+      >
+        {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+        <Icon size={15} />
         <span>{group.label}</span>
       </button>
     );
@@ -205,11 +218,11 @@ function CampaignDashboard() {
 
   if (!campaign) {
     return (
-      <main style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: fontStack }}>
-        <section style={{ maxWidth: 520, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center' }}>
+      <main style={errorPageStyle}>
+        <section style={errorCardStyle}>
           <AlertTriangle size={40} color={theme.accent.primary} style={{ marginBottom: 12 }} />
-          <h1 style={{ color: theme.text.primary, fontSize: 24, fontWeight: 950, margin: '0 0 8px' }}>Campaign could not be loaded</h1>
-          <p style={{ color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' }}>{loadError}</p>
+          <h1 style={errorTitleStyle}>Campaign could not be loaded</h1>
+          <p style={errorTextStyle}>{loadError}</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button onClick={fetchCampaign} style={primaryButtonStyle}><RefreshCw size={16} /> Retry</Button>
             <Button onClick={() => navigate('/home')} style={secondaryButtonStyle}><ArrowLeft size={16} /> Back to Home</Button>
@@ -220,35 +233,40 @@ function CampaignDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible', fontFamily: fontStack, color: theme.text.white }}>
-      <header className="gm-dashboard-header" style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '10px 14px', position: 'sticky', top: 0, zIndex: 30 }}>
-        <div className="gm-header-main" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={{ width: 44, height: 44, background: theme.bg.card, border: 'none', cursor: 'pointer', color: theme.text.white, display: 'none', padding: 8, placeItems: 'center', flex: '0 0 44px' }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
+    <div className={`gm-dashboard-shell ${mobileMenuOpen ? 'gm-menu-open' : ''}`} style={dashboardShellStyle}>
+      <header className="gm-dashboard-header" style={headerStyle}>
+        <div className="gm-header-main" style={headerMainStyle}>
+          <div className="gm-header-left" style={headerLeftStyle}>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={mobileMenuButtonStyle}>{mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}</button>
             <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} color={theme.text.white} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <h1 className="gm-campaign-title" style={{ fontSize: 'clamp(18px, 4vw, 25px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)', fontFamily: fontStack }}>{campaign.name}</h1>
-              <div className="gm-campaign-meta" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={redTagStyle}>GM Command Centre</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 850 }}>{campaign.system || '5e Campaign'}</span></div>
+              <h1 className="gm-campaign-title" style={campaignTitleStyle}>{campaign.name}</h1>
+              <div className="gm-campaign-meta" style={campaignMetaStyle}><span style={redTagStyle}>GM Command Centre</span><span style={systemTextStyle}>{campaign.system || '5e Campaign'}</span></div>
             </div>
           </div>
-          <div className="gm-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="gm-header-actions" style={headerActionsStyle}>
             <Button onClick={copyInviteCode} style={secondaryButtonStyle}>{inviteLoading ? 'Loading Code...' : 'Copy Join Code'}</Button>
             <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={primaryButtonStyle}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
           </div>
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'visible', position: 'relative' }}>
-        <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 280, minWidth: 280, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '0 0 16px', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
-          <div className="gm-sidebar-mobile-top" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 12, borderBottom: `1px solid ${theme.border}` }}>
-            <strong style={{ color: theme.text.white, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}>Campaign Tools</strong>
-            <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close campaign tools" style={{ width: 44, height: 44, border: 0, background: theme.bg.card, color: theme.text.white, display: 'grid', placeItems: 'center' }}><X size={22} /></button>
+      <div style={layoutStyle}>
+        <aside className={`sidebar gm-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={sidebarStyle}>
+          <div className="gm-sidebar-mobile-top" style={sidebarMobileTopStyle}>
+            <strong style={sidebarMobileTitleStyle}>Campaign Tools</strong>
+            <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close campaign tools" style={sidebarCloseButtonStyle}><X size={22} /></button>
           </div>
-          <h3 className="gm-sidebar-title" style={{ color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' }}>Campaign Tools</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{tabGroups.map(group => { const isExpanded = Boolean(expandedGroups[group.id]); return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
+          <h3 className="gm-sidebar-title" style={sidebarTitleStyle}>Campaign Tools</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {tabGroups.map(group => {
+              const isExpanded = Boolean(expandedGroups[group.id]);
+              return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>;
+            })}
+          </div>
         </aside>
-        {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 70, display: 'none' }} />}
-        <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
+        {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={mobileOverlayStyle} />}
+        <main style={mainStyle}>
           {activeTabMeta && activeTab !== 'command-centre' && (
             <div className="desktop-context" style={desktopContextStyle}>
               <div style={{ minWidth: 0 }}>
@@ -259,9 +277,7 @@ function CampaignDashboard() {
             </div>
           )}
           <section style={workspacePanelStyle}>
-            {activeTab === 'command-centre' && (
-              <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />
-            )}
+            {activeTab === 'command-centre' && <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />}
             {activeTab === 'story-arcs' && <StoryArcTracker campaignId={campaignId} />}
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
@@ -287,25 +303,7 @@ function CampaignDashboard() {
         </main>
       </div>
 
-      <style>{`
-        @media (max-width: 640px) { .desktop-only { display: none !important; } }
-        @media (max-width: 1024px) {
-          .desktop-context { display: none !important; }
-          .gm-dashboard-header { padding: 8px !important; position: sticky !important; z-index: 30 !important; }
-          .gm-header-main { flex-wrap: nowrap !important; gap: 8px !important; }
-          .gm-header-actions { display: none !important; }
-          .gm-campaign-meta { display: none !important; }
-          .gm-campaign-title { max-width: calc(100vw - 130px) !important; margin: 0 !important; font-size: 20px !important; }
-          .mobile-menu-toggle { display: grid !important; }
-          .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 90 !important; transform: translateX(-100%); box-shadow: none !important; }
-          .sidebar { width: min(78vw, 300px) !important; min-width: min(78vw, 300px) !important; }
-          .sidebar.mobile-open { transform: translateX(0); }
-          .gm-sidebar-mobile-top { display: flex !important; }
-          .gm-sidebar-title { display: none !important; }
-          .mobile-overlay { display: block !important; }
-        }
-        @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }
-      `}</style>
+      <style>{mobileCss}</style>
     </div>
   );
 }
@@ -385,13 +383,41 @@ function CommandCard({ title, text, meta, icon: Icon, tab, onOpenTab }) {
   );
 }
 
+const dashboardShellStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible', fontFamily: fontStack, color: theme.text.white };
+const headerStyle = { background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '10px 14px', position: 'sticky', top: 0, zIndex: 40 };
+const headerMainStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
+const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
+const layoutStyle = { display: 'flex', flex: 1, overflow: 'visible', position: 'relative' };
+const sidebarStyle = { width: 280, minWidth: 280, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '0 0 16px', overflowY: 'auto', transition: 'transform 0.25s ease' };
+const mainStyle = { flex: 1, overflowY: 'visible', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 };
+const workspacePanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 'clamp(14px, 2vw, 24px)', minHeight: 500, minWidth: 0, boxShadow: 'none' };
+const desktopContextStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 14, padding: '14px 16px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, minWidth: 0 };
+const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.text.muted, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: fontStack };
+const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 950, overflowWrap: 'anywhere', fontFamily: fontStack };
+const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.bg.panel, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap', fontFamily: fontStack };
+const campaignTitleStyle = { fontSize: 'clamp(18px, 4vw, 25px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)', fontFamily: titleFont };
+const campaignMetaStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
+const systemTextStyle = { fontSize: 11, color: theme.text.muted, fontWeight: 850 };
 const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 14px', fontWeight: 950, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack, textDecoration: 'none' };
 const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 14px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack };
 const squareIconButtonStyle = { width: 44, minWidth: 44, height: 44, minHeight: 44, background: theme.bg.card, border: 0, borderRadius: 0, display: 'grid', placeItems: 'center', flex: '0 0 44px' };
+const mobileMenuButtonStyle = { width: 44, height: 44, background: theme.bg.card, border: 'none', cursor: 'pointer', color: theme.text.white, display: 'none', padding: 8, placeItems: 'center', flex: '0 0 44px' };
+const sidebarMobileTopStyle = { display: 'none', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 8, borderBottom: `1px solid ${theme.border}` };
+const sidebarMobileTitleStyle = { color: theme.text.white, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' };
+const sidebarCloseButtonStyle = { width: 40, height: 40, border: 0, background: theme.bg.card, color: theme.text.white, display: 'grid', placeItems: 'center' };
+const sidebarTitleStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' };
+const mobileOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 180, display: 'none' };
+const groupHeaderStyle = { padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack, textAlign: 'left' };
+const tabButtonStyle = { position: 'relative', border: 'none', color: theme.text.white, fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack };
 const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const errorPageStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: fontStack };
+const errorCardStyle = { maxWidth: 520, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center' };
+const errorTitleStyle = { color: theme.text.primary, fontSize: 24, fontWeight: 950, margin: '0 0 8px' };
+const errorTextStyle = { color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' };
 const commandShellStyle = { display: 'grid', gap: 18 };
 const commandHeroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', borderBottom: `1px solid ${theme.border}`, paddingBottom: 16 };
-const commandTitleStyle = { margin: '2px 0 8px', color: '#ffffff', fontSize: 'clamp(30px, 5vw, 54px)', lineHeight: 1, fontWeight: 950, letterSpacing: '-0.04em', fontFamily: fontStack };
+const commandTitleStyle = { margin: '2px 0 8px', color: '#ffffff', fontSize: 'clamp(30px, 5vw, 54px)', lineHeight: 1, fontWeight: 950, letterSpacing: '0.02em', fontFamily: titleFont };
 const commandSubtitleStyle = { margin: 0, color: theme.text.secondary, lineHeight: 1.48, maxWidth: 720, fontFamily: fontStack };
 const heroActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' };
 const quickStatusStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', borderTop: `1px solid ${theme.border}`, borderBottom: `1px solid ${theme.border}` };
@@ -410,5 +436,49 @@ const commandCardTopStyle = { display: 'flex', alignItems: 'center', gap: 8, col
 const commandCardTextStyle = { color: theme.text.secondary, lineHeight: 1.42, fontSize: 14, fontFamily: fontStack };
 const commandCardMetaStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: fontStack };
 const commandArrowStyle = { color: '#ffffff', opacity: 0.72, fontSize: 28, lineHeight: 1 };
+
+const mobileCss = `
+  @media (max-width: 640px) { .desktop-only { display: none !important; } }
+  @media (max-width: 1024px) {
+    .desktop-context { display: none !important; }
+    .gm-dashboard-header {
+      padding: 6px 8px !important;
+      min-height: 56px !important;
+      position: sticky !important;
+      z-index: 120 !important;
+    }
+    .gm-dashboard-shell.gm-menu-open .gm-dashboard-header { z-index: 80 !important; }
+    .gm-header-main { flex-wrap: nowrap !important; gap: 8px !important; }
+    .gm-header-actions { display: none !important; }
+    .gm-campaign-meta { display: none !important; }
+    .gm-campaign-title {
+      max-width: calc(100vw - 126px) !important;
+      margin: 0 !important;
+      font-size: 20px !important;
+      line-height: 1.05 !important;
+    }
+    .mobile-menu-toggle { display: grid !important; }
+    .gm-sidebar {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      bottom: 0 !important;
+      z-index: 240 !important;
+      transform: translateX(-100%);
+      width: min(74vw, 292px) !important;
+      min-width: min(74vw, 292px) !important;
+      max-width: 292px !important;
+      box-shadow: none !important;
+      padding-bottom: env(safe-area-inset-bottom, 12px) !important;
+    }
+    .gm-sidebar.mobile-open { transform: translateX(0); }
+    .gm-sidebar-mobile-top { display: flex !important; min-height: 48px !important; }
+    .gm-sidebar-title { display: none !important; }
+    .mobile-overlay { display: block !important; }
+  }
+  @media (hover: none) and (pointer: coarse) {
+    button, .clickable-box { min-height: 44px !important; min-width: 44px !important; }
+  }
+`;
 
 export default CampaignDashboard;
