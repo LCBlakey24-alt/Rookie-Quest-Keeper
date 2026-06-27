@@ -1,8 +1,17 @@
-import React from 'react';
-import { Coffee, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { Coffee, Dices, History, Moon, RotateCcw, Skull, Sparkles, Star } from 'lucide-react';
+import { toast } from 'sonner';
 
+import apiClient from '@/lib/apiClient';
+import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { COMMON_CONDITIONS, fmt, parseHitDie } from './cleanSheetUtils';
 import { DeathSaveTrack } from './CleanSheetCommon';
+
+function getCharacterIdFromPath() {
+  if (typeof window === 'undefined') return '';
+  const match = window.location.pathname.match(/\/characters\/([^/]+)/i);
+  return match?.[1] || '';
+}
 
 export default function CleanSheetPlayTools({
   activeConditions,
@@ -42,6 +51,11 @@ export default function CleanSheetPlayTools({
   onResetDeathSaves,
   hasInspiration,
 }) {
+  const [manualLabel, setManualLabel] = useState('Ability Check');
+  const [manualD20, setManualD20] = useState('');
+  const [manualTotal, setManualTotal] = useState('');
+  const [loggingManualRoll, setLoggingManualRoll] = useState(false);
+
   const hitDieInfo = parseHitDie(hitDice);
   const hitDiceTotal = hitDieInfo.total;
   const hitDieLabel = `d${hitDieInfo.sides}`;
@@ -51,6 +65,60 @@ export default function CleanSheetPlayTools({
     const spellName = concentrationInput.trim();
     if (!spellName) return;
     onSaveConcentration(spellName);
+  };
+
+  const logManualRoll = async () => {
+    const d20 = Number(manualD20);
+    const total = manualTotal === '' ? d20 : Number(manualTotal);
+    if (!Number.isInteger(d20) || d20 < 1 || d20 > 20) {
+      toast.error('Enter the d20 result from 1 to 20');
+      return;
+    }
+    if (!Number.isFinite(total)) {
+      toast.error('Enter a valid total, or leave it blank to use the d20 result');
+      return;
+    }
+
+    const characterId = getCharacterIdFromPath();
+    if (!characterId) {
+      toast.error('Could not find this character sheet');
+      return;
+    }
+
+    setLoggingManualRoll(true);
+    try {
+      const response = await apiClient.get(`/characters/${characterId}`);
+      const character = response.data || {};
+      const campaignId = character.campaign_id || character.campaignId || character.campaign?.id || character.current_campaign_id || '';
+      if (!campaignId) {
+        toast.info('This character is not linked to a campaign yet', { description: 'Manual rolls only count towards campaign stats once the character is in a campaign.' });
+        return;
+      }
+
+      const characterName = character.name || character.character_name || 'Player Character';
+      await recordRemoteRoll(campaignId, {
+        actor: characterName,
+        actor_type: 'player',
+        character_id: character.id || characterId,
+        character_name: characterName,
+        label: manualLabel.trim() || 'Physical d20 Roll',
+        notation: 'physical d20',
+        total,
+        modifier: total - d20,
+        rolls: [{ sides: 20, result: d20 }],
+        visibleRolls: [{ sides: 20, result: d20 }],
+        isCrit: d20 === 20,
+        isFumble: d20 === 1,
+        explosionCount: 0,
+      });
+      toast.success('Physical roll logged', { description: 'This will count towards the end-session stats.' });
+      setManualD20('');
+      setManualTotal('');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not log physical roll');
+    } finally {
+      setLoggingManualRoll(false);
+    }
   };
 
   return (
@@ -102,6 +170,33 @@ export default function CleanSheetPlayTools({
           </label>
         </div>
 
+        <div className="clean-sheet-recovery-panel" data-testid="physical-roll-logger">
+          <div className="clean-sheet-recovery-header">
+            <span><Dices size={16} /> Log Physical Roll</span>
+            <strong>Optional stats helper</strong>
+          </div>
+          <p className="clean-sheet-recovery-help">
+            Rolling real dice? Typing the result here helps build the end-session stats and player awards.
+          </p>
+          <div className="clean-sheet-recovery-actions" style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1.2fr) 80px 80px auto', gap: 8, alignItems: 'end' }}>
+            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
+              Roll
+              <input type="text" value={manualLabel} onChange={event => setManualLabel(event.target.value)} placeholder="Attack, save, check..." style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
+            </label>
+            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
+              d20
+              <input type="number" min="1" max="20" value={manualD20} onChange={event => setManualD20(event.target.value)} placeholder="17" style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
+            </label>
+            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
+              Total
+              <input type="number" value={manualTotal} onChange={event => setManualTotal(event.target.value)} placeholder="21" style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
+            </label>
+            <button type="button" onClick={logManualRoll} disabled={loggingManualRoll || !manualD20} style={{ minHeight: 34 }}>
+              {loggingManualRoll ? 'Saving...' : 'Log'}
+            </button>
+          </div>
+        </div>
+
         <div className="clean-sheet-passives" data-testid="passive-scores-strip">
           {passiveScores.map(([label, value]) => (
             <div key={label}><span>Passive {label}</span><strong>{value}</strong></div>
@@ -142,9 +237,7 @@ export default function CleanSheetPlayTools({
                 placeholder="Spell name…"
                 value={concentrationInput}
                 onChange={event => onSetConcentrationInput(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === 'Enter' && concentrationInput.trim()) saveConcentration();
-                }}
+                onKeyDown={event => { if (event.key === 'Enter' && concentrationInput.trim()) saveConcentration(); }}
                 className="clean-sheet-input"
                 style={{ flex: 1, padding: '4px 8px', fontSize: '12px', background: 'rgba(10,10,40,0.8)', border: '1px solid #a855f7', borderRadius: '4px', color: '#fff' }}
               />
