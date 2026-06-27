@@ -39,6 +39,21 @@ _HALF_CASTERS = {'paladin', 'ranger'}
 _WARLOCK = {'warlock'}
 _SPELLCASTERS = _FULL_CASTERS | _HALF_CASTERS | _WARLOCK
 
+_MULTICLASS_REQUIREMENTS = {
+    'barbarian': {'strength': 13},
+    'bard': {'charisma': 13},
+    'cleric': {'wisdom': 13},
+    'druid': {'wisdom': 13},
+    'fighter': {'or': [{'strength': 13}, {'dexterity': 13}]},
+    'monk': {'dexterity': 13, 'wisdom': 13},
+    'paladin': {'strength': 13, 'charisma': 13},
+    'ranger': {'dexterity': 13, 'wisdom': 13},
+    'rogue': {'dexterity': 13},
+    'sorcerer': {'charisma': 13},
+    'warlock': {'charisma': 13},
+    'wizard': {'intelligence': 13},
+}
+
 
 def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
     if explicit_ruleset_id:
@@ -141,6 +156,28 @@ def spell_slots_for_class_levels(primary_class: str, total_level: int, class_lev
         if class_key(class_name) in _SPELLCASTERS:
             return calculate_spell_slots(class_name, level)
     return {}
+
+
+def meets_multiclass_requirements(character: Dict[str, Any], character_class: str) -> bool:
+    req = _MULTICLASS_REQUIREMENTS.get(class_key(character_class))
+    if not req:
+        return False
+    if 'or' in req:
+        return any(meets_multiclass_requirements(character, option) for option in req['or'])
+    return all(int(character.get(ability, 10) or 10) >= int(minimum) for ability, minimum in req.items())
+
+
+def multiclass_requirement_text(character_class: str) -> str:
+    req = _MULTICLASS_REQUIREMENTS.get(class_key(character_class))
+    if not req:
+        return 'unknown requirements'
+    if 'or' in req:
+        return ' or '.join(multiclass_requirement_text_for_req(option) for option in req['or'])
+    return multiclass_requirement_text_for_req(req)
+
+
+def multiclass_requirement_text_for_req(req: Dict[str, int]) -> str:
+    return ' and '.join(f"{ability[:3].upper()} {score}" for ability, score in req.items())
 
 
 async def get_owned_character(character_id: str, username: str) -> dict:
@@ -472,6 +509,19 @@ async def multiclass_character(character_id: str, level_up: LevelUpRequest, user
     new_class = display_class_name(level_up.new_class or '')
     if not new_class:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="new_class is required for multiclassing")
+
+    class_levels = initial_class_levels(existing)
+    if new_class in class_levels:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{new_class} is already on this character. Use normal level up for the primary class until class-picking progression is added.")
+
+    failed_current = [class_name for class_name in class_levels if not meets_multiclass_requirements(existing, class_name)]
+    if failed_current:
+        details = ', '.join(f"{name} requires {multiclass_requirement_text(name)}" for name in failed_current)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Character does not meet requirements to multiclass out of current class: {details}")
+
+    if not meets_multiclass_requirements(existing, new_class):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Character does not meet requirements for {new_class}: {multiclass_requirement_text(new_class)}")
+
     update_data = build_level_up_update(existing, level_up, new_class, 'multiclass')
     await db.player_characters.update_one({'id': character_id, 'user_id': username}, {'$set': update_data})
     return await get_owned_character(character_id, username)
