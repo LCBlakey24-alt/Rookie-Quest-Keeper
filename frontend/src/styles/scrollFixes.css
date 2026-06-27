@@ -163,3 +163,200 @@ input {
 #root .sidebar button[style*="textAlign: left"] {
   padding-left: 32px !important;
 }
+
+/* --------------------------------------------------------------------------
+   Final visual skin: charcoal hex background + transparent neutral panels.
+   This is deliberately last so it removes older blue/purple gradients.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --rq-bg: #242424;
+  --rq-bg-top: #2a2a2a;
+  --rq-bg-mid: #242424;
+  --rq-bg-low: #1d1d1d;
+  --rq-bg-bottom: #161616;
+  --rq-hex-line: rgba(255, 255, 255, 0.035);
+  --rq-hex-line-strong: rgba(255, 255, 255, 0.055);
+  --rq-panel-glass: rgba(58, 58, 58, 0.48);
+  --rq-panel-glass-soft: rgba(58, 58, 58, 0.30);
+  --rq-panel-glass-hover: rgba(68, 68, 68, 0.54);
+  --rq-line-soft: rgba(255, 255, 255, 0.14);
+}
+
+html,
+body {
+  background-color: var(--rq-bg) !important;
+  background-image:
+    linear-gradient(to bottom, var(--rq-bg-top) 0%, var(--rq-bg-mid) 35%, var(--rq-bg-low) 72%, var(--rq-bg-bottom) 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body {
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+  background-image:
+    linear-gradient(30deg, var(--rq-hex-line) 12%, transparent 12.5%, transparent 87%, var(--rq-hex-line) 87.5%, var(--rq-hex-line)),
+    linear-gradient(150deg, var(--rq-hex-line) 12%, transparent 12.5%, transparent 87%, var(--rq-hex-line) 87.5%, var(--rq-hex-line)),
+    linear-gradient(90deg, var(--rq-hex-line-strong) 2%, transparent 2.5%, transparent 97%, var(--rq-hex-line-strong) 97.5%, var(--rq-hex-line-strong));
+  background-size: 72px 125px;
+  background-position: 0 0, 0 0, 36px 62px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0.95));
+}
+
+#root,
+.App,
+#root main,
+#root .app-shell,
+#root .page-shell,
+#root .site-page,
+#root .landing-page,
+#root .landing-page-final,
+#root .dashboard-page,
+#root .home-page,
+#root .auth-page,
+#root .admin-page,
+#root .character-page-v2,
+#root .clean-sheet-page,
+#root .character-mode-page,
+#root .gm-page,
+#root .gm-screen,
+#root .live-session-page,
+#root .combat-page,
+#root .encounter-page {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Remove the unwanted blue/purple gradient skin everywhere and replace it with
+   neutral transparent charcoal. */
+#root [style*="linear-gradient"],
+#root [style*="radial-gradient"],
+#root [class*="gradient"],
+#root .bg-gradient-to-r,
+#root .bg-gradient-to-l,
+#root .bg-gradient-to-t,
+#root .bg-gradient-to-b,
+#root .from-blue-500,
+#root .from-indigo-500,
+#root .from-purple-500,
+#root .from-violet-500,
+#root .to-blue-500,
+#root .to-indigo-500,
+#root .to-purple-500,
+#root .to-violet-500,
+#root .via-blue-500,
+#root .via-indigo-500,
+#root .via-purple-500,
+#root .via-violet-500 {
+  background: var(--rq-panel-glass-soft) !important;
+  background-color: var(--rq-panel-glass-soft) !important;
+  background-image: none !important;
+}
+
+#root .card,
+#root .panel,
+#root .glass-panel,
+#root .glow-card,
+#root .card-glow,
+#root .glow-panel,
+#root .dashboard-card,
+#root .dashboard-section,
+#root .dashboard-stat-card,
+#root .clean-sheet-card,
+#root .clean-sheet-panel,
+#root .character-card,
+#root .campaign-card,
+#root .inventory-item-card,
+#root .spell-card,
+#root .feature-card,
+#root .note-card,
+#root .rook-share-alert,
+#root .join-code-card,
+#root .quick-action-card,
+#root .gm-command-card,
+#root article,
+#root section[style*="background"],
+#root div[style*="background: rgb(58, 58, 58)"],
+#root div[style*="background-color: rgb(58, 58, 58)"] {
+  background: var(--rq-panel-glass) !important;
+  background-color: var(--rq-panel-glass) !important;
+  background-image: none !important;
+  border-color: var(--rq-line-soft) !important;
+  box-shadow: none !important;
+}
+
+#root button,
+#root [role='button'],
+#root a.button,
+#root a.btn,
+#root .landing-button,
+#root .dashboard-button,
+#root .action-button,
+#root .clean-sheet-tabs button,
+#root .mobile-dashboard-tabs button,
+#root .dashboard-tabs button,
+#root .rq-side-tab,
+#root .clean-sheet-back,
+#root .clean-sheet-edit,
+#root .clean-sheet-level {
+  background-color: var(--rq-panel-glass-soft) !important;
+  background-image: none !important;
+  border-color: var(--rq-line-soft) !important;
+}
+
+#root button:not(:disabled):hover,
+#root [role='button']:not([aria-disabled='true']):hover,
+#root a.button:hover,
+#root a.btn:hover,
+#root .landing-button:hover,
+#root .dashboard-button:hover,
+#root .action-button:hover,
+#root .clean-sheet-tabs button:hover,
+#root .mobile-dashboard-tabs button:hover,
+#root .dashboard-tabs button:hover,
+#root .rq-side-tab:hover {
+  background-color: var(--rq-panel-glass-hover) !important;
+}
+
+/* Keep the dashboard recent rows as one joined item rather than a blue card with
+   separate-looking Delete/Code blocks. */
+#root div[style*="grid-template-columns: minmax(0px, 1fr) auto auto"],
+#root div[style*="grid-template-columns: minmax(0, 1fr) auto auto"] {
+  background: var(--rq-panel-glass-soft) !important;
+  background-color: var(--rq-panel-glass-soft) !important;
+  background-image: none !important;
+  border: 1px solid var(--rq-line-soft) !important;
+  border-bottom: 1px solid var(--rq-line-soft) !important;
+  gap: 0 !important;
+  margin-bottom: 8px !important;
+}
+
+#root div[style*="grid-template-columns: minmax(0px, 1fr) auto auto"] > button,
+#root div[style*="grid-template-columns: minmax(0, 1fr) auto auto"] > button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+#root div[style*="grid-template-columns: minmax(0px, 1fr) auto auto"] > button:not(:first-child),
+#root div[style*="grid-template-columns: minmax(0, 1fr) auto auto"] > button:not(:first-child) {
+  min-width: 74px !important;
+  border-left: 1px solid var(--rq-line-soft) !important;
+  align-self: stretch !important;
+}
+
+#root div[style*="grid-template-columns: minmax(0px, 1fr) auto auto"] > button:first-child,
+#root div[style*="grid-template-columns: minmax(0, 1fr) auto auto"] > button:first-child {
+  padding: 12px 14px !important;
+}
