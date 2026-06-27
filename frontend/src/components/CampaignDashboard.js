@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Sparkles, Swords, Upload, UserCircle, Users, Wand2, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
@@ -11,8 +11,6 @@ import LocationsTab from '@/components/tabs/LocationsTab';
 import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
-import SessionRecapAI from '@/components/SessionRecapAI';
-import AISessionPlanner from '@/components/gm/AISessionPlanner';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
@@ -37,14 +35,6 @@ const theme = {
   border: 'rgba(255,255,255,0.16)',
 };
 
-const sessionPrepTheme = {
-  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
-  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
-  border: 'rgba(255,255,255,0.16)',
-  gradient: '#d00000',
-};
-
 const tabGroups = [
   { id: 'command', label: 'Command', icon: Monitor, tabs: [
     { id: 'command-centre', icon: Monitor, label: 'Command Centre' },
@@ -53,32 +43,29 @@ const tabGroups = [
   ] },
   { id: 'prep', label: 'Prep', icon: CalendarDays, tabs: [
     { id: 'story-arcs', icon: ScrollText, label: 'Story Arcs' },
-    { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
     { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
-    { id: 'handouts', icon: Mail, label: 'Lore / Secrets / Handouts' },
-    { id: 'session-recap', icon: Sparkles, label: 'Session Recap' },
+    { id: 'handouts', icon: Mail, label: 'Secrets & Handouts' },
   ] },
-  { id: 'world', label: 'World Bible', icon: Globe, tabs: [
-    { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
+  { id: 'world', label: 'World', icon: Globe, tabs: [
     { id: 'setting', icon: Book, label: 'World Overview' },
-    { id: 'world', icon: Globe, label: 'World Builder' },
     { id: 'locations', icon: MapPin, label: 'Locations' },
     { id: 'maps', icon: Compass, label: 'Maps' },
     { id: 'chronicle', icon: Clock, label: 'Chronicle' },
+  ] },
+  { id: 'people', label: 'People', icon: UserCircle, tabs: [
+    { id: 'npcs', icon: UserCircle, label: 'NPCs & Figures' },
     { id: 'gods', icon: Church, label: 'Powers & Factions' },
   ] },
-  { id: 'cast', label: 'Cast', icon: UserCircle, tabs: [
-    { id: 'npcs', icon: UserCircle, label: 'NPCs & Figures' },
-    { id: 'players', icon: Users, label: 'Players' },
-  ] },
-  { id: 'live', label: 'Live Table', icon: Swords, tabs: [
+  { id: 'table', label: 'Table', icon: Swords, tabs: [
     { id: 'combat', icon: Swords, label: 'Encounters' },
     { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
-    { id: 'tools', icon: ScrollText, label: 'GM Tools' },
+    { id: 'inventory', icon: Backpack, label: 'Inventory & Rewards' },
   ] },
   { id: 'library', label: 'Library', icon: Backpack, tabs: [
-    { id: 'inventory', icon: Backpack, label: 'Inventory & Items' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
+    { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
+    { id: 'world', icon: Globe, label: 'World Builder' },
+    { id: 'tools', icon: ScrollText, label: 'Optional Tools' },
     { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
   ] },
 ];
@@ -294,8 +281,6 @@ function CampaignDashboard() {
             {activeTab === 'inventory' && <InventoryConsolidatedTab campaignId={campaignId} />}
             {activeTab === 'campaign-rules' && <CampaignRulesTab campaignId={campaignId} />}
             {activeTab === 'tonight' && <TonightsSessionTab campaignId={campaignId} onOpenTab={handleTabClick} />}
-            {activeTab === 'session-prep' && <AISessionPlanner theme={sessionPrepTheme} campaignId={campaignId} />}
-            {activeTab === 'session-recap' && <SessionRecapAI campaignId={campaignId} />}
             {activeTab === 'handouts' && <GMHandoutsTab campaignId={campaignId} />}
             {activeTab === 'players' && <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>}
             {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
@@ -310,18 +295,18 @@ function CampaignDashboard() {
 
 function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLive, onFetchInvite, onRotateInvite, onCopyInvite }) {
   const commandCards = [
-    { title: "Tonight's Session", text: 'Plan what matters right now: scenes, hooks, reminders, and live table flow.', meta: 'Run tonight', icon: CalendarDays, tab: 'tonight' },
-    { title: 'Story Arcs', text: 'Organise campaign arcs, chapters/sessions, scenes, and planned combat beats.', meta: 'Campaign structure', icon: ScrollText, tab: 'story-arcs' },
-    { title: 'Players & Invites', text: 'Manage players, check joined characters, and share the campaign join code.', meta: 'Table access', icon: Users, tab: 'players' },
-    { title: 'World Overview', text: 'Store the campaign premise, tone, big truths, and public world context.', meta: 'World bible', icon: Globe, tab: 'setting' },
+    { title: 'Story Arcs', text: 'Build the campaign spine: arcs, chapters/sessions, scenes, and combat beats.', meta: 'Plan', icon: ScrollText, tab: 'story-arcs' },
+    { title: "Tonight's Session", text: 'Open the live prep checklist for the next table session.', meta: 'Prep', icon: CalendarDays, tab: 'tonight' },
+    { title: 'Live Play Mode', text: 'Launch the focused table screen with combat, notes, handouts, and display controls.', meta: 'Run', icon: Monitor, action: onOpenLive },
+    { title: 'Session Notes', text: 'Capture what happened at the table and sync useful changes into the campaign.', meta: 'Record', icon: FileText, tab: 'ingame-notes' },
+    { title: 'Secrets & Handouts', text: 'Prepare lore, clues, letters, and reveal-only-when-ready player information.', meta: 'Reveal', icon: Mail, tab: 'handouts' },
+    { title: 'Players & Invites', text: 'Manage players, joined characters, and the campaign join code.', meta: 'Access', icon: Users, tab: 'players' },
+    { title: 'World Overview', text: 'Store the campaign premise, tone, big truths, and public world context.', meta: 'World', icon: Globe, tab: 'setting' },
     { title: 'Locations', text: 'Cities, regions, dungeons, travel points, bases, and important places.', meta: 'Places', icon: MapPin, tab: 'locations' },
-    { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'Cast', icon: UserCircle, tab: 'npcs' },
-    { title: 'Encounters', text: 'Build and manage combat encounters, enemies, and live table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
-    { title: 'Powers & Factions', text: 'Gods, guilds, orders, governments, cults, houses, and power groups.', meta: 'Influence', icon: Church, tab: 'gods' },
-    { title: 'Chronicle', text: 'Campaign timeline, session history, consequences, and what has changed.', meta: 'History', icon: Clock, tab: 'chronicle' },
-    { title: 'Inventory & Items', text: 'Magic items, loot, equipment, rewards, and anything you may hand to players.', meta: 'Loot', icon: Backpack, tab: 'inventory' },
-    { title: 'Lore / Secrets / Handouts', text: 'Player-facing reveals, private information, letters, clues, and shared material.', meta: 'Reveal control', icon: Mail, tab: 'handouts' },
-    { title: 'Uploads', text: 'Maps, reference files, images, notes, and imported campaign material.', meta: 'Files', icon: Upload, tab: 'uploads' },
+    { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'People', icon: UserCircle, tab: 'npcs' },
+    { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
+    { title: 'Chronicle', text: 'Turn played sessions into campaign history, consequences, and timeline entries.', meta: 'History', icon: Clock, tab: 'chronicle' },
+    { title: 'Uploads', text: 'Store maps, reference files, images, notes, and imported campaign material.', meta: 'Library', icon: Upload, tab: 'uploads' },
   ];
 
   return (
@@ -330,7 +315,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <div style={{ minWidth: 0 }}>
           <p style={desktopEyebrowStyle}>Campaign Command Centre</p>
           <h2 style={commandTitleStyle}>{campaign?.name || 'Campaign'}</h2>
-          <p style={commandSubtitleStyle}>Build the campaign from reusable GM tools: structure the arc, prep sessions, organise lore, then run the table from Live Play.</p>
+          <p style={commandSubtitleStyle}>Simple GM flow: plan the story, prep tonight, run the table, then record what changed.</p>
         </div>
         <div style={heroActionsStyle}>
           <button type="button" onClick={() => onOpenTab('story-arcs')} style={secondaryButtonStyle}><ScrollText size={18} /> Story Arcs</button>
@@ -343,7 +328,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <StatusBox label="Rules" value={campaign?.system || campaign?.rules_edition || 'Campaign'} />
         <StatusBox label="World" value={campaign?.world_name || campaign?.setting || 'Not set'} />
         <StatusBox label="Join Code" value={invite?.join_code || 'Not loaded'} />
-        <StatusBox label="Mode" value="GM" />
+        <StatusBox label="Flow" value="Plan → Prep → Run → Record" />
       </section>
 
       <section style={invitePanelStyle}>
@@ -369,9 +354,9 @@ function StatusBox({ label, value }) {
   return <div style={statusBoxStyle}><span style={statusValueStyle}>{value}</span><span style={statusLabelStyle}>{label}</span></div>;
 }
 
-function CommandCard({ title, text, meta, icon: Icon, tab, onOpenTab }) {
+function CommandCard({ title, text, meta, icon: Icon, tab, action, onOpenTab }) {
   return (
-    <button type="button" onClick={() => onOpenTab(tab)} style={commandCardStyle}>
+    <button type="button" onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
       <span style={commandAccentStyle} />
       <span style={commandCardBodyStyle}>
         <span style={commandCardTopStyle}><Icon size={18} /> <strong>{title}</strong></span>
