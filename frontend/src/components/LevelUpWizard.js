@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Dices, Server, Sparkles, Swords, X } from 'lucide-react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Dices, Server, Sparkles, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { CLASS_FEATURES } from '@/data/classFeatures';
-import { SPELLCASTING_CLASSES, getMaxSpellLevel, getSpellsForClass } from '@/data/spellDatabase';
-import { ABILITIES, ABILITY_SHORT, HIT_DICE, getFeatsByEdition } from '@/data/levelUpData';
+import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from '@/data/spellDatabase';
+import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE, getFeatsByEdition } from '@/data/levelUpData';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "New Rocker", Georgia, serif)';
@@ -13,7 +13,6 @@ const theme = {
   bg: '#242424',
   panel: '#2f2f2f',
   card: '#3a3a3a',
-  hover: '#444444',
   red: '#d00000',
   redSoft: 'rgba(208,0,0,0.2)',
   text: '#ffffff',
@@ -40,6 +39,24 @@ function abilityMod(score) {
 function displayClass(value) {
   const raw = String(value || 'Fighter').trim();
   return raw ? raw.slice(0, 1).toUpperCase() + raw.slice(1) : 'Fighter';
+}
+
+function lastKnownCount(table = {}, level = 1) {
+  let count = 0;
+  Object.entries(table).forEach(([rawLevel, rawCount]) => {
+    if (Number(rawLevel) <= level) count = Number(rawCount) || count;
+  });
+  return count;
+}
+
+function localSpellsToLearn(characterClass, currentLevel, newLevel) {
+  const table = SPELLS_KNOWN[characterClass] || {};
+  return Math.max(0, lastKnownCount(table, newLevel) - lastKnownCount(table, currentLevel));
+}
+
+function localCantripsToLearn(characterClass, currentLevel, newLevel) {
+  const table = CANTRIPS_KNOWN[characterClass] || {};
+  return Math.max(0, lastKnownCount(table, newLevel) - lastKnownCount(table, currentLevel));
 }
 
 function normaliseFeatOptions(preflight, character) {
@@ -132,10 +149,16 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const { cantrips, spells } = useMemo(() => spellListFor(characterClass, maxSpellLevel), [characterClass, maxSpellLevel]);
   const existingSpellNames = namesFrom(character?.spells_known || character?.spells_prepared);
   const existingCantripNames = namesFrom(character?.cantrips_known);
-  const cantripGain = Number(preflight?.cantrips_to_learn || 0);
-  const spellGain = Number(preflight?.spells_to_learn || 0);
-  const needsSubclass = Boolean(preflight?.can_choose_subclass);
-  const isAsiLevel = Boolean(preflight?.is_asi_level);
+  const localCantripGain = localCantripsToLearn(characterClass, currentLevel, newLevel);
+  const localSpellGain = localSpellsToLearn(characterClass, currentLevel, newLevel);
+  const cantripGain = preflight?.cantrips_to_learn !== undefined ? Number(preflight.cantrips_to_learn || 0) : localCantripGain;
+  const spellGain = preflight?.spells_to_learn !== undefined ? Number(preflight.spells_to_learn || 0) : localSpellGain;
+  const classData = CLASS_FEATURES[String(characterClass || '').toLowerCase()];
+  const localNeedsSubclass = Boolean(!character?.subclass && classData?.subclass_level === newLevel && classData?.subclasses);
+  const needsSubclass = preflight?.can_choose_subclass !== undefined ? Boolean(preflight.can_choose_subclass) : localNeedsSubclass;
+  const localAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
+  const localIsAsiLevel = localAsiLevels.includes(newLevel);
+  const isAsiLevel = preflight?.is_asi_level !== undefined ? Boolean(preflight.is_asi_level) : localIsAsiLevel;
   const subclassOptions = useMemo(() => normaliseSubclassOptions(preflight, characterClass), [preflight, characterClass]);
   const featOptions = useMemo(() => normaliseFeatOptions(preflight, character), [preflight, character]);
   const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellGain > 0);
