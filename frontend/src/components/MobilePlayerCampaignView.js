@@ -1,26 +1,40 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, RefreshCw, Shield, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, Link2, Plus, RefreshCw, Shield, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-
 const theme = {
-  bg: '#1F1F23',
-  panel: 'rgba(39,39,43,0.92)',
-  panelAlt: 'rgba(50,50,53,0.94)',
-  border: 'rgba(239,68,68,0.42)',
-  red: '#EF4444',
-  redBright: '#F87171',
-  text: '#FFFFFF',
-  muted: '#D1D5DB',
-  soft: '#9CA3AF',
+  bg: '#242424',
+  panel: '#2f2f2f',
+  panelAlt: '#3a3a3a',
+  border: 'rgba(255,255,255,0.16)',
+  red: '#d00000',
+  redBright: '#ff3b3b',
+  text: '#ffffff',
+  muted: 'rgba(255,255,255,0.72)',
+  soft: 'rgba(255,255,255,0.58)',
 };
+
+function asList(data, key) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.[key])) return data[key];
+  return [];
+}
+
+function mergeCampaigns(...groups) {
+  const map = new Map();
+  groups.flat().forEach(campaign => {
+    if (campaign?.id) map.set(campaign.id, campaign);
+  });
+  return Array.from(map.values());
+}
 
 export default function MobilePlayerCampaignView() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
   const [players, setPlayers] = useState([]);
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,16 +47,49 @@ export default function MobilePlayerCampaignView() {
   const environmentRef = useRef(null);
   const campaignRef = useRef(null);
 
-  async function loadData() {
+  const isDashboardMode = !campaignId;
+
+  async function loadDashboardData() {
+    const [charactersRes, ownedCampaignsRes, joinedCampaignsRes] = await Promise.all([
+      apiClient.get('/characters').catch(() => ({ data: [] })),
+      apiClient.get('/campaigns').catch(() => ({ data: [] })),
+      apiClient.get('/campaign-invites/joined/list').catch(() => ({ data: [] })),
+    ]);
+
+    const loadedCharacters = asList(charactersRes.data, 'characters');
+    const ownedCampaigns = asList(ownedCampaignsRes.data, 'campaigns');
+    const joinedCampaigns = asList(joinedCampaignsRes.data, 'campaigns');
+    const characterCampaigns = loadedCharacters
+      .filter(character => character.campaign_id || character.campaignId)
+      .map(character => ({
+        id: character.campaign_id || character.campaignId,
+        name: character.campaign_name || 'Linked Campaign',
+        description: character.campaign_description || '',
+        from_character: character.name,
+      }));
+
+    setCampaign(null);
+    setPlayers([]);
+    setCharacters(loadedCharacters);
+    setCampaigns(mergeCampaigns(ownedCampaigns, joinedCampaigns, characterCampaigns));
+  }
+
+  async function loadCampaignData() {
     const [campaignRes, playersRes, charactersRes] = await Promise.all([
       apiClient.get(`/player/campaign/${campaignId}`).catch(() => apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null }))),
       apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-      apiClient.get(`/characters`).catch(() => ({ data: [] })),
+      apiClient.get('/characters').catch(() => ({ data: [] })),
     ]);
 
     setCampaign(campaignRes.data);
-    setPlayers(playersRes.data || []);
-    setCharacters(charactersRes.data || []);
+    setCampaigns([]);
+    setPlayers(asList(playersRes.data, 'players'));
+    setCharacters(asList(charactersRes.data, 'characters'));
+  }
+
+  async function loadData() {
+    if (isDashboardMode) return loadDashboardData();
+    return loadCampaignData();
   }
 
   useEffect(() => {
@@ -65,6 +112,18 @@ export default function MobilePlayerCampaignView() {
     };
   }, [campaignId]);
 
+  const linkedCampaigns = useMemo(() => {
+    const fromCharacters = characters
+      .filter(character => character.campaign_id || character.campaignId)
+      .map(character => ({
+        id: character.campaign_id || character.campaignId,
+        name: character.campaign_name || 'Linked Campaign',
+        description: character.campaign_description || '',
+        from_character: character.name,
+      }));
+    return mergeCampaigns(campaigns, fromCharacters);
+  }, [campaigns, characters]);
+
   const linkedCharacterIds = useMemo(() => new Set(
     players
       .flatMap(player => [
@@ -78,7 +137,7 @@ export default function MobilePlayerCampaignView() {
   ), [players]);
 
   const myCampaignCharacters = useMemo(() => {
-    const scoped = characters.filter(character =>
+    const scoped = isDashboardMode ? characters : characters.filter(character =>
       character.campaign_id === campaignId ||
       character.campaignId === campaignId ||
       linkedCharacterIds.has(character.id)
@@ -89,7 +148,7 @@ export default function MobilePlayerCampaignView() {
       String(character.name || '').toLowerCase().includes(q) ||
       String(character.character_class || '').toLowerCase().includes(q)
     );
-  }, [campaignId, characters, linkedCharacterIds, characterQuery]);
+  }, [campaignId, characters, linkedCharacterIds, characterQuery, isDashboardMode]);
 
   const roster = players.length > 0 ? players : myCampaignCharacters;
   const filteredRoster = useMemo(() => {
@@ -106,7 +165,7 @@ export default function MobilePlayerCampaignView() {
   const pageBackgroundStyle = environment.background_image
     ? {
         ...pageStyle,
-        backgroundImage: `linear-gradient(rgba(31,31,35,0.78), rgba(31,31,35,0.92)), url(${environment.background_image})`,
+        backgroundImage: `linear-gradient(rgba(36,36,36,0.82), rgba(36,36,36,0.94)), url(${environment.background_image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
@@ -121,23 +180,101 @@ export default function MobilePlayerCampaignView() {
     );
   }
 
+  if (isDashboardMode) {
+    return (
+      <main data-testid="mobile-player-dashboard" style={pageStyle}>
+        <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Button onClick={() => navigate('/home')} style={iconButtonStyle} aria-label="Back to dashboard">
+            <ArrowLeft size={18} />
+          </Button>
+          <div style={{ minWidth: 0 }}>
+            <div style={eyebrowStyle}>Mobile Dashboard</div>
+            <h1 style={mobileTitleStyle}>Characters & Campaigns</h1>
+            <p style={mobileSubtitleStyle}>Same data as desktop, formatted for your phone.</p>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                setRefreshing(true);
+                await loadData();
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            style={{ ...iconButtonStyle, marginLeft: 'auto' }}
+            aria-label="Refresh mobile dashboard"
+          >
+            <RefreshCw size={16} style={{ opacity: refreshing ? 0.6 : 1 }} />
+          </Button>
+        </header>
+
+        <section style={mobileSummaryGridStyle}>
+          <SummaryTile icon={Shield} label="Characters" value={characters.length} />
+          <SummaryTile icon={BookOpen} label="Campaigns" value={linkedCampaigns.length} />
+          <SummaryTile icon={Users} label="Linked" value={characters.filter(character => character.campaign_id || character.campaignId).length} />
+        </section>
+
+        <section style={panelStyle}>
+          <div style={mobileActionGridStyle}>
+            <Button onClick={() => navigate('/characters/new')} style={redActionStyle}><Plus size={15} /> New Character</Button>
+            <Button onClick={() => navigate('/player')} style={rowButtonStyle}><Link2 size={15} /> Join / Player Tools</Button>
+          </div>
+        </section>
+
+        <section style={panelStyle}>
+          <h2 style={sectionTitleStyle}><Shield size={15} /> My Characters</h2>
+          {characters.length === 0 ? (
+            <EmptyBox title="No characters found" text="Desktop and mobile now use the same character endpoint. If this stays empty after refresh, you may be signed into a different account on mobile." />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {characters.map(character => (
+                <button key={character.id} data-testid={`mobile-dashboard-character-${character.id}`} onClick={() => navigate(`/characters/${character.id}`)} style={rowButtonStyle}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={rowTitleStyle}>{character.name || 'Unnamed Character'}</span>
+                    <span style={rowMetaStyle}>Lv {character.level || 1} {character.character_class || 'Adventurer'}</span>
+                  </span>
+                  <ChevronRight size={18} color={theme.red} />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section style={panelStyle}>
+          <h2 style={sectionTitleStyle}><BookOpen size={15} /> Campaigns</h2>
+          {linkedCampaigns.length === 0 ? (
+            <EmptyBox title="No campaigns found" text="This mobile page now checks owned campaigns, joined campaigns, and campaigns linked through your characters." />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {linkedCampaigns.map(campaignItem => (
+                <button key={campaignItem.id} data-testid={`mobile-dashboard-campaign-${campaignItem.id}`} onClick={() => navigate(`/mobile/${campaignItem.id}`)} style={rowButtonStyle}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={rowTitleStyle}>{campaignItem.name || 'Unnamed Campaign'}</span>
+                    <span style={rowMetaStyle}>{campaignItem.from_character ? `Linked through ${campaignItem.from_character}` : campaignItem.system || 'Campaign'}</span>
+                  </span>
+                  <ChevronRight size={18} color={theme.red} />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main data-testid="mobile-player-campaign-view" style={pageBackgroundStyle}>
       <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <Button
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/mobile')}
           style={iconButtonStyle}
-          aria-label="Back to dashboard"
+          aria-label="Back to mobile dashboard"
         >
           <ArrowLeft size={18} />
         </Button>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, color: theme.red, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
-            Player View
-          </div>
-          <h1 style={{ margin: 0, color: theme.text, fontSize: 20, lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {campaign?.name || 'Campaign'}
-          </h1>
+          <div style={eyebrowStyle}>Player View</div>
+          <h1 style={mobileTitleStyle}>{campaign?.name || 'Campaign'}</h1>
         </div>
         <Button
           onClick={async () => {
@@ -167,27 +304,13 @@ export default function MobilePlayerCampaignView() {
       {myCampaignCharacters.length > 0 && (
         <section ref={charactersRef} style={panelStyle}>
           <h2 style={sectionTitleStyle}><Shield size={15} /> My Characters</h2>
-          <input
-            value={characterQuery}
-            onChange={(e) => setCharacterQuery(e.target.value)}
-            placeholder="Search characters"
-            style={mobileSearchInputStyle}
-          />
+          <input value={characterQuery} onChange={(e) => setCharacterQuery(e.target.value)} placeholder="Search characters" style={mobileSearchInputStyle} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {myCampaignCharacters.map(character => (
-              <button
-                key={character.id}
-                data-testid={`mobile-character-${character.id}`}
-                onClick={() => navigate(`/characters/${character.id}`)}
-                style={rowButtonStyle}
-              >
+              <button key={character.id} data-testid={`mobile-character-${character.id}`} onClick={() => navigate(`/characters/${character.id}`)} style={rowButtonStyle}>
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', color: theme.text, fontSize: 14, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {character.name}
-                  </span>
-                  <span style={{ display: 'block', color: theme.muted, fontSize: 11, marginTop: 2 }}>
-                    Lv {character.level || 1} {character.character_class || 'Adventurer'}
-                  </span>
+                  <span style={rowTitleStyle}>{character.name}</span>
+                  <span style={rowMetaStyle}>Lv {character.level || 1} {character.character_class || 'Adventurer'}</span>
                 </span>
                 <ChevronRight size={18} color={theme.red} />
               </button>
@@ -198,12 +321,7 @@ export default function MobilePlayerCampaignView() {
 
       <section ref={partyRef} style={panelStyle}>
         <h2 style={sectionTitleStyle}><Users size={15} /> Party</h2>
-        <input
-          value={partyQuery}
-          onChange={(e) => setPartyQuery(e.target.value)}
-          placeholder="Search party"
-          style={mobileSearchInputStyle}
-        />
+        <input value={partyQuery} onChange={(e) => setPartyQuery(e.target.value)} placeholder="Search party" style={mobileSearchInputStyle} />
         {filteredRoster.length === 0 ? (
           <div style={{ color: theme.soft, fontSize: 13 }}>No party members linked yet.</div>
         ) : (
@@ -217,8 +335,8 @@ export default function MobilePlayerCampaignView() {
               return (
                 <div key={member.id || member.character_id || name} style={rosterRowStyle}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ color: theme.text, fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-                    {cls && <div style={{ color: theme.muted, fontSize: 11, marginTop: 2 }}>{cls}</div>}
+                    <div style={rowTitleStyle}>{name}</div>
+                    {cls && <div style={rowMetaStyle}>{cls}</div>}
                   </div>
                   {hp != null && maxHp != null && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#22C55E', fontSize: 11, fontWeight: 800 }}>
@@ -229,11 +347,7 @@ export default function MobilePlayerCampaignView() {
               );
             })}
             {filteredRoster.length > 12 && (
-              <button
-                type="button"
-                onClick={() => setShowFullParty(v => !v)}
-                style={{ ...rowButtonStyle, padding: '8px 10px', justifyContent: 'center', fontSize: 12 }}
-              >
+              <button type="button" onClick={() => setShowFullParty(v => !v)} style={{ ...rowButtonStyle, padding: '8px 10px', justifyContent: 'center', fontSize: 12 }}>
                 {showFullParty ? 'Show fewer' : `Show all (${filteredRoster.length})`}
               </button>
             )}
@@ -250,11 +364,7 @@ export default function MobilePlayerCampaignView() {
             <InfoPill label="Mood" value={formatEnvironmentValue(environment.mood)} />
             <InfoPill label="Location" value={environment.location || 'Unspecified'} />
           </div>
-          {environment.notes && (
-            <div style={{ color: theme.muted, fontSize: 12, lineHeight: 1.55, marginTop: 10 }}>
-              {environment.notes}
-            </div>
-          )}
+          {environment.notes && <div style={{ color: theme.muted, fontSize: 12, lineHeight: 1.55, marginTop: 10 }}>{environment.notes}</div>}
         </section>
       )}
 
@@ -268,12 +378,27 @@ export default function MobilePlayerCampaignView() {
   );
 }
 
-function NavPill({ label, onClick }) {
+function SummaryTile({ icon: Icon, label, value }) {
   return (
-    <button type="button" onClick={onClick} style={{ border: `1px solid ${theme.border}`, background: theme.panelAlt, color: theme.muted, padding: '8px 6px', fontSize: 11 }}>
-      {label}
-    </button>
+    <div style={summaryTileStyle}>
+      <Icon size={16} color={theme.red} />
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
   );
+}
+
+function EmptyBox({ title, text }) {
+  return (
+    <div style={emptyBoxStyle}>
+      <strong>{title}</strong>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function NavPill({ label, onClick }) {
+  return <button type="button" onClick={onClick} style={{ border: `1px solid ${theme.border}`, background: theme.panelAlt, color: theme.muted, padding: '8px 6px', fontSize: 11 }}>{label}</button>;
 }
 
 function formatEnvironmentValue(value) {
@@ -290,90 +415,22 @@ function InfoPill({ label, value }) {
   );
 }
 
-const pageStyle = {
-  minHeight: '100dvh',
-  background: theme.bg,
-  padding: 12,
-  display: 'flex',
-  flexDirection: 'column',
-  overflowY: 'auto',
-  gap: 12,
-};
-
-const panelStyle = {
-  background: theme.panel,
-  border: `1px solid ${theme.border}`,
-  borderRadius: 0,
-  padding: 12,
-};
-
-const sectionTitleStyle = {
-  margin: '0 0 10px',
-  color: theme.red,
-  fontSize: 12,
-  fontWeight: 800,
-  letterSpacing: 0.8,
-  textTransform: 'uppercase',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
-};
-
-const iconButtonStyle = {
-  minWidth: 40,
-  height: 40,
-  padding: 0,
-  borderRadius: 0,
-  border: `1px solid ${theme.border}`,
-  background: theme.panel,
-  color: theme.red,
-};
-
-const rowButtonStyle = {
-  width: '100%',
-  border: `1px solid ${theme.border}`,
-  background: theme.panelAlt,
-  color: theme.text,
-  borderRadius: 0,
-  padding: '10px 12px',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  textAlign: 'left',
-  cursor: 'pointer',
-};
-
-const rosterRowStyle = {
-  border: '1px solid rgba(255,255,255,0.06)',
-  background: 'rgba(255,255,255,0.03)',
-  borderRadius: 0,
-  padding: '9px 10px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 10,
-};
-
-const environmentGridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: 8,
-};
-
-const infoPillStyle = {
-  border: `1px solid ${theme.border}`,
-  background: 'rgba(31,31,35,0.72)',
-  borderRadius: 0,
-  padding: '8px 9px',
-};
-
-const mobileSearchInputStyle = {
-  width: '100%',
-  height: 36,
-  border: `1px solid ${theme.border}`,
-  background: 'rgba(31,31,35,0.72)',
-  color: theme.text,
-  padding: '0 10px',
-  marginBottom: 10,
-  outline: 'none',
-};
+const pageStyle = { minHeight: '100dvh', background: theme.bg, padding: 12, display: 'flex', flexDirection: 'column', overflowY: 'auto', gap: 12 };
+const panelStyle = { background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 12 };
+const eyebrowStyle = { fontSize: 11, color: theme.red, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase' };
+const mobileTitleStyle = { margin: 0, color: theme.text, fontSize: 20, lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const mobileSubtitleStyle = { margin: '3px 0 0', color: theme.muted, fontSize: 12, lineHeight: 1.35 };
+const sectionTitleStyle = { margin: '0 0 10px', color: theme.red, fontSize: 12, fontWeight: 900, letterSpacing: 0.8, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 };
+const iconButtonStyle = { minWidth: 40, height: 40, padding: 0, borderRadius: 0, border: `1px solid ${theme.border}`, background: theme.panel, color: theme.red };
+const rowButtonStyle = { width: '100%', border: `1px solid ${theme.border}`, background: theme.panelAlt, color: theme.text, borderRadius: 0, padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left', cursor: 'pointer', gap: 10 };
+const redActionStyle = { ...rowButtonStyle, justifyContent: 'center', background: theme.red, border: 0, fontWeight: 900 };
+const rowTitleStyle = { display: 'block', color: theme.text, fontSize: 14, fontWeight: 850, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const rowMetaStyle = { display: 'block', color: theme.muted, fontSize: 11, marginTop: 2 };
+const rosterRowStyle = { border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', borderRadius: 0, padding: '9px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 };
+const environmentGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };
+const infoPillStyle = { border: `1px solid ${theme.border}`, background: 'rgba(36,36,36,0.72)', borderRadius: 0, padding: '8px 9px' };
+const mobileSearchInputStyle = { width: '100%', height: 36, border: `1px solid ${theme.border}`, background: 'rgba(36,36,36,0.72)', color: theme.text, padding: '0 10px', marginBottom: 10, outline: 'none' };
+const mobileSummaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 };
+const summaryTileStyle = { background: theme.panel, border: `1px solid ${theme.border}`, padding: 10, display: 'grid', gap: 4, alignContent: 'start', minHeight: 78 };
+const mobileActionGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };
+const emptyBoxStyle = { border: `1px dashed ${theme.border}`, background: 'rgba(255,255,255,0.03)', padding: 12, color: theme.muted, display: 'grid', gap: 5, fontSize: 12, lineHeight: 1.4 };
