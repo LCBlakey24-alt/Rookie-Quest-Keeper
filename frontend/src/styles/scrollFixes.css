@@ -165,18 +165,12 @@ input {
 }
 
 /* --------------------------------------------------------------------------
-   Final visual skin: charcoal hex background + transparent neutral panels.
-   This is deliberately last so it removes older blue/purple gradients.
+   Final visual skin: single charcoal background + neutral transparent panels.
+   No page pattern, no page gradient, no blue/purple panel gradients.
    -------------------------------------------------------------------------- */
 
 :root {
   --rq-bg: #242424;
-  --rq-bg-top: #2a2a2a;
-  --rq-bg-mid: #242424;
-  --rq-bg-low: #1d1d1d;
-  --rq-bg-bottom: #161616;
-  --rq-hex-line: rgba(255, 255, 255, 0.035);
-  --rq-hex-line-strong: rgba(255, 255, 255, 0.055);
   --rq-panel-glass: rgba(58, 58, 58, 0.48);
   --rq-panel-glass-soft: rgba(58, 58, 58, 0.30);
   --rq-panel-glass-hover: rgba(68, 68, 68, 0.54);
@@ -184,35 +178,23 @@ input {
 }
 
 html,
-body {
-  background-color: var(--rq-bg) !important;
-  background-image:
-    linear-gradient(to bottom, var(--rq-bg-top) 0%, var(--rq-bg-mid) 35%, var(--rq-bg-low) 72%, var(--rq-bg-bottom) 100%) !important;
-  background-attachment: fixed !important;
-}
-
-body {
-  position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 1;
-  background-image:
-    linear-gradient(30deg, var(--rq-hex-line) 12%, transparent 12.5%, transparent 87%, var(--rq-hex-line) 87.5%, var(--rq-hex-line)),
-    linear-gradient(150deg, var(--rq-hex-line) 12%, transparent 12.5%, transparent 87%, var(--rq-hex-line) 87.5%, var(--rq-hex-line)),
-    linear-gradient(90deg, var(--rq-hex-line-strong) 2%, transparent 2.5%, transparent 97%, var(--rq-hex-line-strong) 97.5%, var(--rq-hex-line-strong));
-  background-size: 72px 125px;
-  background-position: 0 0, 0 0, 36px 62px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0.95));
-}
-
+body,
 #root,
-.App,
+.App {
+  background: var(--rq-bg) !important;
+  background-color: var(--rq-bg) !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+
+body::before,
+body::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  background-image: none !important;
+}
+
 #root main,
 #root .app-shell,
 #root .page-shell,
