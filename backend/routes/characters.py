@@ -37,6 +37,7 @@ _FULL_CASTER_SLOTS = {
 _FULL_CASTERS = {'bard', 'cleric', 'druid', 'sorcerer', 'wizard'}
 _HALF_CASTERS = {'paladin', 'ranger'}
 _WARLOCK = {'warlock'}
+_SPELLCASTERS = _FULL_CASTERS | _HALF_CASTERS | _WARLOCK
 
 
 def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
@@ -115,6 +116,31 @@ def normalize_spell_list(spell_list):
     if not spell_list:
         return []
     return [spell if isinstance(spell, dict) else {"name": str(spell), "level": 0} for spell in spell_list]
+
+
+def initial_class_levels(character: Dict[str, Any]) -> Dict[str, int]:
+    stored = character.get('class_levels') or {}
+    if stored:
+        return {display_class_name(name): int(level or 0) for name, level in stored.items() if int(level or 0) > 0}
+    return {display_class_name(character.get('character_class', 'Fighter')): int(character.get('level', 1) or 1)}
+
+
+def hit_dice_string_for(class_levels: Dict[str, int]) -> str:
+    dice_counts: Dict[int, int] = {}
+    for class_name, level in class_levels.items():
+        die = hit_die_for(class_name)
+        dice_counts[die] = dice_counts.get(die, 0) + int(level or 0)
+    return ' + '.join(f"{count}d{die}" for die, count in sorted(dice_counts.items(), reverse=True) if count > 0) or '1d8'
+
+
+def spell_slots_for_class_levels(primary_class: str, total_level: int, class_levels: Dict[str, int]) -> Dict[str, int]:
+    primary_key = class_key(primary_class)
+    if primary_key in _SPELLCASTERS:
+        return calculate_spell_slots(primary_class, int(class_levels.get(display_class_name(primary_class), total_level) or total_level))
+    for class_name, level in class_levels.items():
+        if class_key(class_name) in _SPELLCASTERS:
+            return calculate_spell_slots(class_name, level)
+    return {}
 
 
 async def get_owned_character(character_id: str, username: str) -> dict:
@@ -307,21 +333,27 @@ async def get_character_level_up_options(
         'feat_options': general_feats,
         'general_feat_options': general_feats,
         'origin_feat_options': origin_feats,
+        'class_levels': initial_class_levels(existing),
         'progression_reference': class_progression_summary(character_class, edition),
     }
 
 
-@router.post("/characters/{character_id}/level-up")
-async def level_up_character(character_id: str, level_up: LevelUpRequest, username: str = Depends(get_current_user)):
-    """Handle a simple character level up."""
-    existing = await get_owned_character(character_id, username)
+def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, leveled_class: str, progression_type: str) -> Dict[str, Any]:
     current_level = int(existing.get('level', 1))
     if level_up.new_level != current_level + 1:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Can only level up from {current_level} to {current_level + 1}")
 
-    character_class = existing.get('character_class', '')
+    leveled_class = display_class_name(leveled_class)
     edition = edition_for(existing)
-    hit_die = hit_die_for(character_class)
+    class_levels = initial_class_levels(existing)
+    if progression_type == 'multiclass':
+        class_levels[leveled_class] = int(class_levels.get(leveled_class, 0)) + 1
+    else:
+        current_class = display_class_name(existing.get('character_class', leveled_class))
+        class_levels[current_class] = int(class_levels.get(current_class, current_level)) + 1
+
+    class_level_after = int(class_levels.get(leveled_class, 1))
+    hit_die = hit_die_for(leveled_class)
     con_mod = ability_modifier(existing.get('constitution', 10))
     hp_method = (level_up.hp_method or ('roll' if level_up.hp_roll is not None else 'average')).lower()
     if hp_method in {'roll', 'manual'}:
@@ -335,7 +367,10 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
     feats = existing.get('feats', []) or []
     level_progression = existing.get('level_progression', {}) or {}
     progression_entry = {
-        'type': level_up.choice_type or 'standard',
+        'type': progression_type if progression_type == 'multiclass' else (level_up.choice_type or 'standard'),
+        'class': leveled_class,
+        'class_level': class_level_after,
+        'class_levels': class_levels,
         'hp_method': hp_method,
         'hp_roll': level_up.hp_roll,
         'hp_gained': hp_increase,
@@ -362,17 +397,16 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
                 existing[ability] = min(20, existing_score + 1)
 
     if level_up.subclass:
-        unlock_level = get_subclass_unlock_level(character_class, edition)
-        if level_up.new_level < unlock_level:
+        unlock_level = get_subclass_unlock_level(leveled_class, edition)
+        if class_level_after < unlock_level:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{character_class}s cannot select a subclass until level {unlock_level} in {edition} rules",
+                detail=f"{leveled_class}s cannot select a subclass until class level {unlock_level} in {edition} rules",
             )
         progression_entry['subclass'] = level_up.subclass
 
     if level_up.fighting_style:
         progression_entry['fighting_style'] = level_up.fighting_style
-
     if level_up.maneuvers:
         progression_entry['maneuvers'] = level_up.maneuvers
 
@@ -384,22 +418,26 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
         progression_entry['new_cantrips'] = new_cantrips
 
     level_progression[str(level_up.new_level)] = progression_entry
+    primary_class = display_class_name(existing.get('character_class', leveled_class))
+    spell_slots = spell_slots_for_class_levels(primary_class, level_up.new_level, class_levels)
 
     update_data = {
         'level': level_up.new_level,
         'proficiency_bonus': proficiency_for(level_up.new_level),
         'max_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
         'current_hit_points': int(existing.get('max_hit_points', 10)) + hp_increase,
-        'hit_dice': f"{level_up.new_level}d{hit_die}",
+        'hit_dice': hit_dice_string_for(class_levels),
         'hit_dice_remaining': level_up.new_level,
-        'spell_slots': calculate_spell_slots(character_class, level_up.new_level),
-        'spell_slots_remaining': calculate_spell_slots(character_class, level_up.new_level),
+        'spell_slots': spell_slots,
+        'spell_slots_remaining': spell_slots,
         'level_progression': level_progression,
+        'class_levels': class_levels,
+        'multiclass_classes': list(class_levels.keys()),
         'feats': feats,
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }
 
-    if level_up.subclass:
+    if level_up.subclass and progression_type != 'multiclass':
         update_data['subclass'] = level_up.subclass
     if level_up.fighting_style:
         update_data['fighting_style'] = level_up.fighting_style
@@ -414,6 +452,27 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
         if ability in existing:
             update_data[ability] = existing[ability]
 
+    return update_data
+
+
+@router.post("/characters/{character_id}/level-up")
+async def level_up_character(character_id: str, level_up: LevelUpRequest, username: str = Depends(get_current_user)):
+    """Handle a normal single-class character level up."""
+    existing = await get_owned_character(character_id, username)
+    leveled_class = display_class_name(existing.get('character_class', 'Fighter'))
+    update_data = build_level_up_update(existing, level_up, leveled_class, level_up.choice_type or 'standard')
+    await db.player_characters.update_one({'id': character_id, 'user_id': username}, {'$set': update_data})
+    return await get_owned_character(character_id, username)
+
+
+@router.post("/characters/{character_id}/multiclass")
+async def multiclass_character(character_id: str, level_up: LevelUpRequest, username: str = Depends(get_current_user)):
+    """Add one level in a new class and preserve per-class progression history."""
+    existing = await get_owned_character(character_id, username)
+    new_class = display_class_name(level_up.new_class or '')
+    if not new_class:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="new_class is required for multiclassing")
+    update_data = build_level_up_update(existing, level_up, new_class, 'multiclass')
     await db.player_characters.update_one({'id': character_id, 'user_id': username}, {'$set': update_data})
     return await get_owned_character(character_id, username)
 
