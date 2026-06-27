@@ -56,6 +56,10 @@ function safeArray(value) {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : [];
 }
 
+function recordId(record) {
+  return record?.id || record?._id || record?.campaign_id || record?.campaignId || record?.character_id || record?.characterId || '';
+}
+
 function characterTitle(character) {
   return character?.name || character?.character_name || 'Unnamed Character';
 }
@@ -141,6 +145,20 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     await Promise.allSettled([loadDashboard(), checkBackend()]);
   };
 
+  const openCampaign = (campaign) => {
+    const id = recordId(campaign);
+    if (id) {
+      navigate(`/campaign/${id}`);
+      return;
+    }
+    toast.error('Campaign could not be opened because it is missing an ID. Refresh and try again.');
+  };
+
+  const openCharacter = (character) => {
+    const id = recordId(character);
+    if (id) navigate(`/characters/${id}`);
+  };
+
   const openCreateCampaign = () => setShowCreateCampaign(true);
   const closeCreateCampaign = () => {
     if (!creatingCampaign) setShowCreateCampaign(false);
@@ -180,7 +198,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         available_classes: [],
       };
       const response = await apiClient.post('/campaigns', payload);
-      const campaignId = response.data?.id || response.data?._id;
+      const campaignId = response.data?.id || response.data?._id || response.data?.campaign_id || response.data?.campaignId;
       toast.success('Campaign created');
       setCampaignForm(initialCampaignForm);
       setShowCreateCampaign(false);
@@ -194,25 +212,28 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   };
 
   const openPrimaryCampaign = () => {
-    if (primaryCampaign?.id) navigate(`/campaign/${primaryCampaign.id}`);
+    if (primaryCampaign) openCampaign(primaryCampaign);
     else openCreateCampaign();
   };
 
   const requestDeleteCharacter = (character) => {
-    if (!character?.id) return;
-    setPendingDelete({ type: 'character', id: character.id, name: characterTitle(character), endpoint: `/characters/${character.id}` });
+    const id = recordId(character);
+    if (!id) return;
+    setPendingDelete({ type: 'character', id, name: characterTitle(character), endpoint: `/characters/${id}` });
   };
 
   const requestDeleteCampaign = (campaign) => {
-    if (!campaign?.id) return;
-    setPendingDelete({ type: 'campaign', id: campaign.id, name: campaignTitle(campaign), endpoint: `/campaigns/${campaign.id}` });
+    const id = recordId(campaign);
+    if (!id) return;
+    setPendingDelete({ type: 'campaign', id, name: campaignTitle(campaign), endpoint: `/campaigns/${id}` });
   };
 
   const requestJoinCode = async (campaign) => {
-    if (!campaign?.id) return;
+    const id = recordId(campaign);
+    if (!id) return;
     try {
       setInviteLoading(true);
-      const response = await apiClient.get(`/campaign-invites/${campaign.id}`);
+      const response = await apiClient.get(`/campaign-invites/${id}`);
       setPendingInvite({ ...response.data, campaign_name: response.data?.campaign_name || campaignTitle(campaign) });
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to get join code');
@@ -305,7 +326,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           title={primaryCharacter ? characterTitle(primaryCharacter) : 'Create your first character'}
           text={primaryCharacter ? characterMeta(primaryCharacter) : 'Start with the builder and get a sheet ready for the table.'}
           action={primaryCharacter ? 'Open Sheet' : 'Create Character'}
-          onClick={() => primaryCharacter?.id ? navigate(`/characters/${primaryCharacter.id}`) : navigate('/characters/new')}
+          onClick={() => primaryCharacter ? openCharacter(primaryCharacter) : navigate('/characters/new')}
         />
         <ContinuePanel
           label="GM workspace"
@@ -324,13 +345,13 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
       </section>
 
       <section style={twoColumnStyle}>
-        <SummaryPanel title="Recent Characters" emptyText="No characters yet. Create one to get started." actionLabel="Open Player Dashboard" onAction={() => navigate('/player')}>
+        <SummaryPanel title="Recent Characters" emptyText="No characters yet. Create one to get started." actionLabel="Open Player Area" onAction={() => navigate('/player')}>
           {latestCharacters.map((character, index) => (
             <ListRow
-              key={character?.id || `character-${index}`}
+              key={recordId(character) || `character-${index}`}
               title={characterTitle(character)}
               meta={characterMeta(character)}
-              onOpen={() => character?.id && navigate(`/characters/${character.id}`)}
+              onOpen={() => openCharacter(character)}
               onDelete={() => requestDeleteCharacter(character)}
               deleteLabel="Delete character"
             />
@@ -340,10 +361,10 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         <SummaryPanel title="GM Campaigns" emptyText="No campaigns yet. Create one to start preparing sessions." actionLabel="Create Campaign" onAction={openCreateCampaign}>
           {latestCampaigns.map((campaign, index) => (
             <ListRow
-              key={campaign?.id || `campaign-${index}`}
+              key={recordId(campaign) || `campaign-${index}`}
               title={campaignTitle(campaign)}
               meta={campaignMeta(campaign)}
-              onOpen={() => campaign?.id && navigate(`/campaign/${campaign.id}`)}
+              onOpen={() => openCampaign(campaign)}
               onSecondary={() => requestJoinCode(campaign)}
               secondaryLabel={inviteLoading ? 'Loading...' : 'Code'}
               onDelete={() => requestDeleteCampaign(campaign)}
@@ -502,7 +523,7 @@ function CreateCampaignDialog({ form, creating, onChange, onToggleSessionZero, o
             <CampaignSelect label="Starting point" value={form.starting_point} onChange={(value) => onChange('starting_point', value)} options={startingPoints} />
           </div>
           <div style={modalSplitStyle}>
-            <CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition', value)} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} />
+            <CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition')} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} />
             <CampaignSelect label="World tone" value={form.world_setting} onChange={(value) => onChange('world_setting', value)} options={worldToneOptions} />
           </div>
           <fieldset style={checklistStyle}>
@@ -523,70 +544,60 @@ function CampaignField({ label, value, onChange, placeholder, required = false }
 }
 
 function CampaignSelect({ label, value, onChange, options }) {
-  return (
-    <label style={fieldWrapStyle}>
-      <span style={fieldLabelStyle}>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} style={selectInputStyle}>
-        {Object.entries(options).map(([optionValue, labelText]) => <option key={optionValue} value={optionValue} style={optionStyle}>{labelText}</option>)}
-      </select>
-    </label>
-  );
+  return <label style={fieldWrapStyle}><span style={fieldLabelStyle}>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)} style={fieldInputStyle}>{Object.entries(options).map(([id, labelText]) => <option key={id} value={id}>{labelText}</option>)}</select></label>;
 }
 
-const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const pageStyle = { minHeight: '100dvh', background: '#242424', color: '#ffffff', padding: 'clamp(14px, 3vw, 28px)', display: 'grid', alignContent: 'start', gap: 20, fontFamily: fontStack };
-const headerStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 14 };
-const brandRowStyle = { display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 };
-const logoTileStyle = { width: 52, height: 52, display: 'grid', placeItems: 'center', background: '#3a3a3a', flex: '0 0 auto' };
-const headerButtonsStyle = { display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' };
-const eyebrowStyle = { margin: 0, color: 'rgba(255,255,255,0.68)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 950, fontFamily: fontStack };
-const titleStyle = { margin: '2px 0 4px', color: '#ffffff', fontSize: 'clamp(28px, 5vw, 46px)', lineHeight: 1.02, fontWeight: 950, letterSpacing: '-0.04em', fontFamily: fontStack };
-const mutedStyle = { margin: 0, color: 'rgba(255,255,255,0.68)', lineHeight: 1.42, fontSize: 14, fontFamily: fontStack };
-const buttonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', fontWeight: 900, padding: '0 13px', cursor: 'pointer', fontFamily: fontStack };
-const statusBarStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 0, borderTop: '1px solid rgba(255,255,255,0.16)', borderBottom: '1px solid rgba(255,255,255,0.16)' };
-const statChipStyle = { minHeight: 68, display: 'grid', alignContent: 'center', gap: 3, padding: '10px 14px', borderRight: '1px solid rgba(255,255,255,0.16)' };
-const statValueStyle = { color: '#ffffff', fontSize: 22, fontWeight: 950, lineHeight: 1, fontFamily: fontStack };
-const statLabelStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, fontFamily: fontStack };
-const continueGridStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 };
-const continuePanelStyle = { background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 0, padding: 16, display: 'grid', gap: 9, position: 'relative' };
-const redRuleStyle = { width: 42, height: 5, background: '#d00000', display: 'block' };
-const continueTitleStyle = { margin: 0, color: '#ffffff', fontSize: 'clamp(20px, 3vw, 28px)', lineHeight: 1.08, fontWeight: 950, letterSpacing: '-0.02em', fontFamily: fontStack };
-const continueButtonStyle = { justifySelf: 'start', minHeight: 40, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 13px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const heroGridStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, borderTop: '1px solid rgba(255,255,255,0.16)' };
-const actionCardStyle = { minHeight: 132, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: 0, borderBottom: '1px solid rgba(255,255,255,0.16)', background: 'transparent', color: '#ffffff', padding: '18px 16px 18px 0', cursor: 'pointer', borderRadius: 0, fontFamily: fontStack };
-const cardAccentStyle = { width: 6, height: 42, background: '#d00000', flex: '0 0 auto' };
-const actionTextWrapStyle = { display: 'grid', gap: 6, minWidth: 0, flex: 1 };
-const cardTitleStyle = { color: '#ffffff', fontSize: 18, fontWeight: 950, fontFamily: fontStack };
-const cardTextStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 14, lineHeight: 1.4, fontFamily: fontStack };
-const cardMetaStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: fontStack };
-const arrowStyle = { color: '#ffffff', fontSize: 24, lineHeight: 1, opacity: 0.72 };
-const twoColumnStyle = { width: 'min(1180px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 };
-const panelStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 14 };
-const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' };
-const sectionTitleStyle = { margin: 0, color: '#ffffff', fontSize: 20, fontWeight: 950, fontFamily: fontStack };
-const linkButtonStyle = { border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '8px 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const listRowStyle = { width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', alignItems: 'stretch', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.16)' };
-const listOpenButtonStyle = { minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: 0, background: 'transparent', color: '#ffffff', padding: '12px 0', cursor: 'pointer', textAlign: 'left', fontFamily: fontStack };
-const smallButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const deleteButtonStyle = { alignSelf: 'center', minHeight: 34, border: 0, borderRadius: 0, background: 'rgba(208,0,0,0.36)', color: '#ffffff', padding: '0 10px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const dangerButtonStyle = { minHeight: 40, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 13px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 15, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
-const systemPanelStyle = { width: 'min(1180px, 100%)', margin: '0 auto', borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' };
-const loadingStyle = { width: 'min(520px, 100%)', margin: '12vh auto 0', display: 'grid', justifyItems: 'center', gap: 10, textAlign: 'center' };
-const modalOverlayStyle = { position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)', display: 'grid', placeItems: 'center', padding: 16 };
-const modalPanelStyle = { width: 'min(620px, 100%)', maxHeight: 'min(90dvh, 760px)', overflowY: 'auto', background: '#242424', backgroundColor: '#242424', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, padding: 18, boxShadow: 'none', color: '#ffffff', opacity: 1 };
-const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 12, marginBottom: 14, background: '#242424' };
-const modalTitleStyle = { ...continueTitleStyle, fontSize: 28 };
-const closeButtonStyle = { width: 40, height: 40, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', fontSize: 26, lineHeight: 1, cursor: 'pointer' };
-const modalFormStyle = { display: 'grid', gap: 12, background: '#242424' };
-const modalSplitStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 };
+const pageStyle = { minHeight: '100dvh', background: '#242424', color: '#ffffff', padding: 'clamp(14px, 2vw, 28px)', display: 'grid', gap: 18 };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 16 };
+const brandRowStyle = { display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 };
+const logoTileStyle = { width: 56, height: 56, display: 'grid', placeItems: 'center', background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.16)', flex: '0 0 56px' };
+const titleStyle = { margin: 0, color: '#ffffff', fontSize: 'clamp(30px, 5vw, 54px)', fontFamily: 'var(--rq-title-font, "Germania One", Georgia, serif)', letterSpacing: '0.03em', lineHeight: 0.95 };
+const eyebrowStyle = { margin: '0 0 4px', color: 'rgba(255,255,255,0.58)', fontSize: 11, fontWeight: 950, letterSpacing: '0.11em', textTransform: 'uppercase' };
+const mutedStyle = { margin: 0, color: 'rgba(255,255,255,0.72)', lineHeight: 1.5 };
+const headerButtonsStyle = { display: 'flex', flexWrap: 'wrap', gap: 8 };
+const buttonStyle = { minHeight: 40, background: '#3a3a3a', color: '#ffffff', border: 0, padding: '0 13px', fontWeight: 900, cursor: 'pointer' };
+const linkButtonStyle = { minHeight: 34, background: '#242424', color: '#ffffff', border: '1px solid rgba(255,255,255,0.16)', padding: '0 10px', fontWeight: 900, cursor: 'pointer' };
+const statusBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', borderTop: '1px solid rgba(255,255,255,0.16)', borderLeft: '1px solid rgba(255,255,255,0.16)' };
+const statChipStyle = { minHeight: 70, display: 'grid', alignContent: 'center', gap: 3, padding: 12, background: '#2f2f2f', borderRight: '1px solid rgba(255,255,255,0.16)', borderBottom: '1px solid rgba(255,255,255,0.16)' };
+const statValueStyle = { fontSize: 24, fontWeight: 950 };
+const statLabelStyle = { color: 'rgba(255,255,255,0.58)', fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' };
+const continueGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 };
+const continuePanelStyle = { position: 'relative', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 18, overflow: 'hidden' };
+const redRuleStyle = { position: 'absolute', inset: '0 auto 0 0', width: 6, background: '#d00000' };
+const continueTitleStyle = { margin: '5px 0 8px', color: '#ffffff', fontSize: 24, fontWeight: 950 };
+const continueButtonStyle = { marginTop: 14, minHeight: 42, background: '#d00000', color: '#ffffff', border: 0, padding: '0 14px', fontWeight: 950, cursor: 'pointer' };
+const heroGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, borderTop: '1px solid rgba(255,255,255,0.16)', borderLeft: '1px solid rgba(255,255,255,0.16)' };
+const actionCardStyle = { minHeight: 142, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', background: '#2f2f2f', color: '#ffffff', border: 0, borderRight: '1px solid rgba(255,255,255,0.16)', borderBottom: '1px solid rgba(255,255,255,0.16)', padding: '18px 14px 18px 0', cursor: 'pointer' };
+const cardAccentStyle = { width: 6, height: 46, background: '#d00000', flex: '0 0 auto' };
+const actionTextWrapStyle = { display: 'grid', gap: 7, minWidth: 0, flex: 1 };
+const cardTitleStyle = { color: '#ffffff', fontSize: 17, fontWeight: 950 };
+const cardTextStyle = { color: 'rgba(255,255,255,0.74)', lineHeight: 1.45, fontSize: 14 };
+const cardMetaStyle = { display: 'block', color: 'rgba(255,255,255,0.58)', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 3 };
+const arrowStyle = { color: '#ffffff', opacity: 0.75, fontSize: 26 };
+const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 };
+const panelStyle = { background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 14 };
+const panelHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 10, marginBottom: 8 };
+const sectionTitleStyle = { margin: 0, color: '#ffffff', fontSize: 18, fontWeight: 950 };
+const listRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', alignItems: 'stretch', background: '#242424', borderBottom: '1px solid rgba(255,255,255,0.12)' };
+const listOpenButtonStyle = { minHeight: 58, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, background: 'transparent', color: '#ffffff', border: 0, padding: '10px 12px', textAlign: 'left', cursor: 'pointer' };
+const listTitleStyle = { display: 'block', color: '#ffffff', fontSize: 14, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const smallButtonStyle = { minHeight: 40, background: '#3a3a3a', color: '#ffffff', border: 0, padding: '0 10px', fontWeight: 900, cursor: 'pointer' };
+const deleteButtonStyle = { minHeight: 40, background: '#5f1111', color: '#ffffff', border: 0, padding: '0 10px', fontWeight: 900, cursor: 'pointer' };
+const systemPanelStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 14 };
+const loadingStyle = { minHeight: '70dvh', display: 'grid', placeItems: 'center', alignContent: 'center', gap: 12 };
+const modalOverlayStyle = { position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,0.78)', display: 'grid', placeItems: 'center', padding: 16 };
+const modalPanelStyle = { width: 'min(720px, 100%)', maxHeight: '92dvh', overflowY: 'auto', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.18)', padding: 18 };
+const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.16)', paddingBottom: 12, marginBottom: 14 };
+const modalTitleStyle = { margin: 0, color: '#ffffff', fontSize: 26, fontWeight: 950 };
+const closeButtonStyle = { width: 40, height: 40, border: 0, background: '#3a3a3a', color: '#ffffff', fontSize: 26, cursor: 'pointer' };
+const modalFormStyle = { display: 'grid', gap: 12 };
 const fieldWrapStyle = { display: 'grid', gap: 6 };
-const fieldLabelStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: fontStack };
-const fieldInputStyle = { width: '100%', minHeight: 44, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, background: '#3a3a3a', backgroundColor: '#3a3a3a', color: '#ffffff', padding: '0 11px', fontFamily: fontStack, fontSize: 15, outline: 'none', colorScheme: 'dark' };
-const selectInputStyle = { ...fieldInputStyle, appearance: 'auto' };
-const optionStyle = { backgroundColor: '#3a3a3a', background: '#3a3a3a', color: '#ffffff' };
-const checklistStyle = { border: '1px solid rgba(255,255,255,0.18)', borderRadius: 0, padding: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, margin: 0, background: '#242424' };
-const checkboxRowStyle = { display: 'flex', alignItems: 'flex-start', gap: 8, color: '#ffffff', fontSize: 13, lineHeight: 1.3, fontFamily: fontStack };
-const setupPreviewStyle = { borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 10, background: '#242424' };
-const joinCodeBoxStyle = { background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.18)', color: '#ffffff', fontSize: 'clamp(34px, 9vw, 64px)', fontWeight: 950, letterSpacing: '0.16em', textAlign: 'center', padding: '18px 12px', marginBottom: 12, fontFamily: fontStack };
-const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.16)', paddingTop: 12, marginTop: 14, background: '#242424' };
+const fieldLabelStyle = { color: 'rgba(255,255,255,0.68)', fontSize: 11, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' };
+const fieldInputStyle = { minHeight: 42, background: '#242424', color: '#ffffff', border: '1px solid rgba(255,255,255,0.16)', padding: '0 10px', outline: 'none', colorScheme: 'dark' };
+const modalSplitStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 };
+const checklistStyle = { border: '1px solid rgba(255,255,255,0.16)', padding: 12, display: 'grid', gap: 8 };
+const checkboxRowStyle = { display: 'flex', alignItems: 'center', gap: 9, color: 'rgba(255,255,255,0.78)', fontSize: 13 };
+const setupPreviewStyle = { background: '#242424', borderLeft: '5px solid #d00000', padding: 12 };
+const modalActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', marginTop: 4 };
+const dangerButtonStyle = { minHeight: 42, background: '#5f1111', color: '#ffffff', border: 0, padding: '0 14px', fontWeight: 950, cursor: 'pointer' };
+const joinCodeBoxStyle = { background: '#242424', border: '1px solid rgba(255,255,255,0.18)', color: '#ffffff', fontSize: 'clamp(34px, 8vw, 60px)', fontWeight: 950, letterSpacing: '0.16em', textAlign: 'center', padding: '16px 10px', marginBottom: 12 };
