@@ -1,86 +1,74 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart3,
   BookOpen,
   Check,
+  ChevronDown,
+  ChevronRight,
   CloudRain,
   Coins,
   Compass,
   Dices,
   FileText,
-  Grid3X3,
-  Link2,
   Mail,
-  RefreshCw,
+  Map,
+  Monitor,
   Skull,
-  Sparkles,
   Swords,
   Target,
   UserCircle,
   Users,
-  Volume2,
-  Wand2,
 } from 'lucide-react';
 
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
 const rq = {
-  panel: 'var(--rq-bg-panel, #21150E)',
-  input: 'var(--rq-bg-input, #1A100B)',
-  elevated: 'var(--rq-bg-elevated, #3A2619)',
-  border: 'var(--rq-accent-border, rgba(192,138,61,0.42))',
-  borderDefault: 'var(--rq-border-default, rgba(192,138,61,0.22))',
-  accent: 'var(--rq-accent-primary, #C08A3D)',
-  accentHover: 'var(--rq-accent-hover, #E0B15C)',
-  accentSoft: 'var(--rq-accent-soft, rgba(192,138,61,0.12))',
-  text: 'var(--rq-text-primary, #F5E6C8)',
-  textSecondary: 'var(--rq-text-secondary, #E6D2AA)',
-  muted: 'var(--rq-text-muted, #CDBA98)',
-  radius: 'var(--rq-radius-md, 6px)',
-  radiusSm: 'var(--rq-radius-sm, 4px)',
+  bg: '#242424',
+  panel: '#2f2f2f',
+  card: '#3a3a3a',
+  hover: '#444444',
+  line: 'rgba(255,255,255,0.16)',
+  lineStrong: 'rgba(255,255,255,0.24)',
+  red: '#d00000',
+  redSoft: 'rgba(208,0,0,0.18)',
+  text: '#ffffff',
+  soft: 'rgba(255,255,255,0.74)',
+  muted: 'rgba(255,255,255,0.58)',
 };
 
-export const LIVE_GRID_DEFAULTS = ['combat', 'party', 'notes', 'handouts'];
+export const LIVE_GRID_DEFAULTS = ['overview', 'combat', 'notes', 'player-display'];
 
 export const LIVE_GRID_TOOLS = [
-  { id: 'combat', label: 'Combat', icon: Swords, group: 'Core' },
-  { id: 'party', label: 'Party', icon: Users, group: 'Core' },
-  { id: 'notes', label: 'Notes', icon: FileText, group: 'Core' },
-  { id: 'handouts', label: 'Handouts', icon: Mail, group: 'Core' },
-  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Core' },
-  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Core' },
-  { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Characters' },
-  { id: 'monsters', label: 'Monsters', icon: Skull, group: 'Characters' },
-  { id: 'network', label: 'NPC Network', icon: Link2, group: 'Characters' },
-  { id: 'location', label: 'Location', icon: Compass, group: 'World' },
-  { id: 'environment', label: 'Environment', icon: CloudRain, group: 'World' },
-  { id: 'events', label: 'Events', icon: BarChart3, group: 'World' },
-  { id: 'tables', label: 'Random Tables', icon: Wand2, group: 'Reference' },
-  { id: 'loot', label: 'Loot', icon: Coins, group: 'Reference' },
-  { id: 'story', label: 'Story Arcs', icon: Target, group: 'Session' },
-  { id: 'planner', label: 'Rook Planner', icon: Sparkles, group: 'Session' },
-  { id: 'sound', label: 'Soundboard', icon: Volume2, group: 'Session' },
+  { id: 'overview', label: 'Overview', icon: Target, group: 'Run' },
+  { id: 'combat', label: 'Combat', icon: Swords, group: 'Run' },
+  { id: 'party', label: 'Party', icon: Users, group: 'Run' },
+  { id: 'notes', label: 'Notes', icon: FileText, group: 'Run' },
+  { id: 'handouts', label: 'Handouts', icon: Mail, group: 'Run' },
+  { id: 'player-display', label: 'Player Display', icon: Monitor, group: 'Run' },
+  { id: 'maps', label: 'Maps', icon: Map, group: 'Table' },
+  { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Table' },
+  { id: 'environment', label: 'Environment', icon: CloudRain, group: 'Table' },
+  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Reference' },
+  { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Reference' },
+  { id: 'monsters', label: 'Monsters', icon: Skull, group: 'Optional' },
+  { id: 'tables', label: 'Random Tables', icon: Compass, group: 'Optional' },
+  { id: 'loot', label: 'Loot', icon: Coins, group: 'Optional' },
 ];
 
-function getDefaultPanelCount() {
-  if (typeof window === 'undefined') return 4;
-  if (window.matchMedia('(max-width: 640px)').matches) return 1;
-  if (window.matchMedia('(max-width: 1100px)').matches) return 2;
-  return 4;
-}
+const TOOL_GROUPS = [
+  { id: 'Run', label: 'Run Session' },
+  { id: 'Table', label: 'Table Tools' },
+  { id: 'Reference', label: 'Quick Reference' },
+  { id: 'Optional', label: 'Optional' },
+];
 
-function getStoredLayout(storageKey) {
+function getStoredTool(storageKey) {
   try {
     const raw = localStorage.getItem(storageKey);
-    if (!raw) return null;
+    if (!raw) return 'overview';
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.panels)) return null;
-    const allowed = new Set(LIVE_GRID_TOOLS.map(tool => tool.id));
-    return {
-      panelCount: Math.min(4, Math.max(1, Number(parsed.panelCount) || getDefaultPanelCount())),
-      panels: parsed.panels.filter(panel => allowed.has(panel)),
-    };
-  } catch {
-    return null;
-  }
+    if (parsed?.activeTool && LIVE_GRID_TOOLS.some(tool => tool.id === parsed.activeTool)) return parsed.activeTool;
+  } catch { /* ignore */ }
+  return 'overview';
 }
 
 export default function LiveSessionGridMode({
@@ -91,125 +79,158 @@ export default function LiveSessionGridMode({
   onRollDice,
   refreshKey = 0,
 }) {
-  const storageKey = `gm.liveGrid.layout.${campaignId || 'default'}`;
-  const stored = useMemo(() => getStoredLayout(storageKey), [storageKey]);
-  const [panelCount, setPanelCount] = useState(stored?.panelCount || getDefaultPanelCount());
-  const [panels, setPanels] = useState(stored?.panels || LIVE_GRID_DEFAULTS);
+  const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
+  const [activeTool, setActiveTool] = useState(() => getStoredTool(storageKey));
+  const [expandedGroups, setExpandedGroups] = useState({ Run: true, Table: true, Reference: true, Optional: false });
 
   useEffect(() => {
-    const next = { panelCount, panels };
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ignore */ }
-  }, [panelCount, panels, storageKey]);
+    try { localStorage.setItem(storageKey, JSON.stringify({ activeTool })); } catch { /* ignore */ }
+  }, [activeTool, storageKey]);
 
-  const visiblePanels = useMemo(() => {
-    const next = [...panels];
-    while (next.length < panelCount) next.push(LIVE_GRID_DEFAULTS[next.length % LIVE_GRID_DEFAULTS.length]);
-    return next.slice(0, panelCount);
-  }, [panelCount, panels]);
+  const active = useMemo(() => LIVE_GRID_TOOLS.find(tool => tool.id === activeTool) || LIVE_GRID_TOOLS[0], [activeTool]);
+  const ActiveIcon = active.icon;
 
-  const setPanelTool = (index, toolId) => {
-    setPanels(prev => {
-      const next = [...prev];
-      while (next.length <= index) next.push(LIVE_GRID_DEFAULTS[next.length % LIVE_GRID_DEFAULTS.length]);
-      next[index] = toolId;
-      return next;
-    });
+  const selectTool = (toolId) => {
+    setActiveTool(toolId);
+    onOpenSingleTab?.(toolId);
   };
 
-  const resetLayout = () => {
-    const count = getDefaultPanelCount();
-    setPanelCount(count);
-    setPanels(LIVE_GRID_DEFAULTS);
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
   };
-
-  const gridStyle = getGridStyle(panelCount);
 
   return (
-    <div data-testid="live-session-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-      <div style={toolbarStyle}>
-        <div style={{ minWidth: 0 }}>
-          <h2 style={titleStyle}><Grid3X3 size={22} /> GM Screen</h2>
-          <p style={subtitleStyle}>Focused table layout: 1–4 panels for combat, party, notes, handouts, dice, and reference.</p>
+    <div data-testid="live-session-grid" style={shellStyle}>
+      <aside style={sideBarStyle} aria-label="Live Play tools">
+        <div style={sideHeaderStyle}>
+          <p style={eyebrowStyle}>Live Tools</p>
+          <strong style={sideTitleStyle}>GM Screen</strong>
         </div>
-        <div style={toolbarActionsStyle}>
-          <div style={countPickerStyle} aria-label="Panel count selector">
-            {[1, 2, 3, 4].map(count => {
-              const active = panelCount === count;
-              return (
-                <button key={count} type="button" data-testid={`live-grid-count-${count}`} onClick={() => setPanelCount(count)} style={countButtonStyle(active)}>
-                  {count}
-                </button>
-              );
-            })}
-          </div>
-          <button type="button" onClick={resetLayout} style={resetButtonStyle}>
-            <RefreshCw size={14} /> Reset
-          </button>
-        </div>
-      </div>
-
-      <div style={gridStyle}>
-        {visiblePanels.map((toolId, index) => {
-          const tool = LIVE_GRID_TOOLS.find(item => item.id === toolId) || LIVE_GRID_TOOLS[0];
-          const Icon = tool.icon;
+        {TOOL_GROUPS.map(group => {
+          const isExpanded = Boolean(expandedGroups[group.id]);
+          const tools = LIVE_GRID_TOOLS.filter(tool => tool.group === group.id);
           return (
-            <section key={`${refreshKey}-${index}-${toolId}`} data-testid={`live-grid-panel-${index + 1}`} style={panelStyle}>
-              <div style={panelHeaderStyle}>
-                <div style={panelTitleStyle}>
-                  <Icon size={15} style={{ color: rq.accentHover }} />
-                  <span>Panel {index + 1}</span>
-                </div>
-                <select
-                  value={toolId}
-                  onChange={event => setPanelTool(index, event.target.value)}
-                  style={selectStyle}
-                  aria-label={`Choose tool for panel ${index + 1}`}
-                >
-                  {LIVE_GRID_TOOLS.map(option => (
-                    <option key={option.id} value={option.id}>{option.group} · {option.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={panelBodyStyle}>
-                {toolId === 'quick-dice' ? (
-                  <QuickDicePanel theme={theme} onRollDice={onRollDice} />
-                ) : (
-                  <GridToolWrapper toolId={toolId} onOpenSingleTab={onOpenSingleTab}>
-                    {renderTool?.(toolId, { compact: true }) || <UtilityPlaceholder title={tool.label} text="This panel is ready for this tool." />}
-                  </GridToolWrapper>
-                )}
-              </div>
+            <section key={group.id}>
+              <button type="button" onClick={() => toggleGroup(group.id)} style={groupButtonStyle} aria-expanded={isExpanded ? 'true' : 'false'}>
+                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                <span>{group.label}</span>
+              </button>
+              {isExpanded && tools.map(tool => {
+                const Icon = tool.icon;
+                const selected = activeTool === tool.id;
+                return (
+                  <button key={tool.id} type="button" onClick={() => selectTool(tool.id)} data-testid={`live-tool-${tool.id}`} style={toolButtonStyle(selected)}>
+                    <Icon size={16} />
+                    <span>{tool.label}</span>
+                  </button>
+                );
+              })}
             </section>
           );
         })}
-      </div>
+      </aside>
+
+      <main style={mainStyle} key={`${refreshKey}-${activeTool}`}>
+        <header style={toolHeaderStyle}>
+          <div style={toolTitleWrapStyle}>
+            <span style={toolIconStyle}><ActiveIcon size={19} /></span>
+            <div style={{ minWidth: 0 }}>
+              <p style={eyebrowStyle}>{active.group}</p>
+              <h2 style={toolTitleStyle}>{active.label}</h2>
+            </div>
+          </div>
+          <span style={modePillStyle}>Focused live mode</span>
+        </header>
+        <section style={toolBodyStyle}>
+          {activeTool === 'overview' ? <LiveOverview onSelect={selectTool} /> : activeTool === 'quick-dice' ? <QuickDicePanel theme={theme} onRollDice={onRollDice} /> : (renderTool?.(activeTool, { compact: false }) || <UtilityPlaceholder title={active.label} text="This live tool is ready." />)}
+        </section>
+      </main>
+
+      <aside style={quickRailStyle} aria-label="Live quick references">
+        <QuickRail onRollDice={onRollDice} onSelect={selectTool} activeTool={activeTool} />
+      </aside>
     </div>
   );
 }
 
-function GridToolWrapper({ toolId, onOpenSingleTab, children }) {
+function LiveOverview({ onSelect }) {
+  const cards = [
+    { id: 'combat', title: 'Run Combat', text: 'Open encounters, initiative, and fight tools.', icon: Swords },
+    { id: 'notes', title: 'Capture Notes', text: 'Save rulings, choices, clues, loot, and consequences.', icon: FileText },
+    { id: 'handouts', title: 'Reveal Handouts', text: 'Send secrets, lore, letters, and clues to players.', icon: Mail },
+    { id: 'player-display', title: 'Control TV Display', text: 'Choose what appears on the extended player screen.', icon: Monitor },
+    { id: 'party', title: 'Check Party', text: 'See players and table status quickly.', icon: Users },
+    { id: 'reference-hub', title: 'Rules Reference', text: 'Look up quick table references without leaving live mode.', icon: BookOpen },
+  ];
   return (
-    <div style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-        <button type="button" onClick={() => onOpenSingleTab?.(toolId)} style={openButtonStyle}>Focus Tool</button>
-      </div>
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>{children}</div>
+    <div style={overviewStyle}>
+      <section style={overviewHeroStyle}>
+        <p style={eyebrowStyle}>Run flow</p>
+        <h3 style={overviewTitleStyle}>Pick the tool you need, keep the table moving.</h3>
+        <p style={overviewTextStyle}>Live Play now works like the GM dashboard: one focused workspace, a left tool menu, and a slim quick rail for dice and fast references.</p>
+      </section>
+      <section style={overviewGridStyle}>
+        {cards.map(card => {
+          const Icon = card.icon;
+          return (
+            <button key={card.id} type="button" onClick={() => onSelect(card.id)} style={overviewCardStyle}>
+              <span style={overviewAccentStyle} />
+              <span style={{ display: 'grid', gap: 6, minWidth: 0 }}>
+                <strong style={overviewCardTitleStyle}><Icon size={17} /> {card.title}</strong>
+                <span style={overviewCardTextStyle}>{card.text}</span>
+              </span>
+            </button>
+          );
+        })}
+      </section>
+    </div>
+  );
+}
+
+function QuickRail({ onRollDice, onSelect, activeTool }) {
+  return (
+    <div style={quickRailInnerStyle}>
+      <section style={railBoxStyle}>
+        <p style={railLabelStyle}>Quick Dice</p>
+        <div style={diceGridStyle}>
+          {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
+            <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>
+          ))}
+        </div>
+        <div style={diceGridStyle}>
+          <button type="button" onClick={() => onRollDice?.('2d20', 'Two d20s')} style={diceButtonStyle}>2D20</button>
+          <button type="button" onClick={() => onRollDice?.('2d6', 'Two d6s')} style={diceButtonStyle}>2D6</button>
+        </div>
+      </section>
+
+      <section style={railBoxStyle}>
+        <p style={railLabelStyle}>Fast Switch</p>
+        {[
+          ['combat', 'Combat'],
+          ['notes', 'Notes'],
+          ['handouts', 'Handouts'],
+          ['player-display', 'TV Display'],
+        ].map(([id, label]) => (
+          <button key={id} type="button" onClick={() => onSelect(id)} style={railLinkStyle(activeTool === id)}>{label}</button>
+        ))}
+      </section>
+
+      <section style={railBoxStyle}>
+        <p style={railLabelStyle}>Table Rule</p>
+        <p style={railTextStyle}>During play, use the fewest tools possible: combat, notes, handouts, and player display should do most of the heavy lifting.</p>
+      </section>
     </div>
   );
 }
 
 function QuickDicePanel({ onRollDice }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ color: rq.muted, fontSize: 12, margin: 0 }}>Fast dice rolls without leaving the GM screen. If the GM enables exploding dice, non-d20 maximum rolls add another die.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+    <div style={standaloneDiceStyle}>
+      <p style={overviewTextStyle}>Fast dice rolls without leaving the GM screen. If exploding dice are enabled, non-d20 maximum rolls add another die.</p>
+      <div style={largeDiceGridStyle}>
         {['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(die => (
-          <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={diceButtonStyle}>{die.toUpperCase()}</button>
+          <button key={die} type="button" onClick={() => onRollDice?.(`1${die}`, die.toUpperCase())} style={largeDiceButtonStyle}>{die.toUpperCase()}</button>
         ))}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-        <button type="button" onClick={() => onRollDice?.('2d20', 'Two d20s')} style={diceButtonStyle}>2D20</button>
-        <button type="button" onClick={() => onRollDice?.('2d6', 'Two d6s')} style={diceButtonStyle}>2D6</button>
       </div>
     </div>
   );
@@ -218,42 +239,70 @@ function QuickDicePanel({ onRollDice }) {
 function UtilityPlaceholder({ title, text }) {
   return (
     <div style={placeholderStyle}>
-      <Check size={22} style={{ color: rq.accentHover }} />
-      <h3 style={{ color: rq.text, margin: '8px 0 4px', fontSize: 15 }}>{title}</h3>
-      <p style={{ color: rq.muted, margin: 0, fontSize: 12, lineHeight: 1.5 }}>{text}</p>
+      <Check size={22} style={{ color: rq.red }} />
+      <h3 style={{ color: rq.text, margin: '8px 0 4px', fontSize: 16 }}>{title}</h3>
+      <p style={{ color: rq.muted, margin: 0, fontSize: 13, lineHeight: 1.5 }}>{text}</p>
     </div>
   );
 }
 
-function getGridStyle(panelCount) {
-  const base = {
-    display: 'grid',
-    gap: 8,
-    flex: 1,
-    minHeight: 0,
-    overflow: 'hidden',
-    gridAutoRows: 'minmax(0, 1fr)',
-  };
-  if (panelCount === 1) return { ...base, gridTemplateColumns: '1fr' };
-  if (panelCount === 2) return { ...base, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' };
-  if (panelCount === 3) return { ...base, gridTemplateColumns: '1.25fr repeat(2, minmax(0, 1fr))' };
-  if (panelCount === 4) return { ...base, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' };
-  if (panelCount === 5) return { ...base, gridTemplateColumns: '1.2fr repeat(2, minmax(0, 1fr))' };
-  return { ...base, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' };
-}
+const shellStyle = { display: 'grid', gridTemplateColumns: '220px minmax(0, 1fr) 260px', gap: 8, flex: 1, minHeight: 520, overflow: 'visible' };
+const sideBarStyle = { background: rq.panel, border: `1px solid ${rq.line}`, minWidth: 0, overflow: 'hidden', alignSelf: 'start', position: 'sticky', top: 8 };
+const sideHeaderStyle = { padding: 12, borderBottom: `1px solid ${rq.line}`, background: rq.card };
+const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
+const sideTitleStyle = { display: 'block', marginTop: 3, color: rq.text, fontSize: 17, fontWeight: 950 };
+const groupButtonStyle = { width: '100%', minHeight: 38, display: 'flex', alignItems: 'center', gap: 7, border: 0, borderTop: `1px solid ${rq.line}`, background: rq.panel, color: rq.soft, padding: '0 10px', fontSize: 11, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
+const toolButtonStyle = (active) => ({ width: '100%', minHeight: 40, display: 'flex', alignItems: 'center', gap: 9, border: 0, borderTop: `1px solid rgba(255,255,255,0.07)`, background: active ? rq.red : 'transparent', color: rq.text, padding: '0 12px 0 28px', fontSize: 13, fontWeight: 900, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack });
+const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}`, display: 'flex', flexDirection: 'column', overflow: 'visible' };
+const toolHeaderStyle = { minHeight: 58, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: `1px solid ${rq.line}`, background: rq.card };
+const toolTitleWrapStyle = { display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 };
+const toolIconStyle = { width: 36, height: 36, display: 'grid', placeItems: 'center', background: rq.bg, borderLeft: `5px solid ${rq.red}`, color: rq.text, flex: '0 0 36px' };
+const toolTitleStyle = { margin: '2px 0 0', color: rq.text, fontSize: 22, fontWeight: 950, lineHeight: 1.05 };
+const modePillStyle = { color: rq.soft, border: `1px solid ${rq.line}`, background: rq.bg, padding: '6px 8px', fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' };
+const toolBodyStyle = { padding: 10, minHeight: 0, overflow: 'visible' };
+const quickRailStyle = { minWidth: 0, alignSelf: 'start', position: 'sticky', top: 8 };
+const quickRailInnerStyle = { display: 'grid', gap: 8 };
+const railBoxStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 10 };
+const railLabelStyle = { margin: '0 0 8px', color: rq.text, fontSize: 12, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const railTextStyle = { margin: 0, color: rq.soft, fontSize: 12, lineHeight: 1.45 };
+const diceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, marginTop: 6 };
+const diceButtonStyle = { minHeight: 34, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const railLinkStyle = (active) => ({ width: '100%', minHeight: 34, display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: `1px solid ${active ? rq.red : rq.line}`, background: active ? rq.redSoft : rq.card, color: rq.text, padding: '0 9px', marginTop: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
+const overviewStyle = { display: 'grid', gap: 12 };
+const overviewHeroStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 14 };
+const overviewTitleStyle = { margin: '4px 0 6px', color: rq.text, fontSize: 26, fontWeight: 950, lineHeight: 1.05 };
+const overviewTextStyle = { margin: 0, color: rq.soft, fontSize: 13, lineHeight: 1.5 };
+const overviewGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 };
+const overviewCardStyle = { minHeight: 112, display: 'flex', gap: 10, alignItems: 'flex-start', textAlign: 'left', border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: 12, cursor: 'pointer', fontFamily: fontStack };
+const overviewAccentStyle = { width: 5, height: 42, background: rq.red, flex: '0 0 auto' };
+const overviewCardTitleStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15, fontWeight: 950 };
+const overviewCardTextStyle = { color: rq.soft, fontSize: 12, lineHeight: 1.45 };
+const standaloneDiceStyle = { display: 'grid', gap: 14, background: rq.bg, border: `1px solid ${rq.line}`, padding: 14 };
+const largeDiceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 8 };
+const largeDiceButtonStyle = { minHeight: 60, border: `1px solid ${rq.lineStrong}`, background: rq.card, color: rq.text, fontSize: 16, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const placeholderStyle = { minHeight: 220, display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center', background: rq.bg, border: `1px dashed ${rq.line}`, padding: 20 };
 
-const toolbarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, padding: '8px 10px', flexShrink: 0 };
-const titleStyle = { color: rq.text, fontSize: 17, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
-const subtitleStyle = { color: rq.muted, fontSize: 11, margin: '2px 0 0' };
-const toolbarActionsStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' };
-const countPickerStyle = { display: 'flex', border: `1px solid ${rq.border}`, background: rq.input, borderRadius: 0, overflow: 'hidden' };
-const countButtonStyle = (active) => ({ minWidth: 30, height: 30, border: 'none', borderRight: `1px solid ${rq.borderDefault}`, background: active ? rq.accent : 'transparent', color: active ? 'var(--rq-text-primary, #F5E6C8)' : rq.textSecondary, fontWeight: 900, cursor: 'pointer', fontSize: 12 });
-const resetButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '0 9px', borderRadius: 0, fontWeight: 900, cursor: 'pointer', fontSize: 12 };
-const panelStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: 0, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
-const panelHeaderStyle = { display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', padding: '6px 8px', borderBottom: `1px solid ${rq.border}`, background: rq.input, flexShrink: 0 };
-const panelTitleStyle = { color: rq.text, fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' };
-const selectStyle = { minWidth: 118, maxWidth: '58%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: 0, padding: '5px 7px', fontSize: 10, outline: 'none' };
-const panelBodyStyle = { flex: 1, minHeight: 0, overflow: 'auto', padding: 8 };
-const openButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '4px 7px', borderRadius: 0, fontSize: 9, fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' };
-const diceButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, minHeight: 42, borderRadius: 0, fontWeight: 900, cursor: 'pointer' };
-const placeholderStyle = { height: '100%', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: rq.input, border: `1px dashed ${rq.borderDefault}`, padding: 16 };
+if (typeof document !== 'undefined' && !document.getElementById('live-session-focused-layout-css')) {
+  const style = document.createElement('style');
+  style.id = 'live-session-focused-layout-css';
+  style.textContent = `
+    @media (max-width: 1180px) {
+      [data-testid="live-session-grid"] {
+        grid-template-columns: 190px minmax(0, 1fr) !important;
+      }
+      [data-testid="live-session-grid"] > aside:last-child {
+        display: none !important;
+      }
+    }
+    @media (max-width: 780px) {
+      [data-testid="live-session-grid"] {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      [data-testid="live-session-grid"] > aside:first-child {
+        position: static !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
