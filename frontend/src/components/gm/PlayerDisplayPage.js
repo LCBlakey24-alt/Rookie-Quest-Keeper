@@ -128,21 +128,55 @@ function NPCCard({ npc }) {
 
 function CombatDisplay({ payload }) {
   const tokens = Array.isArray(payload.tokens) ? payload.tokens : [];
+  const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
+  const unpositionedTokens = tokens.filter(token => !Number(token.x) && !Number(token.y));
+
   return (
     <section style={combatShellStyle}>
       <div style={combatMapStyle}>
         {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle} /> : <div style={missingImageStyle}>Battle map waiting</div>}
+        <div style={tokenOverlayStyle}>
+          {positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} />)}
+        </div>
+        {unpositionedTokens.length > 0 && (
+          <div style={combatTokenShelfStyle}>
+            {unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact />)}
+          </div>
+        )}
       </div>
       <aside style={combatSideStyle}>
         <p style={eyebrowStyle}>Encounter</p>
         <h1 style={combatTitleStyle}>{payload.title || 'Combat'}</h1>
-        <p style={combatHelpStyle}>Players can see visible creatures only. HP, AC, notes, and hidden enemies stay on the GM side.</p>
+        {payload.caption && <p style={combatCaptionStyle}>{payload.caption}</p>}
+        <p style={combatHelpStyle}>Visible creatures only. HP, AC, notes, hidden enemies, and private GM details are not shown here.</p>
         <div style={tokenListStyle}>
-          {tokens.map(token => <div key={token.id || token.name} style={tokenRowStyle}><span style={tokenDotStyle} />{token.name}</div>)}
+          {tokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} />)}
           {tokens.length === 0 && <p style={blankTextStyle}>No visible tokens sent yet.</p>}
         </div>
       </aside>
     </section>
+  );
+}
+
+function MapToken({ token }) {
+  const left = Math.max(2, Math.min(94, Number(token.x) || 50));
+  const top = Math.max(2, Math.min(90, Number(token.y) || 50));
+  return (
+    <div style={{ ...mapTokenStyle, left: `${left}%`, top: `${top}%` }}>
+      {token.image_url ? <img src={token.image_url} alt={token.name} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}
+    </div>
+  );
+}
+
+function VisibleCreatureCard({ token, compact = false }) {
+  return (
+    <article style={compact ? tokenShelfCardStyle : visibleCreatureCardStyle}>
+      {token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact)} /> : <div style={creatureInitialStyle(compact)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}
+      <div style={{ minWidth: 0 }}>
+        <strong>{token.name || 'Visible Enemy'}</strong>
+        {!compact && <span>Visible to players</span>}
+      </div>
+    </article>
   );
 }
 
@@ -169,12 +203,18 @@ const npcCardStyle = { background: theme.card, border: `1px solid ${theme.line}`
 const npcImageStyle = { width: '100%', height: '100%', objectFit: 'cover', minHeight: 180, background: '#000' };
 const npcInitialStyle = { display: 'grid', placeItems: 'center', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 92, minHeight: 180 };
 const npcInfoStyle = { padding: 14, display: 'grid', gap: 4 };
-const combatShellStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 360px)', gap: 0, minHeight: 0, height: '100%' };
-const combatMapStyle = { minHeight: 0, background: '#000', display: 'grid', placeItems: 'center', borderRight: `1px solid ${theme.line}` };
+const combatShellStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 390px)', gap: 0, minHeight: 0, height: '100%' };
+const combatMapStyle = { minHeight: 0, background: '#000', display: 'grid', placeItems: 'center', borderRight: `1px solid ${theme.line}`, position: 'relative', overflow: 'hidden' };
 const combatMapImageStyle = { width: '100%', height: '100%', objectFit: 'contain' };
-const combatSideStyle = { background: theme.panel, padding: 18, display: 'grid', alignContent: 'start', gap: 12 };
-const combatTitleStyle = { margin: 0, color: theme.text, fontFamily: titleFont, fontSize: 'clamp(32px, 4vw, 58px)' };
-const combatHelpStyle = { margin: 0, color: theme.soft, lineHeight: 1.45, fontSize: 14 };
-const tokenListStyle = { display: 'grid', gap: 8, marginTop: 8 };
-const tokenRowStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: theme.card, color: theme.text, fontWeight: 900 };
-const tokenDotStyle = { width: 12, height: 12, background: theme.red, flex: '0 0 auto' };
+const tokenOverlayStyle = { position: 'absolute', inset: 0, pointerEvents: 'none' };
+const mapTokenStyle = { position: 'absolute', transform: 'translate(-50%, -50%)', width: 58, height: 58, border: `4px solid ${theme.red}`, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', fontWeight: 950, fontSize: 24 };
+const combatTokenShelfStyle = { position: 'absolute', left: 14, right: 14, bottom: 14, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', padding: 10, background: 'rgba(0,0,0,0.68)', border: `1px solid ${theme.line}` };
+const combatSideStyle = { background: theme.panel, padding: 18, display: 'grid', alignContent: 'start', gap: 12, overflow: 'hidden' };
+const combatTitleStyle = { margin: 0, color: theme.text, fontFamily: titleFont, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 0.95 };
+const combatCaptionStyle = { margin: 0, color: theme.soft, fontSize: 15, lineHeight: 1.35 };
+const combatHelpStyle = { margin: 0, color: theme.soft, lineHeight: 1.45, fontSize: 13 };
+const tokenListStyle = { display: 'grid', gap: 8, marginTop: 8, overflowY: 'auto', maxHeight: '54vh' };
+const visibleCreatureCardStyle = { display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: 10, alignItems: 'center', padding: '9px 10px', background: theme.card, borderLeft: `6px solid ${theme.red}`, color: theme.text, fontWeight: 900 };
+const tokenShelfCardStyle = { display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', gap: 7, alignItems: 'center', padding: '6px 8px', background: theme.card, borderLeft: `5px solid ${theme.red}`, color: theme.text, fontWeight: 900, maxWidth: 210 };
+const creatureImageStyle = (compact) => ({ width: compact ? 34 : 48, height: compact ? 34 : 48, objectFit: 'cover', background: '#000' });
+const creatureInitialStyle = (compact) => ({ width: compact ? 34 : 48, height: compact ? 34 : 48, display: 'grid', placeItems: 'center', background: theme.panel, color: theme.text, fontWeight: 950, fontSize: compact ? 15 : 22 });
