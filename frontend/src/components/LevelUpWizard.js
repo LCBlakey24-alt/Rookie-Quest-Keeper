@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from '@/data/spellDatabase';
 import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE, getFeatsByEdition } from '@/data/levelUpData';
+import { CLASSES, MULTICLASS_REQUIREMENTS, getMulticlassOptions } from '@/data/characterRules5e';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "New Rocker", Georgia, serif)';
@@ -41,6 +42,33 @@ function displayClass(value) {
   return raw ? raw.slice(0, 1).toUpperCase() + raw.slice(1) : 'Fighter';
 }
 
+function normaliseClassLevels(character) {
+  const stored = character?.class_levels || {};
+  const entries = Object.entries(stored).filter(([, level]) => Number(level) > 0);
+  if (entries.length > 0) return Object.fromEntries(entries.map(([name, level]) => [displayClass(name), Number(level)]));
+  return { [displayClass(character?.character_class || 'Fighter')]: Number(character?.level || 1) };
+}
+
+function statsFor(character) {
+  return {
+    strength: abilityScore(character, 'strength'),
+    dexterity: abilityScore(character, 'dexterity'),
+    constitution: abilityScore(character, 'constitution'),
+    intelligence: abilityScore(character, 'intelligence'),
+    wisdom: abilityScore(character, 'wisdom'),
+    charisma: abilityScore(character, 'charisma'),
+  };
+}
+
+function requirementText(className) {
+  const req = MULTICLASS_REQUIREMENTS[className];
+  if (!req) return 'No requirement data.';
+  const parts = Object.entries(req)
+    .filter(([key]) => key !== 'or')
+    .map(([ability, score]) => `${abilityLabel(ability)} ${score}`);
+  return req.or ? parts.join(' or ') : parts.join(' and ');
+}
+
 function lastKnownCount(table = {}, level = 1) {
   let count = 0;
   Object.entries(table).forEach(([rawLevel, rawCount]) => {
@@ -49,14 +77,14 @@ function lastKnownCount(table = {}, level = 1) {
   return count;
 }
 
-function localSpellsToLearn(characterClass, currentLevel, newLevel) {
+function localSpellsToLearn(characterClass, currentClassLevel, nextClassLevel) {
   const table = SPELLS_KNOWN[characterClass] || {};
-  return Math.max(0, lastKnownCount(table, newLevel) - lastKnownCount(table, currentLevel));
+  return Math.max(0, lastKnownCount(table, nextClassLevel) - lastKnownCount(table, currentClassLevel));
 }
 
-function localCantripsToLearn(characterClass, currentLevel, newLevel) {
+function localCantripsToLearn(characterClass, currentClassLevel, nextClassLevel) {
   const table = CANTRIPS_KNOWN[characterClass] || {};
-  return Math.max(0, lastKnownCount(table, newLevel) - lastKnownCount(table, currentLevel));
+  return Math.max(0, lastKnownCount(table, nextClassLevel) - lastKnownCount(table, currentClassLevel));
 }
 
 function normaliseFeatOptions(preflight, character) {
@@ -116,6 +144,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const [preflightLoading, setPreflightLoading] = useState(false);
   const [preflightError, setPreflightError] = useState('');
   const [stepIndex, setStepIndex] = useState(0);
+  const [progressionMode, setProgressionMode] = useState('current');
+  const [multiclassClass, setMulticlassClass] = useState('');
   const [hpMethod, setHpMethod] = useState('average');
   const [hpRoll, setHpRoll] = useState(null);
   const [manualHpRoll, setManualHpRoll] = useState('');
@@ -129,11 +159,22 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
 
   const currentLevel = Number(character?.level || 1);
   const newLevel = currentLevel + 1;
-  const characterClass = displayClass(preflight?.character_class || character?.character_class || 'Fighter');
+  const classLevels = useMemo(() => normaliseClassLevels(character), [character]);
+  const currentClasses = useMemo(() => Object.keys(classLevels), [classLevels]);
+  const characterStats = useMemo(() => statsFor(character), [character]);
+  const multiclassOptions = useMemo(() => (
+    getMulticlassOptions(characterStats, currentClasses).filter(className => !currentClasses.includes(className))
+  ), [characterStats, currentClasses]);
+  const isMulticlass = progressionMode === 'multiclass';
+  const characterClass = isMulticlass
+    ? displayClass(multiclassClass || multiclassOptions[0] || '')
+    : displayClass(preflight?.character_class || character?.character_class || 'Fighter');
   const edition = preflight?.edition || (String(character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014');
+  const classLevelBefore = isMulticlass ? Number(classLevels[characterClass] || 0) : Number(classLevels[characterClass] || currentLevel);
+  const classLevelAfter = classLevelBefore + 1;
   const classInfo = SPELLCASTING_CLASSES[characterClass];
   const isSpellcaster = Boolean(classInfo && !classInfo.subclassOnly);
-  const hitDie = Number(preflight?.hit_die || HIT_DICE[characterClass] || 8);
+  const hitDie = Number((!isMulticlass && preflight?.hit_die) || HIT_DICE[characterClass] || 8);
   const conMod = abilityMod(character?.constitution);
   const averageDie = Math.floor(hitDie / 2) + 1;
   const averageHp = Math.max(1, averageDie + conMod);
@@ -145,25 +186,26 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
       ? (validManualRoll ? Math.max(1, manualHpRollValue + conMod) : null)
       : averageHp;
 
-  const maxSpellLevel = getMaxSpellLevel(characterClass, newLevel) || 0;
+  const maxSpellLevel = getMaxSpellLevel(characterClass, classLevelAfter) || 0;
   const { cantrips, spells } = useMemo(() => spellListFor(characterClass, maxSpellLevel), [characterClass, maxSpellLevel]);
   const existingSpellNames = namesFrom(character?.spells_known || character?.spells_prepared);
   const existingCantripNames = namesFrom(character?.cantrips_known);
-  const localCantripGain = localCantripsToLearn(characterClass, currentLevel, newLevel);
-  const localSpellGain = localSpellsToLearn(characterClass, currentLevel, newLevel);
-  const cantripGain = preflight?.cantrips_to_learn !== undefined ? Number(preflight.cantrips_to_learn || 0) : localCantripGain;
-  const spellGain = preflight?.spells_to_learn !== undefined ? Number(preflight.spells_to_learn || 0) : localSpellGain;
+  const localCantripGain = localCantripsToLearn(characterClass, classLevelBefore, classLevelAfter);
+  const localSpellGain = localSpellsToLearn(characterClass, classLevelBefore, classLevelAfter);
+  const cantripGain = !isMulticlass && preflight?.cantrips_to_learn !== undefined ? Number(preflight.cantrips_to_learn || 0) : localCantripGain;
+  const spellGain = !isMulticlass && preflight?.spells_to_learn !== undefined ? Number(preflight.spells_to_learn || 0) : localSpellGain;
   const classData = CLASS_FEATURES[String(characterClass || '').toLowerCase()];
-  const localNeedsSubclass = Boolean(!character?.subclass && classData?.subclass_level === newLevel && classData?.subclasses);
-  const needsSubclass = preflight?.can_choose_subclass !== undefined ? Boolean(preflight.can_choose_subclass) : localNeedsSubclass;
+  const localNeedsSubclass = Boolean(classData?.subclass_level === classLevelAfter && classData?.subclasses);
+  const needsSubclass = !isMulticlass && preflight?.can_choose_subclass !== undefined ? Boolean(preflight.can_choose_subclass) : localNeedsSubclass;
   const localAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default || [];
-  const localIsAsiLevel = localAsiLevels.includes(newLevel);
-  const isAsiLevel = preflight?.is_asi_level !== undefined ? Boolean(preflight.is_asi_level) : localIsAsiLevel;
-  const subclassOptions = useMemo(() => normaliseSubclassOptions(preflight, characterClass), [preflight, characterClass]);
+  const localIsAsiLevel = localAsiLevels.includes(classLevelAfter);
+  const isAsiLevel = !isMulticlass && preflight?.is_asi_level !== undefined ? Boolean(preflight.is_asi_level) : localIsAsiLevel;
+  const subclassOptions = useMemo(() => normaliseSubclassOptions(isMulticlass ? null : preflight, characterClass), [preflight, characterClass, isMulticlass]);
   const featOptions = useMemo(() => normaliseFeatOptions(preflight, character), [preflight, character]);
   const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellGain > 0);
 
   const steps = useMemo(() => ([
+    { id: 'class', label: 'Class' },
     { id: 'overview', label: 'Check' },
     { id: 'hp', label: 'HP' },
     ...(needsSubclass ? [{ id: 'subclass', label: 'Subclass' }] : []),
@@ -172,7 +214,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     { id: 'confirm', label: 'Confirm' },
   ]), [needsSubclass, hasSpellChoices, isAsiLevel]);
 
-  const activeStep = steps[Math.min(stepIndex, steps.length - 1)]?.id || 'overview';
+  const activeStep = steps[Math.min(stepIndex, steps.length - 1)]?.id || 'class';
 
   useEffect(() => {
     if (!isOpen || !character?.id) return;
@@ -180,6 +222,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     setStepIndex(0);
     setPreflight(null);
     setPreflightError('');
+    setProgressionMode('current');
+    setMulticlassClass('');
     setHpMethod('average');
     setHpRoll(null);
     setManualHpRoll('');
@@ -208,6 +252,24 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
     return () => { cancelled = true; };
   }, [isOpen, character?.id, character?.subclass, newLevel]);
 
+  useEffect(() => {
+    if (progressionMode === 'multiclass' && !multiclassClass && multiclassOptions.length > 0) {
+      setMulticlassClass(multiclassOptions[0]);
+    }
+  }, [progressionMode, multiclassClass, multiclassOptions]);
+
+  useEffect(() => {
+    setSelectedSubclass('');
+    setSelectedNewSpells([]);
+    setSelectedNewCantrips([]);
+    setChoiceType('');
+    setSelectedFeat(null);
+    setAsiChoices({ ability1: '', ability2: '' });
+    setHpRoll(null);
+    setManualHpRoll('');
+    setHpMethod('average');
+  }, [progressionMode, multiclassClass]);
+
   if (!isOpen || !character) return null;
 
   const rollHp = () => {
@@ -227,7 +289,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   };
 
   const canProceed = () => {
-    if (activeStep === 'overview') return !preflightLoading;
+    if (activeStep === 'class') return progressionMode === 'current' || Boolean(multiclassClass);
+    if (activeStep === 'overview') return isMulticlass || !preflightLoading;
     if (activeStep === 'hp') return hpMethod === 'average' || (hpMethod === 'roll' && hpRoll) || (hpMethod === 'manual' && validManualRoll);
     if (activeStep === 'subclass') return Boolean(selectedSubclass);
     if (activeStep === 'spells') return selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellGain;
@@ -256,6 +319,11 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         hp_roll: hpMethod === 'roll' ? hpRoll : hpMethod === 'manual' ? manualHpRollValue : null,
       };
 
+      if (isMulticlass) {
+        payload.multiclass = true;
+        payload.new_class = characterClass;
+      }
+
       if (needsSubclass && selectedSubclass) payload.subclass = selectedSubclass;
 
       if (isAsiLevel) {
@@ -276,8 +344,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         payload.new_cantrips = selectedNewCantrips.map(spell => ({ name: spell.name, level: 0, school: spell.school || '' }));
       }
 
-      await apiClient.post(`/characters/${character.id}/level-up`, payload);
-      toast.success(`${character.name} reached level ${newLevel}`, { description: `HP increased by ${hpGain}.` });
+      const endpoint = isMulticlass ? `/characters/${character.id}/multiclass` : `/characters/${character.id}/level-up`;
+      await apiClient.post(endpoint, payload);
+      toast.success(`${character.name} reached level ${newLevel}`, { description: `${isMulticlass ? `Added ${characterClass}. ` : ''}HP increased by ${hpGain}.` });
       onLevelUp?.(newLevel);
       onClose?.();
     } catch (error) {
@@ -294,7 +363,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           <div>
             <p style={eyebrowStyle}>Character progression</p>
             <h2 style={titleStyle}>Level Up</h2>
-            <p style={subtitleStyle}>{character.name} · {characterClass} · Level {currentLevel} → {newLevel}</p>
+            <p style={subtitleStyle}>{character.name} · {isMulticlass ? `Add ${characterClass}` : characterClass} · Level {currentLevel} → {newLevel}</p>
           </div>
           <button type="button" onClick={onClose} style={iconButtonStyle} aria-label="Close level up"><X size={18} /></button>
         </header>
@@ -308,20 +377,37 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
         </nav>
 
         <div style={bodyStyle}>
+          {activeStep === 'class' && (
+            <ClassChoiceStep
+              character={character}
+              classLevels={classLevels}
+              currentClasses={currentClasses}
+              progressionMode={progressionMode}
+              setProgressionMode={setProgressionMode}
+              multiclassClass={multiclassClass}
+              setMulticlassClass={setMulticlassClass}
+              multiclassOptions={multiclassOptions}
+              characterStats={characterStats}
+            />
+          )}
+
           {activeStep === 'overview' && (
             <OverviewStep
-              preflight={preflight}
-              preflightLoading={preflightLoading}
-              preflightError={preflightError}
+              preflight={isMulticlass ? null : preflight}
+              preflightLoading={isMulticlass ? false : preflightLoading}
+              preflightError={isMulticlass ? 'Multiclass apply will be validated when you confirm.' : preflightError}
               characterClass={characterClass}
               edition={edition}
               hitDie={hitDie}
               currentLevel={currentLevel}
               newLevel={newLevel}
+              classLevelBefore={classLevelBefore}
+              classLevelAfter={classLevelAfter}
               spellGain={spellGain}
               cantripGain={cantripGain}
               isAsiLevel={isAsiLevel}
               needsSubclass={needsSubclass}
+              isMulticlass={isMulticlass}
             />
           )}
 
@@ -349,7 +435,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               subclassOptions={subclassOptions}
               selectedSubclass={selectedSubclass}
               setSelectedSubclass={setSelectedSubclass}
-              serverChecked={Boolean(preflight)}
+              serverChecked={Boolean(preflight) && !isMulticlass}
             />
           )}
 
@@ -391,6 +477,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               characterClass={characterClass}
               currentLevel={currentLevel}
               newLevel={newLevel}
+              classLevelAfter={classLevelAfter}
               hpGain={hpGain}
               hpMethod={hpMethod}
               selectedSubclass={needsSubclass ? selectedSubclass : ''}
@@ -399,7 +486,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               choiceType={choiceType}
               asiChoices={asiChoices}
               selectedFeat={selectedFeat}
-              serverChecked={Boolean(preflight)}
+              serverChecked={Boolean(preflight) && !isMulticlass}
+              isMulticlass={isMulticlass}
             />
           )}
         </div>
@@ -423,32 +511,76 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   );
 }
 
-function OverviewStep({ preflight, preflightLoading, preflightError, characterClass, edition, hitDie, currentLevel, newLevel, spellGain, cantripGain, isAsiLevel, needsSubclass }) {
+function ClassChoiceStep({ character, classLevels, currentClasses, progressionMode, setProgressionMode, multiclassClass, setMulticlassClass, multiclassOptions, characterStats }) {
   return (
     <div style={sectionStyle}>
-      <StatusBanner loading={preflightLoading} checked={Boolean(preflight)} error={preflightError} />
+      <h3 style={sectionTitleStyle}>Choose progression path</h3>
+      <p style={bodyTextStyle}>Keep levelling your current class, or add a new class if your ability scores meet the multiclass requirements.</p>
+      <div style={choiceGridStyle}>
+        <button type="button" onClick={() => setProgressionMode('current')} style={choiceCardStyle(progressionMode === 'current')}>
+          <strong>Continue current class</strong>
+          <span>{displayClass(character?.character_class)} level {Number(classLevels[displayClass(character?.character_class)] || character?.level || 1) + 1}</span>
+        </button>
+        <button type="button" onClick={() => setProgressionMode('multiclass')} disabled={multiclassOptions.length === 0} style={choiceCardStyle(progressionMode === 'multiclass')}>
+          <strong>Add a new class</strong>
+          <span>{multiclassOptions.length ? `${multiclassOptions.length} legal option${multiclassOptions.length === 1 ? '' : 's'} found` : 'No legal multiclass options from current stats'}</span>
+        </button>
+      </div>
+
+      {progressionMode === 'multiclass' && (
+        <div style={listStyle}>
+          {multiclassOptions.map(className => {
+            const active = multiclassClass === className;
+            return (
+              <button key={className} type="button" onClick={() => setMulticlassClass(className)} style={wideChoiceStyle(active)}>
+                <strong>{className}</strong>
+                <span>d{HIT_DICE[className] || CLASSES[className]?.hitDie || 8} hit die · requirement: {requirementText(className)}</span>
+              </button>
+            );
+          })}
+          {multiclassOptions.length === 0 && (
+            <div style={statusBannerStyle(theme.warning)}><AlertTriangle size={18} /> Your current scores do not meet multiclass requirements. Current scores: STR {characterStats.strength}, DEX {characterStats.dexterity}, CON {characterStats.constitution}, INT {characterStats.intelligence}, WIS {characterStats.wisdom}, CHA {characterStats.charisma}.</div>
+          )}
+        </div>
+      )}
+
       <div style={summaryGridStyle}>
-        <SummaryCard label="Class" value={characterClass} />
-        <SummaryCard label="Level" value={`${currentLevel} → ${newLevel}`} />
-        <SummaryCard label="Rules" value={`${edition} rules`} />
-        <SummaryCard label="Hit die" value={`d${hitDie}`} />
+        {currentClasses.map(className => <SummaryCard key={className} label="Current class" value={`${className} ${classLevels[className]}`} />)}
       </div>
-      <div style={checklistStyle}>
-        <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is due at this level.' : 'No subclass choice needed this level.'} />
-        <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due.' : 'No ASI or feat choice at this level.'} />
-        <CheckLine active={cantripGain > 0 || spellGain > 0} text={`${cantripGain} cantrip${cantripGain === 1 ? '' : 's'} and ${spellGain} spell${spellGain === 1 ? '' : 's'} to learn.`} />
-      </div>
-      <p style={smallNoteStyle}>Multiclass progression will get its own dedicated pass next; this pass makes ordinary level-up choices safer and server-checked.</p>
     </div>
   );
 }
 
-function StatusBanner({ loading, checked, error }) {
+function OverviewStep({ preflight, preflightLoading, preflightError, characterClass, edition, hitDie, currentLevel, newLevel, classLevelBefore, classLevelAfter, spellGain, cantripGain, isAsiLevel, needsSubclass, isMulticlass }) {
+  return (
+    <div style={sectionStyle}>
+      <StatusBanner loading={preflightLoading} checked={Boolean(preflight)} error={preflightError} multiclass={isMulticlass} />
+      <div style={summaryGridStyle}>
+        <SummaryCard label="Class" value={characterClass} />
+        <SummaryCard label="Total level" value={`${currentLevel} → ${newLevel}`} />
+        <SummaryCard label="Class level" value={`${classLevelBefore} → ${classLevelAfter}`} />
+        <SummaryCard label="Rules" value={`${edition} rules`} />
+        <SummaryCard label="Hit die" value={`d${hitDie}`} />
+      </div>
+      <div style={checklistStyle}>
+        <CheckLine active={isMulticlass} text={isMulticlass ? 'This will add a new class level and save class_levels on the character.' : 'This will continue your current class progression.'} />
+        <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is due at this class level.' : 'No subclass choice needed this class level.'} />
+        <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due.' : 'No ASI or feat choice at this class level.'} />
+        <CheckLine active={cantripGain > 0 || spellGain > 0} text={`${cantripGain} cantrip${cantripGain === 1 ? '' : 's'} and ${spellGain} spell${spellGain === 1 ? '' : 's'} to learn.`} />
+      </div>
+    </div>
+  );
+}
+
+function StatusBanner({ loading, checked, error, multiclass }) {
   if (loading) {
     return <div style={statusBannerStyle(theme.warning)}><Server size={18} /> Checking legal progression options with the server…</div>;
   }
   if (checked) {
     return <div style={statusBannerStyle(theme.success)}><Server size={18} /> Progression checked. This wizard is using server-approved options.</div>;
+  }
+  if (multiclass) {
+    return <div style={statusBannerStyle(theme.warning)}><Server size={18} /> Multiclass preview uses local requirement checks. The backend multiclass route validates and applies it on confirm.</div>;
   }
   return <div style={statusBannerStyle(theme.warning)}><AlertTriangle size={18} /> {error || 'Using local backup progression data.'}</div>;
 }
@@ -592,11 +724,12 @@ function AsiFeatStep({ character, choiceType, setChoiceType, asiChoices, setAsiC
   );
 }
 
-function ConfirmStep({ character, characterClass, currentLevel, newLevel, hpGain, hpMethod, selectedSubclass, selectedNewCantrips, selectedNewSpells, choiceType, asiChoices, selectedFeat, serverChecked }) {
+function ConfirmStep({ character, characterClass, currentLevel, newLevel, classLevelAfter, hpGain, hpMethod, selectedSubclass, selectedNewCantrips, selectedNewSpells, choiceType, asiChoices, selectedFeat, serverChecked, isMulticlass }) {
   const items = [
     ['Character', character.name],
-    ['Class', characterClass],
-    ['Level', `${currentLevel} → ${newLevel}`],
+    ['Progression', isMulticlass ? `Add ${characterClass}` : characterClass],
+    ['Total level', `${currentLevel} → ${newLevel}`],
+    ['Class level', `${characterClass} ${classLevelAfter}`],
     ['HP', `${hpMethod} · +${hpGain || 0}`],
     ...(selectedSubclass ? [['Subclass', selectedSubclass]] : []),
     ...(selectedNewCantrips.length ? [['Cantrips', selectedNewCantrips.map(spell => spell.name).join(', ')]] : []),
@@ -607,7 +740,7 @@ function ConfirmStep({ character, characterClass, currentLevel, newLevel, hpGain
 
   return (
     <div style={sectionStyle}>
-      <StatusBanner loading={false} checked={serverChecked} error={serverChecked ? '' : 'Final choices are using local backup data.'} />
+      <StatusBanner loading={false} checked={serverChecked} error={serverChecked ? '' : 'Final choices are using local backup data.'} multiclass={isMulticlass} />
       <h3 style={sectionTitleStyle}>Confirm progression</h3>
       <div style={confirmListStyle}>
         {items.map(([label, value]) => <SummaryCard key={label} label={label} value={value} />)}
