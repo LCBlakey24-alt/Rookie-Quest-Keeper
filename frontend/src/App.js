@@ -97,7 +97,7 @@ function ThemeRouter() {
     const path = location.pathname;
     if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/mobile') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.PLAYER);
@@ -160,6 +160,7 @@ function AppRoutes() {
         <Route path="/prototype-gm" element={<TiaKartaGmPrototype />} />
         <Route path="/prototype-progressions" element={<ClassProgressionLab />} />
         <Route path="/mobile" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
+        <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
         <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
         <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/auth" replace />} />
         <Route path="/account" element={isAuthenticated ? <AccountSettings /> : <Navigate to="/auth" replace />} />
