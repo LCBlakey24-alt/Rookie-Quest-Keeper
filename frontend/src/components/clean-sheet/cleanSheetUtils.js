@@ -1,4 +1,4 @@
-import { Activity, Backpack, BookOpen, Edit3, ListChecks, Swords, TrendingUp } from 'lucide-react';
+import { Activity, Backpack, BookOpen, Edit3, ListChecks, ScrollText, Swords, TrendingUp } from 'lucide-react';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -47,6 +47,7 @@ export const SHEET_TABS = [
   { id: 'spells', label: 'Spells', icon: BookOpen },
   { id: 'inventory', label: 'Inventory', icon: Backpack },
   { id: 'features', label: 'Features', icon: ListChecks },
+  { id: 'lore', label: 'Lore', icon: ScrollText },
   { id: 'notes', label: 'Notes', icon: Edit3 },
   { id: 'levelup', label: 'Level Up', icon: TrendingUp, action: 'levelup' },
 ];
