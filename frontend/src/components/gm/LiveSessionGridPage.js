@@ -22,35 +22,38 @@ import EventSystem from '@/components/gm/EventSystem';
 import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 import EnvironmentControl from '@/components/gm/EnvironmentControl';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
+import LivePlayerDisplayControls from '@/components/gm/LivePlayerDisplayControls';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
+
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
   bg: {
-    primary: 'var(--rq-bg-main, #120C08)',
-    surface: 'var(--rq-bg-panel, #21150E)',
-    elevated: 'var(--rq-bg-panel-alt, #2E1D13)',
-    panel: 'var(--rq-bg-panel, #21150E)',
-    card: 'var(--rq-bg-panel-alt, #2E1D13)',
-    hover: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
+    primary: '#242424',
+    surface: '#2f2f2f',
+    elevated: '#3a3a3a',
+    panel: '#2f2f2f',
+    card: '#3a3a3a',
+    hover: '#444444',
   },
   accent: {
-    primary: 'var(--rq-accent-primary, #C08A3D)',
-    secondary: 'var(--rq-accent-active, #A45A32)',
-    gold: 'var(--rq-accent-primary, #C08A3D)',
-    orange: 'var(--rq-accent-hover, #E0B15C)',
-    hover: 'var(--rq-accent-hover, #E0B15C)',
-    subtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
+    primary: '#d00000',
+    secondary: '#d00000',
+    gold: '#d00000',
+    orange: '#ff3b3b',
+    hover: '#ff3b3b',
+    subtle: 'rgba(208,0,0,0.18)',
     glow: 'none',
-    gm: 'var(--rq-accent-primary, #C08A3D)',
-    gmSubtle: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
+    gm: '#d00000',
+    gmSubtle: 'rgba(208,0,0,0.18)',
   },
   text: {
-    primary: 'var(--rq-text-primary, #F5E6C8)',
-    secondary: 'var(--rq-text-secondary, #E6D2AA)',
-    muted: 'var(--rq-text-muted, #CDBA98)'
+    primary: '#ffffff',
+    secondary: 'rgba(255,255,255,0.74)',
+    muted: 'rgba(255,255,255,0.58)',
   },
-  border: 'var(--rq-border-default, rgba(192, 138, 61, 0.22))',
-  gradient: 'var(--rq-accent-primary, #C08A3D)',
+  border: 'rgba(255,255,255,0.16)',
+  gradient: '#d00000',
 };
 
 export default function LiveSessionGridPage() {
@@ -114,21 +117,15 @@ export default function LiveSessionGridPage() {
     if (!campaign) return;
     try {
       const key = `gm.explodingDice.${campaignId}`;
-      if (localStorage.getItem(key) === null) {
-        setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
-      }
+      if (localStorage.getItem(key) === null) setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
     } catch {
       setExplodingDiceEnabled(Boolean(campaign.allow_exploding_dice));
     }
   }, [campaign, campaignId]);
 
   const rollQuickDice = (notation, label = '', rollType = 'normal') => {
-    const result = rollDiceNotation(notation, {
-      rollType,
-      exploding: explodingDiceEnabled,
-    });
+    const result = rollDiceNotation(notation, { rollType, exploding: explodingDiceEnabled });
     if (!result.rolls.length) return;
-
     setDiceRolls(result.visibleRolls);
     setDiceLabel(label || notation);
     setDiceModifier(result.modifier);
@@ -176,9 +173,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  const launchCombat = (scenario) => {
-    navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
-  };
+  const launchCombat = (scenario) => navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
 
   const quickStartCombat = () => {
     const quickScenario = {
@@ -193,7 +188,7 @@ export default function LiveSessionGridPage() {
         ac: p.ac || 10,
         initiativeMod: Math.floor(((p.stats?.dexterity || 10) - 10) / 2),
         conditions: [],
-        tokenColor: '#4a7dff',
+        tokenColor: '#d00000',
         tokenSize: 40,
       })),
       show_grid: true,
@@ -268,9 +263,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  if (loading) {
-    return <div className="loading-screen"><div className="loading-spinner" /></div>;
-  }
+  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
 
   return (
     <main style={pageStyle}>
@@ -280,7 +273,7 @@ export default function LiveSessionGridPage() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Live Play Mode</p>
             <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-            <p style={subtitleStyle}>Run the session from a focused GM Screen. Pick 1–4 panels and keep only your table-critical tools open.</p>
+            <p style={subtitleStyle}>Run the session from a focused GM Screen. Use Player Display when you want a clean TV-facing view.</p>
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
@@ -294,15 +287,10 @@ export default function LiveSessionGridPage() {
         </div>
       </header>
 
+      <LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />
+
       <section style={gridShellStyle}>
-        <LiveSessionGridMode
-          campaignId={campaignId}
-          theme={theme}
-          renderTool={renderTool}
-          onOpenSingleTab={() => null}
-          onRollDice={rollQuickDice}
-          refreshKey={sessionRefreshKey}
-        />
+        <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={() => null} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} />
       </section>
 
       <DiceRollFlicker
@@ -320,12 +308,12 @@ export default function LiveSessionGridPage() {
   );
 }
 
-const pageStyle = { height: '100dvh', maxHeight: '100dvh', background: theme.bg.primary, color: theme.text.primary, padding: 'clamp(8px, 1.1vw, 12px)', display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' };
+const pageStyle = { minHeight: '100dvh', background: theme.bg.primary, color: theme.text.primary, padding: 'clamp(8px, 1.1vw, 12px)', display: 'flex', flexDirection: 'column', gap: 8, overflow: 'visible', fontFamily: fontStack };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '8px 10px', flexShrink: 0 };
-const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 900, letterSpacing: 1.3, textTransform: 'uppercase', margin: '0 0 4px' };
-const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(17px, 1.5vw, 20px)', fontWeight: 900, margin: 0, minWidth: 0 };
+const eyebrowStyle = { color: theme.accent.primary, fontSize: 11, fontWeight: 950, letterSpacing: 1.3, textTransform: 'uppercase', margin: '0 0 4px' };
+const titleStyle = { color: theme.text.primary, display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(17px, 1.5vw, 20px)', fontWeight: 950, margin: 0, minWidth: 0 };
 const subtitleStyle = { color: theme.text.secondary, margin: '2px 0 0', fontSize: 11, lineHeight: 1.35 };
-const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 800 };
-const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 10, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12 };
-const gridShellStyle = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' };
-const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer' };
+const calendarStyle = { color: theme.accent.primary, margin: '2px 0 0', fontSize: 11, fontWeight: 900 };
+const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 0, fontWeight: 900, minHeight: 34, padding: '6px 10px', fontSize: 12, fontFamily: fontStack };
+const gridShellStyle = { flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column', overflow: 'visible' };
+const explodingToggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '6px 10px', background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
