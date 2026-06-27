@@ -13,6 +13,7 @@ import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
 import SessionRecapAI from '@/components/SessionRecapAI';
 import AISessionPlanner from '@/components/gm/AISessionPlanner';
+import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
 import NPCsConsolidatedTab from '@/components/tabs/NPCsConsolidatedTab';
@@ -57,6 +58,7 @@ const tabGroups = [
     { id: 'players', icon: Users, label: 'Players & Invites' },
   ] },
   { id: 'prep', label: 'Prep', icon: CalendarDays, tabs: [
+    { id: 'story-arcs', icon: ScrollText, label: 'Story Arcs' },
     { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
     { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
     { id: 'handouts', icon: Mail, label: 'Lore / Secrets / Handouts' },
@@ -251,6 +253,7 @@ function CampaignDashboard() {
             {activeTab === 'command-centre' && (
               <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />
             )}
+            {activeTab === 'story-arcs' && <StoryArcTracker campaignId={campaignId} />}
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
             {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}
@@ -283,10 +286,12 @@ function CampaignDashboard() {
 function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLive, onFetchInvite, onRotateInvite, onCopyInvite }) {
   const commandCards = [
     { title: "Tonight's Session", text: 'Plan what matters right now: scenes, hooks, reminders, and live table flow.', meta: 'Run tonight', icon: CalendarDays, tab: 'tonight' },
+    { title: 'Story Arcs', text: 'Organise campaign arcs, chapters/sessions, scenes, and planned combat beats.', meta: 'Campaign structure', icon: ScrollText, tab: 'story-arcs' },
     { title: 'Players & Invites', text: 'Manage players, check joined characters, and share the campaign join code.', meta: 'Table access', icon: Users, tab: 'players' },
     { title: 'World Overview', text: 'Store the campaign premise, tone, big truths, and public world context.', meta: 'World bible', icon: Globe, tab: 'setting' },
     { title: 'Locations', text: 'Cities, regions, dungeons, travel points, bases, and important places.', meta: 'Places', icon: MapPin, tab: 'locations' },
     { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'Cast', icon: UserCircle, tab: 'npcs' },
+    { title: 'Encounters', text: 'Build and manage combat encounters, enemies, and live table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
     { title: 'Powers & Factions', text: 'Gods, guilds, orders, governments, cults, houses, and power groups.', meta: 'Influence', icon: Church, tab: 'gods' },
     { title: 'Chronicle', text: 'Campaign timeline, session history, consequences, and what has changed.', meta: 'History', icon: Clock, tab: 'chronicle' },
     { title: 'Inventory & Items', text: 'Magic items, loot, equipment, rewards, and anything you may hand to players.', meta: 'Loot', icon: Backpack, tab: 'inventory' },
@@ -300,9 +305,10 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <div style={{ minWidth: 0 }}>
           <p style={desktopEyebrowStyle}>Campaign Command Centre</p>
           <h2 style={commandTitleStyle}>{campaign?.name || 'Campaign'}</h2>
-          <p style={commandSubtitleStyle}>A generic GM workspace. Your campaign content should be sorted into the right reusable tool instead of creating custom one-off boxes.</p>
+          <p style={commandSubtitleStyle}>Build the campaign from reusable GM tools: structure the arc, prep sessions, organise lore, then run the table from Live Play.</p>
         </div>
         <div style={heroActionsStyle}>
+          <button type="button" onClick={() => onOpenTab('story-arcs')} style={secondaryButtonStyle}><ScrollText size={18} /> Story Arcs</button>
           <button type="button" onClick={onOpenLive} style={primaryButtonStyle}><Monitor size={18} /> Live Play Mode</button>
           <button type="button" onClick={onCopyInvite} style={secondaryButtonStyle}>{inviteLoading ? 'Loading...' : 'Copy Join Code'}</button>
         </div>
