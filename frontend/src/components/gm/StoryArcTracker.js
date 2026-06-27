@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Check, ChevronDown, ChevronRight, Clock, Flag, Plus, ScrollText, Swords, Trash2 } from 'lucide-react';
+import { BookOpen, Check, ChevronDown, ChevronRight, Clock, Flag, Monitor, Plus, ScrollText, Swords, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "New Rocker", Georgia, serif)';
+const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
 
 const rq = {
   bg: '#242424',
@@ -75,7 +75,22 @@ const emptyCombat = {
   scenario_id: '',
 };
 
-export default function StoryArcTracker({ campaignId }) {
+function getSessionFocus(arcs) {
+  const activeArc = arcs.find(arc => arc.status === 'active') || arcs.find(arc => arc.status !== 'completed') || arcs[0] || null;
+  if (!activeArc) return { arc: null, chapter: null, scenes: 0, combats: 0, readyCombats: 0 };
+  const chapters = activeArc.chapters || [];
+  const chapter = chapters.find(item => item.status === 'prepped') || chapters.find(item => item.status === 'planned') || chapters[0] || null;
+  const combats = chapter?.combats || [];
+  return {
+    arc: activeArc,
+    chapter,
+    scenes: chapter?.scenes?.length || 0,
+    combats: combats.length,
+    readyCombats: combats.filter(combat => combat.status === 'ready').length,
+  };
+}
+
+export default function StoryArcTracker({ campaignId, onOpenTab }) {
   const [arcs, setArcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
@@ -110,6 +125,22 @@ export default function StoryArcTracker({ campaignId }) {
     const combatCount = arcs.reduce((sum, arc) => sum + (arc.chapters || []).reduce((chapterSum, chapter) => chapterSum + (chapter.combats?.length || 0), 0), 0);
     return { arcs: arcs.length, chapters: chapterCount, played: playedCount, active: arcs.filter(arc => arc.status === 'active').length, combats: combatCount };
   }, [arcs]);
+
+  const focus = useMemo(() => getSessionFocus(arcs), [arcs]);
+
+  const goToTab = (tabId) => {
+    if (onOpenTab) {
+      onOpenTab(tabId);
+      return;
+    }
+    if (typeof document !== 'undefined') {
+      document.querySelector(`[data-testid="${tabId}-tab"]`)?.click();
+    }
+  };
+
+  const openLivePlay = () => {
+    if (typeof window !== 'undefined' && campaignId) window.location.assign(`/gm-screen/${campaignId}`);
+  };
 
   const createArc = async () => {
     if (!arcDraft.title.trim()) return;
@@ -203,6 +234,14 @@ export default function StoryArcTracker({ campaignId }) {
         <StatCard icon={Check} label="Played" value={stats.played} />
       </section>
 
+      <SessionFocusPanel
+        focus={focus}
+        onNewArc={() => setShowArcForm(true)}
+        onTonight={() => goToTab('tonight')}
+        onEncounters={() => goToTab('combat')}
+        onLive={openLivePlay}
+      />
+
       <section style={ruleBoxStyle}>
         <strong>Import rule:</strong> Use this for campaign structure and session combat planning. Detailed stat blocks still belong in Encounters/Combat; this section stores when, why, and how each fight fits the chapter.
       </section>
@@ -254,6 +293,45 @@ export default function StoryArcTracker({ campaignId }) {
       </section>
     </div>
   );
+}
+
+function SessionFocusPanel({ focus, onNewArc, onTonight, onEncounters, onLive }) {
+  if (!focus.arc) {
+    return (
+      <section style={focusPanelStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Current Session Focus</p>
+          <h3 style={focusTitleStyle}>No story arc selected yet</h3>
+          <p style={focusTextStyle}>Create your first arc, then add chapters/sessions inside it. Tonight's Session will use the active arc and next planned/prepped chapter.</p>
+        </div>
+        <button type="button" onClick={onNewArc} style={primaryButtonStyle}><Plus size={15} /> Create Arc</button>
+      </section>
+    );
+  }
+
+  return (
+    <section style={focusPanelStyle}>
+      <div style={focusMainStyle}>
+        <p style={eyebrowStyle}>Current Session Focus</p>
+        <h3 style={focusTitleStyle}>{focus.arc.title}</h3>
+        <p style={focusTextStyle}>{focus.chapter ? `Next chapter: ${focus.chapter.title}` : 'No chapter selected yet. Add a chapter/session to this arc.'}</p>
+      </div>
+      <div style={focusMetricsStyle}>
+        <FocusMetric icon={ScrollText} label="Scenes" value={focus.scenes} />
+        <FocusMetric icon={Swords} label="Combats" value={focus.combats} />
+        <FocusMetric icon={Check} label="Ready" value={focus.readyCombats} />
+      </div>
+      <div style={focusActionsStyle}>
+        <button type="button" onClick={onTonight} style={secondaryButtonStyle}><Clock size={15} /> Tonight</button>
+        <button type="button" onClick={onEncounters} style={secondaryButtonStyle}><Swords size={15} /> Encounters</button>
+        <button type="button" onClick={onLive} style={primaryButtonStyle}><Monitor size={15} /> Live Play</button>
+      </div>
+    </section>
+  );
+}
+
+function FocusMetric({ icon: Icon, label, value }) {
+  return <div style={focusMetricStyle}><Icon size={16} /><strong>{value}</strong><span>{label}</span></div>;
 }
 
 function ArcCard({ arc, expanded, onToggle, onUpdate, onDelete, chapterDraft, updateChapterDraft, addChapter, updateChapter, deleteChapter }) {
@@ -455,6 +533,13 @@ const titleStyle = { margin: 0, fontFamily: titleFont, fontSize: 'clamp(36px, 5v
 const subtitleStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 820 };
 const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 };
 const statStyle = { display: 'grid', gap: 4, background: rq.card, border: `1px solid ${rq.line}`, padding: 12, color: rq.text };
+const focusPanelStyle = { display: 'grid', gridTemplateColumns: 'minmax(240px, 1.4fr) minmax(220px, 0.9fr) auto', gap: 12, alignItems: 'center', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, padding: 14 };
+const focusMainStyle = { minWidth: 0 };
+const focusTitleStyle = { margin: '2px 0 5px', color: rq.text, fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 950, lineHeight: 1.05 };
+const focusTextStyle = { margin: 0, color: rq.soft, fontSize: 13, lineHeight: 1.45 };
+const focusMetricsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 };
+const focusMetricStyle = { minHeight: 64, background: rq.bg, border: `1px solid ${rq.line}`, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 3, padding: 8, color: rq.text, textAlign: 'center' };
+const focusActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' };
 const ruleBoxStyle = { background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, padding: 12, color: rq.soft, lineHeight: 1.45 };
 const toolbarStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' };
 const inputStyle = { width: '100%', minHeight: 40, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 10px', fontFamily: fontStack, colorScheme: 'dark' };
@@ -491,3 +576,16 @@ const combatCardStyle = { background: rq.bg, border: `1px solid ${rq.line}` };
 const combatTopStyle = { width: '100%', border: 0, background: 'transparent', color: rq.text, display: 'flex', alignItems: 'center', gap: 8, padding: 10, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
 const combatBodyStyle = { display: 'grid', gap: 8, padding: '0 10px 10px' };
 const miniReadyBadgeStyle = { background: rq.redSoft, border: `1px solid rgba(208,0,0,0.45)`, color: rq.text, padding: '4px 7px', fontSize: 11, fontWeight: 950 };
+
+if (typeof document !== 'undefined' && !document.getElementById('story-arc-focus-css')) {
+  const style = document.createElement('style');
+  style.id = 'story-arc-focus-css';
+  style.textContent = `
+    @media (max-width: 900px) {
+      [data-testid="story-arcs-tab"] section[style*="grid-template-columns: minmax(240px"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
