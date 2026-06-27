@@ -21,6 +21,7 @@ import ChronicleConsolidatedTab from '@/components/tabs/ChronicleConsolidatedTab
 import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
+import PlayerInvitePanel from '@/components/gm/PlayerInvitePanel';
 import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
@@ -28,80 +29,23 @@ import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: {
-    black: '#242424',
-    panel: '#2f2f2f',
-    card: '#3a3a3a',
-    hover: '#444444',
-  },
-  accent: {
-    primary: '#d00000',
-    subtle: 'rgba(208,0,0,0.18)',
-    red: '#d00000',
-    redSubtle: 'rgba(208,0,0,0.18)',
-    hover: '#ff3b3b',
-  },
-  text: {
-    white: '#ffffff',
-    primary: '#ffffff',
-    secondary: 'rgba(255,255,255,0.74)',
-    muted: 'rgba(255,255,255,0.58)',
-  },
+  bg: { black: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
+  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', red: '#d00000', redSubtle: 'rgba(208,0,0,0.18)', hover: '#ff3b3b' },
+  text: { white: '#ffffff', primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
   border: 'rgba(255,255,255,0.16)',
   gradient: '#d00000',
 };
 
 const sessionPrepTheme = {
-  bg: {
-    primary: '#242424',
-    surface: '#2f2f2f',
-    elevated: '#3a3a3a',
-    panel: '#2f2f2f',
-    card: '#3a3a3a',
-    hover: '#444444',
-  },
-  accent: {
-    primary: '#d00000',
-    secondary: '#d00000',
-    gold: '#d00000',
-    orange: '#ff3b3b',
-    hover: '#ff3b3b',
-    subtle: 'rgba(208,0,0,0.18)',
-    glow: 'none',
-    gm: '#d00000',
-    gmSubtle: 'rgba(208,0,0,0.18)',
-  },
-  text: {
-    primary: '#ffffff',
-    secondary: 'rgba(255,255,255,0.74)',
-    muted: 'rgba(255,255,255,0.58)',
-  },
+  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
+  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
+  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
   border: 'rgba(255,255,255,0.16)',
   gradient: '#d00000',
 };
 
-const workspacePanelStyle = {
-  background: theme.bg.panel,
-  border: `1px solid ${theme.border}`,
-  borderRadius: 0,
-  padding: 'clamp(14px, 2vw, 24px)',
-  minHeight: 500,
-  minWidth: 0,
-  boxShadow: 'none',
-};
-
-const desktopContextStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: 16,
-  marginBottom: 14,
-  padding: '14px 16px',
-  background: theme.bg.card,
-  border: `1px solid ${theme.border}`,
-  borderRadius: 0,
-  minWidth: 0,
-};
+const workspacePanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 'clamp(14px, 2vw, 24px)', minHeight: 500, minWidth: 0, boxShadow: 'none' };
+const desktopContextStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 14, padding: '14px 16px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, minWidth: 0 };
 const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.text.muted, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: fontStack };
 const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 950, overflowWrap: 'anywhere', fontFamily: fontStack };
 const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.bg.panel, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap', fontFamily: fontStack };
@@ -115,7 +59,7 @@ const tabGroups = [
   { id: 'prep', label: 'Prep', icon: CalendarDays, tabs: [
     { id: 'session-prep', icon: Wand2, label: 'Session Prep' },
     { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
-    { id: 'handouts', icon: Mail, label: 'Handouts & Secrets' },
+    { id: 'handouts', icon: Mail, label: 'Lore / Secrets / Handouts' },
     { id: 'session-recap', icon: Sparkles, label: 'Session Recap' },
   ] },
   { id: 'world', label: 'World Bible', icon: Globe, tabs: [
@@ -155,11 +99,6 @@ function CampaignDashboard() {
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
-
-  const activeGroupId = useMemo(() => {
-    const group = tabGroups.find(item => item.tabs.some(tab => tab.id === activeTab));
-    return group?.id || null;
-  }, [activeTab]);
 
   const activeTabMeta = useMemo(() => {
     for (const group of tabGroups) {
@@ -235,20 +174,19 @@ function CampaignDashboard() {
     const isHovered = hoveredTab === tab.id && !isActive;
     const Icon = tab.icon;
     return (
-      <button key={tab.id} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => setHoveredTab(tab.id)} onMouseLeave={() => setHoveredTab(null)} data-testid={`${tab.id}-tab`} style={{ position: 'relative', padding: isNested ? '10px 16px 10px 32px' : '12px 16px', border: 'none', background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent'), color: theme.text.white, fontWeight: 850, fontSize: isNested ? 13 : 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', minHeight: isNested ? 40 : 44, borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack }}>
-        <Icon size={isNested ? 16 : 18} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.78 }} />
+      <button key={tab.id} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => setHoveredTab(tab.id)} onMouseLeave={() => setHoveredTab(null)} data-testid={`${tab.id}-tab`} style={{ position: 'relative', padding: isNested ? '10px 16px 10px 32px' : '12px 16px', border: 'none', background: isActive ? theme.accent.primary : (isHovered ? theme.accent.primary : 'transparent'), color: theme.text.white, fontWeight: 850, fontSize: isNested ? 13 : 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', minHeight: isNested ? 40 : 44, borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack }}>
+        <Icon size={isNested ? 16 : 18} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
-        {isHovered && !isActive && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, background: theme.accent.primary }} />}
       </button>
     );
   };
 
   const renderGroupHeader = (group) => {
-    const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id;
+    const isExpanded = !collapsedGroups[group.id];
     const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
     const Icon = group.icon;
     return (
-      <button key={`group-${group.id}`} onClick={() => { if (hasActiveTab) toggleGroup(group.id); else { setCollapsedGroups(prev => ({ ...prev, [group.id]: false })); setActiveTab(group.tabs[0].id); } }} data-testid={`group-${group.id}`} style={{ padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack }}>
+      <button key={`group-${group.id}`} onClick={() => toggleGroup(group.id)} data-testid={`group-${group.id}`} aria-expanded={isExpanded ? 'true' : 'false'} style={{ padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack }}>
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         <Icon size={14} />
         <span>{group.label}</span>
@@ -293,13 +231,13 @@ function CampaignDashboard() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'visible', position: 'relative' }}>
         <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 280, minWidth: 280, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '0 0 16px', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
           <h3 style={{ color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' }}>Campaign Tools</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id] || activeGroupId === group.id; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id]; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
         </aside>
         {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 39, display: 'none' }} />}
-        <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
+        <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
           {activeTabMeta && activeTab !== 'command-centre' && (
             <div className="desktop-context" style={desktopContextStyle}>
               <div style={{ minWidth: 0 }}>
@@ -311,16 +249,7 @@ function CampaignDashboard() {
           )}
           <section style={workspacePanelStyle}>
             {activeTab === 'command-centre' && (
-              <GMCommandCentre
-                campaign={campaign}
-                invite={invite}
-                inviteLoading={inviteLoading}
-                onOpenTab={handleTabClick}
-                onOpenLive={handleOpenGMScreen}
-                onFetchInvite={fetchInviteCode}
-                onRotateInvite={rotateInviteCode}
-                onCopyInvite={copyInviteCode}
-              />
+              <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />
             )}
             {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
             {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
@@ -340,7 +269,7 @@ function CampaignDashboard() {
             {activeTab === 'session-prep' && <AISessionPlanner theme={sessionPrepTheme} campaignId={campaignId} />}
             {activeTab === 'session-recap' && <SessionRecapAI campaignId={campaignId} />}
             {activeTab === 'handouts' && <GMHandoutsTab campaignId={campaignId} />}
-            {activeTab === 'players' && <PlayersTab campaignId={campaignId} />}
+            {activeTab === 'players' && <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>}
             {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
           </section>
         </main>
@@ -361,7 +290,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
     { title: 'Powers & Factions', text: 'Gods, guilds, orders, governments, cults, houses, and power groups.', meta: 'Influence', icon: Church, tab: 'gods' },
     { title: 'Chronicle', text: 'Campaign timeline, session history, consequences, and what has changed.', meta: 'History', icon: Clock, tab: 'chronicle' },
     { title: 'Inventory & Items', text: 'Magic items, loot, equipment, rewards, and anything you may hand to players.', meta: 'Loot', icon: Backpack, tab: 'inventory' },
-    { title: 'Handouts & Secrets', text: 'Player-facing reveals, private information, letters, clues, and shared material.', meta: 'Reveal control', icon: Mail, tab: 'handouts' },
+    { title: 'Lore / Secrets / Handouts', text: 'Player-facing reveals, private information, letters, clues, and shared material.', meta: 'Reveal control', icon: Mail, tab: 'handouts' },
     { title: 'Uploads', text: 'Maps, reference files, images, notes, and imported campaign material.', meta: 'Files', icon: Upload, tab: 'uploads' },
   ];
 
@@ -400,11 +329,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         </div>
       </section>
 
-      <section style={commandGridStyle}>
-        {commandCards.map(card => (
-          <CommandCard key={card.title} {...card} onOpenTab={onOpenTab} />
-        ))}
-      </section>
+      <section style={commandGridStyle}>{commandCards.map(card => <CommandCard key={card.title} {...card} onOpenTab={onOpenTab} />)}</section>
     </div>
   );
 }
@@ -431,7 +356,6 @@ const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, backgrou
 const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 14px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack };
 const squareIconButtonStyle = { minWidth: 44, minHeight: 44, background: theme.bg.card, border: 0, borderRadius: 0, display: 'grid', placeItems: 'center' };
 const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
-
 const commandShellStyle = { display: 'grid', gap: 18 };
 const commandHeroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', borderBottom: `1px solid ${theme.border}`, paddingBottom: 16 };
 const commandTitleStyle = { margin: '2px 0 8px', color: '#ffffff', fontSize: 'clamp(30px, 5vw, 54px)', lineHeight: 1, fontWeight: 950, letterSpacing: '-0.04em', fontFamily: fontStack };
