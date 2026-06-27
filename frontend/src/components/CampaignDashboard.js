@@ -98,7 +98,7 @@ function CampaignDashboard() {
   const [activeTab, setActiveTab] = useState('command-centre');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
-  const [collapsedGroups, setCollapsedGroups] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({ command: true });
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
@@ -109,6 +109,11 @@ function CampaignDashboard() {
     }
     return null;
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!activeTabMeta?.group?.id) return;
+    setExpandedGroups(prev => ({ ...prev, [activeTabMeta.group.id]: true }));
+  }, [activeTabMeta?.group?.id]);
 
   const fetchCampaign = useCallback(async () => {
     setLoading(true);
@@ -128,9 +133,9 @@ function CampaignDashboard() {
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
 
-  const handleOpenGMScreen = () => window.open(`/gm-screen/${campaignId}`, '_blank');
+  const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
   const handleTabClick = (tabId) => { setActiveTab(tabId); setMobileMenuOpen(false); };
-  const toggleGroup = (groupId) => setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  const toggleGroup = (groupId) => setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
 
   const fetchInviteCode = async () => {
     try {
@@ -184,7 +189,7 @@ function CampaignDashboard() {
   };
 
   const renderGroupHeader = (group) => {
-    const isExpanded = !collapsedGroups[group.id];
+    const isExpanded = Boolean(expandedGroups[group.id]);
     const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
     const Icon = group.icon;
     return (
@@ -216,17 +221,17 @@ function CampaignDashboard() {
 
   return (
     <div style={{ minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible', fontFamily: fontStack, color: theme.text.white }}>
-      <header style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '10px 14px', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+      <header className="gm-dashboard-header" style={{ background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '10px 14px', position: 'sticky', top: 0, zIndex: 30 }}>
+        <div className="gm-header-main" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" style={{ background: theme.bg.card, border: 'none', cursor: 'pointer', color: theme.text.white, display: 'none', padding: 8 }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={{ width: 44, height: 44, background: theme.bg.card, border: 'none', cursor: 'pointer', color: theme.text.white, display: 'none', padding: 8, placeItems: 'center', flex: '0 0 44px' }}>{mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
             <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} color={theme.text.white} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <h1 style={{ fontSize: 'clamp(18px, 4vw, 25px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)', fontFamily: fontStack }}>{campaign.name}</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={redTagStyle}>GM Command Centre</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 850 }}>{campaign.system || '5e Campaign'}</span></div>
+              <h1 className="gm-campaign-title" style={{ fontSize: 'clamp(18px, 4vw, 25px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)', fontFamily: fontStack }}>{campaign.name}</h1>
+              <div className="gm-campaign-meta" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={redTagStyle}>GM Command Centre</span><span style={{ fontSize: 11, color: theme.text.muted, fontWeight: 850 }}>{campaign.system || '5e Campaign'}</span></div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="gm-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Button onClick={copyInviteCode} style={secondaryButtonStyle}>{inviteLoading ? 'Loading Code...' : 'Copy Join Code'}</Button>
             <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={primaryButtonStyle}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
           </div>
@@ -235,10 +240,14 @@ function CampaignDashboard() {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'visible', position: 'relative' }}>
         <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 280, minWidth: 280, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '0 0 16px', overflowY: 'auto', transition: 'transform 0.3s ease' }}>
-          <h3 style={{ color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' }}>Campaign Tools</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{tabGroups.map(group => { const isExpanded = !collapsedGroups[group.id]; return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
+          <div className="gm-sidebar-mobile-top" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 12, borderBottom: `1px solid ${theme.border}` }}>
+            <strong style={{ color: theme.text.white, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}>Campaign Tools</strong>
+            <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close campaign tools" style={{ width: 44, height: 44, border: 0, background: theme.bg.card, color: theme.text.white, display: 'grid', placeItems: 'center' }}><X size={22} /></button>
+          </div>
+          <h3 className="gm-sidebar-title" style={{ color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' }}>Campaign Tools</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{tabGroups.map(group => { const isExpanded = Boolean(expandedGroups[group.id]); return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>; })}</div>
         </aside>
-        {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 39, display: 'none' }} />}
+        {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 70, display: 'none' }} />}
         <main style={{ flex: 1, overflowY: 'visible', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 }}>
           {activeTabMeta && activeTab !== 'command-centre' && (
             <div className="desktop-context" style={desktopContextStyle}>
@@ -278,7 +287,25 @@ function CampaignDashboard() {
         </main>
       </div>
 
-      <style>{`@media (max-width: 640px) { .desktop-only { display: none !important; } } @media (max-width: 1024px) { .desktop-context { display: none !important; } .mobile-menu-toggle { display: block !important; } .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 40; transform: translateX(-100%); } .sidebar { width: min(88vw, 300px) !important; min-width: min(88vw, 300px) !important; } .sidebar.mobile-open { transform: translateX(0); } .mobile-overlay { display: block !important; } } @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }`}</style>
+      <style>{`
+        @media (max-width: 640px) { .desktop-only { display: none !important; } }
+        @media (max-width: 1024px) {
+          .desktop-context { display: none !important; }
+          .gm-dashboard-header { padding: 8px !important; position: sticky !important; z-index: 30 !important; }
+          .gm-header-main { flex-wrap: nowrap !important; gap: 8px !important; }
+          .gm-header-actions { display: none !important; }
+          .gm-campaign-meta { display: none !important; }
+          .gm-campaign-title { max-width: calc(100vw - 130px) !important; margin: 0 !important; font-size: 20px !important; }
+          .mobile-menu-toggle { display: grid !important; }
+          .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 90 !important; transform: translateX(-100%); box-shadow: none !important; }
+          .sidebar { width: min(78vw, 300px) !important; min-width: min(78vw, 300px) !important; }
+          .sidebar.mobile-open { transform: translateX(0); }
+          .gm-sidebar-mobile-top { display: flex !important; }
+          .gm-sidebar-title { display: none !important; }
+          .mobile-overlay { display: block !important; }
+        }
+        @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }
+      `}</style>
     </div>
   );
 }
@@ -360,7 +387,7 @@ function CommandCard({ title, text, meta, icon: Icon, tab, onOpenTab }) {
 
 const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 14px', fontWeight: 950, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack, textDecoration: 'none' };
 const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 14px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack };
-const squareIconButtonStyle = { minWidth: 44, minHeight: 44, background: theme.bg.card, border: 0, borderRadius: 0, display: 'grid', placeItems: 'center' };
+const squareIconButtonStyle = { width: 44, minWidth: 44, height: 44, minHeight: 44, background: theme.bg.card, border: 0, borderRadius: 0, display: 'grid', placeItems: 'center', flex: '0 0 44px' };
 const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const commandShellStyle = { display: 'grid', gap: 18 };
 const commandHeroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', borderBottom: `1px solid ${theme.border}`, paddingBottom: 16 };
