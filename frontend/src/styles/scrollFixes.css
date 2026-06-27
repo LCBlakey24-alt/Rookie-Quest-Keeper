@@ -106,6 +106,52 @@ input {
   }
 }
 
+/* Keep the animated red fill behind the label/icon. Some buttons contain plain
+   text nodes rather than wrapped spans, so child z-index rules alone were not
+   enough and the red layer could visually sit on top of the text. */
+#root button,
+#root [role='button'],
+#root a.button,
+#root a.btn,
+#root .landing-button,
+#root .dashboard-button,
+#root .action-button,
+#root .clean-sheet-tabs button,
+#root .mobile-dashboard-tabs button,
+#root .dashboard-tabs button,
+#root .rq-side-tab,
+#root .clean-sheet-back,
+#root .clean-sheet-edit,
+#root .clean-sheet-level {
+  isolation: isolate !important;
+  z-index: 0;
+}
+
+#root button::before,
+#root [role='button']::before,
+#root a.button::before,
+#root a.btn::before,
+#root .landing-button::before,
+#root .dashboard-button::before,
+#root .action-button::before,
+#root .clean-sheet-tabs button::before,
+#root .mobile-dashboard-tabs button::before,
+#root .dashboard-tabs button::before,
+#root .rq-side-tab::before,
+#root .clean-sheet-back::before,
+#root .clean-sheet-edit::before,
+#root .clean-sheet-level::before {
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+#root button,
+#root [role='button'],
+#root a.button,
+#root a.btn {
+  color: var(--rq-text, #ffffff) !important;
+}
+
 /* Dashboard list rows used to start at the exact left edge, so the old red bar
    could sit over campaign/character text. Keep a safe inset on hoverable rows. */
 #root button[style*="text-align: left"],
