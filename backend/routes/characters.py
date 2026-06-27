@@ -158,13 +158,17 @@ def spell_slots_for_class_levels(primary_class: str, total_level: int, class_lev
     return {}
 
 
+def meets_requirement_dict(character: Dict[str, Any], requirement: Dict[str, int]) -> bool:
+    return all(int(character.get(ability, 10) or 10) >= int(minimum) for ability, minimum in requirement.items())
+
+
 def meets_multiclass_requirements(character: Dict[str, Any], character_class: str) -> bool:
     req = _MULTICLASS_REQUIREMENTS.get(class_key(character_class))
     if not req:
         return False
     if 'or' in req:
-        return any(meets_multiclass_requirements(character, option) for option in req['or'])
-    return all(int(character.get(ability, 10) or 10) >= int(minimum) for ability, minimum in req.items())
+        return any(meets_requirement_dict(character, option) for option in req['or'])
+    return meets_requirement_dict(character, req)
 
 
 def multiclass_requirement_text(character_class: str) -> str:
