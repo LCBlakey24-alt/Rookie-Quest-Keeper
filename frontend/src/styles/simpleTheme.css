@@ -19,7 +19,7 @@
   --rq-heal: #1f9d66;
   --rq-damage: #d00000;
   --rq-temp: #2b8fbf;
-  --rq-title-font: 'New Rocker', Georgia, serif;
+  --rq-title-font: 'Germania One', Georgia, serif;
   --rq-body-font: 'Manrope', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -85,247 +85,187 @@ select {
 #root span,
 #root label,
 #root li,
+#root button,
+#root input,
+#root textarea,
+#root select,
+#root a,
 #root small,
 #root strong,
 #root em {
   text-shadow: none !important;
 }
 
-#root p,
-#root li,
-#root small,
-#root em,
-#root label,
-#root .muted,
 #root .text-muted,
-#root .clean-sheet-muted,
-#root .text-slate-400,
-#root .text-slate-500,
+#root .muted,
+#root .subtle,
+#root .helper-text,
+#root .text-gray-300,
 #root .text-gray-400,
-#root .text-gray-500,
+#root .text-slate-300,
+#root .text-slate-400,
+#root .text-zinc-300,
+#root .text-zinc-400,
+#root .text-stone-300,
+#root .text-stone-400,
+#root .text-blue-100,
 #root .text-blue-200,
 #root .text-blue-300,
-#root .text-cyan-200,
-#root .text-cyan-300,
+#root .text-indigo-100,
+#root .text-indigo-200,
+#root .text-purple-100,
 #root .text-purple-200,
 #root .text-purple-300,
+#root .text-amber-100,
 #root .text-amber-200,
-#root .text-amber-300 {
+#root .text-amber-300,
+#root .text-yellow-100,
+#root .text-yellow-200,
+#root .text-yellow-300 {
   color: var(--rq-muted) !important;
 }
 
-#root section,
-#root article,
-#root aside,
-#root header,
-#root footer,
-#root nav,
 #root .card,
 #root .panel,
+#root .glass-panel,
+#root .glow-card,
 #root .card-glow,
 #root .glow-panel,
 #root .dashboard-card,
-#root .dashboard-panel,
-#root .action-card,
-#root .summary-card,
-#root .update-card,
-#root .character-card,
-#root .campaign-card,
-#root .clean-sheet-header,
+#root .dashboard-section,
+#root .dashboard-stat-card,
 #root .clean-sheet-card,
 #root .clean-sheet-panel,
-#root .clean-sheet-section,
-#root .clean-sheet-hp-card,
-#root .clean-sheet-stat-card,
-#root .clean-sheet-ability,
-#root .clean-sheet-save-card,
-#root .clean-sheet-skill-card,
-#root .clean-sheet-spell-card,
-#root .clean-sheet-slot-card,
-#root .clean-sheet-item-card,
-#root .rq-health-arc__stage,
-#root .rq-hp-action-panel,
-#root .landing-feature-card,
-#root .landing-workflow-item,
+#root .character-card,
+#root .campaign-card,
+#root .inventory-item-card,
+#root .spell-card,
+#root .feature-card,
+#root .note-card,
 #root .rook-share-alert,
-#root [data-testid="latest-updates-panel"] {
-  background-image: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
-
-#root .card-glow,
-#root .glow-panel,
-#root .dashboard-card,
-#root .dashboard-panel,
-#root .action-card,
-#root .summary-card,
-#root .character-card,
-#root .campaign-card,
-#root .clean-sheet-panel,
-#root .clean-sheet-section,
-#root .landing-feature-card,
-#root .landing-workflow-item,
-#root .rook-share-alert {
+#root .join-code-card,
+#root .quick-action-card,
+#root .gm-command-card {
   background: var(--rq-surface) !important;
+  background-image: none !important;
   border: 1px solid var(--rq-line) !important;
-}
-
-#root section,
-#root article,
-#root aside,
-#root .card,
-#root .panel,
-#root .dashboard-card,
-#root .dashboard-panel,
-#root .action-card,
-#root .summary-card,
-#root .character-card,
-#root .campaign-card,
-#root .clean-sheet-panel,
-#root .clean-sheet-section,
-#root .clean-sheet-hp-card,
-#root .clean-sheet-stat-card,
-#root .landing-feature-card,
-#root .landing-workflow-item {
-  border-radius: 0 !important;
-}
-
-#root button,
-#root .button,
-#root .btn,
-#root .landing-button,
-#root .dashboard-button,
-#root .action-button,
-#root .clean-sheet-back,
-#root .clean-sheet-edit,
-#root .clean-sheet-level,
-#root .rq-hp-action-button {
   border-radius: 0 !important;
   box-shadow: none !important;
-  background-image: none !important;
-  border-color: transparent !important;
+  color: var(--rq-text) !important;
 }
 
 #root button,
-#root .button,
 #root .btn,
-#root .landing-button,
-#root .dashboard-button,
-#root .action-button,
-#root .clean-sheet-back,
-#root .clean-sheet-edit,
-#root .rq-hp-action-button {
-  background: transparent !important;
-  color: var(--rq-text) !important;
-}
-
-#root button[type='submit'],
-#root .primary-button,
-#root .btn-primary,
-#root .landing-button-primary,
-#root .clean-sheet-level,
-#root .mobile-dashboard-tabs button.active,
-#root .dashboard-tabs button.active {
-  background: var(--rq-primary) !important;
-  color: var(--rq-text) !important;
-  border-color: transparent !important;
-}
-
-#root .clean-sheet-tabs button,
-#root .mobile-dashboard-tabs button,
-#root .dashboard-tabs button {
-  background: var(--rq-tab-bg) !important;
-  color: var(--rq-tab-text) !important;
-  border-color: transparent !important;
-}
-
-#root .clean-sheet-tabs button.active,
-#root .mobile-dashboard-tabs button.active,
-#root .dashboard-tabs button.active {
-  background: var(--rq-tab-active) !important;
-  color: var(--rq-text) !important;
-  border-color: transparent !important;
+#root .button,
+#root [role="button"] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 #root input,
 #root textarea,
 #root select,
+#root .input,
 #root .input-glow {
-  border-radius: 0 !important;
-  box-shadow: none !important;
   background: var(--rq-bg) !important;
   background-image: none !important;
+  border: 1px solid var(--rq-line) !important;
+  border-radius: 0 !important;
   color: var(--rq-text) !important;
-  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
 }
 
-/* Old blue / purple / gold / cyan utility colours should not leak into GM tools. */
+#root input::placeholder,
+#root textarea::placeholder {
+  color: rgba(255, 255, 255, 0.46) !important;
+}
+
+#root .rounded,
+#root .rounded-md,
+#root .rounded-lg,
+#root .rounded-xl,
+#root .rounded-2xl,
+#root .rounded-3xl,
+#root .rounded-full {
+  border-radius: 0 !important;
+}
+
+#root .shadow,
+#root .shadow-md,
+#root .shadow-lg,
+#root .shadow-xl,
+#root .shadow-2xl,
+#root .drop-shadow,
+#root .drop-shadow-md,
+#root .drop-shadow-lg,
+#root .drop-shadow-xl {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#root .border-blue-400,
 #root .border-blue-500,
 #root .border-blue-600,
-#root .border-cyan-500,
-#root .border-cyan-600,
+#root .border-indigo-400,
+#root .border-indigo-500,
+#root .border-purple-400,
 #root .border-purple-500,
 #root .border-purple-600,
+#root .border-amber-400,
 #root .border-amber-500,
+#root .border-yellow-400,
 #root .border-yellow-500,
 #root [style*="#4a7dff"],
-#root [style*="#1e40af"],
-#root [style*="#67e8f9"],
-#root [style*="#8A2BE2"],
-#root [style*="#4B0082"],
 #root [style*="#a855f7"],
-#root [style*="#F59E0B"],
-#root [style*="#fbbf24"],
 #root [style*="#C08A3D"],
-#root [style*="#E0B15C"] {
-  border-color: var(--rq-primary) !important;
+#root [style*="#f59e0b"] {
+  border-color: var(--rq-line) !important;
+  color: var(--rq-text) !important;
 }
 
 #root .text-blue-400,
 #root .text-blue-500,
-#root .text-cyan-400,
-#root .text-cyan-500,
+#root .text-indigo-400,
+#root .text-indigo-500,
 #root .text-purple-400,
 #root .text-purple-500,
 #root .text-amber-400,
+#root .text-amber-500,
 #root .text-yellow-400,
-#root [style*="#4a7dff"],
-#root [style*="#bfdbfe"],
-#root [style*="#93c5fd"],
-#root [style*="#67e8f9"],
-#root [style*="#8A2BE2"],
-#root [style*="#4B0082"],
-#root [style*="#a855f7"],
-#root [style*="#F59E0B"],
-#root [style*="#fbbf24"],
-#root [style*="#C08A3D"],
-#root [style*="#E0B15C"] {
+#root .text-yellow-500 {
   color: var(--rq-text) !important;
 }
 
+#root .bg-blue-400,
 #root .bg-blue-500,
 #root .bg-blue-600,
-#root .bg-cyan-500,
-#root .bg-cyan-600,
+#root .bg-indigo-500,
+#root .bg-indigo-600,
 #root .bg-purple-500,
 #root .bg-purple-600,
+#root .bg-amber-400,
 #root .bg-amber-500,
-#root .bg-yellow-500,
-#root [style*="linear-gradient"],
-#root [style*="radial-gradient"],
-#root [style*="rgba(10, 10, 40"],
-#root [style*="rgba(30, 64, 175"],
-#root [style*="rgba(74,125,255"] {
+#root .bg-yellow-400,
+#root .bg-yellow-500 {
   background: var(--rq-surface) !important;
   background-image: none !important;
 }
 
-#root button:hover,
-#root [role='button']:hover,
-#root .dashboard-button:hover,
-#root .action-button:hover,
-#root .btn:hover,
-#root .button:hover {
-  color: var(--rq-text) !important;
+#root [style*="linear-gradient"],
+#root [style*="radial-gradient"],
+#root .bg-gradient-to-r,
+#root .bg-gradient-to-l,
+#root .bg-gradient-to-t,
+#root .bg-gradient-to-b,
+#root .from-blue-500,
+#root .from-purple-500,
+#root .from-amber-500,
+#root .from-yellow-500,
+#root .to-blue-500,
+#root .to-purple-500,
+#root .to-amber-500,
+#root .to-yellow-500 {
+  background: var(--rq-surface) !important;
+  background-image: none !important;
 }
