@@ -23,6 +23,7 @@ from routes.character_templates import router as character_templates_router
 from routes.homebrew import router as homebrew_router
 from routes.handouts import router as handouts_router
 from routes.story_arcs import router as story_arcs_router
+from routes.roll_events import router as roll_events_router
 
 all_routers = [
     auth_router,
@@ -52,4 +53,5 @@ all_routers = [
     homebrew_router,
     handouts_router,
     story_arcs_router,
+    roll_events_router,
 ]
