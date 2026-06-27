@@ -5,7 +5,6 @@ import { loadDisplayState, subscribeDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
-
 const theme = { bg: '#080808', panel: '#242424', card: '#3a3a3a', red: '#d00000', text: '#ffffff', soft: 'rgba(255,255,255,0.76)', muted: 'rgba(255,255,255,0.52)', line: 'rgba(255,255,255,0.16)' };
 
 export default function PlayerDisplayPage() {
@@ -23,17 +22,9 @@ export default function PlayerDisplayPage() {
     catch { return ''; }
   }, [state]);
 
-  const goFullscreen = async () => {
-    try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {}
-  };
+  const goFullscreen = async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} };
 
-  return (
-    <main style={pageStyle} data-testid="player-display-page">
-      <button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
-      <DisplayContent state={state} />
-      <footer style={footerStyle}><span>Rookie Quest Keeper · Player Display</span>{updatedLabel && <span>Updated {updatedLabel}</span>}</footer>
-    </main>
-  );
+  return <main style={pageStyle} data-testid="player-display-page"><button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button><DisplayContent state={state} /><footer style={footerStyle}><span>Rookie Quest Keeper · Player Display</span>{updatedLabel && <span>Updated {updatedLabel}</span>}</footer></main>;
 }
 
 function DisplayContent({ state }) {
@@ -47,26 +38,15 @@ function DisplayContent({ state }) {
   return <BlankDisplay payload={payload} />;
 }
 
-function BlankDisplay({ payload }) {
-  return <section style={blankStyle}><Monitor size={54} /><h1 style={blankTitleStyle}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle}>{payload?.subtitle || 'The next reveal will appear here.'}</p></section>;
-}
-
-function TitleDisplay({ payload }) {
-  return <section style={titleDisplayStyle}><p style={eyebrowStyle}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle}>{payload.subtitle}</p>}</section>;
-}
-
-function ImageDisplay({ payload }) {
-  return <section style={imageShellStyle}>{payload.title && <h1 style={imageTitleStyle}>{payload.title}</h1>}{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle} /> : <div style={missingImageStyle}>No image selected</div>}{payload.caption && <p style={captionStyle}>{payload.caption}</p>}</section>;
-}
+function BlankDisplay({ payload }) { return <section style={blankStyle}><Monitor size={54} /><h1 style={blankTitleStyle}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle}>{payload?.subtitle || 'The next reveal will appear here.'}</p></section>; }
+function TitleDisplay({ payload }) { return <section style={titleDisplayStyle}><p style={eyebrowStyle}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle}>{payload.subtitle}</p>}</section>; }
+function ImageDisplay({ payload }) { return <section style={imageShellStyle}>{payload.title && <h1 style={imageTitleStyle}>{payload.title}</h1>}{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle} /> : <div style={missingImageStyle}>No image selected</div>}{payload.caption && <p style={captionStyle}>{payload.caption}</p>}</section>; }
 
 function NPCGridDisplay({ payload }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
   return <section style={npcShellStyle}><div style={displayHeaderStyle}><Users size={24} /><div><p style={eyebrowStyle}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} />)}{npcs.length === 0 && <p style={blankTextStyle}>No NPCs selected.</p>}</div></section>;
 }
-
-function NPCCard({ npc }) {
-  return <article style={npcCardStyle}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle} /> : <div style={npcInitialStyle}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle}><h2 style={npcNameStyle}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle}>{npc.subtitle}</p>}</div></article>;
-}
+function NPCCard({ npc }) { return <article style={npcCardStyle}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle} /> : <div style={npcInitialStyle}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle}><h2 style={npcNameStyle}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle}>{npc.subtitle}</p>}</div></article>; }
 
 function CombatDisplay({ payload }) {
   const tokens = Array.isArray(payload.tokens) ? payload.tokens : [];
@@ -80,54 +60,39 @@ function EndSessionStatsDisplay({ payload }) {
   const allTime = payload.allTime || {};
   const awards = Array.isArray(session.awards) ? session.awards : [];
   const actors = Array.isArray(session.actors) ? session.actors.slice(0, 6) : [];
-  return (
-    <section style={statsShellStyle}>
-      <header style={statsHeroStyle}>
-        <p style={eyebrowStyle}>End of Session</p>
-        <h1 style={statsTitleStyle}>{payload.campaignName || 'Session Stats'}</h1>
-        <p style={statsSubtitleStyle}>The dice have spoken. Here is tonight's table chaos.</p>
-      </header>
-      <section style={statsNumberGridStyle}>
-        <StatNumber label="Virtual Rolls" value={session.totalRolls || 0} />
-        <StatNumber label="Dice Rolled" value={session.totalDice || 0} />
-        <StatNumber label="Nat 20s" value={session.nat20s || 0} hot />
-        <StatNumber label="Nat 1s" value={session.nat1s || 0} />
-        <StatNumber label="All-Time Nat 20s" value={allTime.nat20s || 0} />
-        <StatNumber label="All-Time Rolls" value={allTime.totalRolls || 0} />
-      </section>
-      <section style={statsLowerGridStyle}>
-        <div style={statsPanelStyle}>
-          <h2 style={statsPanelTitleStyle}>Table Awards</h2>
-          <div style={awardGridStyle}>{awards.length ? awards.map(award => <AwardCard key={`${award.title}-${award.name}`} award={award} />) : <p style={statsMutedStyle}>No awards yet. The dice were suspiciously quiet.</p>}</div>
-        </div>
-        <div style={statsPanelStyle}>
-          <h2 style={statsPanelTitleStyle}>Roller Board</h2>
-          <div style={actorListStyle}>{actors.length ? actors.map(actor => <ActorRow key={actor.name} actor={actor} />) : <p style={statsMutedStyle}>No virtual rolls captured this session.</p>}</div>
-        </div>
-      </section>
-    </section>
-  );
+  const pages = [
+    { id: 'intro', eyebrow: 'End of Session', title: payload.campaignName || 'Session Recap', subtitle: 'Player dice recap incoming...' },
+    { id: 'crit', eyebrow: 'Critical Glory', title: `${session.nat20s || 0}`, subtitle: `Nat 20${session.nat20s === 1 ? '' : 's'} from player rolls tonight` },
+    { id: 'fumble', eyebrow: 'Dice Betrayal', title: `${session.nat1s || 0}`, subtitle: `Nat 1${session.nat1s === 1 ? '' : 's'} from player rolls tonight` },
+    { id: 'awards', eyebrow: 'Table Awards', title: 'Tonight\'s Titles', awards },
+    { id: 'board', eyebrow: 'Roller Board', title: 'Player Roll Leaders', actors },
+    { id: 'alltime', eyebrow: 'Campaign Totals', title: `${allTime.totalRolls || 0}`, subtitle: `${allTime.nat20s || 0} all-time Nat 20s · ${allTime.nat1s || 0} all-time Nat 1s` },
+  ];
+  const [pageIndex, setPageIndex] = useState(0);
+
+  useEffect(() => {
+    setPageIndex(0);
+    const timer = window.setInterval(() => setPageIndex(prev => (prev + 1) % pages.length), 5200);
+    return () => window.clearInterval(timer);
+  }, [payload.generated_at]);
+
+  const page = pages[pageIndex];
+  return <section style={statsShowStyle}><div key={`${payload.generated_at}-${page.id}-${pageIndex}`} style={statsSlideStyle}><p style={eyebrowStyle}>{page.eyebrow}</p>{renderStatsPage(page, session, allTime)}<div style={progressDotsStyle}>{pages.map((item, index) => <span key={item.id} style={progressDotStyle(index === pageIndex)} />)}</div></div></section>;
 }
 
-function StatNumber({ label, value, hot = false }) {
-  return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>;
-}
-function AwardCard({ award }) {
-  return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>;
-}
-function ActorRow({ actor }) {
-  return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>;
+function renderStatsPage(page, session, allTime) {
+  if (page.id === 'awards') return <><h1 style={statsTitleStyle}>{page.title}</h1><div style={awardGridStyle}>{page.awards.length ? page.awards.slice(0, 4).map(award => <AwardCard key={`${award.title}-${award.name}`} award={award} />) : <p style={statsSubtitleStyle}>No awards yet. The dice were suspiciously quiet.</p>}</div></>;
+  if (page.id === 'board') return <><h1 style={statsTitleStyle}>{page.title}</h1><div style={actorListStyle}>{page.actors.length ? page.actors.map(actor => <ActorRow key={actor.name} actor={actor} />) : <p style={statsSubtitleStyle}>No player rolls captured this session.</p>}</div></>;
+  if (page.id === 'alltime') return <><h1 style={megaNumberStyle}>{page.title}</h1><p style={statsSubtitleStyle}>{page.subtitle}</p><div style={miniStatGridStyle}><StatNumber label="Player Rolls Tonight" value={session.playerRolls ?? session.totalRolls ?? 0} /><StatNumber label="All-Time Dice" value={allTime.totalDice || 0} /><StatNumber label="GM/Table Rolls Hidden" value={session.gmRolls || 0} /></div></>;
+  return <><h1 style={page.id === 'intro' ? statsTitleStyle : megaNumberStyle}>{page.title}</h1><p style={statsSubtitleStyle}>{page.subtitle}</p>{page.id === 'intro' && <div style={miniStatGridStyle}><StatNumber label="Player Rolls" value={session.playerRolls ?? session.totalRolls ?? 0} hot /><StatNumber label="Dice Rolled" value={session.totalDice || 0} /><StatNumber label="Awards" value={session.awards?.length || 0} /></div>}</>;
 }
 
-function MapToken({ token }) {
-  const left = Math.max(2, Math.min(94, Number(token.x) || 50));
-  const top = Math.max(2, Math.min(90, Number(token.y) || 50));
-  return <div style={{ ...mapTokenStyle, left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>;
-}
+function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
+function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
+function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
 
-function VisibleCreatureCard({ token, compact = false }) {
-  return <article style={compact ? tokenShelfCardStyle : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact)} /> : <div style={creatureInitialStyle(compact)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>;
-}
+function MapToken({ token }) { const left = Math.max(2, Math.min(94, Number(token.x) || 50)); const top = Math.max(2, Math.min(90, Number(token.y) || 50)); return <div style={{ ...mapTokenStyle, left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>; }
+function VisibleCreatureCard({ token, compact = false }) { return <article style={compact ? tokenShelfCardStyle : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact)} /> : <div style={creatureInitialStyle(compact)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = { minHeight: '100dvh', background: theme.bg, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: '1fr auto', position: 'relative', overflow: 'hidden' };
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: 0, background: 'rgba(58,58,58,0.72)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
@@ -170,17 +135,23 @@ const visibleCreatureCardStyle = { display: 'grid', gridTemplateColumns: '48px m
 const tokenShelfCardStyle = { display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', gap: 7, alignItems: 'center', padding: '6px 8px', background: theme.card, borderLeft: `5px solid ${theme.red}`, color: theme.text, fontWeight: 900, maxWidth: 210 };
 const creatureImageStyle = (compact) => ({ width: compact ? 34 : 48, height: compact ? 34 : 48, objectFit: 'cover', background: '#000' });
 const creatureInitialStyle = (compact) => ({ width: compact ? 34 : 48, height: compact ? 34 : 48, display: 'grid', placeItems: 'center', background: theme.panel, color: theme.text, fontWeight: 950, fontSize: compact ? 15 : 22 });
-const statsShellStyle = { display: 'grid', gridTemplateRows: 'auto auto minmax(0, 1fr)', gap: 18, padding: 'clamp(22px, 3vw, 44px)', minHeight: 0, overflow: 'hidden' };
-const statsHeroStyle = { textAlign: 'center', display: 'grid', gap: 8 };
-const statsTitleStyle = { margin: 0, fontFamily: titleFont, fontSize: 'clamp(54px, 8vw, 118px)', color: theme.text, lineHeight: 0.92 };
-const statsSubtitleStyle = { margin: 0, color: theme.soft, fontSize: 'clamp(17px, 2.1vw, 28px)' };
-const statsNumberGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 10 };
-const statNumberStyle = (hot) => ({ minHeight: 118, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 6, background: hot ? theme.red : theme.card, border: `1px solid ${theme.line}`, color: theme.text, textAlign: 'center' });
-const statsLowerGridStyle = { display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 14, minHeight: 0 };
-const statsPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `8px solid ${theme.red}`, padding: 16, minHeight: 0, overflow: 'hidden' };
-const statsPanelTitleStyle = { margin: '0 0 12px', fontFamily: titleFont, color: theme.text, fontSize: 'clamp(28px, 3.5vw, 48px)' };
-const awardGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 };
-const awardCardStyle = { display: 'grid', gap: 5, background: theme.card, padding: 14, border: `1px solid ${theme.line}` };
-const actorListStyle = { display: 'grid', gap: 8, maxHeight: '48vh', overflow: 'hidden' };
-const actorRowStyle = { display: 'grid', gap: 3, background: theme.card, padding: 11, borderLeft: `5px solid ${theme.red}` };
-const statsMutedStyle = { margin: 0, color: theme.soft, fontSize: 18 };
+const statsShowStyle = { display: 'grid', placeItems: 'center', minHeight: 0, padding: 'clamp(24px, 5vw, 70px)', textAlign: 'center', overflow: 'hidden' };
+const statsSlideStyle = { width: 'min(1220px, 100%)', display: 'grid', gap: 24, alignContent: 'center', animation: 'rqkStatsReveal 900ms ease both' };
+const statsTitleStyle = { margin: 0, fontFamily: titleFont, fontSize: 'clamp(58px, 9vw, 132px)', color: theme.text, lineHeight: 0.9 };
+const megaNumberStyle = { margin: 0, fontFamily: titleFont, fontSize: 'clamp(120px, 22vw, 330px)', color: theme.text, lineHeight: 0.82, textShadow: `0 0 50px ${theme.red}66` };
+const statsSubtitleStyle = { margin: 0, color: theme.soft, fontSize: 'clamp(22px, 3vw, 42px)', lineHeight: 1.2 };
+const miniStatGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginTop: 8 };
+const statNumberStyle = (hot) => ({ minHeight: 130, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 6, background: hot ? theme.red : theme.card, border: `1px solid ${theme.line}`, color: theme.text, textAlign: 'center', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
+const awardGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 };
+const awardCardStyle = { display: 'grid', gap: 6, background: theme.card, padding: 20, border: `1px solid ${theme.line}`, borderLeft: `8px solid ${theme.red}`, textAlign: 'left', fontSize: 'clamp(18px, 2vw, 28px)' };
+const actorListStyle = { display: 'grid', gap: 10, width: 'min(820px, 100%)', justifySelf: 'center' };
+const actorRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 18, alignItems: 'center', background: theme.card, padding: '16px 20px', borderLeft: `8px solid ${theme.red}`, textAlign: 'left', fontSize: 'clamp(17px, 2vw, 26px)' };
+const progressDotsStyle = { display: 'flex', gap: 8, justifyContent: 'center', marginTop: 10 };
+const progressDotStyle = (active) => ({ width: active ? 32 : 10, height: 10, background: active ? theme.red : theme.card, border: `1px solid ${theme.line}`, transition: 'all 300ms ease' });
+
+if (typeof document !== 'undefined' && !document.getElementById('rqk-stats-reveal-css')) {
+  const style = document.createElement('style');
+  style.id = 'rqk-stats-reveal-css';
+  style.textContent = '@keyframes rqkStatsReveal { from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(5px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } } @media (max-width: 900px) { [data-testid="player-display-page"] section { max-width: 100%; } }';
+  document.head.appendChild(style);
+}
