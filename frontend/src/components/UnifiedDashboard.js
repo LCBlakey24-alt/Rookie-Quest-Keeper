@@ -523,7 +523,7 @@ function CreateCampaignDialog({ form, creating, onChange, onToggleSessionZero, o
             <CampaignSelect label="Starting point" value={form.starting_point} onChange={(value) => onChange('starting_point', value)} options={startingPoints} />
           </div>
           <div style={modalSplitStyle}>
-            <CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition')} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} />
+            <CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition', value)} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} />
             <CampaignSelect label="World tone" value={form.world_setting} onChange={(value) => onChange('world_setting', value)} options={worldToneOptions} />
           </div>
           <fieldset style={checklistStyle}>
