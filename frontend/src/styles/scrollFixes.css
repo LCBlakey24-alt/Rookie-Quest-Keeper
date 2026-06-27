@@ -342,3 +342,77 @@ body::after {
 #root div[style*="grid-template-columns: minmax(0, 1fr) auto auto"] > button:first-child {
   padding: 12px 14px !important;
 }
+
+/* --------------------------------------------------------------------------
+   GM workflow polish.
+   Keeps the GM area focused on Plan → Prep → Run → Record without making the
+   command centre feel like another overloaded grid of giant buttons.
+   -------------------------------------------------------------------------- */
+
+#root .gm-dashboard-shell .gm-sidebar button {
+  letter-spacing: 0.04em !important;
+}
+
+#root .gm-dashboard-shell .gm-sidebar button[aria-expanded] {
+  min-height: 38px !important;
+  opacity: 0.92;
+}
+
+#root .gm-dashboard-shell .gm-sidebar button[aria-expanded='true'] {
+  background: rgba(208, 0, 0, 0.16) !important;
+  color: #ffffff !important;
+}
+
+#root .gm-dashboard-shell .gm-sidebar button[data-testid$='-tab'] {
+  min-height: 38px !important;
+  font-size: 12px !important;
+}
+
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='story-arcs-tab'],
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='tonight-tab'],
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='combat-tab'] {
+  font-weight: 950 !important;
+}
+
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='story-arcs-tab']::after,
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='tonight-tab']::after,
+#root .gm-dashboard-shell .gm-sidebar button[data-testid='combat-tab']::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #d00000;
+  display: inline-block;
+  margin-left: auto;
+}
+
+#root .gm-dashboard-shell main > section {
+  background: rgba(47, 47, 47, 0.72) !important;
+}
+
+#root .gm-dashboard-shell section[style*="grid-template-columns: repeat(auto-fit, minmax(250px"] button {
+  min-height: 128px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+#root .gm-dashboard-shell section[style*="grid-template-columns: repeat(auto-fit, minmax(250px"] button:nth-child(-n+4) {
+  background: rgba(208, 0, 0, 0.12) !important;
+}
+
+#root .gm-dashboard-shell section[style*="grid-template-columns: repeat(auto-fit, minmax(250px"] button:hover {
+  background: rgba(208, 0, 0, 0.22) !important;
+}
+
+#root .gm-dashboard-shell section[style*="grid-template-columns: repeat(auto-fit, minmax(250px"] button strong {
+  font-size: 15px !important;
+}
+
+@media (max-width: 760px) {
+  #root .gm-dashboard-shell main {
+    padding: 10px !important;
+  }
+
+  #root .gm-dashboard-shell main > section {
+    padding: 12px !important;
+  }
+}
