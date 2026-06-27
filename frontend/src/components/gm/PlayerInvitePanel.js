@@ -17,28 +17,39 @@ const theme = {
   muted: 'rgba(255,255,255,0.62)',
 };
 
-export default function PlayerInvitePanel({ campaignId, players = [] }) {
+export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers = null }) {
   const [invite, setInvite] = useState(null);
+  const [players, setPlayers] = useState(Array.isArray(suppliedPlayers) ? suppliedPlayers : []);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [rotating, setRotating] = useState(false);
 
   useEffect(() => {
+    if (Array.isArray(suppliedPlayers)) setPlayers(suppliedPlayers);
+  }, [suppliedPlayers]);
+
+  useEffect(() => {
     let cancelled = false;
-    async function loadInvite() {
+    async function loadPanel() {
       try {
         setLoading(true);
-        const response = await apiClient.get(`/campaign-invites/${campaignId}`);
-        if (!cancelled) setInvite(response.data);
-      } catch {
-        if (!cancelled) setInvite(null);
+        const [inviteRes, playersRes] = await Promise.all([
+          apiClient.get(`/campaign-invites/${campaignId}`).catch(() => ({ data: null })),
+          Array.isArray(suppliedPlayers)
+            ? Promise.resolve({ data: suppliedPlayers })
+            : apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+        ]);
+        if (!cancelled) {
+          setInvite(inviteRes.data);
+          setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-    if (campaignId) loadInvite();
+    if (campaignId) loadPanel();
     return () => { cancelled = true; };
-  }, [campaignId]);
+  }, [campaignId, suppliedPlayers]);
 
   const code = invite?.join_code || invite?.code || '';
   const playerSummary = useMemo(() => {
