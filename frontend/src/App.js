@@ -36,6 +36,7 @@ import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
+import GlobalGuidedTour from '@/components/onboarding/GlobalGuidedTour';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
@@ -171,6 +172,7 @@ function AppRoutes() {
         <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
       </Routes>
+      <GlobalGuidedTour isAuthenticated={isAuthenticated} />
       <GlobalFeedbackButton />
       <Toaster position="top-right" richColors theme="dark" />
     </>
