@@ -59,6 +59,20 @@ function toggleCampaignGroup(groupButton) {
   setGroupArrow(groupButton, nextExpanded);
 }
 
+function campaignIdFromPath() {
+  const match = window.location.pathname.match(/\/campaign\/([^/]+)/) || window.location.pathname.match(/\/gm-screen\/([^/]+)/);
+  return match?.[1] || '';
+}
+
+function isLivePlayButton(button) {
+  if (!(button instanceof HTMLElement)) return false;
+  const text = (button.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return button.dataset.testid === 'open-dm-screen-btn'
+    || text === 'live play mode'
+    || text === 'open live play mode'
+    || text.includes('live play mode');
+}
+
 export default function GlobalScrollRecovery() {
   useEffect(() => {
     const onWheel = (event) => {
@@ -81,6 +95,17 @@ export default function GlobalScrollRecovery() {
       toggleCampaignGroup(groupButton);
     };
 
+    const onLivePlayClick = (event) => {
+      const button = event.target instanceof Element ? event.target.closest('button') : null;
+      if (!isLivePlayButton(button)) return;
+      const campaignId = campaignIdFromPath();
+      if (!campaignId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+      window.location.assign(`/campaign/${campaignId}/live`);
+    };
+
     const initialiseCampaignGroups = () => {
       document.querySelectorAll('.sidebar button[data-testid^="group-"]').forEach((groupButton) => {
         const groupWrapper = groupButton.parentElement;
@@ -92,6 +117,7 @@ export default function GlobalScrollRecovery() {
 
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     document.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    document.addEventListener('click', onLivePlayClick, { capture: true });
     document.addEventListener('click', onCampaignGroupClick, { capture: true });
     const groupObserver = new MutationObserver(initialiseCampaignGroups);
     groupObserver.observe(document.body, { childList: true, subtree: true });
@@ -100,6 +126,7 @@ export default function GlobalScrollRecovery() {
     return () => {
       window.removeEventListener('wheel', onWheel, { capture: true });
       document.removeEventListener('wheel', onWheel, { capture: true });
+      document.removeEventListener('click', onLivePlayClick, { capture: true });
       document.removeEventListener('click', onCampaignGroupClick, { capture: true });
       groupObserver.disconnect();
     };
