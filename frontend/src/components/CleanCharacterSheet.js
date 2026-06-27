@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
+import CleanLoreTab from '@/components/clean-sheet/CleanLoreTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
@@ -579,6 +580,7 @@ export default function CleanCharacterSheet() {
             onOpenInventory={() => setActiveTab('inventory')}
           />
         )}
+        {activeTab === 'lore' && <CleanLoreTab character={character} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
 
