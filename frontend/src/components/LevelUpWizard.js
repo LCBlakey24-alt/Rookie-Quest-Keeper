@@ -1,1546 +1,632 @@
-import React, { useState, useEffect } from 'react';
-import { Dices, Sparkles, Shield, Swords, Plus, Check, Star, Zap, Users } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Dices, Server, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { MULTICLASS_REQUIREMENTS, MULTICLASS_PROFICIENCIES, canMulticlassInto, canMulticlassFrom, CLASSES } from '../data/characterRules5e';
-import { CLASS_FEATURES } from '../data/classFeatures';
-import { FEATURE_TYPE_CONFIG } from '../data/classResources';
-import { SPELLCASTING_CLASSES, SPELL_SLOTS, PACT_MAGIC_SLOTS, CANTRIPS_KNOWN, SPELLS_KNOWN, getSpellsForClass, getMaxSpellLevel } from '../data/spellDatabase';
-import { HIT_DICE, ASI_LEVELS, FEATS, ABILITIES, ABILITY_SHORT, getFeatsByEdition } from '../data/levelUpData';
-import DiceRollFlicker from './DiceRollFlicker';
-import { levelUpTheme as theme } from './level-up/levelUpTheme';
-import LevelUpStepHeader from './level-up/LevelUpStepHeader';
-import LevelUpPlanSummary from './level-up/LevelUpPlanSummary';
-import LevelUpPreflightSkeleton from './level-up/LevelUpPreflightSkeleton';
-import LevelUpFooter from './level-up/LevelUpFooter';
+import { CLASS_FEATURES } from '@/data/classFeatures';
+import { SPELLCASTING_CLASSES, getMaxSpellLevel, getSpellsForClass } from '@/data/spellDatabase';
+import { ABILITIES, ABILITY_SHORT, HIT_DICE, getFeatsByEdition } from '@/data/levelUpData';
+
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const titleFont = 'var(--rq-title-font, "New Rocker", Georgia, serif)';
+
+const theme = {
+  bg: '#242424',
+  panel: '#2f2f2f',
+  card: '#3a3a3a',
+  hover: '#444444',
+  red: '#d00000',
+  redSoft: 'rgba(208,0,0,0.2)',
+  text: '#ffffff',
+  soft: 'rgba(255,255,255,0.74)',
+  muted: 'rgba(255,255,255,0.58)',
+  line: 'rgba(255,255,255,0.16)',
+  strongLine: 'rgba(255,255,255,0.26)',
+  success: '#22c55e',
+  warning: '#f59e0b',
+};
+
+function abilityLabel(ability) {
+  return ABILITY_SHORT[ability] || String(ability || '').slice(0, 3).toUpperCase();
+}
+
+function abilityScore(character, ability) {
+  return Number(character?.[ability] || 10);
+}
+
+function abilityMod(score) {
+  return Math.floor((Number(score || 10) - 10) / 2);
+}
+
+function displayClass(value) {
+  const raw = String(value || 'Fighter').trim();
+  return raw ? raw.slice(0, 1).toUpperCase() + raw.slice(1) : 'Fighter';
+}
+
+function normaliseFeatOptions(preflight, character) {
+  const edition = preflight?.edition || (String(character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014');
+  const backendNames = preflight?.feat_options || preflight?.general_feat_options || [];
+  const localFeats = getFeatsByEdition(edition, 'general');
+  const localByName = new Map(localFeats.map(feat => [feat.name.toLowerCase(), feat]));
+
+  if (backendNames.length > 0) {
+    return backendNames.map(option => {
+      if (typeof option === 'object') return option;
+      const local = localByName.get(String(option).toLowerCase());
+      return local || { name: String(option), description: 'Available from the server progression check.' };
+    });
+  }
+
+  return localFeats;
+}
+
+function localSubclassOptions(characterClass) {
+  const classData = CLASS_FEATURES[String(characterClass || '').toLowerCase()];
+  return Object.entries(classData?.subclasses || {}).map(([key, subclass]) => ({
+    id: key,
+    name: subclass?.name || key,
+    description: subclass?.description || 'Subclass option from local backup data.',
+  }));
+}
+
+function normaliseSubclassOptions(preflight, characterClass) {
+  const backendOptions = preflight?.subclass_options || [];
+  if (backendOptions.length > 0) {
+    return backendOptions.map(option => (
+      typeof option === 'object'
+        ? { id: option.id || option.name, name: option.name || option.id, description: option.description || 'Server-approved subclass option.' }
+        : { id: String(option), name: String(option), description: 'Server-approved subclass option.' }
+    ));
+  }
+  return localSubclassOptions(characterClass);
+}
+
+function spellListFor(characterClass, maxLevel) {
+  const spellData = getSpellsForClass(characterClass) || {};
+  const cantrips = spellData.cantrips || [];
+  const spells = [];
+  for (let level = 1; level <= maxLevel; level += 1) {
+    (spellData[level] || []).forEach(spell => spells.push({ ...spell, level }));
+  }
+  return { cantrips, spells };
+}
+
+function namesFrom(list) {
+  return (list || []).map(item => String(item?.name || item)).filter(Boolean);
+}
 
 export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp }) {
-  const [step, setStep] = useState(0); // Start at 0 for multiclass choice
-  const [hpMethod, setHpMethod] = useState('average'); // 'average', 'roll', or 'manual'
-  const [hpRoll, setHpRoll] = useState(null);
-  const [hpRollFlicker, setHpRollFlicker] = useState(null);
-  const [manualHpRoll, setManualHpRoll] = useState('');
-  const [hasRolled, setHasRolled] = useState(false);
-  const [choiceType, setChoiceType] = useState(null); // 'asi' or 'feat'
-  const [asiChoices, setAsiChoices] = useState({ ability1: '', ability2: '' });
-  const [selectedFeat, setSelectedFeat] = useState(null);
-  const [loading, setLoading] = useState(false);
-  
-  // Multiclass state
-  const [isMulticlassing, setIsMulticlassing] = useState(false);
-  const [multiclassClass, setMulticlassClass] = useState(null);
-  
-  // Spell selection state
-  const [selectedNewSpells, setSelectedNewSpells] = useState([]);
-  const [selectedNewCantrips, setSelectedNewCantrips] = useState([]);
-  
-  // Fighter-specific state
-  const [selectedFightingStyle, setSelectedFightingStyle] = useState(null);
-  const [selectedSubclass, setSelectedSubclass] = useState(null);
-  const [selectedManeuvers, setSelectedManeuvers] = useState([]);
   const [preflight, setPreflight] = useState(null);
   const [preflightLoading, setPreflightLoading] = useState(false);
+  const [preflightError, setPreflightError] = useState('');
+  const [stepIndex, setStepIndex] = useState(0);
+  const [hpMethod, setHpMethod] = useState('average');
+  const [hpRoll, setHpRoll] = useState(null);
+  const [manualHpRoll, setManualHpRoll] = useState('');
+  const [choiceType, setChoiceType] = useState('');
+  const [asiChoices, setAsiChoices] = useState({ ability1: '', ability2: '' });
+  const [selectedFeat, setSelectedFeat] = useState(null);
+  const [selectedSubclass, setSelectedSubclass] = useState('');
+  const [selectedNewSpells, setSelectedNewSpells] = useState([]);
+  const [selectedNewCantrips, setSelectedNewCantrips] = useState([]);
+  const [saving, setSaving] = useState(false);
 
-  const currentLevel = character?.level || 1;
+  const currentLevel = Number(character?.level || 1);
   const newLevel = currentLevel + 1;
-  const characterClass = isMulticlassing && multiclassClass ? multiclassClass : (character?.character_class || 'Fighter');
-  const hitDie = HIT_DICE[characterClass] || 8;
-  const conMod = Math.floor(((character?.constitution || 10) - 10) / 2);
-  const conModText = conMod >= 0 ? `+${conMod}` : `${conMod}`;
-  const conModOperator = conMod >= 0 ? '+' : '-';
-  const conModAbs = Math.abs(conMod);
-  
-  // Get character stats for multiclass requirements
-  const characterStats = {
-    strength: character?.strength || 10,
-    dexterity: character?.dexterity || 10,
-    constitution: character?.constitution || 10,
-    intelligence: character?.intelligence || 10,
-    wisdom: character?.wisdom || 10,
-    charisma: character?.charisma || 10
-  };
-  
-  // Check multiclass eligibility
-  const canMulticlass = canMulticlassFrom(characterStats, character?.character_class || 'Fighter');
-  const availableMulticlasses = canMulticlass ? 
-    Object.keys(CLASSES || {}).filter(cls => 
-      cls !== character?.character_class && canMulticlassInto(characterStats, cls)
-    ) : [];
-  
-  // Check if this level grants ASI/Feat (based on class being leveled)
-  const classAsiLevels = ASI_LEVELS[characterClass] || ASI_LEVELS.default;
-  // For multiclassing, ASI is based on class level, not total level
-  const classLevel = isMulticlassing ? 1 : (character?.class_levels?.[characterClass] || currentLevel);
-  const newClassLevel = classLevel + (isMulticlassing ? 0 : 1);
-  const isAsiLevel = !isMulticlassing && classAsiLevels.includes(newClassLevel);
-  
-  // ─── Spellcasting progression ──────────────────────────────────
+  const characterClass = displayClass(preflight?.character_class || character?.character_class || 'Fighter');
+  const edition = preflight?.edition || (String(character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014');
   const classInfo = SPELLCASTING_CLASSES[characterClass];
-  const isSpellcaster = !!classInfo && !classInfo.subclassOnly;
-  
-  // Spell slots: old vs new
-  const getSlots = (lvl) => {
-    if (!classInfo) return {};
-    if (classInfo.pactMagic) return PACT_MAGIC_SLOTS[lvl] || {};
-    if (classInfo.halfCaster) {
-      const startLvl = classInfo.halfCaster ? 2 : 1;
-      if (lvl < startLvl) return {};
-      return SPELL_SLOTS[Math.floor(lvl / 2)] || {};
-    }
-    return SPELL_SLOTS[lvl] || {};
-  };
-  const oldSlots = getSlots(currentLevel);
-  const newSlots = getSlots(newLevel);
-  
-  // New cantrips to learn
-  const cantripsTable = CANTRIPS_KNOWN[characterClass] || {};
-  const getCantripCount = (lvl) => {
-    let count = 0;
-    for (const [l, c] of Object.entries(cantripsTable)) {
-      if (Number(l) <= lvl) count = c;
-    }
-    return count;
-  };
-  const oldCantripCount = getCantripCount(currentLevel);
-  const newCantripCount = getCantripCount(newLevel);
-  // Prefer preflight (server-side source of truth) when available; fall back to local table.
-  const localCantripGain = newCantripCount - oldCantripCount;
-  const cantripGain = preflight?.cantrips_to_learn ?? localCantripGain;
-  
-  // New spells to learn (for "known" casters)
-  const spellsKnownTable = SPELLS_KNOWN[characterClass] || {};
-  const getSpellsKnownCount = (lvl) => {
-    let count = 0;
-    for (const [l, c] of Object.entries(spellsKnownTable)) {
-      if (Number(l) <= lvl) count = c;
-    }
-    return count;
-  };
-  const oldSpellsKnown = getSpellsKnownCount(currentLevel);
-  const newSpellsKnown = getSpellsKnownCount(newLevel);
-  const localSpellGain = newSpellsKnown - oldSpellsKnown;
-  const spellGain = preflight?.spells_to_learn ?? localSpellGain;
-  
-  // Wizard special: gains 2 spells to spellbook each level
-  const isWizard = characterClass === 'Wizard';
-  const wizardSpellbookGain = isWizard ? 2 : 0;
-  
-  // Max spell level accessible at new level
-  const maxSpellLevelOld = getMaxSpellLevel(characterClass, currentLevel);
-  const maxSpellLevelNew = getMaxSpellLevel(characterClass, newLevel);
-  const unlockedNewSpellLevel = maxSpellLevelNew > maxSpellLevelOld;
-  
-  // Available spells for selection
-  const availableSpells = isSpellcaster ? getSpellsForClass(characterClass) : {};
-  const existingSpellNames = (character?.spells_known || []).map(s => (s.name || s));
-  const existingCantripNames = (character?.cantrips_known || []).map(s => (s.name || s));
-  
-  // ─── Class-specific detection ───────────────────────────────
-  const classKey = characterClass?.toLowerCase();
-  const classData = CLASS_FEATURES[classKey];
-  const hasFightingStyleChoice = classData?.fighting_style_level === newClassLevel && classData?.fighting_styles;
-  // Prefer preflight gating when available (handles edition-specific subclass timing)
-  const localHasSubclassChoice = classData?.subclass_level === newClassLevel && classData?.subclasses;
-  const hasSubclassChoice = preflight?.can_choose_subclass !== undefined
-    ? preflight.can_choose_subclass
-    : localHasSubclassChoice;
-  const hasSubclassFeature = selectedSubclass && classData?.subclasses?.[selectedSubclass]?.features?.some(f => f.level === newClassLevel);
-  const isBattleMaster = selectedSubclass === 'battle_master' || character?.subclass === 'battle_master';
-  const bmNeedsManeuvers = isBattleMaster && classData?.subclasses?.battle_master?.features?.some(
-    f => f.level === newClassLevel && f.name.includes('Combat Superiority')
-  );
-  const hasClassChoiceStep = hasFightingStyleChoice || hasSubclassChoice || bmNeedsManeuvers;
-  
-  // Load existing subclass from character data
-  const effectiveSubclass = selectedSubclass || character?.subclass;
-
-  // Determine step positions dynamically
-  const classChoiceStep = hasClassChoiceStep ? 3 : -1;
-  const spellcastingStep = isSpellcaster ? (hasClassChoiceStep ? 4 : 3) : -1;
-  const asiStepPos = isAsiLevel ? (3 + (hasClassChoiceStep ? 1 : 0) + (isSpellcaster ? 1 : 0)) : -1;
-  const confirmStepPos = 3 + (hasClassChoiceStep ? 1 : 0) + (isSpellcaster ? 1 : 0) + (isAsiLevel ? 1 : 0);
-  
-  // Calculate HP values
-  const averageHpBase = Math.floor(hitDie / 2) + 1;
-  const averageHp = Math.max(1, averageHpBase + conMod);
-  const rolledHp = hpRoll ? Math.max(1, hpRoll + conMod) : null;
+  const isSpellcaster = Boolean(classInfo && !classInfo.subclassOnly);
+  const hitDie = Number(preflight?.hit_die || HIT_DICE[characterClass] || 8);
+  const conMod = abilityMod(character?.constitution);
+  const averageDie = Math.floor(hitDie / 2) + 1;
+  const averageHp = Math.max(1, averageDie + conMod);
   const manualHpRollValue = Number(manualHpRoll);
-  const hasValidManualHpRoll = Number.isInteger(manualHpRollValue) && manualHpRollValue >= 1 && manualHpRollValue <= hitDie;
-  const manualHp = hasValidManualHpRoll ? Math.max(1, manualHpRollValue + conMod) : null;
-  const hpGain = hpMethod === 'roll' ? rolledHp : hpMethod === 'manual' ? manualHp : averageHp;
+  const validManualRoll = Number.isInteger(manualHpRollValue) && manualHpRollValue >= 1 && manualHpRollValue <= hitDie;
+  const hpGain = hpMethod === 'roll'
+    ? (hpRoll ? Math.max(1, hpRoll + conMod) : null)
+    : hpMethod === 'manual'
+      ? (validManualRoll ? Math.max(1, manualHpRollValue + conMod) : null)
+      : averageHp;
 
-  // Calculate new proficiency bonus
-  const newProfBonus = 2 + Math.floor((newLevel - 1) / 4);
-  const oldProfBonus = 2 + Math.floor((currentLevel - 1) / 4);
-  const profBonusIncreased = newProfBonus > oldProfBonus;
+  const maxSpellLevel = getMaxSpellLevel(characterClass, newLevel) || 0;
+  const { cantrips, spells } = useMemo(() => spellListFor(characterClass, maxSpellLevel), [characterClass, maxSpellLevel]);
+  const existingSpellNames = namesFrom(character?.spells_known || character?.spells_prepared);
+  const existingCantripNames = namesFrom(character?.cantrips_known);
+  const cantripGain = Number(preflight?.cantrips_to_learn || 0);
+  const spellGain = Number(preflight?.spells_to_learn || 0);
+  const needsSubclass = Boolean(preflight?.can_choose_subclass);
+  const isAsiLevel = Boolean(preflight?.is_asi_level);
+  const subclassOptions = useMemo(() => normaliseSubclassOptions(preflight, characterClass), [preflight, characterClass]);
+  const featOptions = useMemo(() => normaliseFeatOptions(preflight, character), [preflight, character]);
+  const hasSpellChoices = isSpellcaster && (cantripGain > 0 || spellGain > 0);
 
-  useEffect(() => {
-    // Reset state when modal opens
-    if (isOpen) {
-      setStep(0); // Start at multiclass choice step
-      setHpMethod('average');
-      setHpRoll(null);
-      setHpRollFlicker(null);
-      setManualHpRoll('');
-      setHasRolled(false);
-      setChoiceType(null);
-      setAsiChoices({ ability1: '', ability2: '' });
-      setSelectedFeat(null);
-      setIsMulticlassing(false);
-      setMulticlassClass(null);
-      setSelectedNewSpells([]);
-      setSelectedNewCantrips([]);
-      setSelectedFightingStyle(null);
-      setSelectedSubclass(character?.subclass || null);
-      setSelectedManeuvers(character?.maneuvers || []);
-    }
-  }, [isOpen]);
+  const steps = useMemo(() => ([
+    { id: 'overview', label: 'Check' },
+    { id: 'hp', label: 'HP' },
+    ...(needsSubclass ? [{ id: 'subclass', label: 'Subclass' }] : []),
+    ...(hasSpellChoices ? [{ id: 'spells', label: 'Spells' }] : []),
+    ...(isAsiLevel ? [{ id: 'asi', label: 'ASI / Feat' }] : []),
+    { id: 'confirm', label: 'Confirm' },
+  ]), [needsSubclass, hasSpellChoices, isAsiLevel]);
+
+  const activeStep = steps[Math.min(stepIndex, steps.length - 1)]?.id || 'overview';
 
   useEffect(() => {
     if (!isOpen || !character?.id) return;
+    let cancelled = false;
+    setStepIndex(0);
+    setPreflight(null);
+    setPreflightError('');
+    setHpMethod('average');
+    setHpRoll(null);
+    setManualHpRoll('');
+    setChoiceType('');
+    setAsiChoices({ ability1: '', ability2: '' });
+    setSelectedFeat(null);
+    setSelectedSubclass(character?.subclass || '');
+    setSelectedNewSpells([]);
+    setSelectedNewCantrips([]);
     setPreflightLoading(true);
+
     apiClient.get(`/characters/${character.id}/level-up-options`, { params: { target_level: newLevel } })
-      .then(res => setPreflight(res.data))
-      .catch(() => setPreflight(null))
-      .finally(() => setPreflightLoading(false));
-  }, [isOpen, character?.id, newLevel]);
+      .then(response => {
+        if (!cancelled) setPreflight(response.data);
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setPreflight(null);
+          setPreflightError(error?.response?.data?.detail || 'Server progression check failed. Local backup data is being used.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPreflightLoading(false);
+      });
 
-  const rollHitDie = () => {
+    return () => { cancelled = true; };
+  }, [isOpen, character?.id, character?.subclass, newLevel]);
+
+  if (!isOpen || !character) return null;
+
+  const rollHp = () => {
     const roll = Math.floor(Math.random() * hitDie) + 1;
+    setHpMethod('roll');
     setHpRoll(roll);
-    setHpRollFlicker({
-      label: `HP d${hitDie}`,
-      rolls: [{ sides: hitDie, result: roll }],
-      modifier: conMod,
-      total: Math.max(1, roll + conMod),
+    toast.success(`Rolled ${roll} on d${hitDie}`);
+  };
+
+  const toggleSpell = (spell, selected, setter, max) => {
+    setter(prev => {
+      const exists = prev.some(item => item.name === spell.name);
+      if (exists) return prev.filter(item => item.name !== spell.name);
+      if (prev.length >= max) return prev;
+      return [...prev, selected];
     });
-    setHasRolled(true);
-    toast.success(`Rolled ${roll} on d${hitDie}!`);
-  };
-
-  const selectHpMethod = (method) => {
-    setHpMethod(method);
-    if (method !== 'roll') {
-      setHpRoll(null);
-      setHpRollFlicker(null);
-      setHasRolled(false);
-    }
-    if (method !== 'manual') {
-      setManualHpRoll('');
-    }
-  };
-
-  const handleAsiSelect = (slot, ability) => {
-    if (slot === 1) {
-      setAsiChoices(prev => ({ ...prev, ability1: ability }));
-    } else {
-      setAsiChoices(prev => ({ ...prev, ability2: ability }));
-    }
   };
 
   const canProceed = () => {
-    if (step === 0) return !isMulticlassing || multiclassClass;
-    if (step === 1) return true;
-    if (step === 2 && hpMethod === 'roll') return hasRolled;
-    if (step === 2 && hpMethod === 'manual') return hasValidManualHpRoll;
-    if (step === 2 && hpMethod === 'average') return true;
-    if (step === classChoiceStep) {
-      if (hasFightingStyleChoice && !selectedFightingStyle) return false;
-      if (hasSubclassChoice && !selectedSubclass) return false;
-      if (bmNeedsManeuvers && selectedManeuvers.length < 3) return false;
-      return true;
-    }
-    if (step === spellcastingStep) {
-      // Known casters must select enough spells
-      const neededSpells = classInfo?.type === 'known' ? spellGain : (isWizard ? wizardSpellbookGain : 0);
-      const neededCantrips = cantripGain;
-      if (neededSpells > 0 && selectedNewSpells.length < neededSpells) return false;
-      if (neededCantrips > 0 && selectedNewCantrips.length < neededCantrips) return false;
-      return true;
-    }
-    if (step === asiStepPos) {
-      if (choiceType === 'asi') return asiChoices.ability1 && asiChoices.ability2;
-      if (choiceType === 'feat') return selectedFeat !== null;
+    if (activeStep === 'overview') return !preflightLoading;
+    if (activeStep === 'hp') return hpMethod === 'average' || (hpMethod === 'roll' && hpRoll) || (hpMethod === 'manual' && validManualRoll);
+    if (activeStep === 'subclass') return Boolean(selectedSubclass);
+    if (activeStep === 'spells') return selectedNewCantrips.length >= cantripGain && selectedNewSpells.length >= spellGain;
+    if (activeStep === 'asi') {
+      if (choiceType === 'asi') return Boolean(asiChoices.ability1 && asiChoices.ability2);
+      if (choiceType === 'feat') return Boolean(selectedFeat);
       return false;
     }
     return true;
   };
 
-  const getTotalSteps = () => confirmStepPos + 1;
+  const goNext = () => {
+    if (!canProceed()) return;
+    setStepIndex(prev => Math.min(prev + 1, steps.length - 1));
+  };
 
-  const handleLevelUp = async () => {
-    setLoading(true);
+  const goBack = () => setStepIndex(prev => Math.max(0, prev - 1));
+
+  const submitLevelUp = async () => {
+    if (!hpGain || saving) return;
+    setSaving(true);
     try {
-      const requestData = {
+      const payload = {
         new_level: newLevel,
         hp_method: hpMethod,
-        hp_roll: hpMethod === 'roll' ? hpRoll : hpMethod === 'manual' ? manualHpRollValue : null
+        hp_roll: hpMethod === 'roll' ? hpRoll : hpMethod === 'manual' ? manualHpRollValue : null,
       };
 
-      // Add multiclass info if multiclassing
-      if (isMulticlassing && multiclassClass) {
-        requestData.multiclass = true;
-        requestData.new_class = multiclassClass;
-      }
+      if (needsSubclass && selectedSubclass) payload.subclass = selectedSubclass;
 
       if (isAsiLevel) {
-        if (choiceType === 'asi') {
-          requestData.choice_type = 'asi';
-          requestData.asi_choices = asiChoices;
-        } else if (choiceType === 'feat') {
-          requestData.choice_type = 'feat';
-          requestData.feat_choice = {
-            name: selectedFeat?.name || 'Feat',
-            description: selectedFeat?.description || ''
+        payload.choice_type = choiceType || 'standard';
+        if (choiceType === 'asi') payload.asi_choices = asiChoices;
+        if (choiceType === 'feat' && selectedFeat) {
+          payload.feat_choice = {
+            name: selectedFeat.name,
+            description: selectedFeat.description || '',
           };
         }
       }
 
-      // Add spell selections
       if (selectedNewSpells.length > 0) {
-        requestData.new_spells = selectedNewSpells.map(s => ({
-          name: s.name, level: s.level || 1, school: s.school || ''
-        }));
+        payload.new_spells = selectedNewSpells.map(spell => ({ name: spell.name, level: spell.level || 1, school: spell.school || '' }));
       }
       if (selectedNewCantrips.length > 0) {
-        requestData.new_cantrips = selectedNewCantrips.map(s => ({
-          name: s.name, level: 0, school: s.school || ''
-        }));
-      }
-      
-      // Add fighter-specific selections
-      if (selectedFightingStyle) {
-        requestData.fighting_style = selectedFightingStyle;
-      }
-      if (selectedSubclass && hasSubclassChoice) {
-        requestData.subclass = selectedSubclass;
-      }
-      if (selectedManeuvers.length > 0) {
-        requestData.maneuvers = selectedManeuvers;
+        payload.new_cantrips = selectedNewCantrips.map(spell => ({ name: spell.name, level: 0, school: spell.school || '' }));
       }
 
-      // Use different endpoint for multiclassing
-      if (preflight?.target_level && preflight.target_level !== newLevel) {
-        toast.error('Level-up preflight mismatch. Please reopen level up.');
-        setLoading(false);
-        return;
-      }
-      const endpoint = isMulticlassing && multiclassClass
-        ? `/characters/${character.id}/multiclass`
-        : `/characters/${character.id}/level-up`;
-
-      await apiClient.post(endpoint, requestData);
-      
-      const levelUpMessage = isMulticlassing 
-        ? `${character.name} multiclassed into ${multiclassClass}!`
-        : `${character.name} is now Level ${newLevel}!`;
-      
-      toast.success(levelUpMessage, {
-        description: `HP increased by ${hpGain}`
-      });
-      
-      if (onLevelUp) {
-        onLevelUp(newLevel);
-      }
-      onClose();
+      await apiClient.post(`/characters/${character.id}/level-up`, payload);
+      toast.success(`${character.name} reached level ${newLevel}`, { description: `HP increased by ${hpGain}.` });
+      onLevelUp?.(newLevel);
+      onClose?.();
     } catch (error) {
-
-      toast.error(error?.response?.data?.detail || 'Failed to level up character');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not level up character');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (!isOpen || !character) return null;
-
-  const totalSteps = getTotalSteps();
-  const levelPlanItems = [
-    { label: 'Path', value: isMulticlassing ? `New ${characterClass} level` : `Continue ${characterClass}` },
-    { label: 'Level', value: `${currentLevel} → ${newLevel}` },
-    { label: 'Hit Die', value: `d${hitDie} ${conModText} CON` },
-    { label: 'HP gain', value: hpGain ? `+${hpGain}` : hpMethod === 'roll' ? 'Roll pending' : hpMethod === 'manual' ? 'Manual pending' : `+${averageHp}` },
-  ];
-
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        backdropFilter: 'blur(8px)'
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background: theme.bg.panel,
-          backdropFilter: 'blur(20px)',
-          border: `1px solid ${theme.border}`,
-          borderRadius: '20px',
-          width: '100%',
-          maxWidth: '600px',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          boxShadow: '0 25px 80px rgba(192, 138, 61, 0.24)'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <LevelUpStepHeader
-          onClose={onClose}
-          characterName={character.name}
-          characterClass={characterClass}
-          currentLevel={currentLevel}
-          newLevel={newLevel}
-          totalSteps={totalSteps}
-          step={step}
-        />
+    <div style={overlayStyle} onClick={onClose}>
+      <section style={modalStyle} onClick={event => event.stopPropagation()} data-testid="level-up-wizard">
+        <header style={headerStyle}>
+          <div>
+            <p style={eyebrowStyle}>Character progression</p>
+            <h2 style={titleStyle}>Level Up</h2>
+            <p style={subtitleStyle}>{character.name} · {characterClass} · Level {currentLevel} → {newLevel}</p>
+          </div>
+          <button type="button" onClick={onClose} style={iconButtonStyle} aria-label="Close level up"><X size={18} /></button>
+        </header>
 
-        {/* Content */}
-        <div style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(90vh - 200px)' }}>
-          <LevelUpPlanSummary items={levelPlanItems} />
-          {/* Preflight loading skeleton — prevents flicker from local-fallback to server values */}
-          {preflightLoading && !preflight && <LevelUpPreflightSkeleton />}
-          {/* Step 0: Class Choice (Continue or Multiclass) */}
-          {step === 0 && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
-                Level Up: Choose Your Path
-              </h3>
-              <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '14px' }}>
-                Continue as a {character?.character_class} or take a level in a new class.
-              </p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Continue current class */}
-                <button
-                  onClick={() => { setIsMulticlassing(false); setMulticlassClass(null); }}
-                  style={{
-                    padding: '20px',
-                    background: !isMulticlassing ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${!isMulticlassing ? theme.sunset.purple : theme.border}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Swords size={24} style={{ color: theme.sunset.purple }} />
-                    <div>
-                      <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
-                        Continue as {character?.character_class} (Level {(character?.class_levels?.[character?.character_class] || currentLevel) + 1})
-                      </div>
-                      <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
-                        Gain {character?.character_class} features and d{HIT_DICE[character?.character_class] || 8} Hit Die
-                      </div>
-                      {/* Preview features for next level */}
-                      {(() => {
-                        const classKey = character?.character_class?.toLowerCase();
-                        const classData = CLASS_FEATURES[classKey];
-                        const nextFeatures = (classData?.features || []).filter(f => f.level === newLevel && !f.isChoice);
-                        // Also include subclass features if character has a subclass
-                        const subclassKey = character?.subclass;
-                        const subFeatures = subclassKey && classData?.subclasses?.[subclassKey]
-                          ? classData.subclasses[subclassKey].features.filter(f => f.level === newLevel)
-                          : [];
-                        const allFeatures = [...nextFeatures, ...subFeatures];
-                        if (allFeatures.length === 0) return null;
-                        return (
-                          <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {allFeatures.map((feat, i) => {
-                              const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
-                              return (
-                                <span key={i} style={{
-                                  fontSize: 11, padding: '2px 8px', borderRadius: 4,
-                                  background: typeConfig.bg, color: typeConfig.color,
-                                  fontWeight: 500,
-                                }}>
-                                  {feat.name}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    {!isMulticlassing && <Check size={20} style={{ color: theme.sunset.purple, marginLeft: 'auto' }} />}
-                  </div>
-                </button>
-                
-                {/* Multiclass option */}
-                {canMulticlass && availableMulticlasses.length > 0 ? (
-                  <div>
-                    <button
-                      onClick={() => setIsMulticlassing(true)}
-                      style={{
-                        width: '100%',
-                        padding: '20px',
-                        background: isMulticlassing ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                        border: `2px solid ${isMulticlassing ? theme.sunset.pink : theme.border}`,
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Users size={24} style={{ color: theme.sunset.pink }} />
-                        <div>
-                          <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
-                            Multiclass into a New Class
-                          </div>
-                          <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
-                            {availableMulticlasses.length} classes available based on your stats
-                          </div>
-                        </div>
-                        {isMulticlassing && <Check size={20} style={{ color: theme.sunset.pink, marginLeft: 'auto' }} />}
-                      </div>
-                    </button>
-                    
-                    {/* Class selection grid */}
-                    {isMulticlassing && (
-                      <div style={{ 
-                        marginTop: '16px', 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '10px',
-                        maxHeight: '300px',
-                        overflowY: 'auto',
-                        padding: '4px'
-                      }}>
-                        {availableMulticlasses.map(cls => {
-                          const reqs = MULTICLASS_REQUIREMENTS[cls];
-                          const reqText = Object.entries(reqs || {})
-                            .filter(([k]) => k !== 'or')
-                            .map(([k, v]) => `${k.substring(0, 3).toUpperCase()} ${v}+`)
-                            .join(reqs?.or ? ' or ' : ', ');
-                          
-                          return (
-                            <button
-                              key={cls}
-                              onClick={() => setMulticlassClass(cls)}
-                              style={{
-                                padding: '14px',
-                                background: multiclassClass === cls ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                                border: `1px solid ${multiclassClass === cls ? theme.sunset.gold : theme.border}`,
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <div style={{ color: theme.text.primary, fontWeight: '600', fontSize: '14px' }}>{cls}</div>
-                              <div style={{ color: theme.text.muted, fontSize: '11px', marginTop: '4px' }}>
-                                d{HIT_DICE[cls]} HD • {reqText}
-                              </div>
-                              {multiclassClass === cls && (
-                                <div style={{ color: theme.sunset.gold, fontSize: '11px', marginTop: '6px' }}>
-                                  Gains: {MULTICLASS_PROFICIENCIES[cls]?.armor?.join(', ') || 'No armor'} armor
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ 
-                    padding: '16px', 
-                    background: 'rgba(239, 68, 68, 0.10)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    borderRadius: '8px',
-                    color: theme.text.muted,
-                    fontSize: '13px'
-                  }}>
-                    <strong style={{ color: '#EF4444' }}>Multiclassing Unavailable:</strong>
-                    <br />
-                    You don't meet the stat requirements to multiclass. Most classes require 13+ in specific abilities.
-                  </div>
-                )}
-              </div>
-            </div>
+        <nav style={stepRailStyle}>
+          {steps.map((step, index) => (
+            <span key={step.id} style={stepPillStyle(index === stepIndex, index < stepIndex)}>
+              {index < stepIndex ? <Check size={13} /> : index + 1} {step.label}
+            </span>
+          ))}
+        </nav>
+
+        <div style={bodyStyle}>
+          {activeStep === 'overview' && (
+            <OverviewStep
+              preflight={preflight}
+              preflightLoading={preflightLoading}
+              preflightError={preflightError}
+              characterClass={characterClass}
+              edition={edition}
+              hitDie={hitDie}
+              currentLevel={currentLevel}
+              newLevel={newLevel}
+              spellGain={spellGain}
+              cantripGain={cantripGain}
+              isAsiLevel={isAsiLevel}
+              needsSubclass={needsSubclass}
+            />
           )}
 
-          {/* Step 1: HP Method Selection */}
-          {step === 1 && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
-                Choose Hit Point Method
-              </h3>
-              <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '14px' }}>
-                How would you like to determine your HP increase?
-              </p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <button
-                  onClick={() => selectHpMethod('average')}
-                  style={{
-                    padding: '20px',
-                    background: hpMethod === 'average' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${hpMethod === 'average' ? theme.sunset.purple : theme.border}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Shield size={24} style={{ color: theme.sunset.purple }} />
-                    <div>
-                      <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
-                        Take Average ({averageHp} HP)
-                      </div>
-                      <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
-                        Safe choice: {averageHpBase} (avg d{hitDie}) {conModText} (CON)
-                      </div>
-                    </div>
-                    {hpMethod === 'average' && <Check size={20} style={{ color: theme.sunset.purple, marginLeft: 'auto' }} />}
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => selectHpMethod('roll')}
-                  style={{
-                    padding: '20px',
-                    background: hpMethod === 'roll' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${hpMethod === 'roll' ? theme.sunset.pink : theme.border}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Dices size={24} style={{ color: theme.sunset.pink }} />
-                    <div>
-                      <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
-                        Roll Hit Dice (d{hitDie})
-                      </div>
-                      <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
-                        Risk it: Roll 1d{hitDie} {conModText} (CON mod)
-                      </div>
-                    </div>
-                    {hpMethod === 'roll' && <Check size={20} style={{ color: theme.sunset.pink, marginLeft: 'auto' }} />}
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => selectHpMethod('manual')}
-                  style={{
-                    padding: '20px',
-                    background: hpMethod === 'manual' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${hpMethod === 'manual' ? theme.sunset.gold : theme.border}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Plus size={24} style={{ color: theme.sunset.gold }} />
-                    <div>
-                      <div style={{ color: theme.text.primary, fontSize: '16px', fontWeight: '600' }}>
-                        Enter Physical Dice Roll
-                      </div>
-                      <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '2px' }}>
-                        Type the d{hitDie} result you rolled at the table, then apply {conModText} CON
-                      </div>
-                    </div>
-                    {hpMethod === 'manual' && <Check size={20} style={{ color: theme.sunset.gold, marginLeft: 'auto' }} />}
-                  </div>
-                </button>
-              </div>
-            </div>
+          {activeStep === 'hp' && (
+            <HPStep
+              hpMethod={hpMethod}
+              setHpMethod={setHpMethod}
+              hitDie={hitDie}
+              averageDie={averageDie}
+              averageHp={averageHp}
+              conMod={conMod}
+              hpRoll={hpRoll}
+              rollHp={rollHp}
+              manualHpRoll={manualHpRoll}
+              setManualHpRoll={setManualHpRoll}
+              validManualRoll={validManualRoll}
+              manualHpRollValue={manualHpRollValue}
+              hpGain={hpGain}
+            />
           )}
 
-          {/* Step 2: HP Result */}
-          {step === 2 && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
-                {hpMethod === 'roll' ? 'Roll Your Hit Dice' : hpMethod === 'manual' ? 'Enter Your Physical Roll' : 'HP Increase Confirmed'}
-              </h3>
-              
-              {hpMethod === 'roll' ? (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  {!hasRolled ? (
-                    <>
-                      <p style={{ color: theme.text.secondary, marginBottom: '24px', fontSize: '15px' }}>
-                        Click the die to roll your d{hitDie} for HP!
-                      </p>
-                      <button
-                        onClick={rollHitDie}
-                        style={{
-                          width: '120px',
-                          height: '120px',
-                          borderRadius: '16px',
-                          background: theme.gradient,
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          margin: '0 auto',
-                          boxShadow: '0 10px 40px rgba(192, 138, 61, 0.34)',
-                          transition: 'transform 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                      >
-                        <Dices size={48} color="var(--rq-text-primary, #F5E6C8)" />
-                      </button>
-                      <p style={{ color: theme.text.muted, marginTop: '16px', fontSize: '13px' }}>
-                        Click to roll!
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{
-                        width: '120px',
-                        height: '120px',
-                        borderRadius: '16px',
-                        background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
-                        border: `3px solid ${theme.sunset.purple}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 20px',
-                        flexDirection: 'column'
-                      }}>
-                        <div style={{ fontSize: '48px', fontWeight: 'bold', color: theme.text.primary }}>{hpRoll}</div>
-                        <div style={{ fontSize: '14px', color: theme.text.muted }}>on d{hitDie}</div>
-                      </div>
-                      
-                      <div style={{
-                        background: 'rgba(16, 185, 129, 0.1)',
-                        border: `1px solid ${theme.success}`,
-                        borderRadius: '12px',
-                        padding: '16px',
-                        marginTop: '16px'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '20px' }}>
-                          <span style={{ color: theme.text.secondary }}>{hpRoll}</span>
-                          <span style={{ color: theme.text.muted }}>{conModOperator}</span>
-                          <span style={{ color: theme.text.secondary }}>{conModAbs}</span>
-                          <span style={{ color: theme.text.muted }}>=</span>
-                          <span style={{ color: theme.success, fontWeight: 'bold', fontSize: '28px' }}>+{rolledHp} HP</span>
-                        </div>
-                        <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '4px' }}>
-                          Roll + Constitution modifier
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={rollHitDie}
-                        style={{
-                          marginTop: '16px',
-                          padding: '10px 20px',
-                          background: 'transparent',
-                          border: `1px solid ${theme.border}`,
-                          borderRadius: '8px',
-                          color: theme.text.secondary,
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        <Dices size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-                        Reroll (if GM allows)
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : hpMethod === 'manual' ? (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <p style={{ color: theme.text.secondary, marginBottom: '20px', fontSize: '15px' }}>
-                    Enter the number showing on your d{hitDie}. Constitution is applied automatically.
-                  </p>
-
-                  <div style={{
-                    maxWidth: '260px',
-                    margin: '0 auto',
-                    padding: '18px',
-                    background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `1px solid ${hasValidManualHpRoll || !manualHpRoll ? theme.border : '#EF4444'}`,
-                    borderRadius: '12px'
-                  }}>
-                    <label htmlFor="manual-hp-roll" style={{
-                      display: 'block',
-                      color: theme.text.muted,
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      marginBottom: '8px'
-                    }}>
-                      d{hitDie} result
-                    </label>
-                    <input
-                      id="manual-hp-roll"
-                      data-testid="manual-hp-roll-input"
-                      type="number"
-                      min="1"
-                      max={hitDie}
-                      step="1"
-                      value={manualHpRoll}
-                      onChange={(event) => setManualHpRoll(event.target.value)}
-                      style={{
-                        width: '100%',
-                        height: '56px',
-                        borderRadius: '8px',
-                        border: `1px solid ${theme.border}`,
-                        background: theme.bg.primary,
-                        color: theme.text.primary,
-                        fontSize: '28px',
-                        fontWeight: 800,
-                        textAlign: 'center',
-                        outline: 'none'
-                      }}
-                    />
-                    <div style={{ color: theme.text.muted, fontSize: '12px', marginTop: '8px' }}>
-                      Enter a whole number from 1 to {hitDie}
-                    </div>
-                  </div>
-
-                  {manualHpRoll && (
-                    <div style={{
-                      background: hasValidManualHpRoll ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.10)',
-                      border: `1px solid ${hasValidManualHpRoll ? theme.success : '#EF4444'}`,
-                      borderRadius: '12px',
-                      padding: '16px',
-                      marginTop: '16px'
-                    }}>
-                      {hasValidManualHpRoll ? (
-                        <>
-                          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '20px' }}>
-                            <span style={{ color: theme.text.secondary }}>{manualHpRollValue}</span>
-                            <span style={{ color: theme.text.muted }}>{conModOperator}</span>
-                            <span style={{ color: theme.text.secondary }}>{conModAbs}</span>
-                            <span style={{ color: theme.text.muted }}>=</span>
-                            <span style={{ color: theme.success, fontWeight: 'bold', fontSize: '28px' }}>+{manualHp} HP</span>
-                          </div>
-                          <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '4px' }}>
-                            Physical roll + Constitution modifier
-                          </div>
-                        </>
-                      ) : (
-                        <div style={{ color: '#EF4444', fontSize: '13px', fontWeight: 700 }}>
-                          Roll must be between 1 and {hitDie}.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '16px',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    border: `3px solid ${theme.success}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px',
-                    flexDirection: 'column'
-                  }}>
-                    <div style={{ fontSize: '48px', fontWeight: 'bold', color: theme.success }}>+{averageHp}</div>
-                    <div style={{ fontSize: '14px', color: theme.text.muted }}>HP</div>
-                  </div>
-                  
-                  <div style={{ color: theme.text.secondary, fontSize: '15px' }}>
-                    {averageHpBase} (avg d{hitDie}) {conModText} (CON) = <strong>+{averageHp} HP</strong>
-                  </div>
-                </div>
-              )}
-              
-              {/* Proficiency bonus change */}
-              {profBonusIncreased && (
-                <div style={{
-                  marginTop: '24px',
-                  background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                  border: `1px solid ${theme.sunset.gold}`,
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <Star size={24} style={{ color: theme.sunset.gold }} />
-                  <div>
-                    <div style={{ color: theme.sunset.gold, fontWeight: '600', fontSize: '15px' }}>
-                      Proficiency Bonus Increased!
-                    </div>
-                    <div style={{ color: theme.text.secondary, fontSize: '13px' }}>
-                      +{oldProfBonus} → +{newProfBonus}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+          {activeStep === 'subclass' && (
+            <SubclassStep
+              characterClass={characterClass}
+              subclassOptions={subclassOptions}
+              selectedSubclass={selectedSubclass}
+              setSelectedSubclass={setSelectedSubclass}
+              serverChecked={Boolean(preflight)}
+            />
           )}
 
-          {/* Step: Class-Specific Choices (Fighting Style, Subclass, Maneuvers) */}
-          {step === classChoiceStep && hasClassChoiceStep && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
-                {hasSubclassChoice ? `Choose Your ${classData?.subclass_label || 'Subclass'}` : hasFightingStyleChoice ? 'Choose Fighting Style' : 'Martial Choices'}
-              </h3>
-
-              {/* Fighting Style Selection */}
-              {hasFightingStyleChoice && (
-                <div style={{ marginBottom: '20px' }}>
-                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '12px' }}>
-                    Choose a fighting style that defines your combat approach. This is a permanent specialization.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {(classData?.fighting_styles || []).map(fs => (
-                      <button
-                        key={fs.name}
-                        data-testid={`fighting-style-${fs.name.toLowerCase().replace(/\s+/g, '-')}`}
-                        onClick={() => setSelectedFightingStyle(fs.name)}
-                        style={{
-                          padding: '14px 16px', textAlign: 'left', borderRadius: '10px', cursor: 'pointer',
-                          background: selectedFightingStyle === fs.name ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                          border: `2px solid ${selectedFightingStyle === fs.name ? theme.sunset.purple : theme.border}`,
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <div style={{ color: theme.text.primary, fontWeight: 600, fontSize: '14px' }}>{fs.name}</div>
-                            <div style={{ color: theme.text.muted, fontSize: '12px', marginTop: '2px' }}>{fs.description}</div>
-                          </div>
-                          {selectedFightingStyle === fs.name && <Check size={18} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Subclass Selection */}
-              {hasSubclassChoice && (
-                <div style={{ marginBottom: '20px' }}>
-                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '12px' }}>
-                    Choose your {classData?.subclass_label || 'subclass'}. This defines your specialization path and grants unique features as you level up.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {Object.entries(classData?.subclasses || {}).map(([key, sc]) => (
-                      <button
-                        key={key}
-                        data-testid={`subclass-${key}`}
-                        onClick={() => setSelectedSubclass(key)}
-                        style={{
-                          padding: '16px', textAlign: 'left', borderRadius: '12px', cursor: 'pointer',
-                          background: selectedSubclass === key ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                          border: `2px solid ${selectedSubclass === key ? theme.sunset.purple : theme.border}`,
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <div style={{ color: theme.text.primary, fontWeight: 700, fontSize: '15px' }}>{sc.name}</div>
-                            <div style={{ color: theme.text.muted, fontSize: '12px', marginTop: '4px' }}>{sc.description}</div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
-                              {sc.features.filter(f => f.level === newClassLevel).map((f, i) => (
-                                <span key={i} style={{
-                                  fontSize: '11px', padding: '2px 8px', borderRadius: '4px',
-                                  background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: 500,
-                                }}>{f.name}</span>
-                              ))}
-                            </div>
-                          </div>
-                          {selectedSubclass === key && <Check size={20} style={{ color: theme.sunset.purple, flexShrink: 0 }} />}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Battle Master Maneuver Selection */}
-              {bmNeedsManeuvers && selectedSubclass === 'battle_master' && (
-                <div>
-                  <p style={{ color: theme.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
-                    Choose 3 maneuvers. These special combat techniques are fueled by your superiority dice.
-                  </p>
-                  <p style={{ color: theme.text.muted, fontSize: '12px', marginBottom: '12px' }}>
-                    Selected: {selectedManeuvers.length}/3
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '300px', overflowY: 'auto' }}>
-                    {(classData?.subclasses?.battle_master?.maneuvers || []).map(m => {
-                      const isSelected = selectedManeuvers.includes(m.name);
-                      return (
-                        <button
-                          key={m.name}
-                          data-testid={`maneuver-${m.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedManeuvers(prev => prev.filter(n => n !== m.name));
-                            } else if (selectedManeuvers.length < 3) {
-                              setSelectedManeuvers(prev => [...prev, m.name]);
-                            }
-                          }}
-                          style={{
-                            padding: '10px 14px', textAlign: 'left', borderRadius: '8px', cursor: 'pointer',
-                            background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                            border: `1px solid ${isSelected ? 'var(--rq-accent-primary, #C08A3D)' : theme.border}`,
-                            opacity: !isSelected && selectedManeuvers.length >= 3 ? 0.4 : 1,
-                            transition: 'all 0.2s',
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <div style={{ color: theme.text.primary, fontWeight: 600, fontSize: '13px' }}>{m.name}</div>
-                              <div style={{ color: theme.text.muted, fontSize: '11px', marginTop: '2px' }}>{m.description}</div>
-                            </div>
-                            {isSelected && <Check size={16} style={{ color: 'var(--rq-accent-primary, #C08A3D)', flexShrink: 0 }} />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+          {activeStep === 'spells' && (
+            <SpellsStep
+              characterClass={characterClass}
+              cantripGain={cantripGain}
+              spellGain={spellGain}
+              cantrips={cantrips}
+              spells={spells}
+              existingCantripNames={existingCantripNames}
+              existingSpellNames={existingSpellNames}
+              selectedNewCantrips={selectedNewCantrips}
+              selectedNewSpells={selectedNewSpells}
+              setSelectedNewCantrips={setSelectedNewCantrips}
+              setSelectedNewSpells={setSelectedNewSpells}
+              toggleSpell={toggleSpell}
+              maxSpellLevel={maxSpellLevel}
+            />
           )}
 
-          {/* Spellcasting Progression Step */}
-          {step === spellcastingStep && isSpellcaster && (
-            <div>
-              <h3 style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontSize: '18px', marginBottom: '8px' }}>
-                Spellcasting Progression
-              </h3>
-              <p style={{ color: theme.text.secondary, marginBottom: '16px', fontSize: '14px' }}>
-                {characterClass} spellcasting changes at level {newLevel}.
-              </p>
-
-              {/* Spell Slot Changes */}
-              {!classInfo.pactMagic ? (
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: theme.text.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                    Spell Slots
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {Object.entries(newSlots).map(([lvl, count]) => {
-                      const oldCount = oldSlots[lvl] || 0;
-                      const isNew = count > oldCount;
-                      return (
-                        <div key={lvl} style={{
-                          padding: '8px 12px', borderRadius: 8, minWidth: 60, textAlign: 'center',
-                          background: isNew ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                          border: `1px solid ${isNew ? 'rgba(245,197,66,0.4)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
-                        }}>
-                          <div style={{ fontSize: 10, color: theme.text.muted }}>Lvl {lvl}</div>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: isNew ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.primary }}>
-                            {count} {isNew && <span style={{ fontSize: 10, color: 'var(--rq-success, #7A9B66)' }}>+{count - oldCount}</span>}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ marginBottom: '20px', padding: 12, background: 'rgba(245,197,66,0.08)', borderRadius: 8 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: theme.text.muted, marginBottom: 6 }}>PACT MAGIC</div>
-                  <div style={{ color: theme.text.primary, fontSize: 14 }}>
-                    {newSlots.slots} slot{newSlots.slots > 1 ? 's' : ''} at spell level {newSlots.level}
-                    {(newSlots.slots !== oldSlots.slots || newSlots.level !== oldSlots.level) && (
-                      <span style={{ color: 'var(--rq-success, #7A9B66)', marginLeft: 8, fontSize: 12 }}>
-                        {newSlots.slots !== oldSlots.slots && `+${newSlots.slots - (oldSlots.slots || 0)} slot `}
-                        {newSlots.level !== oldSlots.level && `(now lvl ${newSlots.level})`}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* New Spell Level Unlocked */}
-              {unlockedNewSpellLevel && (
-                <div style={{
-                  marginBottom: '16px', padding: '12px 16px', borderRadius: 10,
-                  background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)',
-                  display: 'flex', alignItems: 'center', gap: 10,
-                }}>
-                  <Sparkles size={20} style={{ color: theme.sunset.gold }} />
-                  <div>
-                    <div style={{ color: theme.sunset.gold, fontWeight: 600, fontSize: 14 }}>
-                      Level {maxSpellLevelNew} Spells Unlocked!
-                    </div>
-                    <div style={{ color: theme.text.muted, fontSize: 12 }}>
-                      You can now learn and cast level {maxSpellLevelNew} spells.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Cantrip Selection */}
-              {cantripGain > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-hover, #E0B15C)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                    Choose {cantripGain} New Cantrip{cantripGain > 1 ? 's' : ''} ({selectedNewCantrips.length}/{cantripGain})
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 140, overflowY: 'auto', padding: 4 }}>
-                    {(availableSpells.cantrips || []).filter(s => !existingCantripNames.includes(s.name)).map(cantrip => {
-                      const isSelected = selectedNewCantrips.some(s => s.name === cantrip.name);
-                      return (
-                        <button key={cantrip.name} onClick={() => {
-                          setSelectedNewCantrips(prev =>
-                            isSelected ? prev.filter(s => s.name !== cantrip.name)
-                              : prev.length < cantripGain ? [...prev, cantrip] : prev
-                          );
-                        }} style={{
-                          padding: '6px 12px', borderRadius: 16, fontSize: 12, cursor: 'pointer',
-                          background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                          border: `1px solid ${isSelected ? 'var(--rq-accent-hover, #E0B15C)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
-                          color: isSelected ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.secondary,
-                          fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
-                        }} title={cantrip.description}>
-                          {cantrip.name} {cantrip.damage && <span style={{ fontSize: 10, opacity: 0.7 }}>({cantrip.damage})</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Spell Selection for "known" casters */}
-              {classInfo.type === 'known' && spellGain > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-hover, #E0B15C)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                    Choose {spellGain} New Spell{spellGain > 1 ? 's' : ''} ({selectedNewSpells.length}/{spellGain})
-                  </div>
-                  <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, padding: 4 }}>
-                    {Array.from({ length: maxSpellLevelNew }, (_, i) => i + 1).map(lvl => {
-                      const spells = (availableSpells[lvl] || []).filter(s => !existingSpellNames.includes(s.name));
-                      if (spells.length === 0) return null;
-                      return (
-                        <div key={lvl}>
-                          <div style={{ fontSize: 10, color: theme.text.muted, fontWeight: 600, padding: '4px 0' }}>Level {lvl}</div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {spells.map(spell => {
-                              const isSelected = selectedNewSpells.some(s => s.name === spell.name);
-                              return (
-                                <button key={spell.name} onClick={() => {
-                                  setSelectedNewSpells(prev =>
-                                    isSelected ? prev.filter(s => s.name !== spell.name)
-                                      : prev.length < spellGain ? [...prev, { ...spell, level: lvl }] : prev
-                                  );
-                                }} title={spell.description} style={{
-                                  padding: '5px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                                  background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                                  border: `1px solid ${isSelected ? 'var(--rq-accent-hover, #E0B15C)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
-                                  color: isSelected ? 'var(--rq-accent-hover, #E0B15C)' : theme.text.secondary,
-                                  fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
-                                }}>
-                                  {spell.name}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Wizard spellbook */}
-              {isWizard && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--rq-accent-active, #A45A32)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                    Add {wizardSpellbookGain} Spells to Spellbook ({selectedNewSpells.length}/{wizardSpellbookGain})
-                  </div>
-                  <p style={{ color: theme.text.muted, fontSize: 12, marginBottom: 8 }}>
-                    Your study has revealed new arcane secrets. Add {wizardSpellbookGain} wizard spells of a level you can cast.
-                  </p>
-                  <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, padding: 4 }}>
-                    {Array.from({ length: maxSpellLevelNew }, (_, i) => i + 1).map(lvl => {
-                      const spells = (availableSpells[lvl] || []).filter(s => !existingSpellNames.includes(s.name));
-                      if (spells.length === 0) return null;
-                      return (
-                        <div key={lvl}>
-                          <div style={{ fontSize: 10, color: theme.text.muted, fontWeight: 600, padding: '4px 0' }}>Level {lvl}</div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {spells.map(spell => {
-                              const isSelected = selectedNewSpells.some(s => s.name === spell.name);
-                              return (
-                                <button key={spell.name} onClick={() => {
-                                  setSelectedNewSpells(prev =>
-                                    isSelected ? prev.filter(s => s.name !== spell.name)
-                                      : prev.length < wizardSpellbookGain ? [...prev, { ...spell, level: lvl }] : prev
-                                  );
-                                }} title={spell.description} style={{
-                                  padding: '5px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                                  background: isSelected ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                                  border: `1px solid ${isSelected ? 'var(--rq-accent-active, #A45A32)' : 'var(--rq-border-subtle, rgba(192, 138, 61, 0.14))'}`,
-                                  color: isSelected ? 'var(--rq-accent-active, #A45A32)' : theme.text.secondary,
-                                  fontWeight: isSelected ? 600 : 400, transition: 'all 0.15s',
-                                }}>
-                                  {spell.name}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Prepared casters info */}
-              {classInfo.type === 'prepared' && !isWizard && (
-                <div style={{
-                  padding: 12, borderRadius: 8,
-                  background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', border: '1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22))',
-                }}>
-                  <div style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-                    Prepared Spells
-                  </div>
-                  <div style={{ color: theme.text.muted, fontSize: 12 }}>
-                    As a {characterClass}, you can change your prepared spells after a long rest.
-                    You can prepare {Math.max(1, Math.floor(((character?.[classInfo.ability] || 10) - 10) / 2) + newLevel)} spells from the {characterClass} spell list.
-                  </div>
-                </div>
-              )}
-            </div>
+          {activeStep === 'asi' && (
+            <AsiFeatStep
+              character={character}
+              choiceType={choiceType}
+              setChoiceType={setChoiceType}
+              asiChoices={asiChoices}
+              setAsiChoices={setAsiChoices}
+              selectedFeat={selectedFeat}
+              setSelectedFeat={setSelectedFeat}
+              featOptions={featOptions}
+              edition={edition}
+            />
           )}
 
-          {/* Step 3: ASI or Feat (if applicable) */}
-          {step === asiStepPos && isAsiLevel && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '8px' }}>
-                Ability Score Improvement
-              </h3>
-              <p style={{ color: theme.text.secondary, marginBottom: '20px', fontSize: '14px' }}>
-                At level {newLevel}, you can increase your ability scores or take a feat.
-              </p>
-              
-              {/* Choice between ASI and Feat */}
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                <button
-                  onClick={() => setChoiceType('asi')}
-                  style={{
-                    flex: 1,
-                    padding: '16px',
-                    background: choiceType === 'asi' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${choiceType === 'asi' ? theme.sunset.purple : theme.border}`,
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    color: theme.text.primary,
-                    fontSize: '15px',
-                    fontWeight: '500'
-                  }}
-                >
-                  <Plus size={20} style={{ marginBottom: '4px', color: theme.sunset.purple }} />
-                  <br />
-                  +2 to Abilities
-                </button>
-                <button
-                  onClick={() => setChoiceType('feat')}
-                  style={{
-                    flex: 1,
-                    padding: '16px',
-                    background: choiceType === 'feat' ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                    border: `2px solid ${choiceType === 'feat' ? theme.sunset.pink : theme.border}`,
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    color: theme.text.primary,
-                    fontSize: '15px',
-                    fontWeight: '500'
-                  }}
-                >
-                  <Zap size={20} style={{ marginBottom: '4px', color: theme.sunset.pink }} />
-                  <br />
-                  Take a Feat
-                </button>
-              </div>
-              
-              {/* ASI Selection */}
-              {choiceType === 'asi' && (
-                <div>
-                  <p style={{ color: theme.text.muted, fontSize: '13px', marginBottom: '16px' }}>
-                    Choose two ability scores to increase by 1 each (or one by 2):
-                  </p>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                    {ABILITIES.map(ability => {
-                      const currentScore = character[ability] || 10;
-                      const isSelected1 = asiChoices.ability1 === ability;
-                      const isSelected2 = asiChoices.ability2 === ability;
-                      const totalSelected = (isSelected1 ? 1 : 0) + (isSelected2 ? 1 : 0);
-                      const wouldExceed = currentScore + totalSelected >= 20;
-                      
-                      return (
-                        <div key={ability} style={{
-                          background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                          border: `1px solid ${isSelected1 || isSelected2 ? theme.sunset.purple : theme.border}`,
-                          borderRadius: '10px',
-                          padding: '12px'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ color: theme.text.primary, fontWeight: '600' }}>{ABILITY_SHORT[ability]}</span>
-                            <span style={{ color: theme.sunset.gold, fontSize: '18px', fontWeight: 'bold' }}>
-                              {currentScore}
-                              {totalSelected > 0 && <span style={{ color: theme.success }}> +{totalSelected}</span>}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                              onClick={() => handleAsiSelect(1, ability)}
-                              disabled={wouldExceed && !isSelected1}
-                              style={{
-                                flex: 1,
-                                padding: '8px',
-                                background: isSelected1 ? theme.sunset.purple : 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: isSelected1 ? 'var(--rq-text-primary, #F5E6C8)' : theme.text.secondary,
-                                cursor: wouldExceed && !isSelected1 ? 'not-allowed' : 'pointer',
-                                opacity: wouldExceed && !isSelected1 ? 0.5 : 1,
-                                fontSize: '13px'
-                              }}
-                            >
-                              +1
-                            </button>
-                            <button
-                              onClick={() => handleAsiSelect(2, ability)}
-                              disabled={wouldExceed && !isSelected2}
-                              style={{
-                                flex: 1,
-                                padding: '8px',
-                                background: isSelected2 ? theme.sunset.pink : 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: isSelected2 ? 'var(--rq-text-primary, #F5E6C8)' : theme.text.secondary,
-                                cursor: wouldExceed && !isSelected2 ? 'not-allowed' : 'pointer',
-                                opacity: wouldExceed && !isSelected2 ? 0.5 : 1,
-                                fontSize: '13px'
-                              }}
-                            >
-                              +1
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              
-              {/* Feat Selection */}
-              {choiceType === 'feat' && (
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {(() => {
-                      // Source of truth: server preflight feat_options when provided (filtered by edition + class).
-                      // Fallback to local edition table when preflight not yet loaded.
-                      const localList = getFeatsByEdition(character?.edition || '2014');
-                      const allowedNames = preflight?.feat_options?.length
-                        ? new Set(preflight.feat_options)
-                        : null;
-                      return localList.filter(f => !allowedNames || allowedNames.has(f.name));
-                    })().map(feat => (
-                      <button
-                        key={feat.name}
-                        onClick={() => setSelectedFeat(feat)}
-                        style={{
-                          padding: '12px 16px',
-                          background: selectedFeat?.name === feat.name ? 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))' : 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                          border: `1px solid ${selectedFeat?.name === feat.name ? theme.sunset.pink : theme.border}`,
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: theme.text.primary, fontWeight: '600', fontSize: '15px' }}>{feat.name}</span>
-                          {selectedFeat?.name === feat.name && <Check size={18} style={{ color: theme.sunset.pink }} />}
-                        </div>
-                        <div style={{ color: theme.text.muted, fontSize: '13px', marginTop: '4px' }}>{feat.description}</div>
-                        {feat.prereq && (
-                          <div style={{ color: theme.sunset.gold, fontSize: '12px', marginTop: '4px' }}>
-                            Prerequisite: {feat.prereq}
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Final Step: Confirmation */}
-          {step === confirmStepPos && (
-            <div>
-              <h3 style={{ color: theme.sunset.gold, fontSize: '18px', marginBottom: '16px' }}>
-                Confirm Level Up
-              </h3>
-              
-              <div style={{
-                background: 'var(--rq-bg-input, rgba(26, 16, 11, 0.78))',
-                border: `1px solid ${theme.border}`,
-                borderRadius: '12px',
-                padding: '20px'
-              }}>
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '14px', color: theme.text.muted }}>New Level</div>
-                  <div style={{
-                    fontSize: '56px',
-                    fontWeight: 'bold',
-                    background: theme.gradient,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}>
-                    {newLevel}
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px' }}>
-                    <span style={{ color: theme.text.secondary }}>HP Increase</span>
-                    <span style={{ color: theme.success, fontWeight: '600' }}>+{hpGain}</span>
-                  </div>
-                  
-                  {profBonusIncreased && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary }}>Proficiency Bonus</span>
-                      <span style={{ color: theme.sunset.gold, fontWeight: '600' }}>+{oldProfBonus} → +{newProfBonus}</span>
-                    </div>
-                  )}
-                  
-                  {isAsiLevel && choiceType === 'asi' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary }}>Ability Increase</span>
-                      <span style={{ color: theme.sunset.purple, fontWeight: '600' }}>
-                        {ABILITY_SHORT[asiChoices.ability1]} +1, {ABILITY_SHORT[asiChoices.ability2]} +1
-                      </span>
-                    </div>
-                  )}
-                  
-                  {isAsiLevel && choiceType === 'feat' && selectedFeat && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary }}>New Feat</span>
-                      <span style={{ color: theme.sunset.pink, fontWeight: '600' }}>{selectedFeat.name}</span>
-                    </div>
-                  )}
-                  
-                  {/* Spell selections summary */}
-                  {selectedNewCantrips.length > 0 && (
-                    <div style={{ padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary, fontSize: 13 }}>New Cantrips: </span>
-                      <span style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: '600', fontSize: 13 }}>
-                        {selectedNewCantrips.map(s => s.name).join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  {selectedNewSpells.length > 0 && (
-                    <div style={{ padding: '10px', background: 'rgba(245,197,66,0.1)', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary, fontSize: 13 }}>
-                        {isWizard ? 'Spellbook Additions' : 'New Spells'}: </span>
-                      <span style={{ color: 'var(--rq-accent-hover, #E0B15C)', fontWeight: '600', fontSize: 13 }}>
-                        {selectedNewSpells.map(s => s.name).join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Fighter selections summary */}
-                  {selectedFightingStyle && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary }}>Fighting Style</span>
-                      <span style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontWeight: '600' }}>{selectedFightingStyle}</span>
-                    </div>
-                  )}
-                  {selectedSubclass && hasSubclassChoice && classData?.subclasses?.[selectedSubclass] && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--rq-accent-soft, rgba(192, 138, 61, 0.14))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary }}>{classData?.subclass_label || 'Subclass'}</span>
-                      <span style={{ color: theme.sunset.purple, fontWeight: '600' }}>{classData.subclasses[selectedSubclass].name}</span>
-                    </div>
-                  )}
-                  {selectedManeuvers.length > 0 && (
-                    <div style={{ padding: '10px', background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))', borderRadius: '8px' }}>
-                      <span style={{ color: theme.text.secondary, fontSize: 13 }}>Maneuvers: </span>
-                      <span style={{ color: 'var(--rq-accent-primary, #C08A3D)', fontWeight: '600', fontSize: 13 }}>
-                        {selectedManeuvers.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Features Gained at this Level */}
-                  {(() => {
-                    const classKey = (isMulticlassing ? multiclassClass : characterClass)?.toLowerCase();
-                    const classData = CLASS_FEATURES[classKey];
-                    const newFeatures = (classData?.features || []).filter(f => f.level === newLevel);
-                    if (newFeatures.length === 0) return null;
-                    return (
-                      <div style={{ marginTop: 8 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: theme.sunset.gold, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 }}>
-                          Features Gained
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          {newFeatures.map((feat, i) => {
-                            const typeConfig = FEATURE_TYPE_CONFIG[feat.type] || FEATURE_TYPE_CONFIG.passive;
-                            return (
-                              <div key={i} style={{
-                                display: 'flex', alignItems: 'center', gap: 8,
-                                padding: '8px 10px', borderRadius: 6,
-                                background: 'var(--rq-bg-muted, rgba(192, 138, 61, 0.08))',
-                                borderLeft: `3px solid ${typeConfig.color}`,
-                              }}>
-                                <span style={{
-                                  fontSize: 10, fontWeight: 700, padding: '1px 5px',
-                                  borderRadius: 3, background: typeConfig.bg, color: typeConfig.color,
-                                  minWidth: 24, textAlign: 'center',
-                                }}>{typeConfig.short}</span>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ fontSize: 13, fontWeight: 600, color: theme.text.primary }}>{feat.name}</div>
-                                  <div style={{ fontSize: 11, color: theme.text.muted, marginTop: 2, lineHeight: 1.4 }}>
-                                    {feat.description?.length > 120 ? feat.description.substring(0, 120) + '...' : feat.description}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
+          {activeStep === 'confirm' && (
+            <ConfirmStep
+              character={character}
+              characterClass={characterClass}
+              currentLevel={currentLevel}
+              newLevel={newLevel}
+              hpGain={hpGain}
+              hpMethod={hpMethod}
+              selectedSubclass={needsSubclass ? selectedSubclass : ''}
+              selectedNewCantrips={selectedNewCantrips}
+              selectedNewSpells={selectedNewSpells}
+              choiceType={choiceType}
+              asiChoices={asiChoices}
+              selectedFeat={selectedFeat}
+              serverChecked={Boolean(preflight)}
+            />
           )}
         </div>
 
-        {/* Footer */}
-        <LevelUpFooter
-          step={step}
-          confirmStepPos={confirmStepPos}
-          loading={loading}
-          canProceed={canProceed()}
-          onClose={onClose}
-          onBack={() => setStep(s => s - 1)}
-          onNext={() => setStep(s => s + 1)}
-          onConfirm={handleLevelUp}
-        />
-      </div>
-      <DiceRollFlicker
-        isOpen={!!hpRollFlicker}
-        onClose={() => setHpRollFlicker(null)}
-        rolls={hpRollFlicker?.rolls || []}
-        label={hpRollFlicker?.label}
-        modifier={hpRollFlicker?.modifier || 0}
-        total={hpRollFlicker?.total || 0}
-        theme="player"
-      />
+        <footer style={footerStyle}>
+          <button type="button" onClick={goBack} disabled={stepIndex === 0 || saving} style={secondaryButtonStyle}>
+            <ChevronLeft size={16} /> Back
+          </button>
+          {activeStep === 'confirm' ? (
+            <button type="button" onClick={submitLevelUp} disabled={!canProceed() || saving} style={primaryButtonStyle}>
+              <Sparkles size={16} /> {saving ? 'Levelling…' : `Confirm Level ${newLevel}`}
+            </button>
+          ) : (
+            <button type="button" onClick={goNext} disabled={!canProceed()} style={primaryButtonStyle}>
+              Next <ChevronRight size={16} />
+            </button>
+          )}
+        </footer>
+      </section>
     </div>
   );
 }
+
+function OverviewStep({ preflight, preflightLoading, preflightError, characterClass, edition, hitDie, currentLevel, newLevel, spellGain, cantripGain, isAsiLevel, needsSubclass }) {
+  return (
+    <div style={sectionStyle}>
+      <StatusBanner loading={preflightLoading} checked={Boolean(preflight)} error={preflightError} />
+      <div style={summaryGridStyle}>
+        <SummaryCard label="Class" value={characterClass} />
+        <SummaryCard label="Level" value={`${currentLevel} → ${newLevel}`} />
+        <SummaryCard label="Rules" value={`${edition} rules`} />
+        <SummaryCard label="Hit die" value={`d${hitDie}`} />
+      </div>
+      <div style={checklistStyle}>
+        <CheckLine active={needsSubclass} text={needsSubclass ? 'Subclass choice is due at this level.' : 'No subclass choice needed this level.'} />
+        <CheckLine active={isAsiLevel} text={isAsiLevel ? 'ASI or feat choice is due.' : 'No ASI or feat choice at this level.'} />
+        <CheckLine active={cantripGain > 0 || spellGain > 0} text={`${cantripGain} cantrip${cantripGain === 1 ? '' : 's'} and ${spellGain} spell${spellGain === 1 ? '' : 's'} to learn.`} />
+      </div>
+      <p style={smallNoteStyle}>Multiclass progression will get its own dedicated pass next; this pass makes ordinary level-up choices safer and server-checked.</p>
+    </div>
+  );
+}
+
+function StatusBanner({ loading, checked, error }) {
+  if (loading) {
+    return <div style={statusBannerStyle(theme.warning)}><Server size={18} /> Checking legal progression options with the server…</div>;
+  }
+  if (checked) {
+    return <div style={statusBannerStyle(theme.success)}><Server size={18} /> Progression checked. This wizard is using server-approved options.</div>;
+  }
+  return <div style={statusBannerStyle(theme.warning)}><AlertTriangle size={18} /> {error || 'Using local backup progression data.'}</div>;
+}
+
+function SummaryCard({ label, value }) {
+  return <div style={summaryCardStyle}><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function CheckLine({ active, text }) {
+  return <div style={checkLineStyle(active)}><Check size={15} /> {text}</div>;
+}
+
+function HPStep({ hpMethod, setHpMethod, hitDie, averageDie, averageHp, conMod, hpRoll, rollHp, manualHpRoll, setManualHpRoll, validManualRoll, manualHpRollValue, hpGain }) {
+  const conText = conMod >= 0 ? `+${conMod}` : `${conMod}`;
+  return (
+    <div style={sectionStyle}>
+      <h3 style={sectionTitleStyle}>Choose hit points</h3>
+      <div style={choiceGridStyle}>
+        <button type="button" onClick={() => setHpMethod('average')} style={choiceCardStyle(hpMethod === 'average')}>
+          <strong>Take average</strong>
+          <span>{averageDie} {conText} CON = +{averageHp} HP</span>
+        </button>
+        <button type="button" onClick={rollHp} style={choiceCardStyle(hpMethod === 'roll')}>
+          <strong>Roll d{hitDie}</strong>
+          <span>{hpRoll ? `Rolled ${hpRoll}; total +${Math.max(1, hpRoll + conMod)} HP` : 'Roll digitally in the wizard.'}</span>
+        </button>
+        <button type="button" onClick={() => setHpMethod('manual')} style={choiceCardStyle(hpMethod === 'manual')}>
+          <strong>Physical roll</strong>
+          <span>Enter the number you rolled at the table.</span>
+        </button>
+      </div>
+      {hpMethod === 'manual' && (
+        <label style={fieldStyle}>
+          <span>d{hitDie} result</span>
+          <input type="number" min="1" max={hitDie} value={manualHpRoll} onChange={event => setManualHpRoll(event.target.value)} style={inputStyle} />
+          {manualHpRoll && !validManualRoll && <em style={errorTextStyle}>Enter a whole number from 1 to {hitDie}.</em>}
+          {validManualRoll && <em style={goodTextStyle}>{manualHpRollValue} {conText} CON = +{Math.max(1, manualHpRollValue + conMod)} HP</em>}
+        </label>
+      )}
+      <div style={resultStripStyle}><Dices size={18} /> HP gain: <strong>{hpGain ? `+${hpGain}` : 'pending'}</strong></div>
+    </div>
+  );
+}
+
+function SubclassStep({ characterClass, subclassOptions, selectedSubclass, setSelectedSubclass, serverChecked }) {
+  return (
+    <div style={sectionStyle}>
+      <h3 style={sectionTitleStyle}>Choose {characterClass} subclass</h3>
+      <p style={bodyTextStyle}>{serverChecked ? 'These options came from the server progression check.' : 'Using local backup subclass options.'}</p>
+      <div style={listStyle}>
+        {subclassOptions.map(option => (
+          <button key={option.id || option.name} type="button" onClick={() => setSelectedSubclass(option.name || option.id)} style={wideChoiceStyle(selectedSubclass === (option.name || option.id))}>
+            <strong>{option.name}</strong>
+            <span>{option.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SpellsStep({ characterClass, cantripGain, spellGain, cantrips, spells, existingCantripNames, existingSpellNames, selectedNewCantrips, selectedNewSpells, setSelectedNewCantrips, setSelectedNewSpells, toggleSpell, maxSpellLevel }) {
+  const availableCantrips = cantrips.filter(spell => !existingCantripNames.includes(spell.name));
+  const availableSpells = spells.filter(spell => !existingSpellNames.includes(spell.name));
+  return (
+    <div style={sectionStyle}>
+      <h3 style={sectionTitleStyle}>Spell progression</h3>
+      <p style={bodyTextStyle}>{characterClass} can learn up to level {maxSpellLevel || 0} spells.</p>
+      {cantripGain > 0 && (
+        <SpellPicker title={`Choose ${cantripGain} cantrip${cantripGain === 1 ? '' : 's'}`} selected={selectedNewCantrips} options={availableCantrips} limit={cantripGain} onPick={(spell) => toggleSpell(spell, { ...spell, level: 0 }, setSelectedNewCantrips, cantripGain)} />
+      )}
+      {spellGain > 0 && (
+        <SpellPicker title={`Choose ${spellGain} spell${spellGain === 1 ? '' : 's'}`} selected={selectedNewSpells} options={availableSpells} limit={spellGain} onPick={(spell) => toggleSpell(spell, spell, setSelectedNewSpells, spellGain)} />
+      )}
+    </div>
+  );
+}
+
+function SpellPicker({ title, selected, options, limit, onPick }) {
+  return (
+    <div style={spellPickerStyle}>
+      <div style={pickerHeaderStyle}><strong>{title}</strong><span>{selected.length}/{limit}</span></div>
+      <div style={spellButtonGridStyle}>
+        {options.map(spell => {
+          const active = selected.some(item => item.name === spell.name);
+          const disabled = !active && selected.length >= limit;
+          return (
+            <button key={`${spell.name}-${spell.level || 0}`} type="button" disabled={disabled} onClick={() => onPick(spell)} style={spellButtonStyle(active, disabled)} title={spell.description || ''}>
+              {spell.name}{spell.level ? ` · L${spell.level}` : ''}
+            </button>
+          );
+        })}
+        {options.length === 0 && <p style={smallNoteStyle}>No available options found that are not already on the sheet.</p>}
+      </div>
+    </div>
+  );
+}
+
+function AsiFeatStep({ character, choiceType, setChoiceType, asiChoices, setAsiChoices, selectedFeat, setSelectedFeat, featOptions, edition }) {
+  return (
+    <div style={sectionStyle}>
+      <h3 style={sectionTitleStyle}>ASI or feat</h3>
+      <div style={choiceGridStyle}>
+        <button type="button" onClick={() => { setChoiceType('asi'); setSelectedFeat(null); }} style={choiceCardStyle(choiceType === 'asi')}>
+          <strong>Ability Score Improvement</strong>
+          <span>Choose two +1 increases, or pick the same ability twice for +2.</span>
+        </button>
+        <button type="button" onClick={() => { setChoiceType('feat'); setAsiChoices({ ability1: '', ability2: '' }); }} style={choiceCardStyle(choiceType === 'feat')}>
+          <strong>Feat</strong>
+          <span>Choose a {edition} general feat from the checked list.</span>
+        </button>
+      </div>
+
+      {choiceType === 'asi' && (
+        <div style={asiGridStyle}>
+          {[1, 2].map(slot => (
+            <label key={slot} style={fieldStyle}>
+              <span>Increase {slot}</span>
+              <select value={asiChoices[`ability${slot}`]} onChange={event => setAsiChoices(prev => ({ ...prev, [`ability${slot}`]: event.target.value }))} style={inputStyle}>
+                <option value="">Choose ability…</option>
+                {ABILITIES.map(ability => (
+                  <option key={ability} value={ability}>{abilityLabel(ability)} · current {abilityScore(character, ability)}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {choiceType === 'feat' && (
+        <div style={listStyle}>
+          {featOptions.map(feat => (
+            <button key={feat.name} type="button" onClick={() => setSelectedFeat(feat)} style={wideChoiceStyle(selectedFeat?.name === feat.name)}>
+              <strong>{feat.name}</strong>
+              <span>{feat.description || feat.prereq || 'Feat option from progression data.'}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConfirmStep({ character, characterClass, currentLevel, newLevel, hpGain, hpMethod, selectedSubclass, selectedNewCantrips, selectedNewSpells, choiceType, asiChoices, selectedFeat, serverChecked }) {
+  const items = [
+    ['Character', character.name],
+    ['Class', characterClass],
+    ['Level', `${currentLevel} → ${newLevel}`],
+    ['HP', `${hpMethod} · +${hpGain || 0}`],
+    ...(selectedSubclass ? [['Subclass', selectedSubclass]] : []),
+    ...(selectedNewCantrips.length ? [['Cantrips', selectedNewCantrips.map(spell => spell.name).join(', ')]] : []),
+    ...(selectedNewSpells.length ? [['Spells', selectedNewSpells.map(spell => spell.name).join(', ')]] : []),
+    ...(choiceType === 'asi' ? [['ASI', `${abilityLabel(asiChoices.ability1)} +1, ${abilityLabel(asiChoices.ability2)} +1`]] : []),
+    ...(choiceType === 'feat' && selectedFeat ? [['Feat', selectedFeat.name]] : []),
+  ];
+
+  return (
+    <div style={sectionStyle}>
+      <StatusBanner loading={false} checked={serverChecked} error={serverChecked ? '' : 'Final choices are using local backup data.'} />
+      <h3 style={sectionTitleStyle}>Confirm progression</h3>
+      <div style={confirmListStyle}>
+        {items.map(([label, value]) => <SummaryCard key={label} label={label} value={value} />)}
+      </div>
+    </div>
+  );
+}
+
+const overlayStyle = { position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.86)', display: 'grid', placeItems: 'center', padding: 14, fontFamily: fontStack, color: theme.text };
+const modalStyle = { width: 'min(920px, 100%)', maxHeight: '92dvh', display: 'grid', gridTemplateRows: 'auto auto minmax(0, 1fr) auto', background: theme.panel, border: `1px solid ${theme.line}`, boxShadow: 'none', overflow: 'hidden' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 14, padding: '18px 18px 14px', borderBottom: `1px solid ${theme.line}`, background: theme.bg };
+const eyebrowStyle = { margin: '0 0 4px', color: theme.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
+const titleStyle = { margin: 0, color: theme.text, fontFamily: titleFont, fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 0.9, letterSpacing: '0.03em' };
+const subtitleStyle = { margin: '8px 0 0', color: theme.soft, fontSize: 13 };
+const iconButtonStyle = { width: 38, height: 38, display: 'grid', placeItems: 'center', border: 0, background: theme.card, color: theme.text, cursor: 'pointer' };
+const stepRailStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', padding: 12, background: theme.panel, borderBottom: `1px solid ${theme.line}` };
+const stepPillStyle = (active, done) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 9px', background: active ? theme.red : done ? theme.redSoft : theme.card, color: theme.text, border: `1px solid ${active ? theme.red : theme.line}`, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
+const bodyStyle = { padding: 18, overflowY: 'auto', minHeight: 0 };
+const footerStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, padding: 12, borderTop: `1px solid ${theme.line}`, background: theme.bg };
+const primaryButtonStyle = { minHeight: 40, border: 0, background: theme.red, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 14px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 40, border: 0, background: theme.card, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 14px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const sectionStyle = { display: 'grid', gap: 14 };
+const sectionTitleStyle = { margin: 0, color: theme.text, fontSize: 24, fontWeight: 950, letterSpacing: '-0.02em' };
+const bodyTextStyle = { margin: 0, color: theme.soft, lineHeight: 1.5, fontSize: 14 };
+const statusBannerStyle = (colour) => ({ display: 'flex', alignItems: 'center', gap: 9, padding: 12, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `6px solid ${colour}`, color: theme.text, fontSize: 13, fontWeight: 900 });
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 };
+const summaryCardStyle = { display: 'grid', gap: 5, padding: 12, background: theme.card, border: `1px solid ${theme.line}` };
+const checklistStyle = { display: 'grid', gap: 7 };
+const checkLineStyle = (active) => ({ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: active ? theme.redSoft : theme.card, border: `1px solid ${active ? 'rgba(208,0,0,0.55)' : theme.line}`, color: theme.text, fontSize: 13 });
+const smallNoteStyle = { margin: 0, color: theme.muted, fontSize: 12, lineHeight: 1.45 };
+const choiceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 9 };
+const choiceCardStyle = (active) => ({ minHeight: 96, display: 'grid', alignContent: 'start', gap: 7, textAlign: 'left', padding: 13, background: active ? theme.redSoft : theme.card, color: theme.text, border: `1px solid ${active ? 'rgba(208,0,0,0.7)' : theme.line}`, cursor: 'pointer', fontFamily: fontStack });
+const fieldStyle = { display: 'grid', gap: 6, color: theme.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const inputStyle = { width: '100%', minHeight: 42, background: theme.bg, border: `1px solid ${theme.strongLine}`, color: theme.text, padding: '0 10px', fontFamily: fontStack, colorScheme: 'dark' };
+const errorTextStyle = { color: '#ff6b6b', fontSize: 12, fontStyle: 'normal', textTransform: 'none', letterSpacing: 0 };
+const goodTextStyle = { color: theme.success, fontSize: 12, fontStyle: 'normal', textTransform: 'none', letterSpacing: 0 };
+const resultStripStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.text, fontWeight: 900 };
+const listStyle = { display: 'grid', gap: 8, maxHeight: 360, overflowY: 'auto', paddingRight: 4 };
+const wideChoiceStyle = (active) => ({ display: 'grid', gap: 5, textAlign: 'left', padding: 12, background: active ? theme.redSoft : theme.card, color: theme.text, border: `1px solid ${active ? 'rgba(208,0,0,0.7)' : theme.line}`, cursor: 'pointer', fontFamily: fontStack });
+const spellPickerStyle = { display: 'grid', gap: 8, padding: 12, background: theme.card, border: `1px solid ${theme.line}` };
+const pickerHeaderStyle = { display: 'flex', justifyContent: 'space-between', color: theme.text, fontSize: 13 };
+const spellButtonGridStyle = { display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 190, overflowY: 'auto' };
+const spellButtonStyle = (active, disabled) => ({ border: `1px solid ${active ? 'rgba(208,0,0,0.8)' : theme.line}`, background: active ? theme.redSoft : theme.bg, color: disabled ? theme.muted : theme.text, padding: '7px 9px', fontSize: 12, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.48 : 1, fontFamily: fontStack });
+const asiGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, padding: 12, background: theme.card, border: `1px solid ${theme.line}` };
+const confirmListStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 };
