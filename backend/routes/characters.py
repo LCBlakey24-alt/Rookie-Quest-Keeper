@@ -10,7 +10,14 @@ from models import (
     JournalEntry,
     JournalEntryCreate,
 )
-from typing import Dict, Any
+from data.class_progression import (
+    subclasses_for,
+    feats_for_edition,
+    spells_to_learn as progression_spells_to_learn,
+    cantrips_to_learn as progression_cantrips_to_learn,
+    class_progression_summary,
+)
+from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
 router = APIRouter()
@@ -40,6 +47,29 @@ def normalize_ruleset_id(edition: str, explicit_ruleset_id: str = "") -> str:
 
 def class_key(value: str) -> str:
     return str(value or '').strip().lower()
+
+
+def display_class_name(value: str) -> str:
+    key = class_key(value)
+    for class_name in HIT_DICE.keys():
+        if class_key(class_name) == key:
+            return str(class_name)
+    return str(value or '').strip().title() or 'Fighter'
+
+
+def edition_for(character: Dict[str, Any]) -> str:
+    raw = character.get('edition') or character.get('rules_edition') or character.get('ruleset_id') or '2014'
+    return '2024' if '2024' in str(raw) else '2014'
+
+
+def asi_levels_for(character_class: str) -> list[int]:
+    levels = [4, 8, 12, 16, 19]
+    key = class_key(character_class)
+    if key == 'fighter':
+        levels.extend([6, 14])
+    if key == 'rogue':
+        levels.append(10)
+    return sorted(set(levels))
 
 
 def hit_die_for(character_class: str) -> int:
@@ -230,6 +260,57 @@ async def delete_character(character_id: str, username: str = Depends(get_curren
     return {"message": "Character deleted successfully"}
 
 
+@router.get("/characters/{character_id}/level-up-options")
+async def get_character_level_up_options(
+    character_id: str,
+    target_level: Optional[int] = None,
+    username: str = Depends(get_current_user),
+):
+    """Return the legal next-level choices before the wizard applies anything."""
+    existing = await get_owned_character(character_id, username)
+    current_level = int(existing.get('level', 1))
+    next_level = int(target_level or current_level + 1)
+    if next_level != current_level + 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can only preview the next level: {current_level + 1}",
+        )
+
+    character_class = display_class_name(existing.get('character_class', 'Fighter'))
+    edition = edition_for(existing)
+    subclass_unlock_level = get_subclass_unlock_level(character_class, edition)
+    already_has_subclass = bool(existing.get('subclass'))
+    can_choose_subclass = next_level >= subclass_unlock_level and not already_has_subclass
+    general_feats = feats_for_edition(edition, 'general')
+    origin_feats = feats_for_edition(edition, 'origin')
+
+    return {
+        'character_id': character_id,
+        'character_name': existing.get('name', ''),
+        'character_class': character_class,
+        'edition': edition,
+        'ruleset_id': existing.get('ruleset_id') or normalize_ruleset_id(edition),
+        'current_level': current_level,
+        'target_level': next_level,
+        'hit_die': hit_die_for(character_class),
+        'proficiency_bonus': proficiency_for(next_level),
+        'previous_proficiency_bonus': proficiency_for(current_level),
+        'spell_slots': calculate_spell_slots(character_class, next_level),
+        'previous_spell_slots': calculate_spell_slots(character_class, current_level),
+        'spells_to_learn': progression_spells_to_learn(character_class, current_level, next_level),
+        'cantrips_to_learn': progression_cantrips_to_learn(character_class, current_level, next_level),
+        'is_asi_level': next_level in asi_levels_for(character_class),
+        'asi_levels': asi_levels_for(character_class),
+        'can_choose_subclass': can_choose_subclass,
+        'subclass_unlock_level': subclass_unlock_level,
+        'subclass_options': subclasses_for(character_class) if can_choose_subclass else [],
+        'feat_options': general_feats,
+        'general_feat_options': general_feats,
+        'origin_feat_options': origin_feats,
+        'progression_reference': class_progression_summary(character_class, edition),
+    }
+
+
 @router.post("/characters/{character_id}/level-up")
 async def level_up_character(character_id: str, level_up: LevelUpRequest, username: str = Depends(get_current_user)):
     """Handle a simple character level up."""
@@ -239,6 +320,7 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Can only level up from {current_level} to {current_level + 1}")
 
     character_class = existing.get('character_class', '')
+    edition = edition_for(existing)
     hit_die = hit_die_for(character_class)
     con_mod = ability_modifier(existing.get('constitution', 10))
     hp_method = (level_up.hp_method or ('roll' if level_up.hp_roll is not None else 'average')).lower()
@@ -252,26 +334,56 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
 
     feats = existing.get('feats', []) or []
     level_progression = existing.get('level_progression', {}) or {}
-    if level_up.choice_type == 'feat' and level_up.feat_choice:
-        feats.append({
-            'name': level_up.feat_choice,
-            'level_taken': level_up.new_level,
-            'source': 'level_up',
-            'chosen_at': datetime.now(timezone.utc).isoformat(),
-        })
-    if level_up.choice_type == 'asi' and level_up.asi_choices:
-        for ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
-            if ability:
-                existing_score = int(existing.get(ability, 10))
-                existing[ability] = min(20, existing_score + 1)
-
-    level_progression[str(level_up.new_level)] = {
+    progression_entry = {
         'type': level_up.choice_type or 'standard',
         'hp_method': hp_method,
         'hp_roll': level_up.hp_roll,
         'hp_gained': hp_increase,
         'applied_at': datetime.now(timezone.utc).isoformat(),
     }
+
+    if level_up.choice_type == 'feat' and level_up.feat_choice:
+        feat_name = level_up.feat_choice.get('name') if isinstance(level_up.feat_choice, dict) else str(level_up.feat_choice)
+        feat_description = level_up.feat_choice.get('description', '') if isinstance(level_up.feat_choice, dict) else ''
+        feats.append({
+            'name': feat_name or 'Feat',
+            'description': feat_description,
+            'level_taken': level_up.new_level,
+            'source': 'level_up',
+            'chosen_at': datetime.now(timezone.utc).isoformat(),
+        })
+        progression_entry['feat'] = feat_name
+
+    if level_up.choice_type == 'asi' and level_up.asi_choices:
+        progression_entry['asi_choices'] = level_up.asi_choices
+        for ability in [level_up.asi_choices.get('ability1'), level_up.asi_choices.get('ability2')]:
+            if ability:
+                existing_score = int(existing.get(ability, 10))
+                existing[ability] = min(20, existing_score + 1)
+
+    if level_up.subclass:
+        unlock_level = get_subclass_unlock_level(character_class, edition)
+        if level_up.new_level < unlock_level:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{character_class}s cannot select a subclass until level {unlock_level} in {edition} rules",
+            )
+        progression_entry['subclass'] = level_up.subclass
+
+    if level_up.fighting_style:
+        progression_entry['fighting_style'] = level_up.fighting_style
+
+    if level_up.maneuvers:
+        progression_entry['maneuvers'] = level_up.maneuvers
+
+    new_spells = normalize_spell_list(level_up.new_spells or [])
+    new_cantrips = normalize_spell_list(level_up.new_cantrips or [])
+    if new_spells:
+        progression_entry['new_spells'] = new_spells
+    if new_cantrips:
+        progression_entry['new_cantrips'] = new_cantrips
+
+    level_progression[str(level_up.new_level)] = progression_entry
 
     update_data = {
         'level': level_up.new_level,
@@ -286,6 +398,18 @@ async def level_up_character(character_id: str, level_up: LevelUpRequest, userna
         'feats': feats,
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }
+
+    if level_up.subclass:
+        update_data['subclass'] = level_up.subclass
+    if level_up.fighting_style:
+        update_data['fighting_style'] = level_up.fighting_style
+    if level_up.maneuvers:
+        update_data['maneuvers'] = level_up.maneuvers
+    if new_spells:
+        update_data['spells_known'] = normalize_spell_list(existing.get('spells_known', [])) + new_spells
+    if new_cantrips:
+        update_data['cantrips_known'] = normalize_spell_list(existing.get('cantrips_known', [])) + new_cantrips
+
     for ability in ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']:
         if ability in existing:
             update_data[ability] = existing[ability]
