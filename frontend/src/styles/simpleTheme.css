@@ -105,6 +105,8 @@ select {
 #root .text-gray-500,
 #root .text-blue-200,
 #root .text-blue-300,
+#root .text-cyan-200,
+#root .text-cyan-300,
 #root .text-purple-200,
 #root .text-purple-300,
 #root .text-amber-200,
@@ -258,16 +260,23 @@ select {
   border-color: var(--rq-line) !important;
 }
 
-/* Old blue / purple / gold utility colours should not leak into GM tools. */
+/* Old blue / purple / gold / cyan utility colours should not leak into GM tools. */
 #root .border-blue-500,
 #root .border-blue-600,
+#root .border-cyan-500,
+#root .border-cyan-600,
 #root .border-purple-500,
 #root .border-purple-600,
 #root .border-amber-500,
 #root .border-yellow-500,
 #root [style*="#4a7dff"],
 #root [style*="#1e40af"],
+#root [style*="#67e8f9"],
+#root [style*="#8A2BE2"],
+#root [style*="#4B0082"],
 #root [style*="#a855f7"],
+#root [style*="#F59E0B"],
+#root [style*="#fbbf24"],
 #root [style*="#C08A3D"],
 #root [style*="#E0B15C"] {
   border-color: var(--rq-primary) !important;
@@ -275,6 +284,8 @@ select {
 
 #root .text-blue-400,
 #root .text-blue-500,
+#root .text-cyan-400,
+#root .text-cyan-500,
 #root .text-purple-400,
 #root .text-purple-500,
 #root .text-amber-400,
@@ -282,7 +293,12 @@ select {
 #root [style*="#4a7dff"],
 #root [style*="#bfdbfe"],
 #root [style*="#93c5fd"],
+#root [style*="#67e8f9"],
+#root [style*="#8A2BE2"],
+#root [style*="#4B0082"],
 #root [style*="#a855f7"],
+#root [style*="#F59E0B"],
+#root [style*="#fbbf24"],
 #root [style*="#C08A3D"],
 #root [style*="#E0B15C"] {
   color: var(--rq-text) !important;
@@ -290,12 +306,17 @@ select {
 
 #root .bg-blue-500,
 #root .bg-blue-600,
+#root .bg-cyan-500,
+#root .bg-cyan-600,
 #root .bg-purple-500,
 #root .bg-purple-600,
 #root .bg-amber-500,
 #root .bg-yellow-500,
 #root [style*="linear-gradient"],
-#root [style*="radial-gradient"] {
+#root [style*="radial-gradient"],
+#root [style*="rgba(10, 10, 40"],
+#root [style*="rgba(30, 64, 175"],
+#root [style*="rgba(74,125,255"] {
   background: var(--rq-surface) !important;
   background-image: none !important;
 }
