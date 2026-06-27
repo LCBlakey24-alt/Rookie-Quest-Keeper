@@ -168,6 +168,22 @@ export default function StoryArcTracker({ campaignId, onOpenTab }) {
     }
   };
 
+  const setActiveArc = async (arcId) => {
+    try {
+      const previousActive = arcs.filter(arc => arc.status === 'active' && arc.id !== arcId);
+      await Promise.all(previousActive.map(arc => apiClient.put(`/campaigns/${campaignId}/story-arcs/${arc.id}`, { status: 'paused' })));
+      const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${arcId}`, { status: 'active' });
+      setArcs(prev => prev.map(arc => {
+        if (arc.id === arcId) return response.data;
+        if (previousActive.some(item => item.id === arc.id)) return { ...arc, status: 'paused' };
+        return arc;
+      }));
+      toast.success('Active story arc updated');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not set active story arc');
+    }
+  };
+
   const deleteArc = async (arcId) => {
     if (!window.confirm('Delete this story arc and its chapters?')) return;
     try {
@@ -282,6 +298,7 @@ export default function StoryArcTracker({ campaignId, onOpenTab }) {
             expanded={Boolean(expanded[arc.id])}
             onToggle={() => setExpanded(prev => ({ ...prev, [arc.id]: !prev[arc.id] }))}
             onUpdate={updates => updateArc(arc.id, updates)}
+            onSetActive={() => setActiveArc(arc.id)}
             onDelete={() => deleteArc(arc.id)}
             chapterDraft={chapterDrafts[arc.id] || emptyChapter}
             updateChapterDraft={updates => updateChapterDraft(arc.id, updates)}
@@ -334,7 +351,7 @@ function FocusMetric({ icon: Icon, label, value }) {
   return <div style={focusMetricStyle}><Icon size={16} /><strong>{value}</strong><span>{label}</span></div>;
 }
 
-function ArcCard({ arc, expanded, onToggle, onUpdate, onDelete, chapterDraft, updateChapterDraft, addChapter, updateChapter, deleteChapter }) {
+function ArcCard({ arc, expanded, onToggle, onUpdate, onSetActive, onDelete, chapterDraft, updateChapterDraft, addChapter, updateChapter, deleteChapter }) {
   const chapters = arc.chapters || [];
   const played = chapters.filter(chapter => chapter.status === 'played').length;
   const combatCount = chapters.reduce((sum, chapter) => sum + (chapter.combats?.length || 0), 0);
@@ -357,6 +374,11 @@ function ArcCard({ arc, expanded, onToggle, onUpdate, onDelete, chapterDraft, up
           <div style={twoColumnStyle}>
             <label style={fieldStyle}>Arc status<select value={arc.status || 'planning'} onChange={event => onUpdate({ status: event.target.value })} style={inputStyle}>{ARC_STATUS.map(status => <option key={status.id} value={status.id}>{status.label}</option>)}</select></label>
             <label style={fieldStyle}>Arc type<select value={arc.arc_type || 'main'} onChange={event => onUpdate({ arc_type: event.target.value })} style={inputStyle}>{ARC_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
+          </div>
+
+          <div style={inlineActionRowStyle}>
+            <button type="button" onClick={onSetActive} disabled={arc.status === 'active'} style={arc.status === 'active' ? activeSmallButtonStyle : compactButtonStyle}>{arc.status === 'active' ? 'Active Arc' : 'Set Active Arc'}</button>
+            <button type="button" onClick={() => onUpdate({ status: 'completed' })} style={compactButtonStyle}>Mark Completed</button>
           </div>
 
           <EditableText label="Arc summary" value={arc.description || ''} onSave={value => onUpdate({ description: value })} placeholder="Arc summary..." />
@@ -456,6 +478,12 @@ function ChapterCard({ chapter, onUpdate, onDelete }) {
             <label style={fieldStyle}>Session #<input value={chapter.session_number || ''} onChange={event => onUpdate({ session_number: event.target.value })} style={inputStyle} /></label>
             <label style={fieldStyle}>Status<select value={chapter.status || 'planned'} onChange={event => onUpdate({ status: event.target.value })} style={inputStyle}>{CHAPTER_STATUS.map(status => <option key={status.id} value={status.id}>{status.label}</option>)}</select></label>
           </div>
+
+          <div style={inlineActionRowStyle}>
+            <button type="button" onClick={() => onUpdate({ status: 'prepped' })} disabled={chapter.status === 'prepped'} style={chapter.status === 'prepped' ? activeSmallButtonStyle : compactButtonStyle}>{chapter.status === 'prepped' ? 'Prepped for Tonight' : 'Mark Prepped'}</button>
+            <button type="button" onClick={() => onUpdate({ status: 'played' })} disabled={chapter.status === 'played'} style={chapter.status === 'played' ? activeSmallButtonStyle : compactButtonStyle}>{chapter.status === 'played' ? 'Played' : 'Mark Played'}</button>
+          </div>
+
           <label style={fieldStyle}>Chapter summary<textarea value={summary} onChange={event => setSummary(event.target.value)} onBlur={() => onUpdate({ summary })} style={textareaStyle} /></label>
           <label style={fieldStyle}>Prep notes<textarea value={prepNotes} onChange={event => setPrepNotes(event.target.value)} onBlur={() => onUpdate({ prep_notes: prepNotes })} placeholder="NPCs present, clues, maps, combats, reminders..." style={textareaStyle} /></label>
           <label style={fieldStyle}>Scenes, one per line<textarea value={scenesText} onChange={event => setScenesText(event.target.value)} onBlur={saveScenes} placeholder="Opening recap\nTravel complication\nNPC meeting\nCombat\nCliffhanger" style={textareaStyle} /></label>
@@ -548,6 +576,9 @@ const smallTextareaStyle = { ...textareaStyle, minHeight: 64 };
 const primaryButtonStyle = { minHeight: 40, border: 0, background: rq.red, color: rq.text, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 40, border: 0, background: rq.card, color: rq.text, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 34, border: 0, background: '#5f1111', color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const compactButtonStyle = { minHeight: 32, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack, fontSize: 12 };
+const activeSmallButtonStyle = { ...compactButtonStyle, background: rq.red, borderColor: rq.red, cursor: 'default' };
+const inlineActionRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' };
 const formStyle = { display: 'grid', gap: 10, background: rq.card, border: `1px solid ${rq.line}`, padding: 14 };
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 17, fontWeight: 950 };
 const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
