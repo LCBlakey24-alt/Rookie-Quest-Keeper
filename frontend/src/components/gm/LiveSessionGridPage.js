@@ -23,6 +23,7 @@ import UnifiedReferenceCenter from '@/components/gm/UnifiedReferenceCenter';
 import EnvironmentControl from '@/components/gm/EnvironmentControl';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
 import LivePlayerDisplayControls from '@/components/gm/LivePlayerDisplayControls';
+import MapsTab from '@/components/tabs/MapsTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -234,6 +235,10 @@ export default function LiveSessionGridPage() {
         return <NotesTab theme={theme} campaignId={campaignId} quickNote={quickNote} setQuickNote={setQuickNote} processingNote={processingNote} handleSubmitNote={handleSubmitNote} sessionNotes={sessionNotes} setSessionNotes={setSessionNotes} />;
       case 'handouts':
         return <GMHandoutsTab campaignId={campaignId} />;
+      case 'player-display':
+        return <LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />;
+      case 'maps':
+        return <MapsTab campaignId={campaignId} />;
       case 'npcs':
         return <NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />;
       case 'monsters':
@@ -273,7 +278,7 @@ export default function LiveSessionGridPage() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Live Play Mode</p>
             <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-            <p style={subtitleStyle}>Run the session from a focused GM Screen. Use Player Display when you want a clean TV-facing view.</p>
+            <p style={subtitleStyle}>Focused GM screen with left-side tools and quick references.</p>
             {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
           </div>
         </div>
@@ -286,8 +291,6 @@ export default function LiveSessionGridPage() {
           <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-primary" style={smallButtonStyle}><LogOut size={16} /> Exit to Prep</Button>
         </div>
       </header>
-
-      <LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />
 
       <section style={gridShellStyle}>
         <LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={() => null} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} />
