@@ -12,6 +12,15 @@ from utils.auth import get_current_user, verify_campaign_ownership
 router = APIRouter()
 
 
+class StoryCombatPayload(BaseModel):
+    title: str = "Untitled Combat"
+    status: str = "planned"
+    trigger: str = ""
+    enemy_notes: str = ""
+    map_notes: str = ""
+    scenario_id: str = ""
+
+
 class StoryChapterPayload(BaseModel):
     title: str = Field(default="Untitled Chapter")
     session_number: str = ""
@@ -19,6 +28,7 @@ class StoryChapterPayload(BaseModel):
     summary: str = ""
     prep_notes: str = ""
     scenes: list[Dict[str, Any]] = Field(default_factory=list)
+    combats: list[StoryCombatPayload] = Field(default_factory=list)
 
 
 class StoryArcCreate(BaseModel):
@@ -50,13 +60,29 @@ class StoryChapterUpdate(BaseModel):
     summary: str | None = None
     prep_notes: str | None = None
     scenes: list[Dict[str, Any]] | None = None
+    combats: list[Dict[str, Any]] | None = None
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def normalise_combat(combat: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "id": combat.get("id") or f"combat-{uuid4().hex}",
+        "title": combat.get("title") or "Untitled Combat",
+        "status": combat.get("status") or "planned",
+        "trigger": combat.get("trigger") or "",
+        "enemy_notes": combat.get("enemy_notes") or "",
+        "map_notes": combat.get("map_notes") or "",
+        "scenario_id": combat.get("scenario_id") or "",
+        "created_at": combat.get("created_at") or now_iso(),
+        "updated_at": now_iso(),
+    }
+
+
 def normalise_chapter(chapter: Dict[str, Any]) -> Dict[str, Any]:
+    raw_combats = chapter.get("combats") if isinstance(chapter.get("combats"), list) else []
     return {
         "id": chapter.get("id") or f"chapter-{uuid4().hex}",
         "title": chapter.get("title") or "Untitled Chapter",
@@ -65,6 +91,7 @@ def normalise_chapter(chapter: Dict[str, Any]) -> Dict[str, Any]:
         "summary": chapter.get("summary") or "",
         "prep_notes": chapter.get("prep_notes") or "",
         "scenes": chapter.get("scenes") if isinstance(chapter.get("scenes"), list) else [],
+        "combats": [normalise_combat(combat) for combat in raw_combats],
         "created_at": chapter.get("created_at") or now_iso(),
         "updated_at": now_iso(),
     }
@@ -145,14 +172,16 @@ async def update_story_chapter(campaign_id: str, arc_id: str, chapter_id: str, p
     """Update one chapter/session inside a story arc."""
     arc = await get_owned_arc(campaign_id, arc_id, username)
     update_data = {key: value for key, value in payload.model_dump().items() if value is not None}
+    if "combats" in update_data:
+        update_data["combats"] = [normalise_combat(combat) for combat in update_data["combats"]]
     chapters = []
     found = False
     for chapter in arc.get("chapters", []):
-      if chapter.get("id") == chapter_id:
-          found = True
-          chapters.append({**chapter, **update_data, "updated_at": now_iso()})
-      else:
-          chapters.append(chapter)
+        if chapter.get("id") == chapter_id:
+            found = True
+            chapters.append({**chapter, **update_data, "updated_at": now_iso()})
+        else:
+            chapters.append(chapter)
     if not found:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chapter not found")
     await db.story_arcs.update_one(
