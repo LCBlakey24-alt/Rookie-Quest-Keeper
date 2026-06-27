@@ -1,39 +1,71 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, FileText, ScrollText, Loader, ChevronDown, ChevronUp, Clock, CheckSquare, Square, ListChecks, ClipboardList } from 'lucide-react';
+import {
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  Clock,
+  FileText,
+  ListChecks,
+  Loader,
+  ScrollText,
+  Sparkles,
+  Square,
+} from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
+const rq = {
+  bg: '#242424',
+  panel: '#2f2f2f',
+  card: '#3a3a3a',
+  input: '#242424',
+  line: 'rgba(255,255,255,0.16)',
+  lineStrong: 'rgba(255,255,255,0.22)',
+  accent: '#d00000',
+  good: '#1f9d66',
+  warn: '#d99222',
+  text: '#ffffff',
+  soft: 'rgba(255,255,255,0.74)',
+  muted: 'rgba(255,255,255,0.62)',
+};
+
 const CATEGORY_CONFIG = {
-  npcs: { label: 'NPCs', color: '#EF4444' },
-  maps: { label: 'Maps', color: '#F87171' },
-  encounters: { label: 'Encounters', color: '#EF4444' },
-  loot: { label: 'Loot', color: '#D1D5DB' },
-  story: { label: 'Story', color: '#F87171' },
-  atmosphere: { label: 'Atmosphere', color: '#9CA3AF' },
-  handouts: { label: 'Handouts', color: '#F87171' },
-  rules: { label: 'Rules', color: '#D1D5DB' },
+  npcs: { label: 'NPCs', color: rq.accent },
+  maps: { label: 'Maps', color: rq.soft },
+  encounters: { label: 'Encounters', color: rq.accent },
+  loot: { label: 'Loot', color: rq.soft },
+  story: { label: 'Story', color: rq.text },
+  atmosphere: { label: 'Atmosphere', color: rq.muted },
+  handouts: { label: 'Handouts', color: rq.soft },
+  rules: { label: 'Rules', color: rq.muted },
 };
 
 const PRIORITY_BADGE = {
-  high: { bg: 'rgba(239,68,68,0.15)', color: '#EF4444', label: 'HIGH' },
-  medium: { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B', label: 'MED' },
-  low: { bg: 'rgba(107,114,128,0.15)', color: '#9CA3AF', label: 'LOW' },
+  high: { bg: 'rgba(208,0,0,0.22)', color: rq.text, label: 'HIGH' },
+  medium: { bg: 'rgba(217,146,34,0.2)', color: rq.text, label: 'MED' },
+  low: { bg: 'rgba(255,255,255,0.09)', color: rq.soft, label: 'LOW' },
 };
 
-const AISessionPlanner = ({ theme, campaignId }) => {
+const MODES = [
+  { id: 'outline', icon: FileText, label: 'Outline', helper: 'Build the shape of next session' },
+  { id: 'replay', icon: ScrollText, label: 'Replay', helper: 'Write a recap from previous play' },
+  { id: 'checklist', icon: ListChecks, label: 'Checklist', helper: 'Turn prep into tasks' },
+];
+
+const AISessionPlanner = ({ campaignId }) => {
   const [mode, setMode] = useState('outline');
   const [generating, setGenerating] = useState(false);
-
   const [focus, setFocus] = useState('balanced');
   const [tone, setTone] = useState('classic fantasy');
   const [gmNotes, setGmNotes] = useState('');
   const [outlines, setOutlines] = useState([]);
-
   const [style, setStyle] = useState('narrative');
   const [sessionNumber, setSessionNumber] = useState('');
   const [extraContext, setExtraContext] = useState('');
   const [replays, setReplays] = useState([]);
-
   const [checklists, setChecklists] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
 
@@ -110,52 +142,48 @@ const AISessionPlanner = ({ theme, campaignId }) => {
   const toggleChecklistItem = async (checklistId, itemId, completed) => {
     try {
       const res = await apiClient.patch(`/ai/session-checklist/${checklistId}`, { item_id: itemId, completed });
-      setChecklists(prev => prev.map(c => c.id === checklistId ? res.data : c));
+      setChecklists(prev => prev.map(checklist => checklist.id === checklistId ? res.data : checklist));
     } catch {
       toast.error('Failed to update checklist');
     }
   };
 
-  const selectStyle = { background: theme.bg.elevated, border: `1px solid ${theme.border}`, color: theme.text.primary, borderRadius: '6px', padding: '8px 12px', fontSize: '13px', outline: 'none', cursor: 'pointer', width: '100%' };
-  const inputStyle = { ...selectStyle, resize: 'vertical', fontFamily: 'inherit' };
-
-  const modes = [
-    { id: 'outline', icon: FileText, label: 'Outline' },
-    { id: 'replay', icon: ScrollText, label: 'Replay' },
-    { id: 'checklist', icon: ListChecks, label: 'Checklist' },
-  ];
-
   const items = mode === 'outline' ? outlines : mode === 'replay' ? replays : checklists;
 
   return (
-    <div data-testid="ai-session-planner" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', gap: '6px' }}>
-        {modes.map(m => {
-          const Icon = m.icon;
+    <section data-testid="ai-session-planner" style={shellStyle}>
+      <header style={headerStyle}>
+        <div style={iconTileStyle}><Sparkles size={22} /></div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <p style={eyebrowStyle}>Rook Prep Assistant</p>
+          <h3 style={titleStyle}>Session Prep</h3>
+          <p style={subtitleStyle}>Draft an outline, recap a previous session, or turn your plan into a practical prep checklist.</p>
+        </div>
+      </header>
+
+      <nav style={modeGridStyle} aria-label="Session prep modes">
+        {MODES.map(item => {
+          const Icon = item.icon;
+          const active = mode === item.id;
           return (
-            <button key={m.id} data-testid={`planner-mode-${m.id}`} onClick={() => setMode(m.id)}
-              style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                padding: '9px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700,
-                background: mode === m.id ? theme.accent.primary : theme.bg.elevated,
-                color: mode === m.id ? '#fff' : theme.text.secondary,
-                border: `1px solid ${mode === m.id ? theme.accent.primary : theme.border}`,
-                transition: 'all 0.2s',
-              }}>
-              <Icon size={14} />
-              {m.label}
+            <button key={item.id} data-testid={`planner-mode-${item.id}`} onClick={() => setMode(item.id)} style={modeButtonStyle(active)}>
+              <Icon size={17} />
+              <span style={{ display: 'grid', gap: 2, textAlign: 'left' }}>
+                <strong>{item.label}</strong>
+                <small>{item.helper}</small>
+              </span>
             </button>
           );
         })}
-      </div>
+      </nav>
 
-      <div style={{ background: theme.bg.surface, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <section style={formStyle}>
         {mode === 'outline' && (
           <>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 180px' }}>
-                <label style={fieldLabelStyle(theme)}>FOCUS</label>
-                <select data-testid="outline-focus" value={focus} onChange={e => setFocus(e.target.value)} style={selectStyle}>
+            <div style={twoColumnStyle}>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Focus</span>
+                <select data-testid="outline-focus" value={focus} onChange={event => setFocus(event.target.value)} style={inputStyle}>
                   <option value="balanced">Balanced</option>
                   <option value="combat-heavy">Combat Heavy</option>
                   <option value="roleplay-heavy">Roleplay Heavy</option>
@@ -163,222 +191,156 @@ const AISessionPlanner = ({ theme, campaignId }) => {
                   <option value="mystery">Mystery / Investigation</option>
                   <option value="political">Political Intrigue</option>
                 </select>
-              </div>
-              <div style={{ flex: '1 1 180px' }}>
-                <label style={fieldLabelStyle(theme)}>TONE</label>
-                <select data-testid="outline-tone" value={tone} onChange={e => setTone(e.target.value)} style={selectStyle}>
+              </label>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Tone</span>
+                <select data-testid="outline-tone" value={tone} onChange={event => setTone(event.target.value)} style={inputStyle}>
                   <option value="classic fantasy">Classic Fantasy</option>
                   <option value="dark and gritty">Dark & Gritty</option>
                   <option value="lighthearted">Lighthearted</option>
                   <option value="horror">Horror</option>
                   <option value="epic heroic">Epic / Heroic</option>
                 </select>
-              </div>
+              </label>
             </div>
-            <div>
-              <label style={fieldLabelStyle(theme)}>GM NOTES (optional)</label>
-              <textarea data-testid="outline-gm-notes" value={gmNotes} onChange={e => setGmNotes(e.target.value)}
-                placeholder="E.g., Party needs to reach the ruins by session end, introduce the BBEG's lieutenant..."
-                rows={3} style={inputStyle} />
-            </div>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>GM notes</span>
+              <textarea data-testid="outline-gm-notes" value={gmNotes} onChange={event => setGmNotes(event.target.value)} placeholder="What needs to happen, what might happen, and what loose threads should Rook consider?" rows={4} style={textareaStyle} />
+            </label>
           </>
         )}
 
         {mode === 'replay' && (
           <>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 180px' }}>
-                <label style={fieldLabelStyle(theme)}>STYLE</label>
-                <select data-testid="replay-style" value={style} onChange={e => setStyle(e.target.value)} style={selectStyle}>
+            <div style={twoColumnStyle}>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Replay style</span>
+                <select data-testid="replay-style" value={style} onChange={event => setStyle(event.target.value)} style={inputStyle}>
                   <option value="narrative">Epic Narrative</option>
                   <option value="chronicle">Historical Chronicle</option>
                   <option value="comedic">Comedic Retelling</option>
                   <option value="dark">Dark Fantasy</option>
                 </select>
-              </div>
-              <div style={{ flex: '1 1 180px' }}>
-                <label style={fieldLabelStyle(theme)}>SESSION #</label>
-                <input data-testid="replay-session-number" type="text" value={sessionNumber} onChange={e => setSessionNumber(e.target.value)}
-                  placeholder="e.g. 12" style={selectStyle} />
-              </div>
+              </label>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Session #</span>
+                <input data-testid="replay-session-number" type="text" value={sessionNumber} onChange={event => setSessionNumber(event.target.value)} placeholder="e.g. 12" style={inputStyle} />
+              </label>
             </div>
-            <div>
-              <label style={fieldLabelStyle(theme)}>EXTRA CONTEXT (optional)</label>
-              <textarea data-testid="replay-extra-context" value={extraContext} onChange={e => setExtraContext(e.target.value)}
-                placeholder="Key moments to highlight, funny quotes, epic dice rolls..." rows={3} style={inputStyle} />
-            </div>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Extra context</span>
+              <textarea data-testid="replay-extra-context" value={extraContext} onChange={event => setExtraContext(event.target.value)} placeholder="Key moments to highlight, funny quotes, epic dice rolls, consequences, cliffhangers..." rows={4} style={textareaStyle} />
+            </label>
           </>
         )}
 
         {mode === 'checklist' && (
-          <div style={{ fontSize: '13px', color: theme.text.secondary, lineHeight: 1.6 }}>
-            <p style={{ margin: 0 }}>Ask Rook to draft a prep checklist from a session outline, or create one from your campaign context.</p>
-            <p style={{ margin: '8px 0 0', fontSize: '11px', color: theme.text.muted }}>
-              Tip: Draft an outline first, then create a checklist from it for best results.
-            </p>
+          <div style={helperBoxStyle}>
+            <strong>Prep checklist mode</strong>
+            <span>Ask Rook to draft a checklist from campaign context, or create one directly from a saved outline.</span>
           </div>
         )}
 
-        <button data-testid="generate-ai-btn"
-          onClick={mode === 'outline' ? generateOutline : mode === 'replay' ? generateReplay : () => generateChecklist(null)}
-          disabled={generating}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '12px', borderRadius: '6px', cursor: generating ? 'wait' : 'pointer',
-            background: generating ? theme.bg.elevated : theme.accent.primary,
-            color: '#fff', border: `1px solid ${generating ? theme.border : theme.accent.primary}`, fontSize: '14px', fontWeight: 800,
-            opacity: generating ? 0.7 : 1, transition: 'all 0.2s',
-          }}>
+        <button data-testid="generate-ai-btn" onClick={mode === 'outline' ? generateOutline : mode === 'replay' ? generateReplay : () => generateChecklist(null)} disabled={generating} style={generateButtonStyle(generating)}>
           {generating ? <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> : mode === 'checklist' ? <ClipboardList size={16} /> : <Sparkles size={16} />}
           {generating ? 'Rook is drafting...' : mode === 'outline' ? 'Ask Rook for Session Outline' : mode === 'replay' ? 'Ask Rook for Session Replay' : 'Ask Rook for Prep Checklist'}
         </button>
-      </div>
+      </section>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {items.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 16px', color: theme.text.muted, fontSize: '13px' }}>
-            {mode === 'outline' ? 'No session outlines yet. Ask Rook to draft your first one above.'
-              : mode === 'replay' ? 'No session replays yet. Ask Rook to draft your first one above.'
-              : 'No prep checklists yet. Ask Rook to draft one above or from a session outline.'}
+      <section style={itemsStyle}>
+        {items.length === 0 ? (
+          <div style={emptyStyle}>
+            <Sparkles size={38} />
+            <strong>{mode === 'outline' ? 'No outlines yet' : mode === 'replay' ? 'No replays yet' : 'No prep checklists yet'}</strong>
+            <span>{mode === 'outline' ? 'Ask Rook to draft your first session outline above.' : mode === 'replay' ? 'Ask Rook to write a recap above.' : 'Ask Rook to draft one above, or generate one from a saved outline.'}</span>
           </div>
-        )}
-
-        {items.map(item => {
-          const isExpanded = expandedId === item.id;
-          return (
-            <div key={item.id} data-testid={`planner-item-${item.id}`}
-              style={{
-                background: theme.bg.surface, border: `1px solid ${isExpanded ? theme.accent.primary : theme.border}`,
-                borderRadius: '6px', overflow: 'hidden', transition: 'border-color 0.2s',
-              }}>
-              <button onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer', color: theme.text.primary, gap: 10,
-                }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  {mode === 'checklist' ? <ListChecks size={14} color={theme.accent.primary} /> : mode === 'outline' ? <FileText size={14} color={theme.accent.primary} /> : <ScrollText size={14} color={theme.accent.primary} />}
-                  <span style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {mode === 'outline' ? `Outline - ${item.focus || 'Balanced'}`
-                      : mode === 'replay' ? `Replay${item.session_number ? ` #${item.session_number}` : ''} - ${item.style || 'Narrative'}`
-                      : `Prep Checklist${item.outline_id ? ' (from outline)' : ''}`}
-                  </span>
-                  {mode === 'checklist' && item.items && (
-                    <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(16,185,129,0.15)', color: '#10B981', fontWeight: 800 }}>
-                      {item.items.filter(i => i.completed).length}/{item.items.length}
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                  <span style={{ fontSize: '10px', color: theme.text.muted }}>
-                    <Clock size={10} style={{ display: 'inline', marginRight: '3px' }} />
-                    {new Date(item.generated_at).toLocaleDateString()}
-                  </span>
-                  {isExpanded ? <ChevronUp size={14} color={theme.text.muted} /> : <ChevronDown size={14} color={theme.text.muted} />}
-                </div>
-              </button>
-
-              {isExpanded && mode !== 'checklist' && (
-                <div style={{
-                  padding: '0 16px 16px', fontSize: '13px', color: theme.text.secondary,
-                  lineHeight: 1.7, borderTop: `1px solid ${theme.border}`,
-                  maxHeight: '500px', overflowY: 'auto',
-                }}>
-                  <div style={{ paddingTop: '12px' }} dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(item.content || '') }} />
-                  {mode === 'outline' && (
-                    <button data-testid={`generate-checklist-from-${item.id}`}
-                      onClick={(e) => { e.stopPropagation(); generateChecklist(item.id); }}
-                      disabled={generating}
-                      style={{
-                        marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px',
-                        padding: '8px 14px', borderRadius: '6px', cursor: 'pointer',
-                        background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
-                        color: '#10B981', fontSize: '12px', fontWeight: 700,
-                      }}>
-                      <ClipboardList size={13} />
-                      Ask Rook for Prep Checklist from this Outline
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {isExpanded && mode === 'checklist' && item.items && (
-                <ChecklistPanel items={item.items} checklistId={item.id} theme={theme} onToggle={toggleChecklistItem} />
-              )}
-            </div>
-          );
-        })}
-      </div>
+        ) : items.map(item => (
+          <PlannerItem key={item.id} item={item} mode={mode} expanded={expandedId === item.id} generating={generating} onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)} onGenerateChecklist={() => generateChecklist(item.id)} onToggleChecklist={toggleChecklistItem} />
+        ))}
+      </section>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </section>
   );
 };
 
-function ChecklistPanel({ items, checklistId, theme, onToggle }) {
-  const categories = [...new Set(items.map(i => i.category))];
-  const completedCount = items.filter(i => i.completed).length;
+function PlannerItem({ item, mode, expanded, generating, onToggle, onGenerateChecklist, onToggleChecklist }) {
+  const title = mode === 'outline'
+    ? `Outline - ${item.focus || 'Balanced'}`
+    : mode === 'replay'
+      ? `Replay${item.session_number ? ` #${item.session_number}` : ''} - ${item.style || 'Narrative'}`
+      : `Prep Checklist${item.outline_id ? ' from outline' : ''}`;
+  const Icon = mode === 'checklist' ? ListChecks : mode === 'outline' ? FileText : ScrollText;
+
+  return (
+    <article data-testid={`planner-item-${item.id}`} style={plannerItemStyle(expanded)}>
+      <button onClick={onToggle} style={plannerHeaderStyle}>
+        <span style={plannerTitleWrapStyle}>
+          <Icon size={15} />
+          <strong>{title}</strong>
+          {mode === 'checklist' && item.items && <span style={countBadgeStyle}>{item.items.filter(row => row.completed).length}/{item.items.length}</span>}
+        </span>
+        <span style={dateWrapStyle}>
+          <Clock size={11} /> {item.generated_at ? new Date(item.generated_at).toLocaleDateString() : 'Saved'}
+          {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </span>
+      </button>
+
+      {expanded && mode !== 'checklist' && (
+        <section style={markdownPanelStyle}>
+          <div dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(item.content || '') }} />
+          {mode === 'outline' && (
+            <button data-testid={`generate-checklist-from-${item.id}`} onClick={(event) => { event.stopPropagation(); onGenerateChecklist(); }} disabled={generating} style={secondaryActionStyle}>
+              <ClipboardList size={14} /> Ask Rook for Prep Checklist from this Outline
+            </button>
+          )}
+        </section>
+      )}
+
+      {expanded && mode === 'checklist' && item.items && (
+        <ChecklistPanel items={item.items} checklistId={item.id} onToggle={onToggleChecklist} />
+      )}
+    </article>
+  );
+}
+
+function ChecklistPanel({ items, checklistId, onToggle }) {
+  const categories = [...new Set(items.map(item => item.category || 'prep'))];
+  const completedCount = items.filter(item => item.completed).length;
   const pct = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
   return (
-    <div style={{ borderTop: `1px solid ${theme.border}`, padding: '12px 16px 16px' }}>
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', color: theme.text.muted, fontWeight: 700 }}>PREP PROGRESS</span>
-          <span style={{ fontSize: '11px', color: pct === 100 ? '#10B981' : theme.text.muted, fontWeight: 800 }}>{pct}%</span>
-        </div>
-        <div style={{ height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: '3px', transition: 'width 0.3s ease',
-            width: `${pct}%`,
-            background: pct === 100 ? '#10B981' : theme.accent.primary,
-          }} />
-        </div>
+    <section style={checklistPanelStyle}>
+      <div style={progressHeaderStyle}>
+        <span>Prep progress</span>
+        <strong>{pct}%</strong>
+      </div>
+      <div style={progressTrackStyle}>
+        <div style={{ ...progressFillStyle, width: `${pct}%`, background: pct === 100 ? rq.good : rq.accent }} />
       </div>
 
-      {categories.map(cat => {
-        const catItems = items.filter(i => i.category === cat);
-        const cfg = CATEGORY_CONFIG[cat] || { label: cat, color: '#6B7280' };
+      {categories.map(category => {
+        const categoryItems = items.filter(item => (item.category || 'prep') === category);
+        const cfg = CATEGORY_CONFIG[category] || { label: category, color: rq.muted };
         return (
-          <div key={cat} style={{ marginBottom: '10px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: cfg.color, letterSpacing: '0.5px', marginBottom: '4px', textTransform: 'uppercase' }}>
-              {cfg.label}
-            </div>
-            {catItems.map(ci => {
-              const pri = PRIORITY_BADGE[ci.priority] || PRIORITY_BADGE.medium;
+          <div key={category} style={categoryGroupStyle}>
+            <div style={{ ...categoryTitleStyle, color: cfg.color }}>{cfg.label}</div>
+            {categoryItems.map(row => {
+              const priority = PRIORITY_BADGE[row.priority] || PRIORITY_BADGE.medium;
               return (
-                <div key={ci.id} data-testid={`checklist-item-${ci.id}`}
-                  onClick={() => onToggle(checklistId, ci.id, !ci.completed)}
-                  style={{
-                    display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '6px 8px',
-                    borderRadius: '4px', cursor: 'pointer', transition: 'background 0.15s',
-                    background: ci.completed ? 'rgba(16,185,129,0.04)' : 'transparent',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = ci.completed ? 'rgba(16,185,129,0.04)' : 'transparent'; }}>
-                  {ci.completed
-                    ? <CheckSquare size={15} color="#10B981" style={{ marginTop: '1px', flexShrink: 0 }} />
-                    : <Square size={15} color={theme.text.muted} style={{ marginTop: '1px', flexShrink: 0 }} />}
-                  <span style={{
-                    fontSize: '12px', lineHeight: 1.5, flex: 1,
-                    color: ci.completed ? theme.text.muted : theme.text.secondary,
-                    textDecoration: ci.completed ? 'line-through' : 'none',
-                  }}>{ci.text}</span>
-                  <span style={{
-                    fontSize: '9px', fontWeight: 800, padding: '2px 5px', borderRadius: '4px',
-                    background: pri.bg, color: pri.color, flexShrink: 0,
-                  }}>{pri.label}</span>
-                </div>
+                <button key={row.id} data-testid={`checklist-item-${row.id}`} onClick={() => onToggle(checklistId, row.id, !row.completed)} style={checklistItemStyle(row.completed)}>
+                  {row.completed ? <CheckSquare size={16} color={rq.good} /> : <Square size={16} color={rq.muted} />}
+                  <span style={{ textDecoration: row.completed ? 'line-through' : 'none', color: row.completed ? rq.muted : rq.soft }}>{row.text}</span>
+                  <strong style={{ background: priority.bg, color: priority.color }}>{priority.label}</strong>
+                </button>
               );
             })}
           </div>
         );
       })}
-    </div>
+    </section>
   );
 }
-
-const fieldLabelStyle = (theme) => ({ fontSize: '11px', color: theme.text.muted, marginBottom: '4px', display: 'block', fontWeight: 800 });
 
 function escapeHtml(text) {
   return String(text)
@@ -392,12 +354,45 @@ function escapeHtml(text) {
 function renderSafeMarkdown(text) {
   return escapeHtml(text)
     .replace(/^### (.*)$/gm, '<h4 style="color:#FFFFFF;margin:12px 0 6px;font-size:14px">$1</h4>')
-    .replace(/^## (.*)$/gm, '<h3 style="color:#FFFFFF;margin:16px 0 8px;font-size:15px;font-weight:700">$1</h3>')
-    .replace(/^# (.*)$/gm, '<h2 style="color:#FFFFFF;margin:20px 0 10px;font-size:17px;font-weight:800">$1</h2>')
+    .replace(/^## (.*)$/gm, '<h3 style="color:#FFFFFF;margin:16px 0 8px;font-size:15px;font-weight:800">$1</h3>')
+    .replace(/^# (.*)$/gm, '<h2 style="color:#FFFFFF;margin:20px 0 10px;font-size:17px;font-weight:900">$1</h2>')
     .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#FFFFFF">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/^- (.*)$/gm, '<li style="margin-left:16px;list-style:disc">$1</li>')
     .replace(/\n/g, '<br/>');
 }
+
+const shellStyle = { display: 'grid', gap: 14, fontFamily: fontStack };
+const headerStyle = { display: 'flex', gap: 12, alignItems: 'flex-start', padding: 16, background: rq.card, border: `1px solid ${rq.line}` };
+const iconTileStyle = { width: 44, height: 44, display: 'grid', placeItems: 'center', background: rq.bg, color: rq.text, borderLeft: `6px solid ${rq.accent}`, flex: '0 0 auto' };
+const eyebrowStyle = { margin: '0 0 5px', color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
+const titleStyle = { margin: 0, color: rq.text, fontSize: 26, fontWeight: 950, letterSpacing: '-0.03em' };
+const subtitleStyle = { margin: '6px 0 0', color: rq.soft, fontSize: 13, lineHeight: 1.45 };
+const modeGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', borderTop: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.line}` };
+const modeButtonStyle = (active) => ({ display: 'flex', alignItems: 'flex-start', gap: 9, minHeight: 64, padding: 12, background: active ? rq.accent : rq.panel, color: rq.text, border: 0, borderRight: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}`, cursor: 'pointer', fontFamily: fontStack });
+const formStyle = { display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, padding: 14 };
+const twoColumnStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 };
+const fieldStyle = { display: 'grid', gap: 6 };
+const labelStyle = { color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const inputStyle = { width: '100%', minHeight: 42, background: rq.input, border: `1px solid ${rq.lineStrong}`, color: rq.text, padding: '0 11px', fontFamily: fontStack, outline: 'none', borderRadius: 0, colorScheme: 'dark' };
+const textareaStyle = { ...inputStyle, minHeight: 96, padding: 11, resize: 'vertical', lineHeight: 1.45 };
+const helperBoxStyle = { display: 'grid', gap: 5, background: rq.bg, borderLeft: `6px solid ${rq.accent}`, padding: 12, color: rq.soft, fontSize: 13 };
+const generateButtonStyle = (disabled) => ({ minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 0, borderRadius: 0, background: disabled ? rq.panel : rq.accent, color: rq.text, fontWeight: 950, cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.72 : 1, fontFamily: fontStack });
+const itemsStyle = { display: 'grid', gap: 10 };
+const emptyStyle = { display: 'grid', justifyItems: 'center', gap: 8, textAlign: 'center', background: rq.panel, border: `1px dashed ${rq.lineStrong}`, padding: 32, color: rq.muted };
+const plannerItemStyle = (expanded) => ({ background: rq.card, border: `1px solid ${expanded ? rq.accent : rq.line}`, color: rq.text });
+const plannerHeaderStyle = { width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'transparent', border: 0, color: rq.text, cursor: 'pointer', fontFamily: fontStack };
+const plannerTitleWrapStyle = { display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, textAlign: 'left' };
+const dateWrapStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, color: rq.muted, fontSize: 11 };
+const countBadgeStyle = { fontSize: 10, padding: '3px 6px', background: rq.good, color: rq.text, fontWeight: 950 };
+const markdownPanelStyle = { padding: '12px 14px 14px', borderTop: `1px solid ${rq.line}`, color: rq.soft, fontSize: 13, lineHeight: 1.65, maxHeight: 520, overflowY: 'auto' };
+const secondaryActionStyle = { marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36, border: 0, background: rq.good, color: rq.text, padding: '0 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const checklistPanelStyle = { display: 'grid', gap: 12, borderTop: `1px solid ${rq.line}`, padding: 14 };
+const progressHeaderStyle = { display: 'flex', justifyContent: 'space-between', color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 950 };
+const progressTrackStyle = { height: 7, background: rq.bg, overflow: 'hidden' };
+const progressFillStyle = { height: '100%' };
+const categoryGroupStyle = { display: 'grid', gap: 6 };
+const categoryTitleStyle = { fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const checklistItemStyle = (completed) => ({ display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr) auto', alignItems: 'flex-start', gap: 8, background: completed ? 'rgba(31,157,102,0.12)' : rq.bg, border: 0, borderLeft: `5px solid ${completed ? rq.good : rq.lineStrong}`, color: rq.soft, padding: '8px 10px', textAlign: 'left', cursor: 'pointer', fontFamily: fontStack });
 
 export default AISessionPlanner;
