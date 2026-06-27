@@ -45,6 +45,7 @@ const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'
 const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
 const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
+const PlayerDisplayPage = React.lazy(() => import('@/components/gm/PlayerDisplayPage'));
 const PrototypeHub = React.lazy(() => import('@/components/prototype/PrototypeHub'));
 const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/PrototypeMobileLab'));
 const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
@@ -83,9 +84,7 @@ function RouteLoadingScreen() {
         <img className="loading-logo" src="/brand/rqk-logo-mini.svg" alt="RQK loading" />
       </div>
       <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening your next page…</p>
-      <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>
-        {tip}
-      </p>
+      <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>{tip}</p>
     </div>
   );
 }
@@ -93,10 +92,10 @@ function RouteLoadingScreen() {
 function ThemeRouter() {
   const location = useLocation();
   const { setTheme } = useTheme();
-  
+
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/gm-screen') || path.startsWith('/prototype-gm')) {
+    if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
     } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
@@ -104,7 +103,7 @@ function ThemeRouter() {
       setTheme(THEMES.PLAYER);
     }
   }, [location.pathname, setTheme]);
-  
+
   return null;
 }
 
@@ -152,6 +151,9 @@ function AppRoutes() {
         <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/gm-screen/:campaignId/display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
         <Route path="/prototype" element={<PrototypeHub />} />
         <Route path="/prototype-mobile" element={<PrototypeMobileLab />} />
