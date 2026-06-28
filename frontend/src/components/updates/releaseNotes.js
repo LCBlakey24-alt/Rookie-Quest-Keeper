@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'end-session-story-wrap-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'End Session story wrap-up options',
+    summary: 'End Session now reviews the active arc, current chapter, reached/skipped checkpoints, unresolved beats, and can mark the current chapter played or prep the next chapter before saving the recap.',
+    tags: ['End Session', 'Story Arcs'],
+  },
+  {
     id: 'live-story-controls-v1',
     date: 'Latest',
     audience: 'GMs',
