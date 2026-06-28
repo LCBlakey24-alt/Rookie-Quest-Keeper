@@ -27,7 +27,7 @@ function getTourForPath(pathname) {
         { title: 'Your home base', body: 'This is where you jump into campaigns, characters, and account tools. Start here when you are deciding what to work on next.', target: 'main, [data-testid="home-dashboard"], .dashboard-container', placement: 'center' },
         { title: 'Open a campaign', body: 'Campaign cards take you into the GM or player campaign space. If a campaign ever fails to open, use refresh or return here and try again.', target: '[data-testid="campaign-card"], [data-testid="recent-campaign-card"], button', placement: 'bottom' },
         { title: 'Characters live here too', body: 'Players can open character sheets from Home. Character sheets include rolls, play tools, notes, inventory, spells, and the optional physical roll logger.', target: '[data-testid="character-card"], a[href*="/characters/"]', placement: 'bottom' },
-        { title: 'The help button stays here', body: 'Once a tour is done, it will not keep popping up. Use this bottom-left tutorial button any time you want to replay the page guide.', target: '[data-testid="tutorial-replay-button"]', placement: 'top' },
+        { title: 'The help button stays here', body: 'Once a tour is done, it will not keep popping up. Use this tutorial button any time you want to replay the page guide.', target: '[data-testid="tutorial-replay-button"]', placement: 'bottom' },
       ],
     };
   }
@@ -151,7 +151,7 @@ export default function GlobalGuidedTour({ isAuthenticated = false }) {
 
 const launcherWrapStyle = {
   position: 'fixed',
-  left: 14,
+  right: 14,
   bottom: 14,
   zIndex: 4500,
 };
