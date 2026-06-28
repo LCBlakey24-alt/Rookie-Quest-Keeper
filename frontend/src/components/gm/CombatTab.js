@@ -12,7 +12,7 @@ function playerToCombatant(player) {
   const maxHp = toNumber(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp, 10);
   return {
     id: player.id || `player-${player.name}`,
-    name: player.name || 'Player Character',
+    name: player.name || player.character_name || 'Player Character',
     type: 'player',
     hp: toNumber(player.hp ?? player.current_hp ?? player.current_hit_points, maxHp),
     maxHp,
@@ -43,7 +43,6 @@ function npcToCombatant(npc, index = 0) {
     tokenSize: 40,
   };
 }
-
 
 function playtestCreatureToCreature(record, index = 0) {
   const data = record?.data || {};
@@ -109,6 +108,23 @@ function creatureToCombatant(creature, index = 0) {
   };
 }
 
+function hasPlayers(combatants = []) {
+  return combatants.some(combatant => combatant.type === 'player');
+}
+
+function mergeScenarioWithParty(scenario, players = []) {
+  if (!scenario) return null;
+  const existing = Array.isArray(scenario.combatants) ? scenario.combatants : [];
+  if (hasPlayers(existing)) return scenario;
+  const party = players.map(playerToCombatant);
+  return {
+    ...scenario,
+    name: scenario.name || 'Saved Encounter',
+    combatants: [...party, ...existing],
+    party_auto_added: party.length > 0,
+  };
+}
+
 export default function CombatTab({ theme, campaignId, scenarios, selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players }) {
   const [npcs, setNpcs] = useState([]);
   const [creatures, setCreatures] = useState([]);
@@ -144,7 +160,7 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
   const filtered = (items) => {
     const term = query.trim().toLowerCase();
     if (!term) return items;
-    return items.filter(item => (item.name || '').toLowerCase().includes(term));
+    return items.filter(item => (item.name || item.character_name || '').toLowerCase().includes(term));
   };
 
   const selectedCount = Object.values(selected.players).filter(Boolean).length + Object.values(selected.npcs).filter(Boolean).length + Object.values(selected.creatures).reduce((sum, count) => sum + count, 0);
@@ -167,8 +183,11 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     return combatants;
   }, [players, npcs, creatures, selected]);
 
+  const selectedScenarioWithParty = useMemo(() => mergeScenarioWithParty(selectedScenario, players), [selectedScenario, players]);
+  const selectedScenarioAlreadyHasPlayers = hasPlayers(selectedScenario?.combatants || []);
   const quickCombatWarnings = useMemo(() => combatReadinessWarnings(selectedCombatants), [selectedCombatants]);
-  const savedEncounterWarnings = useMemo(() => combatReadinessWarnings(selectedScenario?.combatants || []), [selectedScenario]);
+  const savedEncounterWarnings = useMemo(() => combatReadinessWarnings(selectedScenarioWithParty?.combatants || []), [selectedScenarioWithParty]);
+  const initiativePreviewCombatants = selectedCombatants.length ? selectedCombatants : selectedScenarioWithParty?.combatants || [];
 
   const toggleSelected = (group, id) => {
     setSelected(prev => ({ ...prev, [group]: { ...prev[group], [id]: !prev[group][id] } }));
@@ -206,6 +225,17 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
     }
     if (quickCombatWarnings.length > 0) toast.warning(`Combat readiness: ${quickCombatWarnings[0]}`);
     launchCombat(buildQuickScenario());
+  };
+
+  const launchSavedEncounter = (withParty = true) => {
+    if (!selectedScenario) return;
+    const scenario = withParty ? selectedScenarioWithParty : selectedScenario;
+    if (!scenario) return;
+    if (withParty && !selectedScenarioAlreadyHasPlayers && players.length > 0) {
+      toast.success('Current party added to saved encounter', { description: `${players.length} player character${players.length === 1 ? '' : 's'} included.` });
+    }
+    if (combatReadinessWarnings(scenario.combatants || []).length > 0) toast.warning(`Combat readiness: ${combatReadinessWarnings(scenario.combatants || [])[0]}`);
+    launchCombat(scenario);
   };
 
   const saveQuickEncounter = async () => {
@@ -290,16 +320,20 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-              {scenarios.map(s => (
-                <button key={s.id} data-testid={`encounter-${s.id}`} onClick={() => setSelectedScenario(s)} style={{ padding: '14px 16px', background: selectedScenario?.id === s.id ? theme.accent.gmSubtle : theme.bg.card, border: `1px solid ${selectedScenario?.id === s.id ? theme.accent.gm : theme.border}`, borderLeft: selectedScenario?.id === s.id ? `3px solid ${theme.accent.gm}` : `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.primary, textAlign: 'left', cursor: 'pointer' }}>
-                  <div style={{ fontWeight: '800', marginBottom: '4px', fontSize: '15px' }}>{s.name}</div>
-                  <div style={{ fontSize: '13px', color: theme.text.secondary, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <span>{s.combatants?.length || 0} combatants</span>
-                    {s.map_url && <span style={{ color: theme.accent.gm }}>Has Map</span>}
-                    {s.combatants?.some(c => c.loot?.length > 0) && <span style={{ color: '#F59E0B' }}>Has Loot</span>}
-                  </div>
-                </button>
-              ))}
+              {scenarios.map(s => {
+                const hasParty = hasPlayers(s.combatants || []);
+                return (
+                  <button key={s.id} data-testid={`encounter-${s.id}`} onClick={() => setSelectedScenario(s)} style={{ padding: '14px 16px', background: selectedScenario?.id === s.id ? theme.accent.gmSubtle : theme.bg.card, border: `1px solid ${selectedScenario?.id === s.id ? theme.accent.gm : theme.border}`, borderLeft: selectedScenario?.id === s.id ? `3px solid ${theme.accent.gm}` : `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.primary, textAlign: 'left', cursor: 'pointer' }}>
+                    <div style={{ fontWeight: '800', marginBottom: '4px', fontSize: '15px' }}>{s.name}</div>
+                    <div style={{ fontSize: '13px', color: theme.text.secondary, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <span>{s.combatants?.length || 0} saved combatants</span>
+                      {hasParty ? <span style={{ color: '#4a7dff' }}>Includes Party</span> : players.length > 0 && <span style={{ color: theme.accent.gm }}>Party can auto-join</span>}
+                      {s.map_url && <span style={{ color: theme.accent.gm }}>Has Map</span>}
+                      {s.combatants?.some(c => c.loot?.length > 0) && <span style={{ color: '#F59E0B' }}>Has Loot</span>}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -307,9 +341,14 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
         <div>
           <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '800', marginBottom: '12px' }}>Launch Saved Encounter</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Button onClick={() => selectedScenario && launchCombat(selectedScenario)} data-testid="start-combat-btn" disabled={!selectedScenario} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', fontSize: '16px', background: selectedScenario ? theme.gradient : theme.bg.card, border: 'none', borderRadius: 0, color: theme.text.primary, opacity: selectedScenario ? 1 : 0.5 }}>
-              <Play size={18} /> Start Saved Combat <ArrowRight size={16} />
+            <Button onClick={() => launchSavedEncounter(true)} data-testid="start-combat-btn" disabled={!selectedScenario} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', fontSize: '16px', background: selectedScenario ? theme.gradient : theme.bg.card, border: 'none', borderRadius: 0, color: theme.text.primary, opacity: selectedScenario ? 1 : 0.5 }}>
+              <Play size={18} /> Start Saved Combat + Party <ArrowRight size={16} />
             </Button>
+            {selectedScenario && !selectedScenarioAlreadyHasPlayers && (
+              <Button onClick={() => launchSavedEncounter(false)} data-testid="start-combat-enemies-only-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.secondary, fontSize: '14px' }}>
+                <Skull size={15} /> Start Enemies Only
+              </Button>
+            )}
             {players.length > 0 && (
               <Button onClick={quickStartCombat} data-testid="quick-combat-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.secondary, fontSize: '15px' }}>
                 <Users size={16} /> Start with All Players ({players.length})
@@ -320,10 +359,11 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
           {selectedScenario && (
             <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, padding: '14px' }}>
               <h4 style={{ fontSize: '15px', color: theme.text.primary, fontWeight: '800', marginBottom: '10px' }}>{selectedScenario.name}</h4>
+              {!selectedScenarioAlreadyHasPlayers && players.length > 0 && <p style={partyMergeNoticeStyle}>{players.length} current player character{players.length === 1 ? '' : 's'} will be added when you start with party.</p>}
               {savedEncounterWarnings.length > 0 && <ReadinessWarnings warnings={savedEncounterWarnings} />}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {selectedScenario.combatants?.slice(0, 6).map(c => <div key={c.id} style={{ background: c.type === 'player' ? 'rgba(74,125,255,0.18)' : 'rgba(239,68,68,0.18)', border: `1px solid ${c.type === 'player' ? '#4a7dff' : '#EF4444'}`, padding: '6px 10px', borderRadius: 0, fontSize: '13px', color: theme.text.primary }}>{c.name}{c.loot?.length > 0 && <Coins size={10} style={{ marginLeft: '4px', color: '#F59E0B' }} />}</div>)}
-                {selectedScenario.combatants?.length > 6 && <div style={{ padding: '6px 10px', fontSize: '13px', color: theme.text.muted }}>+{selectedScenario.combatants.length - 6} more</div>}
+                {selectedScenarioWithParty?.combatants?.slice(0, 8).map(c => <div key={c.id} style={{ background: c.type === 'player' ? 'rgba(74,125,255,0.18)' : 'rgba(239,68,68,0.18)', border: `1px solid ${c.type === 'player' ? '#4a7dff' : '#EF4444'}`, padding: '6px 10px', borderRadius: 0, fontSize: '13px', color: theme.text.primary }}>{c.name}{c.loot?.length > 0 && <Coins size={10} style={{ marginLeft: '4px', color: '#F59E0B' }} />}</div>)}
+                {(selectedScenarioWithParty?.combatants?.length || 0) > 8 && <div style={{ padding: '6px 10px', fontSize: '13px', color: theme.text.muted }}>+{selectedScenarioWithParty.combatants.length - 8} more</div>}
               </div>
             </div>
           )}
@@ -331,7 +371,7 @@ export default function CombatTab({ theme, campaignId, scenarios, selectedScenar
       </div>
 
       <div style={{ marginTop: '24px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, padding: '16px' }}>
-        <InitiativeTracker theme={theme} campaignId={campaignId} combatants={selectedCombatants.length ? selectedCombatants : selectedScenario?.combatants || []} />
+        <InitiativeTracker theme={theme} campaignId={campaignId} combatants={initiativePreviewCombatants} />
       </div>
     </div>
   );
@@ -356,7 +396,7 @@ function PickList({ title, icon: Icon, loading, items, selectedMap, onToggle }) 
       <h4 style={listTitleStyle}><Icon size={16} /> {title}</h4>
       {loading ? <p style={emptyTextStyle}>Loading...</p> : items.length === 0 ? <p style={emptyTextStyle}>Nothing found.</p> : items.slice(0, 60).map(item => {
         const selected = !!selectedMap[item.id];
-        return <button key={item.id || item.name} type="button" onClick={() => onToggle(item.id)} style={pickButtonStyle(selected)}><span>{item.name || 'Unnamed'}</span><small>AC {item.ac || item.armor_class || '—'} · HP {item.hp || item.max_hp || item.max_hit_points || '—'}</small></button>;
+        return <button key={item.id || item.name} type="button" onClick={() => onToggle(item.id)} style={pickButtonStyle(selected)}><span>{item.name || item.character_name || 'Unnamed'}</span><small>AC {item.ac || item.armor_class || '—'} · HP {item.hp || item.max_hp || item.max_hit_points || '—'}</small></button>;
       })}
     </div>
   );
@@ -375,6 +415,7 @@ function CreaturePickList({ title, icon: Icon, loading, items, counts, onAdjust 
 }
 
 const readinessWarningStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)', color: '#FDE68A', padding: 10, marginBottom: 12, fontSize: 12, lineHeight: 1.45 };
+const partyMergeNoticeStyle = { margin: '0 0 10px', color: '#D1D5DB', background: 'rgba(74,125,255,0.12)', border: '1px solid rgba(74,125,255,0.32)', padding: 9, fontSize: 12, lineHeight: 1.4 };
 const listWrapStyle = { background: 'rgba(0,0,0,0.16)', border: '1px solid rgba(239,68,68,0.28)', padding: 10, minHeight: 160 };
 const listTitleStyle = { color: '#FFFFFF', fontSize: 14, fontWeight: 900, margin: '0 0 8px', display: 'flex', gap: 7, alignItems: 'center' };
 const emptyTextStyle = { color: '#9CA3AF', fontSize: 12, margin: 0 };
