@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'monsters-encounter-builder-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Monsters can now seed combat encounters',
+    summary: 'The Monsters tab has been rebuilt into a creature library with search, filters, quantity selection, encounter naming, and a Save Encounter flow so custom creatures can feed directly into Combat.',
+    tags: ['Monsters', 'Combat', 'Encounters'],
+  },
+  {
     id: 'darker-charcoal-theme-v1',
     date: 'Latest',
     audience: 'Everyone',
