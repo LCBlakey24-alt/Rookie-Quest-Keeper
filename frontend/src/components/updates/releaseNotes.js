@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'inventory-rewards-rebuild-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Inventory & Rewards rebuilt',
+    summary: 'Party Inventory now uses the real campaign item and currency system. GMs can track shared loot, manage party funds, edit rewards, and grant items directly into linked character sheets.',
+    tags: ['Inventory', 'Rewards'],
+  },
+  {
     id: 'end-session-story-wrap-v2',
     date: 'Latest',
     audience: 'GMs',
