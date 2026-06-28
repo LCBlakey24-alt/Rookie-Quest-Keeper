@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'combat-party-merge-planned-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Combat party merge is next in progress',
+    summary: 'Combat is being tightened so encounters built from Monsters can be launched with the current party added automatically, avoiding extra setup when a saved encounter only contains creatures or NPCs.',
+    tags: ['Combat', 'Encounters', 'Monsters'],
+  },
+  {
     id: 'homebrew-rook-builders-v1',
     date: 'Latest',
     audience: 'GMs and Creators',
