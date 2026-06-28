@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'darker-charcoal-theme-v1',
+    date: 'Latest',
+    audience: 'Everyone',
+    title: 'Darker charcoal background',
+    summary: 'The global site background has been darkened from the previous mid-charcoal to a deeper grey, keeping the red and white contrast while making the app feel moodier and less bright.',
+    tags: ['Theme', 'Visual Polish'],
+  },
+  {
     id: 'world-map-upload-fix-v1',
     date: 'Latest',
     audience: 'GMs',
