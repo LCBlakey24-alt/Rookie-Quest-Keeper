@@ -143,7 +143,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
   }, [summary, showAllTime]);
 
   const applyStoryWrapUp = async () => {
-    if (!storyFocus.arc || !storyFocus.chapter || (!markChapterPlayed && !prepNextChapter)) return storyFocus;
+    if (!storyFocus.arc || !storyFocus.chapter || (!markChapterPlayed && !prepNextChapter)) return;
     const nextChapters = asList(storyFocus.arc.chapters).map(chapter => {
       if (chapter.id === storyFocus.chapter.id && (markChapterPlayed || prepNextChapter)) return { ...chapter, status: 'played' };
       if (prepNextChapter && storyFocus.nextChapter && chapter.id === storyFocus.nextChapter.id) return { ...chapter, status: 'prepped' };
@@ -151,18 +151,18 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
     });
     const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${storyFocus.arc.id}`, { chapters: nextChapters });
     setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
-    return findStoryFocus(storyArcs.map(arc => arc.id === response.data.id ? response.data : arc));
   };
 
   const sendEndSessionShow = async () => {
     setSending(true);
     try {
-      const storyForNote = await applyStoryWrapUp();
+      const closedChapterStory = storyFocus;
+      await applyStoryWrapUp();
       const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
       const finalSummary = showAllTime ? response.data : { ...response.data, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
       publishDisplayState(campaignId, createDisplayState('end-session-stats', finalSummary));
       if (saveRecapNote) {
-        await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, storyForNote, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
+        await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, closedChapterStory, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
       }
       const rolls = response.data?.session?.playerRolls ?? response.data?.session?.totalRolls ?? 0;
       if (rolls > 0) toast.success('End session show sent to player display', { description: 'Roll stats were archived and story wrap-up was applied.' });
