@@ -151,7 +151,7 @@ export default function GlobalGuidedTour({ isAuthenticated = false }) {
 
 const launcherWrapStyle = {
   position: 'fixed',
-  right: 14,
+  left: 14,
   bottom: 14,
   zIndex: 4500,
 };
