@@ -7,7 +7,7 @@ from models import (
     PartyCurrency, PartyCurrencyUpdate,
     CustomItem, CustomItemCreate, CustomItemUpdate
 )
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import uuid
 from datetime import datetime, timezone
 
@@ -22,6 +22,23 @@ async def get_inventory(campaign_id: str, current_user: str = Depends(get_curren
         {'_id': 0}
     ).sort('created_at', -1).to_list(500)  # Limit to 500 items per campaign
     return items
+
+@router.get("/campaigns/{campaign_id}/inventory/grant-targets")
+async def get_inventory_grant_targets(campaign_id: str, current_user: str = Depends(get_current_user)):
+    """GM gets linked campaign characters that can receive party loot."""
+    await verify_campaign_ownership(campaign_id, current_user)
+    characters = await db.player_characters.find(
+        {'campaign_id': campaign_id},
+        {
+            '_id': 0,
+            'id': 1,
+            'name': 1,
+            'user_id': 1,
+            'character_class': 1,
+            'level': 1,
+        }
+    ).sort('name', 1).to_list(200)
+    return characters
 
 @router.post("/campaigns/{campaign_id}/inventory")
 async def add_inventory_item(
@@ -238,11 +255,11 @@ async def create_custom_item(
     item: CustomItemCreate,
     current_user: str = Depends(get_current_user)
 ):
-    """Create custom item"""
+    """Create custom item template"""
     await verify_campaign_ownership(campaign_id, current_user)
-    new_item = CustomItem(campaign_id=campaign_id, **item.model_dump())
-    await db.custom_items.insert_one(new_item.model_dump())
-    return new_item.model_dump()
+    custom_item = CustomItem(campaign_id=campaign_id, **item.model_dump())
+    await db.custom_items.insert_one(custom_item.model_dump())
+    return custom_item.model_dump()
 
 @router.put("/campaigns/{campaign_id}/custom-items/{item_id}")
 async def update_custom_item(
@@ -255,14 +272,14 @@ async def update_custom_item(
     await verify_campaign_ownership(campaign_id, current_user)
     update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
     if not update_data:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+        raise HTTPException(status_code=400, detail="No fields to update")
     
     result = await db.custom_items.update_one(
         {'id': item_id, 'campaign_id': campaign_id},
         {'$set': update_data}
     )
     if result.matched_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+        raise HTTPException(status_code=404, detail="Custom item not found")
     
     updated = await db.custom_items.find_one({'id': item_id}, {'_id': 0})
     return updated
@@ -277,7 +294,5 @@ async def delete_custom_item(
     await verify_campaign_ownership(campaign_id, current_user)
     result = await db.custom_items.delete_one({'id': item_id, 'campaign_id': campaign_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    return {"message": "Item deleted"}
-
-# ==================== SMART NOTE PARSING ROUTES ====================
+        raise HTTPException(status_code=404, detail="Custom item not found")
+    return {"message": "Custom item deleted"}
