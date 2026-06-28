@@ -33,7 +33,7 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
 
   useEffect(() => {
     if (!isAuthenticated || !hasUnread) return;
-    const timer = window.setTimeout(() => setOpen(true), 1600);
+    const timer = window.setTimeout(() => setOpen(true), 6500);
     return () => window.clearTimeout(timer);
   }, [isAuthenticated, hasUnread]);
 
