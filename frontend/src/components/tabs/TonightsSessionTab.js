@@ -25,6 +25,7 @@ const rq = {
 
 const readinessLabels = {
   story: 'Story arc/chapter chosen',
+  checkpoint: 'Next story checkpoint visible',
   players: 'Players linked or added',
   encounters: 'Combat option ready',
   handouts: 'Secrets or handouts prepared',
@@ -44,12 +45,31 @@ function latest(items, count = 3) {
     .slice(0, count);
 }
 
+function normalizeCheckpoints(chapter) {
+  return normalizeArray(chapter?.scenes).map((item, index) => {
+    if (typeof item === 'string') {
+      return { id: `checkpoint-${index + 1}`, title: item, status: 'upcoming', notes: '' };
+    }
+    return {
+      id: item?.id || `checkpoint-${index + 1}`,
+      title: item?.title || item?.name || `Checkpoint ${index + 1}`,
+      status: item?.status || 'upcoming',
+      notes: item?.notes || item?.description || '',
+    };
+  });
+}
+
 function findCurrentChapter(arcs) {
-  const activeArc = arcs.find(arc => arc.status === 'active') || arcs[0];
-  if (!activeArc) return { arc: null, chapter: null };
+  const activeArc = arcs.find(arc => arc.status === 'active') || arcs.find(arc => arc.status !== 'completed') || arcs[0];
+  if (!activeArc) return { arc: null, chapter: null, checkpoints: [], nextCheckpoint: null, reached: 0, skipped: 0, remaining: 0, total: 0 };
   const chapters = activeArc.chapters || [];
-  const chapter = chapters.find(item => ['prepped', 'planned'].includes(item.status)) || chapters[0] || null;
-  return { arc: activeArc, chapter };
+  const chapter = chapters.find(item => item.status === 'prepped') || chapters.find(item => item.status === 'planned') || chapters.find(item => item.status !== 'played') || chapters[0] || null;
+  const checkpoints = normalizeCheckpoints(chapter);
+  const reached = checkpoints.filter(point => point.status === 'reached').length;
+  const skipped = checkpoints.filter(point => point.status === 'skipped').length;
+  const nextCheckpoint = checkpoints.find(point => !['reached', 'skipped'].includes(point.status)) || null;
+  const remaining = checkpoints.filter(point => !['reached', 'skipped'].includes(point.status)).length;
+  return { arc: activeArc, chapter, checkpoints, nextCheckpoint, reached, skipped, remaining, total: checkpoints.length };
 }
 
 export default function TonightsSessionTab({ campaignId, onOpenTab }) {
@@ -101,10 +121,12 @@ export default function TonightsSessionTab({ campaignId, onOpenTab }) {
   const currentCombats = current.chapter?.combats || [];
   const readyCombats = currentCombats.filter(combat => combat.status === 'ready').length;
   const playerCount = Math.max(data.players.length, data.recipients.length);
+  const checkpointProgress = current.total ? Math.round(((current.reached + current.skipped) / current.total) * 100) : 0;
 
   const readiness = useMemo(() => {
     const checks = {
-      story: Boolean(current.arc || current.chapter),
+      story: Boolean(current.arc && current.chapter),
+      checkpoint: Boolean(current.nextCheckpoint || current.total > 0),
       players: playerCount > 0,
       encounters: data.scenarios.length > 0 || currentCombats.length > 0,
       handouts: data.handouts.length > 0,
@@ -113,7 +135,7 @@ export default function TonightsSessionTab({ campaignId, onOpenTab }) {
     };
     const complete = Object.values(checks).filter(Boolean).length;
     return { checks, complete, total: Object.keys(checks).length, score: Math.round((complete / Object.keys(checks).length) * 100) };
-  }, [current.arc, current.chapter, playerCount, data.scenarios.length, currentCombats.length, data.handouts.length, data.maps.length, data.notes.length]);
+  }, [current.arc, current.chapter, current.nextCheckpoint, current.total, playerCount, data.scenarios.length, currentCombats.length, data.handouts.length, data.maps.length, data.notes.length]);
 
   const saveQuickNote = async () => {
     const content = quickNote.trim();
@@ -156,16 +178,19 @@ export default function TonightsSessionTab({ campaignId, onOpenTab }) {
       <section style={flowStripStyle}>
         <FlowStep number="1" label="Plan" detail={current.arc?.title || 'Choose story arc'} done={Boolean(current.arc)} />
         <FlowStep number="2" label="Prep" detail={current.chapter?.title || 'Pick tonight\'s chapter'} done={Boolean(current.chapter)} />
-        <FlowStep number="3" label="Run" detail={`${playerCount} player${playerCount === 1 ? '' : 's'} ready`} done={playerCount > 0} />
+        <FlowStep number="3" label="Run" detail={current.nextCheckpoint ? `Next: ${current.nextCheckpoint.title}` : `${playerCount} player${playerCount === 1 ? '' : 's'} ready`} done={playerCount > 0 || Boolean(current.nextCheckpoint)} />
         <FlowStep number="4" label="Record" detail={`${data.notes.length} session note${data.notes.length === 1 ? '' : 's'}`} done={data.notes.length > 0} />
       </section>
 
       <section style={focusGridStyle}>
         <ReadinessCard score={readiness.score} complete={readiness.complete} total={readiness.total} />
         <FocusCard icon={ScrollText} title="Current Arc" value={current.arc?.title || 'No arc selected'} helper={current.chapter ? `Chapter: ${current.chapter.title}` : 'Create or open Story Arcs'} action="Story Arcs" onClick={() => onOpenTab?.('story-arcs')} />
+        <FocusCard icon={CheckCircle2} title="Next Checkpoint" value={current.nextCheckpoint?.title || 'No checkpoint queued'} helper={current.total ? `${current.reached}/${current.total} reached · ${current.skipped} skipped` : 'Add checkpoints to tonight\'s chapter'} action="Story Arcs" onClick={() => onOpenTab?.('story-arcs')} />
         <FocusCard icon={Swords} title="Combat Beats" value={currentCombats.length || data.scenarios.length} helper={readyCombats ? `${readyCombats} ready in chapter` : 'Planned fights and saved encounters'} action="Encounters" onClick={() => onOpenTab?.('combat')} />
         <FocusCard icon={Mail} title="Reveals" value={data.handouts.length} helper="Secrets, clues, letters, lore" action="Handouts" onClick={() => onOpenTab?.('handouts')} />
       </section>
+
+      <StoryProgressPanel current={current} progress={checkpointProgress} onOpenStory={() => onOpenTab?.('story-arcs')} onStartLive={openLivePlay} />
 
       <section style={launchGridStyle}>
         <section style={panelStyle}>
@@ -241,6 +266,52 @@ function FocusCard({ icon: Icon, title, value, helper, action, onClick }) {
   );
 }
 
+function StoryProgressPanel({ current, progress, onOpenStory, onStartLive }) {
+  const preview = current.checkpoints.slice(0, 5);
+  return (
+    <section style={storyPanelStyle} data-testid="tonight-story-progress-panel">
+      <div style={storyHeaderStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Story Flow</p>
+          <h3 style={storyTitleStyle}>{current.arc?.title || 'No active story arc'}</h3>
+          <p style={storyMetaStyle}>{current.chapter ? `Chapter: ${current.chapter.title}` : 'Choose or prep a chapter in Story Arcs.'}</p>
+        </div>
+        <div style={storyActionsStyle}>
+          <button type="button" onClick={onOpenStory} style={secondaryButtonStyle}><ScrollText size={15} /> Story Arcs</button>
+          <button type="button" onClick={onStartLive} style={primaryButtonStyle}><Monitor size={15} /> Start Live</button>
+        </div>
+      </div>
+
+      <div style={progressRowStyle}>
+        <div style={progressTrackStyle}><span style={progressBarStyle(progress)} /></div>
+        <strong style={progressTextStyle}>{current.total ? `${current.reached}/${current.total} reached` : 'No checkpoints yet'}</strong>
+        {current.skipped > 0 && <span style={skippedPillStyle}>{current.skipped} skipped</span>}
+      </div>
+
+      <div style={nextCheckpointStyle}>
+        <span>Next checkpoint</span>
+        <strong>{current.nextCheckpoint?.title || (current.total ? 'All checkpoints reached or skipped' : 'Add story checkpoints for tonight')}</strong>
+        {current.nextCheckpoint?.notes && <small>{current.nextCheckpoint.notes}</small>}
+      </div>
+
+      <div style={checkpointPreviewStyle}>
+        {preview.length ? preview.map(point => <CheckpointChip key={point.id} point={point} />) : <p style={emptyStyle}>No checkpoints added yet. Add them in Story Arcs so Tonight and Live Play know what matters next.</p>}
+      </div>
+    </section>
+  );
+}
+
+function CheckpointChip({ point }) {
+  const reached = point.status === 'reached';
+  const skipped = point.status === 'skipped';
+  return (
+    <div style={checkpointChipStyle(reached, skipped)}>
+      <span>{reached ? 'Reached' : skipped ? 'Skipped' : 'Next/Upcoming'}</span>
+      <strong>{point.title}</strong>
+    </div>
+  );
+}
+
 function PanelHeader({ icon: Icon, title, actionLabel, onAction }) {
   return (
     <div style={panelHeaderStyle}>
@@ -295,7 +366,7 @@ const secondaryButtonStyle = { minHeight: 40, background: rq.panel, color: rq.te
 const flowStripStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', borderTop: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.line}` };
 const flowStepStyle = (done) => ({ minHeight: 78, display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', gridTemplateRows: 'auto auto', alignContent: 'center', columnGap: 10, rowGap: 2, padding: '11px 12px', borderRight: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}`, background: done ? rq.accentSoft : rq.card, color: rq.text });
 const flowNumberStyle = (done) => ({ gridRow: '1 / span 2', width: 32, height: 32, display: 'grid', placeItems: 'center', background: done ? rq.accent : rq.bg, color: rq.text, fontWeight: 950 });
-const focusGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 0, borderTop: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.line}` };
+const focusGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 0, borderTop: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.line}` };
 const readinessStyle = { background: rq.card, border: 0, borderRight: `1px solid ${rq.line}`, borderBottom: `1px solid ${rq.line}`, padding: 14, textAlign: 'left', color: rq.text };
 const focusCardStyle = { ...readinessStyle, cursor: 'pointer', fontFamily: fontStack, display: 'grid', gap: 4, minWidth: 0 };
 const metricTopStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 };
@@ -304,6 +375,19 @@ const metricValueStyle = { display: 'block', color: rq.text, fontSize: 30, fontW
 const focusValueStyle = { display: 'block', color: rq.text, fontSize: 18, fontWeight: 950, marginTop: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 const metricHelperStyle = { display: 'block', color: rq.soft, fontSize: 12, marginTop: 3 };
 const focusActionStyle = { color: rq.text, background: rq.accent, justifySelf: 'start', padding: '4px 7px', marginTop: 6, fontWeight: 950, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const storyPanelStyle = { display: 'grid', gap: 12, padding: 14, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.accent}` };
+const storyHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' };
+const storyTitleStyle = { margin: 0, color: rq.text, fontSize: 22, fontWeight: 950, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis' };
+const storyMetaStyle = { margin: '5px 0 0', color: rq.soft, fontSize: 13, lineHeight: 1.35 };
+const storyActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
+const progressRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) auto auto', gap: 10, alignItems: 'center' };
+const progressTrackStyle = { height: 12, background: rq.bg, border: `1px solid ${rq.line}`, overflow: 'hidden' };
+const progressBarStyle = (progress) => ({ display: 'block', width: `${Math.max(0, Math.min(100, progress))}%`, height: '100%', background: rq.accent, transition: 'width 240ms ease' });
+const progressTextStyle = { color: rq.text, fontSize: 12, fontWeight: 950, whiteSpace: 'nowrap' };
+const skippedPillStyle = { color: rq.text, background: rq.panel, border: `1px solid ${rq.line}`, padding: '4px 7px', fontSize: 11, fontWeight: 900 };
+const nextCheckpointStyle = { display: 'grid', gap: 4, padding: 12, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text };
+const checkpointPreviewStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 };
+const checkpointChipStyle = (reached, skipped) => ({ display: 'grid', gap: 4, padding: 10, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `5px solid ${reached ? rq.good : skipped ? rq.warn : rq.accent}`, color: rq.text, fontSize: 12 });
 const launchGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(min(320px, 100%), 0.9fr) minmax(min(320px, 100%), 1.4fr)', gap: 12, minWidth: 0 };
 const panelStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 14, minWidth: 0 };
 const panelHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 };
