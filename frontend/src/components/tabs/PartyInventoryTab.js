@@ -66,6 +66,10 @@ function targetLabel(target) {
   return `${target.name || 'Character'}${target.character_class ? ` · ${target.character_class}` : ''}${target.level ? ` ${target.level}` : ''}`;
 }
 
+function grantStateFor(grantOptions, itemId) {
+  return grantOptions[itemId] || { character_id: '', auto_attune: false };
+}
+
 export default function PartyInventoryTab({ campaignId }) {
   const [items, setItems] = useState([]);
   const [currency, setCurrency] = useState(normaliseCurrency({}));
@@ -76,7 +80,7 @@ export default function PartyInventoryTab({ campaignId }) {
   const [editingId, setEditingId] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [grantSelection, setGrantSelection] = useState({});
+  const [grantOptions, setGrantOptions] = useState({});
 
   useEffect(() => { loadInventory(); }, [campaignId]);
 
@@ -174,18 +178,28 @@ export default function PartyInventoryTab({ campaignId }) {
     }
   };
 
+  const patchGrantOption = (itemId, patch) => {
+    setGrantOptions(prev => ({ ...prev, [itemId]: { ...grantStateFor(prev, itemId), ...patch } }));
+  };
+
   const grantItem = async (item) => {
-    const characterId = grantSelection[item.id];
+    const option = grantStateFor(grantOptions, item.id);
+    const characterId = option.character_id;
     if (!characterId) {
-      toast.error('Choose a character first');
+      toast.error('Choose who receives the item first');
       return;
     }
     const target = grantTargets.find(character => character.id === characterId);
     try {
-      await apiClient.post(`/campaigns/${campaignId}/inventory/${item.id}/grant`, { character_id: characterId });
+      const response = await apiClient.post(`/campaigns/${campaignId}/inventory/${item.id}/grant`, {
+        character_id: characterId,
+        auto_attune: Boolean(option.auto_attune),
+      });
       setItems(prev => prev.filter(existing => existing.id !== item.id));
-      setGrantSelection(prev => ({ ...prev, [item.id]: '' }));
-      toast.success(`${item.name} granted to ${target?.name || 'character'}`);
+      setGrantOptions(prev => ({ ...prev, [item.id]: { character_id: '', auto_attune: false } }));
+      toast.success(`${item.name} granted to ${target?.name || 'character'}`, {
+        description: response.data?.auto_attuned ? 'It was added to their sheet already attuned.' : 'It was added to their character sheet.',
+      });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not grant item');
     }
@@ -229,7 +243,7 @@ export default function PartyInventoryTab({ campaignId }) {
       {items.length === 0 ? (
         <section style={emptyStyle}><Package size={44} /><h3>No party loot yet</h3><p>Add treasure, quest rewards, scrolls, potions, or magic items here. Then grant them to characters when the party decides who takes what.</p></section>
       ) : (
-        <section style={itemGroupsStyle}>{groupedItems.map(group => <ItemGroup key={group.id} group={group} editingId={editingId} editItem={editItem} setEditingId={setEditingId} setEditItem={setEditItem} onUpdate={updateItem} onDelete={deleteItem} grantTargets={grantTargets} grantSelection={grantSelection} setGrantSelection={setGrantSelection} onGrant={grantItem} saving={saving} />)}</section>
+        <section style={itemGroupsStyle}>{groupedItems.map(group => <ItemGroup key={group.id} group={group} editingId={editingId} editItem={editItem} setEditingId={setEditingId} setEditItem={setEditItem} onUpdate={updateItem} onDelete={deleteItem} grantTargets={grantTargets} grantOptions={grantOptions} onGrantOptionChange={patchGrantOption} onGrant={grantItem} saving={saving} />)}</section>
       )}
     </section>
   );
@@ -241,22 +255,23 @@ function CoinBox({ coin, value, onAdjust, onSet }) {
   return <article style={coinBoxStyle}><span>{coin.label}</span><strong>{value}</strong><div style={miniButtonRowStyle}><button type="button" onClick={() => onAdjust(coin.key, -10)} style={miniButtonStyle}>-10</button><button type="button" onClick={() => onAdjust(coin.key, -1)} style={miniButtonStyle}>-1</button><button type="button" onClick={() => onAdjust(coin.key, 1)} style={miniButtonStyle}>+1</button><button type="button" onClick={() => onAdjust(coin.key, 10)} style={miniButtonStyle}>+10</button></div><div style={setCurrencyStyle}><input value={draft} onChange={event => setDraft(event.target.value)} type="number" min="0" style={smallInputStyle} /><button type="button" onClick={() => onSet(Math.max(0, Number.parseInt(draft, 10) || 0))} style={miniPrimaryStyle}>Set</button></div></article>;
 }
 
-function ItemGroup({ group, editingId, editItem, setEditingId, setEditItem, onUpdate, onDelete, grantTargets, grantSelection, setGrantSelection, onGrant, saving }) {
+function ItemGroup({ group, editingId, editItem, setEditingId, setEditItem, onUpdate, onDelete, grantTargets, grantOptions, onGrantOptionChange, onGrant, saving }) {
   const Icon = group.icon;
-  return <section style={panelStyle}><h3 style={panelTitleStyle}><Icon size={18} /> {group.label} ({group.items.length})</h3><div style={itemListStyle}>{group.items.map(item => editingId === item.id ? <EditingItem key={item.id} item={editItem} onChange={setEditItem} onUpdate={onUpdate} onCancel={() => { setEditingId(null); setEditItem(null); }} saving={saving} /> : <InventoryItemCard key={item.id} item={item} onEdit={() => { setEditingId(item.id); setEditItem({ ...item }); }} onDelete={() => onDelete(item)} grantTargets={grantTargets} grantSelection={grantSelection[item.id] || ''} onSelectGrant={(characterId) => setGrantSelection(prev => ({ ...prev, [item.id]: characterId }))} onGrant={() => onGrant(item)} />)}</div></section>;
+  return <section style={panelStyle}><h3 style={panelTitleStyle}><Icon size={18} /> {group.label} ({group.items.length})</h3><div style={itemListStyle}>{group.items.map(item => editingId === item.id ? <EditingItem key={item.id} item={editItem} onChange={setEditItem} onUpdate={onUpdate} onCancel={() => { setEditingId(null); setEditItem(null); }} saving={saving} /> : <InventoryItemCard key={item.id} item={item} onEdit={() => { setEditingId(item.id); setEditItem({ ...item }); }} onDelete={() => onDelete(item)} grantTargets={grantTargets} grantOption={grantStateFor(grantOptions, item.id)} onGrantOptionChange={(patch) => onGrantOptionChange(item.id, patch)} onGrant={() => onGrant(item)} />)}</div></section>;
 }
 
 function EditingItem({ item, onChange, onUpdate, onCancel, saving }) {
   return <article style={editCardStyle}><ItemForm item={item} onChange={onChange} compact /><div style={formActionsStyle}><Button onClick={onCancel} style={secondaryButtonStyle}><X size={15} /> Cancel</Button><Button onClick={onUpdate} disabled={saving} style={primaryButtonStyle}><Save size={15} /> Save</Button></div></article>;
 }
 
-function InventoryItemCard({ item, onEdit, onDelete, grantTargets, grantSelection, onSelectGrant, onGrant }) {
-  return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{item.attunement_required && <span style={tagStyle}>Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantRowStyle}><select value={grantSelection} onChange={event => onSelectGrant(event.target.value)} style={selectStyle}><option value="">Grant to character…</option>{grantTargets.map(target => <option key={target.id} value={target.id}>{targetLabel(target)}</option>)}</select><button type="button" onClick={onGrant} disabled={!grantSelection} style={grantButtonStyle}><UserPlus size={14} /> Grant</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>;
+function InventoryItemCard({ item, onEdit, onDelete, grantTargets, grantOption, onGrantOptionChange, onGrant }) {
+  const requiresAttunement = Boolean(item.attunement_required || item.requires_attunement);
+  return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{requiresAttunement && <span style={tagStyle}>Requires Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantBoxStyle}><span style={grantTitleStyle}>Reward handoff</span><select value={grantOption.character_id || ''} onChange={event => onGrantOptionChange({ character_id: event.target.value })} style={selectStyle}><option value="">Who receives this?</option>{grantTargets.map(target => <option key={target.id} value={target.id}>{targetLabel(target)}</option>)}</select>{requiresAttunement && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_attune)} onChange={event => onGrantOptionChange({ auto_attune: event.target.checked })} /> Auto-attune on grant</label>}<button type="button" onClick={onGrant} disabled={!grantOption.character_id} style={grantButtonStyle}><UserPlus size={14} /> Grant to Sheet</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>;
 }
 
 function ItemForm({ item, onChange, compact = false }) {
   const set = (patch) => onChange({ ...item, ...patch });
-  return <div style={compact ? compactFormGridStyle : formGridStyle}><Field label="Name"><Input value={item.name || ''} onChange={event => set({ name: event.target.value })} placeholder="+1 Longsword" style={inputStyle} /></Field><Field label="Type"><select value={item.item_type || 'misc'} onChange={event => set({ item_type: event.target.value })} style={selectStyle}>{ITEM_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.label}</option>)}</select></Field><Field label="Qty"><Input type="number" min="1" value={item.quantity || 1} onChange={event => set({ quantity: event.target.value })} style={inputStyle} /></Field><Field label="Value"><Input value={item.value || ''} onChange={event => set({ value: event.target.value })} placeholder="50 gp" style={inputStyle} /></Field><Field label="Description"><Input value={item.description || ''} onChange={event => set({ description: event.target.value })} placeholder="Item effect or description" style={inputStyle} /></Field><Field label="Damage"><Input value={item.damage_dice || ''} onChange={event => set({ damage_dice: event.target.value })} placeholder="1d8+2" style={inputStyle} /></Field><Field label="Damage type"><Input value={item.damage_type || ''} onChange={event => set({ damage_type: event.target.value })} placeholder="slashing" style={inputStyle} /></Field><Field label="Equip slot"><Input value={item.equip_slot || ''} onChange={event => set({ equip_slot: event.target.value })} placeholder="mainHand, armor..." style={inputStyle} /></Field><Field label="Attack +"><Input type="number" value={item.attack_bonus || 0} onChange={event => set({ attack_bonus: event.target.value })} style={inputStyle} /></Field><Field label="AC +"><Input type="number" value={item.ac_bonus || 0} onChange={event => set({ ac_bonus: event.target.value })} style={inputStyle} /></Field><label style={checkStyle}><input type="checkbox" checked={Boolean(item.is_magical)} onChange={event => set({ is_magical: event.target.checked })} /> Magical</label><label style={checkStyle}><input type="checkbox" checked={Boolean(item.attunement_required)} onChange={event => set({ attunement_required: event.target.checked })} /> Attunement</label><Field label="GM notes"><Input value={item.notes || ''} onChange={event => set({ notes: event.target.value })} placeholder="Hidden or table notes" style={inputStyle} /></Field></div>;
+  return <div style={compact ? compactFormGridStyle : formGridStyle}><Field label="Name"><Input value={item.name || ''} onChange={event => set({ name: event.target.value })} placeholder="+1 Longsword" style={inputStyle} /></Field><Field label="Type"><select value={item.item_type || 'misc'} onChange={event => set({ item_type: event.target.value })} style={selectStyle}>{ITEM_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.label}</option>)}</select></Field><Field label="Qty"><Input type="number" min="1" value={item.quantity || 1} onChange={event => set({ quantity: event.target.value })} style={inputStyle} /></Field><Field label="Value"><Input value={item.value || ''} onChange={event => set({ value: event.target.value })} placeholder="50 gp" style={inputStyle} /></Field><Field label="Description"><Input value={item.description || ''} onChange={event => set({ description: event.target.value })} placeholder="Item effect or description" style={inputStyle} /></Field><Field label="Damage"><Input value={item.damage_dice || ''} onChange={event => set({ damage_dice: event.target.value })} placeholder="1d8+2" style={inputStyle} /></Field><Field label="Damage type"><Input value={item.damage_type || ''} onChange={event => set({ damage_type: event.target.value })} placeholder="slashing" style={inputStyle} /></Field><Field label="Equip slot"><Input value={item.equip_slot || ''} onChange={event => set({ equip_slot: event.target.value })} placeholder="mainHand, armor..." style={inputStyle} /></Field><Field label="Attack +"><Input type="number" value={item.attack_bonus || 0} onChange={event => set({ attack_bonus: event.target.value })} style={inputStyle} /></Field><Field label="AC +"><Input type="number" value={item.ac_bonus || 0} onChange={event => set({ ac_bonus: event.target.value })} style={inputStyle} /></Field><label style={checkStyle}><input type="checkbox" checked={Boolean(item.is_magical)} onChange={event => set({ is_magical: event.target.checked })} /> Magical</label><label style={checkStyle}><input type="checkbox" checked={Boolean(item.attunement_required)} onChange={event => set({ attunement_required: event.target.checked })} /> Requires attunement</label><Field label="GM notes"><Input value={item.notes || ''} onChange={event => set({ notes: event.target.value })} placeholder="Hidden or table notes" style={inputStyle} /></Field></div>;
 }
 
 function Field({ label, children }) { return <label style={fieldStyle}><span>{label}</span>{children}</label>; }
@@ -295,7 +310,7 @@ const formActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, 
 const emptyStyle = { display: 'grid', placeItems: 'center', textAlign: 'center', gap: 8, background: rq.card, border: `1px dashed ${rq.line}`, padding: 36, color: rq.soft };
 const itemGroupsStyle = { display: 'grid', gap: 12 };
 const itemListStyle = { display: 'grid', gap: 8, marginTop: 12 };
-const itemCardStyle = (magical) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 0.55fr)', gap: 12, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${magical ? rq.red : rq.line}`, padding: 12 });
+const itemCardStyle = (magical) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 0.62fr)', gap: 12, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${magical ? rq.red : rq.line}`, padding: 12 });
 const editCardStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 12 };
 const itemTitleRowStyle = { display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', color: rq.text };
 const tagStyle = { background: 'rgba(208,0,0,0.18)', color: rq.text, border: `1px solid ${rq.line}`, padding: '2px 6px', fontSize: 10, fontWeight: 900 };
@@ -303,8 +318,10 @@ const itemDescStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.4, font
 const itemMetaStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', color: rq.muted, fontSize: 12, marginTop: 8 };
 const itemNotesStyle = { margin: '8px 0 0', color: rq.muted, fontSize: 12, fontStyle: 'italic' };
 const itemActionsStyle = { display: 'grid', gap: 8, alignContent: 'center' };
-const grantRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6 };
-const grantButtonStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.red, border: 0, color: rq.text, fontWeight: 950, padding: '0 9px', cursor: 'pointer' };
+const grantBoxStyle = { display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, padding: 9 };
+const grantTitleStyle = { color: rq.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const grantCheckStyle = { display: 'flex', gap: 7, alignItems: 'center', color: rq.soft, fontSize: 12, fontWeight: 850 };
+const grantButtonStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: rq.red, border: 0, color: rq.text, fontWeight: 950, padding: '0 9px', cursor: 'pointer' };
 const buttonRowStyle = { display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' };
 const smallButtonStyle = { minHeight: 32, background: rq.card, color: rq.text, border: `1px solid ${rq.line}`, padding: '0 9px', cursor: 'pointer', fontWeight: 900 };
 const dangerButtonStyle = { ...smallButtonStyle, color: rq.text, display: 'inline-flex', alignItems: 'center', gap: 5 };
