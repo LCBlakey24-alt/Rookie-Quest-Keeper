@@ -144,7 +144,7 @@ export default function GlobalGuidedTour({ isAuthenticated = false }) {
 
   return (
     <div style={launcherWrapStyle}>
-      <GuidedTour tourId={tour.tourId} steps={tour.steps} buttonLabel={tour.buttonLabel} autoStart />
+      <GuidedTour tourId={tour.tourId} steps={tour.steps} buttonLabel={tour.buttonLabel} autoStart={false} />
     </div>
   );
 }
