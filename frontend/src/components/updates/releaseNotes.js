@@ -1,10 +1,10 @@
 export const RELEASE_NOTES = [
   {
-    id: 'end-session-story-wrap-v1',
+    id: 'end-session-story-wrap-v2',
     date: 'Latest',
     audience: 'GMs',
-    title: 'End Session story wrap-up options',
-    summary: 'End Session now reviews the active arc, current chapter, reached/skipped checkpoints, unresolved beats, and can mark the current chapter played or prep the next chapter before saving the recap.',
+    title: 'GM-only End Session story wrap-up',
+    summary: 'End Session now includes a GM-only story wrap-up for arc, chapter, and checkpoint tracking. The player-facing end-session display remains dice-only, showing roll stats, awards, and player highlights without story spoilers.',
     tags: ['End Session', 'Story Arcs'],
   },
   {
