@@ -13,6 +13,43 @@ from datetime import datetime, timezone
 
 router = APIRouter()
 
+
+def infer_equip_slot(item: Dict[str, Any]) -> str:
+    """Infer the character sheet equip slot for a granted reward."""
+    explicit_slot = str(item.get('equip_slot') or item.get('equipped_slot') or '').strip()
+    if explicit_slot:
+        return explicit_slot
+
+    item_type = str(item.get('item_type') or item.get('type') or '').strip().lower()
+    name = str(item.get('name') or '').strip().lower()
+    text = f"{item_type} {name}"
+
+    if 'shield' in text:
+        return 'shield'
+    if item_type in {'armor', 'armour'} or any(word in text for word in ['armour', 'armor', 'mail', 'plate', 'leather', 'scale', 'chain', 'hide']):
+        return 'armor'
+    if any(word in text for word in ['off hand', 'offhand']):
+        return 'offHand'
+    if item_type in {'weapon', 'magic_item'} or item.get('damage_dice') or item.get('attack_bonus') or any(word in text for word in ['sword', 'bow', 'crossbow', 'axe', 'mace', 'staff', 'dagger', 'spear', 'lance', 'hammer', 'rapier', 'club', 'flail', 'halberd', 'pike', 'trident', 'whip']):
+        return 'mainHand'
+    if item.get('ac_bonus'):
+        return 'armor'
+    return ''
+
+
+def equipped_aliases(slot: str) -> List[str]:
+    """Return equivalent equipped object keys used by older and newer sheets."""
+    if slot == 'mainHand':
+        return ['mainHand', 'main_hand', 'weapon']
+    if slot == 'offHand':
+        return ['offHand', 'off_hand']
+    if slot == 'armor':
+        return ['armor', 'armour']
+    if slot:
+        return [slot]
+    return []
+
+
 @router.get("/campaigns/{campaign_id}/inventory")
 async def get_inventory(campaign_id: str, current_user: str = Depends(get_current_user)):
     """Get all items in party inventory"""
@@ -163,10 +200,10 @@ async def grant_inventory_item_to_character(
     if not character:
         raise HTTPException(status_code=404, detail="Character not found in this campaign")
 
-    requires_attunement = bool(item.get('attunement_required', False))
+    requires_attunement = bool(item.get('attunement_required', False) or item.get('requires_attunement', False))
     auto_attune = bool(grant_data.get('auto_attune', False)) and requires_attunement
     auto_equip = bool(grant_data.get('auto_equip', False))
-    equipped_slot = item.get('equip_slot', '') if auto_equip else ''
+    equipped_slot = infer_equip_slot(item) if auto_equip else ''
 
     inventory_entry = {
         'id': str(uuid.uuid4()),
@@ -182,28 +219,33 @@ async def grant_inventory_item_to_character(
         'requires_attunement': requires_attunement,
         'attuned': auto_attune,
         'attuned_to': character.get('name', '') if auto_attune else '',
-        'equipped': auto_equip,
-        'is_equipped': auto_equip,
+        'equipped': bool(equipped_slot),
+        'is_equipped': bool(equipped_slot),
         'equipped_slot': equipped_slot,
-        'ready_to_use': bool(auto_equip or auto_attune),
+        'ready_to_use': bool(equipped_slot or auto_attune),
         'notes': item.get('notes', ''),
         'attack_bonus': item.get('attack_bonus', 0),
         'ac_bonus': item.get('ac_bonus', 0),
         'damage_dice': item.get('damage_dice', ''),
         'damage_type': item.get('damage_type', ''),
         'properties': item.get('properties', []),
-        'equip_slot': item.get('equip_slot', ''),
+        'equip_slot': equipped_slot or item.get('equip_slot', ''),
         'image_url': item.get('image_url', ''),
         'granted_from_party': True,
         'granted_at': datetime.now(timezone.utc).isoformat(),
-        'equipped_at': datetime.now(timezone.utc).isoformat() if auto_equip else '',
+        'equipped_at': datetime.now(timezone.utc).isoformat() if equipped_slot else '',
     }
+
+    set_data = {'updated_at': datetime.now(timezone.utc).isoformat()}
+    if equipped_slot:
+        for alias in equipped_aliases(equipped_slot):
+            set_data[f'equipped.{alias}'] = inventory_entry
 
     await db.player_characters.update_one(
         {'id': character_id},
         {
             '$push': {'inventory': inventory_entry},
-            '$set': {'updated_at': datetime.now(timezone.utc).isoformat()}
+            '$set': set_data
         }
     )
 
@@ -215,7 +257,8 @@ async def grant_inventory_item_to_character(
         "message": f"{item.get('name')} granted to {character.get('name', 'character')}",
         "item": inventory_entry,
         "auto_attuned": auto_attune,
-        "auto_equipped": auto_equip,
+        "auto_equipped": bool(equipped_slot),
+        "equipped_slot": equipped_slot,
     }
 
 @router.get("/campaigns/{campaign_id}/currency")
