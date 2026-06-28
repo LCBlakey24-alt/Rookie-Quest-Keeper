@@ -102,8 +102,8 @@ export default function NpcsTab({ theme, campaignId, nameRace, setNameRace, name
 
       {/* Quick NPC Generator */}
       <div style={{ marginTop: '20px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Quick NPC Generator</h3>
-        <QuickNpcGenerator theme={theme} />
+        <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '600', marginBottom: '16px' }}>Combat-Ready Quick NPC Generator</h3>
+        <QuickNpcGenerator theme={theme} campaignId={campaignId} />
       </div>
     </div>
   );
