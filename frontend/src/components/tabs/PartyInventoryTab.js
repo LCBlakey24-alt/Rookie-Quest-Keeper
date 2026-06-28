@@ -1,386 +1,310 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Coins, Package, Plus, Trash2, Edit, Save, X, Gem, Sword, ScrollText, Sparkles } from 'lucide-react';
+import { Coins, Gem, Package, Plus, Save, ScrollText, Shield, Sparkles, Sword, Trash2, UserPlus, X } from 'lucide-react';
 
+const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
+const rq = { bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000', text: '#ffffff', soft: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', line: 'rgba(255,255,255,0.16)' };
 
 const ITEM_CATEGORIES = [
-  { id: 'weapon', label: 'Weapons', icon: Sword, color: '#ef4444' },
-  { id: 'armor', label: 'Armor', icon: Package, color: '#4a7dff' },
-  { id: 'potion', label: 'Potions', icon: Sparkles, color: '#F59E0B' },
-  { id: 'scroll', label: 'Scrolls', icon: ScrollText, color: '#a855f7' },
-  { id: 'gem', label: 'Gems & Valuables', icon: Gem, color: '#eab308' },
-  { id: 'misc', label: 'Miscellaneous', icon: Package, color: '#64748b' },
+  { id: 'weapon', label: 'Weapons', icon: Sword },
+  { id: 'armor', label: 'Armour', icon: Shield },
+  { id: 'potion', label: 'Potions', icon: Sparkles },
+  { id: 'scroll', label: 'Scrolls', icon: ScrollText },
+  { id: 'gem', label: 'Gems & Valuables', icon: Gem },
+  { id: 'magic_item', label: 'Magic Items', icon: Sparkles },
+  { id: 'misc', label: 'Miscellaneous', icon: Package },
 ];
 
-function PartyInventoryTab({ campaignId }) {
-  const [inventory, setInventory] = useState({
-    gold: 0,
-    silver: 0,
-    copper: 0,
-    platinum: 0,
-    items: []
-  });
+const EMPTY_ITEM = { name: '', item_type: 'misc', quantity: 1, value: '', description: '', is_magical: false, attunement_required: false, damage_dice: '', damage_type: '', attack_bonus: 0, ac_bonus: 0, equip_slot: '', notes: '' };
+const COINS = [
+  { key: 'platinum', label: 'PP', value: 10 },
+  { key: 'gold', label: 'GP', value: 1 },
+  { key: 'electrum', label: 'EP', value: 0.5 },
+  { key: 'silver', label: 'SP', value: 0.1 },
+  { key: 'copper', label: 'CP', value: 0.01 },
+];
+
+function normaliseItems(data) {
+  return Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+}
+
+function normaliseCurrency(data) {
+  return { platinum: Number(data?.platinum) || 0, gold: Number(data?.gold) || 0, electrum: Number(data?.electrum) || 0, silver: Number(data?.silver) || 0, copper: Number(data?.copper) || 0 };
+}
+
+function parseValue(value) {
+  return Number.parseFloat(String(value || '').replace(/[^0-9.-]/g, '')) || 0;
+}
+
+function coinValue(currency) {
+  return COINS.reduce((sum, coin) => sum + ((Number(currency[coin.key]) || 0) * coin.value), 0);
+}
+
+function itemPayload(item) {
+  return {
+    name: String(item.name || '').trim(),
+    item_type: item.item_type || 'misc',
+    quantity: Math.max(1, Number.parseInt(item.quantity, 10) || 1),
+    value: String(item.value || ''),
+    description: item.description || '',
+    is_magical: Boolean(item.is_magical),
+    attunement_required: Boolean(item.attunement_required),
+    damage_dice: item.damage_dice || '',
+    damage_type: item.damage_type || '',
+    attack_bonus: Number(item.attack_bonus) || 0,
+    ac_bonus: Number(item.ac_bonus) || 0,
+    equip_slot: item.equip_slot || '',
+    notes: item.notes || '',
+  };
+}
+
+function targetLabel(target) {
+  return `${target.name || 'Character'}${target.character_class ? ` · ${target.character_class}` : ''}${target.level ? ` ${target.level}` : ''}`;
+}
+
+export default function PartyInventoryTab({ campaignId }) {
+  const [items, setItems] = useState([]);
+  const [currency, setCurrency] = useState(normaliseCurrency({}));
+  const [grantTargets, setGrantTargets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddItem, setShowAddItem] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', category: 'misc', quantity: 1, value: '', description: '', magical: false });
+  const [newItem, setNewItem] = useState(EMPTY_ITEM);
   const [editingId, setEditingId] = useState(null);
   const [editItem, setEditItem] = useState(null);
-  const [currencyEdit, setCurrencyEdit] = useState({ type: '', amount: '' });
+  const [saving, setSaving] = useState(false);
+  const [grantSelection, setGrantSelection] = useState({});
 
-  useEffect(() => {
-    fetchInventory();
-  }, [campaignId]);
+  useEffect(() => { loadInventory(); }, [campaignId]);
 
-  const fetchInventory = async () => {
+  const loadInventory = async () => {
+    if (!campaignId) return;
+    setLoading(true);
     try {
-      const response = await apiClient.get(`/campaigns/${campaignId}/inventory`);
-      setInventory(response.data || { gold: 0, silver: 0, copper: 0, platinum: 0, items: [] });
+      const [itemsRes, currencyRes, targetsRes] = await Promise.all([
+        apiClient.get(`/campaigns/${campaignId}/inventory`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/currency`).catch(() => ({ data: {} })),
+        apiClient.get(`/campaigns/${campaignId}/inventory/grant-targets`).catch(() => ({ data: [] })),
+      ]);
+      setItems(normaliseItems(itemsRes.data));
+      setCurrency(normaliseCurrency(currencyRes.data));
+      setGrantTargets(Array.isArray(targetsRes.data) ? targetsRes.data : []);
     } catch (error) {
-      // Initialize empty inventory if not found
-      setInventory({ gold: 0, silver: 0, copper: 0, platinum: 0, items: [] });
+      toast.error(error?.response?.data?.detail || 'Could not load party inventory');
     } finally {
       setLoading(false);
     }
   };
 
-  const saveInventory = async (newInventory) => {
+  const totalValue = useMemo(() => {
+    const itemsValue = items.reduce((sum, item) => sum + (parseValue(item.value) * (Number(item.quantity) || 1)), 0);
+    return Math.round((coinValue(currency) + itemsValue) * 100) / 100;
+  }, [items, currency]);
+
+  const groupedItems = useMemo(() => ITEM_CATEGORIES.map(category => ({ ...category, items: items.filter(item => (item.item_type || 'misc') === category.id) })).filter(group => group.items.length), [items]);
+  const claimedItems = items.filter(item => item.claimed_by || item.claimed_by_id);
+  const unclaimedItems = items.filter(item => !item.claimed_by && !item.claimed_by_id);
+
+  const updateCurrency = async (patch) => {
+    const next = normaliseCurrency({ ...currency, ...patch });
+    setCurrency(next);
     try {
-      await apiClient.put(`/campaigns/${campaignId}/inventory`, newInventory);
-      setInventory(newInventory);
+      const response = await apiClient.put(`/campaigns/${campaignId}/currency`, next);
+      setCurrency(normaliseCurrency(response.data));
+      toast.success('Party funds updated');
     } catch (error) {
-      toast.error('Failed to save inventory');
+      toast.error(error?.response?.data?.detail || 'Could not update party funds');
     }
   };
 
-  const updateCurrency = (type, change) => {
-    const newInventory = {
-      ...inventory,
-      [type]: Math.max(0, (inventory[type] || 0) + change)
-    };
-    saveInventory(newInventory);
-    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} ${change > 0 ? 'added' : 'removed'}`);
-  };
+  const adjustCurrency = (key, amount) => updateCurrency({ [key]: Math.max(0, (Number(currency[key]) || 0) + amount) });
 
-  const setCurrency = () => {
-    if (!currencyEdit.type || currencyEdit.amount === '') return;
-    const newInventory = {
-      ...inventory,
-      [currencyEdit.type]: Math.max(0, parseInt(currencyEdit.amount) || 0)
-    };
-    saveInventory(newInventory);
-    setCurrencyEdit({ type: '', amount: '' });
-    toast.success('Currency updated');
-  };
-
-  const addItem = () => {
-    if (!newItem.name.trim()) {
-      toast.error('Enter item name');
+  const addItem = async () => {
+    const payload = itemPayload(newItem);
+    if (!payload.name) {
+      toast.error('Enter an item name');
       return;
     }
-
-    const item = {
-      id: `item-${Date.now()}`,
-      ...newItem,
-      quantity: parseInt(newItem.quantity) || 1,
-      value: newItem.value || null,
-      addedAt: new Date().toISOString()
-    };
-
-    const newInventory = {
-      ...inventory,
-      items: [...inventory.items, item]
-    };
-    saveInventory(newInventory);
-    setNewItem({ name: '', category: 'misc', quantity: 1, value: '', description: '', magical: false });
-    setShowAddItem(false);
-    toast.success(`Added ${item.name}`);
+    setSaving(true);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/inventory`, payload);
+      setItems(prev => [response.data, ...prev]);
+      setNewItem(EMPTY_ITEM);
+      setShowAddItem(false);
+      toast.success(`${payload.name} added to party loot`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not add item');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeItem = (itemId) => {
-    const newInventory = {
-      ...inventory,
-      items: inventory.items.filter(i => i.id !== itemId)
-    };
-    saveInventory(newInventory);
-    toast.success('Item removed');
+  const updateItem = async () => {
+    if (!editItem?.id) return;
+    const payload = itemPayload(editItem);
+    if (!payload.name) {
+      toast.error('Item name is required');
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await apiClient.put(`/campaigns/${campaignId}/inventory/${editItem.id}`, payload);
+      setItems(prev => prev.map(item => item.id === editItem.id ? response.data : item));
+      setEditingId(null);
+      setEditItem(null);
+      toast.success('Item updated');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not update item');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const updateItem = () => {
-    if (!editItem || !editItem.name.trim()) return;
-    
-    const newInventory = {
-      ...inventory,
-      items: inventory.items.map(i => i.id === editingId ? { ...editItem, quantity: parseInt(editItem.quantity) || 1 } : i)
-    };
-    saveInventory(newInventory);
-    setEditingId(null);
-    setEditItem(null);
-    toast.success('Item updated');
+  const deleteItem = async (item) => {
+    if (!window.confirm(`Remove ${item.name} from party inventory?`)) return;
+    try {
+      await apiClient.delete(`/campaigns/${campaignId}/inventory/${item.id}`);
+      setItems(prev => prev.filter(existing => existing.id !== item.id));
+      toast.success('Item removed');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not remove item');
+    }
   };
 
-  const startEdit = (item) => {
-    setEditingId(item.id);
-    setEditItem({ ...item });
+  const grantItem = async (item) => {
+    const characterId = grantSelection[item.id];
+    if (!characterId) {
+      toast.error('Choose a character first');
+      return;
+    }
+    const target = grantTargets.find(character => character.id === characterId);
+    try {
+      await apiClient.post(`/campaigns/${campaignId}/inventory/${item.id}/grant`, { character_id: characterId });
+      setItems(prev => prev.filter(existing => existing.id !== item.id));
+      setGrantSelection(prev => ({ ...prev, [item.id]: '' }));
+      toast.success(`${item.name} granted to ${target?.name || 'character'}`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not grant item');
+    }
   };
 
-  const getTotalValue = () => {
-    const itemValue = inventory.items.reduce((sum, item) => {
-      const val = parseFloat(item.value) || 0;
-      return sum + (val * (item.quantity || 1));
-    }, 0);
-    const coinValue = 
-      (inventory.platinum || 0) * 10 +
-      (inventory.gold || 0) +
-      (inventory.silver || 0) * 0.1 +
-      (inventory.copper || 0) * 0.01;
-    return Math.round((itemValue + coinValue) * 100) / 100;
-  };
-
-  if (loading) return <div className="loading-spinner"></div>;
-
-  const groupedItems = ITEM_CATEGORIES.map(cat => ({
-    ...cat,
-    items: inventory.items.filter(item => item.category === cat.id)
-  })).filter(cat => cat.items.length > 0);
+  if (loading) return <div style={loadingStyle}>Loading party inventory…</div>;
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <section style={shellStyle} data-testid="party-inventory-tab">
+      <header style={heroStyle}>
         <div>
-          <h2 style={{ fontSize: '26px', color: '#ffffff', fontWeight: '800' }}>
-            Party Inventory
-          </h2>
-          <p style={{ fontSize: '14px', color: '#67e8f9', marginTop: '4px' }}>
-            Total Value: ~{getTotalValue()} gp
-          </p>
+          <p style={eyebrowStyle}>Inventory & Rewards</p>
+          <h2 style={titleStyle}>Party Loot</h2>
+          <p style={subtitleStyle}>Track shared treasure, build reward piles, and grant items directly into linked character sheets.</p>
         </div>
-        <Button onClick={() => setShowAddItem(!showAddItem)} className="btn-primary" style={{ display: 'flex', gap: '8px' }}>
-          <Plus size={18} />
-          Add Item
-        </Button>
-      </div>
+        <div style={heroStatsStyle}>
+          <Stat label="Unclaimed Items" value={unclaimedItems.length} />
+          <Stat label="Granted / Claimed" value={claimedItems.length} />
+          <Stat label="Approx Value" value={`${totalValue} gp`} />
+        </div>
+      </header>
 
-      {/* Currency Section */}
-      <div className="glow-panel" style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: '#ffffff', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Coins size={22} style={{ color: '#eab308' }} />
-          Party Funds
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
-          {[
-            { type: 'platinum', label: 'PP', color: '#e5e4e2' },
-            { type: 'gold', label: 'GP', color: '#ffd700' },
-            { type: 'silver', label: 'SP', color: '#c0c0c0' },
-            { type: 'copper', label: 'CP', color: '#cd7f32' }
-          ].map(coin => (
-            <div key={coin.type} style={{ background: 'rgba(10, 10, 40, 0.6)', border: '2px solid #1e40af', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: coin.color, marginBottom: '8px', fontWeight: '600' }}>{coin.label}</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', fontFamily: 'Montserrat', marginBottom: '10px' }}>
-                {inventory[coin.type] || 0}
-              </div>
-              <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                <button onClick={() => updateCurrency(coin.type, -10)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>-10</button>
-                <button onClick={() => updateCurrency(coin.type, -1)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>-1</button>
-                <button onClick={() => updateCurrency(coin.type, 1)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+1</button>
-                <button onClick={() => updateCurrency(coin.type, 10)} style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>+10</button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <select
-            value={currencyEdit.type}
-            onChange={(e) => setCurrencyEdit({ ...currencyEdit, type: e.target.value })}
-            className="input-glow"
-            style={{ flex: 1 }}
-          >
-            <option value="">Set currency...</option>
-            <option value="platinum">Platinum</option>
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-            <option value="copper">Copper</option>
-          </select>
-          <Input
-            type="number"
-            value={currencyEdit.amount}
-            onChange={(e) => setCurrencyEdit({ ...currencyEdit, amount: e.target.value })}
-            placeholder="Amount"
-            className="input-glow"
-            style={{ width: '100px' }}
-          />
-          <Button onClick={setCurrency} className="btn-primary" disabled={!currencyEdit.type}>Set</Button>
-        </div>
-      </div>
+      <section style={currencyStyle}>
+        <div style={panelHeaderStyle}><h3 style={panelTitleStyle}><Coins size={18} /> Party Funds</h3><span style={mutedTextStyle}>Coins are stored separately from loot items.</span></div>
+        <div style={coinGridStyle}>{COINS.map(coin => <CoinBox key={coin.key} coin={coin} value={currency[coin.key] || 0} onAdjust={adjustCurrency} onSet={(value) => updateCurrency({ [coin.key]: value })} />)}</div>
+      </section>
 
-      {/* Add Item Form */}
+      <section style={actionRowStyle}>
+        <Button onClick={() => setShowAddItem(prev => !prev)} style={primaryButtonStyle}><Plus size={16} /> {showAddItem ? 'Hide Add Item' : 'Add Item'}</Button>
+        <Button onClick={loadInventory} style={secondaryButtonStyle}>Refresh Inventory</Button>
+      </section>
+
       {showAddItem && (
-        <div className="glow-panel" style={{ marginBottom: '24px', borderColor: '#F59E0B' }}>
-          <h3 style={{ fontSize: '16px', color: '#F59E0B', fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '16px' }}>Add New Item</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Item Name *</label>
-              <Input
-                value={newItem.name}
-                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                placeholder="e.g., +1 Longsword"
-                className="input-glow"
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Category</label>
-              <select
-                value={newItem.category}
-                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                className="input-glow"
-              >
-                {ITEM_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Quantity</label>
-              <Input
-                type="number"
-                value={newItem.quantity}
-                onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                min="1"
-                className="input-glow"
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Value (gp)</label>
-              <Input
-                type="number"
-                value={newItem.value}
-                onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
-                placeholder="Optional"
-                className="input-glow"
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#67e8f9', fontWeight: '600' }}>Description</label>
-              <Input
-                value={newItem.description}
-                onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                placeholder="Item description or effects"
-                className="input-glow"
-              />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'end' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#a855f7', fontSize: '13px' }}>
-                <input
-                  type="checkbox"
-                  checked={newItem.magical}
-                  onChange={(e) => setNewItem({ ...newItem, magical: e.target.checked })}
-                  style={{ accentColor: '#a855f7' }}
-                />
-                <Sparkles size={16} />
-                Magical
-              </label>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <Button onClick={() => setShowAddItem(false)} className="btn-outline">Cancel</Button>
-            <Button onClick={addItem} className="btn-primary">Add Item</Button>
-          </div>
-        </div>
+        <section style={panelStyle} data-testid="add-party-item-panel">
+          <h3 style={panelTitleStyle}><Package size={18} /> Add party item</h3>
+          <ItemForm item={newItem} onChange={setNewItem} />
+          <div style={formActionsStyle}><Button onClick={() => { setShowAddItem(false); setNewItem(EMPTY_ITEM); }} style={secondaryButtonStyle}><X size={15} /> Cancel</Button><Button onClick={addItem} disabled={saving} style={primaryButtonStyle}><Save size={15} /> {saving ? 'Saving…' : 'Save Item'}</Button></div>
+        </section>
       )}
 
-      {/* Items by Category */}
-      {groupedItems.length === 0 ? (
-        <div className="glow-panel" style={{ padding: '50px', textAlign: 'center' }}>
-          <Package size={48} style={{ color: '#1e40af', margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontFamily: 'Montserrat', fontWeight: '700' }}>No Items</h3>
-          <p style={{ color: '#94a3b8' }}>Add items to track your party's loot</p>
-        </div>
+      {items.length === 0 ? (
+        <section style={emptyStyle}><Package size={44} /><h3>No party loot yet</h3><p>Add treasure, quest rewards, scrolls, potions, or magic items here. Then grant them to characters when the party decides who takes what.</p></section>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {groupedItems.map(category => (
-            <div key={category.id} className="glow-panel">
-              <h3 style={{ fontSize: '16px', color: category.color, fontFamily: 'Montserrat', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <category.icon size={18} />
-                {category.label} ({category.items.length})
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {category.items.map(item => (
-                  <div
-                    key={item.id}
-                    style={{
-                      background: 'rgba(10, 10, 40, 0.6)',
-                      border: `2px solid ${item.magical ? '#a855f7' : '#1e40af'}`,
-                      borderRadius: '10px',
-                      padding: '12px',
-                      boxShadow: item.magical ? '0 0 15px rgba(168, 85, 247, 0.2)' : 'none'
-                    }}
-                  >
-                    {editingId === item.id ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '8px', alignItems: 'center' }}>
-                        <Input
-                          value={editItem.name}
-                          onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
-                          className="input-glow"
-                          style={{ fontSize: '13px' }}
-                        />
-                        <Input
-                          type="number"
-                          value={editItem.quantity}
-                          onChange={(e) => setEditItem({ ...editItem, quantity: e.target.value })}
-                          className="input-glow"
-                          style={{ fontSize: '13px' }}
-                        />
-                        <Input
-                          type="number"
-                          value={editItem.value || ''}
-                          onChange={(e) => setEditItem({ ...editItem, value: e.target.value })}
-                          placeholder="gp"
-                          className="input-glow"
-                          style={{ fontSize: '13px' }}
-                        />
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <Button onClick={updateItem} className="btn-icon" style={{ padding: '6px', color: '#F59E0B' }}><Save size={14} /></Button>
-                          <Button onClick={() => { setEditingId(null); setEditItem(null); }} className="btn-icon" style={{ padding: '6px' }}><X size={14} /></Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <span style={{ color: '#ffffff', fontWeight: '700', fontSize: '14px' }}>{item.name}</span>
-                            {item.magical && <Sparkles size={14} style={{ color: '#a855f7' }} />}
-                            {item.quantity > 1 && (
-                              <span style={{ background: 'rgba(74, 125, 255, 0.3)', color: '#4a7dff', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>
-                                x{item.quantity}
-                              </span>
-                            )}
-                          </div>
-                          {item.description && <p style={{ fontSize: '12px', color: '#94a3b8' }}>{item.description}</p>}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {item.value && (
-                            <span style={{ color: '#eab308', fontWeight: '600', fontSize: '13px' }}>
-                              {item.value} gp
-                            </span>
-                          )}
-                          <Button onClick={() => startEdit(item)} className="btn-icon" style={{ padding: '6px' }}><Edit size={14} /></Button>
-                          <Button onClick={() => removeItem(item.id)} className="btn-icon" style={{ padding: '6px', color: '#ef4444' }}><Trash2 size={14} /></Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <section style={itemGroupsStyle}>{groupedItems.map(group => <ItemGroup key={group.id} group={group} editingId={editingId} editItem={editItem} setEditingId={setEditingId} setEditItem={setEditItem} onUpdate={updateItem} onDelete={deleteItem} grantTargets={grantTargets} grantSelection={grantSelection} setGrantSelection={setGrantSelection} onGrant={grantItem} saving={saving} />)}</section>
       )}
-    </div>
+    </section>
   );
 }
 
-export default PartyInventoryTab;
+function CoinBox({ coin, value, onAdjust, onSet }) {
+  const [draft, setDraft] = useState(String(value || 0));
+  useEffect(() => { setDraft(String(value || 0)); }, [value]);
+  return <article style={coinBoxStyle}><span>{coin.label}</span><strong>{value}</strong><div style={miniButtonRowStyle}><button type="button" onClick={() => onAdjust(coin.key, -10)} style={miniButtonStyle}>-10</button><button type="button" onClick={() => onAdjust(coin.key, -1)} style={miniButtonStyle}>-1</button><button type="button" onClick={() => onAdjust(coin.key, 1)} style={miniButtonStyle}>+1</button><button type="button" onClick={() => onAdjust(coin.key, 10)} style={miniButtonStyle}>+10</button></div><div style={setCurrencyStyle}><input value={draft} onChange={event => setDraft(event.target.value)} type="number" min="0" style={smallInputStyle} /><button type="button" onClick={() => onSet(Math.max(0, Number.parseInt(draft, 10) || 0))} style={miniPrimaryStyle}>Set</button></div></article>;
+}
+
+function ItemGroup({ group, editingId, editItem, setEditingId, setEditItem, onUpdate, onDelete, grantTargets, grantSelection, setGrantSelection, onGrant, saving }) {
+  const Icon = group.icon;
+  return <section style={panelStyle}><h3 style={panelTitleStyle}><Icon size={18} /> {group.label} ({group.items.length})</h3><div style={itemListStyle}>{group.items.map(item => editingId === item.id ? <EditingItem key={item.id} item={editItem} onChange={setEditItem} onUpdate={onUpdate} onCancel={() => { setEditingId(null); setEditItem(null); }} saving={saving} /> : <InventoryItemCard key={item.id} item={item} onEdit={() => { setEditingId(item.id); setEditItem({ ...item }); }} onDelete={() => onDelete(item)} grantTargets={grantTargets} grantSelection={grantSelection[item.id] || ''} onSelectGrant={(characterId) => setGrantSelection(prev => ({ ...prev, [item.id]: characterId }))} onGrant={() => onGrant(item)} />)}</div></section>;
+}
+
+function EditingItem({ item, onChange, onUpdate, onCancel, saving }) {
+  return <article style={editCardStyle}><ItemForm item={item} onChange={onChange} compact /><div style={formActionsStyle}><Button onClick={onCancel} style={secondaryButtonStyle}><X size={15} /> Cancel</Button><Button onClick={onUpdate} disabled={saving} style={primaryButtonStyle}><Save size={15} /> Save</Button></div></article>;
+}
+
+function InventoryItemCard({ item, onEdit, onDelete, grantTargets, grantSelection, onSelectGrant, onGrant }) {
+  return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{item.attunement_required && <span style={tagStyle}>Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantRowStyle}><select value={grantSelection} onChange={event => onSelectGrant(event.target.value)} style={selectStyle}><option value="">Grant to character…</option>{grantTargets.map(target => <option key={target.id} value={target.id}>{targetLabel(target)}</option>)}</select><button type="button" onClick={onGrant} disabled={!grantSelection} style={grantButtonStyle}><UserPlus size={14} /> Grant</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>;
+}
+
+function ItemForm({ item, onChange, compact = false }) {
+  const set = (patch) => onChange({ ...item, ...patch });
+  return <div style={compact ? compactFormGridStyle : formGridStyle}><Field label="Name"><Input value={item.name || ''} onChange={event => set({ name: event.target.value })} placeholder="+1 Longsword" style={inputStyle} /></Field><Field label="Type"><select value={item.item_type || 'misc'} onChange={event => set({ item_type: event.target.value })} style={selectStyle}>{ITEM_CATEGORIES.map(category => <option key={category.id} value={category.id}>{category.label}</option>)}</select></Field><Field label="Qty"><Input type="number" min="1" value={item.quantity || 1} onChange={event => set({ quantity: event.target.value })} style={inputStyle} /></Field><Field label="Value"><Input value={item.value || ''} onChange={event => set({ value: event.target.value })} placeholder="50 gp" style={inputStyle} /></Field><Field label="Description"><Input value={item.description || ''} onChange={event => set({ description: event.target.value })} placeholder="Item effect or description" style={inputStyle} /></Field><Field label="Damage"><Input value={item.damage_dice || ''} onChange={event => set({ damage_dice: event.target.value })} placeholder="1d8+2" style={inputStyle} /></Field><Field label="Damage type"><Input value={item.damage_type || ''} onChange={event => set({ damage_type: event.target.value })} placeholder="slashing" style={inputStyle} /></Field><Field label="Equip slot"><Input value={item.equip_slot || ''} onChange={event => set({ equip_slot: event.target.value })} placeholder="mainHand, armor..." style={inputStyle} /></Field><Field label="Attack +"><Input type="number" value={item.attack_bonus || 0} onChange={event => set({ attack_bonus: event.target.value })} style={inputStyle} /></Field><Field label="AC +"><Input type="number" value={item.ac_bonus || 0} onChange={event => set({ ac_bonus: event.target.value })} style={inputStyle} /></Field><label style={checkStyle}><input type="checkbox" checked={Boolean(item.is_magical)} onChange={event => set({ is_magical: event.target.checked })} /> Magical</label><label style={checkStyle}><input type="checkbox" checked={Boolean(item.attunement_required)} onChange={event => set({ attunement_required: event.target.checked })} /> Attunement</label><Field label="GM notes"><Input value={item.notes || ''} onChange={event => set({ notes: event.target.value })} placeholder="Hidden or table notes" style={inputStyle} /></Field></div>;
+}
+
+function Field({ label, children }) { return <label style={fieldStyle}><span>{label}</span>{children}</label>; }
+function Stat({ label, value }) { return <article style={statStyle}><strong>{value}</strong><span>{label}</span></article>; }
+
+const shellStyle = { display: 'grid', gap: 14, color: rq.text, fontFamily: fontStack };
+const loadingStyle = { padding: 24, background: rq.panel, border: `1px solid ${rq.line}`, color: rq.soft };
+const heroStyle = { display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start', background: rq.card, border: `1px solid ${rq.line}`, padding: 16 };
+const eyebrowStyle = { margin: '0 0 5px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.11em' };
+const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 0.95 };
+const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 760 };
+const heroStatsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))', gap: 8, minWidth: 'min(100%, 420px)' };
+const statStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, display: 'grid', gap: 3, textAlign: 'center' };
+const currencyStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14 };
+const panelHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 };
+const panelTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };
+const mutedTextStyle = { color: rq.muted, fontSize: 12 };
+const coinGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 };
+const coinBoxStyle = { display: 'grid', gap: 8, background: rq.card, border: `1px solid ${rq.line}`, padding: 10, textAlign: 'center' };
+const miniButtonRowStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 };
+const miniButtonStyle = { minHeight: 26, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, fontWeight: 900, cursor: 'pointer' };
+const miniPrimaryStyle = { minHeight: 28, background: rq.red, border: 0, color: rq.text, fontWeight: 950, cursor: 'pointer' };
+const setCurrencyStyle = { display: 'grid', gridTemplateColumns: '1fr 48px', gap: 4 };
+const smallInputStyle = { minHeight: 28, width: '100%', background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 7px' };
+const actionRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' };
+const primaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.red, color: rq.text, fontWeight: 950, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.card, color: rq.text, fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
+const panelStyle = { background: rq.card, border: `1px solid ${rq.line}`, padding: 14 };
+const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginTop: 12 };
+const compactFormGridStyle = { ...formGridStyle, gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' };
+const fieldStyle = { display: 'grid', gap: 5, color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const inputStyle = { minHeight: 34, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, borderRadius: 0 };
+const selectStyle = { minHeight: 34, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 8px', borderRadius: 0 };
+const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.soft, fontWeight: 850, fontSize: 13, minHeight: 34 };
+const formActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12, flexWrap: 'wrap' };
+const emptyStyle = { display: 'grid', placeItems: 'center', textAlign: 'center', gap: 8, background: rq.card, border: `1px dashed ${rq.line}`, padding: 36, color: rq.soft };
+const itemGroupsStyle = { display: 'grid', gap: 12 };
+const itemListStyle = { display: 'grid', gap: 8, marginTop: 12 };
+const itemCardStyle = (magical) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 0.55fr)', gap: 12, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${magical ? rq.red : rq.line}`, padding: 12 });
+const editCardStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 12 };
+const itemTitleRowStyle = { display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', color: rq.text };
+const tagStyle = { background: 'rgba(208,0,0,0.18)', color: rq.text, border: `1px solid ${rq.line}`, padding: '2px 6px', fontSize: 10, fontWeight: 900 };
+const itemDescStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.4, fontSize: 13 };
+const itemMetaStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', color: rq.muted, fontSize: 12, marginTop: 8 };
+const itemNotesStyle = { margin: '8px 0 0', color: rq.muted, fontSize: 12, fontStyle: 'italic' };
+const itemActionsStyle = { display: 'grid', gap: 8, alignContent: 'center' };
+const grantRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6 };
+const grantButtonStyle = { minHeight: 34, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.red, border: 0, color: rq.text, fontWeight: 950, padding: '0 9px', cursor: 'pointer' };
+const buttonRowStyle = { display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' };
+const smallButtonStyle = { minHeight: 32, background: rq.card, color: rq.text, border: `1px solid ${rq.line}`, padding: '0 9px', cursor: 'pointer', fontWeight: 900 };
+const dangerButtonStyle = { ...smallButtonStyle, color: rq.text, display: 'inline-flex', alignItems: 'center', gap: 5 };
