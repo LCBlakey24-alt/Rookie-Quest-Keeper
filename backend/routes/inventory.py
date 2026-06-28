@@ -163,16 +163,23 @@ async def grant_inventory_item_to_character(
     if not character:
         raise HTTPException(status_code=404, detail="Character not found in this campaign")
 
+    requires_attunement = bool(item.get('attunement_required', False))
+    auto_attune = bool(grant_data.get('auto_attune', False)) and requires_attunement
+
     inventory_entry = {
         'id': str(uuid.uuid4()),
         'name': item.get('name', 'Unknown Item'),
         'quantity': item.get('quantity', 1),
         'item_type': item.get('item_type', 'misc'),
+        'type': item.get('item_type', 'misc'),
         'description': item.get('description', ''),
         'value': item.get('value', ''),
         'weight': item.get('weight', 0),
         'is_magical': item.get('is_magical', False),
-        'attunement_required': item.get('attunement_required', False),
+        'attunement_required': requires_attunement,
+        'requires_attunement': requires_attunement,
+        'attuned': auto_attune,
+        'attuned_to': character.get('name', '') if auto_attune else '',
         'notes': item.get('notes', ''),
         'attack_bonus': item.get('attack_bonus', 0),
         'ac_bonus': item.get('ac_bonus', 0),
@@ -200,6 +207,7 @@ async def grant_inventory_item_to_character(
         "success": True,
         "message": f"{item.get('name')} granted to {character.get('name', 'character')}",
         "item": inventory_entry,
+        "auto_attuned": auto_attune,
     }
 
 @router.get("/campaigns/{campaign_id}/currency")
