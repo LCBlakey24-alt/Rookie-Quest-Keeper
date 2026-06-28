@@ -165,6 +165,8 @@ async def grant_inventory_item_to_character(
 
     requires_attunement = bool(item.get('attunement_required', False))
     auto_attune = bool(grant_data.get('auto_attune', False)) and requires_attunement
+    auto_equip = bool(grant_data.get('auto_equip', False))
+    equipped_slot = item.get('equip_slot', '') if auto_equip else ''
 
     inventory_entry = {
         'id': str(uuid.uuid4()),
@@ -180,6 +182,10 @@ async def grant_inventory_item_to_character(
         'requires_attunement': requires_attunement,
         'attuned': auto_attune,
         'attuned_to': character.get('name', '') if auto_attune else '',
+        'equipped': auto_equip,
+        'is_equipped': auto_equip,
+        'equipped_slot': equipped_slot,
+        'ready_to_use': bool(auto_equip or auto_attune),
         'notes': item.get('notes', ''),
         'attack_bonus': item.get('attack_bonus', 0),
         'ac_bonus': item.get('ac_bonus', 0),
@@ -190,6 +196,7 @@ async def grant_inventory_item_to_character(
         'image_url': item.get('image_url', ''),
         'granted_from_party': True,
         'granted_at': datetime.now(timezone.utc).isoformat(),
+        'equipped_at': datetime.now(timezone.utc).isoformat() if auto_equip else '',
     }
 
     await db.player_characters.update_one(
@@ -208,6 +215,7 @@ async def grant_inventory_item_to_character(
         "message": f"{item.get('name')} granted to {character.get('name', 'character')}",
         "item": inventory_entry,
         "auto_attuned": auto_attune,
+        "auto_equipped": auto_equip,
     }
 
 @router.get("/campaigns/{campaign_id}/currency")
