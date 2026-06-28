@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'homebrew-rook-builders-v1',
+    date: 'Latest',
+    audience: 'GMs and Creators',
+    title: 'Homebrew Workshop now has Rook-assisted builders',
+    summary: 'Homebrew Workshop now supports Monster / Creature, NPC Maker, and Custom Rule drafts. Fill in what you know, then ask Rook to complete missing stat blocks, NPC hooks, rule text, examples, and settings from the choices already made.',
+    tags: ['Homebrew', 'ROOK', 'Monsters', 'NPCs', 'Custom Rules'],
+  },
+  {
     id: 'combat-ready-npcs-v1',
     date: 'Latest',
     audience: 'GMs',
