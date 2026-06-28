@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'live-story-controls-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Live Play story controls expanded',
+    summary: 'The Live Play story focus strip now supports reaching, skipping, undoing checkpoints, marking the current chapter played, and loading the next chapter without leaving the session screen.',
+    tags: ['Live Play', 'Story Arcs'],
+  },
+  {
     id: 'tonight-checkpoints-v1',
     date: 'Latest',
     audience: 'GMs',
