@@ -67,7 +67,18 @@ function targetLabel(target) {
 }
 
 function grantStateFor(grantOptions, itemId) {
-  return grantOptions[itemId] || { character_id: '', auto_attune: false };
+  return grantOptions[itemId] || { character_id: '', auto_attune: false, auto_equip: false };
+}
+
+function itemCanEquip(item) {
+  return ['weapon', 'armor', 'magic_item'].includes(item.item_type || item.type) || Boolean(item.equip_slot || item.damage_dice || Number(item.attack_bonus) || Number(item.ac_bonus));
+}
+
+function grantDescription(response) {
+  const bits = [];
+  if (response.data?.auto_attuned) bits.push('already attuned');
+  if (response.data?.auto_equipped) bits.push('equipped/ready');
+  return bits.length ? `It was added to their sheet ${bits.join(' and ')}.` : 'It was added to their character sheet.';
 }
 
 export default function PartyInventoryTab({ campaignId }) {
@@ -194,11 +205,12 @@ export default function PartyInventoryTab({ campaignId }) {
       const response = await apiClient.post(`/campaigns/${campaignId}/inventory/${item.id}/grant`, {
         character_id: characterId,
         auto_attune: Boolean(option.auto_attune),
+        auto_equip: Boolean(option.auto_equip),
       });
       setItems(prev => prev.filter(existing => existing.id !== item.id));
-      setGrantOptions(prev => ({ ...prev, [item.id]: { character_id: '', auto_attune: false } }));
+      setGrantOptions(prev => ({ ...prev, [item.id]: { character_id: '', auto_attune: false, auto_equip: false } }));
       toast.success(`${item.name} granted to ${target?.name || 'character'}`, {
-        description: response.data?.auto_attuned ? 'It was added to their sheet already attuned.' : 'It was added to their character sheet.',
+        description: grantDescription(response),
       });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not grant item');
@@ -266,7 +278,8 @@ function EditingItem({ item, onChange, onUpdate, onCancel, saving }) {
 
 function InventoryItemCard({ item, onEdit, onDelete, grantTargets, grantOption, onGrantOptionChange, onGrant }) {
   const requiresAttunement = Boolean(item.attunement_required || item.requires_attunement);
-  return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{requiresAttunement && <span style={tagStyle}>Requires Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantBoxStyle}><span style={grantTitleStyle}>Reward handoff</span><select value={grantOption.character_id || ''} onChange={event => onGrantOptionChange({ character_id: event.target.value })} style={selectStyle}><option value="">Who receives this?</option>{grantTargets.map(target => <option key={target.id} value={target.id}>{targetLabel(target)}</option>)}</select>{requiresAttunement && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_attune)} onChange={event => onGrantOptionChange({ auto_attune: event.target.checked })} /> Auto-attune on grant</label>}<button type="button" onClick={onGrant} disabled={!grantOption.character_id} style={grantButtonStyle}><UserPlus size={14} /> Grant to Sheet</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>;
+  const canEquip = itemCanEquip(item);
+  return <article style={itemCardStyle(item.is_magical)}><div style={{ minWidth: 0 }}><div style={itemTitleRowStyle}><strong>{item.name}</strong>{item.is_magical && <span style={tagStyle}>Magical</span>}{requiresAttunement && <span style={tagStyle}>Requires Attunement</span>}{Number(item.quantity) > 1 && <span style={tagStyle}>x{item.quantity}</span>}</div>{item.description && <p style={itemDescStyle}>{item.description}</p>}<div style={itemMetaStyle}>{item.value && <span>{item.value}</span>}{item.damage_dice && <span>{item.damage_dice} {item.damage_type}</span>}{Number(item.attack_bonus) !== 0 && <span>Attack +{item.attack_bonus}</span>}{Number(item.ac_bonus) !== 0 && <span>AC +{item.ac_bonus}</span>}{item.equip_slot && <span>{item.equip_slot}</span>}</div>{item.notes && <p style={itemNotesStyle}>{item.notes}</p>}</div><div style={itemActionsStyle}><div style={grantBoxStyle}><span style={grantTitleStyle}>Reward handoff</span><select value={grantOption.character_id || ''} onChange={event => onGrantOptionChange({ character_id: event.target.value })} style={selectStyle}><option value="">Who receives this?</option>{grantTargets.map(target => <option key={target.id} value={target.id}>{targetLabel(target)}</option>)}</select>{requiresAttunement && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_attune)} onChange={event => onGrantOptionChange({ auto_attune: event.target.checked })} /> Auto-attune on grant</label>}{canEquip && <label style={grantCheckStyle}><input type="checkbox" checked={Boolean(grantOption.auto_equip)} onChange={event => onGrantOptionChange({ auto_equip: event.target.checked })} /> Grant as equipped/ready</label>}<button type="button" onClick={onGrant} disabled={!grantOption.character_id} style={grantButtonStyle}><UserPlus size={14} /> Grant to Sheet</button></div><div style={buttonRowStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={dangerButtonStyle}><Trash2 size={14} /> Remove</button></div></div></article>;
 }
 
 function ItemForm({ item, onChange, compact = false }) {
