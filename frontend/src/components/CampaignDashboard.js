@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
 import GodsTab from '@/components/tabs/GodsTab';
-import LocationsTab from '@/components/tabs/LocationsTab';
 import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import MapsTab from '@/components/tabs/MapsTab';
@@ -47,8 +46,7 @@ const tabGroups = [
   ] },
   { id: 'world', label: 'World', icon: Globe, tabs: [
     { id: 'setting', icon: Book, label: 'World Overview' },
-    { id: 'locations', icon: MapPin, label: 'Locations' },
-    { id: 'maps', icon: Compass, label: 'Maps' },
+    { id: 'maps', icon: Compass, label: 'World Atlas' },
     { id: 'chronicle', icon: Clock, label: 'Chronicle' },
   ] },
   { id: 'people', label: 'People', icon: UserCircle, tabs: [
@@ -57,7 +55,7 @@ const tabGroups = [
   ] },
   { id: 'table', label: 'Table', icon: Swords, tabs: [
     { id: 'combat', icon: Swords, label: 'Encounters' },
-    { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
+    { id: 'battle-maps', icon: Map, label: 'Combat Maps' },
     { id: 'inventory', icon: Backpack, label: 'Inventory & Rewards' },
   ] },
   { id: 'library', label: 'Library', icon: Backpack, tabs: [
@@ -149,9 +147,7 @@ export default function CampaignDashboard() {
   }, []);
 
   const handleGroupClick = (group) => {
-    const firstTabId = group.tabs[0]?.id;
-    setExpandedGroups(prev => ({ ...prev, [group.id]: true }));
-    if (firstTabId) handleTabClick(firstTabId);
+    setExpandedGroups(prev => ({ ...prev, [group.id]: !prev[group.id] }));
   };
 
   const fetchInviteCode = async () => {
@@ -208,9 +204,9 @@ export default function CampaignDashboard() {
         data-testid={`${tab.id}-tab`}
         data-active={isActive ? 'true' : 'false'}
         aria-current={isActive ? 'page' : undefined}
-        style={{ ...tabButtonStyle, background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent') }}
+        style={{ ...tabButtonStyle, background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent'), color: isActive ? theme.text.white : theme.text.secondary }}
       >
-        <Icon size={16} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
+        <Icon size={16} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.72 }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
       </button>
     );
@@ -220,6 +216,7 @@ export default function CampaignDashboard() {
     const isExpanded = Boolean(expandedGroups[group.id]);
     const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
     const Icon = group.icon;
+    const ArrowIcon = isExpanded ? ChevronDown : ChevronRight;
     return (
       <button
         key={`group-${group.id}`}
@@ -228,10 +225,10 @@ export default function CampaignDashboard() {
         onClick={() => handleGroupClick(group)}
         data-testid={`group-${group.id}`}
         aria-expanded={isExpanded ? 'true' : 'false'}
-        style={{ ...groupHeaderStyle, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted }}
+        style={{ ...groupHeaderStyle, background: hasActiveTab ? theme.accent.subtle : (isExpanded ? theme.bg.card : 'transparent'), color: hasActiveTab ? theme.text.white : theme.text.muted, borderLeft: hasActiveTab ? `5px solid ${theme.accent.primary}` : '5px solid transparent' }}
       >
-        {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        <Icon size={15} />
+        <ArrowIcon size={15} style={{ color: hasActiveTab ? theme.text.white : theme.text.muted }} />
+        <Icon size={15} style={{ color: hasActiveTab ? theme.text.white : theme.text.muted }} />
         <span>{group.label}</span>
       </button>
     );
@@ -246,7 +243,6 @@ export default function CampaignDashboard() {
       case 'maps': return <MapsConsolidatedTab campaignId={campaignId} />;
       case 'gods': return <GodsTab campaignId={campaignId} />;
       case 'npcs': return <NPCsConsolidatedTab campaignId={campaignId} />;
-      case 'locations': return <LocationsTab campaignId={campaignId} />;
       case 'chronicle': return <ChronicleConsolidatedTab campaignId={campaignId} />;
       case 'combat': return <CombatConsolidatedTab campaignId={campaignId} />;
       case 'battle-maps': return <MapsTab campaignId={campaignId} />;
@@ -339,6 +335,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
     { title: 'Story Arcs', text: 'Build the campaign spine: arcs, chapters, checkpoints, and combat beats.', meta: 'Plan', icon: ScrollText, tab: 'story-arcs' },
     { title: "Tonight's Session", text: 'Open the live prep checklist for the next table session.', meta: 'Prep', icon: CalendarDays, tab: 'tonight' },
     { title: 'Live Play Mode', text: 'Launch the focused table screen with combat, notes, handouts, and display controls.', meta: 'Run', icon: Monitor, action: onOpenLive },
+    { title: 'World Atlas', text: 'Build world maps, place locations as markers, and organise local points of interest.', meta: 'World', icon: Compass, tab: 'maps' },
     { title: 'Inventory & Rewards', text: 'Track party loot and grant rewards directly to character sheets.', meta: 'Rewards', icon: Backpack, tab: 'inventory' },
     { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
     { title: 'Session Notes', text: 'Capture what happened at the table and sync useful changes into the campaign.', meta: 'Record', icon: FileText, tab: 'ingame-notes' },
@@ -432,7 +429,7 @@ const sidebarMobileTitleStyle = { color: theme.text.white, fontSize: 12, letterS
 const sidebarCloseButtonStyle = { width: 40, height: 40, border: 0, background: theme.bg.card, color: theme.text.white, display: 'grid', placeItems: 'center' };
 const sidebarTitleStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' };
 const mobileOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 180, display: 'none' };
-const groupHeaderStyle = { padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack, textAlign: 'left' };
+const groupHeaderStyle = { padding: '11px 16px 11px 11px', border: 'none', borderTop: `1px solid ${theme.border}`, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack, textAlign: 'left' };
 const tabButtonStyle = { position: 'relative', border: 'none', color: theme.text.white, fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack, padding: '10px 16px 10px 34px', minHeight: 42, fontSize: 13 };
 const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const errorPageStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: fontStack };
