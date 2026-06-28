@@ -63,9 +63,9 @@ function buildRecapNote(summary, storyFocus, options) {
   ].filter(Boolean).join('\n') || '- No chapter status changes selected.';
 
   return [
-    'End Session Recap',
+    'GM-Only End Session Recap',
     '',
-    'Story:',
+    'GM-only story wrap-up:',
     `Arc: ${storyFocus?.arc?.title || 'No active arc'}`,
     `Chapter: ${storyFocus?.chapter?.title || 'No active chapter'}`,
     '',
@@ -81,7 +81,7 @@ function buildRecapNote(summary, storyFocus, options) {
     'Story wrap-up actions:',
     storyActionLines,
     '',
-    'Rolls:',
+    'Public player recap data:',
     `Player rolls: ${number(session.playerRolls ?? session.totalRolls)}`,
     `GM/table rolls hidden from player focus: ${number(session.gmRolls)}`,
     `Dice rolled: ${number(session.totalDice)}`,
@@ -165,8 +165,8 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
         await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, closedChapterStory, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
       }
       const rolls = response.data?.session?.playerRolls ?? response.data?.session?.totalRolls ?? 0;
-      if (rolls > 0) toast.success('End session show sent to player display', { description: 'Roll stats were archived and story wrap-up was applied.' });
-      else toast.info('End session show sent', { description: 'Story wrap-up was applied. No player rolls were captured.' });
+      if (rolls > 0) toast.success('Dice-only end session show sent to player display', { description: 'Roll stats were archived. GM-only story wrap-up was applied separately.' });
+      else toast.info('Dice-only end session show sent', { description: 'GM-only story wrap-up was applied. No player rolls were captured.' });
       onClose?.();
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not end session');
@@ -182,13 +182,13 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
           <div>
             <p style={eyebrowStyle}>GM Review</p>
             <h2 id="end-session-title" style={titleStyle}>End Session Control</h2>
-            <p style={subtitleStyle}>Check player stats, wrap up story progress, then send the animated recap to the extended display.</p>
+            <p style={subtitleStyle}>Check player dice stats, handle GM-only story wrap-up, then send a dice-only recap to the extended player display.</p>
           </div>
           <button type="button" onClick={onClose} disabled={sending} style={closeButtonStyle} aria-label="Close end session review"><X size={20} /></button>
         </header>
 
         {loading ? (
-          <div style={loadingStyle}>Loading session stats and story progress…</div>
+          <div style={loadingStyle}>Loading session stats and GM story progress…</div>
         ) : (
           <>
             <section style={metricGridStyle}>
@@ -202,14 +202,14 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
 
             {playerRollCount === 0 && (
               <section style={warningStyle}>
-                No player rolls have been captured yet. The show can still play, but it will mostly say the dice were quiet. Players can use virtual sheet rolls or the optional physical roll logger.
+                No player rolls have been captured yet. The public player show can still play, but it will mostly say the dice were quiet. Players can use virtual sheet rolls or the optional physical roll logger.
               </section>
             )}
 
             <section style={storyWrapStyle} data-testid="end-session-story-wrapup">
               <div style={storyHeaderStyle}>
                 <div style={{ minWidth: 0 }}>
-                  <p style={eyebrowStyle}>Story Wrap-Up</p>
+                  <p style={eyebrowStyle}>GM-only Story Wrap-Up</p>
                   <h3 style={storyTitleStyle}>{storyFocus.arc?.title || 'No active story arc'}</h3>
                   <p style={storyMetaStyle}>{storyFocus.chapter ? `Chapter: ${storyFocus.chapter.title}` : 'No prepped/planned chapter found.'}</p>
                 </div>
@@ -218,6 +218,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
                   <span>checkpoints done</span>
                 </div>
               </div>
+              <p style={gmOnlyNoticeStyle}>This section is for the GM’s campaign tracking and notes only. It is not sent to the player display.</p>
               <div style={progressTrackStyle}><span style={progressBarStyle(storyProgress)} /></div>
               <div style={storyPreviewGridStyle}>
                 <StoryCount title="Reached" value={storyFocus.reached.length} tone="good" />
@@ -227,11 +228,11 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
               </div>
               <div style={splitStyle}>
                 <div style={panelStyle}>
-                  <h3 style={sectionTitleStyle}>Reached / skipped preview</h3>
+                  <h3 style={sectionTitleStyle}>GM checkpoint preview</h3>
                   {storyFocus.points.length ? storyFocus.points.slice(0, 6).map(point => <PreviewRow key={point.id} title={point.title} text={point.status || 'upcoming'} />) : <p style={mutedStyle}>No checkpoints found for this chapter.</p>}
                 </div>
                 <div style={panelStyle}>
-                  <h3 style={sectionTitleStyle}>Story options</h3>
+                  <h3 style={sectionTitleStyle}>GM story options</h3>
                   <label style={checkRowStyle}><input type="checkbox" checked={markChapterPlayed} onChange={event => setMarkChapterPlayed(event.target.checked)} disabled={!storyFocus.chapter || prepNextChapter} /> Mark current chapter played</label>
                   <label style={checkRowStyle}><input type="checkbox" checked={prepNextChapter} onChange={event => { setPrepNextChapter(event.target.checked); if (event.target.checked) setMarkChapterPlayed(true); }} disabled={!storyFocus.nextChapter} /> Mark current chapter played and prep next chapter</label>
                   {!storyFocus.nextChapter && <p style={mutedStyle}>No next chapter is available yet. Add one in Story Arcs to prep it from here.</p>}
@@ -251,9 +252,9 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
             </section>
 
             <section style={optionsStyle}>
-              <label style={checkRowStyle}><input type="checkbox" checked={showAllTime} onChange={event => setShowAllTime(event.target.checked)} /> Show all-time campaign stats in the presentation</label>
-              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} /> Save a roll and story recap note to Session Notes</label>
-              <p style={mutedStyle}>GM/table rolls stay separate. Story wrap-up choices affect the campaign’s current chapter flow.</p>
+              <label style={checkRowStyle}><input type="checkbox" checked={showAllTime} onChange={event => setShowAllTime(event.target.checked)} /> Show all-time campaign dice stats in the player presentation</label>
+              <label style={checkRowStyle}><input type="checkbox" checked={saveRecapNote} onChange={event => setSaveRecapNote(event.target.checked)} /> Save a GM-only roll and story recap note to Session Notes</label>
+              <p style={mutedStyle}>The player display receives dice and roll stats only. Story wrap-up choices only affect GM campaign tracking.</p>
             </section>
           </>
         )}
@@ -261,7 +262,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
         <footer style={actionsStyle}>
           <button type="button" onClick={loadPreview} disabled={loading || sending} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh Preview</button>
           <button type="button" onClick={onClose} disabled={sending} style={secondaryButtonStyle}>Cancel</button>
-          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : 'Send End Session Show'}</button>
+          <button type="button" onClick={sendEndSessionShow} disabled={loading || sending || !displaySummary} style={primaryButtonStyle}><Monitor size={15} /> {sending ? 'Sending…' : 'Send Dice-Only Player Show'}</button>
         </footer>
       </section>
     </div>
@@ -295,6 +296,7 @@ const storyWrapStyle = { display: 'grid', gap: 12, background: rq.card, border: 
 const storyHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' };
 const storyTitleStyle = { margin: 0, color: rq.text, fontSize: 22, fontWeight: 950, lineHeight: 1.1 };
 const storyMetaStyle = { margin: '5px 0 0', color: rq.soft, lineHeight: 1.35, fontSize: 13 };
+const gmOnlyNoticeStyle = { margin: 0, color: rq.text, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `5px solid ${rq.red}`, padding: '8px 10px', fontSize: 12, fontWeight: 850, lineHeight: 1.4 };
 const storyMetricStyle = { minWidth: 132, display: 'grid', gap: 3, justifyItems: 'center', background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, textTransform: 'uppercase', fontSize: 10, fontWeight: 950, color: rq.muted };
 const progressTrackStyle = { height: 12, background: rq.bg, border: `1px solid ${rq.line}`, overflow: 'hidden' };
 const progressBarStyle = (progress) => ({ display: 'block', width: `${Math.max(0, Math.min(100, progress))}%`, height: '100%', background: rq.red, transition: 'width 240ms ease' });
