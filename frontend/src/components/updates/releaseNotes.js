@@ -1,10 +1,10 @@
 export const RELEASE_NOTES = [
   {
-    id: 'combat-party-merge-planned-v1',
+    id: 'combat-party-merge-v1',
     date: 'Latest',
     audience: 'GMs',
-    title: 'Combat party merge is next in progress',
-    summary: 'Combat is being tightened so encounters built from Monsters can be launched with the current party added automatically, avoiding extra setup when a saved encounter only contains creatures or NPCs.',
+    title: 'Saved encounters can launch with the current party',
+    summary: 'Combat now lets saved monster/NPC encounters launch with the current party automatically added. GMs can still start enemies-only when needed, but ordinary saved encounters no longer require rebuilding the player side every time.',
     tags: ['Combat', 'Encounters', 'Monsters'],
   },
   {
