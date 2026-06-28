@@ -72,7 +72,7 @@ const tabGroups = [
 const allTabs = tabGroups.flatMap(group => group.tabs.map(tab => ({ ...tab, groupId: group.id, groupLabel: group.label })));
 const validTabIds = new Set(allTabs.map(tab => tab.id));
 
-function initialTabFromHash() {
+function tabFromHash() {
   if (typeof window === 'undefined') return 'command-centre';
   const raw = window.location.hash.replace('#tab-', '').replace('#', '');
   return validTabIds.has(raw) ? raw : 'command-centre';
@@ -84,10 +84,11 @@ export default function CampaignDashboard() {
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [activeTab, setActiveTab] = useState(initialTabFromHash);
+  const [activeTab, setActiveTab] = useState(tabFromHash);
+  const [workspaceKey, setWorkspaceKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
-  const [expandedGroups, setExpandedGroups] = useState(() => ({ command: true, [allTabs.find(tab => tab.id === initialTabFromHash())?.groupId || 'command']: true }));
+  const [expandedGroups, setExpandedGroups] = useState(() => ({ command: true, [allTabs.find(tab => tab.id === tabFromHash())?.groupId || 'command']: true }));
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
@@ -113,6 +114,19 @@ export default function CampaignDashboard() {
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
 
   useEffect(() => {
+    const onHashChange = () => {
+      const nextTab = tabFromHash();
+      if (!validTabIds.has(nextTab)) return;
+      const tab = allTabs.find(item => item.id === nextTab);
+      setActiveTab(nextTab);
+      setWorkspaceKey(prev => prev + 1);
+      setExpandedGroups(prev => ({ ...prev, [tab?.groupId || 'command']: true }));
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
     if (!activeTabMeta?.groupId) return;
     setExpandedGroups(prev => ({ ...prev, [activeTabMeta.groupId]: true }));
   }, [activeTabMeta?.groupId]);
@@ -123,10 +137,14 @@ export default function CampaignDashboard() {
     if (!validTabIds.has(tabId)) return;
     const tab = allTabs.find(item => item.id === tabId);
     setActiveTab(tabId);
+    setWorkspaceKey(prev => prev + 1);
     setExpandedGroups(prev => ({ ...prev, [tab?.groupId || 'command']: true }));
     setMobileMenuOpen(false);
+    setHoveredTab(null);
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', `${window.location.pathname}#tab-${tabId}`);
+      const nextHash = `#tab-${tabId}`;
+      if (window.location.hash !== nextHash) window.history.pushState(null, '', `${window.location.pathname}${nextHash}`);
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
   }, []);
 
@@ -183,10 +201,13 @@ export default function CampaignDashboard() {
       <button
         key={tab.id}
         type="button"
+        onPointerDown={() => handleTabClick(tab.id)}
         onClick={() => handleTabClick(tab.id)}
         onMouseEnter={() => setHoveredTab(tab.id)}
         onMouseLeave={() => setHoveredTab(null)}
         data-testid={`${tab.id}-tab`}
+        data-active={isActive ? 'true' : 'false'}
+        aria-current={isActive ? 'page' : undefined}
         style={{ ...tabButtonStyle, background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent') }}
       >
         <Icon size={16} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
@@ -203,6 +224,7 @@ export default function CampaignDashboard() {
       <button
         key={`group-${group.id}`}
         type="button"
+        onPointerDown={() => handleGroupClick(group)}
         onClick={() => handleGroupClick(group)}
         data-testid={`group-${group.id}`}
         aria-expanded={isExpanded ? 'true' : 'false'}
@@ -260,7 +282,7 @@ export default function CampaignDashboard() {
   }
 
   return (
-    <div className={`gm-dashboard-shell ${mobileMenuOpen ? 'gm-menu-open' : ''}`} style={dashboardShellStyle}>
+    <div className={`gm-dashboard-shell ${mobileMenuOpen ? 'gm-menu-open' : ''}`} style={dashboardShellStyle} data-active-tab={activeTab}>
       <header className="gm-dashboard-header" style={headerStyle}>
         <div className="gm-header-main" style={headerMainStyle}>
           <div className="gm-header-left" style={headerLeftStyle}>
@@ -268,7 +290,7 @@ export default function CampaignDashboard() {
             <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} color={theme.text.white} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <h1 className="gm-campaign-title" style={campaignTitleStyle}>{campaign.name}</h1>
-              <div className="gm-campaign-meta" style={campaignMetaStyle}><span style={redTagStyle}>GM Command Centre</span><span style={systemTextStyle}>{campaign.system || '5e Campaign'}</span></div>
+              <div className="gm-campaign-meta" style={campaignMetaStyle}><span style={redTagStyle}>{activeTabMeta.label}</span><span style={systemTextStyle}>{campaign.system || '5e Campaign'}</span></div>
             </div>
           </div>
           <div className="gm-header-actions" style={headerActionsStyle}>
@@ -303,7 +325,7 @@ export default function CampaignDashboard() {
               <span style={desktopPillStyle}>GM workspace</span>
             </div>
           )}
-          <section style={workspacePanelStyle}>{renderActiveTab()}</section>
+          <section key={`${activeTab}-${workspaceKey}`} style={workspacePanelStyle} data-testid="gm-active-workspace" data-active-tab={activeTab}>{renderActiveTab()}</section>
         </main>
       </div>
 
@@ -373,7 +395,7 @@ function StatusBox({ label, value }) {
 
 function CommandCard({ title, text, meta, icon: Icon, tab, action, onOpenTab }) {
   return (
-    <button type="button" onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
+    <button type="button" onPointerDown={() => action ? action() : onOpenTab(tab)} onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
       <span style={commandAccentStyle} />
       <span style={commandCardBodyStyle}>
         <span style={commandCardTopStyle}><Icon size={18} /> <strong>{title}</strong></span>
