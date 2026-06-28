@@ -1,5 +1,21 @@
 export const RELEASE_NOTES = [
   {
+    id: 'world-atlas-map-first-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'World section cleaned into World Atlas',
+    summary: 'The GM World section is now moving to a map-first structure: world maps hold location pins, location maps hold local points of interest, and the sidebar no longer separates Locations and Maps as competing tabs.',
+    tags: ['World', 'Maps', 'Navigation'],
+  },
+  {
+    id: 'sidebar-folder-arrows-v1',
+    date: 'Latest',
+    audience: 'Everyone',
+    title: 'GM sidebar folder arrows and colours cleaned up',
+    summary: 'GM sidebar groups now behave more like folders: closed groups point right, open groups point down, and red is reserved for the active/current section instead of open-but-inactive groups.',
+    tags: ['GM Dashboard', 'Navigation'],
+  },
+  {
     id: 'equipped-attuned-reward-handoff-v1',
     date: 'Latest',
     audience: 'GMs and Players',
