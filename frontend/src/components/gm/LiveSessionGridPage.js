@@ -7,6 +7,7 @@ import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
+import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
 import LootGenerator from '@/components/LootGenerator';
 import RandomTables from '@/components/RandomTables';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
@@ -189,16 +190,11 @@ export default function LiveSessionGridPage() {
     if (!generatedName) return;
     setSavingNPC(true);
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/npcs`, {
-        name: generatedName.fullName,
-        race: generatedName.race,
-        occupation: '',
-        description: `A ${generatedName.race} named ${generatedName.fullName}.`,
-        personality: '',
-        notes: `Created from Live Play Mode on ${new Date().toLocaleDateString()}`,
-      });
-      toast.success(`${generatedName.fullName} saved as NPC!`);
-      setSavedNames(prev => [...prev, { ...generatedName, id: response.data.id }]);
+      const npcPayload = generateCombatReadyNpc({ presetId: 'commoner', race: generatedName.race, name: generatedName.fullName, role: 'Civilian' });
+      npcPayload.notes = `${npcPayload.notes} Created from Live Play Mode on ${new Date().toLocaleDateString()}.`;
+      const response = await apiClient.post(`/campaigns/${campaignId}/npcs`, npcPayload);
+      toast.success(`${generatedName.fullName} saved as combat-ready NPC!`);
+      setSavedNames(prev => [...prev, { ...generatedName, id: response.data.id, combat_ready: true }]);
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save NPC');
     } finally {
