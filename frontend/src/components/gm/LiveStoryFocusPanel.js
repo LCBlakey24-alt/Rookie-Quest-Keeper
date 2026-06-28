@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Flag, RefreshCw, ScrollText } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Flag, RefreshCw, RotateCcw, ScrollText, SkipForward } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
@@ -9,6 +9,8 @@ const rq = {
   panel: '#2f2f2f',
   card: '#3a3a3a',
   red: '#d00000',
+  good: '#1f9d66',
+  warn: '#d99222',
   text: '#ffffff',
   soft: 'rgba(255,255,255,0.74)',
   muted: 'rgba(255,255,255,0.58)',
@@ -33,18 +35,21 @@ function checkpoints(chapter) {
 
 function findFocus(arcs) {
   const arc = arcs.find(item => item.status === 'active') || arcs.find(item => item.status !== 'completed') || arcs[0] || null;
-  if (!arc) return { arc: null, chapter: null, points: [], next: null };
+  if (!arc) return { arc: null, chapter: null, chapterIndex: -1, nextChapter: null, points: [], next: null, lastDone: null };
   const chapters = asList(arc.chapters);
   const chapter = chapters.find(item => item.status === 'prepped') || chapters.find(item => item.status === 'planned') || chapters.find(item => item.status !== 'played') || chapters[0] || null;
+  const chapterIndex = chapters.findIndex(item => item.id === chapter?.id);
+  const nextChapter = chapters.slice(Math.max(chapterIndex + 1, 0)).find(item => item.status !== 'played') || null;
   const points = checkpoints(chapter);
   const next = points.find(point => !['reached', 'skipped'].includes(point.status)) || null;
-  return { arc, chapter, points, next };
+  const lastDone = [...points].reverse().find(point => ['reached', 'skipped'].includes(point.status)) || null;
+  return { arc, chapter, chapterIndex, nextChapter, points, next, lastDone };
 }
 
 export default function LiveStoryFocusPanel({ campaignId }) {
   const [arcs, setArcs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState('');
 
   const loadArcs = useCallback(async () => {
     if (!campaignId) return;
@@ -63,21 +68,60 @@ export default function LiveStoryFocusPanel({ campaignId }) {
 
   const focus = useMemo(() => findFocus(arcs), [arcs]);
   const reachedCount = focus.points.filter(point => point.status === 'reached').length;
-  const complete = focus.points.length > 0 && reachedCount === focus.points.length;
+  const skippedCount = focus.points.filter(point => point.status === 'skipped').length;
+  const doneCount = reachedCount + skippedCount;
+  const complete = focus.points.length > 0 && doneCount === focus.points.length;
+  const busy = Boolean(savingAction);
 
-  const markNextReached = async () => {
-    if (!focus.arc || !focus.chapter || !focus.next) return;
-    setSaving(true);
+  const updateArcInState = (updatedArc) => setArcs(prev => prev.map(arc => arc.id === updatedArc.id ? updatedArc : arc));
+
+  const updateCheckpointStatus = async (pointId, status, actionLabel, toastTitle) => {
+    if (!focus.arc || !focus.chapter || !pointId) return;
+    setSavingAction(actionLabel);
     try {
-      const nextPoints = focus.points.map(point => point.id === focus.next.id ? { ...point, status: 'reached' } : point);
+      const nextPoints = focus.points.map(point => point.id === pointId ? { ...point, status } : point);
       const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${focus.arc.id}/chapters/${focus.chapter.id}`, { scenes: nextPoints });
-      setArcs(prev => prev.map(arc => arc.id === focus.arc.id ? response.data : arc));
-      toast.success('Checkpoint marked reached', { description: focus.next.title });
+      updateArcInState(response.data);
+      toast.success(toastTitle, { description: nextPoints.find(point => point.id === pointId)?.title });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update checkpoint');
     } finally {
-      setSaving(false);
+      setSavingAction('');
     }
+  };
+
+  const updateChapterStatuses = async (nextChapters, toastTitle, description = '') => {
+    if (!focus.arc) return;
+    setSavingAction(toastTitle);
+    try {
+      const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${focus.arc.id}`, { chapters: nextChapters });
+      updateArcInState(response.data);
+      toast.success(toastTitle, description ? { description } : undefined);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not update chapter flow');
+    } finally {
+      setSavingAction('');
+    }
+  };
+
+  const markNextReached = () => updateCheckpointStatus(focus.next?.id, 'reached', 'reached', 'Checkpoint marked reached');
+  const skipNextCheckpoint = () => updateCheckpointStatus(focus.next?.id, 'skipped', 'skip', 'Checkpoint skipped');
+  const undoLastCheckpoint = () => updateCheckpointStatus(focus.lastDone?.id, 'upcoming', 'undo', 'Checkpoint moved back to upcoming');
+
+  const markChapterPlayed = () => {
+    if (!focus.arc || !focus.chapter) return;
+    const nextChapters = asList(focus.arc.chapters).map(chapter => chapter.id === focus.chapter.id ? { ...chapter, status: 'played' } : chapter);
+    updateChapterStatuses(nextChapters, 'Chapter marked played', focus.chapter.title);
+  };
+
+  const loadNextChapter = () => {
+    if (!focus.arc || !focus.chapter || !focus.nextChapter) return;
+    const nextChapters = asList(focus.arc.chapters).map(chapter => {
+      if (chapter.id === focus.chapter.id) return { ...chapter, status: 'played' };
+      if (chapter.id === focus.nextChapter.id) return { ...chapter, status: 'prepped' };
+      return chapter;
+    });
+    updateChapterStatuses(nextChapters, 'Next chapter loaded', focus.nextChapter.title);
   };
 
   if (loading) {
@@ -104,12 +148,16 @@ export default function LiveStoryFocusPanel({ campaignId }) {
       <div style={{ minWidth: 0, flex: 1 }}>
         <p style={eyebrowStyle}>Story Focus</p>
         <strong style={titleStyle}>{focus.arc.title}</strong>
-        <p style={textStyle}><ScrollText size={13} /> {focus.chapter.title} · {reachedCount}/{focus.points.length} checkpoints reached</p>
-        {focus.next ? <p style={nextStyle}>Next: {focus.next.title}</p> : <p style={nextStyle}>{complete ? 'All checkpoints reached. The party is officially ahead of the rails.' : 'No checkpoint added yet.'}</p>}
+        <p style={textStyle}><ScrollText size={13} /> {focus.chapter.title} · {reachedCount}/{focus.points.length} reached · {skippedCount} skipped</p>
+        {focus.next ? <p style={nextStyle}>Next: {focus.next.title}</p> : <p style={nextStyle}>{complete ? 'All checkpoints reached or skipped. The party is officially ahead of the rails.' : 'No checkpoint added yet.'}</p>}
       </div>
       <div style={actionStyle}>
-        <button type="button" onClick={loadArcs} disabled={saving} style={secondaryButtonStyle}><RefreshCw size={14} /> Refresh</button>
-        <button type="button" onClick={markNextReached} disabled={saving || !focus.next} style={primaryButtonStyle}><Check size={14} /> {saving ? 'Saving…' : 'Mark Reached'}</button>
+        <button type="button" onClick={loadArcs} disabled={busy} style={secondaryButtonStyle}><RefreshCw size={14} /> Refresh</button>
+        <button type="button" onClick={undoLastCheckpoint} disabled={busy || !focus.lastDone} style={secondaryButtonStyle}><RotateCcw size={14} /> Undo</button>
+        <button type="button" onClick={skipNextCheckpoint} disabled={busy || !focus.next} style={secondaryButtonStyle}><SkipForward size={14} /> Skip</button>
+        <button type="button" onClick={markNextReached} disabled={busy || !focus.next} style={primaryButtonStyle}><Check size={14} /> {savingAction === 'reached' ? 'Saving…' : 'Reached'}</button>
+        <button type="button" onClick={markChapterPlayed} disabled={busy} style={secondaryButtonStyle}><CheckCircle2 size={14} /> Played</button>
+        <button type="button" onClick={loadNextChapter} disabled={busy || !focus.nextChapter} style={primaryButtonStyle}><ArrowRight size={14} /> Next Chapter</button>
       </div>
     </section>
   );
