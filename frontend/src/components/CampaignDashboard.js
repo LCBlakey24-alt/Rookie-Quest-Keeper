@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { AlertTriangle, ArrowLeft, Backpack, Book, CalendarDays, ChevronDown, ChevronRight, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, MapPin, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
@@ -27,7 +27,6 @@ import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
-
 const theme = {
   bg: { black: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
   accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', hover: '#ff3b3b' },
@@ -64,37 +63,36 @@ const tabGroups = [
   { id: 'library', label: 'Library', icon: Backpack, tabs: [
     { id: 'uploads', icon: Upload, label: 'Uploads' },
     { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
-    { id: 'world', icon: Globe, label: 'World Builder' },
+    { id: 'world-builder', icon: Globe, label: 'World Builder' },
     { id: 'tools', icon: ScrollText, label: 'Optional Tools' },
     { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
   ] },
 ];
 
-function CampaignDashboard() {
+const allTabs = tabGroups.flatMap(group => group.tabs.map(tab => ({ ...tab, groupId: group.id, groupLabel: group.label })));
+const validTabIds = new Set(allTabs.map(tab => tab.id));
+
+function initialTabFromHash() {
+  if (typeof window === 'undefined') return 'command-centre';
+  const raw = window.location.hash.replace('#tab-', '').replace('#', '');
+  return validTabIds.has(raw) ? raw : 'command-centre';
+}
+
+export default function CampaignDashboard() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [activeTab, setActiveTab] = useState('command-centre');
+  const [activeTab, setActiveTab] = useState(initialTabFromHash);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
-  const [expandedGroups, setExpandedGroups] = useState({ command: true });
+  const [expandedGroups, setExpandedGroups] = useState(() => ({ command: true, [allTabs.find(tab => tab.id === initialTabFromHash())?.groupId || 'command']: true }));
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
-  const activeTabMeta = useMemo(() => {
-    for (const group of tabGroups) {
-      const tab = group.tabs.find(item => item.id === activeTab);
-      if (tab) return { group, tab };
-    }
-    return null;
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (!activeTabMeta?.group?.id) return;
-    setExpandedGroups(prev => ({ ...prev, [activeTabMeta.group.id]: true }));
-  }, [activeTabMeta?.group?.id]);
+  const activeTabMeta = useMemo(() => allTabs.find(tab => tab.id === activeTab) || allTabs[0], [activeTab]);
+  const activeGroup = useMemo(() => tabGroups.find(group => group.id === activeTabMeta?.groupId) || tabGroups[0], [activeTabMeta?.groupId]);
 
   const fetchCampaign = useCallback(async () => {
     setLoading(true);
@@ -114,9 +112,29 @@ function CampaignDashboard() {
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
 
+  useEffect(() => {
+    if (!activeTabMeta?.groupId) return;
+    setExpandedGroups(prev => ({ ...prev, [activeTabMeta.groupId]: true }));
+  }, [activeTabMeta?.groupId]);
+
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
-  const handleTabClick = (tabId) => { setActiveTab(tabId); setMobileMenuOpen(false); };
-  const toggleGroup = (groupId) => setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+
+  const handleTabClick = useCallback((tabId) => {
+    if (!validTabIds.has(tabId)) return;
+    const tab = allTabs.find(item => item.id === tabId);
+    setActiveTab(tabId);
+    setExpandedGroups(prev => ({ ...prev, [tab?.groupId || 'command']: true }));
+    setMobileMenuOpen(false);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `${window.location.pathname}#tab-${tabId}`);
+    }
+  }, []);
+
+  const handleGroupClick = (group) => {
+    const firstTabId = group.tabs[0]?.id;
+    setExpandedGroups(prev => ({ ...prev, [group.id]: true }));
+    if (firstTabId) handleTabClick(firstTabId);
+  };
 
   const fetchInviteCode = async () => {
     try {
@@ -157,26 +175,21 @@ function CampaignDashboard() {
     }
   };
 
-  const renderTabButton = (tab, isNested = false) => {
+  const renderTabButton = (tab) => {
     const isActive = activeTab === tab.id;
     const isHovered = hoveredTab === tab.id && !isActive;
     const Icon = tab.icon;
     return (
       <button
         key={tab.id}
+        type="button"
         onClick={() => handleTabClick(tab.id)}
         onMouseEnter={() => setHoveredTab(tab.id)}
         onMouseLeave={() => setHoveredTab(null)}
         data-testid={`${tab.id}-tab`}
-        style={{
-          ...tabButtonStyle,
-          padding: isNested ? '10px 16px 10px 34px' : '12px 16px',
-          minHeight: isNested ? 40 : 44,
-          fontSize: isNested ? 13 : 14,
-          background: isActive ? theme.accent.primary : (isHovered ? theme.accent.primary : 'transparent'),
-        }}
+        style={{ ...tabButtonStyle, background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent') }}
       >
-        <Icon size={isNested ? 16 : 18} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
+        <Icon size={16} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.9 }} />
         <span style={{ flex: 1 }}>{tab.label}</span>
       </button>
     );
@@ -189,7 +202,8 @@ function CampaignDashboard() {
     return (
       <button
         key={`group-${group.id}`}
-        onClick={() => toggleGroup(group.id)}
+        type="button"
+        onClick={() => handleGroupClick(group)}
         data-testid={`group-${group.id}`}
         aria-expanded={isExpanded ? 'true' : 'false'}
         style={{ ...groupHeaderStyle, background: hasActiveTab ? theme.bg.card : 'transparent', color: hasActiveTab ? theme.text.white : theme.text.muted }}
@@ -199,6 +213,32 @@ function CampaignDashboard() {
         <span>{group.label}</span>
       </button>
     );
+  };
+
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'command-centre': return <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
+      case 'story-arcs': return <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />;
+      case 'setting': return <CampaignSettingTab campaignId={campaignId} />;
+      case 'world-builder': return <WorldBuilderTab campaignId={campaignId} />;
+      case 'maps': return <MapsConsolidatedTab campaignId={campaignId} />;
+      case 'gods': return <GodsTab campaignId={campaignId} />;
+      case 'npcs': return <NPCsConsolidatedTab campaignId={campaignId} />;
+      case 'locations': return <LocationsTab campaignId={campaignId} />;
+      case 'chronicle': return <ChronicleConsolidatedTab campaignId={campaignId} />;
+      case 'combat': return <CombatConsolidatedTab campaignId={campaignId} />;
+      case 'battle-maps': return <MapsTab campaignId={campaignId} />;
+      case 'tools': return <ToolsConsolidatedTab campaignId={campaignId} />;
+      case 'uploads': return <UploadTab theme={theme} campaignId={campaignId} />;
+      case 'playtest-packs': return <PrivatePlaytestPacksTab campaignId={campaignId} />;
+      case 'inventory': return <InventoryConsolidatedTab campaignId={campaignId} />;
+      case 'campaign-rules': return <CampaignRulesTab campaignId={campaignId} />;
+      case 'tonight': return <TonightsSessionTab campaignId={campaignId} onOpenTab={handleTabClick} />;
+      case 'handouts': return <GMHandoutsTab campaignId={campaignId} />;
+      case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>;
+      case 'ingame-notes': return <InGameNotesTab campaignId={campaignId} />;
+      default: return <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
+    }
   };
 
   if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
@@ -224,7 +264,7 @@ function CampaignDashboard() {
       <header className="gm-dashboard-header" style={headerStyle}>
         <div className="gm-header-main" style={headerMainStyle}>
           <div className="gm-header-left" style={headerLeftStyle}>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={mobileMenuButtonStyle}>{mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}</button>
+            <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={mobileMenuButtonStyle}>{mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}</button>
             <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} color={theme.text.white} /></Button>
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <h1 className="gm-campaign-title" style={campaignTitleStyle}>{campaign.name}</h1>
@@ -248,7 +288,7 @@ function CampaignDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {tabGroups.map(group => {
               const isExpanded = Boolean(expandedGroups[group.id]);
-              return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab, true))}</div>;
+              return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab))}</div>;
             })}
           </div>
         </aside>
@@ -257,34 +297,13 @@ function CampaignDashboard() {
           {activeTabMeta && activeTab !== 'command-centre' && (
             <div className="desktop-context" style={desktopContextStyle}>
               <div style={{ minWidth: 0 }}>
-                <p style={desktopEyebrowStyle}>{activeTabMeta.group.label}</p>
-                <h2 style={desktopTitleStyle}>{activeTabMeta.tab.label}</h2>
+                <p style={desktopEyebrowStyle}>{activeGroup.label}</p>
+                <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
               </div>
               <span style={desktopPillStyle}>GM workspace</span>
             </div>
           )}
-          <section style={workspacePanelStyle}>
-            {activeTab === 'command-centre' && <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />}
-            {activeTab === 'story-arcs' && <StoryArcTracker campaignId={campaignId} />}
-            {activeTab === 'setting' && <CampaignSettingTab campaignId={campaignId} />}
-            {activeTab === 'world' && <WorldBuilderTab campaignId={campaignId} />}
-            {activeTab === 'maps' && <MapsConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'gods' && <GodsTab campaignId={campaignId} />}
-            {activeTab === 'npcs' && <NPCsConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'locations' && <LocationsTab campaignId={campaignId} />}
-            {activeTab === 'chronicle' && <ChronicleConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'combat' && <CombatConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'battle-maps' && <MapsTab campaignId={campaignId} />}
-            {activeTab === 'tools' && <ToolsConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'uploads' && <UploadTab theme={theme} campaignId={campaignId} />}
-            {activeTab === 'playtest-packs' && <PrivatePlaytestPacksTab campaignId={campaignId} />}
-            {activeTab === 'inventory' && <InventoryConsolidatedTab campaignId={campaignId} />}
-            {activeTab === 'campaign-rules' && <CampaignRulesTab campaignId={campaignId} />}
-            {activeTab === 'tonight' && <TonightsSessionTab campaignId={campaignId} onOpenTab={handleTabClick} />}
-            {activeTab === 'handouts' && <GMHandoutsTab campaignId={campaignId} />}
-            {activeTab === 'players' && <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>}
-            {activeTab === 'ingame-notes' && <InGameNotesTab campaignId={campaignId} />}
-          </section>
+          <section style={workspacePanelStyle}>{renderActiveTab()}</section>
         </main>
       </div>
 
@@ -295,18 +314,16 @@ function CampaignDashboard() {
 
 function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLive, onFetchInvite, onRotateInvite, onCopyInvite }) {
   const commandCards = [
-    { title: 'Story Arcs', text: 'Build the campaign spine: arcs, chapters/sessions, scenes, and combat beats.', meta: 'Plan', icon: ScrollText, tab: 'story-arcs' },
+    { title: 'Story Arcs', text: 'Build the campaign spine: arcs, chapters, checkpoints, and combat beats.', meta: 'Plan', icon: ScrollText, tab: 'story-arcs' },
     { title: "Tonight's Session", text: 'Open the live prep checklist for the next table session.', meta: 'Prep', icon: CalendarDays, tab: 'tonight' },
     { title: 'Live Play Mode', text: 'Launch the focused table screen with combat, notes, handouts, and display controls.', meta: 'Run', icon: Monitor, action: onOpenLive },
+    { title: 'Inventory & Rewards', text: 'Track party loot and grant rewards directly to character sheets.', meta: 'Rewards', icon: Backpack, tab: 'inventory' },
+    { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
     { title: 'Session Notes', text: 'Capture what happened at the table and sync useful changes into the campaign.', meta: 'Record', icon: FileText, tab: 'ingame-notes' },
     { title: 'Secrets & Handouts', text: 'Prepare lore, clues, letters, and reveal-only-when-ready player information.', meta: 'Reveal', icon: Mail, tab: 'handouts' },
     { title: 'Players & Invites', text: 'Manage players, joined characters, and the campaign join code.', meta: 'Access', icon: Users, tab: 'players' },
-    { title: 'World Overview', text: 'Store the campaign premise, tone, big truths, and public world context.', meta: 'World', icon: Globe, tab: 'setting' },
-    { title: 'Locations', text: 'Cities, regions, dungeons, travel points, bases, and important places.', meta: 'Places', icon: MapPin, tab: 'locations' },
     { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'People', icon: UserCircle, tab: 'npcs' },
-    { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
     { title: 'Chronicle', text: 'Turn played sessions into campaign history, consequences, and timeline entries.', meta: 'History', icon: Clock, tab: 'chronicle' },
-    { title: 'Uploads', text: 'Store maps, reference files, images, notes, and imported campaign material.', meta: 'Library', icon: Upload, tab: 'uploads' },
   ];
 
   return (
@@ -394,7 +411,7 @@ const sidebarCloseButtonStyle = { width: 40, height: 40, border: 0, background: 
 const sidebarTitleStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' };
 const mobileOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 180, display: 'none' };
 const groupHeaderStyle = { padding: '11px 16px', border: 'none', borderTop: `1px solid ${theme.border}`, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack, textAlign: 'left' };
-const tabButtonStyle = { position: 'relative', border: 'none', color: theme.text.white, fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack };
+const tabButtonStyle = { position: 'relative', border: 'none', color: theme.text.white, fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack, padding: '10px 16px 10px 34px', minHeight: 42, fontSize: 13 };
 const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const errorPageStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: fontStack };
 const errorCardStyle = { maxWidth: 520, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center' };
@@ -426,44 +443,18 @@ const mobileCss = `
   @media (max-width: 640px) { .desktop-only { display: none !important; } }
   @media (max-width: 1024px) {
     .desktop-context { display: none !important; }
-    .gm-dashboard-header {
-      padding: 6px 8px !important;
-      min-height: 56px !important;
-      position: sticky !important;
-      z-index: 120 !important;
-    }
+    .gm-dashboard-header { padding: 6px 8px !important; min-height: 56px !important; position: sticky !important; z-index: 120 !important; }
     .gm-dashboard-shell.gm-menu-open .gm-dashboard-header { z-index: 80 !important; }
     .gm-header-main { flex-wrap: nowrap !important; gap: 8px !important; }
     .gm-header-actions { display: none !important; }
     .gm-campaign-meta { display: none !important; }
-    .gm-campaign-title {
-      max-width: calc(100vw - 126px) !important;
-      margin: 0 !important;
-      font-size: 20px !important;
-      line-height: 1.05 !important;
-    }
+    .gm-campaign-title { max-width: calc(100vw - 126px) !important; margin: 0 !important; font-size: 20px !important; line-height: 1.05 !important; }
     .mobile-menu-toggle { display: grid !important; }
-    .gm-sidebar {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      bottom: 0 !important;
-      z-index: 240 !important;
-      transform: translateX(-100%);
-      width: min(74vw, 292px) !important;
-      min-width: min(74vw, 292px) !important;
-      max-width: 292px !important;
-      box-shadow: none !important;
-      padding-bottom: env(safe-area-inset-bottom, 12px) !important;
-    }
+    .gm-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; z-index: 240 !important; transform: translateX(-100%); width: min(78vw, 310px) !important; min-width: min(78vw, 310px) !important; max-width: 310px !important; box-shadow: none !important; padding-bottom: env(safe-area-inset-bottom, 12px) !important; }
     .gm-sidebar.mobile-open { transform: translateX(0); }
     .gm-sidebar-mobile-top { display: flex !important; min-height: 48px !important; }
     .gm-sidebar-title { display: none !important; }
     .mobile-overlay { display: block !important; }
   }
-  @media (hover: none) and (pointer: coarse) {
-    button, .clickable-box { min-height: 44px !important; min-width: 44px !important; }
-  }
+  @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }
 `;
-
-export default CampaignDashboard;
