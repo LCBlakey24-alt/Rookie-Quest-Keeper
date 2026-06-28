@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'world-map-upload-fix-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'World map upload fixed and restyled',
+    summary: 'The World Map upload flow has been rebuilt with the correct charcoal/red/white theme, a screen-safe upload modal, image preview, and client-side resizing so larger campaign maps are more reliable to save.',
+    tags: ['Maps', 'World Atlas', 'Upload'],
+  },
+  {
     id: 'world-atlas-map-first-v1',
     date: 'Latest',
     audience: 'GMs',
