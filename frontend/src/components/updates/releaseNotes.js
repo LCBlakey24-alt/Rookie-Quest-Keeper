@@ -1,5 +1,21 @@
 export const RELEASE_NOTES = [
   {
+    id: 'combat-ready-npcs-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Quick NPCs now generate combat stat blocks',
+    summary: 'The quick NPC generator now creates usable combat NPCs with ability scores, HP, AC, proficiency, skills, saving throws, attacks, abilities, spells where relevant, copyable stat blocks, and a save-to-campaign flow.',
+    tags: ['NPCs', 'Combat', 'ROOK'],
+  },
+  {
+    id: 'combat-ready-bestiary-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Monster bestiary upgraded for combat use',
+    summary: 'The Monsters tab now combines the built-in SRD-style monster list with custom creatures, fills missing combat fields where needed, and saves selected creatures as combat encounter seeds.',
+    tags: ['Monsters', 'Combat', 'Encounters'],
+  },
+  {
     id: 'monsters-encounter-builder-v1',
     date: 'Latest',
     audience: 'GMs',
