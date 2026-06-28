@@ -197,7 +197,6 @@ export default function CampaignDashboard() {
       <button
         key={tab.id}
         type="button"
-        onPointerDown={() => handleTabClick(tab.id)}
         onClick={() => handleTabClick(tab.id)}
         onMouseEnter={() => setHoveredTab(tab.id)}
         onMouseLeave={() => setHoveredTab(null)}
@@ -221,7 +220,6 @@ export default function CampaignDashboard() {
       <button
         key={`group-${group.id}`}
         type="button"
-        onPointerDown={() => handleGroupClick(group)}
         onClick={() => handleGroupClick(group)}
         data-testid={`group-${group.id}`}
         aria-expanded={isExpanded ? 'true' : 'false'}
@@ -392,7 +390,7 @@ function StatusBox({ label, value }) {
 
 function CommandCard({ title, text, meta, icon: Icon, tab, action, onOpenTab }) {
   return (
-    <button type="button" onPointerDown={() => action ? action() : onOpenTab(tab)} onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
+    <button type="button" onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
       <span style={commandAccentStyle} />
       <span style={commandCardBodyStyle}>
         <span style={commandCardTopStyle}><Icon size={18} /> <strong>{title}</strong></span>
