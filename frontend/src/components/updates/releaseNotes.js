@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'tonight-checkpoints-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Tonight’s Session story checkpoint panel',
+    summary: 'Tonight’s Session now shows the active arc, current chapter, next checkpoint, chapter progress, and a short checkpoint preview before the GM opens Live Play.',
+    tags: ['Tonight’s Session', 'Story Arcs'],
+  },
+  {
     id: 'tutorials-v1',
     date: 'Latest',
     audience: 'Everyone',
