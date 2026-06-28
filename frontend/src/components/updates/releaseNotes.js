@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'attuned-reward-handoff-v1',
+    date: 'Latest',
+    audience: 'GMs and Players',
+    title: 'Reward handoff with auto-attunement',
+    summary: 'GMs can now choose who receives a party item and, for attunement-required rewards, tick Auto-attune on grant so the item lands on the character sheet already marked as attuned.',
+    tags: ['Inventory', 'Rewards', 'Character Sheet'],
+  },
+  {
     id: 'inventory-rewards-rebuild-v1',
     date: 'Latest',
     audience: 'GMs',
