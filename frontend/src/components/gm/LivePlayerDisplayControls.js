@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, Image as ImageIcon, Monitor, RefreshCw, Send, Skull, Users, X } from 'lucide-react';
+import { Eye, Image as ImageIcon, Monitor, Projector, RefreshCw, Send, Skull, Table2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { createDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
@@ -17,6 +17,11 @@ const theme = {
   soft: 'rgba(255,255,255,0.74)',
   muted: 'rgba(255,255,255,0.62)',
 };
+
+const DISPLAY_TARGETS = [
+  { id: 'standing-tv', label: 'Standing TV', icon: Projector, help: 'Big cinematic reveals for a room screen or upright TV.' },
+  { id: 'virtual-table', label: 'Virtual Table', icon: Table2, help: 'Flatter map-first view for a table display or VTT-style screen.' },
+];
 
 function imageFrom(item) {
   return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || '';
@@ -38,6 +43,14 @@ function isPlayerCombatant(item) {
   return String(item?.type || item?.kind || '').toLowerCase() === 'player' || item?.is_player === true;
 }
 
+function targetStorageKey(campaignId) {
+  return `rqk.playerDisplay.target.${campaignId}`;
+}
+
+function loadTarget(campaignId) {
+  try { return localStorage.getItem(targetStorageKey(campaignId)) || 'standing-tv'; } catch { return 'standing-tv'; }
+}
+
 export default function LivePlayerDisplayControls({ campaignId, campaignName = 'Campaign' }) {
   const [open, setOpen] = useState(false);
   const [maps, setMaps] = useState([]);
@@ -49,6 +62,11 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [visibleCombatantIds, setVisibleCombatantIds] = useState([]);
+  const [displayTarget, setDisplayTarget] = useState(() => loadTarget(campaignId));
+
+  useEffect(() => {
+    try { localStorage.setItem(targetStorageKey(campaignId), displayTarget); } catch { /* ignore */ }
+  }, [campaignId, displayTarget]);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -70,14 +88,25 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
   const playerFacingCombatants = useMemo(() => combatants.filter(item => !isPlayerCombatant(item)), [combatants]);
   const visibleCombatants = useMemo(() => playerFacingCombatants.filter((item, index) => visibleCombatantIds.includes(combatantId(item, index))), [playerFacingCombatants, visibleCombatantIds]);
+  const currentTarget = DISPLAY_TARGETS.find(target => target.id === displayTarget) || DISPLAY_TARGETS[0];
 
   const openPlayerDisplay = () => {
     window.open(displayUrl, '_blank', 'noopener,noreferrer');
   };
 
   const publish = (mode, payload = {}) => {
-    publishDisplayState(campaignId, createDisplayState(mode, payload));
-    toast.success('Sent to player display');
+    publishDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: displayTarget }));
+    toast.success('Sent to player display', { description: currentTarget.label });
+  };
+
+  const sendDisplayTarget = (targetId = displayTarget) => {
+    const target = DISPLAY_TARGETS.find(item => item.id === targetId) || DISPLAY_TARGETS[0];
+    publishDisplayState(campaignId, createDisplayState('blank', {
+      title: target.label,
+      subtitle: target.help,
+      display_target: target.id,
+    }));
+    toast.success(`Display set for ${target.label}`);
   };
 
   const clearDisplay = () => publish('blank', { title: 'Waiting for the GM', subtitle: 'The next reveal will appear here.' });
@@ -161,9 +190,9 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <div style={iconStyle}><Monitor size={18} /></div>
           <div style={{ minWidth: 0 }}>
-            <p style={eyebrowStyle}>Extended TV display</p>
+            <p style={eyebrowStyle}>Extended player display</p>
             <h2 style={titleStyle}>Player Display Remote</h2>
-            <p style={subtitleStyle}>Open a second tab, drag it to the TV, then choose what the players can see.</p>
+            <p style={subtitleStyle}>Open a second tab, choose the screen type, then send only what players should see.</p>
           </div>
         </div>
         <div style={actionsStyle}>
@@ -174,6 +203,26 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
       {open && (
         <div style={bodyStyle}>
+          <section style={targetPanelStyle} data-testid="player-display-target-selector">
+            <div>
+              <strong style={targetPanelTitleStyle}>Display target</strong>
+              <p style={hintStyle}>Choose how the extended tab will be used. This changes the player-facing layout.</p>
+            </div>
+            <div style={targetGridStyle}>
+              {DISPLAY_TARGETS.map(target => {
+                const Icon = target.icon;
+                const active = displayTarget === target.id;
+                return (
+                  <button key={target.id} type="button" onClick={() => { setDisplayTarget(target.id); sendDisplayTarget(target.id); }} style={targetButtonStyle(active)}>
+                    <Icon size={17} />
+                    <strong>{target.label}</strong>
+                    <span>{target.help}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           <div style={formGridStyle}>
             <label style={fieldStyle}>
               <span style={labelStyle}>Display title</span>
@@ -230,13 +279,13 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
             <section style={npcBoxStyle}>
               <div style={npcHeaderStyle}>
-                <strong>Visible combatants for TV</strong>
+                <strong>Visible combatants for display</strong>
                 <span style={combatToolbarStyle}>
                   <button type="button" onClick={selectAllCombatants} style={miniButtonStyle}>All</button>
                   <button type="button" onClick={clearCombatants} style={miniButtonStyle}>None</button>
                 </span>
               </div>
-              <p style={hintStyle}>Only tick enemies or creatures the players are allowed to see. Player characters, hidden enemies, HP, AC, and stat details stay off the TV view.</p>
+              <p style={hintStyle}>Only tick enemies or creatures the players are allowed to see. Player characters, hidden enemies, HP, AC, and private GM details stay off the display.</p>
               <div style={npcGridStyle}>
                 {playerFacingCombatants.map((combatant, index) => {
                   const id = combatantId(combatant, index);
@@ -264,21 +313,25 @@ const iconStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center'
 const eyebrowStyle = { margin: 0, color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: '2px 0 3px', color: theme.text, fontSize: 17, fontWeight: 950 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
-const actionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap' };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', gap: 6, alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: 12, cursor: 'pointer', fontFamily: fontStack };
-const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.panel, color: theme.text, padding: '0 10px', display: 'inline-flex', gap: 6, alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, cursor: 'pointer', fontFamily: fontStack };
-const bodyStyle = { display: 'grid', gap: 10, padding: 10, borderTop: `1px solid ${theme.line}` };
-const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 };
+const actionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
+const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const bodyStyle = { display: 'grid', gap: 10, padding: '0 10px 10px' };
+const targetPanelStyle = { display: 'grid', gridTemplateColumns: 'minmax(180px, 0.55fr) minmax(260px, 1fr)', gap: 10, alignItems: 'stretch', background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
+const targetPanelTitleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 950, marginBottom: 4 };
+const targetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 };
+const targetButtonStyle = (active) => ({ display: 'grid', gridTemplateColumns: '22px minmax(0, 1fr)', gap: '3px 8px', alignItems: 'center', textAlign: 'left', background: active ? theme.red : theme.bg, color: theme.text, border: active ? `1px solid ${theme.red}` : `1px solid ${theme.line}`, padding: 9, cursor: 'pointer', fontFamily: fontStack, fontWeight: 900 });
+const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
-const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' };
-const inputStyle = { width: '100%', minHeight: 36, background: theme.bg, border: `1px solid ${theme.lineStrong}`, color: theme.text, padding: '0 9px', fontFamily: fontStack, outline: 'none', colorScheme: 'dark' };
+const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
+const inputStyle = { minHeight: 34, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 8px', outline: 'none', fontFamily: fontStack };
 const sendRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap' };
-const controlGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 };
-const npcBoxStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 8 };
-const npcHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', color: theme.text, fontSize: 12 };
-const miniButtonStyle = { minHeight: 28, border: 0, background: theme.bg, color: theme.text, display: 'inline-flex', gap: 5, alignItems: 'center', padding: '0 8px', fontSize: 11, fontFamily: fontStack, cursor: 'pointer' };
-const combatToolbarStyle = { display: 'inline-flex', gap: 6, alignItems: 'center' };
-const hintStyle = { margin: 0, color: theme.muted, fontSize: 11, lineHeight: 1.35 };
-const npcGridStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 130, overflowY: 'auto' };
-const npcPillStyle = (checked) => ({ display: 'inline-flex', gap: 6, alignItems: 'center', padding: '6px 8px', background: checked ? 'rgba(208,0,0,0.28)' : theme.bg, border: `1px solid ${checked ? 'rgba(208,0,0,0.65)' : theme.lineStrong}`, color: theme.text, fontSize: 12, cursor: 'pointer' });
+const controlGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 };
+const npcBoxStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
+const npcHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 8 };
+const miniButtonStyle = { minHeight: 28, border: 0, background: theme.card, color: theme.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const npcGridStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 170, overflowY: 'auto' };
+const npcPillStyle = (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, background: active ? theme.red : theme.bg, color: theme.text, border: `1px solid ${active ? theme.red : theme.line}`, padding: '6px 8px', fontSize: 12, fontWeight: 850, cursor: 'pointer' });
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12 };
+const hintStyle = { margin: '0 0 8px', color: theme.soft, fontSize: 12, lineHeight: 1.4 };
+const combatToolbarStyle = { display: 'inline-flex', gap: 5 };
