@@ -10,6 +10,8 @@ const rq = {
   bg: '#242424',
   panel: '#2f2f2f',
   card: '#3a3a3a',
+  button: '#1f1f1f',
+  buttonHover: '#2a2a2a',
   red: '#d00000',
   text: '#ffffff',
   soft: 'rgba(255,255,255,0.76)',
@@ -59,12 +61,12 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
   };
 
   return (
-    <div style={wrapStyle} data-testid="global-updates-panel">
+    <div className="rqk-home-updates" style={wrapStyle} data-testid="global-updates-panel">
       <button type="button" onClick={() => setOpen(prev => !prev)} style={launcherStyle(hasUnread)} aria-label="Open updates panel">
-        <Bell size={15} /> Updates {hasUnread && <span style={unreadDotStyle} />}
+        <Bell size={15} /> <span>Updates</span> {hasUnread && <i style={unreadDotStyle} aria-hidden="true" />}
       </button>
       {open && (
-        <section style={panelStyle} role="dialog" aria-modal="false" aria-labelledby="updates-title">
+        <section className="rqk-home-updates-panel" style={panelStyle} role="dialog" aria-modal="false" aria-labelledby="updates-title">
           <header style={headerStyle}>
             <div>
               <p style={eyebrowStyle}>What’s New</p>
@@ -115,14 +117,14 @@ function UpdateNote({ note, planned = false }) {
 }
 
 const wrapStyle = { position: 'fixed', right: 14, bottom: 14, zIndex: 4400, fontFamily: fontStack };
-const launcherStyle = (unread) => ({ minHeight: 36, border: 0, background: unread ? rq.red : rq.card, color: rq.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack, position: 'relative' });
+const launcherStyle = (unread) => ({ minHeight: 42, border: 0, borderLeft: `4px solid ${unread ? rq.red : rq.line}`, background: rq.button, color: rq.text, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack, position: 'relative', boxShadow: 'none' });
 const unreadDotStyle = { position: 'absolute', top: -4, right: -4, width: 11, height: 11, background: '#ffffff', border: `2px solid ${rq.red}` };
-const panelStyle = { position: 'absolute', right: 0, bottom: 44, width: 'min(440px, calc(100vw - 28px))', maxHeight: 'min(680px, calc(100dvh - 76px))', overflowY: 'auto', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, boxShadow: '0 24px 80px rgba(0,0,0,0.55)' };
+const panelStyle = { position: 'absolute', right: 0, bottom: 52, width: 'min(520px, calc(100vw - 28px))', maxHeight: 'min(720px, calc(100dvh - 84px))', overflowY: 'auto', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, boxShadow: 'none' };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', padding: 14, borderBottom: `1px solid ${rq.line}` };
 const eyebrowStyle = { margin: '0 0 4px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.12em' };
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 34, lineHeight: 0.95 };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 13, lineHeight: 1.4 };
-const closeButtonStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.card, color: rq.text, border: 0, cursor: 'pointer' };
+const closeButtonStyle = { width: 38, height: 38, minWidth: 38, display: 'grid', placeItems: 'center', background: rq.button, color: rq.text, border: 0, cursor: 'pointer' };
 const sectionLabelStyle = { padding: '10px 12px 0', color: rq.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.12em' };
 const listStyle = { display: 'grid', gap: 8, padding: 12 };
 const noteStyle = (planned) => ({ display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: planned ? `5px solid ${rq.red}` : `1px solid ${rq.line}`, padding: 11 });
@@ -133,6 +135,6 @@ const noteSummaryStyle = { margin: 0, color: rq.soft, lineHeight: 1.42, fontSize
 const tagRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' };
 const dateStyle = { color: rq.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 2 };
 const tagStyle = { color: rq.text, background: 'rgba(208,0,0,0.18)', padding: '3px 6px', fontSize: 10, fontWeight: 900 };
-const footerStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, padding: 12, borderTop: `1px solid ${rq.line}` };
-const primaryButtonStyle = { minHeight: 36, border: 0, background: rq.red, color: rq.text, padding: '0 11px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const secondaryButtonStyle = { minHeight: 36, border: 0, background: rq.card, color: rq.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const footerStyle = { position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'flex-end', gap: 8, padding: 12, borderTop: `1px solid ${rq.line}`, background: rq.panel };
+const primaryButtonStyle = { minHeight: 40, border: 0, background: rq.red, color: rq.text, padding: '0 12px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 40, border: 0, background: rq.button, color: rq.text, padding: '0 12px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
