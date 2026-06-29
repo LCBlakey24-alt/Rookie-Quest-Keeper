@@ -32,6 +32,7 @@ import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
@@ -186,9 +187,11 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Suspense fallback={<RouteLoadingScreen />}>
-          <AppRoutes />
-        </Suspense>
+        <AppErrorBoundary>
+          <Suspense fallback={<RouteLoadingScreen />}>
+            <AppRoutes />
+          </Suspense>
+        </AppErrorBoundary>
       </BrowserRouter>
     </ThemeProvider>
   );
