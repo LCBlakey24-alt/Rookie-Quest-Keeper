@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'player-sheet-reward-sync-v1',
+    date: 'Latest',
+    audience: 'GMs and Players',
+    title: 'Granted equipment now lands ready on player sheets',
+    summary: 'When a GM grants an item as equipped or auto-attuned, the player sheet now recognises those flags, places ready gear into the correct equipped slot, recalculates armour class where needed, and shows attunement status clearly.',
+    tags: ['Inventory', 'Rewards', 'Character Sheet'],
+  },
+  {
     id: 'gm-encounters-combat-control-v1',
     date: 'Latest',
     audience: 'GMs',
