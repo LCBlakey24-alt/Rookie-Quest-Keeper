@@ -1,0 +1,167 @@
+.progression-delta-grid,
+.progression-rook-form {
+  display: grid;
+  gap: 14px;
+}
+
+.progression-delta-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 1180px);
+}
+
+.progression-delta-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(8, 8, 22, 0.28);
+  border: 1px solid rgba(134, 134, 172, 0.14);
+}
+
+.progression-delta-grid span,
+.progression-rook-tester-header span,
+.progression-rook-form span,
+.progression-save-pill {
+  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progression-delta-grid strong {
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.progression-delta-grid ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.progression-delta-grid li {
+  color: var(--rq-text-secondary, #e6d7bb);
+}
+
+.progression-rook-tester {
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid rgba(216, 173, 79, 0.2);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(216, 173, 79, 0.12), transparent 32%),
+    rgba(8, 8, 22, 0.24);
+}
+
+.progression-rook-tester-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.progression-rook-tester-header span,
+.progression-save-pill,
+.progression-rook-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.progression-rook-tester-header h2 {
+  margin: 8px 0 0;
+}
+
+.progression-rook-tester-header p {
+  margin: 5px 0 0;
+}
+
+.progression-save-pill {
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.24);
+  padding: 7px 10px;
+  color: #a7f3d0;
+  background: rgba(34, 197, 94, 0.08);
+  white-space: nowrap;
+}
+
+.progression-rook-form {
+  grid-template-columns: minmax(180px, 0.5fr) minmax(0, 1fr);
+}
+
+.progression-rook-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.progression-rook-field--wide {
+  grid-column: 1 / -1;
+}
+
+.progression-rook-form input,
+.progression-rook-form textarea {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(216, 173, 79, 0.32);
+  background: rgba(8, 8, 22, 0.46);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-weight: 850;
+}
+
+.progression-rook-form input {
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.progression-rook-form textarea {
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.progression-rook-form input:focus,
+.progression-rook-form textarea:focus {
+  outline: 2px solid rgba(242, 209, 138, 0.35);
+  outline-offset: 2px;
+}
+
+.progression-rook-reset {
+  width: max-content;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 173, 79, 0.32);
+  padding: 0 14px;
+  background: rgba(216, 173, 79, 0.10);
+  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.progression-rook-reset:hover {
+  border-color: rgba(242, 209, 138, 0.78);
+  background: rgba(216, 173, 79, 0.2);
+}
+
+@media (max-width: 980px) {
+  .progression-delta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .progression-delta-grid,
+  .progression-rook-form {
+    grid-template-columns: 1fr;
+  }
+
+  .progression-rook-tester-header {
+    display: grid;
+  }
+
+  .progression-save-pill,
+  .progression-rook-reset {
+    width: 100%;
+  }
+}
