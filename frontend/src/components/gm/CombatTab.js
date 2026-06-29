@@ -7,7 +7,7 @@ import apiClient from '@/lib/apiClient';
 
 const toNumber = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const dexMod = (stats = {}) => Math.floor(((toNumber(stats.dexterity, 10)) - 10) / 2);
-const EMPTY_LOOT = { name: '', item_type: 'misc', quantity: 1, value: '', description: '', is_magical: false, attunement_required: false };
+const EMPTY_LOOT = { name: '', item_type: 'misc', quantity: 1, value: '', description: '', is_magical: false, attunement_required: false, damage_dice: '', damage_type: '', attack_bonus: 0, ac_bonus: 0, equip_slot: '', notes: '' };
 
 function playerToCombatant(player) {
   const maxHp = toNumber(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp, 10);
@@ -124,7 +124,12 @@ function lootPayload(loot) {
     description: loot.description || '',
     is_magical: Boolean(loot.is_magical),
     attunement_required: Boolean(loot.attunement_required),
-    notes: 'Added from Combat Loot Drop.',
+    damage_dice: loot.damage_dice || '',
+    damage_type: loot.damage_type || '',
+    attack_bonus: Number(loot.attack_bonus) || 0,
+    ac_bonus: Number(loot.ac_bonus) || 0,
+    equip_slot: loot.equip_slot || '',
+    notes: loot.notes || 'Added from Combat Loot Drop.',
   };
 }
 
@@ -333,12 +338,14 @@ function SelectedScenarioPreview({ theme, scenario, scenarioWithParty, alreadyHa
 
 function CombatLootDrop({ theme, lootDraft, setLootDraft, savingLoot, onSave }) {
   const set = (patch) => setLootDraft({ ...lootDraft, ...patch });
+  const itemType = lootDraft.item_type || 'misc';
+  const isGear = ['weapon', 'armor', 'magic_item'].includes(itemType);
   return (
     <section style={{ marginTop: 22, background: theme.bg.card, border: `1px solid ${theme.border}`, borderLeft: `5px solid ${theme.accent.primary}`, padding: 14 }} data-testid="combat-loot-drop-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
         <div>
           <h3 style={{ fontSize: 16, color: theme.accent.gm, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><Gift size={18} /> Combat Loot Drop</h3>
-          <p style={{ color: theme.text.muted, fontSize: 13, margin: '4px 0 0' }}>Add post-fight rewards into party inventory first, then grant them from Inventory & Rewards with attune/equip options.</p>
+          <p style={{ color: theme.text.muted, fontSize: 13, margin: '4px 0 0' }}>Add post-fight rewards into party inventory first, including weapon/armour fields needed for later auto-attune and equip handoff.</p>
         </div>
         <Button onClick={onSave} disabled={savingLoot || !lootDraft.name?.trim()} style={{ background: theme.accent.primary, color: '#fff', border: 'none', borderRadius: 0, fontWeight: 900 }}><Save size={15} /> {savingLoot ? 'Adding...' : 'Add to Party Loot'}</Button>
       </div>
@@ -350,6 +357,12 @@ function CombatLootDrop({ theme, lootDraft, setLootDraft, savingLoot, onSave }) 
         <input value={lootDraft.description} onChange={event => set({ description: event.target.value })} placeholder="Description or effect" style={{ ...combatInputStyle(theme), gridColumn: 'span 2' }} />
         <label style={lootCheckStyle(theme)}><input type="checkbox" checked={Boolean(lootDraft.is_magical)} onChange={event => set({ is_magical: event.target.checked })} /> Magical</label>
         <label style={lootCheckStyle(theme)}><input type="checkbox" checked={Boolean(lootDraft.attunement_required)} onChange={event => set({ attunement_required: event.target.checked, is_magical: event.target.checked ? true : lootDraft.is_magical })} /> Requires attunement</label>
+        {isGear && <input value={lootDraft.damage_dice} onChange={event => set({ damage_dice: event.target.value })} placeholder="Damage, e.g. 1d8+1" style={combatInputStyle(theme)} />}
+        {isGear && <input value={lootDraft.damage_type} onChange={event => set({ damage_type: event.target.value })} placeholder="Damage type" style={combatInputStyle(theme)} />}
+        {isGear && <input type="number" value={lootDraft.attack_bonus} onChange={event => set({ attack_bonus: event.target.value })} placeholder="Attack bonus" style={combatInputStyle(theme)} />}
+        {isGear && <input type="number" value={lootDraft.ac_bonus} onChange={event => set({ ac_bonus: event.target.value })} placeholder="AC bonus" style={combatInputStyle(theme)} />}
+        {isGear && <input value={lootDraft.equip_slot} onChange={event => set({ equip_slot: event.target.value })} placeholder="Equip slot, e.g. mainHand, armor, shield" style={combatInputStyle(theme)} />}
+        <input value={lootDraft.notes} onChange={event => set({ notes: event.target.value })} placeholder="GM notes, optional" style={{ ...combatInputStyle(theme), gridColumn: 'span 2' }} />
       </div>
     </section>
   );
