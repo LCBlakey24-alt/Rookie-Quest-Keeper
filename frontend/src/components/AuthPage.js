@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { BrandMainLogo } from '@/components/ui/BrandLogo';
@@ -16,10 +16,13 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
-  const [registerData, setRegisterData] = useState({ username: '', password: '', email: '' });
+  const [registerData, setRegisterData] = useState({ username: '', password: '', confirmPassword: '', email: '' });
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetData, setResetData] = useState({ token: initialToken || '', new_password: '' });
   const [loading, setLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   useEffect(() => {
     if (initialToken) {
@@ -63,8 +66,18 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!registerData.username || !registerData.password) {
+    if (!registerData.username || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (registerData.password !== registerData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (registerData.password.length < 8) {
+      toast.error('Password needs at least 8 characters');
       return;
     }
 
@@ -109,6 +122,11 @@ export default function AuthPage({ onLogin = () => {} }) {
       return;
     }
 
+    if (resetData.new_password.length < 8) {
+      toast.error('Password needs at least 8 characters');
+      return;
+    }
+
     setLoading(true);
     try {
       await apiClient.post('/auth/reset-password', resetData);
@@ -146,14 +164,14 @@ export default function AuthPage({ onLogin = () => {} }) {
           {mode === 'register' && (
             <div style={nextStepNoteStyle}>
               <ShieldCheck size={15} />
-              <span>After signup, start with <strong>Build Your First Character</strong>.</span>
+              <span>After signup, start with <strong>Build Your First Character</strong>. Use a nickname instead of a real name.</span>
             </div>
           )}
 
           {mode === 'login' && (
             <div style={accountChangeNoticeStyle}>
               <ShieldCheck size={15} />
-              <span>Use your username or email. New player? Tap <strong>Create an account</strong> below.</span>
+              <span>Use your username or recovery email. New player? Tap <strong>Create an account</strong> below.</span>
             </div>
           )}
 
@@ -169,11 +187,18 @@ export default function AuthPage({ onLogin = () => {} }) {
               />
               <AuthInput
                 icon={Lock}
-                type="password"
+                type={showLoginPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={loginData.password}
                 onChange={(value) => setLoginData({ ...loginData, password: value })}
                 testId="login-password"
+                rightAction={
+                  <IconButton
+                    label={showLoginPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowLoginPassword(prev => !prev)}
+                    icon={showLoginPassword ? EyeOff : Eye}
+                  />
+                }
               />
 
               <button type="button" onClick={() => setMode('forgot')} style={linkButtonStyle}>
@@ -207,11 +232,26 @@ export default function AuthPage({ onLogin = () => {} }) {
               />
               <AuthInput
                 icon={Lock}
-                type="password"
+                type={showRegisterPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={registerData.password}
                 onChange={(value) => setRegisterData({ ...registerData, password: value })}
+                rightAction={
+                  <IconButton
+                    label={showRegisterPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowRegisterPassword(prev => !prev)}
+                    icon={showRegisterPassword ? EyeOff : Eye}
+                  />
+                }
               />
+              <AuthInput
+                icon={Lock}
+                type={showRegisterPassword ? 'text' : 'password'}
+                placeholder="Confirm password"
+                value={registerData.confirmPassword}
+                onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
+              />
+              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Passwords need at least 8 characters. Recovery email helps if you forget it later.</p>
 
               <PrimaryButton type="submit" disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account'}
@@ -245,11 +285,19 @@ export default function AuthPage({ onLogin = () => {} }) {
             <form onSubmit={handleResetPassword}>
               <AuthInput
                 icon={Lock}
-                type="password"
+                type={showResetPassword ? 'text' : 'password'}
                 placeholder="New password"
                 value={resetData.new_password}
                 onChange={(value) => setResetData({ ...resetData, new_password: value })}
+                rightAction={
+                  <IconButton
+                    label={showResetPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowResetPassword(prev => !prev)}
+                    icon={showResetPassword ? EyeOff : Eye}
+                  />
+                }
               />
+              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Use at least 8 characters.</p>
 
               <PrimaryButton type="submit" disabled={loading}>
                 {loading ? 'Resetting...' : 'Reset Password'}
@@ -264,7 +312,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   );
 }
 
-function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
+function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId, rightAction }) {
   return (
     <div style={inputWrapStyle}>
       <Icon size={18} style={inputIconStyle} />
@@ -276,7 +324,16 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId }) {
         data-testid={testId}
         style={inputStyle}
       />
+      {rightAction}
     </div>
+  );
+}
+
+function IconButton({ icon: Icon, label, onClick }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} title={label} style={iconButtonStyle}>
+      <Icon size={17} />
+    </button>
   );
 }
 
@@ -298,7 +355,6 @@ function AuthSwitch({ text, actionText, onClick }) {
 }
 
 const pageStyle = {
-  minHeight: '100dvh',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
@@ -358,7 +414,8 @@ const inputWrapStyle = {
 };
 
 const inputIconStyle = { color: 'var(--rq-primary, #d00000)', flexShrink: 0 };
-const inputStyle = { width: '100%', border: 0, outline: 'none', background: 'transparent', color: 'var(--rq-text, #ffffff)', fontSize: 15 };
+const inputStyle = { width: '100%', minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: 'var(--rq-text, #ffffff)', fontSize: 15 };
+const iconButtonStyle = { border: 0, background: 'transparent', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', minHeight: 34, width: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 
 const primaryButtonStyle = {
   width: '100%',
