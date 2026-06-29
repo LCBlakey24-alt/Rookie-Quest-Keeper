@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'guided-tour-highlight-fix-v1',
+    date: 'Latest',
+    audience: 'Everyone',
+    title: 'Tutorial highlighting fixed',
+    summary: 'Guided tutorials now darken only the area around the highlighted target, leave the target itself bright, and lock page scrolling while the tour is open so the highlight stays attached to the correct area.',
+    tags: ['Tutorials', 'Visual Polish'],
+  },
+  {
     id: 'gm-encounters-monster-builder-mode-v1',
     date: 'Latest',
     audience: 'GMs',
