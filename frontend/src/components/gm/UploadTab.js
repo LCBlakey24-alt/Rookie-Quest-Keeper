@@ -4,7 +4,8 @@ import {
   Check, AlertCircle, X, Save
 } from 'lucide-react';
 import { toast } from 'sonner';
-import apiClient from '@/lib/apiClient';
+import apiClient from '../../lib/apiClient';
+import { buildTextHandoutPayload } from './UploadTabUtils';
 
 const rq = {
   bg: 'var(--rq-bg-main, #1A1A1A)',
@@ -23,6 +24,7 @@ const rq = {
   radius: 'var(--rq-radius-md, 6px)',
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
+
 
 const UPLOAD_TYPES = [
   {
@@ -178,13 +180,7 @@ export default function UploadTab({ theme, campaignId }) {
 
     try {
       setSavingText(true);
-      await apiClient.post(`/campaigns/${campaignId}/handouts`, {
-        title,
-        content,
-        category: 'lore',
-        attachment_type: 'text/plain',
-        attachment_name: `${title}.txt`,
-      });
+      await apiClient.post(`/campaigns/${campaignId}/handouts`, buildTextHandoutPayload({ title, content }));
       toast.success('Campaign text saved to Secrets & Handouts');
       setTextTitle('');
       setTextContent('');
