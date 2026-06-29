@@ -2,27 +2,31 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  padding-top: 10px;
-  border-top: 1px solid rgba(134, 134, 172, 0.16);
+  padding: 8px 0 0;
+  border-top: 1px solid var(--rq-line, rgba(255,255,255,0.16));
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .clean-sheet-progression-icon {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(216, 173, 79, 0.24);
-  color: var(--cs-accent, #d6a84f);
-  background: rgba(8, 10, 24, 0.3);
+  color: var(--rq-text, #ffffff);
+  background: var(--rq-button, #1f1f1f);
+  border: 0;
+  border-left: 4px solid var(--rq-primary, #d00000);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .clean-sheet-progression-main {
   min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 
 .clean-sheet-progression-heading,
@@ -31,7 +35,7 @@
 .clean-sheet-progression-build-notes {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -42,55 +46,59 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--cs-text-soft, #d9c8a5);
-  font-size: 0.76rem;
+  color: var(--rq-muted, rgba(255,255,255,0.68));
+  font-size: 0.74rem;
+  line-height: 1.15;
   font-weight: 850;
 }
 
 .clean-sheet-progression-heading span {
-  color: var(--cs-accent, #d6a84f);
-  font-size: 0.68rem;
+  color: var(--rq-primary-hover, #ff3b3b);
+  font-size: 0.65rem;
   font-weight: 950;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .clean-sheet-progression-heading strong {
-  color: var(--cs-text, #f6ead2);
+  color: var(--rq-text, #ffffff);
   font-size: 0.95rem;
+  line-height: 1;
 }
 
 .clean-sheet-progression-pills span,
 .clean-sheet-progression-features span,
 .clean-sheet-progression-build-notes span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(134, 134, 172, 0.16);
-  background: rgba(8, 10, 24, 0.24);
+  padding: 4px 7px;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16));
+  border-radius: 0;
+  background: var(--rq-button, #1f1f1f);
+  box-shadow: none;
 }
 
 .clean-sheet-progression-pills span.needs-review,
 .clean-sheet-progression-build-notes span.needs-review {
-  border-color: rgba(216, 173, 79, 0.38);
-  background: rgba(216, 173, 79, 0.1);
-  color: #f3d08a;
+  border-color: var(--rq-primary, #d00000);
+  background: var(--rq-button, #1f1f1f);
+  color: var(--rq-text, #ffffff);
 }
 
 .clean-sheet-progression-pills span.is-decided,
 .clean-sheet-progression-build-notes span.is-decided {
-  border-color: rgba(122, 155, 102, 0.4);
-  background: rgba(122, 155, 102, 0.1);
-  color: #dff0c8;
+  border-color: var(--rq-line, rgba(255,255,255,0.16));
+  background: var(--rq-button, #1f1f1f);
+  color: var(--rq-text, #ffffff);
 }
 
 .clean-sheet-progression-levelup {
-  min-height: 38px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border-radius: 999px;
+  border-radius: 0;
   white-space: nowrap;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
 }
 
 .character-page-v2 .clean-sheet-card,
@@ -102,7 +110,7 @@
 .character-page-v2 .clean-sheet-table-focus,
 .character-page-v2 .clean-sheet-content > section,
 .character-page-v2 .rq-hp-action-panel {
-  background: rgba(8, 10, 24, 0.34) !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
@@ -119,70 +127,69 @@
   padding: 12px !important;
 }
 
-.character-page-v2 .clean-sheet-tabs {
-  width: max-content;
-  max-width: 100%;
-  display: inline-grid !important;
-  grid-auto-flow: column;
-  gap: 8px;
-  padding: 6px !important;
-  border-radius: 999px !important;
-  background: rgba(8, 10, 24, 0.44) !important;
-  border: 1px solid rgba(134, 134, 172, 0.18) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button {
-  width: 42px;
-  min-width: 42px;
-  height: 42px;
-  min-height: 42px;
-  display: grid !important;
-  place-items: center;
-  padding: 0 !important;
-  border-radius: 999px !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button span {
-  font-size: 0;
-}
-
-.character-page-v2 .clean-sheet-tabs button.active {
-  background: rgba(216, 173, 79, 0.18) !important;
-  border-color: rgba(216, 173, 79, 0.44) !important;
-}
-
-@media (min-width: 980px) {
-  .character-page-v2 {
-    padding-left: 74px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs {
-    position: fixed;
-    left: 14px;
-    top: 34vh;
-    grid-auto-flow: row;
-    z-index: 20;
-  }
-}
-
 @media (max-width: 980px) {
   .clean-sheet-progression-strip {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     order: 5;
   }
 
-  .clean-sheet-progression-levelup {
-    grid-column: 1 / -1;
-    justify-self: stretch;
+  .clean-sheet-progression-icon {
+    display: none;
+  }
+
+  .clean-sheet-progression-features,
+  .clean-sheet-progression-build-notes {
+    display: none;
   }
 }
 
 @media (max-width: 620px) {
-  .clean-sheet-progression-features,
-  .clean-sheet-progression-build-notes {
-    display: none;
+  .clean-sheet-progression-strip {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding-top: 7px;
+  }
+
+  .clean-sheet-progression-main {
+    gap: 5px;
+  }
+
+  .clean-sheet-progression-heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .clean-sheet-progression-heading strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  .clean-sheet-progression-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .clean-sheet-progression-pills span {
+    min-width: 0;
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .clean-sheet-progression-pills span svg {
+    flex: 0 0 auto;
+  }
+
+  .clean-sheet-progression-levelup {
+    min-height: 34px;
+    justify-self: stretch;
+    font-size: 0.78rem !important;
   }
 
   .character-page-v2 .clean-sheet-panel,
