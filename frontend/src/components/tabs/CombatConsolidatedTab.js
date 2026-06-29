@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, RefreshCw, Swords } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Skull, Swords } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CombatTab from '@/components/gm/CombatTab';
+import MonstersTab from '@/components/gm/MonstersTab';
 
 const theme = {
   bg: {
@@ -56,6 +57,13 @@ function playerToCombatant(player) {
   };
 }
 
+function uniqueScenarioList(prev, encounter) {
+  if (!encounter?.id) return prev;
+  return prev.some(item => item.id === encounter.id)
+    ? prev.map(item => item.id === encounter.id ? encounter : item)
+    : [encounter, ...prev];
+}
+
 export default function CombatConsolidatedTab({ campaignId }) {
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
@@ -63,6 +71,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [campaignName, setCampaignName] = useState('Campaign');
   const [loading, setLoading] = useState(true);
+  const [activeMode, setActiveMode] = useState('combat');
 
   const loadCombatPrep = useCallback(async () => {
     if (!campaignId) return;
@@ -108,6 +117,15 @@ export default function CombatConsolidatedTab({ campaignId }) {
     launchCombat(quickScenario);
   };
 
+  const handleMonsterEncounter = (encounter) => {
+    if (encounter?.id) {
+      setScenarios(prev => uniqueScenarioList(prev, encounter));
+      setSelectedScenario(encounter);
+    }
+    setActiveMode('combat');
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
+
   if (loading) {
     return <section style={loadingStyle}>Loading Combat Control…</section>;
   }
@@ -118,27 +136,36 @@ export default function CombatConsolidatedTab({ campaignId }) {
         <div>
           <p style={eyebrowStyle}>Encounters</p>
           <h2 style={titleStyle}><Swords size={28} /> Combat Control</h2>
-          <p style={subtitleStyle}>Prep encounters with the same combat engine used in Live Play: saved fights, current party, NPCs, monsters, story combat beats, loot drops, and launch readiness.</p>
+          <p style={subtitleStyle}>Prep encounters, build monster groups, add the current party, check launch readiness, and drop post-fight loot.</p>
         </div>
         <Button onClick={loadCombatPrep} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</Button>
       </header>
 
-      {!players.length && (
+      <nav style={modeNavStyle} aria-label="Encounter workspace mode">
+        <button type="button" onClick={() => setActiveMode('combat')} data-active={activeMode === 'combat'} style={modeButtonStyle(activeMode === 'combat')}><Swords size={16} /> Combat Setup</button>
+        <button type="button" onClick={() => setActiveMode('monsters')} data-active={activeMode === 'monsters'} style={modeButtonStyle(activeMode === 'monsters')}><Skull size={16} /> Monster Builder</button>
+      </nav>
+
+      {!players.length && activeMode === 'combat' && (
         <section style={warningStyle}>
           <AlertTriangle size={17} /> No players are linked yet. You can still prep enemy encounters, but ordinary table combat works best once players have joined or been added.
         </section>
       )}
 
-      <CombatTab
-        theme={theme}
-        campaignId={campaignId}
-        scenarios={scenarios}
-        selectedScenario={selectedScenario}
-        setSelectedScenario={setSelectedScenario}
-        launchCombat={launchCombat}
-        quickStartCombat={quickStartCombat}
-        players={players}
-      />
+      {activeMode === 'monsters' ? (
+        <MonstersTab campaignId={campaignId} onOpenCombat={handleMonsterEncounter} />
+      ) : (
+        <CombatTab
+          theme={theme}
+          campaignId={campaignId}
+          scenarios={scenarios}
+          selectedScenario={selectedScenario}
+          setSelectedScenario={setSelectedScenario}
+          launchCombat={launchCombat}
+          quickStartCombat={quickStartCombat}
+          players={players}
+        />
+      )}
     </section>
   );
 }
@@ -151,3 +178,5 @@ const titleStyle = { margin: 0, display: 'flex', alignItems: 'center', gap: 9, c
 const subtitleStyle = { margin: '8px 0 0', color: 'rgba(255,255,255,0.74)', lineHeight: 1.45, maxWidth: 820 };
 const secondaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: '#2f2f2f', color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900 };
 const warningStyle = { display: 'flex', gap: 8, alignItems: 'center', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', borderLeft: '6px solid #d00000', padding: 10, color: 'rgba(255,255,255,0.8)', fontWeight: 850 };
+const modeNavStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 8 };
+const modeButtonStyle = (active) => ({ minHeight: 38, border: 0, background: active ? '#d00000' : '#3a3a3a', color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '0 12px', fontWeight: 950, cursor: 'pointer' });
