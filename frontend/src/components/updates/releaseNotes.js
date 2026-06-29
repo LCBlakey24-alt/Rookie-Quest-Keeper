@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'player-display-target-layouts-v1',
+    date: 'Latest',
+    audience: 'GMs and Players',
+    title: 'Player Display now supports TV and virtual table layouts',
+    summary: 'The Player Display Remote now lets GMs choose between a Standing TV layout for big cinematic reveals and a Virtual Table layout for map-first table or VTT-style use. Reveals, maps, NPCs, combat, and dice recaps adjust to the chosen screen type.',
+    tags: ['Player Display', 'Live Play', 'Maps'],
+  },
+  {
     id: 'rook-shop-stock-builder-v1',
     date: 'Latest',
     audience: 'GMs',
@@ -118,14 +126,6 @@ export const RELEASE_NOTES = [
     title: 'Inventory & Rewards rebuilt',
     summary: 'Party Inventory now uses the real campaign item and currency system. GMs can track shared loot, manage party funds, edit rewards, and grant items directly into linked character sheets.',
     tags: ['Inventory', 'Rewards'],
-  },
-  {
-    id: 'end-session-story-wrap-v2',
-    date: 'Latest',
-    audience: 'GMs',
-    title: 'GM-only End Session story wrap-up',
-    summary: 'End Session now includes a GM-only story wrap-up for arc, chapter, and checkpoint tracking. The player-facing end-session display remains dice-only, showing roll stats, awards, and player highlights without story spoilers.',
-    tags: ['End Session', 'Story Arcs'],
   },
 ];
 
