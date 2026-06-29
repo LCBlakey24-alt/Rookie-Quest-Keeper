@@ -202,6 +202,10 @@ export default function LiveSessionGridPage() {
     }
   };
 
+  const handleLiveToolOpen = (toolId) => {
+    if (toolId === 'combat') fetchAllData();
+  };
+
   const renderTool = (toolId) => {
     switch (toolId) {
       case 'combat': return <CombatTab theme={theme} campaignId={campaignId} scenarios={scenarios} selectedScenario={selectedScenario} setSelectedScenario={setSelectedScenario} launchCombat={launchCombat} quickStartCombat={quickStartCombat} players={players} setShowQuickCombat={() => {}} />;
@@ -250,7 +254,7 @@ export default function LiveSessionGridPage() {
         </header>
 
         <LiveStoryFocusPanel campaignId={campaignId} />
-        <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={() => null} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
+        <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
 
         <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} onComplete={() => setShowDiceFlicker(false)} />
       </main>
