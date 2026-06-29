@@ -148,6 +148,61 @@ select {
   border-radius: 0 !important;
 }
 
+/* Character creation: make Basic Build feel like the public/default path without rewriting the whole picker. */
+#root [data-testid="mode-basic"] {
+  background: var(--rq-surface) !important;
+  border-left: 6px solid var(--rq-primary) !important;
+  padding-left: 14px !important;
+}
+
+#root [data-testid="mode-basic"] .character-mode-card-topline em,
+#root [data-testid="mode-basic"] .character-mode-choose {
+  color: var(--rq-text) !important;
+  background: var(--rq-primary) !important;
+  border-color: var(--rq-primary) !important;
+}
+
+#root [data-testid="mode-basic"] .character-mode-choose {
+  padding: 8px 10px !important;
+  margin-top: auto !important;
+}
+
+#root .character-mode-kicker,
+#root .character-mode-icon-box,
+#root .character-mode-tip-icon,
+#root .character-mode-flow svg,
+#root .character-mode-summary svg,
+#root .character-mode-guide strong,
+#root .character-mode-choose {
+  color: var(--rq-primary-hover) !important;
+}
+
+#root .character-mode-page,
+#root .character-mode-tip,
+#root .character-mode-card,
+#root .character-mode-guide div,
+#root .character-mode-flow div {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* GM command centre: keep the top flow obvious and stop older cards from looking like a different app. */
+#root .gm-dashboard-header,
+#root .gm-sidebar,
+#root [data-testid="gm-active-workspace"] {
+  background: var(--rq-surface) !important;
+  border-color: var(--rq-line) !important;
+  box-shadow: none !important;
+}
+
+#root .gm-command-card:hover,
+#root .dashboard-card:hover,
+#root .campaign-card:hover,
+#root .character-mode-card:hover {
+  background: var(--rq-card-hover) !important;
+  transform: none !important;
+}
+
 @media (max-width: 780px) {
   #root button,
   #root [role="button"],
