@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'gm-encounters-monster-builder-mode-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Encounters now includes Monster Builder mode',
+    summary: 'The GM Encounters page now has Combat Setup and Monster Builder modes. GMs can build a monster encounter seed, save it, and jump straight back into Combat Setup with that encounter selected.',
+    tags: ['Encounters', 'Monsters', 'Combat'],
+  },
+  {
     id: 'live-combat-refresh-v1',
     date: 'Latest',
     audience: 'GMs',
