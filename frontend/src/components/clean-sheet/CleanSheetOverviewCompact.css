@@ -18,16 +18,14 @@
   color: var(--rq-text, #ffffff) !important;
 }
 
-.clean-sheet-compact-abilities,
-.clean-sheet-compact-saves {
+.clean-sheet-compact-abilities {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 1px !important;
   background: var(--rq-line, rgba(255,255,255,0.16)) !important;
 }
 
-.clean-sheet-compact-ability,
-.clean-sheet-compact-save {
+.clean-sheet-compact-ability {
   min-height: 52px !important;
   padding: 8px 8px !important;
   display: grid !important;
@@ -37,12 +35,10 @@
   gap: 2px 8px !important;
   background: var(--rq-card, #3a3a3a) !important;
   border: 0 !important;
-  border-top: 0 !important;
   box-shadow: none !important;
 }
 
-.clean-sheet-compact-ability > span,
-.clean-sheet-compact-save > span {
+.clean-sheet-compact-ability > span {
   min-width: 0 !important;
   color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
   font-size: 10px !important;
@@ -61,21 +57,6 @@
   line-height: 1 !important;
   font-weight: 950 !important;
   font-variant-numeric: tabular-nums !important;
-}
-
-.clean-sheet-compact-save > em {
-  color: var(--rq-text, #ffffff) !important;
-  background: var(--rq-primary, #d00000) !important;
-  width: fit-content !important;
-  max-width: 100% !important;
-  padding: 2px 4px !important;
-  font-size: 8px !important;
-  line-height: 1 !important;
-  font-style: normal !important;
-  font-weight: 950 !important;
-  text-transform: uppercase !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
 }
 
 .clean-sheet-roll-chip {
@@ -105,66 +86,130 @@
   outline-offset: 0 !important;
 }
 
-.clean-sheet-compact-skills {
+.clean-sheet-readable-saves {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 1px !important;
   background: var(--rq-line, rgba(255,255,255,0.16)) !important;
 }
 
-.clean-sheet-compact-skill {
-  min-height: 42px !important;
-  padding: 6px 6px 6px 8px !important;
+.clean-sheet-readable-saves .clean-sheet-compact-save {
+  min-height: 50px !important;
+  padding: 7px 7px 7px 9px !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 7px !important;
   background: var(--rq-card, #3a3a3a) !important;
   border: 0 !important;
-  border-top: 0 !important;
   box-shadow: none !important;
 }
 
-.clean-sheet-skill-name {
+.clean-sheet-save-label {
   min-width: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
+  display: grid !important;
+  gap: 3px !important;
 }
 
-.clean-sheet-skill-name span {
-  min-width: 0 !important;
+.clean-sheet-save-label strong {
   color: var(--rq-text, #ffffff) !important;
-  font-size: 12px !important;
-  line-height: 1.15 !important;
-  font-weight: 850 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.clean-sheet-save-label span {
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
-.clean-sheet-skill-name em,
-.clean-sheet-skill-name small {
-  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+.clean-sheet-readable-saves .clean-sheet-compact-save > em,
+.clean-sheet-skill-tags small {
+  color: var(--rq-text, #ffffff) !important;
+  background: var(--rq-primary, #d00000) !important;
+  padding: 3px 5px !important;
   font-size: 8px !important;
   line-height: 1 !important;
   font-style: normal !important;
   font-weight: 950 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
-  flex: 0 0 auto !important;
+  white-space: nowrap !important;
 }
 
-.clean-sheet-skill-name small {
-  order: 2 !important;
+.clean-sheet-readable-saves .clean-sheet-roll-chip {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  min-width: 42px !important;
+  min-height: 36px !important;
+  font-size: 14px !important;
+}
+
+.clean-sheet-readable-skills {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1px !important;
+  background: var(--rq-line, rgba(255,255,255,0.16)) !important;
+}
+
+.clean-sheet-readable-skills .clean-sheet-compact-skill {
+  min-height: 48px !important;
+  padding: 7px 7px 7px 10px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 9px !important;
+  background: var(--rq-card, #3a3a3a) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.clean-sheet-skill-name {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 5px !important;
+}
+
+.clean-sheet-skill-name > span {
+  min-width: 0 !important;
   color: var(--rq-text, #ffffff) !important;
-  background: var(--rq-primary, #d00000) !important;
-  padding: 3px 5px !important;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
-.clean-sheet-compact-skill .clean-sheet-roll-chip {
-  min-width: 40px !important;
-  min-height: 34px !important;
+.clean-sheet-skill-tags {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+.clean-sheet-skill-tags em {
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.clean-sheet-readable-skills .clean-sheet-roll-chip {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  min-width: 42px !important;
+  min-height: 36px !important;
   font-size: 14px !important;
 }
 
@@ -178,13 +223,11 @@
     margin-bottom: 7px !important;
   }
 
-  .clean-sheet-compact-abilities,
-  .clean-sheet-compact-saves {
+  .clean-sheet-compact-abilities {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
-  .clean-sheet-compact-ability,
-  .clean-sheet-compact-save {
+  .clean-sheet-compact-ability {
     min-height: 48px !important;
     padding: 7px 6px !important;
     gap: 2px 5px !important;
@@ -200,33 +243,65 @@
     font-size: 15px !important;
   }
 
-  .clean-sheet-compact-skills {
+  .clean-sheet-readable-saves {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .clean-sheet-readable-saves .clean-sheet-compact-save {
+    min-height: 46px !important;
+    padding: 6px 6px 6px 8px !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+  }
+
+  .clean-sheet-readable-saves .clean-sheet-compact-save > em {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: fit-content !important;
+  }
+
+  .clean-sheet-readable-saves .clean-sheet-roll-chip {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    min-width: 38px !important;
+  }
+
+  .clean-sheet-save-label span {
+    display: none !important;
+  }
+
+  .clean-sheet-readable-skills {
     grid-template-columns: 1fr !important;
   }
 
-  .clean-sheet-compact-skill {
-    min-height: 40px !important;
-    padding: 5px 6px 5px 9px !important;
+  .clean-sheet-readable-skills .clean-sheet-compact-skill {
+    min-height: 44px !important;
+    padding: 6px 6px 6px 10px !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
   }
 
-  .clean-sheet-skill-name span {
+  .clean-sheet-skill-name {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .clean-sheet-skill-name > span {
     font-size: 13px !important;
     white-space: normal !important;
   }
 
-  .clean-sheet-skill-name em {
+  .clean-sheet-skill-tags em {
     display: none !important;
   }
 }
 
 @media (max-width: 390px) {
-  .clean-sheet-compact-ability,
-  .clean-sheet-compact-save {
+  .clean-sheet-compact-ability {
     padding: 7px 5px !important;
   }
 
-  .clean-sheet-compact-ability > span,
-  .clean-sheet-compact-save > span {
+  .clean-sheet-compact-ability > span {
     font-size: 9px !important;
     letter-spacing: 0.04em !important;
   }
@@ -234,5 +309,13 @@
   .clean-sheet-roll-chip {
     min-width: 36px !important;
     padding: 0 6px !important;
+  }
+
+  .clean-sheet-readable-saves .clean-sheet-compact-save {
+    padding-left: 6px !important;
+  }
+
+  .clean-sheet-save-label strong {
+    font-size: 13px !important;
   }
 }
