@@ -1,18 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Dices } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 
 const characterCache = new Map();
 
 const palette = {
-  player: { bg: 'rgba(36,36,36,0.98)', panel: '#2f2f2f', card: '#3a3a3a', border: 'rgba(255,255,255,0.16)', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)' },
-  gm: { bg: 'rgba(36,36,36,0.98)', panel: '#2f2f2f', card: '#3a3a3a', border: 'rgba(255,255,255,0.16)', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)' },
+  player: { bg: 'rgba(36,36,36,0.96)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)' },
+  gm: { bg: 'rgba(36,36,36,0.96)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)' },
 };
 
-const CRIT_GREEN = '#22C55E';
-const FUMBLE_RED = '#EF4444';
 const WHEEL_EASE = 'cubic-bezier(0.08, 0.82, 0.12, 1)';
 
 const formatModifier = (modifier) => {
@@ -105,10 +102,10 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
   useEffect(() => {
     if (!visible) return undefined;
     const timers = [];
-    const baseSpin = isHpLevelRoll ? 3200 : 2600;
-    const revealGap = dice.length > 1 ? 520 : 0;
+    const baseSpin = isHpLevelRoll ? 2600 : 2100;
+    const revealGap = dice.length > 1 ? 360 : 0;
     const finalReveal = baseSpin + revealGap * Math.max(0, dice.length - 1);
-    const holdDuration = isHpLevelRoll ? 4200 : 5000;
+    const holdDuration = isHpLevelRoll ? 3600 : 4200;
 
     setWheelStarted(false);
     setSettled(false);
@@ -124,55 +121,57 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
       }, baseSpin + revealGap * dieIndex));
     });
 
-    timers.push(window.setTimeout(() => { setShowTotal(true); setSettled(true); }, finalReveal + 380));
-    timers.push(window.setTimeout(() => setFading(true), finalReveal + holdDuration - 650));
+    timers.push(window.setTimeout(() => { setShowTotal(true); setSettled(true); }, finalReveal + 320));
+    timers.push(window.setTimeout(() => setFading(true), finalReveal + holdDuration - 500));
     timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, finalReveal + holdDuration));
     return () => { timers.forEach(id => window.clearTimeout(id)); };
   }, [visible, label, dice, isHpLevelRoll]);
 
   if (!visible) return null;
 
-  const statusColor = settled && isCrit ? CRIT_GREEN : settled && isFumble ? FUMBLE_RED : colors.accent;
+  const statusColor = settled && isFumble ? colors.accent : colors.text;
   const status = settled ? (isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label || 'Result') : (isHpLevelRoll ? 'Rolling hit points…' : 'Rolling…');
-  const shellPosition = isHpLevelRoll ? { left: '50%', top: '50%', transform: `translate(-50%, -50%) scale(${settled ? 1 : 1.015})` } : { left: '50%', bottom: '58px', transform: `translateX(-50%) scale(${settled ? 1 : 1.01})` };
+  const shellPosition = { left: '50%', bottom: isHpLevelRoll ? '72px' : '24px', transform: 'translateX(-50%)' };
   const diceSubtotal = dice.reduce((sum, die) => sum + Number(die.result || 0), 0);
-  const wheelHeight = isHpLevelRoll ? 104 : 88;
-  const wheelWidth = isHpLevelRoll ? 96 : 82;
-  const fontSize = isHpLevelRoll ? 62 : 52;
+  const wheelHeight = isHpLevelRoll ? 58 : 44;
+  const wheelWidth = isHpLevelRoll ? 54 : 42;
+  const fontSize = isHpLevelRoll ? 34 : 26;
 
   return createPortal(
-    <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'none', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 650ms ease, transform 360ms ease' }}>
-      <div style={{ minWidth: isHpLevelRoll ? 360 : 330, maxWidth: 'calc(100vw - 28px)', padding: isHpLevelRoll ? '24px 26px' : '16px 18px', borderRadius: 0, background: colors.bg, border: `1px solid ${settled && (isCrit || isFumble) ? statusColor : colors.border}`, boxShadow: `0 22px 70px rgba(0,0,0,0.52), ${settled && (isCrit || isFumble) ? `0 0 30px ${statusColor}55` : 'none'}`, display: 'grid', gap: 14, textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, color: statusColor, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: 12 }}><Dices size={18} /><span>{status}</span></div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: dice.length > 1 ? 8 : 12, flexWrap: 'wrap' }}>
+    <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'none', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 500ms ease' }}>
+      <div style={{ maxWidth: 'calc(100vw - 24px)', padding: '8px 10px', borderRadius: 0, background: colors.bg, color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'left' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: dice.length > 1 ? 5 : 7 }}>
           {dice.map((die, index) => {
             const isRevealed = Boolean(revealed[index]);
-            const isNat20 = die.sides === 20 && die.result === 20;
             const isNat1 = die.sides === 20 && die.result === 1;
-            const dieColor = isRevealed && isNat20 ? CRIT_GREEN : isRevealed && isNat1 ? FUMBLE_RED : colors.text;
+            const dieColor = isRevealed && isNat1 ? colors.accent : colors.text;
             const targetStep = wheelTargetStep(die, index);
-            const duration = isHpLevelRoll ? 3200 + index * 520 : 2600 + index * 520;
+            const duration = isHpLevelRoll ? 2600 + index * 360 : 2100 + index * 360;
             return (
-              <div key={die.id} style={{ display: 'grid', gap: 6, justifyItems: 'center' }}>
-                <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', border: `1px solid ${isRevealed && (isNat20 || isNat1) ? dieColor : colors.border}`, background: colors.card, display: 'block', position: 'relative', boxShadow: isRevealed && (isNat20 || isNat1) ? `0 0 24px ${dieColor}66` : 'none' }}>
-                  <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 1, background: isRevealed ? colors.accent : colors.border, opacity: isRevealed ? 0.8 : 0.35 }} />
+              <div key={die.id} style={{ display: 'grid', gap: 2, justifyItems: 'center' }}>
+                <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', background: colors.card, display: 'block', position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 8, right: 8, bottom: 0, height: 2, background: isRevealed ? colors.accent : 'transparent', opacity: isRevealed ? 0.8 : 0 }} />
                   <div style={{ transform: `translateY(-${wheelStarted ? targetStep * wheelHeight : 0}px)`, transition: wheelStarted ? `transform ${duration}ms ${WHEEL_EASE}` : 'none' }}>
                     {wheelNumbers(die, index).map((number, itemIndex) => (
-                      <div key={`${die.id}-${itemIndex}`} style={{ height: wheelHeight, display: 'grid', placeItems: 'center', color: itemIndex === targetStep && isRevealed ? dieColor : colors.text, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', textShadow: itemIndex === targetStep && isRevealed && (isNat20 || isNat1) ? `0 0 22px ${dieColor}88` : 'none' }}>
+                      <div key={`${die.id}-${itemIndex}`} style={{ height: wheelHeight, display: 'grid', placeItems: 'center', color: itemIndex === targetStep && isRevealed ? dieColor : colors.text, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums' }}>
                         {number}
                       </div>
                     ))}
                   </div>
                 </div>
-                <div style={{ color: isRevealed ? colors.text : colors.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{die.exploded ? 'Explode' : `d${die.sides}`}</div>
+                <div style={{ color: colors.muted, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{die.exploded ? 'ex' : `d${die.sides}`}</div>
               </div>
             );
           })}
         </div>
-        <div style={{ display: 'grid', gap: 5 }}>
-          <div style={{ minHeight: isHpLevelRoll ? 72 : 58, display: 'grid', placeItems: 'center', color: showTotal ? statusColor : colors.muted, fontSize: showTotal ? (isHpLevelRoll ? 66 : 48) : 16, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 240ms ease, color 220ms ease, text-shadow 220ms ease', textShadow: showTotal && (isCrit || isFumble) ? `0 0 26px ${statusColor}77` : 'none' }}>{showTotal ? finalDisplayValue : dice.length > 1 ? 'Revealing dice…' : 'Wheel slowing…'}</div>
-          <div style={{ color: colors.muted, fontSize: isHpLevelRoll ? 13 : 12, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{showTotal ? (rollDetail || label) : `${dice.length} wheel${dice.length === 1 ? '' : 's'} rolling from 1 to ${Math.max(...dice.map(die => die.sides))}`}</div>
-          {showTotal && Number(modifier) !== 0 && <div style={{ color: colors.muted, fontSize: 11, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
+
+        <div style={{ display: 'grid', gap: 2, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+            <span style={{ color: statusColor, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{status}</span>
+            <strong style={{ color: colors.text, fontSize: showTotal ? 30 : 13, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 180ms ease' }}>{showTotal ? finalDisplayValue : 'rolling'}</strong>
+          </div>
+          <div style={{ color: colors.muted, fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>{showTotal ? (rollDetail || label) : `${dice.length} wheel${dice.length === 1 ? '' : 's'} scrolling`}</div>
+          {showTotal && Number(modifier) !== 0 && <div style={{ color: colors.muted, fontSize: 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
         </div>
       </div>
     </div>,
