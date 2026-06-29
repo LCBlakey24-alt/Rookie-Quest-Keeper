@@ -7,7 +7,7 @@ import './CleanSheetHeaderStats.css';
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
-export default function CleanSheetHeader({ character, subtitle, onBack, onEdit, onLevelUp }) {
+export default function CleanSheetHeader({ character, subtitle, onBack, onEdit, onLevelUp, onRollInitiative }) {
   const armorClass = Number(character?.armor_class ?? character?.ac ?? 10) || 10;
   const initiative = abilityMod(character?.dexterity ?? 10);
   const proficiency = Number(character?.proficiency_bonus ?? 2) || 2;
@@ -15,7 +15,7 @@ export default function CleanSheetHeader({ character, subtitle, onBack, onEdit, 
 
   const quickStats = [
     { label: 'AC', value: armorClass, icon: Shield },
-    { label: 'Init', value: fmt(initiative), icon: Zap },
+    { label: 'Init', value: fmt(initiative), icon: Zap, rollLabel: 'Initiative', modifier: initiative },
     { label: 'Prof', value: fmt(proficiency), icon: Dices },
     { label: 'Speed', value: `${speed}ft`, icon: TrendingUp },
   ];
@@ -36,10 +36,21 @@ export default function CleanSheetHeader({ character, subtitle, onBack, onEdit, 
         </div>
       </div>
       <div className="clean-sheet-header-stat-strip" aria-label="Character quick stats">
-        {quickStats.map(({ label, value, icon: Icon }) => (
+        {quickStats.map(({ label, value, icon: Icon, rollLabel, modifier }) => (
           <div className="clean-sheet-header-stat" key={label}>
             <Icon size={16} />
-            <strong>{value}</strong>
+            {rollLabel ? (
+              <button
+                type="button"
+                className="clean-sheet-header-stat-roll"
+                onClick={() => onRollInitiative?.(rollLabel, modifier)}
+                aria-label={`Roll ${rollLabel} ${value}`}
+              >
+                {value}
+              </button>
+            ) : (
+              <strong>{value}</strong>
+            )}
             <span>{label}</span>
           </div>
         ))}
