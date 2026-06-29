@@ -61,8 +61,8 @@ const AdminPage = React.lazy(() => import('@/components/AdminPage'));
 const LandingPage = React.lazy(() => import('@/components/LandingPage'));
 const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
 const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
-const CharacterBuilder = React.lazy(() => import('@/components/CharacterBuilder'));
 const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
+const FullCharacterCreatorV2 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
 const BasicCharacterBuilder = React.lazy(() => import('@/components/BasicCharacterBuilder'));
 const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCharacterBuilder'));
 const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
@@ -171,11 +171,13 @@ function AppRoutes() {
         <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
         <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/auth" replace />} />
         <Route path="/account" element={isAuthenticated ? <AccountSettings /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/full" element={isAuthenticated ? <CharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new" element={isAuthenticated ? <FullCharacterCreatorV2 /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/modes" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/full" element={isAuthenticated ? <FullCharacterCreatorV2 /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterBuilder /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/premade" element={isAuthenticated ? <PremadeCharacterBuilder /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/kids" element={isAuthenticated ? <KidsCharacterBuilder /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <FullCharacterCreatorV2 editMode /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
       </Routes>
       <GlobalGuidedTour isAuthenticated={isAuthenticated} />
