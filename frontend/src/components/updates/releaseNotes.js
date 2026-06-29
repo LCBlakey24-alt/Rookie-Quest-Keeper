@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'monsters-to-combat-handoff-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Monsters now hand off clearly to Combat',
+    summary: 'After saving a monster selection as an encounter seed, the Monsters panel now shows an Open Combat action so GMs can jump straight to Combat, add the current party, check readiness, and launch the fight.',
+    tags: ['Monsters', 'Combat', 'Encounters'],
+  },
+  {
     id: 'player-sheet-reward-sync-v1',
     date: 'Latest',
     audience: 'GMs and Players',
