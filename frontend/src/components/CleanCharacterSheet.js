@@ -16,7 +16,7 @@ import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import LevelUpWizard from '@/components/LevelUpWizard';
-import RookPlayerSuggestions from '@/components/RookPlayerSuggestions';
+import RookPlayerHelperTab from '@/components/clean-sheet/RookPlayerHelperTab';
 import { deriveArmorClass } from '@/data/characterCombatDerivations';
 import { getClassFeatures } from '@/data/classFeatures';
 import {
@@ -565,6 +565,7 @@ export default function CleanCharacterSheet() {
           </>
         )}
 
+        {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
         {activeTab === 'features' && (
@@ -584,8 +585,6 @@ export default function CleanCharacterSheet() {
         {activeTab === 'lore' && <CleanLoreTab character={character} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
-
-      <RookPlayerSuggestions character={character} />
     </div>
   );
 }
