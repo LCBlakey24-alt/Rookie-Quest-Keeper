@@ -18,6 +18,66 @@
   color: var(--rq-text, #ffffff) !important;
 }
 
+.clean-sheet-core-stat-grid,
+.clean-sheet-passive-grid {
+  display: grid !important;
+  gap: 1px !important;
+  background: var(--rq-line, rgba(255,255,255,0.16)) !important;
+}
+
+.clean-sheet-core-stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.clean-sheet-passive-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.clean-sheet-core-stat-card,
+.clean-sheet-passive-card {
+  min-height: 48px !important;
+  padding: 8px 9px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 7px !important;
+  background: var(--rq-card, #3a3a3a) !important;
+  color: var(--rq-text, #ffffff) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.clean-sheet-core-stat-card svg,
+.clean-sheet-passive-card svg {
+  color: var(--rq-text, #ffffff) !important;
+  stroke: var(--rq-text, #ffffff) !important;
+  flex: 0 0 auto !important;
+}
+
+.clean-sheet-core-stat-card span,
+.clean-sheet-passive-card span {
+  min-width: 0 !important;
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.clean-sheet-core-stat-card strong,
+.clean-sheet-passive-card strong {
+  color: var(--rq-text, #ffffff) !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
 .clean-sheet-compact-abilities {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -221,6 +281,22 @@
   .clean-sheet-stats-tab--compact .clean-sheet-compact-section h2 {
     font-size: 12px !important;
     margin-bottom: 7px !important;
+  }
+
+  .clean-sheet-core-stat-grid,
+  .clean-sheet-passive-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .clean-sheet-core-stat-card,
+  .clean-sheet-passive-card {
+    min-height: 42px !important;
+    padding: 7px 9px !important;
+  }
+
+  .clean-sheet-core-stat-card strong,
+  .clean-sheet-passive-card strong {
+    font-size: 16px !important;
   }
 
   .clean-sheet-compact-abilities {
