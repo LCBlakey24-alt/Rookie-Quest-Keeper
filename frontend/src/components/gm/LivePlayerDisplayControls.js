@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, Image as ImageIcon, Monitor, Projector, RefreshCw, Send, Skull, Table2, Users, X } from 'lucide-react';
+import { Copy, Eye, Image as ImageIcon, Monitor, Projector, RefreshCw, Send, Skull, Table2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { createDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
@@ -7,20 +7,21 @@ import { createDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: '#242424',
-  panel: '#2f2f2f',
-  card: '#3a3a3a',
-  line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.22)',
-  red: '#d00000',
-  text: '#ffffff',
-  soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.62)',
+  bg: 'var(--rq-bg, #242424)',
+  panel: 'var(--rq-surface, #2f2f2f)',
+  card: 'var(--rq-card, #3a3a3a)',
+  hover: 'var(--rq-card-hover, #444444)',
+  line: 'var(--rq-line, rgba(255,255,255,0.16))',
+  lineStrong: 'var(--rq-line-strong, rgba(255,255,255,0.26))',
+  red: 'var(--rq-primary, #d00000)',
+  text: 'var(--rq-text, #ffffff)',
+  soft: 'var(--rq-muted, rgba(255,255,255,0.74))',
+  muted: 'var(--rq-faint, rgba(255,255,255,0.52))',
 };
 
 const DISPLAY_TARGETS = [
-  { id: 'standing-tv', label: 'Standing TV', icon: Projector, help: 'Big cinematic reveals for a room screen or upright TV.' },
-  { id: 'virtual-table', label: 'Virtual Table', icon: Table2, help: 'Flatter map-first view for a table display or VTT-style screen.' },
+  { id: 'standing-tv', label: 'Standing TV', icon: Projector, help: 'Big cinematic view for an upright TV, monitor, or projector.' },
+  { id: 'virtual-table', label: 'Virtual Table', icon: Table2, help: 'Map-first view for a flat TV table, touch table, or VTT-style screen.' },
 ];
 
 function imageFrom(item) {
@@ -47,8 +48,12 @@ function targetStorageKey(campaignId) {
   return `rqk.playerDisplay.target.${campaignId}`;
 }
 
+function normaliseTarget(targetId) {
+  return targetId === 'virtual-table' ? 'virtual-table' : 'standing-tv';
+}
+
 function loadTarget(campaignId) {
-  try { return localStorage.getItem(targetStorageKey(campaignId)) || 'standing-tv'; } catch { return 'standing-tv'; }
+  try { return normaliseTarget(localStorage.getItem(targetStorageKey(campaignId))); } catch { return 'standing-tv'; }
 }
 
 export default function LivePlayerDisplayControls({ campaignId, campaignName = 'Campaign' }) {
@@ -81,8 +86,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     });
   }, [campaignId]);
 
-  const displayUrl = `/campaign/${campaignId}/player-display`;
-
+  const displayUrlFor = (targetId = displayTarget) => `/campaign/${campaignId}/player-display?target=${encodeURIComponent(normaliseTarget(targetId))}`;
   const selectedNpcs = useMemo(() => npcs.filter(npc => selectedNpcIds.includes(npc.id)), [npcs, selectedNpcIds]);
   const selectedScenario = useMemo(() => scenarios.find(scenario => scenario.id === selectedScenarioId), [scenarios, selectedScenarioId]);
   const combatants = useMemo(() => scenarioParticipants(selectedScenario), [selectedScenario]);
@@ -90,23 +94,40 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const visibleCombatants = useMemo(() => playerFacingCombatants.filter((item, index) => visibleCombatantIds.includes(combatantId(item, index))), [playerFacingCombatants, visibleCombatantIds]);
   const currentTarget = DISPLAY_TARGETS.find(target => target.id === displayTarget) || DISPLAY_TARGETS[0];
 
-  const openPlayerDisplay = () => {
-    window.open(displayUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const publish = (mode, payload = {}) => {
-    publishDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: displayTarget }));
-    toast.success('Sent to player display', { description: currentTarget.label });
+  const publish = (mode, payload = {}, targetId = displayTarget) => {
+    const safeTarget = normaliseTarget(targetId);
+    publishDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
+    const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
+    toast.success('Sent to player display', { description: label });
   };
 
   const sendDisplayTarget = (targetId = displayTarget) => {
-    const target = DISPLAY_TARGETS.find(item => item.id === targetId) || DISPLAY_TARGETS[0];
+    const safeTarget = normaliseTarget(targetId);
+    const target = DISPLAY_TARGETS.find(item => item.id === safeTarget) || DISPLAY_TARGETS[0];
     publishDisplayState(campaignId, createDisplayState('blank', {
       title: target.label,
       subtitle: target.help,
       display_target: target.id,
     }));
     toast.success(`Display set for ${target.label}`);
+  };
+
+  const openPlayerDisplay = (targetId = displayTarget) => {
+    const safeTarget = normaliseTarget(targetId);
+    setDisplayTarget(safeTarget);
+    sendDisplayTarget(safeTarget);
+    const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
+    if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
+  };
+
+  const copyDisplayLink = async () => {
+    const url = `${window.location.origin}${displayUrlFor(displayTarget)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Display link copied');
+    } catch {
+      toast.info(url);
+    }
   };
 
   const clearDisplay = () => publish('blank', { title: 'Waiting for the GM', subtitle: 'The next reveal will appear here.' });
@@ -158,9 +179,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     });
   };
 
-  const toggleNpc = (npcId) => {
-    setSelectedNpcIds(prev => prev.includes(npcId) ? prev.filter(id => id !== npcId) : [...prev, npcId]);
-  };
+  const toggleNpc = (npcId) => setSelectedNpcIds(prev => prev.includes(npcId) ? prev.filter(id => id !== npcId) : [...prev, npcId]);
 
   const chooseScenario = (scenarioId) => {
     setSelectedScenarioId(scenarioId);
@@ -174,14 +193,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     }
   };
 
-  const toggleCombatant = (id) => {
-    setVisibleCombatantIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
-  };
-
-  const selectAllCombatants = () => {
-    setVisibleCombatantIds(playerFacingCombatants.map((item, index) => combatantId(item, index)));
-  };
-
+  const toggleCombatant = (id) => setVisibleCombatantIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  const selectAllCombatants = () => setVisibleCombatantIds(playerFacingCombatants.map((item, index) => combatantId(item, index)));
   const clearCombatants = () => setVisibleCombatantIds([]);
 
   return (
@@ -190,23 +203,30 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <div style={iconStyle}><Monitor size={18} /></div>
           <div style={{ minWidth: 0 }}>
-            <p style={eyebrowStyle}>Extended player display</p>
+            <p style={eyebrowStyle}>Second screen / virtual table</p>
             <h2 style={titleStyle}>Player Display Remote</h2>
-            <p style={subtitleStyle}>Open a second tab, choose the screen type, then send only what players should see.</p>
+            <p style={subtitleStyle}>Open a second browser tab on a TV, projector, or flat table screen. This remote sends only player-safe reveals.</p>
           </div>
         </div>
         <div style={actionsStyle}>
-          <button type="button" onClick={openPlayerDisplay} style={primaryButtonStyle}><Monitor size={14} /> Open Player Display</button>
+          <button type="button" onClick={() => openPlayerDisplay('standing-tv')} style={primaryButtonStyle}><Projector size={14} /> Open TV</button>
+          <button type="button" onClick={() => openPlayerDisplay('virtual-table')} style={primaryButtonStyle}><Table2 size={14} /> Open Table</button>
+          <button type="button" onClick={copyDisplayLink} style={secondaryButtonStyle}><Copy size={14} /> Copy Link</button>
           <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Controls' : 'Show Controls'}</button>
         </div>
       </header>
+
+      <div style={statusStripStyle}>
+        <span><strong>Current target:</strong> {currentTarget.label}</span>
+        <span><strong>Sync:</strong> same-browser tabs update live through BroadcastChannel/localStorage</span>
+      </div>
 
       {open && (
         <div style={bodyStyle}>
           <section style={targetPanelStyle} data-testid="player-display-target-selector">
             <div>
               <strong style={targetPanelTitleStyle}>Display target</strong>
-              <p style={hintStyle}>Choose how the extended tab will be used. This changes the player-facing layout.</p>
+              <p style={hintStyle}>Standing TV is cinematic and upright. Virtual Table is map-first for a flat screen or table display.</p>
             </div>
             <div style={targetGridStyle}>
               {DISPLAY_TARGETS.map(target => {
@@ -224,32 +244,11 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           </section>
 
           <div style={formGridStyle}>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>Display title</span>
-              <input value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} placeholder="Scene title" style={inputStyle} />
-            </label>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>Caption / subtitle</span>
-              <input value={sceneSubtitle} onChange={(event) => setSceneSubtitle(event.target.value)} placeholder="Optional player-facing caption" style={inputStyle} />
-            </label>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>Image / map URL</span>
-              <input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Paste image/map URL or choose a map below" style={inputStyle} />
-            </label>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>Saved map</span>
-              <select value="" onChange={(event) => { const map = maps.find(item => item.id === event.target.value); if (map) { setSceneTitle(map.name || map.title || 'Map'); setImageUrl(imageFrom(map)); } }} style={inputStyle}>
-                <option value="">Choose saved map...</option>
-                {maps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}
-              </select>
-            </label>
-            <label style={fieldStyle}>
-              <span style={labelStyle}>Combat scenario</span>
-              <select value={selectedScenarioId} onChange={(event) => chooseScenario(event.target.value)} style={inputStyle}>
-                <option value="">Choose encounter...</option>
-                {scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Unnamed encounter'}</option>)}
-              </select>
-            </label>
+            <label style={fieldStyle}><span style={labelStyle}>Display title</span><input value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} placeholder="Scene title" style={inputStyle} /></label>
+            <label style={fieldStyle}><span style={labelStyle}>Caption / subtitle</span><input value={sceneSubtitle} onChange={(event) => setSceneSubtitle(event.target.value)} placeholder="Optional player-facing caption" style={inputStyle} /></label>
+            <label style={fieldStyle}><span style={labelStyle}>Image / map URL</span><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Paste image/map URL or choose a map below" style={inputStyle} /></label>
+            <label style={fieldStyle}><span style={labelStyle}>Saved map</span><select value="" onChange={(event) => { const map = maps.find(item => item.id === event.target.value); if (map) { setSceneTitle(map.name || map.title || 'Map'); setImageUrl(imageFrom(map)); } }} style={inputStyle}><option value="">Choose saved map...</option>{maps.map(map => <option key={map.id} value={map.id}>{map.name || map.title || 'Untitled map'}</option>)}</select></label>
+            <label style={fieldStyle}><span style={labelStyle}>Combat scenario</span><select value={selectedScenarioId} onChange={(event) => chooseScenario(event.target.value)} style={inputStyle}><option value="">Choose encounter...</option>{scenarios.map(scenario => <option key={scenario.id} value={scenario.id}>{scenario.name || 'Unnamed encounter'}</option>)}</select></label>
           </div>
 
           <section style={sendRowStyle}>
@@ -262,43 +261,14 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
           <section style={controlGridStyle}>
             <section style={npcBoxStyle}>
-              <div style={npcHeaderStyle}>
-                <strong>NPC portraits visible to players</strong>
-                <button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}><RefreshCw size={12} /> Clear</button>
-              </div>
-              <div style={npcGridStyle}>
-                {npcs.slice(0, 24).map(npc => (
-                  <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(npc.id))}>
-                    <input type="checkbox" checked={selectedNpcIds.includes(npc.id)} onChange={() => toggleNpc(npc.id)} />
-                    <span>{npc.name || 'Unnamed NPC'}</span>
-                  </label>
-                ))}
-                {npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet.</p>}
-              </div>
+              <div style={npcHeaderStyle}><strong>NPC portraits visible to players</strong><button type="button" onClick={() => setSelectedNpcIds([])} style={miniButtonStyle}><RefreshCw size={12} /> Clear</button></div>
+              <div style={npcGridStyle}>{npcs.slice(0, 24).map(npc => <label key={npc.id} style={npcPillStyle(selectedNpcIds.includes(npc.id))}><input type="checkbox" checked={selectedNpcIds.includes(npc.id)} onChange={() => toggleNpc(npc.id)} /><span>{npc.name || 'Unnamed NPC'}</span></label>)}{npcs.length === 0 && <p style={mutedStyle}>No NPCs found yet.</p>}</div>
             </section>
 
             <section style={npcBoxStyle}>
-              <div style={npcHeaderStyle}>
-                <strong>Visible combatants for display</strong>
-                <span style={combatToolbarStyle}>
-                  <button type="button" onClick={selectAllCombatants} style={miniButtonStyle}>All</button>
-                  <button type="button" onClick={clearCombatants} style={miniButtonStyle}>None</button>
-                </span>
-              </div>
+              <div style={npcHeaderStyle}><strong>Visible combatants for display</strong><span style={combatToolbarStyle}><button type="button" onClick={selectAllCombatants} style={miniButtonStyle}>All</button><button type="button" onClick={clearCombatants} style={miniButtonStyle}>None</button></span></div>
               <p style={hintStyle}>Only tick enemies or creatures the players are allowed to see. Player characters, hidden enemies, HP, AC, and private GM details stay off the display.</p>
-              <div style={npcGridStyle}>
-                {playerFacingCombatants.map((combatant, index) => {
-                  const id = combatantId(combatant, index);
-                  const checked = visibleCombatantIds.includes(id);
-                  return (
-                    <label key={id} style={npcPillStyle(checked)}>
-                      <input type="checkbox" checked={checked} onChange={() => toggleCombatant(id)} />
-                      <span>{combatantName(combatant)}</span>
-                    </label>
-                  );
-                })}
-                {playerFacingCombatants.length === 0 && <p style={mutedStyle}>Choose a combat scenario to reveal visible enemies.</p>}
-              </div>
+              <div style={npcGridStyle}>{playerFacingCombatants.map((combatant, index) => { const id = combatantId(combatant, index); const checked = visibleCombatantIds.includes(id); return <label key={id} style={npcPillStyle(checked)}><input type="checkbox" checked={checked} onChange={() => toggleCombatant(id)} /><span>{combatantName(combatant)}</span></label>; })}{playerFacingCombatants.length === 0 && <p style={mutedStyle}>Choose a combat scenario to reveal visible enemies.</p>}</div>
             </section>
           </section>
         </div>
@@ -316,6 +286,7 @@ const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 11, lineHeight: 
 const actionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const statusStripStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 10px', borderTop: `1px solid ${theme.line}`, background: theme.panel, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
 const bodyStyle = { display: 'grid', gap: 10, padding: '0 10px 10px' };
 const targetPanelStyle = { display: 'grid', gridTemplateColumns: 'minmax(180px, 0.55fr) minmax(260px, 1fr)', gap: 10, alignItems: 'stretch', background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
 const targetPanelTitleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 950, marginBottom: 4 };
