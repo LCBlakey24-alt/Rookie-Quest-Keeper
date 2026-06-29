@@ -1,0 +1,85 @@
+.rqk-home-updates button {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.rqk-home-updates-panel {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255,255,255,0.28) transparent !important;
+}
+
+@media (min-width: 781px) and (max-width: 1180px) {
+  .rqk-home-updates {
+    right: 18px !important;
+    bottom: 18px !important;
+  }
+
+  .rqk-home-updates-panel {
+    width: min(620px, calc(100vw - 36px)) !important;
+    max-height: min(760px, calc(100dvh - 94px)) !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .rqk-home-updates {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    z-index: 4400 !important;
+  }
+
+  .rqk-home-updates > button {
+    width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    background: var(--rq-button, #1f1f1f) !important;
+    color: var(--rq-text, #ffffff) !important;
+    border-left: 4px solid var(--rq-primary, #d00000) !important;
+  }
+
+  .rqk-home-updates-panel {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 64px !important;
+    width: auto !important;
+    max-height: min(74dvh, 680px) !important;
+    border-left: 4px solid var(--rq-primary, #d00000) !important;
+    background: var(--rq-surface, #2f2f2f) !important;
+  }
+
+  .rqk-home-updates-panel header {
+    padding: 12px !important;
+  }
+
+  .rqk-home-updates-panel h2 {
+    font-size: 28px !important;
+  }
+
+  .rqk-home-updates-panel article {
+    padding: 10px !important;
+  }
+
+  .rqk-home-updates-panel article > div:first-child {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .rqk-home-updates-panel footer {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .rqk-home-updates-panel footer button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .rqk-home-updates-panel footer {
+    grid-template-columns: 1fr !important;
+  }
+}
