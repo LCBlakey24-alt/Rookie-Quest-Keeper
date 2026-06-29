@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'npc-gear-combat-grants-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'NPC gear can now affect combat stats',
+    summary: 'Inventory reward handoff now supports NPC/enemy recipients. Equipping gear on an NPC can update their combat profile, including AC bonuses, weapon attacks, damage dice, damage type, and gear notes for encounter use.',
+    tags: ['Inventory', 'NPCs', 'Combat'],
+  },
+  {
     id: 'combat-loot-grant-ready-v1',
     date: 'Latest',
     audience: 'GMs',
