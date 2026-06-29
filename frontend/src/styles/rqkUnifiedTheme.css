@@ -186,6 +186,63 @@ select {
   box-shadow: none !important;
 }
 
+/* Player Rook helper: keep the helper useful but visually inside the app theme. */
+#root button[aria-label="Ask Rook for suggestions"] {
+  border: 0 !important;
+  background: var(--rq-card) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] img {
+  filter: none !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] span {
+  background: var(--rq-primary) !important;
+  color: var(--rq-text) !important;
+  border-radius: 0 !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] + div {
+  background: var(--rq-surface) !important;
+  border: 1px solid var(--rq-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--rq-text) !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] + div img {
+  filter: none !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] + div button {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+#root button[aria-label="Ask Rook for suggestions"] + div p,
+#root button[aria-label="Ask Rook for suggestions"] + div span,
+#root button[aria-label="Ask Rook for suggestions"] + div strong {
+  text-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  #root button[aria-label="Ask Rook for suggestions"] {
+    right: 12px !important;
+    bottom: 24px !important;
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  #root button[aria-label="Ask Rook for suggestions"] + div {
+    right: 12px !important;
+    bottom: 78px !important;
+    width: min(330px, calc(100vw - 80px)) !important;
+    max-height: min(62vh, 520px) !important;
+  }
+}
+
 /* GM command centre: keep the top flow obvious and stop older cards from looking like a different app. */
 #root .gm-dashboard-header,
 #root .gm-sidebar,
