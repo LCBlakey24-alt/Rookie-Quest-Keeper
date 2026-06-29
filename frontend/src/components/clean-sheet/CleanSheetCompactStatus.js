@@ -1,5 +1,5 @@
 import React from 'react';
-import { HeartPulse, Shield, Zap } from 'lucide-react';
+import { HeartPulse } from 'lucide-react';
 
 const HP_AMOUNT_OPTIONS = Array.from({ length: 99 }, (_, index) => index + 1);
 
@@ -8,29 +8,17 @@ export default function CleanSheetCompactStatus({
   maxHp,
   tempHp,
   hpAmount,
-  ac,
-  speed,
   savingHp,
   onHpAmountChange,
   onDamage,
   onHeal,
 }) {
   return (
-    <section className="clean-sheet-compact-status" aria-label="Character quick status">
+    <section className="clean-sheet-compact-status clean-sheet-compact-status--hp-only" aria-label="Character hit points">
       <div className="clean-sheet-compact-stat clean-sheet-compact-stat--hp">
         <span><HeartPulse size={15} /> HP</span>
         <strong>{currentHp}/{maxHp}</strong>
         {tempHp > 0 && <em>+{tempHp} temp</em>}
-      </div>
-
-      <div className="clean-sheet-compact-stat">
-        <span><Shield size={15} /> AC</span>
-        <strong>{ac}</strong>
-      </div>
-
-      <div className="clean-sheet-compact-stat">
-        <span><Zap size={15} /> Speed</span>
-        <strong>{speed}ft</strong>
       </div>
 
       <div className="clean-sheet-compact-hp-actions">
