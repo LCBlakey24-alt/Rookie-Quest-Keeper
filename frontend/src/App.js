@@ -29,6 +29,7 @@ import '@/styles/simpleTheme.css';
 import '@/styles/landingFinal.css';
 import '@/styles/actionFillAnimations.css';
 import '@/styles/scrollFixes.css';
+import '@/styles/rqkUnifiedTheme.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -99,7 +100,9 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
+    if (path === '/' || path.startsWith('/auth')) {
+      setTheme(THEMES.LANDING);
+    } else if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
     } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/mobile') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
