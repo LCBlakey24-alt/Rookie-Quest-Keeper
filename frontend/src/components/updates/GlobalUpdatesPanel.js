@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, Check, X } from 'lucide-react';
 import { LATEST_RELEASE_NOTE_ID, RELEASE_NOTES } from '@/components/updates/releaseNotes';
+import { ROADMAP_NOTES } from '@/components/updates/roadmapNotes';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -30,6 +31,7 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
   const [seenId, setSeenIdState] = useState(() => getSeenId());
   const hasUnread = Boolean(LATEST_RELEASE_NOTE_ID && seenId !== LATEST_RELEASE_NOTE_ID);
   const latestNotes = useMemo(() => RELEASE_NOTES.slice(0, 9), []);
+  const roadmapNotes = useMemo(() => ROADMAP_NOTES.slice(0, 5), []);
 
   useEffect(() => {
     if (!isAuthenticated || !hasUnread) return;
@@ -60,14 +62,24 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
             <div>
               <p style={eyebrowStyle}>What’s New</p>
               <h2 id="updates-title" style={titleStyle}>Recent Updates</h2>
-              <p style={subtitleStyle}>Quick notes so GMs and players know what changed.</p>
+              <p style={subtitleStyle}>Quick notes so GMs and players know what changed, plus what is planned next.</p>
             </div>
             <button type="button" onClick={close} style={closeButtonStyle} aria-label="Close updates"><X size={18} /></button>
           </header>
 
+          <div style={sectionLabelStyle}>Released</div>
           <div style={listStyle}>
             {latestNotes.map(note => <UpdateNote key={note.id} note={note} />)}
           </div>
+
+          {roadmapNotes.length > 0 && (
+            <>
+              <div style={sectionLabelStyle}>Planned / Roadmap</div>
+              <div style={listStyle}>
+                {roadmapNotes.map(note => <UpdateNote key={note.id} note={{ ...note, date: note.status || 'Planned' }} planned />)}
+              </div>
+            </>
+          )}
 
           <footer style={footerStyle}>
             <button type="button" onClick={markRead} style={secondaryButtonStyle}><Check size={14} /> Mark read</button>
@@ -79,9 +91,9 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
   );
 }
 
-function UpdateNote({ note }) {
+function UpdateNote({ note, planned = false }) {
   return (
-    <article style={noteStyle}>
+    <article style={noteStyle(planned)}>
       <div style={noteTopStyle}>
         <strong style={noteTitleStyle}>{note.title}</strong>
         <span style={audienceStyle}>{note.audience}</span>
@@ -104,8 +116,9 @@ const eyebrowStyle = { margin: '0 0 4px', color: rq.red, fontSize: 11, fontWeigh
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 34, lineHeight: 0.95 };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, fontSize: 13, lineHeight: 1.4 };
 const closeButtonStyle = { width: 34, height: 34, display: 'grid', placeItems: 'center', background: rq.card, color: rq.text, border: 0, cursor: 'pointer' };
+const sectionLabelStyle = { padding: '10px 12px 0', color: rq.text, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.12em' };
 const listStyle = { display: 'grid', gap: 8, padding: 12 };
-const noteStyle = { display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, padding: 11 };
+const noteStyle = (planned) => ({ display: 'grid', gap: 7, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: planned ? `5px solid ${rq.red}` : `1px solid ${rq.line}`, padding: 11 });
 const noteTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' };
 const noteTitleStyle = { color: rq.text, lineHeight: 1.2, fontSize: 14 };
 const audienceStyle = { color: rq.text, background: rq.bg, border: `1px solid ${rq.line}`, padding: '3px 6px', fontSize: 10, fontWeight: 950, whiteSpace: 'nowrap' };
