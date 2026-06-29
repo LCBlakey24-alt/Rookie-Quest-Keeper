@@ -1,10 +1,21 @@
 import React from 'react';
+import { ArrowLeft } from 'lucide-react';
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 
-export default function CleanSheetTabs({ tabs, activeTab, onSelectTab }) {
+export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
   return (
     <nav className="clean-sheet-tabs" aria-label="Character sheet sections">
+      <button
+        type="button"
+        className="clean-sheet-rail-back"
+        onClick={onBack}
+        aria-label="Back to dashboard"
+        title="Back"
+      >
+        <ArrowLeft size={18} />
+        <span>Back</span>
+      </button>
       {tabs.map(tab => {
         const Icon = tab.icon;
         const selected = activeTab === tab.id;
