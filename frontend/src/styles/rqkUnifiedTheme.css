@@ -10,6 +10,8 @@
   --rq-surface: #2f2f2f;
   --rq-card: #3a3a3a;
   --rq-card-hover: #444444;
+  --rq-button: #1f1f1f;
+  --rq-button-hover: #2a2a2a;
   --rq-primary: #d00000;
   --rq-primary-hover: #ff3b3b;
   --rq-primary-soft: rgba(208, 0, 0, 0.18);
@@ -186,6 +188,77 @@ select {
   box-shadow: none !important;
 }
 
+/* Player sheet: lock mobile controls to dark grey buttons with white labels/icons. */
+#root .character-page-v2 button,
+#root .character-page-v2 [role="button"],
+#root .character-page-v2 .clean-sheet-tabs button,
+#root .character-page-v2 .clean-sheet-header-stat,
+#root .character-page-v2 .clean-sheet-compact-hp-actions input {
+  background: var(--rq-button) !important;
+  background-image: none !important;
+  color: var(--rq-text) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 button:hover,
+#root .character-page-v2 [role="button"]:hover,
+#root .character-page-v2 .clean-sheet-tabs button:hover,
+#root .character-page-v2 button:focus-visible,
+#root .character-page-v2 [role="button"]:focus-visible,
+#root .character-page-v2 .clean-sheet-tabs button:focus-visible {
+  background: var(--rq-button-hover) !important;
+  color: var(--rq-text) !important;
+}
+
+#root .character-page-v2 button svg,
+#root .character-page-v2 [role="button"] svg,
+#root .character-page-v2 .clean-sheet-tabs button svg,
+#root .character-page-v2 .clean-sheet-header-stat svg,
+#root .character-page-v2 .clean-sheet-compact-stat svg,
+#root .character-page-v2 .clean-sheet-identity svg {
+  color: var(--rq-text) !important;
+  stroke: var(--rq-text) !important;
+  filter: none !important;
+}
+
+#root .character-page-v2 button span,
+#root .character-page-v2 button strong,
+#root .character-page-v2 button em,
+#root .character-page-v2 .clean-sheet-header-stat strong,
+#root .character-page-v2 .clean-sheet-header-stat span,
+#root .character-page-v2 .clean-sheet-compact-stat strong,
+#root .character-page-v2 .clean-sheet-compact-stat span,
+#root .character-page-v2 .clean-sheet-compact-stat em {
+  color: var(--rq-text) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active {
+  background: var(--rq-button) !important;
+  color: var(--rq-text) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button::before,
+#root .character-page-v2 .clean-sheet-tabs button.active::before {
+  inset: 0 auto 0 0 !important;
+  width: 4px !important;
+  height: auto !important;
+  background: var(--rq-primary) !important;
+  opacity: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active::before,
+#root .character-page-v2 .clean-sheet-tabs button:hover::before,
+#root .character-page-v2 .clean-sheet-tabs button:focus-visible::before {
+  opacity: 1 !important;
+}
+
+#root .character-page-v2 .clean-sheet-portrait {
+  background: var(--rq-button) !important;
+  border: 0 !important;
+  filter: none !important;
+}
+
 /* Player Rook helper: keep the helper useful but visually inside the app theme. */
 #root button[aria-label="Ask Rook for suggestions"] {
   border: 0 !important;
@@ -228,6 +301,10 @@ select {
 }
 
 @media (max-width: 760px) {
+  #root .character-page-v2 .clean-sheet-tabs {
+    top: 10px !important;
+  }
+
   #root button[aria-label="Ask Rook for suggestions"] {
     right: 12px !important;
     bottom: 24px !important;
