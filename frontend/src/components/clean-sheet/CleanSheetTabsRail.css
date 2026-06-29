@@ -11,16 +11,24 @@
   z-index: 70 !important;
   width: 44px !important;
   max-width: 44px !important;
+  max-height: calc(100dvh - 20px) !important;
   margin: 0 !important;
   padding: 0 !important;
   display: grid !important;
   grid-auto-flow: row !important;
   grid-template-columns: 1fr !important;
   gap: 4px !important;
-  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: none !important;
   border: 0 !important;
   background: transparent !important;
   backdrop-filter: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs::-webkit-scrollbar {
+  display: none !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button {
