@@ -1,0 +1,159 @@
+/*
+  Rookie Quest Keeper unified theme layer.
+  Loads late so older gradients, rounded cards, and mixed colour experiments get pulled
+  back into the current dark, square-corner, red-accent product style.
+*/
+
+:root {
+  --rq-bg: #242424;
+  --rq-bg-deep: #080808;
+  --rq-surface: #2f2f2f;
+  --rq-card: #3a3a3a;
+  --rq-card-hover: #444444;
+  --rq-primary: #d00000;
+  --rq-primary-hover: #ff3b3b;
+  --rq-primary-soft: rgba(208, 0, 0, 0.18);
+  --rq-text: #ffffff;
+  --rq-muted: rgba(255, 255, 255, 0.68);
+  --rq-faint: rgba(255, 255, 255, 0.46);
+  --rq-line: rgba(255, 255, 255, 0.16);
+  --rq-line-strong: rgba(255, 255, 255, 0.26);
+  --rq-radius: 0px;
+  --rq-body-font: Manrope, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --rq-title-font: "Germania One", Georgia, serif;
+}
+
+html,
+body,
+#root {
+  background: var(--rq-bg) !important;
+  color: var(--rq-text) !important;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--rq-body-font) !important;
+}
+
+#root [data-rqk-theme-surface],
+#root .rqk-themed-panel,
+#root .rqk-themed-card,
+#root .gm-dashboard-shell,
+#root .landing-page,
+#root .clean-sheet-page,
+#root .character-mode-page,
+#root .loading-screen,
+#root .auth-page {
+  background-color: var(--rq-bg) !important;
+  color: var(--rq-text) !important;
+}
+
+#root .card,
+#root .panel,
+#root .glow-card,
+#root .glow-panel,
+#root .dashboard-card,
+#root .dashboard-section,
+#root .clean-sheet-card,
+#root .clean-sheet-panel,
+#root .character-mode-card,
+#root .landing-final-feature,
+#root .landing-benefit-card,
+#root .landing-marketing-block,
+#root .landing-roadmap,
+#root .landing-final-cta,
+#root .gm-command-card,
+#root .rqk-public-screen-card {
+  border-radius: var(--rq-radius) !important;
+  box-shadow: none !important;
+  border-color: var(--rq-line) !important;
+}
+
+#root button,
+#root [role="button"],
+#root input,
+#root textarea,
+#root select {
+  border-radius: var(--rq-radius) !important;
+}
+
+#root input,
+#root textarea,
+#root select {
+  background: var(--rq-bg) !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-line) !important;
+}
+
+#root input::placeholder,
+#root textarea::placeholder {
+  color: var(--rq-faint) !important;
+}
+
+#root .btn-primary,
+#root .landing-button-primary,
+#root [data-rqk-primary="true"] {
+  background: var(--rq-primary) !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-primary) !important;
+}
+
+#root .btn-primary:hover,
+#root .landing-button-primary:hover,
+#root [data-rqk-primary="true"]:hover {
+  background: var(--rq-primary-hover) !important;
+  border-color: var(--rq-primary-hover) !important;
+}
+
+#root .btn-outline,
+#root .landing-button-ghost,
+#root [data-rqk-secondary="true"] {
+  background: var(--rq-card) !important;
+  color: var(--rq-text) !important;
+  border-color: var(--rq-line) !important;
+}
+
+#root .btn-outline:hover,
+#root .landing-button-ghost:hover,
+#root [data-rqk-secondary="true"]:hover {
+  background: var(--rq-card-hover) !important;
+  border-color: var(--rq-line-strong) !important;
+}
+
+#root h1,
+#root h2,
+#root .page-title,
+#root .hero-title,
+#root .landing-final-hero h1,
+#root .clean-sheet-identity h1,
+#root .character-mode-hero h1,
+#root .gm-campaign-title {
+  color: var(--rq-text) !important;
+  text-shadow: none !important;
+}
+
+#root p,
+#root li,
+#root small,
+#root .text-muted,
+#root .muted,
+#root .helper-text {
+  text-shadow: none !important;
+}
+
+#root [style*="border-radius"] {
+  border-radius: 0 !important;
+}
+
+@media (max-width: 780px) {
+  #root button,
+  #root [role="button"],
+  #root input,
+  #root textarea,
+  #root select {
+    min-height: 44px;
+  }
+}
