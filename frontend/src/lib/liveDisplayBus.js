@@ -36,18 +36,32 @@ export function publishDisplayState(campaignId, state) {
       channel.close();
     }
   } catch {
-    // Older browsers can still pick up the saved state when refreshed.
+    // Older browsers can still pick up the saved state when refreshed or polled.
   }
 }
 
 export function subscribeDisplayState(campaignId, onState) {
   const handlers = [];
+  let lastRaw = '';
+
+  const readSavedState = () => {
+    try {
+      const raw = localStorage.getItem(storageKey(campaignId)) || '';
+      if (!raw || raw === lastRaw) return;
+      lastRaw = raw;
+      onState(JSON.parse(raw));
+    } catch {
+      // Ignore malformed values.
+    }
+  };
 
   try {
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel(channelName(campaignId));
       channel.onmessage = (event) => {
-        if (event.data) onState(event.data);
+        if (!event.data) return;
+        try { lastRaw = JSON.stringify(event.data); } catch { /* ignore */ }
+        onState(event.data);
       };
       handlers.push(() => channel.close());
     }
@@ -58,6 +72,7 @@ export function subscribeDisplayState(campaignId, onState) {
   const onStorage = (event) => {
     if (event.key !== storageKey(campaignId) || !event.newValue) return;
     try {
+      lastRaw = event.newValue;
       onState(JSON.parse(event.newValue));
     } catch {
       // Ignore malformed values.
@@ -65,6 +80,11 @@ export function subscribeDisplayState(campaignId, onState) {
   };
   window.addEventListener('storage', onStorage);
   handlers.push(() => window.removeEventListener('storage', onStorage));
+
+  const interval = window.setInterval(readSavedState, 1500);
+  handlers.push(() => window.clearInterval(interval));
+
+  readSavedState();
 
   return () => handlers.forEach(cleanup => cleanup());
 }
