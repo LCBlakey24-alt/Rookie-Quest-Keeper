@@ -53,6 +53,54 @@
   white-space: nowrap !important;
 }
 
+.clean-sheet-hp-wheel {
+  min-width: 0 !important;
+  min-height: 42px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 2px !important;
+  align-content: center !important;
+  background: var(--rq-button, #1f1f1f) !important;
+  color: var(--rq-text, #ffffff) !important;
+  border: 0 !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+  padding: 4px 6px !important;
+}
+
+.clean-sheet-hp-wheel span {
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.clean-sheet-hp-wheel select {
+  width: 100% !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: transparent !important;
+  color: var(--rq-text, #ffffff) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  text-align: center !important;
+  text-align-last: center !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.clean-sheet-hp-wheel select:focus-visible {
+  outline: 2px solid var(--rq-primary, #d00000) !important;
+  outline-offset: 0 !important;
+}
+
 .clean-sheet-attack-card {
   padding: 0 !important;
   overflow: hidden !important;
