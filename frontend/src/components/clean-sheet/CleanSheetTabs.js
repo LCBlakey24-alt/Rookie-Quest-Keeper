@@ -1,5 +1,6 @@
 import React from 'react';
 import './CleanSheetTabs.minimal.css';
+import './CleanSheetTabsRail.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab }) {
   return (
