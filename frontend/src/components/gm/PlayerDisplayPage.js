@@ -1,14 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Maximize2, Monitor, Table2, Users } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { loadDisplayState, subscribeDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
-const theme = { bg: '#080808', panel: '#242424', card: '#3a3a3a', red: '#d00000', text: '#ffffff', soft: 'rgba(255,255,255,0.76)', muted: 'rgba(255,255,255,0.52)', line: 'rgba(255,255,255,0.16)' };
+const theme = {
+  bg: 'var(--rq-bg-deep, #080808)',
+  panel: 'var(--rq-surface, #242424)',
+  card: 'var(--rq-card, #3a3a3a)',
+  red: 'var(--rq-primary, #d00000)',
+  text: 'var(--rq-text, #ffffff)',
+  soft: 'var(--rq-muted, rgba(255,255,255,0.76))',
+  muted: 'var(--rq-faint, rgba(255,255,255,0.52))',
+  line: 'var(--rq-line, rgba(255,255,255,0.16))',
+};
 
-function displayTargetFor(state) {
-  return state?.payload?.display_target === 'virtual-table' ? 'virtual-table' : 'standing-tv';
+function normaliseTarget(target) {
+  return target === 'virtual-table' ? 'virtual-table' : 'standing-tv';
+}
+
+function displayTargetFor(state, urlTarget) {
+  return normaliseTarget(state?.payload?.display_target || urlTarget);
 }
 
 function isTable(target) {
@@ -17,6 +30,8 @@ function isTable(target) {
 
 export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
+  const [searchParams] = useSearchParams();
+  const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
 
   useEffect(() => {
@@ -30,10 +45,19 @@ export default function PlayerDisplayPage() {
     catch { return ''; }
   }, [state]);
 
-  const target = displayTargetFor(state);
+  const target = displayTargetFor(state, urlTarget);
   const goFullscreen = async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} };
 
-  return <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target}><button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button><DisplayContent state={state} target={target} /><footer style={footerStyle(target)}><span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} Rookie Quest Keeper · {isTable(target) ? 'Virtual Table Display' : 'Standing TV Display'}</span>{updatedLabel && <span>Updated {updatedLabel}</span>}</footer></main>;
+  return (
+    <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target}>
+      <button type="button" onClick={goFullscreen} style={fullscreenButtonStyle}><Maximize2 size={16} /> Fullscreen</button>
+      <DisplayContent state={state} target={target} />
+      <footer style={footerStyle(target)}>
+        <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} Rookie Quest Keeper · {isTable(target) ? 'Virtual Table Display' : 'Standing TV Display'}</span>
+        <span>{updatedLabel ? `Updated ${updatedLabel}` : 'Waiting for GM sync'}</span>
+      </footer>
+    </main>
+  );
 }
 
 function DisplayContent({ state, target }) {
@@ -47,15 +71,26 @@ function DisplayContent({ state, target }) {
   return <BlankDisplay payload={payload} target={target} />;
 }
 
-function BlankDisplay({ payload, target }) { return <section style={blankStyle(target)}><Monitor size={isTable(target) ? 36 : 54} /><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'The next reveal will appear here.'}</p></section>; }
-function TitleDisplay({ payload, target }) { return <section style={titleDisplayStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</section>; }
-function ImageDisplay({ payload, target }) { return <section style={imageShellStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle}>No image selected</div>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</section>; }
+function BlankDisplay({ payload, target }) {
+  return <section style={blankStyle(target)}><Monitor size={isTable(target) ? 36 : 54} /><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Open the GM remote and send a scene, map, handout, NPC grid, or combat view.'}</p></section>;
+}
+
+function TitleDisplay({ payload, target }) {
+  return <section style={titleDisplayStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</section>;
+}
+
+function ImageDisplay({ payload, target }) {
+  return <section style={imageShellStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle}>No image selected</div>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</section>;
+}
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
   return <section style={npcShellStyle(target)}><div style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle(target)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
 }
-function NPCCard({ npc, target }) { return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}</div></article>; }
+
+function NPCCard({ npc, target }) {
+  return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}</div></article>;
+}
 
 function CombatDisplay({ payload, target }) {
   const tokens = Array.isArray(payload.tokens) ? payload.tokens : [];
@@ -86,7 +121,7 @@ function EndSessionStatsDisplay({ payload, target }) {
     setPageIndex(0);
     const timer = window.setInterval(() => setPageIndex(prev => (prev + 1) % pages.length), isTable(target) ? 6500 : 5200);
     return () => window.clearInterval(timer);
-  }, [payload.generated_at, target]);
+  }, [payload.generated_at, target, pages.length]);
 
   const page = pages[pageIndex];
   return <section style={statsShowStyle(target)}><div key={`${payload.generated_at}-${page.id}-${pageIndex}-${target}`} style={statsSlideStyle(target)}><p style={eyebrowStyle(target)}>{page.eyebrow}</p>{renderStatsPage(page, session, allTime, target)}<div style={progressDotsStyle}>{pages.map((item, index) => <span key={item.id} style={progressDotStyle(index === pageIndex)} />)}</div></div></section>;
@@ -102,13 +137,12 @@ function renderStatsPage(page, session, allTime, target) {
 function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{award.name}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor }) { return <div style={actorRowStyle}><strong>{actor.name}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
-
 function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Number(token.x) || 50)); const top = Math.max(2, Math.min(90, Number(token.y) || 50)); return <div style={{ ...mapTokenStyle(target), left: `${left}%`, top: `${top}%` }}>{token.image_url ? <img src={token.image_url} alt={token.name} style={tokenImageStyle} /> : <span>{String(token.name || '?').slice(0, 1).toUpperCase()}</span>}</div>; }
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
-const pageStyle = (target) => ({ minHeight: '100dvh', background: theme.bg, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: '1fr auto', position: 'relative', overflow: 'hidden', transform: isTable(target) ? 'none' : undefined });
+const pageStyle = (target) => ({ minHeight: '100dvh', background: theme.bg, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: '1fr auto', position: 'relative', overflow: 'hidden' });
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: 0, background: 'rgba(58,58,58,0.72)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
-const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
+const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
 const blankStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 7 : 12, textAlign: 'center', padding: isTable(target) ? 18 : 32, minHeight: 0 });
 const blankTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(28px, 5vw, 64px)' : 'clamp(42px, 8vw, 96px)', letterSpacing: '0.03em', color: theme.text, fontWeight: 900 });
 const blankTextStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(13px, 1.4vw, 18px)' : 'clamp(16px, 2vw, 24px)', lineHeight: 1.35 });
@@ -118,7 +152,7 @@ const sceneTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, color: 
 const sceneSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 1.8vw, 24px)' : 'clamp(20px, 2.5vw, 36px)', maxWidth: 1100, lineHeight: 1.35 });
 const imageShellStyle = (target) => ({ display: 'grid', gridTemplateRows: isTable(target) ? 'minmax(0, 1fr) auto' : 'auto minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, minHeight: 0, padding: isTable(target) ? 6 : 18 });
 const imageTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(20px, 2.6vw, 42px)' : 'clamp(30px, 4vw, 64px)', textAlign: 'center', display: isTable(target) ? 'none' : 'block' });
-const mainImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: isTable(target) ? 'cover' : 'contain', minHeight: 0, background: '#000' });
+const mainImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: isTable(target) ? 'contain' : 'contain', minHeight: 0, background: '#000' });
 const missingImageStyle = { display: 'grid', placeItems: 'center', minHeight: 280, background: theme.panel, border: `1px dashed ${theme.line}`, color: theme.muted, fontSize: 22 };
 const captionStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(12px, 1.2vw, 16px)' : 'clamp(15px, 1.8vw, 22px)', textAlign: 'center', lineHeight: 1.35 });
 const npcShellStyle = (target) => ({ display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: isTable(target) ? 9 : 18, minHeight: 0, padding: isTable(target) ? 'clamp(8px, 1.4vw, 18px)' : 'clamp(18px, 3vw, 36px)' });
@@ -135,7 +169,7 @@ const combatShellStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)
 const combatMapStyle = { minHeight: 0, background: '#000', display: 'grid', placeItems: 'center', borderRight: `1px solid ${theme.line}`, position: 'relative', overflow: 'hidden' };
 const tableCombatShellStyle = { minHeight: 0, height: '100%', background: '#000', padding: 0, overflow: 'hidden' };
 const tableMapStyle = { width: '100%', height: '100%', minHeight: 0, display: 'grid', placeItems: 'center', position: 'relative', overflow: 'hidden', background: '#000' };
-const combatMapImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: isTable(target) ? 'cover' : 'contain' });
+const combatMapImageStyle = () => ({ width: '100%', height: '100%', objectFit: 'contain' });
 const tokenOverlayStyle = { position: 'absolute', inset: 0, pointerEvents: 'none' };
 const mapTokenStyle = (target) => ({ position: 'absolute', transform: 'translate(-50%, -50%)', width: isTable(target) ? 46 : 58, height: isTable(target) ? 46 : 58, border: `${isTable(target) ? 3 : 4}px solid ${theme.red}`, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', fontWeight: 950, fontSize: isTable(target) ? 18 : 24 });
 const tokenImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
@@ -154,7 +188,7 @@ const creatureInitialStyle = (compact, target) => ({ width: compact ? (isTable(t
 const statsShowStyle = (target) => ({ display: 'grid', placeItems: 'center', minHeight: 0, padding: isTable(target) ? 'clamp(12px, 2.5vw, 36px)' : 'clamp(24px, 5vw, 70px)', textAlign: 'center', overflow: 'hidden' });
 const statsSlideStyle = (target) => ({ width: 'min(1220px, 100%)', display: 'grid', gap: isTable(target) ? 12 : 24, alignContent: 'center', animation: 'rqkStatsReveal 900ms ease both' });
 const statsTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(36px, 6vw, 84px)' : 'clamp(58px, 9vw, 132px)', color: theme.text, lineHeight: 0.9 });
-const megaNumberStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(78px, 15vw, 210px)' : 'clamp(120px, 22vw, 330px)', color: theme.text, lineHeight: 0.82, textShadow: `0 0 50px ${theme.red}66` });
+const megaNumberStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(78px, 15vw, 210px)' : 'clamp(120px, 22vw, 330px)', color: theme.text, lineHeight: 0.82 });
 const statsSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 2vw, 28px)' : 'clamp(22px, 3vw, 42px)', lineHeight: 1.2 });
 const miniStatGridStyle = (target) => ({ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: isTable(target) ? 8 : 12, marginTop: 8 });
 const statNumberStyle = (hot) => ({ minHeight: 130, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 6, background: hot ? theme.red : theme.card, border: `1px solid ${theme.line}`, color: theme.text, textAlign: 'center', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
