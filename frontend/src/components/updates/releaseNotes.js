@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'gm-encounters-combat-control-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'GM Encounters now uses Combat Control',
+    summary: 'The GM Encounters tab now uses the same Combat Control workflow as Live Play, including saved encounters, party merge, monsters, NPCs, story combat beats, loot drops, and launch readiness instead of the older split combat setup shell.',
+    tags: ['Combat', 'Encounters', 'Live Play'],
+  },
+  {
     id: 'story-combat-beats-bridge-v1',
     date: 'Latest',
     audience: 'GMs',
