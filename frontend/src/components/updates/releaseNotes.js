@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'combat-loot-grant-ready-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Combat loot can now include gear details',
+    summary: 'Combat Loot Drop now captures weapon, armour, shield, magic item, damage, attack bonus, AC bonus, equip slot, attunement, and GM notes so post-fight rewards are ready for Inventory handoff and character-sheet grants.',
+    tags: ['Combat', 'Inventory', 'Rewards'],
+  },
+  {
     id: 'combat-loot-drop-v1',
     date: 'Latest',
     audience: 'GMs',
