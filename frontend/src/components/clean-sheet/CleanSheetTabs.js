@@ -4,12 +4,20 @@ import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    window.location.assign('/home');
+  };
+
   return (
     <nav className="clean-sheet-tabs" aria-label="Character sheet sections">
       <button
         type="button"
         className="clean-sheet-rail-back"
-        onClick={onBack}
+        onClick={handleBack}
         aria-label="Back to dashboard"
         title="Back"
       >
