@@ -518,6 +518,7 @@ export default function CleanCharacterSheet() {
         onBack={() => navigate('/home')}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}
         onLevelUp={() => setShowLevelUpWizard(true)}
+        onRollInitiative={makeRoll}
       />
 
       <CleanSheetCompactStatus
