@@ -63,7 +63,7 @@ function getTourForPath(pathname) {
         { title: 'Overview tool', body: 'Overview is your quick launch area. It points you to the most common actions without making you hunt through the whole GM dashboard.', target: '[data-testid="live-session-grid"] main', placement: 'top' },
         { title: 'Combat tool', body: 'Combat is for starting encounters and running fights. Prep detailed encounters before the session, then launch them from here.', target: '[data-testid="live-session-grid"] main', placement: 'top' },
         { title: 'Notes tool', body: 'Notes are for recording what changed at the table. Good notes become recap material, chronicle entries, and future consequences.', target: '[data-testid="live-session-grid"] main', placement: 'top' },
-        { title: 'Player Display tool', body: 'Use Player Display to send scenes, images, NPCs, combat views, and end-session stats to the extended browser tab or TV.', target: '[data-testid="live-session-grid"] main', placement: 'top' },
+        { title: 'Player Display tool', body: 'Use Player Display to send scenes, images, NPC grids, combat displays, and end-session stats to the extended browser tab or TV.', target: '[data-testid="live-session-grid"] main', placement: 'top' },
         { title: 'Quick rail', body: 'The right rail keeps fast dice and fast switches close to hand. It is there for table pressure moments.', target: '[data-testid="live-session-grid"] aside:last-child', placement: 'left' },
         { title: 'End Session', body: 'Use End Session when the game wraps. You can review player roll stats first, choose presentation options, then send the animated recap to the player display.', target: 'button', placement: 'bottom' },
       ],
@@ -79,20 +79,6 @@ function getTourForPath(pathname) {
         { title: 'Use fullscreen', body: 'Press Fullscreen when showing this to players. It works best as a clean theatre-style display.', target: 'button', placement: 'bottom' },
         { title: 'Scene reveals', body: 'The GM can send scene titles, images, NPC grids, combat displays, and handout-style reveals here.', target: '[data-testid="player-display-page"]', placement: 'center' },
         { title: 'End-session show', body: 'At the end of a session this display can become an animated player stats presentation, showing Nat 20s, Nat 1s, awards, and all-time totals.', target: '[data-testid="player-display-page"]', placement: 'center' },
-      ],
-    };
-  }
-
-  if (isCharacterSheet(pathname)) {
-    return {
-      tourId: 'character-sheet-v2',
-      buttonLabel: 'Sheet tutorial',
-      steps: [
-        { title: 'Character sheet', body: 'This is the player’s main table screen. It keeps actions, rolls, HP, conditions, inventory, spells, and notes close by.', target: 'main, [data-testid="clean-character-sheet"]', placement: 'center' },
-        { title: 'Turn strip', body: 'The turn strip gives fast table status: roll mode, passive perception, conditions, hit dice, and concentration.', target: '[data-testid="player-turn-strip"]', placement: 'bottom' },
-        { title: 'Play tools', body: 'Use the play tools for roll mode, rests, conditions, concentration, death saves, and physical roll logging.', target: '[data-testid="mobile-play-essentials"]', placement: 'bottom' },
-        { title: 'Physical roll logger', body: 'If you roll real dice, typing the result here helps build the end-session stats and player awards. It is optional, so it should not slow down the table.', target: '[data-testid="physical-roll-logger"]', placement: 'top' },
-        { title: 'Roll history', body: 'Roll history helps you quickly check what happened recently without scrolling through chat or asking the table to remember.', target: '[data-testid="roll-history-panel"]', placement: 'top' },
       ],
     };
   }
@@ -136,21 +122,20 @@ function getTourForPath(pathname) {
 export default function GlobalGuidedTour({ isAuthenticated = false }) {
   const location = useLocation();
   const pathname = location.pathname;
-  const compactLauncher = isCharacterSheet(pathname);
   const tour = useMemo(() => getTourForPath(pathname), [pathname]);
 
   if (!isAuthenticated) return null;
   if (pathname === '/' || pathname === '/auth') return null;
+  if (isCharacterSheet(pathname)) return null;
   if (!tour?.steps?.length) return null;
 
   return (
-    <div style={compactLauncher ? compactLauncherWrapStyle : launcherWrapStyle}>
+    <div style={launcherWrapStyle}>
       <GuidedTour
         tourId={tour.tourId}
         steps={tour.steps}
         buttonLabel={tour.buttonLabel}
         autoStart={false}
-        buttonStyle={compactLauncher ? compactReplayButtonStyle : null}
       />
     </div>
   );
@@ -161,31 +146,4 @@ const launcherWrapStyle = {
   left: 14,
   bottom: 14,
   zIndex: 4500,
-};
-
-const compactLauncherWrapStyle = {
-  position: 'fixed',
-  left: 8,
-  bottom: 12,
-  zIndex: 4500,
-};
-
-const compactReplayButtonStyle = {
-  width: 44,
-  minWidth: 44,
-  height: 44,
-  minHeight: 44,
-  border: 0,
-  background: 'var(--rq-button, #1f1f1f)',
-  color: 'var(--rq-text, #ffffff)',
-  padding: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 0,
-  fontSize: 0,
-  fontWeight: 900,
-  cursor: 'pointer',
-  fontFamily: 'var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)',
-  borderLeft: '4px solid var(--rq-primary, #d00000)',
 };
