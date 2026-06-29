@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpCircle, X } from 'lucide-react';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -31,17 +31,22 @@ function findTarget(selector) {
   try { return document.querySelector(selector); } catch { return null; }
 }
 
-function getRect(selector) {
-  const target = findTarget(selector);
-  if (!target) return null;
-  const rect = target.getBoundingClientRect();
-  if (!rect.width || !rect.height) return null;
+function rectForElement(target) {
+  if (!target || typeof window === 'undefined') return null;
+  const raw = target.getBoundingClientRect();
+  if (!raw.width || !raw.height) return null;
+  const padding = 8;
+  const left = Math.max(8, raw.left - padding);
+  const top = Math.max(8, raw.top - padding);
+  const right = Math.min(window.innerWidth - 8, raw.right + padding);
+  const bottom = Math.min(window.innerHeight - 8, raw.bottom + padding);
+  if (right <= left || bottom <= top) return null;
   return {
-    top: Math.max(8, rect.top - 8),
-    left: Math.max(8, rect.left - 8),
-    width: Math.min(window.innerWidth - 16, rect.width + 16),
-    height: Math.min(window.innerHeight - 16, rect.height + 16),
-    raw: rect,
+    top,
+    left,
+    width: right - left,
+    height: bottom - top,
+    raw,
   };
 }
 
@@ -63,10 +68,24 @@ function getCardPosition(rect, placement = 'auto') {
   return { left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width };
 }
 
+function FocusMask({ rect, onClose }) {
+  if (!rect) return <div style={fullScrimStyle} onClick={onClose} />;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const panels = [
+    { top: 0, left: 0, width: viewportWidth, height: rect.top },
+    { top: rect.top + rect.height, left: 0, width: viewportWidth, height: Math.max(0, viewportHeight - rect.top - rect.height) },
+    { top: rect.top, left: 0, width: rect.left, height: rect.height },
+    { top: rect.top, left: rect.left + rect.width, width: Math.max(0, viewportWidth - rect.left - rect.width), height: rect.height },
+  ];
+  return <>{panels.map((panel, index) => <div key={index} style={{ ...maskPanelStyle, ...panel }} onClick={onClose} />)}</>;
+}
+
 export default function GuidedTour({ tourId, steps = [], autoStart = true, buttonLabel = 'Tutorial', buttonStyle = null }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState(null);
+  const targetRef = useRef(null);
   const validSteps = useMemo(() => steps.filter(step => step?.title || step?.body), [steps]);
   const current = validSteps[index] || null;
 
@@ -79,20 +98,42 @@ export default function GuidedTour({ tourId, steps = [], autoStart = true, butto
   }, [autoStart, tourId, validSteps.length]);
 
   useEffect(() => {
+    if (!open) return undefined;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open || !current) return undefined;
-    const update = () => setRect(getRect(current.target));
-    update();
     const target = findTarget(current.target);
+    targetRef.current = target;
     target?.scrollIntoView?.({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+
+    const update = () => setRect(rectForElement(targetRef.current));
     const timer = window.setTimeout(update, 260);
+    update();
     window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      targetRef.current = null;
     };
   }, [open, current]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   if (!tourId || validSteps.length === 0) return null;
 
@@ -113,7 +154,7 @@ export default function GuidedTour({ tourId, steps = [], autoStart = true, butto
       <button type="button" onClick={start} style={buttonStyle || replayButtonStyle} data-testid="tutorial-replay-button"><HelpCircle size={15} /> {buttonLabel}</button>
       {open && current && (
         <div style={overlayStyle} role="presentation">
-          <div style={scrimStyle} onClick={() => close(false)} />
+          <FocusMask rect={rect} onClose={() => close(false)} />
           {rect && <div style={{ ...highlightStyle, top: rect.top, left: rect.left, width: rect.width, height: rect.height }} />}
           <section style={{ ...cardStyle, ...cardPosition }} role="dialog" aria-modal="true" aria-label="Page tutorial">
             <button type="button" onClick={() => close(false)} style={closeButtonStyle} aria-label="Close tutorial"><X size={18} /></button>
@@ -137,9 +178,10 @@ export default function GuidedTour({ tourId, steps = [], autoStart = true, butto
 
 const replayButtonStyle = { minHeight: 36, border: 0, background: rq.card, color: rq.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const overlayStyle = { position: 'fixed', inset: 0, zIndex: 9000, pointerEvents: 'auto', fontFamily: fontStack };
-const scrimStyle = { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.76)' };
-const highlightStyle = { position: 'fixed', border: `3px solid ${rq.red}`, boxShadow: `0 0 0 9999px rgba(0,0,0,0.34), 0 0 32px rgba(208,0,0,0.42)`, pointerEvents: 'none', transition: 'all 220ms ease', background: 'rgba(208,0,0,0.08)' };
-const cardStyle = { position: 'fixed', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,0.55)', transition: 'top 220ms ease, left 220ms ease', maxHeight: 'calc(100dvh - 28px)', overflowY: 'auto' };
+const fullScrimStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', zIndex: 1 };
+const maskPanelStyle = { position: 'fixed', background: 'rgba(0,0,0,0.78)', zIndex: 1, pointerEvents: 'auto' };
+const highlightStyle = { position: 'fixed', border: `3px solid ${rq.red}`, outline: '2px solid rgba(255,255,255,0.9)', boxShadow: '0 0 32px rgba(208,0,0,0.42)', pointerEvents: 'none', transition: 'all 180ms ease', background: 'transparent', zIndex: 2 };
+const cardStyle = { position: 'fixed', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,0.55)', transition: 'top 180ms ease, left 180ms ease', maxHeight: 'calc(100dvh - 28px)', overflowY: 'auto', zIndex: 3 };
 const closeButtonStyle = { position: 'absolute', top: 8, right: 8, width: 32, height: 32, display: 'grid', placeItems: 'center', background: rq.card, color: rq.text, border: 0, cursor: 'pointer' };
 const eyebrowStyle = { margin: '0 0 6px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.12em' };
 const titleStyle = { margin: '0 34px 8px 0', color: rq.text, fontFamily: titleFont, fontSize: 'clamp(28px, 4vw, 44px)', lineHeight: 0.95 };
