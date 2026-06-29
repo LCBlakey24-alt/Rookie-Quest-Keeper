@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'live-combat-refresh-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Live Combat refreshes when opened',
+    summary: 'When Live Play switches into Combat, it now refreshes campaign combat data so encounters saved from Monsters or other tools appear without needing a page reload.',
+    tags: ['Live Play', 'Combat', 'Monsters'],
+  },
+  {
     id: 'monsters-to-combat-handoff-v1',
     date: 'Latest',
     audience: 'GMs',
