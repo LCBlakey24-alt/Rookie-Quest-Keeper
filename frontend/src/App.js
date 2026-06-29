@@ -1,6 +1,7 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import '@/App.css';
+import '@/styles/brandedLoading.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -86,7 +87,7 @@ function RouteLoadingScreen() {
       <div className="loading-spinner">
         <img className="loading-logo" src="/brand/rqk-logo-mini.svg" alt="RQK loading" />
       </div>
-      <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening your next page…</p>
+      <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening Rookie Quest Keeper…</p>
       <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>{tip}</p>
     </div>
   );
