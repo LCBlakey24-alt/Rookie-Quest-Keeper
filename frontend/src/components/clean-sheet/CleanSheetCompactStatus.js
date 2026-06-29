@@ -1,6 +1,8 @@
 import React from 'react';
 import { HeartPulse, Shield, Zap } from 'lucide-react';
 
+const HP_AMOUNT_OPTIONS = Array.from({ length: 99 }, (_, index) => index + 1);
+
 export default function CleanSheetCompactStatus({
   currentHp,
   maxHp,
@@ -32,14 +34,16 @@ export default function CleanSheetCompactStatus({
       </div>
 
       <div className="clean-sheet-compact-hp-actions">
-        <input
-          type="number"
-          min="1"
-          inputMode="numeric"
-          value={hpAmount || 1}
-          aria-label="HP amount"
-          onChange={(event) => onHpAmountChange(event.target.value)}
-        />
+        <label className="clean-sheet-hp-wheel">
+          <span>Amount</span>
+          <select
+            value={Math.max(1, Number(hpAmount) || 1)}
+            aria-label="HP amount"
+            onChange={(event) => onHpAmountChange(Number(event.target.value))}
+          >
+            {HP_AMOUNT_OPTIONS.map(value => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
         <button type="button" className="rq-hp-action-button--minus" onClick={onDamage} disabled={savingHp}>Damage</button>
         <button type="button" className="rq-hp-action-button--plus" onClick={onHeal} disabled={savingHp}>Heal</button>
       </div>
