@@ -10,7 +10,7 @@ const palette = {
   gm: { bg: 'rgba(36,36,36,0.96)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)' },
 };
 
-const WHEEL_EASE = 'cubic-bezier(0.08, 0.82, 0.12, 1)';
+const WHEEL_EASE = 'cubic-bezier(0.06, 0.78, 0.12, 1)';
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -31,7 +31,7 @@ function normalizeDice(rolls, fallbackTotal) {
 }
 
 function wheelTargetStep(die, index) {
-  const rounds = 5 + index;
+  const rounds = 6 + index;
   return rounds * die.sides + (die.result - 1);
 }
 
@@ -71,8 +71,17 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
   const [showTotal, setShowTotal] = useState(true);
   const [settled, setSettled] = useState(true);
   const [fading, setFading] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 640 : false));
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 640);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
   const rollDetail = useMemo(() => {
     const base = dice.map((roll) => `${roll.exploded ? '↳ ' : ''}d${roll.sides}: ${roll.result}`).join(' + ');
@@ -102,10 +111,10 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
   useEffect(() => {
     if (!visible) return undefined;
     const timers = [];
-    const baseSpin = isHpLevelRoll ? 2600 : 2100;
-    const revealGap = dice.length > 1 ? 360 : 0;
+    const baseSpin = isHpLevelRoll ? 4600 : 3800;
+    const revealGap = dice.length > 1 ? 700 : 0;
     const finalReveal = baseSpin + revealGap * Math.max(0, dice.length - 1);
-    const holdDuration = isHpLevelRoll ? 3600 : 4200;
+    const holdDuration = isHpLevelRoll ? 4800 : 5200;
 
     setWheelStarted(false);
     setSettled(false);
@@ -113,7 +122,7 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
     setFading(false);
     setRevealed(dice.map(() => false));
 
-    timers.push(window.setTimeout(() => setWheelStarted(true), 80));
+    timers.push(window.setTimeout(() => setWheelStarted(true), 120));
 
     dice.forEach((die, dieIndex) => {
       timers.push(window.setTimeout(() => {
@@ -121,8 +130,8 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
       }, baseSpin + revealGap * dieIndex));
     });
 
-    timers.push(window.setTimeout(() => { setShowTotal(true); setSettled(true); }, finalReveal + 320));
-    timers.push(window.setTimeout(() => setFading(true), finalReveal + holdDuration - 500));
+    timers.push(window.setTimeout(() => { setShowTotal(true); setSettled(true); }, finalReveal + 420));
+    timers.push(window.setTimeout(() => setFading(true), finalReveal + holdDuration - 650));
     timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, finalReveal + holdDuration));
     return () => { timers.forEach(id => window.clearTimeout(id)); };
   }, [visible, label, dice, isHpLevelRoll]);
@@ -131,26 +140,27 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
 
   const statusColor = settled && isFumble ? colors.accent : colors.text;
   const status = settled ? (isCrit ? 'Natural 20' : isFumble ? 'Natural 1' : label || 'Result') : (isHpLevelRoll ? 'Rolling hit points…' : 'Rolling…');
-  const shellPosition = { left: '50%', bottom: isHpLevelRoll ? '72px' : '24px', transform: 'translateX(-50%)' };
+  const shellPosition = { left: '50%', bottom: isHpLevelRoll ? (isMobileViewport ? '118px' : '84px') : (isMobileViewport ? '88px' : '34px'), transform: 'translateX(-50%)' };
   const diceSubtotal = dice.reduce((sum, die) => sum + Number(die.result || 0), 0);
-  const wheelHeight = isHpLevelRoll ? 58 : 44;
-  const wheelWidth = isHpLevelRoll ? 54 : 42;
-  const fontSize = isHpLevelRoll ? 34 : 26;
+  const wheelHeight = isHpLevelRoll ? (isMobileViewport ? 74 : 66) : (isMobileViewport ? 60 : 54);
+  const wheelWidth = isHpLevelRoll ? (isMobileViewport ? 70 : 62) : (isMobileViewport ? 58 : 52);
+  const fontSize = isHpLevelRoll ? (isMobileViewport ? 42 : 38) : (isMobileViewport ? 36 : 32);
+  const resultFontSize = showTotal ? (isMobileViewport ? 38 : 34) : 14;
 
   return createPortal(
-    <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'none', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 500ms ease' }}>
-      <div style={{ maxWidth: 'calc(100vw - 24px)', padding: '8px 10px', borderRadius: 0, background: colors.bg, color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'left' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: dice.length > 1 ? 5 : 7 }}>
+    <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'none', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 650ms ease' }}>
+      <div style={{ maxWidth: 'calc(100vw - 24px)', padding: isMobileViewport ? '10px 12px' : '9px 11px', borderRadius: 0, background: colors.bg, color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobileViewport ? 12 : 10, textAlign: 'left' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: dice.length > 1 ? 7 : 8 }}>
           {dice.map((die, index) => {
             const isRevealed = Boolean(revealed[index]);
             const isNat1 = die.sides === 20 && die.result === 1;
             const dieColor = isRevealed && isNat1 ? colors.accent : colors.text;
             const targetStep = wheelTargetStep(die, index);
-            const duration = isHpLevelRoll ? 2600 + index * 360 : 2100 + index * 360;
+            const duration = isHpLevelRoll ? 4600 + index * 700 : 3800 + index * 700;
             return (
-              <div key={die.id} style={{ display: 'grid', gap: 2, justifyItems: 'center' }}>
+              <div key={die.id} style={{ display: 'grid', gap: 3, justifyItems: 'center' }}>
                 <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', background: colors.card, display: 'block', position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: 8, right: 8, bottom: 0, height: 2, background: isRevealed ? colors.accent : 'transparent', opacity: isRevealed ? 0.8 : 0 }} />
+                  <div style={{ position: 'absolute', left: 9, right: 9, bottom: 0, height: 2, background: isRevealed ? colors.accent : 'transparent', opacity: isRevealed ? 0.8 : 0 }} />
                   <div style={{ transform: `translateY(-${wheelStarted ? targetStep * wheelHeight : 0}px)`, transition: wheelStarted ? `transform ${duration}ms ${WHEEL_EASE}` : 'none' }}>
                     {wheelNumbers(die, index).map((number, itemIndex) => (
                       <div key={`${die.id}-${itemIndex}`} style={{ height: wheelHeight, display: 'grid', placeItems: 'center', color: itemIndex === targetStep && isRevealed ? dieColor : colors.text, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums' }}>
@@ -159,19 +169,19 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
                     ))}
                   </div>
                 </div>
-                <div style={{ color: colors.muted, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{die.exploded ? 'ex' : `d${die.sides}`}</div>
+                <div style={{ color: colors.muted, fontSize: isMobileViewport ? 10 : 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{die.exploded ? 'ex' : `d${die.sides}`}</div>
               </div>
             );
           })}
         </div>
 
-        <div style={{ display: 'grid', gap: 2, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-            <span style={{ color: statusColor, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{status}</span>
-            <strong style={{ color: colors.text, fontSize: showTotal ? 30 : 13, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 180ms ease' }}>{showTotal ? finalDisplayValue : 'rolling'}</strong>
+        <div style={{ display: 'grid', gap: 3, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, minWidth: 0 }}>
+            <span style={{ color: statusColor, fontSize: isMobileViewport ? 12 : 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{status}</span>
+            <strong style={{ color: colors.text, fontSize: resultFontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 220ms ease' }}>{showTotal ? finalDisplayValue : 'rolling'}</strong>
           </div>
-          <div style={{ color: colors.muted, fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>{showTotal ? (rollDetail || label) : `${dice.length} wheel${dice.length === 1 ? '' : 's'} scrolling`}</div>
-          {showTotal && Number(modifier) !== 0 && <div style={{ color: colors.muted, fontSize: 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
+          <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobileViewport ? 280 : 260 }}>{showTotal ? (rollDetail || label) : `${dice.length} wheel${dice.length === 1 ? '' : 's'} slowing`}</div>
+          {showTotal && Number(modifier) !== 0 && <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
         </div>
       </div>
     </div>,
