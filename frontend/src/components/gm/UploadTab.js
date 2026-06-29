@@ -166,7 +166,7 @@ export default function UploadTab({ theme }) {
             Campaign Uploads
           </h3>
           <p style={{ color: ui.muted, fontSize: 12, margin: '4px 0 0' }}>
-            Manual uploads only. AI image generation is not available.
+            Stage maps, documents, handouts, portraits, audio, and other campaign files for your GM prep.
           </p>
         </div>
       </div>
@@ -249,7 +249,10 @@ export default function UploadTab({ theme }) {
         {recentUploads.length === 0 ? (
           <div style={{ padding: '40px 20px', textAlign: 'center', color: ui.muted, background: ui.panel, borderRadius: rq.radius, border: `1px solid ${ui.border}` }}>
             <Folder size={48} style={{ marginBottom: '12px', opacity: 0.5 }} />
-            <p>No recent uploads</p>
+            <p style={{ margin: '0 0 6px', color: ui.text, fontWeight: 900 }}>No files staged yet</p>
+            <p style={{ margin: 0, lineHeight: 1.5 }}>
+              Choose an upload type above to start collecting campaign material. Persistent asset storage is still being connected, so this list shows files staged during this session.
+            </p>
           </div>
         ) : (
           <div style={{ background: ui.panel, borderRadius: rq.radius, border: `1px solid ${ui.border}`, overflow: 'hidden' }}>
