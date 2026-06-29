@@ -206,6 +206,21 @@ export default function LiveSessionGridPage() {
     if (toolId === 'combat') fetchAllData();
   };
 
+  const openMonsterEncounterInCombat = (encounter) => {
+    if (encounter?.id) {
+      setScenarios(prev => prev.some(item => item.id === encounter.id) ? prev.map(item => item.id === encounter.id ? encounter : item) : [encounter, ...prev]);
+      setSelectedScenario(encounter);
+    }
+    setSessionRefreshKey(prev => prev + 1);
+    if (typeof document !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        const combatButton = document.querySelector('[data-testid="live-tool-combat"]');
+        combatButton?.click?.();
+      });
+    }
+    fetchAllData();
+  };
+
   const renderTool = (toolId) => {
     switch (toolId) {
       case 'combat': return <CombatTab theme={theme} campaignId={campaignId} scenarios={scenarios} selectedScenario={selectedScenario} setSelectedScenario={setSelectedScenario} launchCombat={launchCombat} quickStartCombat={quickStartCombat} players={players} setShowQuickCombat={() => {}} />;
@@ -215,7 +230,7 @@ export default function LiveSessionGridPage() {
       case 'player-display': return <LivePlayerDisplayControls campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} />;
       case 'maps': return <MapsTab campaignId={campaignId} />;
       case 'npcs': return <NpcsTab theme={theme} campaignId={campaignId} nameRace={nameRace} setNameRace={setNameRace} nameGender={nameGender} setNameGender={setNameGender} generatedName={generatedName} generateRandomName={generateRandomName} saveNameAsNPC={saveNameAsNPC} savingNPC={savingNPC} savedNames={savedNames} />;
-      case 'monsters': return <MonstersTab theme={theme} campaignId={campaignId} />;
+      case 'monsters': return <MonstersTab theme={theme} campaignId={campaignId} onOpenCombat={openMonsterEncounterInCombat} />;
       case 'location': return <PartyLocationTracker campaignId={campaignId} />;
       case 'environment': return <EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />;
       case 'reference-hub': return <UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />;
