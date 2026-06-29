@@ -136,6 +136,7 @@ function getTourForPath(pathname) {
 export default function GlobalGuidedTour({ isAuthenticated = false }) {
   const location = useLocation();
   const pathname = location.pathname;
+  const compactLauncher = isCharacterSheet(pathname);
   const tour = useMemo(() => getTourForPath(pathname), [pathname]);
 
   if (!isAuthenticated) return null;
@@ -143,8 +144,14 @@ export default function GlobalGuidedTour({ isAuthenticated = false }) {
   if (!tour?.steps?.length) return null;
 
   return (
-    <div style={launcherWrapStyle}>
-      <GuidedTour tourId={tour.tourId} steps={tour.steps} buttonLabel={tour.buttonLabel} autoStart={false} />
+    <div style={compactLauncher ? compactLauncherWrapStyle : launcherWrapStyle}>
+      <GuidedTour
+        tourId={tour.tourId}
+        steps={tour.steps}
+        buttonLabel={tour.buttonLabel}
+        autoStart={false}
+        buttonStyle={compactLauncher ? compactReplayButtonStyle : null}
+      />
     </div>
   );
 }
@@ -154,4 +161,31 @@ const launcherWrapStyle = {
   left: 14,
   bottom: 14,
   zIndex: 4500,
+};
+
+const compactLauncherWrapStyle = {
+  position: 'fixed',
+  left: 8,
+  bottom: 12,
+  zIndex: 4500,
+};
+
+const compactReplayButtonStyle = {
+  width: 44,
+  minWidth: 44,
+  height: 44,
+  minHeight: 44,
+  border: 0,
+  background: 'var(--rq-button, #1f1f1f)',
+  color: 'var(--rq-text, #ffffff)',
+  padding: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 0,
+  fontSize: 0,
+  fontWeight: 900,
+  cursor: 'pointer',
+  fontFamily: 'var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)',
+  borderLeft: '4px solid var(--rq-primary, #d00000)',
 };
