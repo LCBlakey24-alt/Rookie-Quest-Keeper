@@ -307,14 +307,14 @@ select {
 
   #root button[aria-label="Ask Rook for suggestions"] {
     right: 12px !important;
-    bottom: 24px !important;
+    bottom: 68px !important;
     width: 46px !important;
     height: 46px !important;
   }
 
   #root button[aria-label="Ask Rook for suggestions"] + div {
     right: 12px !important;
-    bottom: 78px !important;
+    bottom: 122px !important;
     width: min(330px, calc(100vw - 80px)) !important;
     max-height: min(62vh, 520px) !important;
   }
