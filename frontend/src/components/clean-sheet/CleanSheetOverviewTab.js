@@ -1,4 +1,5 @@
 import React from 'react';
+import { Eye, Footprints, Gauge, Shield } from 'lucide-react';
 
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
@@ -14,13 +15,50 @@ const SAVE_NAMES = {
 
 export default function CleanSheetOverviewTab({
   character,
+  ac,
+  speed,
   proficiencyBonus,
+  passiveScores = [],
   saveProficiencies,
   skillProficiencies,
   onRoll,
 }) {
+  const coreStats = [
+    { label: 'AC', value: ac ?? character.armor_class ?? 10, icon: Shield },
+    { label: 'Speed', value: `${speed ?? character.speed ?? 30}ft`, icon: Footprints },
+    { label: 'Prof', value: fmt(proficiencyBonus), icon: Gauge },
+  ];
+
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
+      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-core-stats-section">
+        <h2>Core Stats</h2>
+        <div className="clean-sheet-core-stat-grid">
+          {coreStats.map(({ label, value, icon: Icon }) => (
+            <div key={label} className="clean-sheet-core-stat-card">
+              <Icon size={15} />
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {passiveScores.length > 0 && (
+        <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-passives-section">
+          <h2>Passives</h2>
+          <div className="clean-sheet-passive-grid">
+            {passiveScores.map(([skill, value]) => (
+              <div key={skill} className="clean-sheet-passive-card">
+                <Eye size={14} />
+                <span>Passive {skill}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="clean-sheet-panel clean-sheet-compact-section">
         <h2>Ability Scores</h2>
         <div className="clean-sheet-compact-abilities">
