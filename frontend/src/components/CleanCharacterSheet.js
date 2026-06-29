@@ -530,10 +530,8 @@ export default function CleanCharacterSheet() {
       <CleanSheetHeader
         character={character}
         subtitle={subtitle}
-        onBack={() => navigate('/home')}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}
         onLevelUp={() => setShowLevelUpWizard(true)}
-        onRollInitiative={makeRoll}
       />
 
       <CleanSheetCompactStatus
@@ -541,21 +539,22 @@ export default function CleanCharacterSheet() {
         maxHp={maxHp}
         tempHp={tempHp}
         hpAmount={hpAmount}
-        ac={ac}
-        speed={speed}
         savingHp={savingHp}
         onHpAmountChange={setHpAmount}
         onDamage={() => updateHp(-getSafeAmount(hpAmount))}
         onHeal={() => updateHp(getSafeAmount(hpAmount))}
       />
 
-      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} />
+      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
       <main className="clean-sheet-content">
         {activeTab === 'stats' && (
           <CleanSheetOverviewTab
             character={character}
+            ac={ac}
+            speed={speed}
             proficiencyBonus={proficiencyBonus}
+            passiveScores={passiveScores}
             saveProficiencies={saveProficiencies}
             skillProficiencies={skillProficiencies}
             onRoll={makeRoll}
