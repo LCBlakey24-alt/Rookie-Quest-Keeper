@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Bell, Check, X } from 'lucide-react';
 import { LATEST_RELEASE_NOTE_ID, RELEASE_NOTES } from '@/components/updates/releaseNotes';
 import { ROADMAP_NOTES } from '@/components/updates/roadmapNotes';
+import './GlobalUpdatesPanel.css';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
