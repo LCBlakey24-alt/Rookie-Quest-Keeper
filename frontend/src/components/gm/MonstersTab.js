@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Filter, PlaySquare, Plus, RefreshCw, Save, Search, Skull, Swords, X } from 'lucide-react';
+import { ArrowRight, BookOpen, Filter, PlaySquare, Plus, RefreshCw, Save, Search, Skull, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,15 @@ function creatureId(creature, index = 0) {
   return creature.id || creature.name || `creature-${index}`;
 }
 
-export default function MonstersTab({ theme, campaignId }) {
+function openCombatFallback() {
+  if (typeof document === 'undefined') return false;
+  const button = document.querySelector('[data-testid="live-tool-combat"]');
+  if (!button) return false;
+  button.click();
+  return true;
+}
+
+export default function MonstersTab({ theme, campaignId, onOpenCombat }) {
   const [customCreatures, setCustomCreatures] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [query, setQuery] = useState('');
@@ -32,6 +40,7 @@ export default function MonstersTab({ theme, campaignId }) {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [selected, setSelected] = useState({});
   const [encounterName, setEncounterName] = useState('');
+  const [lastSavedEncounter, setLastSavedEncounter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -68,7 +77,7 @@ export default function MonstersTab({ theme, campaignId }) {
     const cr = monsterCrValue(creature.cr ?? creature.challenge_rating);
     const matchesCr = crFilter === 'all' || (crFilter === 'low' && cr <= 2) || (crFilter === 'mid' && cr > 2 && cr <= 8) || (crFilter === 'high' && cr > 8);
     const matchesSource = sourceFilter === 'all' || creature.source === sourceFilter;
-    return matchesSearch && matchesType && matchesCr && matchesSource && creatureId(creature, index);
+    return matchesSearch && matchesType && matchesCr && creatureId(creature, index);
   }), [creatures, query, typeFilter, crFilter, sourceFilter]);
 
   const selectedCreatures = useMemo(() => creatures.flatMap((creature, index) => {
@@ -80,6 +89,15 @@ export default function MonstersTab({ theme, campaignId }) {
   const selectedCr = Math.round(selectedCreatures.reduce((sum, entry) => sum + (monsterCrValue(entry.creature.cr ?? entry.creature.challenge_rating) * entry.count), 0) * 100) / 100;
   const selectedCombatants = useMemo(() => selectedCreatures.flatMap(entry => Array.from({ length: entry.count }, (_, copyIndex) => monsterToCombatant(entry.creature, copyIndex))), [selectedCreatures]);
   const recentScenarios = useMemo(() => [...scenarios].sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || ''))).slice(0, 5), [scenarios]);
+
+  const openCombat = () => {
+    if (onOpenCombat) {
+      onOpenCombat(lastSavedEncounter);
+      return;
+    }
+    const opened = openCombatFallback();
+    if (!opened) toast.info('Encounter saved. Open Combat from the Live Play sidebar to run it.');
+  };
 
   const adjustCreature = (id, delta) => {
     setSelected(prev => {
@@ -112,6 +130,7 @@ export default function MonstersTab({ theme, campaignId }) {
         grid_size: 40,
       });
       setScenarios(prev => [response.data, ...prev]);
+      setLastSavedEncounter(response.data);
       clearSelection();
       toast.success('Encounter saved from monster selection', { description: `${name} is now available in Combat.` });
     } catch (error) {
@@ -138,11 +157,21 @@ export default function MonstersTab({ theme, campaignId }) {
 
       <section style={noticeStyle}>The built-in list uses open/SRD-style entries and inferred combat actions where exact action text is not stored. Custom/homebrew creatures can be added or imported for exact table stat blocks.</section>
 
+      {lastSavedEncounter && (
+        <section style={handoffStyle} data-testid="monster-combat-handoff">
+          <div>
+            <strong>{lastSavedEncounter.name}</strong>
+            <span>Saved to Combat with {lastSavedEncounter.combatants?.length || 0} combatants. Open Combat to add players, check readiness, and launch the fight.</span>
+          </div>
+          <Button onClick={openCombat} style={primaryButtonStyle}><ArrowRight size={15} /> Open Combat</Button>
+        </section>
+      )}
+
       <section style={encounterBuilderStyle}>
         <div style={builderHeaderStyle}>
           <div>
             <h3 style={sectionTitleStyle}><Swords size={18} /> Build an encounter seed</h3>
-            <p style={smallHelpStyle}>Pick monsters and quantities here, then save them as a Combat encounter. Players can be added from Combat when you run it.</p>
+            <p style={smallHelpStyle}>Pick monsters and quantities here, save them as a Combat encounter, then jump straight to Combat when ready.</p>
           </div>
           <div style={builderActionStyle}>
             <Button onClick={clearSelection} disabled={selectedCount === 0} style={secondaryButtonStyle}><X size={15} /> Clear</Button>
@@ -178,7 +207,7 @@ export default function MonstersTab({ theme, campaignId }) {
       <section style={lowerGridStyle}>
         <div style={panelStyle}>
           <h3 style={sectionTitleStyle}><PlaySquare size={18} /> Recent encounter seeds</h3>
-          {recentScenarios.length === 0 ? <p style={emptyStyle}>No saved encounters yet. Build one from the creature library above.</p> : <div style={scenarioListStyle}>{recentScenarios.map(scenario => <article key={scenario.id} style={scenarioRowStyle}><strong>{scenario.name}</strong><span>{scenario.combatants?.length || 0} combatants</span></article>)}</div>}
+          {recentScenarios.length === 0 ? <p style={emptyStyle}>No saved encounters yet. Build one from the creature library above.</p> : <div style={scenarioListStyle}>{recentScenarios.map(scenario => <article key={scenario.id} style={scenarioRowStyle}><div><strong>{scenario.name}</strong><span>{scenario.combatants?.length || 0} combatants</span></div><button type="button" onClick={() => { setLastSavedEncounter(scenario); openCombatFallback(); }} style={tinyButtonStyle}>Combat</button></article>)}</div>}
         </div>
         <div style={panelStyle}>
           <h3 style={sectionTitleStyle}><BookOpen size={18} /> Monster lookup</h3>
@@ -228,6 +257,7 @@ const eyebrowStyle = { margin: '0 0 5px', color: rq.red, fontSize: 11, fontWeigh
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 0.95, display: 'flex', gap: 10, alignItems: 'center' };
 const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 760 };
 const noticeStyle = { background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `6px solid ${rq.red}`, color: rq.soft, padding: 12, lineHeight: 1.45, fontSize: 13 };
+const handoffStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 12 };
 const statGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(100px, 1fr))', gap: 8, minWidth: 'min(100%, 420px)' };
 const statStyle = { background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, display: 'grid', gap: 3, textAlign: 'center' };
 const encounterBuilderStyle = { display: 'grid', gap: 12, background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 14 };
@@ -237,6 +267,7 @@ const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight:
 const smallHelpStyle = { margin: '5px 0 0', color: rq.muted, fontSize: 12, lineHeight: 1.4 };
 const primaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.red, color: rq.text, fontWeight: 950, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: rq.card, color: rq.text, fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: fontStack };
+const tinyButtonStyle = { minHeight: 30, border: 0, background: rq.red, color: rq.text, padding: '0 8px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const filtersStyle = { display: 'grid', gridTemplateColumns: 'minmax(220px, 1.4fr) minmax(140px, 0.6fr) 120px 120px minmax(190px, 1fr) auto', gap: 8, alignItems: 'center' };
 const searchWrapStyle = { display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 8px' };
 const selectWrapStyle = { display: 'flex', alignItems: 'center', gap: 7, background: rq.bg, border: `1px solid ${rq.line}`, padding: '0 8px' };
