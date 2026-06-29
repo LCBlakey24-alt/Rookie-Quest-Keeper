@@ -30,12 +30,33 @@
   filter: none;
 }
 
-.clean-sheet-header-stat strong {
+.clean-sheet-header-stat strong,
+.clean-sheet-header-stat-roll {
   color: var(--rq-text, #ffffff);
   font-size: 1.18rem;
   line-height: 1;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
+}
+
+.clean-sheet-header-stat-roll {
+  min-width: 44px;
+  min-height: 34px;
+  padding: 0 8px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--rq-button, #1f1f1f) !important;
+  border: 0 !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.clean-sheet-header-stat-roll:hover,
+.clean-sheet-header-stat-roll:focus-visible {
+  background: var(--rq-button-hover, #2a2a2a) !important;
+  outline: 0;
 }
 
 .clean-sheet-header-stat span {
@@ -75,8 +96,14 @@
     display: none;
   }
 
-  .clean-sheet-header-stat strong {
+  .clean-sheet-header-stat strong,
+  .clean-sheet-header-stat-roll {
     font-size: 1rem;
+  }
+
+  .clean-sheet-header-stat-roll {
+    min-width: 40px;
+    min-height: 32px;
   }
 
   .clean-sheet-header-stat span {
