@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import {
   Upload, FileText, Music, Map, Users, Folder,
-  Check, AlertCircle, X
+  Check, AlertCircle, X, Save
 } from 'lucide-react';
+import { toast } from 'sonner';
+import apiClient from '@/lib/apiClient';
 
 const rq = {
   bg: 'var(--rq-bg-main, #1A1A1A)',
@@ -65,10 +67,13 @@ const UPLOAD_TYPES = [
   }
 ];
 
-export default function UploadTab({ theme }) {
+export default function UploadTab({ theme, campaignId }) {
   const [uploadProgress, setUploadProgress] = useState({});
   const [uploadErrors, setUploadErrors] = useState({});
   const [recentUploads, setRecentUploads] = useState([]);
+  const [textTitle, setTextTitle] = useState('');
+  const [textContent, setTextContent] = useState('');
+  const [savingText, setSavingText] = useState(false);
   const fileInputRefs = useRef({});
 
   const ui = {
@@ -157,6 +162,39 @@ export default function UploadTab({ theme }) {
     });
   };
 
+  const saveTextHandout = async () => {
+    const title = textTitle.trim();
+    const content = textContent.trim();
+
+    if (!title || !content) {
+      toast.error('Add a title and campaign text before saving.');
+      return;
+    }
+
+    if (!campaignId) {
+      toast.error('Open a campaign before saving campaign material.');
+      return;
+    }
+
+    try {
+      setSavingText(true);
+      await apiClient.post(`/campaigns/${campaignId}/handouts`, {
+        title,
+        content,
+        category: 'lore',
+        attachment_type: 'text/plain',
+        attachment_name: `${title}.txt`,
+      });
+      toast.success('Campaign text saved to Secrets & Handouts');
+      setTextTitle('');
+      setTextContent('');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not save campaign text');
+    } finally {
+      setSavingText(false);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -170,6 +208,41 @@ export default function UploadTab({ theme }) {
           </p>
         </div>
       </div>
+
+      <section style={textIntakeStyle(ui)}>
+        <div>
+          <p style={eyebrowStyle(ui)}>Persistent text intake</p>
+          <h4 style={sectionTitleStyle(ui)}>Save campaign text as a handout draft</h4>
+          <p style={helperTextStyle(ui)}>
+            Paste lore, boxed text, clues, letters, or session prep here. This uses the existing Secrets & Handouts storage and does not share it with players until you choose to share it from that tab.
+          </p>
+        </div>
+        <div style={textFormStyle}>
+          <input
+            value={textTitle}
+            onChange={event => setTextTitle(event.target.value)}
+            placeholder="Title, e.g. Rusty Anchor letter"
+            style={fieldStyle(ui)}
+            aria-label="Campaign text title"
+          />
+          <textarea
+            value={textContent}
+            onChange={event => setTextContent(event.target.value)}
+            placeholder="Paste or type campaign text here..."
+            style={{ ...fieldStyle(ui), minHeight: 120, resize: 'vertical', lineHeight: 1.5 }}
+            aria-label="Campaign text content"
+          />
+          <button
+            type="button"
+            onClick={saveTextHandout}
+            disabled={savingText || !textTitle.trim() || !textContent.trim()}
+            style={saveTextButtonStyle(ui, savingText || !textTitle.trim() || !textContent.trim())}
+          >
+            <Save size={16} />
+            {savingText ? 'Saving...' : 'Save to Secrets & Handouts'}
+          </button>
+        </div>
+      </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>
         {UPLOAD_TYPES.map(type => {
@@ -251,7 +324,7 @@ export default function UploadTab({ theme }) {
             <Folder size={48} style={{ marginBottom: '12px', opacity: 0.5 }} />
             <p style={{ margin: '0 0 6px', color: ui.text, fontWeight: 900 }}>No files staged yet</p>
             <p style={{ margin: 0, lineHeight: 1.5 }}>
-              Choose an upload type above to start collecting campaign material. Persistent asset storage is still being connected, so this list shows files staged during this session.
+              Choose an upload type above to start collecting file assets for this session, or use the text intake box to save persistent campaign text to Secrets & Handouts.
             </p>
           </div>
         ) : (
@@ -285,3 +358,71 @@ export default function UploadTab({ theme }) {
     </div>
   );
 }
+
+const textIntakeStyle = (ui) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
+  gap: 16,
+  alignItems: 'start',
+  padding: 18,
+  marginBottom: 24,
+  background: ui.panel,
+  border: `1px solid ${ui.border}`,
+  borderRadius: rq.radius,
+});
+
+const eyebrowStyle = (ui) => ({
+  margin: '0 0 6px',
+  color: ui.accent,
+  fontSize: 11,
+  fontWeight: 900,
+  letterSpacing: 1,
+  textTransform: 'uppercase',
+});
+
+const sectionTitleStyle = (ui) => ({
+  margin: '0 0 8px',
+  color: ui.text,
+  fontSize: 18,
+  fontWeight: 900,
+});
+
+const helperTextStyle = (ui) => ({
+  margin: 0,
+  color: ui.muted,
+  lineHeight: 1.55,
+  fontSize: 13,
+});
+
+const textFormStyle = {
+  display: 'grid',
+  gap: 10,
+};
+
+const fieldStyle = (ui) => ({
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '12px 13px',
+  background: ui.elevated,
+  border: `1px solid ${ui.border}`,
+  borderRadius: rq.radiusSm,
+  color: ui.text,
+  outline: 'none',
+  fontSize: 14,
+});
+
+const saveTextButtonStyle = (ui, disabled) => ({
+  width: '100%',
+  minHeight: 44,
+  border: `1px solid ${disabled ? ui.border : ui.accent}`,
+  borderRadius: rq.radiusSm,
+  background: disabled ? ui.elevated : ui.accent,
+  color: disabled ? ui.muted : '#ffffff',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  fontSize: 13,
+  fontWeight: 900,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+});
