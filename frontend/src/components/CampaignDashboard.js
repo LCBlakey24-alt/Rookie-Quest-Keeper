@@ -337,6 +337,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
     { title: 'Inventory & Rewards', text: 'Track party loot and grant rewards directly to character sheets.', meta: 'Rewards', icon: Backpack, tab: 'inventory' },
     { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
     { title: 'Session Notes', text: 'Capture what happened at the table and sync useful changes into the campaign.', meta: 'Record', icon: FileText, tab: 'ingame-notes' },
+    { title: 'Campaign Uploads', text: 'Bring maps, documents, handouts, portraits, and other campaign assets into one GM workspace.', meta: 'Intake', icon: Upload, tab: 'uploads' },
     { title: 'Secrets & Handouts', text: 'Prepare lore, clues, letters, and reveal-only-when-ready player information.', meta: 'Reveal', icon: Mail, tab: 'handouts' },
     { title: 'Players & Invites', text: 'Manage players, joined characters, and the campaign join code.', meta: 'Access', icon: Users, tab: 'players' },
     { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'People', icon: UserCircle, tab: 'npcs' },
@@ -349,7 +350,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <div style={{ minWidth: 0 }}>
           <p style={desktopEyebrowStyle}>Campaign Command Centre</p>
           <h2 style={commandTitleStyle}>{campaign?.name || 'Campaign'}</h2>
-          <p style={commandSubtitleStyle}>Simple GM flow: plan the story, prep tonight, run the table, then record what changed.</p>
+          <p style={commandSubtitleStyle}>Simple GM flow: add your campaign material, plan the story, prep tonight, run the table, then record what changed.</p>
         </div>
         <div style={heroActionsStyle}>
           <button type="button" onClick={() => onOpenTab('story-arcs')} style={secondaryButtonStyle}><ScrollText size={18} /> Story Arcs</button>
@@ -362,7 +363,7 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <StatusBox label="Rules" value={campaign?.system || campaign?.rules_edition || 'Campaign'} />
         <StatusBox label="World" value={campaign?.world_name || campaign?.setting || 'Not set'} />
         <StatusBox label="Join Code" value={invite?.join_code || 'Not loaded'} />
-        <StatusBox label="Flow" value="Plan → Prep → Run → Record" />
+        <StatusBox label="Flow" value="Intake → Plan → Run → Record" />
       </section>
 
       <section style={invitePanelStyle}>
