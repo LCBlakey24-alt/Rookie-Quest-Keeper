@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'combat-loot-drop-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Combat Loot Drop added',
+    summary: 'Combat Control now has a quick loot drop panel so GMs can add post-fight rewards straight into party inventory, then grant them later with auto-attune and equipped-ready options.',
+    tags: ['Combat', 'Inventory', 'Rewards'],
+  },
+  {
     id: 'combat-party-merge-v1',
     date: 'Latest',
     audience: 'GMs',
