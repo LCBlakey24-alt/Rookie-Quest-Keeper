@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Bell, Check, X } from 'lucide-react';
 import { LATEST_RELEASE_NOTE_ID, RELEASE_NOTES } from '@/components/updates/releaseNotes';
 import { ROADMAP_NOTES } from '@/components/updates/roadmapNotes';
@@ -17,6 +18,7 @@ const rq = {
 };
 
 const seenKey = 'rqk.updates.latestSeen';
+const isCharacterSheet = (pathname) => /^\/characters\/[^/]+$/.test(pathname);
 
 function getSeenId() {
   try { return localStorage.getItem(seenKey) || ''; } catch { return ''; }
@@ -27,6 +29,8 @@ function setSeenId(id) {
 }
 
 export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
+  const location = useLocation();
+  const compactLauncher = isCharacterSheet(location.pathname);
   const [open, setOpen] = useState(false);
   const [seenId, setSeenIdState] = useState(() => getSeenId());
   const hasUnread = Boolean(LATEST_RELEASE_NOTE_ID && seenId !== LATEST_RELEASE_NOTE_ID);
@@ -52,12 +56,12 @@ export default function GlobalUpdatesPanel({ isAuthenticated = false }) {
   };
 
   return (
-    <div style={wrapStyle} data-testid="global-updates-panel">
-      <button type="button" onClick={() => setOpen(prev => !prev)} style={launcherStyle(hasUnread)} aria-label="Open updates panel">
-        <Bell size={15} /> Updates {hasUnread && <span style={unreadDotStyle} />}
+    <div style={wrapStyle(compactLauncher)} data-testid="global-updates-panel">
+      <button type="button" onClick={() => setOpen(prev => !prev)} style={launcherStyle(hasUnread, compactLauncher)} aria-label="Open updates panel">
+        <Bell size={15} /> {!compactLauncher && 'Updates'} {hasUnread && <span style={unreadDotStyle} />}
       </button>
       {open && (
-        <section style={panelStyle} role="dialog" aria-modal="false" aria-labelledby="updates-title">
+        <section style={panelStyle(compactLauncher)} role="dialog" aria-modal="false" aria-labelledby="updates-title">
           <header style={headerStyle}>
             <div>
               <p style={eyebrowStyle}>What’s New</p>
@@ -107,10 +111,10 @@ function UpdateNote({ note, planned = false }) {
   );
 }
 
-const wrapStyle = { position: 'fixed', right: 14, bottom: 14, zIndex: 4400, fontFamily: fontStack };
-const launcherStyle = (unread) => ({ minHeight: 36, border: 0, background: unread ? rq.red : rq.card, color: rq.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack, position: 'relative' });
+const wrapStyle = (compact) => ({ position: 'fixed', right: compact ? 12 : 14, bottom: compact ? 12 : 14, zIndex: 4400, fontFamily: fontStack });
+const launcherStyle = (unread, compact) => ({ minHeight: compact ? 44 : 36, minWidth: compact ? 44 : 'auto', width: compact ? 44 : 'auto', border: 0, borderLeft: compact ? `4px solid ${unread ? rq.red : rq.line}` : 0, background: unread ? rq.red : rq.card, color: rq.text, padding: compact ? 0 : '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: compact ? 0 : 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack, position: 'relative' });
 const unreadDotStyle = { position: 'absolute', top: -4, right: -4, width: 11, height: 11, background: '#ffffff', border: `2px solid ${rq.red}` };
-const panelStyle = { position: 'absolute', right: 0, bottom: 44, width: 'min(440px, calc(100vw - 28px))', maxHeight: 'min(680px, calc(100dvh - 76px))', overflowY: 'auto', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, boxShadow: '0 24px 80px rgba(0,0,0,0.55)' };
+const panelStyle = (compact) => ({ position: 'absolute', right: 0, bottom: compact ? 52 : 44, width: 'min(440px, calc(100vw - 28px))', maxHeight: 'min(680px, calc(100dvh - 76px))', overflowY: 'auto', background: rq.panel, color: rq.text, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, boxShadow: '0 24px 80px rgba(0,0,0,0.55)' });
 const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', padding: 14, borderBottom: `1px solid ${rq.line}` };
 const eyebrowStyle = { margin: '0 0 4px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.12em' };
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 34, lineHeight: 0.95 };
