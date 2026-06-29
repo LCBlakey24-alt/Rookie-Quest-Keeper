@@ -5,6 +5,7 @@
 
 .clean-sheet-stats-tab--compact .clean-sheet-compact-section {
   padding-top: 10px !important;
+  overflow: hidden !important;
 }
 
 .clean-sheet-stats-tab--compact .clean-sheet-compact-section h2 {
@@ -14,7 +15,7 @@
   font-weight: 950 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
-  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  color: var(--rq-text, #ffffff) !important;
 }
 
 .clean-sheet-compact-abilities,
@@ -28,25 +29,30 @@
 .clean-sheet-compact-ability,
 .clean-sheet-compact-save {
   min-height: 52px !important;
-  padding: 7px 6px !important;
+  padding: 8px 8px !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   grid-template-rows: auto auto !important;
   align-items: center !important;
-  gap: 2px 6px !important;
-  background: var(--rq-bg, #242424) !important;
+  gap: 2px 8px !important;
+  background: var(--rq-card, #3a3a3a) !important;
   border: 0 !important;
   border-top: 0 !important;
+  box-shadow: none !important;
 }
 
 .clean-sheet-compact-ability > span,
 .clean-sheet-compact-save > span {
+  min-width: 0 !important;
   color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
   font-size: 10px !important;
   line-height: 1 !important;
   font-weight: 950 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .clean-sheet-compact-ability > strong {
@@ -58,12 +64,18 @@
 }
 
 .clean-sheet-compact-save > em {
-  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
-  font-size: 9px !important;
+  color: var(--rq-text, #ffffff) !important;
+  background: var(--rq-primary, #d00000) !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 2px 4px !important;
+  font-size: 8px !important;
   line-height: 1 !important;
   font-style: normal !important;
-  font-weight: 900 !important;
+  font-weight: 950 !important;
   text-transform: uppercase !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .clean-sheet-roll-chip {
@@ -102,29 +114,29 @@
 
 .clean-sheet-compact-skill {
   min-height: 42px !important;
-  padding: 5px 5px 5px 7px !important;
+  padding: 6px 6px 6px 8px !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
-  gap: 6px !important;
-  background: var(--rq-bg, #242424) !important;
+  gap: 8px !important;
+  background: var(--rq-card, #3a3a3a) !important;
   border: 0 !important;
   border-top: 0 !important;
+  box-shadow: none !important;
 }
 
 .clean-sheet-skill-name {
   min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  display: flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  gap: 6px !important;
 }
 
 .clean-sheet-skill-name span {
   min-width: 0 !important;
   color: var(--rq-text, #ffffff) !important;
   font-size: 12px !important;
-  line-height: 1.1 !important;
+  line-height: 1.15 !important;
   font-weight: 850 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -140,17 +152,19 @@
   font-weight: 950 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.04em !important;
+  flex: 0 0 auto !important;
 }
 
 .clean-sheet-skill-name small {
+  order: 2 !important;
   color: var(--rq-text, #ffffff) !important;
   background: var(--rq-primary, #d00000) !important;
-  padding: 3px 4px !important;
+  padding: 3px 5px !important;
 }
 
 .clean-sheet-compact-skill .clean-sheet-roll-chip {
-  min-width: 38px !important;
-  min-height: 32px !important;
+  min-width: 40px !important;
+  min-height: 34px !important;
   font-size: 14px !important;
 }
 
@@ -172,7 +186,8 @@
   .clean-sheet-compact-ability,
   .clean-sheet-compact-save {
     min-height: 48px !important;
-    padding: 6px 5px !important;
+    padding: 7px 6px !important;
+    gap: 2px 5px !important;
   }
 
   .clean-sheet-compact-ability > strong {
@@ -186,16 +201,17 @@
   }
 
   .clean-sheet-compact-skills {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: 1fr !important;
   }
 
   .clean-sheet-compact-skill {
-    min-height: 38px !important;
-    padding: 4px 4px 4px 6px !important;
+    min-height: 40px !important;
+    padding: 5px 6px 5px 9px !important;
   }
 
   .clean-sheet-skill-name span {
-    font-size: 11px !important;
+    font-size: 13px !important;
+    white-space: normal !important;
   }
 
   .clean-sheet-skill-name em {
@@ -204,7 +220,19 @@
 }
 
 @media (max-width: 390px) {
-  .clean-sheet-compact-skills {
-    grid-template-columns: 1fr !important;
+  .clean-sheet-compact-ability,
+  .clean-sheet-compact-save {
+    padding: 7px 5px !important;
+  }
+
+  .clean-sheet-compact-ability > span,
+  .clean-sheet-compact-save > span {
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .clean-sheet-roll-chip {
+    min-width: 36px !important;
+    padding: 0 6px !important;
   }
 }
