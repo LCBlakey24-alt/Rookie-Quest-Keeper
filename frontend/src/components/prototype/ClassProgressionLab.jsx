@@ -1,13 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, CheckCircle2, Home, Info, ListChecks, Shield, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Home, Info, ListChecks, RotateCcw, Save, Shield, Sparkles, UserRound } from 'lucide-react';
 
 import { CLASS_NAMES_2014, clampLevel, getProgressionSnapshot } from '@/data/classProgressions2014';
 import { getAllClassProgressionAudits, getClassProgressionAudit, getProgressionAuditSummary } from '@/data/classProgressionAudit2014';
 import { getLevelUpProgressionPreview, getPlayerSheetProgression, getRookLevelUpSuggestions } from '@/data/playerProgressionView2014';
 import './ClassProgressionLab.css';
+import './ClassProgressionLabRook.css';
 
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
+const ROOK_LAB_STORAGE_KEY = 'rookie-quest:prototype-progressions:rook-test-character';
+
+const DEFAULT_ROOK_TEST_CHARACTER = {
+  name: 'Rook test hero',
+  character_class: 'Warlock',
+  level: 1,
+  backstory: 'A protective adventurer with secrets, old wounds, and a need to keep their friends alive.',
+  notes: 'Testing Rook suggestions, known spell swaps, ASI / feat prompts, and what must stay hidden until level-up.',
+};
 
 function formatList(items = []) {
   return items?.length ? items.join(', ') : '—';
@@ -37,6 +47,35 @@ function getAuditIcon(level) {
   if (level === 'danger') return <AlertTriangle size={16} />;
   if (level === 'warning') return <AlertTriangle size={16} />;
   return <Info size={16} />;
+}
+
+function sanitiseRookTestCharacter(character = {}) {
+  const safeClass = CLASS_NAMES_2014.includes(character.character_class)
+    ? character.character_class
+    : DEFAULT_ROOK_TEST_CHARACTER.character_class;
+
+  return {
+    name: character.name || DEFAULT_ROOK_TEST_CHARACTER.name,
+    character_class: safeClass,
+    level: clampLevel(character.level || DEFAULT_ROOK_TEST_CHARACTER.level),
+    backstory: character.backstory || '',
+    notes: character.notes || '',
+  };
+}
+
+function loadRookTestCharacter() {
+  if (typeof window === 'undefined') return DEFAULT_ROOK_TEST_CHARACTER;
+
+  try {
+    const saved = window.localStorage.getItem(ROOK_LAB_STORAGE_KEY);
+    if (!saved) return DEFAULT_ROOK_TEST_CHARACTER;
+    return sanitiseRookTestCharacter({
+      ...DEFAULT_ROOK_TEST_CHARACTER,
+      ...JSON.parse(saved),
+    });
+  } catch (error) {
+    return DEFAULT_ROOK_TEST_CHARACTER;
+  }
 }
 
 function SlotPills({ slots = {}, spellcasting }) {
@@ -135,7 +174,111 @@ function SheetLevelUpSplitPanel({ sheetView, levelUpPreview }) {
   );
 }
 
-function RookSuggestionsPanel({ advice }) {
+function LevelUpDeltaPanel({ levelUpPreview }) {
+  if (!levelUpPreview) {
+    return (
+      <section className="progression-card progression-card--wide progression-delta-panel">
+        <h2>Next level handoff</h2>
+        <p className="progression-empty">This character is already at level 20, so there is no next-level automation preview.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="progression-card progression-card--wide progression-delta-panel">
+      <div>
+        <h2>Next level handoff</h2>
+        <p>Use this as the checklist for what the real level-up flow will need to reveal, update, or ask the player.</p>
+      </div>
+      <div className="progression-delta-grid">
+        <article>
+          <span>Features gained</span>
+          <strong>{levelUpPreview.gainedFeatures.length || '—'}</strong>
+          <ul>
+            {levelUpPreview.gainedFeatures.length
+              ? levelUpPreview.gainedFeatures.map(feature => <li key={feature}>{feature}</li>)
+              : <li>No new listed features.</li>}
+          </ul>
+        </article>
+        <article>
+          <span>Player choices</span>
+          <strong>{[levelUpPreview.willChooseSubclass, levelUpPreview.willChooseAsi, levelUpPreview.spellReplacementOption].filter(Boolean).length || '—'}</strong>
+          <ul>
+            <li>Subclass: {levelUpPreview.willChooseSubclass ? 'ask now' : 'not this level'}</li>
+            <li>ASI / feat: {levelUpPreview.willChooseAsi ? 'ask now' : 'not this level'}</li>
+            <li>Known spell swap: {levelUpPreview.spellReplacementOption ? 'offer optional swap' : 'not available'}</li>
+          </ul>
+        </article>
+        <article>
+          <span>Spell slot changes</span>
+          <strong>{levelUpPreview.spellSlotChanges.length || '—'}</strong>
+          <ul>
+            {levelUpPreview.spellSlotChanges.length
+              ? levelUpPreview.spellSlotChanges.map(change => <li key={change.slotLevel}>Lv {change.slotLevel}: {change.from} → {change.to}</li>)
+              : <li>No spell slot change.</li>}
+          </ul>
+        </article>
+        <article>
+          <span>Resource changes</span>
+          <strong>{levelUpPreview.resourceChanges.length || '—'}</strong>
+          <ul>
+            {levelUpPreview.resourceChanges.length
+              ? levelUpPreview.resourceChanges.map(change => <li key={change.key}>{change.label}: {formatResourceValue(change.from)} → {formatResourceValue(change.to)}</li>)
+              : <li>No tracked resource change.</li>}
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function RookTestCharacterPanel({ testCharacter, saveStatus, onChange, onReset }) {
+  return (
+    <section className="progression-card progression-card--wide progression-rook-tester">
+      <div className="progression-rook-tester-header">
+        <div>
+          <span><UserRound size={16} /> Local Rook test character</span>
+          <h2>Rook suggestion tester</h2>
+          <p>Change the test hero’s story and notes to see whether Rook’s level-up ideas react properly before this touches real character data.</p>
+        </div>
+        <div className="progression-save-pill"><Save size={14} /> {saveStatus}</div>
+      </div>
+
+      <div className="progression-rook-form">
+        <label>
+          <span>Test name</span>
+          <input
+            type="text"
+            value={testCharacter.name}
+            onChange={event => onChange({ ...testCharacter, name: event.target.value })}
+          />
+        </label>
+        <label className="progression-rook-field--wide">
+          <span>Backstory / bonds / flaws</span>
+          <textarea
+            rows={4}
+            value={testCharacter.backstory}
+            onChange={event => onChange({ ...testCharacter, backstory: event.target.value })}
+          />
+        </label>
+        <label className="progression-rook-field--wide">
+          <span>Build notes / table behaviour</span>
+          <textarea
+            rows={3}
+            value={testCharacter.notes}
+            onChange={event => onChange({ ...testCharacter, notes: event.target.value })}
+          />
+        </label>
+      </div>
+
+      <button type="button" className="progression-rook-reset" onClick={onReset}>
+        <RotateCcw size={16} /> Reset local test hero
+      </button>
+    </section>
+  );
+}
+
+function RookSuggestionsPanel({ advice, characterName }) {
   if (!advice) return null;
   return (
     <section className="progression-card progression-card--wide progression-rook-panel">
@@ -144,7 +287,7 @@ function RookSuggestionsPanel({ advice }) {
           <h2>Rook level-up suggestion scaffold</h2>
           <p>{advice.summary}</p>
         </div>
-        <span>Level {advice.fromLevel} → {advice.toLevel}</span>
+        <span>{characterName || 'Test hero'} · Level {advice.fromLevel} → {advice.toLevel}</span>
       </div>
       {advice.backstoryReasons.length > 0 && (
         <div className="progression-rook-reasons">
@@ -215,22 +358,42 @@ function ClassComparisonTable({ snapshots, audits, selectedClass }) {
 }
 
 export default function ClassProgressionLab() {
-  const [className, setClassName] = useState('Warlock');
-  const [level, setLevel] = useState(1);
+  const [testCharacter, setTestCharacter] = useState(loadRookTestCharacter);
+  const [saveStatus, setSaveStatus] = useState('Saved locally');
+
+  const className = testCharacter.character_class;
+  const level = clampLevel(testCharacter.level);
   const snapshot = useMemo(() => getProgressionSnapshot(className, level), [className, level]);
   const audit = useMemo(() => getClassProgressionAudit(className, level), [className, level]);
   const auditSummary = useMemo(() => getProgressionAuditSummary(level), [level]);
   const sheetView = useMemo(() => getPlayerSheetProgression(className, level), [className, level]);
   const levelUpPreview = useMemo(() => getLevelUpProgressionPreview(className, level), [className, level]);
   const rookAdvice = useMemo(() => getRookLevelUpSuggestions({
+    ...testCharacter,
     character_class: className,
-    backstory: 'A protective adventurer with secrets, old wounds, and a need to keep their friends alive.',
-  }, level), [className, level]);
+    className,
+    notes: testCharacter.notes,
+  }, level), [className, level, testCharacter]);
   const comparisonSnapshots = useMemo(
     () => CLASS_NAMES_2014.map(name => getProgressionSnapshot(name, level)).filter(Boolean),
     [level]
   );
   const comparisonAudits = useMemo(() => getAllClassProgressionAudits(level), [level]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(ROOK_LAB_STORAGE_KEY, JSON.stringify(sanitiseRookTestCharacter(testCharacter)));
+      setSaveStatus('Saved locally');
+    } catch (error) {
+      setSaveStatus('Local save failed');
+    }
+  }, [testCharacter]);
+
+  function updateTestCharacter(nextCharacter) {
+    setTestCharacter(sanitiseRookTestCharacter(nextCharacter));
+  }
 
   if (!snapshot) return null;
 
@@ -249,13 +412,13 @@ export default function ClassProgressionLab() {
       <section className="progression-controls">
         <label>
           <span>Class</span>
-          <select value={className} onChange={event => setClassName(event.target.value)}>
+          <select value={className} onChange={event => updateTestCharacter({ ...testCharacter, character_class: event.target.value })}>
             {CLASS_NAMES_2014.map(name => <option key={name} value={name}>{name}</option>)}
           </select>
         </label>
         <label>
-          <span>Level</span>
-          <input type="number" min="1" max="20" value={level} onChange={event => setLevel(clampLevel(event.target.value))} />
+          <span>Current level</span>
+          <input type="number" min="1" max="20" value={level} onChange={event => updateTestCharacter({ ...testCharacter, level: event.target.value })} />
         </label>
       </section>
 
@@ -265,16 +428,24 @@ export default function ClassProgressionLab() {
             key={levelOption}
             type="button"
             className={levelOption === snapshot.level ? 'is-active' : undefined}
-            onClick={() => setLevel(levelOption)}
+            onClick={() => updateTestCharacter({ ...testCharacter, level: levelOption })}
           >
             {levelOption}
           </button>
         ))}
       </section>
 
+      <RookTestCharacterPanel
+        testCharacter={testCharacter}
+        saveStatus={saveStatus}
+        onChange={updateTestCharacter}
+        onReset={() => updateTestCharacter(DEFAULT_ROOK_TEST_CHARACTER)}
+      />
+
       <AuditPanel audit={audit} summary={auditSummary} />
       <SheetLevelUpSplitPanel sheetView={sheetView} levelUpPreview={levelUpPreview} />
-      <RookSuggestionsPanel advice={rookAdvice} />
+      <LevelUpDeltaPanel levelUpPreview={levelUpPreview} />
+      <RookSuggestionsPanel advice={rookAdvice} characterName={testCharacter.name} />
 
       <section className="progression-summary-grid">
         <article><span>Class</span><strong>{snapshot.className}</strong><em>{getCastingLabel(snapshot)}</em></article>
