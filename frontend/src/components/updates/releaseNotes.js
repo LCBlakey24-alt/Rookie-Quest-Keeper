@@ -1,5 +1,13 @@
 export const RELEASE_NOTES = [
   {
+    id: 'story-combat-beats-bridge-v1',
+    date: 'Latest',
+    audience: 'GMs',
+    title: 'Story Combat Beats now feed Combat Control',
+    summary: 'Combat Control now shows combat beats from the active Story Arc chapter. GMs can mark beats planned/ready/ran/skipped, create encounters from beats, link beats to saved encounters, and launch linked fights with the current party.',
+    tags: ['Story Arcs', 'Combat', 'Encounters'],
+  },
+  {
     id: 'player-display-target-layouts-v1',
     date: 'Latest',
     audience: 'GMs and Players',
