@@ -455,6 +455,21 @@ export default function CleanCharacterSheet() {
     />
   );
 
+  const combatTools = (
+    <CleanCombatTab
+      character={character}
+      ac={ac}
+      speed={speed}
+      proficiencyBonus={proficiencyBonus}
+      onRoll={makeRoll}
+      onCharacterUpdate={patchCharacter}
+      onDiceResult={(entry) => {
+        setRollBurst(entry);
+        setRollHistory(prev => [entry, ...prev].slice(0, 12));
+      }}
+    />
+  );
+
   if (loading) {
     return (
       <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
@@ -547,24 +562,8 @@ export default function CleanCharacterSheet() {
           />
         )}
 
-        {activeTab === 'actions' && (
-          <>
-            {playTools}
-            <CleanCombatTab
-              character={character}
-              ac={ac}
-              speed={speed}
-              proficiencyBonus={proficiencyBonus}
-              onRoll={makeRoll}
-              onCharacterUpdate={patchCharacter}
-              onDiceResult={(entry) => {
-                setRollBurst(entry);
-                setRollHistory(prev => [entry, ...prev].slice(0, 12));
-              }}
-            />
-          </>
-        )}
-
+        {activeTab === 'turn' && playTools}
+        {activeTab === 'combat' && combatTools}
         {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
