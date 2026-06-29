@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, Coins, Eraser, Gift, Play, Save, Search, Skull, Swords, UserCheck, UserCircle, Users, X, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Coins, Eraser, Gift, Link, Play, Save, Search, Skull, Swords, UserCheck, UserCircle, Users, X, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
@@ -8,6 +8,15 @@ import apiClient from '@/lib/apiClient';
 const toNumber = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const dexMod = (stats = {}) => Math.floor(((toNumber(stats.dexterity, 10)) - 10) / 2);
 const EMPTY_LOOT = { name: '', item_type: 'misc', quantity: 1, value: '', description: '', is_magical: false, attunement_required: false, damage_dice: '', damage_type: '', attack_bonus: 0, ac_bonus: 0, equip_slot: '', notes: '' };
+const beatStatuses = ['planned', 'ready', 'ran', 'skipped'];
+
+const fallbackTheme = {
+  bg: { card: '#3a3a3a', panel: '#2f2f2f' },
+  border: 'rgba(255,255,255,0.16)',
+  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
+  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
+  gradient: '#d00000',
+};
 
 function playerToCombatant(player) {
   const maxHp = toNumber(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp, 10);
@@ -66,23 +75,6 @@ function playtestCreatureToCreature(record, index = 0) {
   };
 }
 
-function combatReadinessWarnings(combatants = []) {
-  const warnings = [];
-  if (combatants.length === 0) {
-    warnings.push('No combatants selected.');
-    return warnings;
-  }
-  if (!combatants.some(combatant => combatant.type === 'player')) warnings.push('No player characters selected.');
-  if (!combatants.some(combatant => combatant.type !== 'player')) warnings.push('No enemies selected.');
-  const missingHp = combatants.filter(combatant => !Number.isFinite(Number(combatant.hp ?? combatant.maxHp))).map(combatant => combatant.name);
-  if (missingHp.length) warnings.push(`Missing HP for ${missingHp.slice(0, 3).join(', ')}${missingHp.length > 3 ? '…' : ''}.`);
-  const missingAc = combatants.filter(combatant => !Number.isFinite(Number(combatant.ac))).map(combatant => combatant.name);
-  if (missingAc.length) warnings.push(`Missing AC for ${missingAc.slice(0, 3).join(', ')}${missingAc.length > 3 ? '…' : ''}.`);
-  const enemiesWithoutActions = combatants.filter(combatant => combatant.type !== 'player' && !combatant.actions?.length && !combatant.description).map(combatant => combatant.name);
-  if (enemiesWithoutActions.length) warnings.push(`No actions/description for ${enemiesWithoutActions.slice(0, 3).join(', ')}${enemiesWithoutActions.length > 3 ? '…' : ''}.`);
-  return warnings;
-}
-
 function creatureToCombatant(creature, index = 0) {
   const maxHp = toNumber(creature.hp ?? creature.maxHp ?? creature.hit_points, 10);
   return {
@@ -115,6 +107,23 @@ function mergeScenarioWithParty(scenario, players = []) {
   return { ...scenario, name: scenario.name || 'Saved Encounter', combatants: [...party, ...existing], party_auto_added: party.length > 0 };
 }
 
+function combatReadinessWarnings(combatants = []) {
+  const warnings = [];
+  if (combatants.length === 0) {
+    warnings.push('No combatants selected.');
+    return warnings;
+  }
+  if (!combatants.some(combatant => combatant.type === 'player')) warnings.push('No player characters selected.');
+  if (!combatants.some(combatant => combatant.type !== 'player')) warnings.push('No enemies selected.');
+  const missingHp = combatants.filter(combatant => !Number.isFinite(Number(combatant.hp ?? combatant.maxHp))).map(combatant => combatant.name);
+  if (missingHp.length) warnings.push(`Missing HP for ${missingHp.slice(0, 3).join(', ')}${missingHp.length > 3 ? '…' : ''}.`);
+  const missingAc = combatants.filter(combatant => !Number.isFinite(Number(combatant.ac))).map(combatant => combatant.name);
+  if (missingAc.length) warnings.push(`Missing AC for ${missingAc.slice(0, 3).join(', ')}${missingAc.length > 3 ? '…' : ''}.`);
+  const enemiesWithoutActions = combatants.filter(combatant => combatant.type !== 'player' && !combatant.actions?.length && !combatant.description).map(combatant => combatant.name);
+  if (enemiesWithoutActions.length) warnings.push(`No actions/description for ${enemiesWithoutActions.slice(0, 3).join(', ')}${enemiesWithoutActions.length > 3 ? '…' : ''}.`);
+  return warnings;
+}
+
 function lootPayload(loot) {
   return {
     name: String(loot.name || '').trim(),
@@ -133,9 +142,21 @@ function lootPayload(loot) {
   };
 }
 
-export default function CombatTab({ theme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players = [] }) {
+function asList(value) { return Array.isArray(value) ? value : []; }
+function nice(value = '') { return String(value).replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase()); }
+
+function storyFocusFrom(arcs) {
+  const arc = arcs.find(item => item.status === 'active') || arcs.find(item => item.status !== 'completed') || arcs[0] || null;
+  if (!arc) return { arc: null, chapter: null, beats: [] };
+  const chapter = asList(arc.chapters).find(item => item.status === 'prepped') || asList(arc.chapters).find(item => item.status === 'planned') || asList(arc.chapters).find(item => item.status !== 'played') || asList(arc.chapters)[0] || null;
+  return { arc, chapter, beats: asList(chapter?.combats) };
+}
+
+export default function CombatTab({ theme: incomingTheme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players = [] }) {
+  const theme = incomingTheme || fallbackTheme;
   const [npcs, setNpcs] = useState([]);
   const [creatures, setCreatures] = useState([]);
+  const [storyArcs, setStoryArcs] = useState([]);
   const [selected, setSelected] = useState({ players: {}, npcs: {}, creatures: {} });
   const [query, setQuery] = useState('');
   const [loadingLists, setLoadingLists] = useState(false);
@@ -143,30 +164,29 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
   const [lootDraft, setLootDraft] = useState(EMPTY_LOOT);
   const [savingLoot, setSavingLoot] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadQuickLists() {
-      try {
-        setLoadingLists(true);
-        const [npcRes, creatureRes, playtestCreatureRes] = await Promise.all([
-          apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
-          apiClient.get(`/user/content/playtest-content?${new URLSearchParams({ content_type: 'creatures', campaign_id: campaignId }).toString()}`).catch(() => ({ data: { records: [] } })),
-        ]);
-        if (!cancelled) {
-          const customCreatures = Array.isArray(creatureRes.data) ? creatureRes.data : creatureRes.data?.creatures || [];
-          const playtestCreatures = (playtestCreatureRes.data?.records || []).map(playtestCreatureToCreature);
-          setNpcs(Array.isArray(npcRes.data) ? npcRes.data : npcRes.data?.npcs || []);
-          setCreatures([...customCreatures, ...playtestCreatures]);
-        }
-      } finally {
-        if (!cancelled) setLoadingLists(false);
-      }
+  const loadQuickLists = async () => {
+    if (!campaignId) return;
+    setLoadingLists(true);
+    try {
+      const [npcRes, creatureRes, playtestCreatureRes, storyRes] = await Promise.all([
+        apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/custom-creatures`).catch(() => ({ data: [] })),
+        apiClient.get(`/user/content/playtest-content?${new URLSearchParams({ content_type: 'creatures', campaign_id: campaignId }).toString()}`).catch(() => ({ data: { records: [] } })),
+        apiClient.get(`/campaigns/${campaignId}/story-arcs`).catch(() => ({ data: [] })),
+      ]);
+      const customCreatures = Array.isArray(creatureRes.data) ? creatureRes.data : creatureRes.data?.creatures || [];
+      const playtestCreatures = (playtestCreatureRes.data?.records || []).map(playtestCreatureToCreature);
+      setNpcs(Array.isArray(npcRes.data) ? npcRes.data : npcRes.data?.npcs || []);
+      setCreatures([...customCreatures, ...playtestCreatures]);
+      setStoryArcs(Array.isArray(storyRes.data) ? storyRes.data : []);
+    } finally {
+      setLoadingLists(false);
     }
-    if (campaignId) loadQuickLists();
-    return () => { cancelled = true; };
-  }, [campaignId]);
+  };
 
+  useEffect(() => { loadQuickLists(); }, [campaignId]);
+
+  const storyFocus = useMemo(() => storyFocusFrom(storyArcs), [storyArcs]);
   const filtered = (items) => {
     const term = query.trim().toLowerCase();
     if (!term) return items;
@@ -210,11 +230,11 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
     launchCombat(buildQuickScenario());
   };
 
-  const launchSavedEncounter = (withParty = true) => {
-    if (!selectedScenario) return;
-    const scenario = withParty ? selectedScenarioWithParty : selectedScenario;
+  const launchSavedEncounter = (withParty = true, scenarioOverride = null) => {
+    const base = scenarioOverride || selectedScenario;
+    if (!base) return;
+    const scenario = withParty ? mergeScenarioWithParty(base, players) : base;
     if (!scenario) return;
-    if (withParty && !selectedScenarioAlreadyHasPlayers && players.length > 0) toast.success('Current party added to saved encounter', { description: `${players.length} player character${players.length === 1 ? '' : 's'} included.` });
     if (combatReadinessWarnings(scenario.combatants || []).length > 0) toast.warning(`Combat readiness: ${combatReadinessWarnings(scenario.combatants || [])[0]}`);
     launchCombat(scenario);
   };
@@ -229,13 +249,48 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
     if (!name) return;
     try {
       setSavingEncounter(true);
-      const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, { name: name.trim(), description: 'Saved from Quick Combat picker', combatants: selectedCombatants });
+      const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, { name: name.trim(), description: 'Saved from Quick Combat picker', combatants: selectedCombatants, show_grid: true, grid_size: 40 });
       setSelectedScenario?.(response.data);
       toast.success('Encounter saved');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to save encounter');
     } finally {
       setSavingEncounter(false);
+    }
+  };
+
+  const saveBeatAsEncounter = async (beat) => {
+    const description = [`Story combat beat from ${storyFocus.arc?.title || 'Story Arc'} / ${storyFocus.chapter?.title || 'Chapter'}.`, beat.trigger ? `Trigger: ${beat.trigger}` : '', beat.enemy_notes ? `Enemies: ${beat.enemy_notes}` : '', beat.map_notes ? `Map: ${beat.map_notes}` : ''].filter(Boolean).join('\n');
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/combat-scenarios`, { name: beat.title || 'Story Combat Beat', description, combatants: [], show_grid: true, grid_size: 40 });
+      setSelectedScenario?.(response.data);
+      await linkBeatToScenario(beat, response.data.id, true);
+      toast.success('Story combat beat saved as encounter', { description: 'Add monsters or launch it from Saved Encounters.' });
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not create encounter from beat');
+    }
+  };
+
+  const linkBeatToScenario = async (beat, scenarioId, silent = false) => {
+    if (!storyFocus.arc || !storyFocus.chapter || !beat?.id || !scenarioId) return;
+    const nextCombats = asList(storyFocus.chapter.combats).map(item => item.id === beat.id ? { ...item, scenario_id: scenarioId, status: item.status === 'planned' ? 'ready' : item.status, updated_at: new Date().toISOString() } : item);
+    try {
+      const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${storyFocus.arc.id}/chapters/${storyFocus.chapter.id}`, { combats: nextCombats });
+      setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+      if (!silent) toast.success('Combat beat linked to selected encounter');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not link combat beat');
+    }
+  };
+
+  const updateBeatStatus = async (beat, status) => {
+    if (!storyFocus.arc || !storyFocus.chapter || !beat?.id) return;
+    const nextCombats = asList(storyFocus.chapter.combats).map(item => item.id === beat.id ? { ...item, status, updated_at: new Date().toISOString() } : item);
+    try {
+      const response = await apiClient.put(`/campaigns/${campaignId}/story-arcs/${storyFocus.arc.id}/chapters/${storyFocus.chapter.id}`, { combats: nextCombats });
+      setStoryArcs(prev => prev.map(arc => arc.id === response.data.id ? response.data : arc));
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not update combat beat');
     }
   };
 
@@ -260,6 +315,18 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
   return (
     <div>
       <h2 style={{ fontSize: '22px', color: theme.text.primary, fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><Swords size={24} style={{ color: theme.accent.primary }} /> Combat Control</h2>
+
+      <StoryCombatBeatsPanel
+        theme={theme}
+        focus={storyFocus}
+        scenarios={scenarios}
+        selectedScenario={selectedScenario}
+        onSelectScenario={setSelectedScenario}
+        onLaunch={launchSavedEncounter}
+        onSaveBeat={saveBeatAsEncounter}
+        onLinkBeat={linkBeatToScenario}
+        onUpdateStatus={updateBeatStatus}
+      />
 
       <section style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 14, marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
@@ -300,10 +367,7 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
           <h3 style={{ fontSize: '16px', color: theme.accent.gm, fontWeight: '800', marginBottom: '12px' }}>Saved Encounters</h3>
           {scenarios.length === 0 ? <EmptyEncounter theme={theme} /> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-              {scenarios.map(s => {
-                const hasParty = hasPlayers(s.combatants || []);
-                return <button key={s.id} data-testid={`encounter-${s.id}`} onClick={() => setSelectedScenario(s)} style={{ padding: '14px 16px', background: selectedScenario?.id === s.id ? theme.accent.gmSubtle : theme.bg.card, border: `1px solid ${selectedScenario?.id === s.id ? theme.accent.gm : theme.border}`, borderLeft: selectedScenario?.id === s.id ? `3px solid ${theme.accent.gm}` : `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.primary, textAlign: 'left', cursor: 'pointer' }}><div style={{ fontWeight: 800, marginBottom: 4, fontSize: 15 }}>{s.name}</div><div style={{ fontSize: 13, color: theme.text.secondary, display: 'flex', gap: 12, flexWrap: 'wrap' }}><span>{s.combatants?.length || 0} saved combatants</span>{hasParty ? <span style={{ color: '#4a7dff' }}>Includes Party</span> : players.length > 0 && <span style={{ color: theme.accent.gm }}>Party can auto-join</span>}{s.map_url && <span style={{ color: theme.accent.gm }}>Has Map</span>}{s.combatants?.some(c => c.loot?.length > 0) && <span style={{ color: '#F59E0B' }}>Has Loot</span>}</div></button>;
-              })}
+              {scenarios.map(s => <EncounterButton key={s.id} theme={theme} scenario={s} selected={selectedScenario?.id === s.id} players={players} onClick={() => setSelectedScenario?.(s)} />)}
             </div>
           )}
         </section>
@@ -328,8 +392,51 @@ export default function CombatTab({ theme, campaignId, scenarios = [], selectedS
   );
 }
 
+function StoryCombatBeatsPanel({ theme, focus, scenarios, selectedScenario, onSelectScenario, onLaunch, onSaveBeat, onLinkBeat, onUpdateStatus }) {
+  const beats = focus.beats || [];
+  const linkedScenario = (beat) => scenarios.find(scenario => scenario.id === beat.scenario_id || scenario.name === beat.scenario_id);
+  return (
+    <section style={{ background: theme.bg.card, border: `1px solid ${theme.border}`, borderLeft: `5px solid ${theme.accent.primary}`, borderRadius: 0, padding: 14, marginBottom: 18 }} data-testid="story-combat-beats-panel">
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div>
+          <h3 style={{ fontSize: 17, color: theme.text.primary, fontWeight: 900, margin: 0, display: 'flex', gap: 8, alignItems: 'center' }}><Swords size={18} color={theme.accent.primary} /> Story Combat Beats</h3>
+          <p style={{ color: theme.text.muted, fontSize: 13, margin: '4px 0 0' }}>{focus.arc ? `${focus.arc.title} · ${focus.chapter?.title || 'No chapter selected'}` : 'Prep combats in Story Arcs and they will appear here.'}</p>
+        </div>
+        <span style={{ color: theme.text.secondary, background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: '6px 9px', fontSize: 12, fontWeight: 900 }}>{beats.length} beat{beats.length === 1 ? '' : 's'}</span>
+      </div>
+      {beats.length === 0 ? <p style={emptyTextStyle}>No combat beats planned for the current chapter yet.</p> : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {beats.map(beat => {
+            const scenario = linkedScenario(beat);
+            return (
+              <article key={beat.id || beat.title} style={beatCardStyle(theme, beat.status)}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}><strong style={{ color: theme.text.primary }}>{beat.title}</strong><span style={beatStatusStyle(theme, beat.status)}>{nice(beat.status || 'planned')}</span>{scenario && <span style={linkedBadgeStyle(theme)}><Link size={11} /> linked</span>}</div>
+                  {beat.trigger && <p style={beatTextStyle(theme)}>Trigger: {beat.trigger}</p>}
+                  {beat.enemy_notes && <p style={beatTextStyle(theme)}>Enemies: {beat.enemy_notes}</p>}
+                  {beat.map_notes && <p style={beatTextStyle(theme)}>Map: {beat.map_notes}</p>}
+                </div>
+                <div style={{ display: 'grid', gap: 7 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>{beatStatuses.map(status => <button key={status} type="button" onClick={() => onUpdateStatus(beat, status)} style={statusButtonStyle(theme, beat.status === status)}>{nice(status)}</button>)}</div>
+                  {scenario ? <button type="button" onClick={() => { onSelectScenario?.(scenario); onLaunch(true, scenario); }} style={primaryMiniButtonStyle(theme)}><Play size={13} /> Start Linked + Party</button> : <button type="button" onClick={() => onSaveBeat(beat)} style={primaryMiniButtonStyle(theme)}><Save size={13} /> Create Encounter</button>}
+                  {!scenario && selectedScenario && <button type="button" onClick={() => onLinkBeat(beat, selectedScenario.id)} style={secondaryMiniButtonStyle(theme)}><Link size={13} /> Link selected encounter</button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EncounterButton({ theme, scenario, selected, players, onClick }) {
+  const hasParty = hasPlayers(scenario.combatants || []);
+  return <button data-testid={`encounter-${scenario.id}`} onClick={onClick} style={{ padding: '14px 16px', background: selected ? theme.accent.gmSubtle : theme.bg.card, border: `1px solid ${selected ? theme.accent.gm : theme.border}`, borderLeft: selected ? `3px solid ${theme.accent.gm}` : `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.primary, textAlign: 'left', cursor: 'pointer' }}><div style={{ fontWeight: 800, marginBottom: 4, fontSize: 15 }}>{scenario.name}</div><div style={{ fontSize: 13, color: theme.text.secondary, display: 'flex', gap: 12, flexWrap: 'wrap' }}><span>{scenario.combatants?.length || 0} saved combatants</span>{hasParty ? <span style={{ color: '#4a7dff' }}>Includes Party</span> : players.length > 0 && <span style={{ color: theme.accent.gm }}>Party can auto-join</span>}{scenario.map_url && <span style={{ color: theme.accent.gm }}>Has Map</span>}{scenario.combatants?.some(c => c.loot?.length > 0) && <span style={{ color: '#F59E0B' }}>Has Loot</span>}</div></button>;
+}
+
 function EmptyEncounter({ theme }) {
-  return <div style={{ background: theme.bg.card, border: `1px dashed ${theme.border}`, borderRadius: 0, padding: 30, textAlign: 'center' }}><Swords size={32} style={{ color: theme.text.muted, margin: '0 auto 12px' }} /><p style={{ color: theme.text.secondary, fontSize: 14, marginBottom: 8 }}>No saved encounters yet</p><p style={{ color: theme.text.muted, fontSize: 13 }}>Use Quick Combat for fast live play, or create planned encounters in campaign prep.</p></div>;
+  return <div style={{ background: theme.bg.card, border: `1px dashed ${theme.border}`, borderRadius: 0, padding: 30, textAlign: 'center' }}><Swords size={32} style={{ color: theme.text.muted, margin: '0 auto 12px' }} /><p style={{ color: theme.text.secondary, fontSize: 14, marginBottom: 8 }}>No saved encounters yet</p><p style={{ color: theme.text.muted, fontSize: 13 }}>Use Quick Combat, build one from Monsters, or create one from a Story Combat Beat.</p></div>;
 }
 
 function SelectedScenarioPreview({ theme, scenario, scenarioWithParty, alreadyHasPlayers, players, warnings }) {
@@ -388,10 +495,17 @@ const readinessWarningStyle = { display: 'flex', gap: 8, alignItems: 'flex-start
 const partyMergeNoticeStyle = { margin: '0 0 10px', color: '#D1D5DB', background: 'rgba(74,125,255,0.12)', border: '1px solid rgba(74,125,255,0.32)', padding: 9, fontSize: 12, lineHeight: 1.4 };
 const listWrapStyle = { background: 'rgba(0,0,0,0.16)', border: '1px solid rgba(239,68,68,0.28)', padding: 10, minHeight: 160 };
 const listTitleStyle = { color: '#FFFFFF', fontSize: 14, fontWeight: 900, margin: '0 0 8px', display: 'flex', gap: 7, alignItems: 'center' };
-const emptyTextStyle = { color: '#9CA3AF', fontSize: 12, margin: 0 };
+const emptyTextStyle = { color: '#9CA3AF', fontSize: 12, margin: 0, lineHeight: 1.45 };
 const pickButtonStyle = (selected) => ({ width: '100%', display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left', background: selected ? '#EF4444' : '#27272B', border: `1px solid ${selected ? '#F87171' : 'rgba(239,68,68,0.28)'}`, color: '#FFFFFF', padding: 9, marginBottom: 6, cursor: 'pointer' });
 const creatureRowStyle = (selected) => ({ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', background: selected ? 'rgba(239,68,68,0.16)' : '#27272B', border: `1px solid ${selected ? '#F87171' : 'rgba(239,68,68,0.28)'}`, color: '#FFFFFF', padding: 9, marginBottom: 6 });
 const countButtonStyle = { width: 28, height: 28, background: '#EF4444', border: 'none', color: '#FFFFFF', cursor: 'pointer', fontWeight: 900 };
 const utilityButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#27272B', border: '1px solid rgba(239,68,68,0.28)', color: '#D1D5DB', padding: '8px 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer' };
 const selectedStripStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(239,68,68,0.28)', padding: 8, marginBottom: 12 };
 const selectedPillStyle = (type) => ({ background: type === 'player' ? 'rgba(74,125,255,0.18)' : 'rgba(239,68,68,0.18)', border: `1px solid ${type === 'player' ? '#4a7dff' : '#EF4444'}`, color: '#FFFFFF', padding: '5px 8px', fontSize: 12, fontWeight: 900 });
+const beatCardStyle = (theme, status) => ({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(220px, 0.45fr)', gap: 12, background: theme.bg.panel, border: `1px solid ${theme.border}`, borderLeft: `5px solid ${status === 'ready' ? '#1f9d66' : status === 'ran' ? '#4a7dff' : status === 'skipped' ? '#d99222' : theme.accent.primary}`, padding: 10 });
+const beatStatusStyle = (theme, status) => ({ color: theme.text.primary, background: status === 'ready' ? 'rgba(31,157,102,0.22)' : status === 'ran' ? 'rgba(74,125,255,0.18)' : status === 'skipped' ? 'rgba(217,146,34,0.18)' : theme.accent.subtle, border: `1px solid ${theme.border}`, padding: '2px 6px', fontSize: 10, fontWeight: 950, textTransform: 'uppercase' });
+const linkedBadgeStyle = (theme) => ({ display: 'inline-flex', gap: 4, alignItems: 'center', color: theme.text.primary, background: 'rgba(31,157,102,0.20)', border: `1px solid ${theme.border}`, padding: '2px 6px', fontSize: 10, fontWeight: 950, textTransform: 'uppercase' });
+const beatTextStyle = (theme) => ({ margin: '5px 0 0', color: theme.text.muted, fontSize: 12, lineHeight: 1.4 });
+const statusButtonStyle = (theme, active) => ({ minHeight: 26, background: active ? theme.accent.primary : theme.bg.card, color: theme.text.primary, border: `1px solid ${active ? theme.accent.primary : theme.border}`, padding: '0 7px', cursor: 'pointer', fontSize: 10, fontWeight: 900 });
+const primaryMiniButtonStyle = (theme) => ({ minHeight: 30, display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 6, background: theme.accent.primary, border: 0, color: '#FFFFFF', fontWeight: 950, cursor: 'pointer' });
+const secondaryMiniButtonStyle = (theme) => ({ minHeight: 30, display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 6, background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.secondary, fontWeight: 900, cursor: 'pointer' });
