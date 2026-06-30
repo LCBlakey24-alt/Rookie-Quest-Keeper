@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
+import '@/styles/unifiedDashboardBoard.css';
 
 const campaignTypes = {
   one_shot: 'One-shot',
@@ -284,19 +285,19 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
 
   if (loading) {
     return (
-      <main style={pageStyle}>
-        <section style={loadingStyle}>
-          <BrandMiniLogo size={64} />
-          <h1 style={titleStyle}>Opening dashboard...</h1>
-          <p style={mutedStyle}>{slowLoad ? 'The backend may be waking up. This should only take a moment.' : 'Loading your table workspace.'}</p>
+      <main className="unified-dashboard-page">
+        <section className="loading-screen dashboard-loading" role="status" aria-live="polite">
+          <div className="loading-spinner" aria-hidden="true" />
+          <p className="loading-title">Opening dashboard...</p>
+          <p className="loading-tip">{slowLoad ? 'The backend may be waking up. This should only take a moment.' : 'Loading your table workspace.'}</p>
         </section>
       </main>
     );
   }
 
   return (
-    <main style={pageStyle}>
-      <header style={headerStyle}>
+    <main className="unified-dashboard-page" style={pageStyle}>
+      <header className="unified-dashboard-board unified-dashboard-header" style={headerStyle}>
         <div style={brandRowStyle}>
           <div style={logoTileStyle}><BrandMiniLogo size={44} /></div>
           <div style={{ minWidth: 0 }}>
@@ -313,18 +314,18 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </div>
       </header>
 
-      <section style={statusBarStyle} aria-label="Dashboard status">
+      <section className="unified-dashboard-status" style={statusBarStyle} aria-label="Dashboard status">
         <StatChip label="Characters" value={safeCharacters.length} />
         <StatChip label="Campaigns" value={safeCampaigns.length} />
         <StatChip label="Access" value={isAdmin ? 'Admin' : 'Player'} />
         <StatChip label="Backend" value={backendStatus} tone={backendStatus} />
       </section>
 
-      <section style={continueGridStyle} aria-label="Continue where you left off">
+      <section className="unified-dashboard-continue-grid" style={continueGridStyle} aria-label="Continue where you left off">
         <ContinuePanel
           label="Continue playing"
           title={primaryCharacter ? characterTitle(primaryCharacter) : 'Create your first character'}
-          text={primaryCharacter ? characterMeta(primaryCharacter) : 'Start with the builder and get a sheet ready for the table.'}
+          text={primaryCharacter ? characterMeta(primaryCharacter) : 'Create a character with Full Creator, start quick with Basic Creator, or ask Rook to match you with a hero.'}
           action={primaryCharacter ? 'Open Sheet' : 'Create Character'}
           onClick={() => primaryCharacter ? openCharacter(primaryCharacter) : navigate('/characters/new')}
         />
@@ -337,15 +338,15 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         />
       </section>
 
-      <section style={heroGridStyle}>
+      <section className="unified-dashboard-action-grid" style={heroGridStyle}>
         <ActionCard title="Player Area" text="Open your characters and player tools." meta={`${safeCharacters.length} character${safeCharacters.length === 1 ? '' : 's'}`} onClick={() => navigate('/player')} />
-        <ActionCard title="Create Character" text="Start a new character using the builder flow." meta="Player setup" onClick={() => navigate('/characters/new')} />
+        <ActionCard title="Create Character" text="Choose Full Creator, Basic Creator, or Rook Character Matchmaker, then review before saving." meta="Full · Basic · Matchmaker" onClick={() => navigate('/characters/new')} />
         <ActionCard title="GM Area" text="Open your latest campaign space." meta={`${safeCampaigns.length} campaign${safeCampaigns.length === 1 ? '' : 's'}`} onClick={openPrimaryCampaign} />
         <ActionCard title="Create Campaign" text="Set up campaign type, starting point, rules edition, and session zero." meta="GM setup" onClick={openCreateCampaign} />
       </section>
 
       <section style={twoColumnStyle}>
-        <SummaryPanel title="Recent Characters" emptyText="No characters yet. Create one to get started." actionLabel="Open Player Area" onAction={() => navigate('/player')}>
+        <SummaryPanel title="Recent Characters" emptyText="Create a character with Full Creator, start quick with Basic Creator, or ask Rook to match you with a hero." actionLabel="Open Player Area" onAction={() => navigate('/player')}>
           {latestCharacters.map((character, index) => (
             <ListRow
               key={recordId(character) || `character-${index}`}
@@ -374,7 +375,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </SummaryPanel>
       </section>
 
-      <section style={systemPanelStyle}>
+      <section className="unified-dashboard-board" style={systemPanelStyle}>
         <div>
           <p style={eyebrowStyle}>System status</p>
           <p style={mutedStyle}>{statusMessage(backendStatus, backendCheckedAt)}</p>
@@ -423,11 +424,11 @@ function statusMessage(status, checkedAt) {
 }
 
 function DashboardButton({ children, onClick, disabled = false }) {
-  return <button type="button" onClick={onClick} disabled={disabled} style={buttonStyle}><span>{children}</span></button>;
+  return <button type="button" onClick={onClick} disabled={disabled} className="unified-dashboard-button" style={buttonStyle}><span>{children}</span></button>;
 }
 
 function StatChip({ label, value, tone }) {
-  return <div style={statChipStyle}><span style={{ ...statValueStyle, color: statusColor(tone) }}>{value}</span><span style={statLabelStyle}>{label}</span></div>;
+  return <div className="unified-dashboard-stat" style={statChipStyle}><span style={{ ...statValueStyle, color: statusColor(tone) }}>{value}</span><span style={statLabelStyle}>{label}</span></div>;
 }
 
 function statusColor(tone) {
@@ -437,16 +438,16 @@ function statusColor(tone) {
 }
 
 function ContinuePanel({ label, title, text, action, onClick }) {
-  return <article style={continuePanelStyle}><span style={redRuleStyle} /><p style={eyebrowStyle}>{label}</p><h2 style={continueTitleStyle}>{title}</h2><p style={cardTextStyle}>{text}</p><button type="button" onClick={onClick} style={continueButtonStyle}><span>{action}</span></button></article>;
+  return <article className="unified-dashboard-board unified-dashboard-continue-panel" style={continuePanelStyle}><span style={redRuleStyle} /><p style={eyebrowStyle}>{label}</p><h2 style={continueTitleStyle}>{title}</h2><p style={cardTextStyle}>{text}</p><button type="button" onClick={onClick} style={continueButtonStyle}><span>{action}</span></button></article>;
 }
 
 function ActionCard({ title, text, meta, onClick }) {
-  return <button type="button" onClick={onClick} style={actionCardStyle}><span style={cardAccentStyle} /><span style={actionTextWrapStyle}><strong style={cardTitleStyle}>{title}</strong><span style={cardTextStyle}>{text}</span><span style={cardMetaStyle}>{meta}</span></span><span style={arrowStyle} aria-hidden="true">›</span></button>;
+  return <button type="button" onClick={onClick} className="unified-dashboard-action-card" style={actionCardStyle}><span style={cardAccentStyle} /><span style={actionTextWrapStyle}><strong style={cardTitleStyle}>{title}</strong><span style={cardTextStyle}>{text}</span><span style={cardMetaStyle}>{meta}</span></span><span style={arrowStyle} aria-hidden="true">›</span></button>;
 }
 
 function SummaryPanel({ title, emptyText, actionLabel, onAction, children }) {
   const hasItems = React.Children.count(children) > 0;
-  return <section style={panelStyle}><div style={panelHeaderStyle}><h2 style={sectionTitleStyle}>{title}</h2><button type="button" onClick={onAction} style={linkButtonStyle}><span>{actionLabel}</span></button></div>{hasItems ? <div style={{ display: 'grid', gap: 0 }}>{children}</div> : <p style={mutedStyle}>{emptyText}</p>}</section>;
+  return <section className="unified-dashboard-board unified-dashboard-panel" style={panelStyle}><div style={panelHeaderStyle}><h2 style={sectionTitleStyle}>{title}</h2><button type="button" onClick={onAction} style={linkButtonStyle}><span>{actionLabel}</span></button></div>{hasItems ? <div style={{ display: 'grid', gap: 0 }}>{children}</div> : <p style={mutedStyle}>{emptyText}</p>}</section>;
 }
 
 function ListRow({ title, meta, onOpen, onSecondary, secondaryLabel, onDelete, deleteLabel }) {

@@ -1,5 +1,5 @@
 jest.mock('react-router-dom', () => ({ useNavigate: () => jest.fn() }), { virtual: true });
-import { getRookCharacterMatches } from './RookCharacterMatchmaker';
+import { buildRookCreatorPreset, getRookCharacterMatches } from './RookCharacterMatchmaker';
 
 describe('RookCharacterMatchmaker local matcher', () => {
   test('returns three sensible Batman-style matches', () => {
@@ -37,5 +37,16 @@ describe('RookCharacterMatchmaker local matcher', () => {
     const matches = getRookCharacterMatches({ preferredClass: 'Fighter' });
 
     expect(matches[0].equipmentPreview).toEqual(expect.any(Array));
+  });
+
+  test('returns safe preset data for Full Creator review', () => {
+    const [match] = getRookCharacterMatches({ preferredClass: 'Wizard' });
+
+    expect(buildRookCreatorPreset(match, 'storm scholar')).toMatchObject({
+      source: 'rook-matchmaker',
+      characterClass: 'Wizard',
+      race: expect.any(String),
+      background: expect.any(String),
+    });
   });
 });

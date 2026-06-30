@@ -250,7 +250,7 @@ function MatchCard({ match, onUse }) {
   return (
     <div className="full-creator-choice-block">
       <strong>{match.label}: {match.title}</strong>
-      <p>{match.suggestedClass} {match.race} · {match.background}</p>
+      <p><b>Suggested class/species/background:</b> {match.suggestedClass} {match.race} · {match.background}</p>
       <p>{match.playstyle}</p>
       <p><b>Difficulty:</b> {match.difficulty}</p>
       <p><b>Why it fits:</b> Keywords and filters point toward {match.role.toLowerCase()}.</p>
@@ -267,7 +267,7 @@ function MatchCard({ match, onUse }) {
       <button type="button" onClick={() => onUse(match)} className="full-creator-primary">
         <Wand2 size={16} /> Use as starting point
       </button>
-      <p className="full-creator-helper-text">Opens Full Creator before anything is saved.</p>
+      <p className="full-creator-helper-text">Full Creator opens before saving so you can review and change everything first.</p>
     </div>
   );
 }

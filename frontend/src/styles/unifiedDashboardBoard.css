@@ -1,0 +1,65 @@
+/* Unified dashboard board theme: shared charcoal/red/white surfaces for /home. */
+.unified-dashboard-page {
+  min-height: 100dvh;
+  background: #242424;
+  color: #ffffff;
+}
+
+.unified-dashboard-board,
+.unified-dashboard-header,
+.unified-dashboard-panel,
+.unified-dashboard-continue-panel {
+  background: #2f2f2f !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-left: 5px solid #d00000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.unified-dashboard-status,
+.unified-dashboard-action-grid {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.unified-dashboard-stat,
+.unified-dashboard-action-card {
+  background: #2f2f2f !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.unified-dashboard-action-card:hover,
+.unified-dashboard-button:hover {
+  background: #3a3a3a !important;
+}
+
+.unified-dashboard-button,
+.unified-dashboard-page button,
+.unified-dashboard-page input,
+.unified-dashboard-page select,
+.unified-dashboard-page textarea {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-loading.loading-screen {
+  min-height: 100dvh;
+}
+
+@media (max-width: 700px) {
+  .unified-dashboard-page {
+    padding: 12px !important;
+  }
+
+  .unified-dashboard-header,
+  .unified-dashboard-board {
+    width: 100%;
+  }
+
+  .unified-dashboard-page button,
+  .unified-dashboard-page select,
+  .unified-dashboard-page input,
+  .unified-dashboard-page textarea {
+    max-width: 100%;
+  }
+}
