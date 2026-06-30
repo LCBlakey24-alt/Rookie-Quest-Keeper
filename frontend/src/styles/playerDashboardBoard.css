@@ -10,10 +10,250 @@
   gap: 18px;
 }
 
+.player-dashboard-hero,
+.player-dashboard-context,
+.player-join-strip,
+.player-dashboard-tab-shell {
+  background: #2f2f2f;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 5px solid #d00000;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.player-dashboard-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px;
+}
+
+.player-dashboard-hero-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.player-dashboard-title-block {
+  min-width: 0;
+}
+
+.player-dashboard-title-block h1 {
+  margin: 4px 0 6px;
+  color: #ffffff;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.02;
+}
+
+.player-dashboard-title-block p,
+.player-dashboard-context-copy p,
+.player-dashboard-card p,
+.player-dashboard-empty-state p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+}
+
+.player-dashboard-title-block > p:last-child {
+  max-width: 640px;
+}
+
+.player-dashboard-eyebrow {
+  margin: 0;
+  color: #ff3b3b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 900;
+}
+
 .player-dashboard-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.player-dashboard-action-button {
+  min-height: 40px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-dashboard-icon-button {
+  width: 42px;
+  height: 42px;
+}
+
+.player-dashboard-refreshing {
+  opacity: 0.6;
+}
+
+.player-join-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px;
+}
+
+.player-join-strip label {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.player-join-strip select {
+  min-height: 40px;
+  min-width: 220px;
+  background: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0 10px;
+}
+
+.player-dashboard-context {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px;
+}
+
+.player-dashboard-context-copy h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.player-dashboard-context-copy p:last-child {
+  max-width: 640px;
+  margin: 6px 0 0;
+}
+
+.player-dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  gap: 10px;
+  min-width: min(100%, 460px);
+}
+
+.player-dashboard-summary-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #3a3a3a;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0;
+  padding: 12px;
+}
+
+.player-dashboard-summary-icon {
+  color: #ff3b3b;
+}
+
+.player-dashboard-summary-copy {
+  min-width: 0;
+}
+
+.player-dashboard-summary-copy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 900;
+}
+
+.player-dashboard-summary-copy strong {
+  display: block;
+  color: #ffffff;
+  font-size: 16px;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-dashboard-summary-copy span {
+  display: block;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.player-dashboard-tab-shell {
+  overflow: hidden;
+}
+
+.player-dashboard-tab-list {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.player-dashboard-tab {
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.player-dashboard-tab-active {
+  background: rgba(208, 0, 0, 0.18);
+  color: #ff3b3b;
+}
+
+.player-dashboard-tab-content {
+  padding: 18px;
+}
+
+.player-dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.player-dashboard-card {
+  background: #3a3a3a !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-left: 4px solid #d00000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.player-dashboard-card-content {
+  padding: 16px !important;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.player-dashboard-card h2,
+.player-dashboard-empty-state h2 {
+  margin: 4px 0;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.player-dashboard-empty-state {
+  background: #3a3a3a;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 4px solid #d00000;
+  border-radius: 0;
+  padding: 24px;
+  text-align: center;
 }
 
 /* Buttons and inputs */
@@ -39,16 +279,15 @@
   border-radius: 0 !important;
 }
 
-/* Board cards */
-.player-dashboard-board {
-  border-left: 5px solid #d00000 !important;
-  border-radius: 0 !important;
+.player-dashboard-loading.loading-screen {
+  min-height: 100vh;
 }
 
-.player-dashboard-card {
-  border-left: 4px solid #d00000 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+.player-dashboard-page label,
+.player-dashboard-page [role="tab"],
+.player-dashboard-page .btn-primary,
+.player-dashboard-page .btn-outline {
+  font-weight: 800;
 }
 
 @media (max-width: 820px) {
@@ -61,6 +300,12 @@
     width: 100%;
   }
 
+  .player-dashboard-hero-copy,
+  .player-dashboard-card-content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .player-dashboard-page button,
   .player-dashboard-page select {
     width: 100%;
@@ -68,13 +313,13 @@
     justify-content: center;
   }
 
-  .player-dashboard-page [role="tablist"] {
+  .player-dashboard-tab-list {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
     width: 100%;
   }
 
-  .player-dashboard-page [role="tab"] {
+  .player-dashboard-tab {
     justify-content: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
   }
@@ -89,18 +334,7 @@
     padding: 12px;
   }
 
-  .player-dashboard-page [role="tablist"] {
+  .player-dashboard-tab-list {
     grid-template-columns: 1fr;
   }
-}
-
-.player-dashboard-loading.loading-screen {
-  min-height: 100vh;
-}
-
-.player-dashboard-page label,
-.player-dashboard-page [role="tab"],
-.player-dashboard-page .btn-primary,
-.player-dashboard-page .btn-outline {
-  font-weight: 800;
 }
