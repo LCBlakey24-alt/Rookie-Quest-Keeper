@@ -1,0 +1,2 @@
+import React from 'react';
+export default function DashboardSummaryPanel({ title, emptyText, actionLabel, onAction, children }) { const hasItems = React.Children.count(children) > 0; return <section className="unified-dashboard-board unified-dashboard-panel"><div className="dashboard-panel-header"><h2>{title}</h2><button type="button" className="dashboard-link-button" onClick={onAction}><span>{actionLabel}</span></button></div>{hasItems ? <div className="dashboard-list">{children}</div> : <p className="dashboard-muted">{emptyText}</p>}</section>; }

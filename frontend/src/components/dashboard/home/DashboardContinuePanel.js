@@ -1,0 +1,1 @@
+export default function DashboardContinuePanel({ label, title, text, action, onClick }) { return <article className="unified-dashboard-board unified-dashboard-continue-panel"><p className="dashboard-eyebrow">{label}</p><h2>{title}</h2><p>{text}</p><button type="button" className="dashboard-primary-button" onClick={onClick}><span>{action}</span></button></article>; }
