@@ -1,4 +1,4 @@
-import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, RotateCcw, ScrollText, Swords, TrendingUp } from 'lucide-react';
+import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, RotateCcw, ScrollText, Swords } from 'lucide-react';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -51,7 +51,6 @@ export const SHEET_TABS = [
   { id: 'features', label: 'Features', icon: ListChecks },
   { id: 'lore', label: 'Lore', icon: ScrollText },
   { id: 'notes', label: 'Notes', icon: Edit3 },
-  { id: 'levelup', label: 'Level Up', icon: TrendingUp, action: 'levelup' },
 ];
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
