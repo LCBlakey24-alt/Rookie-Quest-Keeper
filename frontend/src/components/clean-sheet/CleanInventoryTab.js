@@ -108,9 +108,32 @@ function isGrantedEquipped(item) {
 function getEquippedItem(equipped = {}, slot) {
   if (slot === "mainHand")
     return equipped.mainHand || equipped.main_hand || equipped.weapon;
-  if (slot === "offHand") return equipped.offHand || equipped.off_hand;
+  if (slot === "offHand") {
+    const offHand = equipped.offHand || equipped.off_hand;
+    const shield = equipped.shield;
+    if (offHand && shield && getItemName(offHand) === getItemName(shield)) return null;
+    return offHand;
+  }
   if (slot === "armor") return equipped.armor || equipped.armour;
   return equipped[slot];
+}
+
+function setCanonicalEquippedSlot(equipped = {}, slot, item) {
+  const next = { ...equipped };
+  if (item) next[slot] = item;
+  else delete next[slot];
+  if (slot === "mainHand") {
+    delete next.main_hand;
+    delete next.weapon;
+  }
+  if (slot === "offHand") delete next.off_hand;
+  if (slot === "armor") delete next.armour;
+  if (slot === "shield") {
+    const offHand = next.offHand || next.off_hand;
+    if (offHand && item && getItemName(offHand) === getItemName(item)) delete next.offHand;
+    delete next.off_hand;
+  }
+  return next;
 }
 
 function normaliseItem(item, source = "") {
@@ -503,22 +526,12 @@ export default function CleanInventoryTab({
       equipped: true,
       is_equipped: true,
     };
-    const nextEquipped = { ...equipped, [slot]: equippedItem };
-    if (slot === "mainHand") nextEquipped.main_hand = equippedItem;
-    if (slot === "offHand") nextEquipped.off_hand = equippedItem;
-    if (slot === "armor") nextEquipped.armour = equippedItem;
+    const nextEquipped = setCanonicalEquippedSlot(equipped, slot, equippedItem);
     saveEquipped(nextEquipped, slot);
   };
 
   const clearSlot = (slot) => {
-    const nextEquipped = { ...equipped };
-    delete nextEquipped[slot];
-    if (slot === "mainHand") {
-      delete nextEquipped.main_hand;
-      delete nextEquipped.weapon;
-    }
-    if (slot === "offHand") delete nextEquipped.off_hand;
-    if (slot === "armor") delete nextEquipped.armour;
+    const nextEquipped = setCanonicalEquippedSlot(equipped, slot, null);
     saveEquipped(nextEquipped, slot);
   };
 
@@ -557,13 +570,8 @@ export default function CleanInventoryTab({
           }
         : null;
     const nextEquipped = equippedItem
-      ? { ...equipped, [slot]: equippedItem }
+      ? setCanonicalEquippedSlot(equipped, slot, equippedItem)
       : equipped;
-    if (equippedItem && slot === "mainHand")
-      nextEquipped.main_hand = equippedItem;
-    if (equippedItem && slot === "offHand")
-      nextEquipped.off_hand = equippedItem;
-    if (equippedItem && slot === "armor") nextEquipped.armour = equippedItem;
     const updates =
       shouldEquip && slot
         ? {

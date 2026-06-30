@@ -21,6 +21,41 @@ def safe_int(value, default: int = 0) -> int:
         return default
 
 
+
+def ability_modifier(score: Any) -> int:
+    return (safe_int(score, 10) - 10) // 2
+
+
+def character_armor_class_with_equipped(character: Dict[str, Any], equipped: Dict[str, Any]) -> int:
+    dex_mod = ability_modifier(character.get('dexterity', 10))
+    armor = equipped.get('armor') or equipped.get('armour')
+    shield = equipped.get('shield')
+    base = 10 + dex_mod
+
+    armor_text = f"{str((armor or {}).get('name', '') if isinstance(armor, dict) else armor)} {str((armor or {}).get('type', '') if isinstance(armor, dict) else '')}".lower()
+    if armor:
+        if 'plate' in armor_text and 'breast' not in armor_text and 'half' not in armor_text:
+            base = 18
+        elif 'splint' in armor_text:
+            base = 17
+        elif 'chain mail' in armor_text:
+            base = 16
+        elif 'scale' in armor_text or 'breastplate' in armor_text:
+            base = 14 + min(dex_mod, 2)
+        elif 'half plate' in armor_text:
+            base = 15 + min(dex_mod, 2)
+        elif 'hide' in armor_text:
+            base = 12 + min(dex_mod, 2)
+        elif 'leather' in armor_text:
+            base = 11 + dex_mod
+        ac_bonus = safe_int(armor.get('ac_bonus'), 0) if isinstance(armor, dict) else 0
+        if ac_bonus and base == 10 + dex_mod:
+            base += ac_bonus
+    if shield:
+        shield_bonus = safe_int(shield.get('ac_bonus'), 0) if isinstance(shield, dict) else 0
+        base += max(shield_bonus, 2)
+    return base
+
 def infer_equip_slot(item: Dict[str, Any]) -> str:
     """Infer the character/NPC equip slot for a granted reward."""
     explicit_slot = str(item.get('equip_slot') or item.get('equipped_slot') or '').strip()
@@ -260,8 +295,20 @@ async def grant_inventory_item_to_target(campaign_id: str, item_id: str, grant_d
         equipped_slot = inventory_entry.get('equipped_slot', '')
         set_data = {'updated_at': datetime.now(timezone.utc).isoformat()}
         if equipped_slot:
-            for alias in equipped_aliases(equipped_slot):
-                set_data[f'equipped.{alias}'] = inventory_entry
+            current_equipped = character.get('equipped') or {}
+            next_equipped = {**current_equipped, equipped_slot: inventory_entry}
+            if equipped_slot == 'mainHand':
+                next_equipped.pop('main_hand', None)
+                next_equipped.pop('weapon', None)
+            if equipped_slot == 'offHand':
+                next_equipped.pop('off_hand', None)
+            if equipped_slot == 'armor':
+                next_equipped.pop('armour', None)
+            if equipped_slot == 'shield':
+                next_equipped.pop('off_hand', None)
+            set_data['equipped'] = next_equipped
+            if equipped_slot in {'armor', 'shield'}:
+                set_data['armor_class'] = character_armor_class_with_equipped(character, next_equipped)
 
         await db.player_characters.update_one(
             {'id': target_id},

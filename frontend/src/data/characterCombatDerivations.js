@@ -123,7 +123,7 @@ export function deriveArmorClass(character, options = {}) {
   if (!hasArmorRule) {
     // No named armour rule, but equipped items may still carry ac_bonus
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
-    const shieldBonus = typeof shield === 'object' && shield ? Number(shield.ac_bonus || 0) + 2 : 0;
+    const shieldBonus = typeof shield === 'object' && shield ? Math.max(Number(shield.ac_bonus || 0), 2) : 0;
     return unarmoredAc + armorBonus + shieldBonus;
   }
 

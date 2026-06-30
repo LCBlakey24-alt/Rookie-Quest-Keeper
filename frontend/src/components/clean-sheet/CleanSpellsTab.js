@@ -385,7 +385,17 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const preparedNames = new Set(
     prepared.map((spell) => normalizeName(spell.name)),
   );
-  const allLeveled = uniqueSpells([...known, ...prepared], null);
+  const primaryClass = canonicalSpellClass(character?.character_class || character?.class_name || "");
+  const isPreparedCaster = primaryCaster?.castingType === "Prepared";
+  const isWizard = primaryClass === "Wizard";
+  const knownWithoutPrepared = known.filter(
+    (spell) => !preparedNames.has(normalizeName(spell.name)),
+  );
+  const secondaryLeveled = isPreparedCaster ? knownWithoutPrepared : known;
+  const secondaryTitle = isWizard ? "Spellbook" : isPreparedCaster ? "Known Spells" : "Known Spells";
+  const secondaryEmpty = isWizard
+    ? "No spellbook entries found."
+    : "No known spells found.";
   const lowerSearch = spellSearch.trim().toLowerCase();
   const filterSpells = (spells) =>
     !lowerSearch
@@ -398,8 +408,14 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
+    const normalisedRemaining = Object.fromEntries(
+      Object.entries(nextRemaining || {}).map(([level, count]) => [
+        String(level),
+        Number(count) || 0,
+      ]),
+    );
     return onCharacterUpdate(
-      { spell_slots_remaining: nextRemaining },
+      { spell_slots_remaining: normalisedRemaining },
       { error: "Could not update spell slots" },
     );
   };
@@ -585,19 +601,21 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         onCast={castSpell}
         onConcentrate={concentrateOn}
       />
+      {isPreparedCaster && (
+        <SpellGroup
+          title="Prepared Spells"
+          spells={filterSpells(prepared)}
+          preparedNames={preparedNames}
+          emptyText="No prepared spells found. Edit the character or prepare spells after a rest."
+          onCast={castSpell}
+          onConcentrate={concentrateOn}
+        />
+      )}
       <SpellGroup
-        title="Prepared Spells"
-        spells={filterSpells(prepared)}
+        title={secondaryTitle}
+        spells={filterSpells(secondaryLeveled)}
         preparedNames={preparedNames}
-        emptyText="No prepared spells found. Edit the character or prepare spells after a rest."
-        onCast={castSpell}
-        onConcentrate={concentrateOn}
-      />
-      <SpellGroup
-        title="Known / Spellbook"
-        spells={filterSpells(allLeveled)}
-        preparedNames={preparedNames}
-        emptyText="No known spells or spellbook entries found."
+        emptyText={secondaryEmpty}
         onCast={castSpell}
         onConcentrate={concentrateOn}
       />

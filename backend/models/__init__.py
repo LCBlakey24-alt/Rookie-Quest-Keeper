@@ -708,6 +708,10 @@ class PlayerCharacterCreate(BaseModel):
     hit_dice: Optional[str] = None
     hit_dice_remaining: Optional[int] = None
     alignment: str = "Neutral"
+    personality_traits: Optional[str] = ""
+    ideals: Optional[str] = ""
+    bonds: Optional[str] = ""
+    flaws: Optional[str] = ""
     backstory: str = ""
     portrait_url: Optional[str] = None
     campaign_id: Optional[str] = None
@@ -750,6 +754,7 @@ class PlayerCharacterCreate(BaseModel):
     # Starter combat state
     conditions: Optional[List[str]] = []
     inspiration: Optional[bool] = False
+    concentrating_on: Optional[str] = ""
 
 class PlayerCharacterUpdate(BaseModel):
     name: Optional[str] = None
