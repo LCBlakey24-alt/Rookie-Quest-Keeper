@@ -26,7 +26,7 @@
 }
 
 .clean-sheet-core-stat-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 
 .clean-sheet-passive-grid {
@@ -45,6 +45,24 @@
   color: var(--rq-text, #ffffff) !important;
   border: 0 !important;
   box-shadow: none !important;
+  border-radius: 0 !important;
+  text-align: left !important;
+  font-family: inherit !important;
+}
+
+button.clean-sheet-core-stat-card {
+  cursor: pointer !important;
+}
+
+.clean-sheet-core-stat-card--rollable {
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+}
+
+.clean-sheet-core-stat-card--rollable:hover,
+.clean-sheet-core-stat-card--rollable:focus-visible {
+  background: var(--rq-button-hover, #2a2a2a) !important;
+  outline: 2px solid var(--rq-primary, #d00000) !important;
+  outline-offset: 0 !important;
 }
 
 .clean-sheet-core-stat-card svg,
@@ -283,7 +301,10 @@
     margin-bottom: 7px !important;
   }
 
-  .clean-sheet-core-stat-grid,
+  .clean-sheet-core-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   .clean-sheet-passive-grid {
     grid-template-columns: 1fr !important;
   }
