@@ -1,10 +1,65 @@
+.clean-sheet-turn-strip {
+  width: min(1180px, 100%);
+  margin: 0 auto 10px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rq-line, rgba(255,255,255,0.16));
+}
+
+.clean-sheet-turn-strip div {
+  min-height: 48px;
+  padding: 8px 10px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  background: var(--rq-card, #3a3a3a);
+}
+
+.clean-sheet-turn-strip span,
+.clean-sheet-manual-roll-grid span {
+  color: var(--rq-muted, rgba(255,255,255,0.68));
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clean-sheet-turn-strip strong {
+  color: var(--rq-text, #ffffff);
+  font-size: 14px;
+  line-height: 1.05;
+  font-weight: 950;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clean-sheet-turn-tools {
+  display: grid !important;
+  gap: 10px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
 .clean-sheet-recovery-panel {
   display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(216, 173, 79, 0.28);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(39, 39, 87, 0.72), rgba(8, 8, 22, 0.58));
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16));
+  border-left: 4px solid transparent;
+  border-radius: 0;
+  background: var(--rq-surface, #2f2f2f);
+  box-shadow: none;
+}
+
+.clean-sheet-recovery-panel:focus-within {
+  border-left-color: var(--rq-primary, #d00000);
 }
 
 .clean-sheet-recovery-header {
@@ -19,60 +74,80 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--rq-blue-eclipse-gold-soft, #f2d18a);
+  color: var(--rq-text, #ffffff);
   font-size: 0.72rem;
+  line-height: 1;
   font-weight: 950;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.clean-sheet-recovery-header svg {
+  color: var(--rq-text, #ffffff);
+  stroke: var(--rq-text, #ffffff);
+}
+
 .clean-sheet-recovery-header strong {
-  color: var(--rq-blue-eclipse-cream, #f6ead2);
-  font-size: 1rem;
+  color: var(--rq-text, #ffffff);
+  font-size: 0.92rem;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
 }
 
 .clean-sheet-recovery-header em {
-  color: var(--rq-blue-eclipse-mist, #8686ac);
+  color: var(--rq-muted, rgba(255,255,255,0.68));
   font-style: normal;
   font-size: 0.8rem;
   font-weight: 900;
 }
 
-.clean-sheet-recovery-actions {
+.clean-sheet-recovery-actions,
+.clean-sheet-concentration-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
-.clean-sheet-recovery-actions button {
-  min-height: 42px;
+.clean-sheet-concentration-actions {
+  grid-template-columns: 1fr;
+}
+
+.clean-sheet-recovery-actions button,
+.clean-sheet-concentration-actions button,
+.clean-sheet-manual-roll-grid button,
+.clean-sheet-concentration-input-row button {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid rgba(216, 173, 79, 0.32);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(39, 39, 87, 0.86), rgba(8, 8, 22, 0.76));
-  color: var(--rq-blue-eclipse-cream, #f6ead2);
+  border: 0;
+  border-radius: 0;
+  background: var(--rq-button, #1f1f1f);
+  color: var(--rq-text, #ffffff);
   font-weight: 950;
   cursor: pointer;
+  box-shadow: none;
 }
 
-.clean-sheet-recovery-actions button:hover:not(:disabled) {
-  border-color: rgba(242, 209, 138, 0.52);
-  background: linear-gradient(180deg, rgba(80, 80, 129, 0.72), rgba(39, 39, 87, 0.88));
+.clean-sheet-recovery-actions button:hover:not(:disabled),
+.clean-sheet-concentration-actions button:hover:not(:disabled),
+.clean-sheet-manual-roll-grid button:hover:not(:disabled),
+.clean-sheet-concentration-input-row button:hover:not(:disabled) {
+  background: var(--rq-button-hover, #2a2a2a);
 }
 
-.clean-sheet-recovery-actions button:disabled {
+.clean-sheet-recovery-actions button:disabled,
+.clean-sheet-concentration-actions button:disabled,
+.clean-sheet-manual-roll-grid button:disabled,
+.clean-sheet-concentration-input-row button:disabled {
   opacity: 0.46;
   cursor: not-allowed;
 }
 
 .clean-sheet-recovery-help {
   margin: 0;
-  color: var(--rq-text-muted, #8686ac);
+  color: var(--rq-muted, rgba(255,255,255,0.68));
   font-size: 0.76rem;
   line-height: 1.35;
 }
@@ -81,12 +156,148 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-@media (max-width: 420px) {
+.clean-sheet-roll-controls {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 88px !important;
+  gap: 7px !important;
+  background: var(--rq-surface, #2f2f2f) !important;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+}
+
+.clean-sheet-roll-mode-group {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 1px !important;
+  background: var(--rq-line, rgba(255,255,255,0.16)) !important;
+}
+
+.clean-sheet-roll-mode-group button {
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--rq-button, #1f1f1f) !important;
+  color: var(--rq-muted, rgba(255,255,255,0.68)) !important;
+  font-weight: 950 !important;
+}
+
+.clean-sheet-roll-mode-group button.active {
+  background: var(--rq-button-hover, #2a2a2a) !important;
+  color: var(--rq-text, #ffffff) !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+}
+
+.clean-sheet-roll-controls label,
+.clean-sheet-manual-roll-grid label {
+  display: grid;
+  gap: 5px;
+}
+
+.clean-sheet-roll-controls label span {
+  color: var(--rq-muted, rgba(255,255,255,0.68));
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.clean-sheet-roll-controls input,
+.clean-sheet-manual-roll-grid input,
+.clean-sheet-concentration-input-row input {
+  width: 100%;
+  min-height: 38px;
+  background: var(--rq-bg, #242424) !important;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  border-radius: 0 !important;
+  color: var(--rq-text, #ffffff) !important;
+  padding: 0 8px;
+  font-weight: 900;
+  outline: none;
+  box-shadow: none;
+}
+
+.clean-sheet-manual-roll-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.3fr) 74px 74px 70px;
+  gap: 7px;
+  align-items: end;
+}
+
+.clean-sheet-concentration-panel {
+  border-left-color: var(--rq-primary, #d00000);
+}
+
+.clean-sheet-concentration-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.clean-sheet-condition-panel {
+  background: var(--rq-surface, #2f2f2f) !important;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  border-radius: 0 !important;
+  padding: 10px !important;
+}
+
+.clean-sheet-condition-toggle,
+.clean-sheet-roll-history-toggle,
+.clean-sheet-inspiration {
+  border-radius: 0 !important;
+  border: 0 !important;
+  background: var(--rq-button, #1f1f1f) !important;
+  color: var(--rq-text, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+.clean-sheet-inspiration.active,
+.clean-sheet-condition-toggle:hover,
+.clean-sheet-roll-history-toggle:hover {
+  background: var(--rq-button-hover, #2a2a2a) !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+}
+
+.clean-sheet-condition-chip {
+  border-radius: 0 !important;
+  background: var(--rq-button, #1f1f1f) !important;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  color: var(--rq-text, #ffffff) !important;
+}
+
+.clean-sheet-condition-chip.danger {
+  border-color: var(--rq-primary, #d00000) !important;
+  background: rgba(208,0,0,0.18) !important;
+}
+
+@media (max-width: 760px) {
+  .clean-sheet-turn-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clean-sheet-turn-strip div {
+    min-height: 42px;
+    padding: 7px 8px;
+  }
+
+  .clean-sheet-roll-controls,
+  .clean-sheet-manual-roll-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   .clean-sheet-recovery-actions {
     gap: 6px;
   }
+}
 
-  .clean-sheet-recovery-actions button {
+@media (max-width: 420px) {
+  .clean-sheet-turn-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .clean-sheet-recovery-actions button,
+  .clean-sheet-concentration-actions button,
+  .clean-sheet-manual-roll-grid button {
     min-height: 38px;
     padding: 4px 6px;
     font-size: 0.78rem;
