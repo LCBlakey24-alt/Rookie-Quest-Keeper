@@ -14,6 +14,7 @@
   max-width: 1180px !important;
   margin-left: auto !important;
   margin-right: auto !important;
+  box-sizing: border-box !important;
 }
 
 .character-page-v2 .clean-sheet-header--simple {
@@ -138,7 +139,7 @@
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
   display: grid !important;
-  grid-template-columns: minmax(92px, 0.72fr) minmax(0, 1.8fr) !important;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1.9fr) !important;
   align-items: stretch !important;
   gap: 8px !important;
   margin: 6px auto 8px !important;
@@ -152,13 +153,26 @@
   padding: 0 !important;
   display: grid !important;
   align-content: center !important;
-  gap: 2px !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 3px !important;
   background: transparent !important;
   border: 0 !important;
 }
 
+.character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp span {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
 .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp strong {
-  font-size: 21px !important;
+  font-size: 22px !important;
+  text-align: center !important;
+}
+
+.character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp em {
+  justify-self: center !important;
+  text-align: center !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-hp-actions {
@@ -183,8 +197,45 @@
   padding-bottom: 36px !important;
 }
 
+.character-page-v2 .clean-sheet-grid,
+.character-page-v2 .clean-sheet-content > .clean-sheet-grid,
+.character-page-v2 .clean-sheet-content > section {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
 .character-page-v2 .clean-sheet-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-grid > *,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-card,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-wide,
+.character-page-v2 .clean-sheet-tab-panel,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-turn-strip,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+  grid-column: 1 / -1 !important;
+}
+
+.character-page-v2 .clean-sheet-turn-strip {
+  margin-bottom: 10px !important;
 }
 
 @media (max-width: 700px) {
@@ -230,16 +281,17 @@
   }
 
   .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp {
-    grid-template-columns: auto 1fr auto !important;
-    align-items: end !important;
+    min-height: 40px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: center !important;
+    justify-items: center !important;
+    text-align: center !important;
   }
 
-  .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp span {
-    align-self: center !important;
-  }
-
+  .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp span,
   .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp em {
-    justify-self: end !important;
+    justify-self: center !important;
     align-self: center !important;
   }
 }
