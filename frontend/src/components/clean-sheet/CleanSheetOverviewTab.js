@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
 
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
@@ -13,6 +13,26 @@ const SAVE_NAMES = {
   CHA: 'Charisma',
 };
 
+const SKILL_FILTERS = [
+  ['all', 'All'],
+  ['prof', 'Prof'],
+  ['strength', 'STR'],
+  ['dexterity', 'DEX'],
+  ['constitution', 'CON'],
+  ['intelligence', 'INT'],
+  ['wisdom', 'WIS'],
+  ['charisma', 'CHA'],
+];
+
+const ABILITY_FULL_NAMES = {
+  strength: 'Strength',
+  dexterity: 'Dexterity',
+  constitution: 'Constitution',
+  intelligence: 'Intelligence',
+  wisdom: 'Wisdom',
+  charisma: 'Charisma',
+};
+
 export default function CleanSheetOverviewTab({
   character,
   ac,
@@ -23,6 +43,7 @@ export default function CleanSheetOverviewTab({
   skillProficiencies,
   onRoll,
 }) {
+  const [skillFilter, setSkillFilter] = useState('all');
   const initiativeMod = mod(character.dexterity);
   const coreStats = [
     { label: 'AC', value: ac ?? character.armor_class ?? 10, icon: Shield },
@@ -30,6 +51,22 @@ export default function CleanSheetOverviewTab({
     { label: 'Prof', value: fmt(proficiencyBonus), icon: Gauge },
     { label: 'Init', value: fmt(initiativeMod), icon: Swords, roll: true },
   ];
+
+  const skillRows = useMemo(() => {
+    return SKILLS.map(([skill, ability]) => {
+      const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
+      const skillMod = mod(character[ability]) + (proficient ? proficiencyBonus : 0);
+      return { skill, ability, proficient, skillMod };
+    });
+  }, [character, proficiencyBonus, skillProficiencies]);
+
+  const proficientSkills = skillRows.filter(row => row.proficient);
+  const bestSkill = skillRows.reduce((best, row) => (row.skillMod > best.skillMod ? row : best), skillRows[0] || { skill: 'None', skillMod: 0 });
+  const visibleSkills = skillRows.filter(row => {
+    if (skillFilter === 'all') return true;
+    if (skillFilter === 'prof') return row.proficient;
+    return row.ability === skillFilter;
+  });
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
@@ -112,27 +149,41 @@ export default function CleanSheetOverviewTab({
         </div>
       </section>
 
-      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section">
-        <h2>Skills</h2>
+      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-skills-section">
+        <div className="clean-sheet-section-heading-row">
+          <h2>Skills</h2>
+          <span>{visibleSkills.length}/{skillRows.length} shown</span>
+        </div>
+
+        <div className="clean-sheet-skills-summary">
+          <div><span>Proficient</span><strong>{proficientSkills.length}</strong></div>
+          <div><span>Best Skill</span><strong>{bestSkill.skill} {fmt(bestSkill.skillMod)}</strong></div>
+          <div><span>Filter</span><strong>{SKILL_FILTERS.find(([id]) => id === skillFilter)?.[1] || 'All'}</strong></div>
+        </div>
+
+        <div className="clean-sheet-skill-filter-row" aria-label="Filter skills">
+          {SKILL_FILTERS.map(([id, label]) => (
+            <button key={id} type="button" className={skillFilter === id ? 'active' : ''} onClick={() => setSkillFilter(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="clean-sheet-compact-skills clean-sheet-readable-skills">
-          {SKILLS.map(([skill, ability]) => {
-            const proficient = skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase());
-            const skillMod = mod(character[ability]) + (proficient ? proficiencyBonus : 0);
-            return (
-              <div key={skill} className="clean-sheet-skill-card clean-sheet-compact-skill">
-                <div className="clean-sheet-skill-name">
-                  <span>{skill}</span>
-                  <div className="clean-sheet-skill-tags">
-                    <em>{ability.slice(0, 3).toUpperCase()}</em>
-                    {proficient && <small>Prof</small>}
-                  </div>
+          {visibleSkills.map(({ skill, ability, proficient, skillMod }) => (
+            <div key={skill} className={`clean-sheet-skill-card clean-sheet-compact-skill ${proficient ? 'is-proficient' : ''}`}>
+              <div className="clean-sheet-skill-name">
+                <span>{skill}</span>
+                <div className="clean-sheet-skill-tags">
+                  <em title={ABILITY_FULL_NAMES[ability]}>{ability.slice(0, 3).toUpperCase()}</em>
+                  {proficient && <small>Prof</small>}
                 </div>
-                <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(skill, skillMod)} aria-label={`Roll ${skill} ${fmt(skillMod)}`}>
-                  {fmt(skillMod)}
-                </button>
               </div>
-            );
-          })}
+              <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(skill, skillMod)} aria-label={`Roll ${skill} ${fmt(skillMod)}`}>
+                {fmt(skillMod)}
+              </button>
+            </div>
+          ))}
         </div>
       </section>
     </div>
