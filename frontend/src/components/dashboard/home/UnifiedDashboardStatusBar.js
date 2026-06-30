@@ -1,3 +1,30 @@
-function statusColor(tone) { if (tone === 'Offline') return '#ff8a8a'; if (tone === 'Slow' || tone === 'Checking') return '#ffd27a'; return '#ffffff'; }
-function StatChip({ label, value, tone }) { return <div className="unified-dashboard-stat"><span style={{ color: statusColor(tone) }}>{value}</span><span>{label}</span></div>; }
-export default function UnifiedDashboardStatusBar({ characterCount, campaignCount, isAdmin, backendStatus }) { return <section className="unified-dashboard-status" aria-label="Dashboard status"><StatChip label="Characters" value={characterCount} /><StatChip label="Campaigns" value={campaignCount} /><StatChip label="Access" value={isAdmin ? 'Admin' : 'Player'} /><StatChip label="Backend" value={backendStatus} tone={backendStatus} /></section>; }
+function statusColor(tone) {
+  if (tone === 'Offline') return '#ff8a8a';
+  if (tone === 'Slow' || tone === 'Checking') return '#ffd27a';
+  return '#ffffff';
+}
+
+function StatChip({ label, value, tone }) {
+  return (
+    <div className="unified-dashboard-stat">
+      <span style={{ color: statusColor(tone) }}>{value}</span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+export default function UnifiedDashboardStatusBar({
+  characterCount,
+  campaignCount,
+  isAdmin,
+  backendStatus,
+}) {
+  return (
+    <section className="unified-dashboard-status" aria-label="Dashboard status">
+      <StatChip label="Characters" value={characterCount} />
+      <StatChip label="Campaigns" value={campaignCount} />
+      <StatChip label="Access" value={isAdmin ? 'Admin' : 'Player'} />
+      <StatChip label="Backend" value={backendStatus} tone={backendStatus} />
+    </section>
+  );
+}
