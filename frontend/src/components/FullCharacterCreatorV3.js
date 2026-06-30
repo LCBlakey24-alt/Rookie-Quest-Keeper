@@ -30,7 +30,13 @@ import {
   getSpellSlotsForCaster,
   getSpellsForClass,
 } from "@/data/spellDatabase";
-import { ALL_ARMOR, ALL_WEAPONS } from "@/data/equipmentDatabase";
+import {
+  buildCreatorEquipmentPayload,
+  calculateCreatedCharacterArmorClass,
+  EMPTY_CURRENCY,
+  EMPTY_EQUIPPED,
+  equipmentNameKey,
+} from "@/utils/creatorEquipmentPayload";
 import "./FullCharacterCreatorV2.css";
 
 const ABILITIES = [
@@ -146,20 +152,6 @@ const EXTRA_LANGUAGES = [
   "Undercommon",
 ];
 const DRAFT_KEY = "rqk.full_character_creator_v3";
-const EMPTY_EQUIPPED = {
-  armor: null,
-  shield: null,
-  mainHand: null,
-  offHand: null,
-};
-const EMPTY_CURRENCY = {
-  copper: 0,
-  silver: 0,
-  electrum: 0,
-  gold: 0,
-  platinum: 0,
-};
-
 const arr = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -266,176 +258,6 @@ function classSkillOptions(classData) {
   return arr(classData.skillChoices);
 }
 
-const equipmentNameKey = (value) =>
-  String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-const allEquipmentReferences = [...ALL_WEAPONS, ...ALL_ARMOR];
-
-function findEquipmentReference(name = "") {
-  const key = equipmentNameKey(name);
-  if (!key) return null;
-  return (
-    allEquipmentReferences.find(
-      (item) => equipmentNameKey(item.name) === key,
-    ) ||
-    allEquipmentReferences.find(
-      (item) =>
-        key.includes(equipmentNameKey(item.name)) ||
-        equipmentNameKey(item.name).includes(key),
-    )
-  );
-}
-
-export function inferCreatorEquipSlot(item) {
-  if (!item) return null;
-  if (item.equipped_slot || item.equip_slot)
-    return item.equipped_slot || item.equip_slot;
-  const text =
-    `${item.type || ""} ${item.item_type || ""} ${item.category || ""} ${item.name || item}`.toLowerCase();
-  if (text.includes("shield")) return "shield";
-  if (/\b(armor|armour|mail|plate|leather|hide|scale)\b/.test(text))
-    return "armor";
-  if (
-    item.damage_dice ||
-    item.damage ||
-    /\b(sword|bow|crossbow|axe|mace|staff|dagger|spear|lance|hammer|rapier|club|flail|halberd|pike|trident|whip|sling|dart|javelin)\b/.test(
-      text,
-    )
-  )
-    return "mainHand";
-  return null;
-}
-
-export function normaliseCreatorEquipmentItem(item, source = "starting") {
-  const rawName =
-    typeof item === "string"
-      ? item
-      : item?.name || item?.item_name || item?.label || "";
-  const name = String(rawName || "").trim();
-  const ref = findEquipmentReference(name);
-  const isWeapon = Boolean(ref?.damage);
-  const isShield =
-    String(ref?.category || "").toLowerCase() === "shield" ||
-    /shield/i.test(name);
-  const isArmor =
-    !isShield &&
-    (Boolean(ref?.ac || ref?.acBonus) ||
-      /\b(armor|armour|mail|plate|leather|hide|scale)\b/i.test(name));
-  const damageParts = String(ref?.damage || "").match(
-    /(\d+d\d+|\d+)\s*([a-z]+)?/i,
-  );
-  const type =
-    item?.type ||
-    item?.item_type ||
-    (isShield ? "Shield" : isArmor ? "Armour" : isWeapon ? "Weapon" : "Item");
-  const normalised = {
-    ...(typeof item === "object" && item ? item : {}),
-    name,
-    type,
-    item_type: item?.item_type || type,
-    quantity: Number(item?.quantity ?? item?.qty ?? item?.count ?? 1) || 1,
-    description:
-      item?.description ||
-      item?.desc ||
-      (source === "starting" ? "Starting equipment" : ""),
-    source,
-    equipped: Boolean(item?.equipped || item?.is_equipped),
-    is_equipped: Boolean(item?.equipped || item?.is_equipped),
-    equip_slot: item?.equip_slot || item?.equipped_slot || "",
-    equipped_slot: item?.equipped_slot || item?.equip_slot || "",
-    ready_to_use: Boolean(
-      item?.ready_to_use || item?.equipped || item?.is_equipped,
-    ),
-    damage_dice:
-      item?.damage_dice || (damageParts && isWeapon ? damageParts[1] : ""),
-    damage_type:
-      item?.damage_type ||
-      ref?.damageType ||
-      (damageParts && isWeapon ? damageParts[2] || "" : ""),
-    properties:
-      item?.properties ||
-      (Array.isArray(ref?.properties)
-        ? ref.properties.join(", ")
-        : ref?.properties || ""),
-    range: item?.range || ref?.range || "",
-    ac_bonus: Number(item?.ac_bonus ?? (isShield ? 2 : 0)) || 0,
-  };
-  const slot = inferCreatorEquipSlot(normalised);
-  if (slot) {
-    normalised.equip_slot = normalised.equip_slot || slot;
-    normalised.equipped_slot = normalised.equipped_slot || slot;
-  }
-  return normalised;
-}
-
-export function buildCreatorEquipmentPayload(
-  equipmentList = [],
-  mode = "recommended",
-) {
-  const starting = arr(equipmentList)
-    .map((item) =>
-      String(typeof item === "string" ? item : item?.name || "").trim(),
-    )
-    .filter(Boolean);
-  const currency = { ...EMPTY_CURRENCY };
-  if (mode === "gold") currency.gold = 10;
-  const objects =
-    mode === "gold"
-      ? []
-      : starting.map((item) =>
-          normaliseCreatorEquipmentItem(
-            item,
-            mode === "custom" ? "custom" : "starting",
-          ),
-        );
-  const seen = new Set();
-  const deduped = objects.filter((item) => {
-    const key = equipmentNameKey(item.name);
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-  const equipped = { ...EMPTY_EQUIPPED };
-  deduped.forEach((item) => {
-    const slot = inferCreatorEquipSlot(item);
-    const confident =
-      slot === "armor" ||
-      slot === "shield" ||
-      item.type === "Weapon" ||
-      item.damage_dice;
-    if (!slot || !confident || equipped[slot]) return;
-    const equippedItem = {
-      ...item,
-      equip_slot: slot,
-      equipped_slot: slot,
-      equipped: true,
-      is_equipped: true,
-      ready_to_use: true,
-    };
-    equipped[slot] = equippedItem;
-    item.equipped = true;
-    item.is_equipped = true;
-    item.ready_to_use = true;
-    item.equip_slot = slot;
-    item.equipped_slot = slot;
-    if (slot === "shield" && !equipped.offHand) equipped.offHand = equippedItem;
-  });
-  return {
-    equipment_choice: mode,
-    starting_equipment:
-      mode === "gold"
-        ? ["Starting gold instead of equipment — confirm shopping with GM"]
-        : starting,
-    equipment: deduped,
-    inventory: deduped,
-    equipped,
-    currency,
-    gold: currency.gold,
-  };
-}
-
 function normaliseSlots(rawSlots = {}) {
   if (rawSlots?.slots && rawSlots?.level)
     return { [String(rawSlots.level)]: Number(rawSlots.slots) || 0 };
@@ -528,7 +350,6 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
     1,
     (classData.hitDie || 8) + mod(finalScores.constitution),
   );
-  const ac = 10 + mod(finalScores.dexterity);
   const allSkills = Array.from(new Set([...backgroundSkills, ...draft.skills]));
   const spellReq = spellRequirements(draft.characterClass, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
@@ -602,10 +423,10 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
           ),
           equipmentMode: "custom",
           customEquipment: arr(data.starting_equipment).join("\n"),
-          personalityTrait: data.personality_trait || "",
-          ideal: data.ideal || "",
-          bond: data.bond || "",
-          flaw: data.flaw || "",
+          personalityTrait: data.personality_traits || data.personality_trait || "",
+          ideal: data.ideals || data.ideal || "",
+          bond: data.bonds || data.bond || "",
+          flaw: data.flaws || data.flaw || "",
           backstory: data.backstory || "",
         }));
       } catch (error) {
@@ -769,6 +590,15 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
       return;
     }
 
+    const equipmentPayload = buildCreatorEquipmentPayload(
+      equipmentList(),
+      draft.equipmentMode,
+    );
+    const ac = calculateCreatedCharacterArmorClass(
+      { dexterity: finalScores.dexterity },
+      equipmentPayload,
+    );
+
     const payload = {
       name: draft.name.trim(),
       race: draft.race,
@@ -821,11 +651,11 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
             },
           ]
         : [],
-      ...buildCreatorEquipmentPayload(equipmentList(), draft.equipmentMode),
-      personality_trait: draft.personalityTrait,
-      ideal: draft.ideal,
-      bond: draft.bond,
-      flaw: draft.flaw,
+      ...equipmentPayload,
+      personality_traits: draft.personalityTrait,
+      ideals: draft.ideal,
+      bonds: draft.bond,
+      flaws: draft.flaw,
       backstory: draft.backstory,
       ...spellFields(),
     };

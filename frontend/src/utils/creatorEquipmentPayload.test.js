@@ -1,4 +1,7 @@
-import { buildCreatorEquipmentPayload } from "./creatorEquipmentPayload";
+import {
+  buildCreatorEquipmentPayload,
+  calculateCreatedCharacterArmorClass,
+} from "./creatorEquipmentPayload";
 
 const itemNames = (items) => items.map((item) => item.name);
 
@@ -19,6 +22,9 @@ describe("creatorEquipmentPayload", () => {
       expect.objectContaining({ name: "Shield", equipped_slot: "shield" }),
     );
     expect(payload.equipped.offHand).toBeNull();
+    expect(
+      calculateCreatedCharacterArmorClass({ dexterity: 14 }, payload),
+    ).toBe(16);
   });
 
   it("keeps ambiguous custom equipment carried but not auto-equipped", () => {
