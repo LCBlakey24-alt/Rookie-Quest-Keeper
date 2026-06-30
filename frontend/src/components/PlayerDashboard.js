@@ -18,22 +18,23 @@ import {
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
+import '@/styles/playerDashboardBoard.css';
 import { PlayerHandoutsPanel } from '@/components/tabs/HandoutsTab';
 
 const rq = {
-  bg: 'var(--rq-bg-main, #120C08)',
-  panel: 'var(--rq-bg-panel, #21150E)',
-  input: 'var(--rq-bg-input, #1A100B)',
-  border: 'var(--rq-accent-border, rgba(192,138,61,0.32))',
-  borderDefault: 'var(--rq-border-default, rgba(192,138,61,0.14))',
-  accent: 'var(--rq-accent-primary, #C08A3D)',
-  accentHover: 'var(--rq-accent-hover, #E0B15C)',
-  accentSoft: 'var(--rq-accent-soft, rgba(192,138,61,0.14))',
-  text: 'var(--rq-text-primary, #F5E6C8)',
-  textSecondary: 'var(--rq-text-secondary, #E6D2AA)',
-  muted: 'var(--rq-text-muted, #CDBA98)',
-  radius: 'var(--rq-radius-md, 6px)',
-  radiusSm: 'var(--rq-radius-sm, 4px)',
+  bg: '#242424',
+  panel: '#2f2f2f',
+  input: '#3a3a3a',
+  border: 'rgba(255,255,255,0.22)',
+  borderDefault: 'rgba(255,255,255,0.16)',
+  accent: '#d00000',
+  accentHover: '#ff3b3b',
+  accentSoft: 'rgba(208,0,0,0.18)',
+  text: '#ffffff',
+  textSecondary: 'rgba(255,255,255,0.78)',
+  muted: 'rgba(255,255,255,0.62)',
+  radius: '0',
+  radiusSm: '0',
 };
 
 const tabs = [
@@ -155,14 +156,14 @@ export default function PlayerDashboard() {
 
   if (loading) {
     return (
-      <main style={pageStyle}>
+      <main className="player-dashboard-page" style={pageStyle}>
         <div className="loading-spinner" />
       </main>
     );
   }
 
   return (
-    <main style={pageStyle}>
+    <main className="player-dashboard-page" style={pageStyle}>
       <section style={heroStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
           <Button data-testid="back-btn" onClick={() => navigate('/home')} className="btn-outline" style={iconButtonStyle} aria-label="Back to dashboard">
@@ -191,7 +192,7 @@ export default function PlayerDashboard() {
       </section>
 
       {characters.length > 0 && (
-        <section style={joinStripStyle}>
+        <section className="player-dashboard-board" style={joinStripStyle}>
           <label style={joinLabelStyle}>Join as</label>
           <select value={selectedCharacterId} onChange={(event) => setSelectedCharacterId(event.target.value)} style={selectStyle} aria-label="Select character for campaign join">
             {characters.map(character => (
@@ -205,7 +206,7 @@ export default function PlayerDashboard() {
         </section>
       )}
 
-      <section className="player-desktop-context" style={desktopContextStyle}>
+      <section className="player-desktop-context player-dashboard-board" style={desktopContextStyle}>
         <div style={{ minWidth: 0 }}>
           <p style={eyebrowStyle}>Current Player Space</p>
           <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
@@ -228,7 +229,7 @@ export default function PlayerDashboard() {
         </div>
       </section>
 
-      <section style={tabShellStyle}>
+      <section className="player-dashboard-board" style={tabShellStyle}>
         <div style={tabListStyle} role="tablist" aria-label="Player dashboard tabs">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -256,7 +257,7 @@ export default function PlayerDashboard() {
               {characters.length === 0 ? (
                 <EmptyState title="No characters yet" text="Create your first character to begin playing." action="Create Character" onAction={() => navigate('/characters/new')} />
               ) : characters.map(character => (
-                <Card key={character.id} style={cardStyle}>
+                <Card key={character.id} className="player-dashboard-card" style={cardStyle}>
                   <CardContent style={cardContentStyle}>
                     <div>
                       <p style={eyebrowStyle}>Character</p>
@@ -277,7 +278,7 @@ export default function PlayerDashboard() {
               {linkedCampaigns.length === 0 ? (
                 <EmptyState title="No linked campaigns" text="Use a join code from your GM to link a character to a campaign." action="Join Campaign" onAction={openJoinFlow} />
               ) : linkedCampaigns.map(campaign => (
-                <Card key={campaign.id} style={cardStyle}>
+                <Card key={campaign.id} className="player-dashboard-card" style={cardStyle}>
                   <CardContent style={cardContentStyle}>
                     <div>
                       <p style={eyebrowStyle}>{campaign.member_role ? 'Joined Campaign' : 'Campaign'}</p>
@@ -319,7 +320,7 @@ function EmptyState({ title, text, action, onAction }) {
   );
 }
 
-const pageStyle = { minHeight: '100vh', background: rq.bg, color: rq.text, padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' };
+const pageStyle = { minHeight: '100vh', background: rq.bg, color: rq.text, display: 'flex', flexDirection: 'column', gap: '18px' };
 const heroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' };
 const heroActionsStyle = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
 const eyebrowStyle = { margin: 0, color: rq.accentHover, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '11px', fontWeight: 900 };
