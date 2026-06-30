@@ -1,4 +1,164 @@
-import { campaignTypes, startingPoints, worldToneOptions, sessionZeroOptions } from './unifiedDashboardUtils';
-export default function CreateCampaignDialog({ form, creating, onChange, onToggleSessionZero, onSubmit, onClose }) { return <div className="dashboard-modal-overlay" role="presentation"><section className="dashboard-modal-panel" role="dialog" aria-modal="true" aria-labelledby="create-campaign-title"><div className="dashboard-modal-header"><div><p className="dashboard-eyebrow">GM setup</p><h2 id="create-campaign-title">Create Campaign</h2></div><button type="button" onClick={onClose} disabled={creating} className="dashboard-close-button" aria-label="Close create campaign"><span>×</span></button></div><form onSubmit={onSubmit} className="dashboard-form"><CampaignField label="Campaign name" value={form.name} onChange={(value) => onChange('name', value)} placeholder="Tia Karta" required /><CampaignField label="World name" value={form.world_name} onChange={(value) => onChange('world_name', value)} placeholder="Optional" /><div className="dashboard-form-split"><CampaignSelect label="Campaign type" value={form.campaign_type} onChange={(value) => onChange('campaign_type', value)} options={campaignTypes} /><CampaignSelect label="Starting point" value={form.starting_point} onChange={(value) => onChange('starting_point', value)} options={startingPoints} /></div><div className="dashboard-form-split"><CampaignSelect label="Rules edition" value={form.rules_edition} onChange={(value) => onChange('rules_edition', value)} options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }} /><CampaignSelect label="World tone" value={form.world_setting} onChange={(value) => onChange('world_setting', value)} options={worldToneOptions} /></div><fieldset className="dashboard-checklist"><legend>Session zero checklist</legend>{sessionZeroOptions.map(item => <label key={item.id}><input type="checkbox" checked={form.session_zero.includes(item.id)} onChange={() => onToggleSessionZero(item.id)} /><span>{item.label}</span></label>)}</fieldset><label className="dashboard-field"><span>Campaign notes</span><textarea value={form.description} onChange={(event) => onChange('description', event.target.value)} placeholder="What is this campaign about?" /></label><div className="dashboard-setup-preview"><p className="dashboard-eyebrow">Saved setup context</p><p className="dashboard-muted">Campaign type, starting point, tone, checklist, and notes will be saved into the campaign world context for your GM tools.</p></div><div className="dashboard-modal-actions"><button type="button" onClick={onClose} disabled={creating} className="unified-dashboard-button"><span>Cancel</span></button><button type="submit" disabled={creating} className="dashboard-primary-button"><span>{creating ? 'Creating...' : 'Create Campaign'}</span></button></div></form></section></div>; }
-function CampaignField({ label, value, onChange, placeholder, required = false }) { return <label className="dashboard-field"><span>{label}</span><input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} /></label>; }
-function CampaignSelect({ label, value, onChange, options }) { return <label className="dashboard-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{Object.entries(options).map(([id, labelText]) => <option key={id} value={id}>{labelText}</option>)}</select></label>; }
+import {
+  campaignTypes,
+  sessionZeroOptions,
+  startingPoints,
+  worldToneOptions,
+} from './unifiedDashboardUtils';
+
+export default function CreateCampaignDialog({
+  form,
+  creating,
+  onChange,
+  onToggleSessionZero,
+  onSubmit,
+  onClose,
+}) {
+  return (
+    <div className="dashboard-modal-overlay" role="presentation">
+      <section
+        className="dashboard-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-campaign-title"
+      >
+        <div className="dashboard-modal-header">
+          <div>
+            <p className="dashboard-eyebrow">GM setup</p>
+            <h2 id="create-campaign-title">Create Campaign</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={creating}
+            className="dashboard-close-button"
+            aria-label="Close create campaign"
+          >
+            <span>×</span>
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="dashboard-form">
+          <CampaignField
+            label="Campaign name"
+            value={form.name}
+            onChange={(value) => onChange('name', value)}
+            placeholder="Tia Karta"
+            required
+          />
+
+          <CampaignField
+            label="World name"
+            value={form.world_name}
+            onChange={(value) => onChange('world_name', value)}
+            placeholder="Optional"
+          />
+
+          <div className="dashboard-form-split">
+            <CampaignSelect
+              label="Campaign type"
+              value={form.campaign_type}
+              onChange={(value) => onChange('campaign_type', value)}
+              options={campaignTypes}
+            />
+            <CampaignSelect
+              label="Starting point"
+              value={form.starting_point}
+              onChange={(value) => onChange('starting_point', value)}
+              options={startingPoints}
+            />
+          </div>
+
+          <div className="dashboard-form-split">
+            <CampaignSelect
+              label="Rules edition"
+              value={form.rules_edition}
+              onChange={(value) => onChange('rules_edition', value)}
+              options={{ 2024: '5e 2024 Compatible', 2014: '5e 2014 Compatible' }}
+            />
+            <CampaignSelect
+              label="World tone"
+              value={form.world_setting}
+              onChange={(value) => onChange('world_setting', value)}
+              options={worldToneOptions}
+            />
+          </div>
+
+          <fieldset className="dashboard-checklist">
+            <legend>Session zero checklist</legend>
+            {sessionZeroOptions.map((item) => (
+              <label key={item.id}>
+                <input
+                  type="checkbox"
+                  checked={form.session_zero.includes(item.id)}
+                  onChange={() => onToggleSessionZero(item.id)}
+                />
+                <span>{item.label}</span>
+              </label>
+            ))}
+          </fieldset>
+
+          <label className="dashboard-field">
+            <span>Campaign notes</span>
+            <textarea
+              value={form.description}
+              onChange={(event) => onChange('description', event.target.value)}
+              placeholder="What is this campaign about?"
+            />
+          </label>
+
+          <div className="dashboard-setup-preview">
+            <p className="dashboard-eyebrow">Saved setup context</p>
+            <p className="dashboard-muted">
+              Campaign type, starting point, tone, checklist, and notes will be saved into the campaign world context for your GM tools.
+            </p>
+          </div>
+
+          <div className="dashboard-modal-actions">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={creating}
+              className="unified-dashboard-button"
+            >
+              <span>Cancel</span>
+            </button>
+
+            <button type="submit" disabled={creating} className="dashboard-primary-button">
+              <span>{creating ? 'Creating...' : 'Create Campaign'}</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function CampaignField({ label, value, onChange, placeholder, required = false }) {
+  return (
+    <label className="dashboard-field">
+      <span>{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        required={required}
+      />
+    </label>
+  );
+}
+
+function CampaignSelect({ label, value, onChange, options }) {
+  return (
+    <label className="dashboard-field">
+      <span>{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        {Object.entries(options).map(([id, labelText]) => (
+          <option key={id} value={id}>
+            {labelText}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
