@@ -86,9 +86,7 @@ function RouteLoadingScreen() {
   const tip = React.useMemo(() => LOADING_TIPS[Math.floor(Math.random() * LOADING_TIPS.length)], []);
   return (
     <div className="loading-screen" role="status" aria-live="polite">
-      <div className="loading-spinner">
-        <img className="loading-logo" src="/brand/rqk-logo-mini.svg" alt="RQK loading" />
-      </div>
+      <div className="loading-spinner" aria-hidden="true" />
       <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening Rookie Quest Keeper…</p>
       <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>{tip}</p>
     </div>
