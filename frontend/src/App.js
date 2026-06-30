@@ -79,7 +79,6 @@ function PrototypeRoute({ children }) {
   return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
 }
 
-
 const LOADING_TIPS = [
   'Table tip: decide your action, bonus action, and movement before your turn starts to keep combat snappy.',
   'Rules reminder: reactions are usually limited to one per round, so use them when they matter.',
@@ -98,8 +97,8 @@ function RouteLoadingScreen() {
   return (
     <div className="loading-screen" role="status" aria-live="polite">
       <div className="loading-spinner" aria-hidden="true" />
-      <p style={{ color: '#ffffff', marginTop: 12, fontWeight: 900 }}>Opening Rookie Quest Keeper…</p>
-      <p style={{ color: 'rgba(255,255,255,0.68)', marginTop: 8, maxWidth: 520, padding: '0 18px', lineHeight: 1.45, fontSize: 14 }}>{tip}</p>
+      <p className="loading-title">Opening Rookie Quest Keeper…</p>
+      <p className="loading-tip">{tip}</p>
     </div>
   );
 }
