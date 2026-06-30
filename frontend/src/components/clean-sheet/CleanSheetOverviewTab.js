@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Footprints, Gauge, Shield } from 'lucide-react';
+import { Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
 
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
@@ -23,10 +23,12 @@ export default function CleanSheetOverviewTab({
   skillProficiencies,
   onRoll,
 }) {
+  const initiativeMod = mod(character.dexterity);
   const coreStats = [
     { label: 'AC', value: ac ?? character.armor_class ?? 10, icon: Shield },
     { label: 'Speed', value: `${speed ?? character.speed ?? 30}ft`, icon: Footprints },
     { label: 'Prof', value: fmt(proficiencyBonus), icon: Gauge },
+    { label: 'Init', value: fmt(initiativeMod), icon: Swords, roll: true },
   ];
 
   return (
@@ -34,13 +36,24 @@ export default function CleanSheetOverviewTab({
       <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-core-stats-section">
         <h2>Core Stats</h2>
         <div className="clean-sheet-core-stat-grid">
-          {coreStats.map(({ label, value, icon: Icon }) => (
-            <div key={label} className="clean-sheet-core-stat-card">
-              <Icon size={15} />
-              <span>{label}</span>
-              <strong>{value}</strong>
-            </div>
-          ))}
+          {coreStats.map(({ label, value, icon: Icon, roll }) => {
+            const inner = (
+              <>
+                <Icon size={15} />
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </>
+            );
+            return roll ? (
+              <button key={label} type="button" className="clean-sheet-core-stat-card clean-sheet-core-stat-card--rollable" onClick={() => onRoll('Initiative', initiativeMod)} aria-label={`Roll initiative ${fmt(initiativeMod)}`}>
+                {inner}
+              </button>
+            ) : (
+              <div key={label} className="clean-sheet-core-stat-card">
+                {inner}
+              </div>
+            );
+          })}
         </div>
       </section>
 
