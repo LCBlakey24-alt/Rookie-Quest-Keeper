@@ -779,6 +779,7 @@ class PlayerCharacterUpdate(BaseModel):
     max_hit_points: Optional[int] = None
     current_hit_points: Optional[int] = None
     temporary_hit_points: Optional[int] = None
+    temp_hp: Optional[int] = None
     hit_dice: Optional[str] = None
     hit_dice_remaining: Optional[int] = None
     
@@ -804,12 +805,16 @@ class PlayerCharacterUpdate(BaseModel):
     spell_slots_remaining: Optional[Dict[str, int]] = None
     spells_known: Optional[List[Dict[str, Any]]] = None
     spells_prepared: Optional[List[Dict[str, Any]]] = None
+    cantrips_known: Optional[List[Dict[str, Any]]] = None
+    spell_preparation_loadout: Optional[str] = None
     
     # Level Progression
     level_progression: Optional[Dict[str, Any]] = None
     asi_increases: Optional[Dict[str, int]] = None
     
     # Equipment
+    equipment_choice: Optional[str] = None
+    starting_equipment: Optional[List[str]] = None
     equipment: Optional[List[Dict[str, Any]]] = None
     inventory: Optional[List[Dict[str, Any]]] = None
     equipped: Optional[Dict[str, Any]] = None
