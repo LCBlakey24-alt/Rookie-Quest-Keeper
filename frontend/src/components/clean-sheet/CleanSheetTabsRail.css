@@ -143,9 +143,11 @@
   align-items: stretch !important;
   gap: 8px !important;
   margin: 6px auto 8px !important;
-  border-top: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
-  border-bottom: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
-  padding: 7px 0 !important;
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+  padding: 7px 8px !important;
+  background: var(--rq-surface, #2f2f2f) !important;
+  box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-compact-status--hp-only .clean-sheet-compact-stat--hp {
@@ -234,8 +236,39 @@
   grid-column: 1 / -1 !important;
 }
 
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-card,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-tab-panel,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-turn-strip,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel {
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+  border-radius: 0 !important;
+  background: var(--rq-surface, #2f2f2f) !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-card,
+.character-page-v2 .clean-sheet-section,
+.character-page-v2 .clean-sheet-tab-panel {
+  padding: 12px !important;
+}
+
 .character-page-v2 .clean-sheet-turn-strip {
   margin-bottom: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-panel .clean-sheet-panel,
+.character-page-v2 .clean-sheet-card .clean-sheet-card,
+.character-page-v2 .clean-sheet-section .clean-sheet-section,
+.character-page-v2 .clean-sheet-tab-panel .clean-sheet-tab-panel {
+  border-left-color: var(--rq-line, rgba(255,255,255,0.16)) !important;
 }
 
 @media (max-width: 700px) {
