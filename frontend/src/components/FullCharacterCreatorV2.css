@@ -381,6 +381,89 @@
   font-weight: 950;
 }
 
+/* Spell + equipment creation polish */
+.full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip),
+.full-creator-equipment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--rq-line, rgba(255,255,255,0.16));
+}
+
+.full-creator-spell-chip {
+  width: 100% !important;
+  min-height: 108px !important;
+  border: 0 !important;
+  border-left: 4px solid transparent !important;
+  background: var(--rq-card, #3a3a3a) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.full-creator-spell-chip.active {
+  border-left-color: var(--rq-primary, #d00000) !important;
+  background: var(--rq-button-hover, #2a2a2a) !important;
+}
+
+.full-creator-spell-chip strong {
+  color: var(--rq-text, #ffffff);
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.full-creator-spell-chip span {
+  width: fit-content;
+  background: var(--rq-button, #1f1f1f);
+  border-left: 4px solid var(--rq-primary, #d00000);
+  color: var(--rq-text, #ffffff);
+  padding: 4px 7px;
+  font-size: 9px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.full-creator-spell-chip em {
+  color: var(--rq-muted, rgba(255,255,255,0.68));
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.full-creator-search {
+  border-left: 4px solid var(--rq-primary, #d00000) !important;
+  font-weight: 900;
+}
+
+.full-creator-equipment-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rq-line, rgba(255,255,255,0.16));
+}
+
+.full-creator-equipment-modes button {
+  border-left: 4px solid transparent;
+}
+
+.full-creator-equipment-list span {
+  min-height: 42px;
+  display: grid;
+  align-items: center;
+  background: var(--rq-card, #3a3a3a);
+  border-left: 4px solid var(--rq-primary, #d00000);
+  color: var(--rq-text, #ffffff);
+  font-weight: 900;
+}
+
+.full-creator-choice-block h3::after {
+  content: '  • tap to select';
+  color: var(--rq-muted, rgba(255,255,255,0.46));
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
 @media (max-width: 900px) {
   .full-creator-layout {
     grid-template-columns: 1fr;
@@ -419,7 +502,10 @@
 
   .full-creator-form-grid,
   .full-creator-score-editor,
-  .full-creator-review-grid {
+  .full-creator-review-grid,
+  .full-creator-equipment-modes,
+  .full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip),
+  .full-creator-equipment-list {
     grid-template-columns: 1fr;
   }
 
