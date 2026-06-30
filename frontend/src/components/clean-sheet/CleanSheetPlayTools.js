@@ -17,13 +17,11 @@ export default function CleanSheetPlayTools({
   activeConditions,
   concentratingName,
   concentrationInput,
-  currentHp,
   deathSaveFailures,
   deathSaveSuccesses,
   exhaustionLevel,
   hitDice,
   hitDiceRemaining,
-  maxHp,
   passiveScores,
   rollBonus,
   rollHistory,
@@ -44,7 +42,6 @@ export default function CleanSheetPlayTools({
   onShortRest,
   onShowConditionPickerChange,
   onShowConcentrationInputChange,
-  onSpendHitDie,
   onToggleCondition,
   onToggleDeathSave,
   onToggleInspiration,
@@ -60,6 +57,8 @@ export default function CleanSheetPlayTools({
   const hitDiceTotal = hitDieInfo.total;
   const hitDieLabel = `d${hitDieInfo.sides}`;
   const safeHitDiceRemaining = Math.max(0, Number(hitDiceRemaining) || 0);
+  const passivePerception = passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10;
+  const activeStatusCount = activeConditions.length + (exhaustionLevel > 0 ? 1 : 0);
 
   const saveConcentration = () => {
     const spellName = concentrationInput.trim();
@@ -125,35 +124,17 @@ export default function CleanSheetPlayTools({
     <>
       <section className="clean-sheet-turn-strip" data-testid="player-turn-strip">
         <div><span>Roll mode</span><strong>{rollMode === 'normal' ? 'Normal' : rollMode === 'advantage' ? 'Advantage' : 'Disadvantage'}</strong></div>
-        <div><span>Passive Perception</span><strong>{passiveScores.find(([label]) => label === 'Perception')?.[1] ?? 10}</strong></div>
-        <div><span>Conditions</span><strong>{activeConditions.length ? activeConditions.length : 'None'}</strong></div>
+        <div><span>Passive Perception</span><strong>{passivePerception}</strong></div>
+        <div><span>Status</span><strong>{activeStatusCount ? activeStatusCount : 'Clear'}</strong></div>
         <div><span>Hit Dice</span><strong>{safeHitDiceRemaining}/{hitDiceTotal} {hitDieLabel}</strong></div>
         <div><span>Concentration</span><strong>{concentratingName || 'None'}</strong></div>
       </section>
 
-      <section className="clean-sheet-mobile-tools" data-testid="mobile-play-essentials">
+      <section className="clean-sheet-mobile-tools clean-sheet-turn-tools" data-testid="mobile-play-essentials">
         <div className="clean-sheet-status-row clean-sheet-status-row--single">
           <button type="button" className={`clean-sheet-inspiration ${hasInspiration ? 'active' : ''}`} onClick={onToggleInspiration} disabled={savingQuickState} data-testid="inspiration-toggle">
             <Star size={17} /> {hasInspiration ? 'Inspired' : 'Inspiration'}
           </button>
-        </div>
-
-        <div className="clean-sheet-recovery-panel" data-testid="rest-recovery-panel">
-          <div className="clean-sheet-recovery-header">
-            <span><Coffee size={16} /> Rest & Recovery</span>
-            <strong>Short / Long Rest</strong>
-          </div>
-          <div className="clean-sheet-recovery-actions clean-sheet-recovery-actions--rests">
-            <button type="button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
-              <Coffee size={17} /> Short Rest
-            </button>
-            <button type="button" onClick={onLongRest} disabled={savingQuickState} data-testid="long-rest-btn">
-              <Moon size={17} /> Long Rest
-            </button>
-          </div>
-          <p className="clean-sheet-recovery-help">
-            Short rest keeps HP as-is. Long rest restores HP, clears temp HP, and recovers rest resources.
-          </p>
         </div>
 
         <div className="clean-sheet-roll-controls" data-testid="roll-controls">
@@ -170,68 +151,42 @@ export default function CleanSheetPlayTools({
           </label>
         </div>
 
-        <div className="clean-sheet-recovery-panel" data-testid="physical-roll-logger">
+        <div className="clean-sheet-recovery-panel" data-testid="rest-recovery-panel">
           <div className="clean-sheet-recovery-header">
-            <span><Dices size={16} /> Log Physical Roll</span>
-            <strong>Optional stats helper</strong>
+            <span><Coffee size={16} /> Rest & Recovery</span>
+            <strong>{safeHitDiceRemaining}/{hitDiceTotal} {hitDieLabel}</strong>
           </div>
-          <p className="clean-sheet-recovery-help">
-            Rolling real dice? Typing the result here helps build the end-session stats and player awards.
-          </p>
-          <div className="clean-sheet-recovery-actions" style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1.2fr) 80px 80px auto', gap: 8, alignItems: 'end' }}>
-            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
-              Roll
-              <input type="text" value={manualLabel} onChange={event => setManualLabel(event.target.value)} placeholder="Attack, save, check..." style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
-            </label>
-            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
-              d20
-              <input type="number" min="1" max="20" value={manualD20} onChange={event => setManualD20(event.target.value)} placeholder="17" style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
-            </label>
-            <label style={{ display: 'grid', gap: 4, color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 900 }}>
-              Total
-              <input type="number" value={manualTotal} onChange={event => setManualTotal(event.target.value)} placeholder="21" style={{ minHeight: 34, background: '#242424', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', padding: '0 8px' }} />
-            </label>
-            <button type="button" onClick={logManualRoll} disabled={loggingManualRoll || !manualD20} style={{ minHeight: 34 }}>
-              {loggingManualRoll ? 'Saving...' : 'Log'}
+          <div className="clean-sheet-recovery-actions clean-sheet-recovery-actions--rests">
+            <button type="button" onClick={onShortRest} disabled={savingQuickState} data-testid="short-rest-btn">
+              <Coffee size={17} /> Short Rest
+            </button>
+            <button type="button" onClick={onLongRest} disabled={savingQuickState} data-testid="long-rest-btn">
+              <Moon size={17} /> Long Rest
             </button>
           </div>
+          <p className="clean-sheet-recovery-help">
+            Short rest keeps HP as-is. Long rest restores HP, clears temp HP, and recovers rest resources.
+          </p>
         </div>
 
-        <div className="clean-sheet-passives" data-testid="passive-scores-strip">
-          {passiveScores.map(([label, value]) => (
-            <div key={label}><span>Passive {label}</span><strong>{value}</strong></div>
-          ))}
-        </div>
-
-        <div className="clean-sheet-hitdice-row" data-testid="concentration-row" style={{ borderColor: concentratingName ? '#a855f7' : undefined }}>
-          <span><Sparkles size={15} style={{ color: '#a855f7' }} /> Concentration</span>
-          {concentratingName ? (
-            <>
-              <strong style={{ color: '#a855f7', flex: 1 }}>{concentratingName}</strong>
-              <button
-                type="button"
-                onClick={onEndConcentration}
-                disabled={savingQuickState}
-                title="End concentration"
-                style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
-              >
-                End
+        <div className="clean-sheet-recovery-panel clean-sheet-concentration-panel" data-testid="concentration-row">
+          <div className="clean-sheet-recovery-header">
+            <span><Sparkles size={16} /> Concentration</span>
+            <strong>{concentratingName || 'None'}</strong>
+          </div>
+          <div className="clean-sheet-concentration-actions">
+            {concentratingName ? (
+              <button type="button" onClick={onEndConcentration} disabled={savingQuickState}>
+                End Concentration
               </button>
-            </>
-          ) : (
-            <>
-              <strong style={{ color: '#64748b', flex: 1 }}>None</strong>
-              <button
-                type="button"
-                onClick={() => onShowConcentrationInputChange(prev => !prev)}
-                style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '2px 8px', fontSize: '11px' }}
-              >
-                Set
+            ) : (
+              <button type="button" onClick={() => onShowConcentrationInputChange(prev => !prev)} disabled={savingQuickState}>
+                Set Concentration
               </button>
-            </>
-          )}
+            )}
+          </div>
           {showConcentrationInput && !concentratingName && (
-            <div style={{ width: '100%', display: 'flex', gap: '6px', marginTop: '6px' }}>
+            <div className="clean-sheet-concentration-input-row">
               <input
                 type="text"
                 placeholder="Spell name…"
@@ -239,18 +194,39 @@ export default function CleanSheetPlayTools({
                 onChange={event => onSetConcentrationInput(event.target.value)}
                 onKeyDown={event => { if (event.key === 'Enter' && concentrationInput.trim()) saveConcentration(); }}
                 className="clean-sheet-input"
-                style={{ flex: 1, padding: '4px 8px', fontSize: '12px', background: 'rgba(10,10,40,0.8)', border: '1px solid #a855f7', borderRadius: '4px', color: '#fff' }}
               />
-              <button
-                type="button"
-                disabled={!concentrationInput.trim() || savingQuickState}
-                onClick={saveConcentration}
-                style={{ background: 'rgba(168,85,247,0.3)', border: '1px solid #a855f7', borderRadius: '4px', color: '#a855f7', cursor: 'pointer', padding: '4px 10px', fontSize: '11px' }}
-              >
+              <button type="button" disabled={!concentrationInput.trim() || savingQuickState} onClick={saveConcentration}>
                 Save
               </button>
             </div>
           )}
+        </div>
+
+        <div className="clean-sheet-recovery-panel" data-testid="physical-roll-logger">
+          <div className="clean-sheet-recovery-header">
+            <span><Dices size={16} /> Log Physical Roll</span>
+            <strong>Optional</strong>
+          </div>
+          <p className="clean-sheet-recovery-help">
+            Rolling real dice? Log the d20 and total for end-session stats.
+          </p>
+          <div className="clean-sheet-manual-roll-grid">
+            <label>
+              <span>Roll</span>
+              <input type="text" value={manualLabel} onChange={event => setManualLabel(event.target.value)} placeholder="Attack, save, check..." />
+            </label>
+            <label>
+              <span>d20</span>
+              <input type="number" min="1" max="20" value={manualD20} onChange={event => setManualD20(event.target.value)} placeholder="17" />
+            </label>
+            <label>
+              <span>Total</span>
+              <input type="number" value={manualTotal} onChange={event => setManualTotal(event.target.value)} placeholder="21" />
+            </label>
+            <button type="button" onClick={logManualRoll} disabled={loggingManualRoll || !manualD20}>
+              {loggingManualRoll ? 'Saving...' : 'Log'}
+            </button>
+          </div>
         </div>
 
         <div className="clean-sheet-condition-panel" data-testid="conditions-strip">
