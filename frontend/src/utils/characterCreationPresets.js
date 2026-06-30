@@ -33,6 +33,12 @@ export function abilityFocusForClass(characterClass, fallback = 'strength') {
   return CLASS_ABILITY_FOCUS[characterClass] || fallback;
 }
 
+export function openFullCreatorWithPreset(navigate, creatorPreset) {
+  navigate('/characters/new/full', {
+    state: { creatorPreset },
+  });
+}
+
 export function buildBasicCreatorPreset(input = {}) {
   const safeClass = safeCharacterClass(input.characterClass);
 
