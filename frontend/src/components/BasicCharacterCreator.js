@@ -2,24 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { BACKGROUNDS, CLASSES, RACES } from '../data/characterRules5e';
+import {
+  ABILITY_OPTIONS,
+  CLASS_ABILITY_FOCUS,
+  buildBasicCreatorPreset,
+} from '../utils/characterCreationPresets';
 import './FullCharacterCreatorV2.css';
-
-const classFocus = {
-  Fighter: 'strength',
-  Barbarian: 'strength',
-  Paladin: 'strength',
-  Rogue: 'dexterity',
-  Ranger: 'dexterity',
-  Wizard: 'intelligence',
-  Sorcerer: 'charisma',
-  Warlock: 'charisma',
-  Bard: 'charisma',
-  Cleric: 'wisdom',
-  Druid: 'wisdom',
-  Monk: 'dexterity',
-};
-
-const abilityOptions = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
 const defaultForm = {
   name: '',
@@ -31,28 +19,7 @@ const defaultForm = {
   equipmentMode: 'recommended',
 };
 
-export function buildBasicCreatorPreset({
-  name,
-  characterClass,
-  race,
-  background,
-  abilityFocus,
-  magicPreference,
-  equipmentMode,
-}) {
-  const safeClass = CLASSES[characterClass] ? characterClass : 'Fighter';
-
-  return {
-    source: 'basic-creator',
-    name: name || '',
-    characterClass: safeClass,
-    race: RACES[race] ? race : 'Human',
-    background: BACKGROUNDS[background] ? background : 'Soldier',
-    abilityFocus: abilityFocus || classFocus[safeClass] || 'strength',
-    equipmentMode: equipmentMode || 'recommended',
-    notes: `Basic Creator preset. Magic preference: ${magicPreference || 'not sure'}`,
-  };
-}
+export { buildBasicCreatorPreset };
 
 function BasicField({ label, children }) {
   return (
@@ -104,7 +71,7 @@ export default function BasicCharacterCreator() {
                 value={form.characterClass}
                 onChange={(event) => update({
                   characterClass: event.target.value,
-                  abilityFocus: classFocus[event.target.value] || form.abilityFocus,
+                  abilityFocus: CLASS_ABILITY_FOCUS[event.target.value] || form.abilityFocus,
                 })}
               >
                 {Object.keys(CLASSES).map((className) => (
@@ -131,7 +98,7 @@ export default function BasicCharacterCreator() {
 
             <BasicField label="Ability focus">
               <select value={form.abilityFocus} onChange={(event) => update({ abilityFocus: event.target.value })}>
-                {abilityOptions.map((ability) => (
+                {ABILITY_OPTIONS.map((ability) => (
                   <option key={ability} value={ability}>{ability}</option>
                 ))}
               </select>
