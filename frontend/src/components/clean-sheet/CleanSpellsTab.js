@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { SPELLCASTING_CLASSES, getMulticlassSpellSlots } from '@/data/spellDatabase';
+import { BookOpen, Search, Sparkles, Wand2 } from 'lucide-react';
 
+import { SPELLCASTING_CLASSES, getMulticlassSpellSlots } from '@/data/spellDatabase';
 
 const ABILITY_LABELS = {
   strength: 'STR',
@@ -15,6 +16,31 @@ const ABILITY_LABELS = {
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const formatBonus = (value) => (Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`);
+const toArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
+
+function normaliseSpell(spell, fallbackLevel = null) {
+  if (!spell) return { name: 'Unknown Spell', level: fallbackLevel, school: '', description: '' };
+  if (typeof spell === 'string') return { name: spell, level: fallbackLevel, school: '', description: '' };
+  return {
+    ...spell,
+    name: spell.name || spell.spell_name || spell.title || 'Unknown Spell',
+    level: spell.level ?? spell.spell_level ?? fallbackLevel,
+    school: spell.school || spell.type || '',
+    description: spell.description || spell.desc || spell.summary || '',
+  };
+}
+
+function uniqueSpells(spells = [], fallbackLevel = null) {
+  const seen = new Set();
+  return toArray(spells)
+    .map(spell => normaliseSpell(spell, fallbackLevel))
+    .filter(spell => {
+      const key = normalizeName(spell.name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
 
 function getClassLevels(character = {}) {
   const fromMap = character?.multiclass_levels || character?.class_levels || {};
@@ -48,93 +74,25 @@ function classHasSpellcasting(character = {}, className = '') {
   return true;
 }
 
-function normaliseSpell(spell) {
-  if (!spell) return { name: 'Unknown Spell', level: null, school: '' };
-  if (typeof spell === 'string') return { name: spell, level: null, school: '' };
-  return {
-    name: spell.name || spell.spell_name || spell.title || 'Unknown Spell',
-    level: spell.level ?? spell.spell_level ?? null,
-    school: spell.school || spell.type || '',
-    prepared: spell.prepared,
-    description: spell.description || spell.desc || spell.summary || ''
-  };
-}
-
-
-
-function classifySpellRole(spell) {
-  const text = `${spell.name || ''} ${spell.description || ''}`.toLowerCase();
-  if (/heal|cure|restoration|shield|ward|protection|resist/.test(text)) return 'defense';
-  if (/bolt|blast|fire|lightning|thunder|ray|smite|damage/.test(text)) return 'offense';
-  return 'utility';
-}
-
-function getRookSuggestedLoadouts(spells = [], preparedCount = 0) {
-  const normalized = spells.map(normaliseSpell);
-  const nonCantrips = normalized.filter(s => Number(s.level || 0) > 0);
-  const target = Math.max(1, preparedCount || Math.min(6, nonCantrips.length));
-  const byRole = {
-    offense: nonCantrips.filter(s => classifySpellRole(s) === 'offense'),
-    defense: nonCantrips.filter(s => classifySpellRole(s) === 'defense'),
-    utility: nonCantrips.filter(s => classifySpellRole(s) === 'utility'),
-  };
-
-  const balanced = [];
-  const queues = [byRole.offense, byRole.defense, byRole.utility];
-  let idx = 0;
-  while (balanced.length < target && queues.some(q => q.length)) {
-    const q = queues[idx % queues.length];
-    if (q.length) balanced.push(q.shift());
-    idx += 1;
-  }
-
-  const glassCannon = [...(byRole.offense || []), ...(byRole.utility || []), ...(byRole.defense || [])].slice(0, target);
-  const survivor = [...(byRole.defense || []), ...(byRole.utility || []), ...(byRole.offense || [])].slice(0, target);
-
-  return [
-    { id: 'rook-balanced', label: 'Rook Balanced', spells: balanced },
-    { id: 'rook-glass', label: 'Rook Blaster', spells: glassCannon },
-    { id: 'rook-survivor', label: 'Rook Survivor', spells: survivor },
-  ].filter(pack => pack.spells.length > 0);
-}
-
 function spellLevelLabel(level) {
-  if (level === 0 || level === '0') return 'Cantrip';
+  if (Number(level) === 0) return 'Cantrip';
   if (!level && level !== 0) return 'Spell';
   return `Level ${level}`;
 }
 
-function SpellCard({ spell, tag }) {
-  const [expanded, setExpanded] = useState(false);
-  const normalised = normaliseSpell(spell);
-  const hasDescription = Boolean(normalised.description);
-
-  return (
-    <button type="button" className={`clean-sheet-spell-card ${expanded ? 'expanded' : ''}`} onClick={() => hasDescription && setExpanded(prev => !prev)}>
-      <span className="clean-sheet-spell-level">{tag || spellLevelLabel(normalised.level)}</span>
-      <strong>{normalised.name}</strong>
-      {normalised.school && <em>{normalised.school}</em>}
-      {hasDescription && (
-        <p>{expanded ? normalised.description : `${normalised.description.slice(0, 120)}${normalised.description.length > 120 ? '…' : ''}`}</p>
-      )}
-      {hasDescription && <small>{expanded ? 'Tap to collapse' : 'Tap to expand'}</small>}
-    </button>
-  );
+function groupByLevel(spells = []) {
+  return spells.reduce((groups, spell) => {
+    const key = String(Number(spell.level || 0));
+    return { ...groups, [key]: [...(groups[key] || []), spell] };
+  }, {});
 }
 
-function SpellList({ title, spells, emptyText, tag }) {
-  return (
-    <section className="clean-sheet-panel">
-      <h2>{title}</h2>
-      {spells.length > 0 ? (
-        <div className="clean-sheet-spell-grid">
-          {spells.map((spell, index) => <SpellCard key={`${normaliseSpell(spell).name}-${index}`} spell={spell} tag={tag} />)}
-        </div>
-      ) : (
-        <p className="clean-sheet-muted">{emptyText}</p>
-      )}
-    </section>
-  );
+function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
+  const keys = Array.from(new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]))
+    .map(Number)
+    .filter(level => level >= Number(spellLevel || 1))
+    .sort((a, b) => a - b);
+  return keys.find(level => Number(remaining[level] ?? slots[level] ?? 0) > 0) || null;
 }
 
 function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
@@ -151,15 +109,13 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
     if (next === current) return;
     setSavingLevel(level);
     const ok = await onChangeSlots({ ...(remaining || {}), [level]: next });
-    if (ok !== false) {
-      toast.success(delta < 0 ? `Level ${level} slot spent` : `Level ${level} slot restored`);
-    }
+    if (ok !== false) toast.success(delta < 0 ? `Level ${level} slot spent` : `Level ${level} slot restored`);
     setSavingLevel('');
   };
 
   return (
-    <section className="clean-sheet-panel clean-sheet-wide">
-      <h2>Spell Slots</h2>
+    <section className="clean-sheet-panel clean-sheet-wide clean-spell-board">
+      <div className="clean-sheet-spell-section-heading"><h2>Spell Slots</h2><span>{keys.length ? 'Tap Spend or Restore' : 'No slot data'}</span></div>
       {keys.length > 0 ? (
         <div className="clean-sheet-slot-grid">
           {keys.map(level => {
@@ -170,9 +126,7 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
                 <span>Level {level}</span>
                 <strong>{left}/{total}</strong>
                 <div className="clean-sheet-slot-pips" aria-label={`Level ${level} slots`}>
-                  {Array.from({ length: total }).map((_, index) => (
-                    <i key={index} className={index < left ? 'filled' : ''} />
-                  ))}
+                  {Array.from({ length: total }).map((_, index) => <i key={index} className={index < left ? 'filled' : ''} />)}
                 </div>
                 <div className="clean-sheet-slot-actions">
                   <button type="button" onClick={() => updateLevel(level, -1)} disabled={savingLevel === level || left <= 0}>Spend</button>
@@ -182,302 +136,164 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
             );
           })}
         </div>
-      ) : (
-        <p className="clean-sheet-muted">No spell slot data found.</p>
-      )}
+      ) : <p className="clean-sheet-muted">This character has no spell slots saved yet.</p>}
     </section>
   );
 }
 
+function SpellCard({ spell, prepared, cantrip, onCast, onConcentrate }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasDescription = Boolean(spell.description);
+  const concentrationLikely = /concentration/i.test(spell.description || '');
 
-function SpellcastingMathPanel({ character, classLevels, spellcastingRows, slotMath }) {
-  const pact = slotMath?.pactMagic;
   return (
-    <section className="clean-sheet-panel clean-sheet-wide">
-      <div className="clean-sheet-spellcasting-heading">
-        <div>
-          <h2>Spellcasting Math</h2>
-          <p>Shows the class, spellcasting ability, save DC, spell attack, preparation style, and multiclass slot math used by this sheet.</p>
-        </div>
-        <span>{Object.keys(classLevels).length > 1 ? 'Multiclass' : 'Single class'}</span>
+    <article className={`clean-sheet-spell-card ${prepared ? 'prepared' : ''} ${cantrip ? 'cantrip' : ''}`}>
+      <div className="clean-sheet-spell-card-top">
+        <span className="clean-sheet-spell-level">{spellLevelLabel(spell.level)}</span>
+        {prepared && <span className="clean-sheet-spell-state">Prepared</span>}
       </div>
-
-      {spellcastingRows.length > 0 ? (
-        <div className="clean-sheet-caster-grid">
-          {spellcastingRows.map((row) => (
-            <article key={row.className} className="clean-sheet-caster-card">
-              <div className="clean-sheet-caster-card-title">
-                <strong>{row.className}</strong>
-                <span>Level {row.level}</span>
-              </div>
-              <div className="clean-sheet-caster-stats">
-                <div><span>Ability</span><strong>{row.abilityLabel}</strong><em>{formatBonus(row.modifier)}</em></div>
-                <div><span>Save DC</span><strong>{row.saveDc}</strong><em>8 + prof + mod</em></div>
-                <div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong><em>prof + mod</em></div>
-                <div><span>Prep/Known</span><strong>{row.prepLabel}</strong><em>{row.castingType}</em></div>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="clean-sheet-muted">This character does not currently have a spellcasting class, subclass, or recorded spellcasting data.</p>
-      )}
-
-      <div className="clean-sheet-slot-math-grid">
-        <div><span>Combined caster level</span><strong>{slotMath?.multiclassLevel || 0}</strong><em>Used for shared non-warlock spell slots.</em></div>
-        <div><span>Capped slot level</span><strong>{slotMath?.cappedMulticlassLevel || 0}</strong><em>Epic characters keep slots capped at table level 20.</em></div>
-        <div><span>Pact magic</span><strong>{pact ? `${pact.slots}×L${pact.level}` : 'None'}</strong><em>Warlock slots stay separate.</em></div>
+      <strong>{spell.name}</strong>
+      {spell.school && <em>{spell.school}</em>}
+      {hasDescription && <p>{expanded ? spell.description : `${spell.description.slice(0, 130)}${spell.description.length > 130 ? '…' : ''}`}</p>}
+      <div className="clean-sheet-spell-actions">
+        <button type="button" onClick={() => onCast(spell)}>{cantrip ? 'Use Cantrip' : 'Cast'}</button>
+        {concentrationLikely && <button type="button" onClick={() => onConcentrate(spell)}>Concentrate</button>}
+        {hasDescription && <button type="button" onClick={() => setExpanded(prev => !prev)}>{expanded ? 'Less' : 'More'}</button>}
       </div>
-    </section>
+    </article>
   );
 }
 
-function PactMagicSlots({ pactMagic }) {
-  if (!pactMagic) return null;
+function SpellGroup({ title, spells, preparedNames, emptyText, onCast, onConcentrate }) {
+  const grouped = groupByLevel(spells);
+  const levels = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+
   return (
-    <section className="clean-sheet-panel clean-sheet-wide">
-      <h2>Pact Magic</h2>
-      <div className="clean-sheet-pact-card">
-        <div><span>Slots</span><strong>{pactMagic.slots}</strong></div>
-        <div><span>Slot level</span><strong>{pactMagic.level}</strong></div>
-        <p>Track these separately from normal spell slots. They usually refresh on a short rest.</p>
-      </div>
+    <section className="clean-sheet-panel clean-sheet-wide clean-spell-board">
+      <div className="clean-sheet-spell-section-heading"><h2>{title}</h2><span>{spells.length} spell{spells.length === 1 ? '' : 's'}</span></div>
+      {spells.length ? levels.map(level => (
+        <div key={`${title}-${level}`} className="clean-sheet-spell-level-group">
+          <h3>{spellLevelLabel(level)}</h3>
+          <div className="clean-sheet-spell-grid">
+            {grouped[level].map(spell => (
+              <SpellCard
+                key={`${title}-${spell.name}`}
+                spell={spell}
+                cantrip={Number(spell.level || 0) === 0}
+                prepared={preparedNames.has(normalizeName(spell.name))}
+                onCast={onCast}
+                onConcentrate={onConcentrate}
+              />
+            ))}
+          </div>
+        </div>
+      )) : <p className="clean-sheet-muted">{emptyText}</p>}
     </section>
   );
 }
 
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
-  const cantrips = character?.cantrips_known || [];
-  const known = character?.spells_known || [];
-  const prepared = character?.spells_prepared || [];
-  const slots = character?.spell_slots || {};
-  const remaining = character?.spell_slots_remaining || {};
-  const spellAbility = character?.spellcasting_ability || '';
-  const spellDc = character?.spell_save_dc || '';
-  const spellAttack = character?.spell_attack_bonus || '';
-  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const [spellSearch, setSpellSearch] = useState('');
   const classLevels = useMemo(() => getClassLevels(character), [character]);
   const slotMath = useMemo(() => getMulticlassSpellSlots(classLevels, character), [classLevels, character]);
-  const effectiveSlots = Object.keys(slots || {}).length ? slots : (slotMath?.slots || {});
-  const effectiveRemaining = Object.keys(remaining || {}).length ? remaining : effectiveSlots;
-  const spellcastingRows = useMemo(() => Object.entries(classLevels)
-    .map(([className, level]) => {
-      const canonical = canonicalSpellClass(className);
-      const info = SPELLCASTING_CLASSES[canonical];
-      if (!info || !classHasSpellcasting(character, className)) return null;
-      const ability = info.ability;
-      const modifier = abilityMod(character?.[ability]);
-      const saveDc = 8 + proficiencyBonus + modifier;
-      const attackBonus = proficiencyBonus + modifier;
-      const preparedLimit = info.type === 'prepared' ? Math.max(1, level + modifier) : null;
-      return {
-        className: canonical,
-        level,
-        ability,
-        abilityLabel: ABILITY_LABELS[ability] || ability,
-        modifier,
-        saveDc,
-        attackBonus,
-        castingType: info.pactMagic ? 'Pact magic' : info.type === 'prepared' ? 'Prepared caster' : 'Known caster',
-        prepLabel: preparedLimit ? `${prepared.length}/${preparedLimit}` : `${known.length} known`,
-      };
-    })
-    .filter(Boolean), [character, classLevels, known.length, prepared.length, proficiencyBonus]);
+  const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
+  const spellcastingRows = useMemo(() => Object.entries(classLevels).map(([className, level]) => {
+    const canonical = canonicalSpellClass(className);
+    const info = SPELLCASTING_CLASSES[canonical];
+    if (!info || !classHasSpellcasting(character, className)) return null;
+    const modifier = abilityMod(character?.[info.ability]);
+    return {
+      className: canonical,
+      level,
+      ability: info.ability,
+      abilityLabel: ABILITY_LABELS[info.ability] || info.ability,
+      saveDc: 8 + proficiencyBonus + modifier,
+      attackBonus: proficiencyBonus + modifier,
+      castingType: info.pactMagic ? 'Pact Magic' : info.type === 'prepared' ? 'Prepared' : 'Known',
+    };
+  }).filter(Boolean), [character, classLevels, proficiencyBonus]);
+
   const primaryCaster = spellcastingRows[0];
-  const displayedSpellAbility = spellAbility || primaryCaster?.abilityLabel || '';
-  const displayedSpellDc = spellDc || primaryCaster?.saveDc || '';
-  const displayedSpellAttack = spellAttack || (primaryCaster ? primaryCaster.attackBonus : '');
-  const [loadoutName, setLoadoutName] = useState('');
+  const slots = character?.spell_slots && Object.keys(character.spell_slots).length ? character.spell_slots : (slotMath?.slots || {});
+  const remaining = character?.spell_slots_remaining && Object.keys(character.spell_slots_remaining).length ? character.spell_slots_remaining : slots;
+  const pactSlots = slotMath?.pactMagic ? { [String(slotMath.pactMagic.level)]: slotMath.pactMagic.slots } : {};
+  const effectiveSlots = Object.keys(slots || {}).length ? slots : pactSlots;
+  const effectiveRemaining = Object.keys(remaining || {}).length ? remaining : effectiveSlots;
 
-  const sortedKnown = useMemo(() => [...known].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [known]);
-  const sortedPrepared = useMemo(() => [...prepared].sort((a, b) => Number(normaliseSpell(a).level || 0) - Number(normaliseSpell(b).level || 0)), [prepared]);
-
-  const loadoutStorageKey = `rq.spell_loadouts.${character?.id || character?._id || 'unknown'}`;
-  const savedLoadouts = useMemo(() => {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(loadoutStorageKey) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, [loadoutStorageKey, sortedPrepared.length]);
-
-  const rookSuggestions = useMemo(() => {
-    const source = sortedKnown.length > 0 ? sortedKnown : sortedPrepared;
-    return getRookSuggestedLoadouts(source, sortedPrepared.length);
-  }, [sortedKnown, sortedPrepared]);
-
-  const applyPreparedSet = async (spells) => {
-    if (!onCharacterUpdate) return false;
-    const ok = await onCharacterUpdate({ spells_prepared: spells.map(normaliseSpell) }, { error: 'Could not apply spell loadout' });
-    if (ok !== false) toast.success('Prepared spells updated');
-    return ok;
-  };
-
-
-
-
-  const exportLoadouts = () => {
-    try {
-      const blob = new Blob([JSON.stringify({ character_id: character?.id, loadouts: savedLoadouts }, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `spell-loadouts-${character?.id || 'character'}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.success('Spell setups exported');
-    } catch {
-      toast.error('Failed to export spell setups');
-    }
-  };
-
-  const importLoadouts = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      const incoming = Array.isArray(data) ? data : (Array.isArray(data.loadouts) ? data.loadouts : []);
-      if (!incoming.length) {
-        toast.error('No spell setups found in file');
-        return;
-      }
-      const normalized = incoming
-        .filter(l => l && typeof l.name === 'string' && Array.isArray(l.spells))
-        .map(l => ({ name: l.name.trim().slice(0, 40), spells: l.spells.map(normaliseSpell) }))
-        .filter(l => l.name && l.spells.length);
-      if (!normalized.length) {
-        toast.error('No valid spell setups found');
-        return;
-      }
-      const merged = [...savedLoadouts];
-      normalized.forEach((l) => {
-        const idx = merged.findIndex(x => x.name.toLowerCase() === l.name.toLowerCase());
-        if (idx >= 0) merged[idx] = l;
-        else merged.push(l);
-      });
-      localStorage.setItem(loadoutStorageKey, JSON.stringify(merged.slice(-20)));
-      toast.success(`Imported ${normalized.length} spell setups`);
-    } catch {
-      toast.error('Failed to import spell setups');
-    }
-  };
-
-  const deleteLoadout = (name) => {
-    try {
-      const next = savedLoadouts.filter(l => l.name !== name);
-      localStorage.setItem(loadoutStorageKey, JSON.stringify(next));
-      toast.success('Spell setup deleted');
-    } catch {
-      toast.error('Failed to delete setup');
-    }
-  };
-
-
-
-  const applyLoadoutAfterLongRest = async (loadout) => {
-    if (!onCharacterUpdate) return false;
-    const fullSlots = Object.fromEntries(
-      Object.keys(slots || {}).map((k) => [k, Number(slots[k] || 0)])
-    );
-    const ok = await onCharacterUpdate(
-      {
-        spells_prepared: (loadout?.spells || []).map(normaliseSpell),
-        spell_slots_remaining: fullSlots,
-      },
-      { error: 'Could not apply long-rest spell setup' }
-    );
-    if (ok !== false) toast.success(`Applied ${loadout?.name || 'setup'} and restored slots`);
-    return ok;
-  };
-
-  const saveCurrentLoadout = () => {
-    const name = loadoutName.trim();
-    if (!name) { toast.error('Name your spell setup first'); return; }
-    try {
-      const next = [
-        ...savedLoadouts.filter(l => l.name.toLowerCase() !== name.toLowerCase()),
-        { name, spells: sortedPrepared.map(normaliseSpell) }
-      ].slice(-12);
-      localStorage.setItem(loadoutStorageKey, JSON.stringify(next));
-      toast.success('Spell setup saved');
-      setLoadoutName('');
-    } catch {
-      toast.error('Failed to save setup');
-    }
-  };
-
+  const cantrips = uniqueSpells(character?.cantrips_known || character?.cantrips, 0);
+  const known = uniqueSpells(character?.spells_known || character?.known_spells || character?.spellbook, null);
+  const prepared = uniqueSpells(character?.spells_prepared || character?.prepared_spells, null);
+  const preparedNames = new Set(prepared.map(spell => normalizeName(spell.name)));
+  const allLeveled = uniqueSpells([...known, ...prepared], null);
+  const lowerSearch = spellSearch.trim().toLowerCase();
+  const filterSpells = (spells) => !lowerSearch ? spells : spells.filter(spell => `${spell.name} ${spell.school} ${spell.description}`.toLowerCase().includes(lowerSearch));
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
     return onCharacterUpdate({ spell_slots_remaining: nextRemaining }, { error: 'Could not update spell slots' });
   };
 
+  const castSpell = async (spell) => {
+    const level = Number(spell.level || 0);
+    if (level <= 0) {
+      toast.success(`${spell.name} used`, { description: 'Cantrips do not spend spell slots.' });
+      return;
+    }
+
+    const slotLevel = lowestUsableSlot(effectiveSlots, effectiveRemaining, level);
+    if (!slotLevel) {
+      toast.error(`No level ${level}+ spell slots left`, { description: 'Restore slots after a rest or spend manually if your table rules differ.' });
+      return;
+    }
+
+    const nextRemaining = {
+      ...(effectiveRemaining || {}),
+      [slotLevel]: Math.max(0, Number(effectiveRemaining[slotLevel] ?? effectiveSlots[slotLevel] ?? 0) - 1),
+    };
+    const ok = await handleSlotChange(nextRemaining);
+    if (ok !== false) toast.success(`${spell.name} cast`, { description: `Spent a level ${slotLevel} spell slot.` });
+  };
+
+  const concentrateOn = async (spell) => {
+    if (!onCharacterUpdate) return;
+    const ok = await onCharacterUpdate({ concentrating_on: spell.name, concentration: spell.name }, { error: 'Could not set concentration' });
+    if (ok !== false) toast.success(`Concentrating on ${spell.name}`);
+  };
+
   return (
-    <div className="clean-sheet-grid">
-      <section className="clean-sheet-panel clean-sheet-wide">
-        <h2>Spellcasting</h2>
+    <div className="clean-sheet-grid clean-sheet-spells-tab">
+      <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-summary-board">
+        <div className="clean-sheet-spellcasting-heading">
+          <div><h2>Spellcasting</h2><p>Cast spells, spend slots, and check your spell math from the player sheet.</p></div>
+          <span>{spellcastingRows.length ? 'Caster' : 'No caster data'}</span>
+        </div>
         <div className="clean-sheet-spell-summary">
-          <div><span>Ability</span><strong>{displayedSpellAbility || '—'}</strong></div>
-          <div><span>Save DC</span><strong>{displayedSpellDc || '—'}</strong></div>
-          <div><span>Attack</span><strong>{displayedSpellAttack !== '' ? formatBonus(displayedSpellAttack) : '—'}</strong></div>
-          <div><span>Prepared</span><strong>{prepared.length}</strong></div>
+          <div><span>Ability</span><strong>{character?.spellcasting_ability ? ABILITY_LABELS[character.spellcasting_ability] || character.spellcasting_ability : primaryCaster?.abilityLabel || '—'}</strong></div>
+          <div><span>Save DC</span><strong>{character?.spell_save_dc || primaryCaster?.saveDc || '—'}</strong></div>
+          <div><span>Attack</span><strong>{character?.spell_attack_bonus !== undefined ? formatBonus(character.spell_attack_bonus) : primaryCaster ? formatBonus(primaryCaster.attackBonus) : '—'}</strong></div>
+          <div><span>Known/Prepared</span><strong>{known.length}/{prepared.length}</strong></div>
         </div>
+        <label className="clean-sheet-spell-search"><Search size={16} /><input value={spellSearch} onChange={event => setSpellSearch(event.target.value)} placeholder="Search spells…" /></label>
       </section>
 
-      <SpellcastingMathPanel character={character} classLevels={classLevels} spellcastingRows={spellcastingRows} slotMath={slotMath} />
-
-      <section className="clean-sheet-panel clean-sheet-wide">
-        <h2>Rook Spell Setups</h2>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <input
-            value={loadoutName}
-            onChange={(e) => setLoadoutName(e.target.value)}
-            placeholder="Save current prepared spells as..."
-            style={{ flex: '1 1 220px', padding: '8px 10px', background: '#0f172a', color: '#fff', border: '1px solid #334155' }}
-          />
-          <button type="button" onClick={saveCurrentLoadout}>Save Setup</button>
-          <button type="button" onClick={exportLoadouts}>Export Setups</button>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-            Import Setups
-            <input type="file" accept="application/json" onChange={importLoadouts} style={{ display: 'none' }} />
-          </label>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          {rookSuggestions.map(sg => (
-            <button key={sg.id} type="button" onClick={() => applyPreparedSet(sg.spells)}>
-              Apply {sg.label}
-            </button>
-          ))}
-        </div>
-        {savedLoadouts.length > 0 ? (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {savedLoadouts.map((l, idx) => (
-              <div key={`${l.name}-${idx}`} style={{ display: 'inline-flex', gap: 6 }}>
-                <button type="button" onClick={() => applyPreparedSet(l.spells)}>
-                  Load {l.name} ({l.spells?.length || 0})
-                </button>
-                <button type="button" onClick={() => applyLoadoutAfterLongRest(l)} title="Apply setup and restore spell slots">
-                  Rest+Load
-                </button>
-                <button type="button" onClick={() => deleteLoadout(l.name)} title="Delete setup">
-                  ✕
-                </button>
-              </div>
-            ))}
+      {spellcastingRows.length > 0 && (
+        <section className="clean-sheet-panel clean-sheet-wide clean-spell-board">
+          <div className="clean-sheet-spell-section-heading"><h2>Caster Details</h2><span>{Object.keys(classLevels).length > 1 ? 'Multiclass' : 'Single class'}</span></div>
+          <div className="clean-sheet-caster-grid">
+            {spellcastingRows.map(row => <article key={row.className} className="clean-sheet-caster-card"><div className="clean-sheet-caster-card-title"><strong>{row.className}</strong><span>Level {row.level}</span></div><div className="clean-sheet-caster-stats"><div><span>Ability</span><strong>{row.abilityLabel}</strong></div><div><span>Save DC</span><strong>{row.saveDc}</strong></div><div><span>Attack</span><strong>{formatBonus(row.attackBonus)}</strong></div><div><span>Style</span><strong>{row.castingType}</strong></div></div></article>)}
           </div>
-        ) : <p className="clean-sheet-muted">No saved spell setups yet.</p>}
-      </section>
+        </section>
+      )}
 
       <SpellSlots slots={effectiveSlots} remaining={effectiveRemaining} onChangeSlots={handleSlotChange} />
-      <PactMagicSlots pactMagic={slotMath?.pactMagic} />
-      <SpellList title="Cantrips" spells={cantrips} emptyText="No cantrips found." tag="Cantrip" />
-      <SpellList title="Known Spells" spells={sortedKnown} emptyText="No known spells found." />
-      <SpellList title="Prepared Spells" spells={sortedPrepared} emptyText="No prepared spells found." />
+
+      {slotMath?.pactMagic && <section className="clean-sheet-panel clean-sheet-wide clean-spell-board"><div className="clean-sheet-spell-section-heading"><h2>Pact Magic</h2><span>Warlock</span></div><div className="clean-sheet-pact-card"><div><span>Slots</span><strong>{slotMath.pactMagic.slots}</strong></div><div><span>Slot Level</span><strong>{slotMath.pactMagic.level}</strong></div><p>Warlock pact slots refresh separately at most tables, usually on a short rest.</p></div></section>}
+
+      <SpellGroup title="Cantrips" spells={filterSpells(cantrips)} preparedNames={preparedNames} emptyText="No cantrips found on this character." onCast={castSpell} onConcentrate={concentrateOn} />
+      <SpellGroup title="Prepared Spells" spells={filterSpells(prepared)} preparedNames={preparedNames} emptyText="No prepared spells found. Edit the character or prepare spells after a rest." onCast={castSpell} onConcentrate={concentrateOn} />
+      <SpellGroup title="Known / Spellbook" spells={filterSpells(allLeveled)} preparedNames={preparedNames} emptyText="No known spells or spellbook entries found." onCast={castSpell} onConcentrate={concentrateOn} />
+
+      {!cantrips.length && !known.length && !prepared.length && <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-empty"><Wand2 size={22} /><h2>No spells saved yet</h2><p>This character has caster info but no spell list saved. Use Edit Character to add cantrips and levelled spells.</p></section>}
     </div>
   );
 }
