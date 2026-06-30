@@ -15,6 +15,8 @@ import {
   Shield,
   Users,
 } from 'lucide-react';
+import PlayerDashboardLoading from '@/components/dashboard/player/PlayerDashboardLoading';
+import { combineLinkedCampaigns, summarizeHandouts } from '@/components/dashboard/player/playerDashboardUtils';
 import apiClient from '@/lib/apiClient';
 import JoinCampaignModal from '@/components/JoinCampaignModal';
 import PlayerNotesTab from '@/components/tabs/PlayerNotesTab';
@@ -65,26 +67,7 @@ export default function PlayerDashboard() {
     [activeTab]
   );
 
-  const linkedCampaigns = useMemo(() => {
-    const campaignMap = new Map();
-
-    campaigns.forEach(campaign => {
-      if (campaign?.id) campaignMap.set(campaign.id, campaign);
-    });
-
-    characters.forEach(character => {
-      const id = character.campaign_id || character.campaignId;
-      if (!id || campaignMap.has(id)) return;
-      campaignMap.set(id, {
-        id,
-        name: character.campaign_name || 'Linked Campaign',
-        description: character.campaign_description || '',
-        from_character: character.name,
-      });
-    });
-
-    return Array.from(campaignMap.values());
-  }, [campaigns, characters]);
+  const linkedCampaigns = useMemo(() => combineLinkedCampaigns(campaigns, characters), [campaigns, characters]);
 
   const playerSummaryCards = useMemo(() => ([
     { label: 'Characters', value: characters.length, icon: Shield, detail: characters.length === 1 ? 'ready hero' : 'ready heroes' },
@@ -121,11 +104,7 @@ export default function PlayerDashboard() {
 
       setCharacters(Array.isArray(charactersRes.data) ? charactersRes.data : charactersRes.data?.characters || []);
       setCampaigns(Array.from(campaignMap.values()));
-      setHandoutSummary({
-        total: handouts.length,
-        unread: handouts.filter(handout => !handout.read).length,
-        saved: handouts.filter(handout => handout.saved).length,
-      });
+      setHandoutSummary(summarizeHandouts(handouts));
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Failed to load player dashboard');
     } finally {
@@ -154,13 +133,7 @@ export default function PlayerDashboard() {
     setJoinOpen(true);
   };
 
-  if (loading) {
-    return (
-      <main className="player-dashboard-page" style={pageStyle}>
-        <section className="loading-screen player-dashboard-loading" role="status" aria-live="polite"><div className="loading-spinner" aria-hidden="true" /><p className="loading-title">Opening player dashboard...</p><p className="loading-tip">Loading your characters, campaigns, notes, and handouts.</p></section>
-      </main>
-    );
-  }
+  if (loading) return <PlayerDashboardLoading />;
 
   return (
     <main className="player-dashboard-page" style={pageStyle}>
