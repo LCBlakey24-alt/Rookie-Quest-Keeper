@@ -245,12 +245,24 @@
 .character-page-v2 .clean-sheet-turn-strip,
 .character-page-v2 .clean-sheet-recovery-panel,
 .character-page-v2 .clean-sheet-condition-panel,
-.character-page-v2 .clean-sheet-roll-history-panel {
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-panel,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-compact-section,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-core-stats-section,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-passives-section,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-skills-section {
   border: 1px solid var(--rq-line, rgba(255,255,255,0.16)) !important;
   border-left: 4px solid var(--rq-primary, #d00000) !important;
   border-radius: 0 !important;
   background: var(--rq-surface, #2f2f2f) !important;
   box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-panel,
+.character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-compact-section {
+  border-left-width: 4px !important;
+  border-left-style: solid !important;
+  border-left-color: var(--rq-primary, #d00000) !important;
 }
 
 .character-page-v2 .clean-sheet-panel,
