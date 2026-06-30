@@ -1,0 +1,145 @@
+/*
+  Shared Rookie Quest Keeper board system.
+  A late-loaded mobile/tablet layer that makes player and GM workspaces feel like one app:
+  full-width dark boards, square edges, white text, and a red left rule.
+*/
+
+:root {
+  --rq-board-bg: var(--rq-surface, #2f2f2f);
+  --rq-board-card: var(--rq-card, #3a3a3a);
+  --rq-board-line: var(--rq-line, rgba(255,255,255,0.16));
+  --rq-board-red: var(--rq-primary, #d00000);
+}
+
+@media (max-width: 1180px) {
+  #root .character-page-v2 .clean-sheet-header--simple,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-content > section,
+  #root .character-page-v2 .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section,
+  #root .character-page-v2 .clean-sheet-tab-panel,
+  #root .character-page-v2 .clean-sheet-mobile-tools,
+  #root .character-page-v2 .clean-sheet-turn-strip,
+  #root .character-page-v2 .clean-sheet-recovery-panel,
+  #root .character-page-v2 .clean-sheet-condition-panel,
+  #root .character-page-v2 .clean-sheet-roll-history-panel,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact > .clean-sheet-compact-section,
+  #root .full-creator-header,
+  #root .full-creator-panel,
+  #root .full-creator-preview,
+  #root .full-creator-footer,
+  #root .character-mode-hero,
+  #root .character-mode-card,
+  #root .character-mode-guide,
+  #root .player-dashboard,
+  #root .player-dashboard-card,
+  #root .dashboard-card,
+  #root .dashboard-section,
+  #root .campaign-card,
+  #root main[style*="clamp(14px, 2vw, 28px)"] > header,
+  #root main[style*="clamp(14px, 2vw, 28px)"] > section,
+  #root .gm-dashboard-header,
+  #root .gm-sidebar,
+  #root [data-testid="gm-active-workspace"],
+  #root [data-testid="gm-active-workspace"] > div > section,
+  #root [data-testid="gm-active-workspace"] > div > div,
+  #root [data-testid="live-story-focus-panel"],
+  #root [data-testid="live-session-grid"] > aside,
+  #root [data-testid="live-session-grid"] > main,
+  #root .gm-command-card,
+  #root .rqk-themed-panel,
+  #root .rqk-themed-card {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--rq-board-line) !important;
+    border-left: 4px solid var(--rq-board-red) !important;
+    border-radius: 0 !important;
+    background: var(--rq-board-bg) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-content,
+  #root .character-page-v2 .clean-sheet-grid,
+  #root .full-creator-layout,
+  #root .full-creator-steps,
+  #root .full-creator-header,
+  #root .full-creator-panel,
+  #root .full-creator-preview,
+  #root .full-creator-footer,
+  #root .gm-dashboard-shell main,
+  #root [data-testid="gm-active-workspace"],
+  #root [data-testid="live-session-grid"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-grid,
+  #root .character-page-v2 .clean-sheet-content > .clean-sheet-grid,
+  #root .full-creator-layout,
+  #root .full-creator-form-grid,
+  #root [data-testid="gm-active-workspace"] > div,
+  #root main[style*="clamp(14px, 2vw, 28px)"] {
+    gap: 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-grid > *,
+  #root .character-page-v2 .clean-sheet-content > *,
+  #root [data-testid="gm-active-workspace"] > *,
+  #root [data-testid="gm-active-workspace"] > div > *,
+  #root [data-testid="live-session-grid"] > * {
+    box-sizing: border-box !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-panel .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section .clean-sheet-section,
+  #root [data-testid="gm-active-workspace"] section section,
+  #root [data-testid="gm-active-workspace"] div div[style*="background"] {
+    border-left-color: var(--rq-board-line) !important;
+  }
+
+  #root [data-testid="gm-active-workspace"] button,
+  #root [data-testid="live-session-grid"] button,
+  #root main[style*="clamp(14px, 2vw, 28px)"] button,
+  #root .character-page-v2 button,
+  #root .full-creator-page button,
+  #root .character-mode-page button {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 780px) {
+  #root .character-page-v2 .clean-sheet-header--simple,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section,
+  #root .character-page-v2 .clean-sheet-tab-panel,
+  #root .full-creator-header,
+  #root .full-creator-panel,
+  #root .full-creator-preview,
+  #root .full-creator-footer,
+  #root main[style*="clamp(14px, 2vw, 28px)"] > header,
+  #root main[style*="clamp(14px, 2vw, 28px)"] > section,
+  #root .gm-dashboard-header,
+  #root [data-testid="gm-active-workspace"],
+  #root [data-testid="gm-active-workspace"] > div > section,
+  #root [data-testid="live-story-focus-panel"],
+  #root [data-testid="live-session-grid"] > aside,
+  #root [data-testid="live-session-grid"] > main {
+    padding: 10px !important;
+  }
+
+  #root .gm-dashboard-header,
+  #root [data-testid="gm-active-workspace"],
+  #root .character-page-v2 .clean-sheet-content,
+  #root .full-creator-layout,
+  #root main[style*="clamp(14px, 2vw, 28px)"] {
+    max-width: none !important;
+  }
+}
