@@ -6,6 +6,7 @@ import {
   ABILITY_OPTIONS,
   CLASS_ABILITY_FOCUS,
   buildBasicCreatorPreset,
+  openFullCreatorWithPreset,
 } from '../utils/characterCreationPresets';
 import './FullCharacterCreatorV2.css';
 
@@ -37,9 +38,7 @@ export default function BasicCharacterCreator() {
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
   const continueToReview = () => {
-    navigate('/characters/new/full', {
-      state: { creatorPreset: buildBasicCreatorPreset(form) },
-    });
+    openFullCreatorWithPreset(navigate, buildBasicCreatorPreset(form));
   };
 
   return (
@@ -51,7 +50,7 @@ export default function BasicCharacterCreator() {
         <div>
           <p className="full-creator-eyebrow">Basic Creator</p>
           <h1>Pick the basics, then review before saving.</h1>
-          <p>Pick the basics, then review before saving. No character is saved until Full Creator review, where you can change anything first.</p>
+          <p>No character is saved on this page. Full Creator opens next so you can change anything first.</p>
         </div>
       </header>
 
