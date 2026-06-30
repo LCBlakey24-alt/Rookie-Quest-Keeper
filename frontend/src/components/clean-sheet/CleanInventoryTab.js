@@ -1,7 +1,15 @@
 import React, { useMemo, useState } from "react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
-import { Backpack, Coins, Plus, Search, Shield, Sparkles } from "lucide-react";
+import {
+  Backpack,
+  Coins,
+  Plus,
+  Search,
+  Shield,
+  Sparkles,
+  Swords,
+} from "lucide-react";
 
 import {
   deriveArmorClass,
@@ -97,21 +105,10 @@ function isGrantedEquipped(item) {
   );
 }
 
-function sameItemName(first, second) {
-  return (
-    first &&
-    second &&
-    getItemName(first).toLowerCase() === getItemName(second).toLowerCase()
-  );
-}
-
 function getEquippedItem(equipped = {}, slot) {
   if (slot === "mainHand")
     return equipped.mainHand || equipped.main_hand || equipped.weapon;
-  if (slot === "offHand") {
-    const offHand = equipped.offHand || equipped.off_hand;
-    return sameItemName(offHand, equipped.shield) ? null : offHand;
-  }
+  if (slot === "offHand") return equipped.offHand || equipped.off_hand;
   if (slot === "armor") return equipped.armor || equipped.armour;
   return equipped[slot];
 }
@@ -248,40 +245,12 @@ function itemKey(item, index = "") {
 }
 
 function dedupeItems(items = []) {
-  const byName = new Map();
-  items.forEach((item) => {
-    const key = getItemName(item).toLowerCase();
-    if (!key) return;
-    const current = byName.get(key);
-    if (!current) {
-      byName.set(key, item);
-      return;
-    }
-    byName.set(key, {
-      ...current,
-      ...item,
-      source:
-        current.source === item.source
-          ? current.source
-          : current.source || item.source,
-      quantity: Math.max(
-        Number(getItemQuantity(current)) || 1,
-        Number(getItemQuantity(item)) || 1,
-      ),
-      equipped: Boolean(
-        current.equipped ||
-        current.is_equipped ||
-        item.equipped ||
-        item.is_equipped,
-      ),
-      is_equipped: Boolean(
-        current.equipped ||
-        current.is_equipped ||
-        item.equipped ||
-        item.is_equipped,
-      ),
-      ready_to_use: Boolean(current.ready_to_use || item.ready_to_use),
-    });
+  const seen = new Set();
+  return items.filter((item, index) => {
+    const key = `${getItemName(item).toLowerCase()}-${item?.source || ""}-${index < 0 ? index : ""}`;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
   return Array.from(byName.values());
 }

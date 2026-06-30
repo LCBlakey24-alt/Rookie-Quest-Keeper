@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, Wand2 } from "lucide-react";
+import { BookOpen, Search, Sparkles, Wand2 } from "lucide-react";
 
 import {
   SPELLCASTING_CLASSES,
@@ -385,10 +385,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const preparedNames = new Set(
     prepared.map((spell) => normalizeName(spell.name)),
   );
-  const knownOnly = known.filter(
-    (spell) => !preparedNames.has(normalizeName(spell.name)),
-  );
-  const allLeveled = uniqueSpells(knownOnly, null);
+  const allLeveled = uniqueSpells([...known, ...prepared], null);
   const lowerSearch = spellSearch.trim().toLowerCase();
   const filterSpells = (spells) =>
     !lowerSearch
@@ -402,7 +399,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
     return onCharacterUpdate(
-      { spell_slots_remaining: normaliseSlotKeys(nextRemaining) },
+      { spell_slots_remaining: nextRemaining },
       { error: "Could not update spell slots" },
     );
   };
