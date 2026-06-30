@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wand2 } from 'lucide-react';
-import { BACKGROUNDS, CLASSES, RACES } from '../data/characterRules5e';
+import { CLASSES } from '../data/characterRules5e';
 import { getSpellsForClass } from '../data/spellDatabase';
+import { buildRookCreatorPreset } from '../utils/characterCreationPresets';
 import './FullCharacterCreatorV2.css';
 
 export const MATCH_ARCHETYPES = [
@@ -92,20 +93,6 @@ export const MATCH_ARCHETYPES = [
   },
 ];
 
-const abilityFocusByClass = {
-  Fighter: 'strength',
-  Barbarian: 'strength',
-  Paladin: 'strength',
-  Rogue: 'dexterity',
-  Ranger: 'dexterity',
-  Wizard: 'intelligence',
-  Sorcerer: 'charisma',
-  Warlock: 'charisma',
-  Bard: 'charisma',
-  Cleric: 'wisdom',
-  Druid: 'wisdom',
-};
-
 const filterOptions = ['fight', 'sneak', 'heal', 'protect', 'support', 'cause chaos'];
 const resultLabels = ['Best Match', 'Simpler Version', 'Wildcard'];
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
@@ -169,17 +156,7 @@ export function getRookCharacterMatches({
   });
 }
 
-export function buildRookCreatorPreset(match, description) {
-  return {
-    source: 'rook-matchmaker',
-    name: '',
-    characterClass: CLASSES[match.suggestedClass] ? match.suggestedClass : 'Fighter',
-    race: RACES[match.race] ? match.race : 'Human',
-    background: BACKGROUNDS[match.background] ? match.background : 'Soldier',
-    abilityFocus: abilityFocusByClass[match.suggestedClass] || 'strength',
-    notes: `Matched from: ${description || match.title}`,
-  };
-}
+export { buildRookCreatorPreset };
 
 function MatchmakerControls({ description, magic, complexity, role, preferredClass, setDescription, setMagic, setComplexity, setRole, setPreferredClass }) {
   return (
