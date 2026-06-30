@@ -85,7 +85,9 @@
 }
 
 .clean-sheet-loading p,
-.loading-screen p {
+.loading-screen p,
+.loading-title,
+.loading-tip {
   max-width: var(--rq-loading-text-width, min(380px, calc(100vw - 64px))) !important;
   margin: 0 auto !important;
   padding: 0 var(--rq-loading-text-pad, 14px) !important;
@@ -95,14 +97,16 @@
 }
 
 .loading-screen p:first-of-type,
-.clean-sheet-loading p:first-of-type {
+.clean-sheet-loading p:first-of-type,
+.loading-title {
   color: var(--rq-text, #ffffff) !important;
   font-size: var(--rq-loading-title-size, 0.95rem) !important;
   font-weight: 950 !important;
   letter-spacing: 0.02em !important;
 }
 
-.loading-screen p:last-of-type {
+.loading-screen p:last-of-type,
+.loading-tip {
   font-size: var(--rq-loading-tip-size, 0.84rem) !important;
 }
 
