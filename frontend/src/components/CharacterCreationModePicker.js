@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '@/styles/characterCreationModePicker.css';
+import '../styles/characterCreationModePicker.css';
 import { ChevronLeft, ChevronRight, Clock, HelpCircle, ShieldCheck, SlidersHorizontal, Sparkles, Wand2, Zap, Search } from 'lucide-react';
-import { characterCreationModes } from '@/data/characterCreationModes';
+import { characterCreationModes } from '../data/characterCreationModes';
 
 const icons = { full: Wand2, basic: Zap, matchmaker: Search };
 const quickGuide = characterCreationModes.map((mode) => ({ label: mode.title, value: mode.eyebrow, copy: mode.decision }));

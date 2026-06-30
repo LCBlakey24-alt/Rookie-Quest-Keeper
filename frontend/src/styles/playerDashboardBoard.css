@@ -93,3 +93,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+.player-dashboard-loading.loading-screen {
+  min-height: 100vh;
+}
+
+.player-dashboard-page label,
+.player-dashboard-page [role="tab"],
+.player-dashboard-page .btn-primary,
+.player-dashboard-page .btn-outline {
+  font-weight: 800;
+}

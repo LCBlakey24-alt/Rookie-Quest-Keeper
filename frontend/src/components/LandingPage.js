@@ -60,7 +60,7 @@ const playBenefits = [
 ];
 
 const todayList = [
-  'Create a character through Full Creation, Basic Build, Premades, or Kids Mode.',
+  'Create a character through Full Creator, Basic Creator, or Rook Character Matchmaker.',
   'Open a mobile-friendly sheet with HP, AC, speed, actions, spells, inventory, notes, and features.',
   'Create a campaign workspace with players, notes, maps, NPCs, gods, encounters, handouts, and uploads.',
   'Launch Live Play Mode for combat, party status, session notes, player display, quick dice, handouts, and references.',

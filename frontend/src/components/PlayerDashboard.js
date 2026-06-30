@@ -89,7 +89,7 @@ export default function PlayerDashboard() {
   const playerSummaryCards = useMemo(() => ([
     { label: 'Characters', value: characters.length, icon: Shield, detail: characters.length === 1 ? 'ready hero' : 'ready heroes' },
     { label: 'Campaigns', value: linkedCampaigns.length, icon: BookOpen, detail: linkedCampaigns.length === 1 ? 'linked table' : 'linked tables' },
-    { label: 'Active Character', value: selectedCharacter?.name || 'None yet', icon: Users, detail: selectedCharacter ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}` : 'Create one to begin' },
+    { label: 'Active Character', value: selectedCharacter?.name || 'None yet', icon: Users, detail: selectedCharacter ? `Level ${selectedCharacter.level || 1} ${selectedCharacter.character_class || 'Adventurer'}` : 'Full, Basic, or Rook' },
   ]), [characters.length, linkedCampaigns.length, selectedCharacter]);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function PlayerDashboard() {
   if (loading) {
     return (
       <main className="player-dashboard-page" style={pageStyle}>
-        <div className="loading-spinner" />
+        <section className="loading-screen player-dashboard-loading" role="status" aria-live="polite"><div className="loading-spinner" aria-hidden="true" /><p className="loading-title">Opening player dashboard...</p><p className="loading-tip">Loading your characters, campaigns, notes, and handouts.</p></section>
       </main>
     );
   }
@@ -172,7 +172,7 @@ export default function PlayerDashboard() {
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Player Dashboard</p>
             <h1 style={titleStyle}>Your Characters, Campaigns & Notes</h1>
-            <p style={subtitleStyle}>Create a character, join a GM campaign, and keep player-facing notes in one place.</p>
+            <p style={subtitleStyle}>Create a character with Full Creator, Basic Creator, or Rook Character Matchmaker, then join a GM campaign and keep player-facing notes in one place.</p>
           </div>
         </div>
         <div className="player-dashboard-actions" style={heroActionsStyle}>
@@ -255,7 +255,7 @@ export default function PlayerDashboard() {
           {activeTab === 'characters' && (
             <div style={gridStyle}>
               {characters.length === 0 ? (
-                <EmptyState title="No characters yet" text="Create your first character to begin playing." action="Create Character" onAction={() => navigate('/characters/new')} />
+                <EmptyState title="No characters yet" text="Create a character with Full Creator, start quick with Basic Creator, or ask Rook Character Matchmaker to suggest a hero." action="Create Character" onAction={() => navigate('/characters/new')} />
               ) : characters.map(character => (
                 <Card key={character.id} className="player-dashboard-card" style={cardStyle}>
                   <CardContent style={cardContentStyle}>

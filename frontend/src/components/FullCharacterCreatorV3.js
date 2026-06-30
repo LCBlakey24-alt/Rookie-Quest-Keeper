@@ -303,11 +303,13 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
   const [spellSearch, setSpellSearch] = useState("");
   const [existingCharacter, setExistingCharacter] = useState(null);
   const [equipmentTouched, setEquipmentTouched] = useState(false);
+  const [presetNotice, setPresetNotice] = useState(null);
 
   useEffect(() => {
     if (editMode) return;
     const preset = normaliseCreatorPreset(location.state?.creatorPreset || consumeStoredPreset());
     if (!preset) return;
+    setPresetNotice(preset.source || "starter-preset");
     setDraft((prev) => ({ ...prev, ...preset, step: 0, subclass: "", skills: [], cantrips: [], spells: [] }));
     setEquipmentTouched(Boolean(preset.equipmentMode));
   }, [editMode, location.state]);
@@ -788,6 +790,13 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
           Dashboard
         </button>
       </header>
+
+      {presetNotice && !editMode && (
+        <section className="full-creator-preset-banner" role="status" aria-live="polite">
+          <span>Rook loaded a starter preset. Review everything before saving.</span>
+          <button type="button" onClick={() => setPresetNotice(null)} aria-label="Dismiss preset notice">Dismiss</button>
+        </section>
+      )}
 
       <nav className="full-creator-steps" aria-label="Character creation steps">
         {steps.map((item, index) => {

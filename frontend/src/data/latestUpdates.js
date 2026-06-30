@@ -191,7 +191,7 @@ export const LATEST_UPDATES = [
     details: [
       'Full Creation is aimed at detailed builds and complete control.',
       'Basic Build gives a faster guided route with Rook helping fill in details.',
-      'Premade Characters and Kids Mode are being shaped as easier entry points for new or younger players.',
+      'Full Creator, Basic Creator, and Rook Character Matchmaker are being shaped as clearer entry points for players.',
     ],
     public: true,
   },

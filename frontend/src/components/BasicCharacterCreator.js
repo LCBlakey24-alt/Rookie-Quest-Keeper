@@ -84,7 +84,7 @@ export default function BasicCharacterCreator() {
         <div>
           <p className="full-creator-eyebrow">Basic Creator</p>
           <h1>Pick the basics, then review before saving.</h1>
-          <p>Rook sets up a safe starter draft from your core choices. Full Creator opens next so you can change anything before the character is saved.</p>
+          <p>Pick the basics, then review before saving. No character is saved until Full Creator review, where you can change anything first.</p>
         </div>
       </header>
 
@@ -155,7 +155,7 @@ export default function BasicCharacterCreator() {
           </div>
 
           <button type="button" onClick={continueToReview} className="full-creator-primary">
-            Continue to Full Creator <ChevronRight size={18} />
+            Review in Full Creator <ChevronRight size={18} />
           </button>
         </article>
 
