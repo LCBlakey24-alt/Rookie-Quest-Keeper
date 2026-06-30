@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wand2 } from 'lucide-react';
 import { CLASSES } from '../data/characterRules5e';
 import { getSpellsForClass } from '../data/spellDatabase';
-import { buildRookCreatorPreset } from '../utils/characterCreationPresets';
+import {
+  buildRookCreatorPreset,
+  openFullCreatorWithPreset,
+} from '../utils/characterCreationPresets';
 import './FullCharacterCreatorV2.css';
 
 export const MATCH_ARCHETYPES = [
@@ -263,9 +266,7 @@ export default function RookCharacterMatchmaker() {
   );
 
   const openFull = (match) => {
-    navigate('/characters/new/full', {
-      state: { creatorPreset: buildRookCreatorPreset(match, description) },
-    });
+    openFullCreatorWithPreset(navigate, buildRookCreatorPreset(match, description));
   };
 
   return (
