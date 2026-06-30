@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -152,6 +152,7 @@ const EXTRA_LANGUAGES = [
   "Undercommon",
 ];
 const DRAFT_KEY = "rqk.full_character_creator_v3";
+const MATCHMAKER_PRESET_KEY = "rook_matchmaker_preset";
 const arr = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
@@ -258,6 +259,29 @@ function classSkillOptions(classData) {
   return arr(classData.skillChoices);
 }
 
+function normaliseCreatorPreset(rawPreset) {
+  if (!rawPreset || typeof rawPreset !== "object") return null;
+  const preset = {};
+  if (typeof rawPreset.name === "string") preset.name = rawPreset.name;
+  if (CLASSES[rawPreset.characterClass]) preset.characterClass = rawPreset.characterClass;
+  if (RACES[rawPreset.race]) preset.race = rawPreset.race;
+  if (BACKGROUNDS[rawPreset.background]) preset.background = rawPreset.background;
+  if (ABILITIES.includes(rawPreset.abilityFocus)) preset.scores = FOCUS[rawPreset.abilityFocus];
+  if (["recommended", "custom"].includes(rawPreset.equipmentMode)) preset.equipmentMode = rawPreset.equipmentMode;
+  if (typeof rawPreset.notes === "string") preset.backstory = rawPreset.notes.slice(0, 500);
+  return Object.keys(preset).length ? preset : null;
+}
+
+function consumeStoredPreset() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(MATCHMAKER_PRESET_KEY) || "null");
+    if (stored) localStorage.removeItem(MATCHMAKER_PRESET_KEY);
+    return stored;
+  } catch {
+    return null;
+  }
+}
+
 function normaliseSlots(rawSlots = {}) {
   if (rawSlots?.slots && rawSlots?.level)
     return { [String(rawSlots.level)]: Number(rawSlots.slots) || 0 };
@@ -271,6 +295,7 @@ function normaliseSlots(rawSlots = {}) {
 
 export default function FullCharacterCreatorV3({ editMode = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { characterId } = useParams();
   const [draft, setDraft] = useState(loadDraft);
   const [loading, setLoading] = useState(Boolean(editMode && characterId));
@@ -278,6 +303,14 @@ export default function FullCharacterCreatorV3({ editMode = false }) {
   const [spellSearch, setSpellSearch] = useState("");
   const [existingCharacter, setExistingCharacter] = useState(null);
   const [equipmentTouched, setEquipmentTouched] = useState(false);
+
+  useEffect(() => {
+    if (editMode) return;
+    const preset = normaliseCreatorPreset(location.state?.creatorPreset || consumeStoredPreset());
+    if (!preset) return;
+    setDraft((prev) => ({ ...prev, ...preset, step: 0, subclass: "", skills: [], cantrips: [], spells: [] }));
+    setEquipmentTouched(Boolean(preset.equipmentMode));
+  }, [editMode, location.state]);
 
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
