@@ -252,6 +252,7 @@ function dedupeItems(items = []) {
     seen.add(key);
     return true;
   });
+  return Array.from(byName.values());
 }
 
 function CurrencyBlock({ currency = {}, gold }) {

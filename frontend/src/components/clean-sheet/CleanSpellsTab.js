@@ -125,6 +125,15 @@ function groupByLevel(spells = []) {
   }, {});
 }
 
+function normaliseSlotKeys(slots = {}) {
+  return Object.fromEntries(
+    Object.entries(slots || {}).map(([level, count]) => [
+      String(level),
+      Number(count) || 0,
+    ]),
+  );
+}
+
 function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
   const keys = Array.from(
     new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]),
