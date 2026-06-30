@@ -68,6 +68,8 @@ const AccountSettings = React.lazy(() => import('@/components/AccountSettings'))
 const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
 const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
 const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV3'));
+const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
+const RookCharacterMatchmaker = React.lazy(() => import('@/components/RookCharacterMatchmaker'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
@@ -77,9 +79,6 @@ function PrototypeRoute({ children }) {
   return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
 }
 
-function CanonicalCreatorRedirect({ mode }) {
-  return <Navigate to="/characters/new/full" replace state={{ fromLegacyCreator: mode }} />;
-}
 
 const LOADING_TIPS = [
   'Table tip: decide your action, bonus action, and movement before your turn starts to keep combat snappy.',
@@ -182,12 +181,13 @@ function AppRoutes() {
         <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
         <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/auth" replace />} />
         <Route path="/account" element={isAuthenticated ? <AccountSettings /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new" element={isAuthenticated ? <FullCharacterCreatorV3 /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/modes" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/full" element={isAuthenticated ? <FullCharacterCreatorV3 /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/basic" element={isAuthenticated ? <CanonicalCreatorRedirect mode="basic" /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/premade" element={isAuthenticated ? <CanonicalCreatorRedirect mode="premade" /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/kids" element={isAuthenticated ? <CanonicalCreatorRedirect mode="kids" /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/matchmaker" element={isAuthenticated ? <RookCharacterMatchmaker /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterCreator /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/premade" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/kids" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId/edit" element={isAuthenticated ? <FullCharacterCreatorV3 editMode /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
       </Routes>
