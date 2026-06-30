@@ -2,6 +2,9 @@
 .loading-screen,
 .clean-sheet-loading {
   min-height: 100dvh;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   place-items: center;
   padding: 18px;
@@ -98,10 +101,6 @@
   color: var(--rq-text, #ffffff) !important;
   font-weight: 950 !important;
   letter-spacing: 0.02em !important;
-}
-
-.loading-screen[role="status"] {
-  isolation: isolate;
 }
 
 @keyframes rqLoadingBoardPulse {
