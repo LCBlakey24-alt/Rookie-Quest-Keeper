@@ -30,6 +30,7 @@ import '@/styles/landingFinal.css';
 import '@/styles/actionFillAnimations.css';
 import '@/styles/scrollFixes.css';
 import '@/styles/rqkUnifiedTheme.css';
+import '@/styles/rqkBoardSystem.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
