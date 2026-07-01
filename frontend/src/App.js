@@ -179,7 +179,7 @@ function AppRoutes() {
         <Route path="/characters/:characterId/edit" element={protectedAppPage(<FullCharacterCreatorV3 editMode />)} />
         <Route path="/characters/:characterId" element={protectedPlainPage(<CleanCharacterSheet />)} />
       </Routes>
-      <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
+      <GlobalFeedbackButton isAuthenticated={isAuthenticated} hideLauncher />
       <Toaster position="top-right" richColors theme="dark" />
     </>
   );
