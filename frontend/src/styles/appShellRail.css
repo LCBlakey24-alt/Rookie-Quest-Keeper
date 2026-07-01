@@ -102,6 +102,74 @@
   min-height: 100vh;
 }
 
+.uploads-dashboard-page {
+  min-height: 100vh;
+  background: #242424;
+  color: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.uploads-dashboard-hero,
+.uploads-dashboard-card,
+.uploads-dashboard-next {
+  background: #2f2f2f;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 5px solid #d00000;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.uploads-dashboard-hero {
+  padding: 22px;
+}
+
+.uploads-dashboard-eyebrow {
+  margin: 0;
+  color: #ff3b3b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.uploads-dashboard-hero h1,
+.uploads-dashboard-card h2,
+.uploads-dashboard-next h2 {
+  color: #ffffff;
+  margin: 4px 0 8px;
+}
+
+.uploads-dashboard-hero p,
+.uploads-dashboard-card p,
+.uploads-dashboard-next p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.5;
+}
+
+.uploads-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.uploads-dashboard-card,
+.uploads-dashboard-next {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+}
+
+.uploads-dashboard-card svg,
+.uploads-dashboard-next svg {
+  color: #ff3b3b;
+  flex: 0 0 auto;
+}
+
 @media (min-width: 720px) {
   .rqk-app-shell {
     grid-template-columns: 178px minmax(0, 1fr);
@@ -129,6 +197,17 @@
 
   .rqk-app-rail-brand-text {
     font-size: 13px;
+  }
+}
+
+@media (max-width: 520px) {
+  .uploads-dashboard-page {
+    padding: 12px;
+  }
+
+  .uploads-dashboard-card,
+  .uploads-dashboard-next {
+    flex-direction: column;
   }
 }
 
