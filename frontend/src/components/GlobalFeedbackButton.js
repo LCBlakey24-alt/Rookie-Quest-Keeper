@@ -20,7 +20,7 @@ const rq = {
 
 const hiddenPaths = ['/', '/auth', '/login', '/reset-password'];
 
-export default function GlobalFeedbackButton({ isAuthenticated }) {
+export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = false }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
@@ -40,16 +40,18 @@ export default function GlobalFeedbackButton({ isAuthenticated }) {
 
   return (
     <>
-      <button
-        type="button"
-        data-testid="global-feedback-btn"
-        onClick={() => setOpen(true)}
-        style={floatingButtonStyle}
-        aria-label="Send site feedback"
-      >
-        <MessageSquare size={17} />
-        <span style={{ display: 'inline-block' }}>Feedback</span>
-      </button>
+      {!hideLauncher && (
+        <button
+          type="button"
+          data-testid="global-feedback-btn"
+          onClick={() => setOpen(true)}
+          style={floatingButtonStyle}
+          aria-label="Send site feedback"
+        >
+          <MessageSquare size={17} />
+          <span style={{ display: 'inline-block' }}>Feedback</span>
+        </button>
+      )}
       {open && <FeedbackModal pagePath={location.pathname} onClose={() => setOpen(false)} />}
     </>
   );
