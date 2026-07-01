@@ -23,6 +23,27 @@
   padding: 9px 11px !important;
 }
 
+.character-page-v2 .clean-sheet-snapshot-warning {
+  margin-top: 10px !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  background: var(--rq-bg-card, #141414) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+}
+
+.character-page-v2 .clean-sheet-snapshot-warning svg {
+  flex: 0 0 auto !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  margin-top: 1px !important;
+}
+
 .character-page-v2 .clean-sheet-readable-skills {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 2px !important;
