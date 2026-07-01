@@ -24,9 +24,11 @@
   top: 12px !important;
   width: var(--clean-sheet-rail-width) !important;
   max-width: var(--clean-sheet-rail-width) !important;
+  height: calc(100dvh - 24px) !important;
   max-height: calc(100dvh - 24px) !important;
   display: grid !important;
   grid-template-columns: 1fr !important;
+  align-content: start !important;
   gap: 5px !important;
   padding: 0 !important;
   background: transparent !important;
@@ -56,6 +58,12 @@
   margin-bottom: 7px !important;
   background: var(--rq-bg-panel, #171717) !important;
   border-left-color: var(--rq-accent-primary, #c30000) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  margin-top: auto !important;
+  background: var(--rq-bg-panel, #171717) !important;
+  border-left-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
 }
 
 .character-page-v2 .clean-sheet-tabs button::before {
@@ -148,6 +156,7 @@
   .character-page-v2 .clean-sheet-tabs {
     left: 8px !important;
     top: 10px !important;
+    height: calc(100dvh - 20px) !important;
     max-height: calc(100dvh - 20px) !important;
   }
 
