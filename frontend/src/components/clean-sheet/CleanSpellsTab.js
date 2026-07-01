@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, BookOpen, Search, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, Search, Wand2 } from "lucide-react";
 
 import { deriveCharacterSnapshot } from "@/data/deriveCharacterSnapshot";
 import {
