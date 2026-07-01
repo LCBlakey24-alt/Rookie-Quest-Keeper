@@ -148,6 +148,26 @@ def hit_dice_string_for(class_levels: Dict[str, int]) -> str:
     return ' + '.join(f"{count}d{die}" for die, count in sorted(dice_counts.items(), reverse=True) if count > 0) or '1d8'
 
 
+
+def compute_multiclass_spell_slots(classes: list[dict]) -> Dict[str, int]:
+    """Compute multiclass spell slots from class entries and cap at level 20 table.
+
+    Warlock Pact Magic is intentionally separate from multiclass spellcasting
+    slots and is not included in this shared slot table.
+    """
+    caster_level = 0
+    for entry in classes or []:
+        class_name = display_class_name(entry.get('name') or entry.get('class_name') or entry.get('character_class') or entry.get('class') or '')
+        level = max(0, int(entry.get('level') or entry.get('class_level') or 0))
+        key = class_key(class_name)
+        if key in _FULL_CASTERS:
+            caster_level += level
+        elif key in _HALF_CASTERS:
+            caster_level += level // 2
+        elif key in {'fighter', 'rogue'} and entry.get('subclass') in {'Eldritch Knight', 'Arcane Trickster'}:
+            caster_level += level // 3
+    return {str(k): int(v) for k, v in _FULL_CASTER_SLOTS.get(min(max(caster_level, 0), 20), {}).items()}
+
 def spell_slots_for_class_levels(primary_class: str, total_level: int, class_levels: Dict[str, int]) -> Dict[str, int]:
     primary_key = class_key(primary_class)
     if primary_key in _SPELLCASTERS:
