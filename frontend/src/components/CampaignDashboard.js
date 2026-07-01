@@ -20,6 +20,7 @@ import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
 import PlayerInvitePanel from '@/components/gm/PlayerInvitePanel';
+import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
@@ -330,19 +331,18 @@ function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLiv
         <StatusBox label="Flow" value="Intake → Plan → Run → Record" />
       </section>
 
-      <section style={invitePanelStyle}>
-        <div>
-          <p style={desktopEyebrowStyle}>Player access</p>
-          <h3 style={sectionHeadingStyle}>Campaign join code</h3>
-          <p style={commandSubtitleStyle}>Generate or copy a code so players can join with their own characters.</p>
-        </div>
-        <div style={joinCodeActionStyle}>
-          <div style={compactCodeStyle}>{invite?.join_code || '------'}</div>
-          <button type="button" onClick={onFetchInvite} disabled={inviteLoading} style={secondaryButtonStyle}>{inviteLoading ? 'Loading...' : 'Get Code'}</button>
-          <button type="button" onClick={onRotateInvite} disabled={inviteLoading} style={secondaryButtonStyle}>New Code</button>
-          <button type="button" onClick={onCopyInvite} disabled={inviteLoading} style={primaryButtonStyle}>Copy</button>
-        </div>
-      </section>
+      <CampaignJoinCodeCard
+        code={invite?.join_code || invite?.code || ''}
+        loading={inviteLoading}
+        uses={invite?.uses}
+        createdAt={invite?.created_at}
+        description="Generate or copy a code so players can join with their own characters. Rotating the code stops the old one from working."
+        onFetch={onFetchInvite}
+        onRotate={onRotateInvite}
+        onCopy={onCopyInvite}
+        rotateLabel="New Code"
+        copyLabel="Copy Code"
+      />
 
       <section style={commandGridStyle}>{commandCards.map(card => <CommandCard key={card.title} {...card} onOpenTab={onOpenTab} />)}</section>
     </div>
@@ -408,10 +408,6 @@ const quickStatusStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fi
 const statusBoxStyle = { minHeight: 70, display: 'grid', alignContent: 'center', gap: 4, padding: '12px 14px', borderRight: `1px solid ${theme.border}` };
 const statusValueStyle = { color: '#ffffff', fontSize: 20, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
 const statusLabelStyle = { color: theme.text.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, fontFamily: fontStack };
-const invitePanelStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: theme.bg.card, border: `1px solid ${theme.border}`, padding: 16 };
-const sectionHeadingStyle = { margin: '2px 0 6px', color: '#ffffff', fontSize: 22, fontWeight: 950, fontFamily: fontStack };
-const joinCodeActionStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' };
-const compactCodeStyle = { minHeight: 42, display: 'grid', placeItems: 'center', background: '#242424', border: `1px solid ${theme.border}`, color: '#ffffff', padding: '0 14px', fontSize: 22, fontWeight: 950, letterSpacing: '0.14em', fontFamily: fontStack };
 const commandGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 0, borderTop: `1px solid ${theme.border}` };
 const commandCardStyle = { minHeight: 156, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: 0, borderBottom: `1px solid ${theme.border}`, background: 'transparent', color: '#ffffff', padding: '18px 16px 18px 0', cursor: 'pointer', borderRadius: 0, fontFamily: fontStack };
 const commandAccentStyle = { width: 6, height: 48, background: '#d00000', flex: '0 0 auto' };
