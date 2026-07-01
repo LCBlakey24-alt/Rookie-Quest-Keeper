@@ -117,7 +117,7 @@ export function rollD20(modifier = 0, rollMode = 'normal') {
   }
   const second = Math.floor(Math.random() * 20) + 1;
   const kept = rollMode === 'advantage' ? Math.max(first, second) : Math.min(first, second);
-  return { d20: kept, modifier, total: kept, mode: rollMode, allRolls: [first, second] };
+  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second] };
 }
 
 export function rollHitDie(sides = 8, modifier = 0) {
