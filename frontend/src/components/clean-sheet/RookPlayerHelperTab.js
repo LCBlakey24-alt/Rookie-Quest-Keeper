@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Lightbulb, Sparkles } from 'lucide-react';
+import { Bot, BookOpen, HelpCircle, Lightbulb, Sparkles, Swords, Theater } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
@@ -9,6 +9,24 @@ const asArray = (value) => {
   if (Array.isArray(value)) return value.filter(Boolean);
   return String(value).split(/[;,]/).map(item => item.trim()).filter(Boolean);
 };
+
+const roundBasics = [
+  { title: 'Action', text: 'Your main thing this turn: attack, cast many spells, Dash, Dodge, Disengage, Help, Hide, Ready, Search, Use an Object, or a feature that says it uses an action.' },
+  { title: 'Bonus Action', text: 'A smaller extra option. You only get one if a spell, class feature, item, or rule specifically says it uses a bonus action.' },
+  { title: 'Movement', text: 'You can move up to your speed during your turn. You can split movement before and after your action.' },
+  { title: 'Reaction', text: 'Something you can do outside your turn when a trigger happens, like an opportunity attack, Shield, Counterspell, or a readied action.' },
+];
+
+const commonTerms = [
+  { title: 'Advantage', text: 'Roll two d20s and use the higher result.' },
+  { title: 'Disadvantage', text: 'Roll two d20s and use the lower result.' },
+  { title: 'AC', text: 'Armor Class. Attacks usually need to meet or beat this number to hit.' },
+  { title: 'DC', text: 'Difficulty Class. Your roll usually needs to meet or beat this number to succeed.' },
+  { title: 'Saving Throw', text: 'A defensive roll to resist danger, spells, traps, poison, fear, explosions, and other effects.' },
+  { title: 'Concentration', text: 'Some spells need focus. Taking damage may force a Constitution save to keep the spell going.' },
+  { title: 'Proficiency', text: 'A bonus added to things your character is trained in, such as skills, attacks, saves, tools, or weapons.' },
+  { title: 'Opportunity Attack', text: 'A reaction attack you can usually make when a creature leaves your reach without Disengaging.' },
+];
 
 function buildTips(character) {
   const maxHp = Number(character?.max_hit_points || character?.max_hp || 10);
@@ -49,6 +67,33 @@ function buildTips(character) {
   return tips.slice(0, 8);
 }
 
+function HelperSection({ icon: Icon, title, children }) {
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide clean-sheet-rook-guide-section">
+      <div className="clean-sheet-section-heading-row">
+        <h2><Icon size={18} /> {title}</h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function GuideGrid({ items }) {
+  return (
+    <div className="clean-sheet-rook-grid clean-sheet-rook-guide-grid">
+      {items.map((item) => (
+        <article key={item.title} className="clean-sheet-rook-card">
+          <div>
+            <HelpCircle size={15} />
+            <strong>{item.title}</strong>
+          </div>
+          <p>{item.text}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function RookPlayerHelperTab({ character }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
@@ -83,41 +128,53 @@ export default function RookPlayerHelperTab({ character }) {
   if (!character) return null;
 
   return (
-    <section className="clean-sheet-panel clean-sheet-rook-tab" aria-label="Rook helper">
-      <div className="clean-sheet-rook-hero">
-        <div className="clean-sheet-rook-mark"><Bot size={24} /></div>
-        <div>
-          <p>Rook Helper</p>
-          <h2>Suggestions for {character.name}</h2>
-          <span>Player tips, reminders, and quick tactical nudges without covering the sheet.</span>
+    <div className="clean-sheet-grid clean-sheet-rook-helper-tab" aria-label="Rook helper">
+      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-rook-tab">
+        <div className="clean-sheet-rook-hero">
+          <div className="clean-sheet-rook-mark"><Bot size={24} /></div>
+          <div>
+            <p>Rook Helper</p>
+            <h2>Help for playing {character.name}</h2>
+            <span>Player guidance, rules reminders, combat suggestions, and roleplay prompts live here.</span>
+          </div>
         </div>
-      </div>
 
-      <div className="clean-sheet-rook-actions">
-        <button type="button" onClick={askRook} disabled={aiLoading}>
-          <Sparkles size={16} /> {aiLoading ? 'Rook is thinking…' : 'Ask Rook for a tip'}
-        </button>
-      </div>
+        <div className="clean-sheet-rook-actions">
+          <button type="button" onClick={askRook} disabled={aiLoading}>
+            <Sparkles size={16} /> {aiLoading ? 'Rook is thinking…' : 'Ask Rook what I could do'}
+          </button>
+        </div>
 
-      {aiSuggestion && (
-        <article className="clean-sheet-rook-ai-card">
-          <strong>Rook says</strong>
-          <p>{aiSuggestion}</p>
-        </article>
-      )}
-
-      <div className="clean-sheet-rook-grid">
-        {tips.map((tip) => (
-          <article key={`${tip.title}-${tip.tag}`} className="clean-sheet-rook-card">
-            <div>
-              <Lightbulb size={15} />
-              <strong>{tip.title}</strong>
-              <span>{tip.tag}</span>
-            </div>
-            <p>{tip.text}</p>
+        {aiSuggestion && (
+          <article className="clean-sheet-rook-ai-card">
+            <strong>Rook says</strong>
+            <p>{aiSuggestion}</p>
           </article>
-        ))}
-      </div>
-    </section>
+        )}
+      </section>
+
+      <HelperSection icon={Swords} title="How combat rounds work">
+        <GuideGrid items={roundBasics} />
+      </HelperSection>
+
+      <HelperSection icon={BookOpen} title="Common table terms">
+        <GuideGrid items={commonTerms} />
+      </HelperSection>
+
+      <HelperSection icon={Theater} title="Character prompts">
+        <div className="clean-sheet-rook-grid">
+          {tips.map((tip) => (
+            <article key={`${tip.title}-${tip.tag}`} className="clean-sheet-rook-card">
+              <div>
+                <Lightbulb size={15} />
+                <strong>{tip.title}</strong>
+                <span>{tip.tag}</span>
+              </div>
+              <p>{tip.text}</p>
+            </article>
+          ))}
+        </div>
+      </HelperSection>
+    </div>
   );
 }
