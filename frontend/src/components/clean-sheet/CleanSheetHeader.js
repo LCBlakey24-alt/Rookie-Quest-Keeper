@@ -2,6 +2,7 @@ import React from 'react';
 import { Edit3, TrendingUp, User } from 'lucide-react';
 
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
+const ACRONYMS = new Set(['ac', 'dc', 'hp', 'str', 'dex', 'con', 'int', 'wis', 'cha']);
 
 function titleCaseSlug(value) {
   const raw = String(value || '').trim();
@@ -11,14 +12,15 @@ function titleCaseSlug(value) {
   const wrapped = raw.match(/^\((.*)\)$/);
   const text = wrapped ? wrapped[1] : raw;
   const formatted = text
-    .replace(/[–—]/g, '-')
-    .replace(/\s*-\s*/g, ' ')
+    .replace(/[‐‑‒–—―]+/g, ' ')
     .replace(/[_-]+/g, ' ')
+    .replace(/\bdash\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .split(' ')
     .map((word, index) => {
       const lower = word.toLowerCase();
+      if (ACRONYMS.has(lower)) return lower.toUpperCase();
       if (index > 0 && SMALL_WORDS.has(lower)) return lower;
       return `${lower.slice(0, 1).toUpperCase()}${lower.slice(1)}`;
     })
