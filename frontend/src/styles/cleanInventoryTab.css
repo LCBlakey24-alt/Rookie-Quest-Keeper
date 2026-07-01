@@ -101,6 +101,7 @@
 
 .clean-sheet-inventory-summary,
 .clean-sheet-item-grid,
+.clean-sheet-equipped-slot-grid,
 .clean-sheet-currency-grid,
 .clean-sheet-equipment-preview,
 .clean-sheet-reference-match-grid {
@@ -154,6 +155,23 @@
 .clean-sheet-reference-match strong {
   color: var(--rq-text, #ffffff);
   font-weight: 950;
+}
+
+.clean-sheet-equipped-slot-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.clean-sheet-equipped-slot-grid .clean-sheet-item-card {
+  min-height: 128px;
+}
+
+.clean-sheet-equipped-slots-section .clean-sheet-empty-slot {
+  border-left: 4px solid rgba(255,255,255,0.12) !important;
+  padding-left: 8px;
+}
+
+.clean-sheet-attunement-section .clean-sheet-empty-note {
+  grid-column: 1 / -1;
 }
 
 .clean-sheet-item-grid {
@@ -314,6 +332,12 @@
   background: var(--rq-card, #3a3a3a);
 }
 
+@media (max-width: 980px) {
+  .clean-sheet-equipped-slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   .clean-sheet-add-item-form,
   .clean-sheet-equipment-tools,
@@ -339,6 +363,7 @@
 
 @media (max-width: 520px) {
   .clean-sheet-item-grid,
+  .clean-sheet-equipped-slot-grid,
   .clean-sheet-currency-grid {
     grid-template-columns: 1fr;
   }
