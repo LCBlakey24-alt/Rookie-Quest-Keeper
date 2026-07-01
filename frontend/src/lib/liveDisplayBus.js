@@ -1,5 +1,6 @@
 const channelName = (campaignId) => `rqk-live-display-${campaignId}`;
 const storageKey = (campaignId) => `rqk.liveDisplay.${campaignId}`;
+const localEventName = (campaignId) => `rqk-live-display-local-${campaignId}`;
 
 export function createDisplayState(mode = 'blank', payload = {}) {
   return {
@@ -29,6 +30,11 @@ export function saveDisplayState(campaignId, state) {
 
 export function publishDisplayState(campaignId, state) {
   saveDisplayState(campaignId, state);
+  try {
+    window.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: state }));
+  } catch {
+    // Ignore local event failures; BroadcastChannel/storage polling still apply.
+  }
   try {
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel(channelName(campaignId));
@@ -81,7 +87,15 @@ export function subscribeDisplayState(campaignId, onState) {
   window.addEventListener('storage', onStorage);
   handlers.push(() => window.removeEventListener('storage', onStorage));
 
-  const interval = window.setInterval(readSavedState, 1500);
+  const onLocalDisplayEvent = (event) => {
+    if (!event.detail) return;
+    try { lastRaw = JSON.stringify(event.detail); } catch { /* ignore */ }
+    onState(event.detail);
+  };
+  window.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
+  handlers.push(() => window.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
+
+  const interval = window.setInterval(readSavedState, 500);
   handlers.push(() => window.clearInterval(interval));
 
   readSavedState();
