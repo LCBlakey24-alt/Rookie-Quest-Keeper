@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
@@ -9,16 +8,11 @@ import UnifiedDashboardStatusBar from '@/components/dashboard/home/UnifiedDashbo
 import DashboardContinuePanel from '@/components/dashboard/home/DashboardContinuePanel';
 import DashboardSummaryPanel from '@/components/dashboard/home/DashboardSummaryPanel';
 import DashboardListRow from '@/components/dashboard/home/DashboardListRow';
-import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
-import ConfirmDeleteDialog from '@/components/dashboard/home/ConfirmDeleteDialog';
-import JoinCodeDialog from '@/components/dashboard/home/JoinCodeDialog';
 import {
-  buildWorldSettingNotes,
   campaignMeta,
   campaignTitle,
   characterMeta,
   characterTitle,
-  initialCampaignForm,
   recordId,
   safeArray,
   statusMessage,
@@ -28,13 +22,6 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   const navigate = useNavigate();
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
-  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
-  const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
-  const [creatingCampaign, setCreatingCampaign] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [pendingInvite, setPendingInvite] = useState(null);
-  const [inviteLoading, setInviteLoading] = useState(false);
 
   const {
     characters,
@@ -79,164 +66,12 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
 
   const openCampaign = (campaign) => {
     const id = recordId(campaign);
-
-    if (id) {
-      navigate(`/campaign/${id}`);
-      return;
-    }
-
-    toast.error('Campaign could not be opened because it is missing an ID. Refresh and try again.');
+    if (id) navigate(`/campaign/${id}`);
   };
 
   const openCharacter = (character) => {
     const id = recordId(character);
     if (id) navigate(`/characters/${id}`);
-  };
-
-  const openCreateCampaign = () => setShowCreateCampaign(true);
-
-  const closeCreateCampaign = () => {
-    if (!creatingCampaign) setShowCreateCampaign(false);
-  };
-
-  const updateCampaignForm = (field, value) => {
-    setCampaignForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const toggleSessionZero = (id) => {
-    setCampaignForm((prev) => {
-      const current = Array.isArray(prev.session_zero) ? prev.session_zero : [];
-      return {
-        ...prev,
-        session_zero: current.includes(id)
-          ? current.filter((item) => item !== id)
-          : [...current, id],
-      };
-    });
-  };
-
-  const handleCreateCampaign = async (event) => {
-    event.preventDefault();
-    const campaignName = campaignForm.name.trim();
-
-    if (!campaignName) {
-      toast.error('Campaign name is required');
-      return;
-    }
-
-    try {
-      setCreatingCampaign(true);
-      const response = await apiClient.post('/campaigns', {
-        name: campaignName,
-        description: campaignForm.description.trim(),
-        world_name: campaignForm.world_name.trim(),
-        rules_edition: campaignForm.rules_edition,
-        system: campaignForm.rules_edition === '2024' ? '5e 2024 Compatible' : '5e 2014 Compatible',
-        world_genre: 'fantasy',
-        world_setting: campaignForm.world_setting,
-        world_setting_notes: buildWorldSettingNotes(campaignForm),
-        allow_exploding_dice: false,
-        allow_epic_levels: false,
-        max_character_level: 20,
-        available_classes: [],
-      });
-
-      const campaignId = response.data?.id || response.data?._id || response.data?.campaign_id || response.data?.campaignId;
-      toast.success('Campaign created');
-      setCampaignForm(initialCampaignForm);
-      setShowCreateCampaign(false);
-      await loadDashboard();
-      if (campaignId) navigate(`/campaign/${campaignId}`);
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to create campaign');
-    } finally {
-      setCreatingCampaign(false);
-    }
-  };
-
-  const requestDeleteCharacter = (character) => {
-    const id = recordId(character);
-    if (!id) return;
-
-    setPendingDelete({
-      type: 'character',
-      id,
-      name: characterTitle(character),
-      endpoint: `/characters/${id}`,
-    });
-  };
-
-  const requestDeleteCampaign = (campaign) => {
-    const id = recordId(campaign);
-    if (!id) return;
-
-    setPendingDelete({
-      type: 'campaign',
-      id,
-      name: campaignTitle(campaign),
-      endpoint: `/campaigns/${id}`,
-    });
-  };
-
-  const requestJoinCode = async (campaign) => {
-    const id = recordId(campaign);
-    if (!id) return;
-
-    try {
-      setInviteLoading(true);
-      const response = await apiClient.get(`/campaign-invites/${id}`);
-      setPendingInvite({
-        ...response.data,
-        campaign_name: response.data?.campaign_name || campaignTitle(campaign),
-      });
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to get join code');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const rotateJoinCode = async () => {
-    if (!pendingInvite?.campaign_id) return;
-
-    try {
-      setInviteLoading(true);
-      const response = await apiClient.post(`/campaign-invites/${pendingInvite.campaign_id}`);
-      setPendingInvite(response.data);
-      toast.success('New join code generated');
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to rotate join code');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const copyJoinCode = async () => {
-    const code = pendingInvite?.join_code;
-    if (!code) return;
-
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success('Join code copied');
-    } catch {
-      toast.info(`Join code: ${code}`);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-
-    try {
-      setDeleting(true);
-      await apiClient.delete(pendingDelete.endpoint);
-      toast.success(`${pendingDelete.type === 'campaign' ? 'Campaign' : 'Character'} deleted`);
-      setPendingDelete(null);
-      await loadDashboard();
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || `Failed to delete ${pendingDelete.type}`);
-    } finally {
-      setDeleting(false);
-    }
   };
 
   if (loading) {
@@ -274,30 +109,30 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
       <section className="unified-dashboard-continue-grid" aria-label="Continue where you left off">
         <DashboardContinuePanel
           label="Continue playing"
-          title={primaryCharacter ? characterTitle(primaryCharacter) : 'Create your first character'}
+          title={primaryCharacter ? characterTitle(primaryCharacter) : 'No character selected yet'}
           text={primaryCharacter
             ? characterMeta(primaryCharacter)
-            : 'Create a character with Full Creator, start quick with Basic Creator, or ask Rook to match you with a hero.'}
-          action={primaryCharacter ? 'Open Sheet' : 'Create Character'}
-          onClick={() => primaryCharacter ? openCharacter(primaryCharacter) : navigate('/characters/new')}
+            : 'Use My Characters on the left rail to create and manage your characters.'}
+          action={primaryCharacter ? 'Open Sheet' : 'My Characters'}
+          onClick={() => primaryCharacter ? openCharacter(primaryCharacter) : navigate('/characters')}
         />
 
         <DashboardContinuePanel
           label="GM workspace"
-          title={primaryCampaign ? campaignTitle(primaryCampaign) : 'Create your first campaign'}
+          title={primaryCampaign ? campaignTitle(primaryCampaign) : 'No campaign selected yet'}
           text={primaryCampaign
             ? campaignMeta(primaryCampaign)
-            : 'Start a campaign space for prep, players, homebrew, notes, and sessions.'}
-          action={primaryCampaign ? 'Open Campaign' : 'Create Campaign'}
-          onClick={() => primaryCampaign ? openCampaign(primaryCampaign) : openCreateCampaign()}
+            : 'Use My Campaigns on the left rail to create and manage your campaigns.'}
+          action={primaryCampaign ? 'Open Campaign' : 'My Campaigns'}
+          onClick={() => primaryCampaign ? openCampaign(primaryCampaign) : navigate('/campaigns')}
         />
       </section>
 
       <section className="dashboard-two-column">
         <DashboardSummaryPanel
           title="Recent Characters"
-          emptyText="No characters yet. Use My Characters on the left rail to start building one."
-          actionLabel="My Characters"
+          emptyText="No characters yet. Open My Characters from the left rail to start building one."
+          actionLabel="View My Characters"
           onAction={() => navigate('/characters')}
         >
           {latestCharacters.map((character, index) => (
@@ -306,16 +141,14 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
               title={characterTitle(character)}
               meta={characterMeta(character)}
               onOpen={() => openCharacter(character)}
-              onDelete={() => requestDeleteCharacter(character)}
-              deleteLabel="Delete character"
             />
           ))}
         </DashboardSummaryPanel>
 
         <DashboardSummaryPanel
           title="Recent Campaigns"
-          emptyText="No campaigns yet. Use My Campaigns on the left rail to view campaigns once created."
-          actionLabel="My Campaigns"
+          emptyText="No campaigns yet. Open My Campaigns from the left rail to create one."
+          actionLabel="View My Campaigns"
           onAction={() => navigate('/campaigns')}
         >
           {latestCampaigns.map((campaign, index) => (
@@ -324,10 +157,6 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
               title={campaignTitle(campaign)}
               meta={campaignMeta(campaign)}
               onOpen={() => openCampaign(campaign)}
-              onSecondary={() => requestJoinCode(campaign)}
-              secondaryLabel={inviteLoading ? 'Loading...' : 'Code'}
-              onDelete={() => requestDeleteCampaign(campaign)}
-              deleteLabel="Delete campaign"
             />
           ))}
         </DashboardSummaryPanel>
@@ -342,36 +171,6 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
           <span>Check backend</span>
         </button>
       </section>
-
-      {showCreateCampaign && (
-        <CreateCampaignDialog
-          form={campaignForm}
-          creating={creatingCampaign}
-          onChange={updateCampaignForm}
-          onToggleSessionZero={toggleSessionZero}
-          onSubmit={handleCreateCampaign}
-          onClose={closeCreateCampaign}
-        />
-      )}
-
-      {pendingDelete && (
-        <ConfirmDeleteDialog
-          pendingDelete={pendingDelete}
-          deleting={deleting}
-          onCancel={() => !deleting && setPendingDelete(null)}
-          onConfirm={confirmDelete}
-        />
-      )}
-
-      {pendingInvite && (
-        <JoinCodeDialog
-          invite={pendingInvite}
-          loading={inviteLoading}
-          onClose={() => !inviteLoading && setPendingInvite(null)}
-          onCopy={copyJoinCode}
-          onRotate={rotateJoinCode}
-        />
-      )}
     </main>
   );
 }
