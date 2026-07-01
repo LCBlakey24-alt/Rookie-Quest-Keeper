@@ -1,4 +1,4 @@
-import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, RotateCcw, ScrollText, Swords } from 'lucide-react';
+import { Activity, Backpack, BookOpen, Edit3, ListChecks, Swords } from 'lucide-react';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -43,13 +43,10 @@ export const COMMON_CONDITIONS = [
 
 export const SHEET_TABS = [
   { id: 'stats', label: 'Stats', icon: Activity },
-  { id: 'turn', label: 'Turn', icon: RotateCcw },
-  { id: 'combat', label: 'Combat', icon: Swords },
-  { id: 'rook', label: 'Rook', icon: Bot },
-  { id: 'spells', label: 'Spells', icon: BookOpen },
+  { id: 'actions', label: 'Actions', icon: Swords },
   { id: 'inventory', label: 'Inventory', icon: Backpack },
+  { id: 'spells', label: 'Spells', icon: BookOpen },
   { id: 'features', label: 'Features', icon: ListChecks },
-  { id: 'lore', label: 'Lore', icon: ScrollText },
   { id: 'notes', label: 'Notes', icon: Edit3 },
 ];
 
