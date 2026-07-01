@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
+import './CleanSheetTabsAppShell.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
   const handleBack = () => {
