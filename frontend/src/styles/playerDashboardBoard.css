@@ -1,9 +1,9 @@
-/* Player dashboard board theme: charcoal surfaces, white text, red left rails. */
+/* Player dashboard board theme: off-black surfaces, white text, red left rails. */
 
 .player-dashboard-page {
   min-height: 100vh;
-  background: #242424;
-  color: #ffffff;
+  background: var(--rq-bg-main, #181818);
+  color: var(--rq-text-primary, #ffffff);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -14,9 +14,9 @@
 .player-dashboard-context,
 .player-join-strip,
 .player-dashboard-tab-shell {
-  background: #2f2f2f;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-left: 5px solid #d00000;
+  background: var(--rq-bg-panel, #101010);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  border-left: 5px solid var(--rq-accent-primary, #d00000);
   border-radius: 0;
   box-shadow: none;
 }
@@ -43,7 +43,7 @@
 
 .player-dashboard-title-block h1 {
   margin: 4px 0 6px;
-  color: #ffffff;
+  color: var(--rq-text-primary, #ffffff);
   font-size: clamp(28px, 5vw, 44px);
   line-height: 1.02;
 }
@@ -53,7 +53,7 @@
 .player-dashboard-card p,
 .player-dashboard-empty-state p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   line-height: 1.45;
 }
 
@@ -63,7 +63,7 @@
 
 .player-dashboard-eyebrow {
   margin: 0;
-  color: #ff3b3b;
+  color: var(--rq-accent-hover, #ff3b3b);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 11px;
@@ -101,7 +101,7 @@
 }
 
 .player-join-strip label {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   font-weight: 800;
   font-size: 13px;
 }
@@ -109,9 +109,9 @@
 .player-join-strip select {
   min-height: 40px;
   min-width: 220px;
-  background: #3a3a3a;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--rq-bg-input, #0b0b0b) !important;
+  color: var(--rq-text-primary, #ffffff);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
   padding: 0 10px;
 }
 
@@ -125,7 +125,7 @@
 
 .player-dashboard-context-copy h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--rq-text-primary, #ffffff);
   font-size: 24px;
 }
 
@@ -145,14 +145,14 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  background: #3a3a3a;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--rq-bg-card, #0d0d0d);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
   border-radius: 0;
   padding: 12px;
 }
 
 .player-dashboard-summary-icon {
-  color: #ff3b3b;
+  color: var(--rq-accent-hover, #ff3b3b);
 }
 
 .player-dashboard-summary-copy {
@@ -161,7 +161,7 @@
 
 .player-dashboard-summary-copy p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -170,7 +170,7 @@
 
 .player-dashboard-summary-copy strong {
   display: block;
-  color: #ffffff;
+  color: var(--rq-text-primary, #ffffff);
   font-size: 16px;
   margin-top: 3px;
   overflow: hidden;
@@ -180,7 +180,7 @@
 
 .player-dashboard-summary-copy span {
   display: block;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   font-size: 12px;
   margin-top: 2px;
 }
@@ -193,14 +193,15 @@
   display: flex;
   gap: 0;
   flex-wrap: wrap;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
 }
 
 .player-dashboard-tab {
   border: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.16);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.78);
+  border-right: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  background: var(--rq-bg-card, #0d0d0d) !important;
+  background-image: none !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   padding: 12px 16px;
   display: inline-flex;
   align-items: center;
@@ -210,8 +211,9 @@
 }
 
 .player-dashboard-tab-active {
-  background: rgba(208, 0, 0, 0.18);
-  color: #ff3b3b;
+  background: var(--rq-bg-panel, #101010) !important;
+  color: var(--rq-text-primary, #ffffff);
+  border-left: 4px solid var(--rq-accent-primary, #d00000);
 }
 
 .player-dashboard-tab-content {
@@ -225,9 +227,9 @@
 }
 
 .player-dashboard-card {
-  background: #3a3a3a !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-left: 4px solid #d00000 !important;
+  background: var(--rq-bg-card, #0d0d0d) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #d00000) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
@@ -243,14 +245,14 @@
 .player-dashboard-card h2,
 .player-dashboard-empty-state h2 {
   margin: 4px 0;
-  color: #ffffff;
+  color: var(--rq-text-primary, #ffffff);
   font-size: 20px;
 }
 
 .player-dashboard-empty-state {
-  background: #3a3a3a;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-left: 4px solid #d00000;
+  background: var(--rq-bg-card, #0d0d0d);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  border-left: 4px solid var(--rq-accent-primary, #d00000);
   border-radius: 0;
   padding: 24px;
   text-align: center;
@@ -261,18 +263,19 @@
 .player-dashboard-page .btn-outline {
   border-radius: 0 !important;
   box-shadow: none !important;
+  background-image: none !important;
 }
 
 .player-dashboard-page .btn-primary {
-  background: #d00000 !important;
-  border-color: #d00000 !important;
-  color: #ffffff !important;
+  background: var(--rq-accent-primary, #d00000) !important;
+  border-color: var(--rq-accent-primary, #d00000) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 .player-dashboard-page .btn-outline {
-  background: #2f2f2f !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  color: #ffffff !important;
+  background: var(--rq-bg-card, #0d0d0d) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 .player-dashboard-page select {
@@ -321,7 +324,7 @@
 
   .player-dashboard-tab {
     justify-content: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-bottom: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
   }
 
   .player-desktop-context {
