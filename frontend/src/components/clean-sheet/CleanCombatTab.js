@@ -10,6 +10,7 @@ import {
   getItemQuantity,
   getPotionHealing,
   hasSaveProficiency,
+  isFighter,
   mod,
   rollDice,
 } from './cleanCombatTabUtils';
