@@ -8,7 +8,6 @@ import {
   Search,
   Shield,
   Sparkles,
-  Swords,
 } from "lucide-react";
 
 import {
