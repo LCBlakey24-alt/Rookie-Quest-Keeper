@@ -135,6 +135,26 @@
   font-weight: 900;
 }
 
+.clean-sheet-spell-warning {
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--rq-card, #3a3a3a);
+  border: 1px solid var(--rq-line, rgba(255,255,255,0.16));
+  border-left: 4px solid var(--rq-primary, #d00000);
+  color: var(--rq-muted, rgba(255,255,255,0.78));
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.clean-sheet-spell-warning svg {
+  flex: 0 0 auto;
+  color: var(--rq-text, #ffffff);
+  margin-top: 1px;
+}
+
 .clean-sheet-slot-grid {
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
