@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Copy, Eye, Image as ImageIcon, Monitor, Projector, RefreshCw, Send, Skull, Table2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -96,7 +96,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
 
   const publish = (mode, payload = {}, targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
-    publishDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
+    publishCampaignDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
     toast.success('Sent to player display', { description: label });
   };
@@ -104,7 +104,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const sendDisplayTarget = (targetId = displayTarget) => {
     const safeTarget = normaliseTarget(targetId);
     const target = DISPLAY_TARGETS.find(item => item.id === safeTarget) || DISPLAY_TARGETS[0];
-    publishDisplayState(campaignId, createDisplayState('blank', {
+    publishCampaignDisplayState(campaignId, createDisplayState('blank', {
       title: target.label,
       subtitle: target.help,
       display_target: target.id,

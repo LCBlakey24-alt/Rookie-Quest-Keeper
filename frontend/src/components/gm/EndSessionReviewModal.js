@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CheckCircle2, Monitor, RefreshCw, ScrollText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -160,7 +160,7 @@ export default function EndSessionReviewModal({ campaignId, campaignName = 'Camp
       await applyStoryWrapUp();
       const response = await apiClient.post(`/campaigns/${campaignId}/roll-events/end-session`);
       const finalSummary = showAllTime ? response.data : { ...response.data, allTime: { totalRolls: 0, totalDice: 0, nat20s: 0, nat1s: 0, actors: [] } };
-      publishDisplayState(campaignId, createDisplayState('end-session-stats', finalSummary));
+      publishCampaignDisplayState(campaignId, createDisplayState('end-session-stats', finalSummary));
       if (saveRecapNote) {
         await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content: buildRecapNote(response.data, closedChapterStory, { markChapterPlayed, prepNextChapter }) }).catch(() => null);
       }
