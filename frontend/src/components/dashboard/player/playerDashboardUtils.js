@@ -1,10 +1,3 @@
-export const tabs = [
-  { id: 'characters', label: 'Characters', testId: 'tab-characters' },
-  { id: 'campaigns', label: 'Campaigns', testId: 'tab-campaigns' },
-  { id: 'notes', label: 'Notes', testId: 'tab-notes' },
-  { id: 'handouts', label: 'Received', testId: 'tab-handouts' },
-];
-
 export function combineLinkedCampaigns(campaigns, characters) {
   const campaignMap = new Map();
 
