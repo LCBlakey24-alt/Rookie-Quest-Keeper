@@ -4,7 +4,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
-  background: var(--rq-bg-main, #181818);
+  background: var(--rq-bg-main, #202020);
   color: var(--rq-text-primary, #ffffff);
 }
 
@@ -17,7 +17,7 @@
   flex-direction: column;
   gap: 14px;
   padding: 10px 8px;
-  background: var(--rq-bg-rail, #0f0f0f);
+  background: var(--rq-bg-rail, #181818);
   border-right: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
   box-shadow: none;
 }
@@ -35,8 +35,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-left: 4px solid var(--rq-accent-primary, #d00000);
-  background: var(--rq-bg-panel, #101010);
+  border-left: 4px solid var(--rq-accent-primary, #c30000);
+  background: var(--rq-bg-panel, #171717);
   overflow: hidden;
 }
 
@@ -91,10 +91,10 @@
 .rqk-app-rail-link:hover,
 .rqk-app-rail-link:focus-visible,
 .rqk-app-rail-link.is-active {
-  background: var(--rq-bg-panel, #101010) !important;
+  background: var(--rq-bg-panel, #171717) !important;
   background-image: none !important;
   border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-left-color: var(--rq-accent-primary, #d00000);
+  border-left-color: var(--rq-accent-primary, #c30000);
   color: var(--rq-text-primary, #ffffff);
   outline: none;
 }
@@ -102,12 +102,12 @@
 .rqk-app-shell-content {
   min-width: 0;
   min-height: 100vh;
-  background: var(--rq-bg-main, #181818);
+  background: var(--rq-bg-main, #202020);
 }
 
 .uploads-dashboard-page {
   min-height: 100vh;
-  background: var(--rq-bg-main, #181818);
+  background: var(--rq-bg-main, #202020);
   color: var(--rq-text-primary, #ffffff);
   padding: 24px;
   display: flex;
@@ -117,10 +117,11 @@
 
 .uploads-dashboard-hero,
 .uploads-dashboard-card,
-.uploads-dashboard-next {
-  background: var(--rq-bg-panel, #101010);
+.uploads-dashboard-next,
+.uploads-dashboard-dropzone {
+  background: var(--rq-bg-panel, #171717);
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-left: 5px solid var(--rq-accent-primary, #d00000);
+  border-left: 5px solid var(--rq-accent-primary, #c30000);
   border-radius: 0;
   box-shadow: none;
 }
@@ -131,7 +132,7 @@
 
 .uploads-dashboard-eyebrow {
   margin: 0;
-  color: var(--rq-accent-hover, #ff3b3b);
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 11px;
@@ -140,17 +141,44 @@
 
 .uploads-dashboard-hero h1,
 .uploads-dashboard-card h2,
-.uploads-dashboard-next h2 {
+.uploads-dashboard-next h2,
+.uploads-dashboard-dropzone h2 {
   color: var(--rq-text-primary, #ffffff);
   margin: 4px 0 8px;
 }
 
 .uploads-dashboard-hero p,
 .uploads-dashboard-card p,
-.uploads-dashboard-next p {
+.uploads-dashboard-next p,
+.uploads-dashboard-dropzone p,
+.uploads-dashboard-next li {
   margin: 0;
   color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   line-height: 1.5;
+}
+
+.uploads-dashboard-dropzone {
+  min-height: 170px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-style: dashed;
+}
+
+.uploads-dashboard-dropzone button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--rq-bg-card, #141414) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-radius: 0 !important;
+  padding: 0 14px;
+  font-weight: 900;
+  opacity: 0.72;
 }
 
 .uploads-dashboard-grid {
@@ -167,9 +195,15 @@
   padding: 18px;
 }
 
+.uploads-dashboard-next ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
 .uploads-dashboard-card svg,
-.uploads-dashboard-next svg {
-  color: var(--rq-accent-hover, #ff3b3b);
+.uploads-dashboard-next svg,
+.uploads-dashboard-dropzone svg {
+  color: var(--rq-text-primary, #ffffff);
   flex: 0 0 auto;
 }
 
@@ -203,9 +237,13 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 700px) {
   .uploads-dashboard-page {
     padding: 12px;
+  }
+
+  .uploads-dashboard-dropzone {
+    grid-template-columns: 1fr;
   }
 
   .uploads-dashboard-card,
