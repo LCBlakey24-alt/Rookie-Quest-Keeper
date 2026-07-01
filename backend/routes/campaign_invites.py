@@ -57,36 +57,6 @@ async def get_or_create_invite(campaign_id: str, username: str) -> dict:
     }
 
 
-@router.get('/campaign-invites/{campaign_id}')
-async def get_campaign_invite(campaign_id: str, username: str = Depends(get_current_user)):
-    """Get or create the current campaign join code. GM only."""
-    return await get_or_create_invite(campaign_id, username)
-
-
-@router.post('/campaign-invites/{campaign_id}')
-async def rotate_campaign_invite(campaign_id: str, username: str = Depends(get_current_user)):
-    """Create a fresh join code for a campaign. GM only."""
-    await verify_campaign_ownership(campaign_id, username)
-    await db.campaign_invites.delete_many({'campaign_id': campaign_id, 'created_by': username, 'expires_at': None})
-    invite_obj = CampaignInvite(
-        campaign_id=campaign_id,
-        created_by=username,
-        code=await create_unique_join_code(),
-        expires_at=None,
-        max_uses=None,
-    )
-    invite = invite_obj.model_dump()
-    await db.campaign_invites.insert_one(invite)
-    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'name': 1}) or {}
-    return {
-        'campaign_id': campaign_id,
-        'campaign_name': campaign.get('name', 'Untitled Campaign'),
-        'join_code': invite.get('code'),
-        'uses': 0,
-        'created_at': invite.get('created_at'),
-    }
-
-
 @router.post('/campaign-invites/join')
 async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Join a campaign using a GM join code and optionally link a character."""
@@ -179,3 +149,35 @@ async def get_joined_campaigns(username: str = Depends(get_current_user)):
         campaign['member_role'] = member.get('role', 'player')
         campaign['character_id'] = member.get('character_id')
     return campaigns
+
+
+@router.get('/campaign-invites/{campaign_id}')
+async def get_campaign_invite(campaign_id: str, username: str = Depends(get_current_user)):
+    """Get or create the current campaign join code. GM only."""
+    return await get_or_create_invite(campaign_id, username)
+
+
+@router.post('/campaign-invites/{campaign_id}')
+async def rotate_campaign_invite(campaign_id: str, username: str = Depends(get_current_user)):
+    """Create a fresh join code for a campaign. GM only."""
+    await verify_campaign_ownership(campaign_id, username)
+    await db.campaign_invites.delete_many({'campaign_id': campaign_id, 'created_by': username, 'expires_at': None})
+    invite_obj = CampaignInvite(
+        campaign_id=campaign_id,
+        created_by=username,
+        code=await create_unique_join_code(),
+        expires_at=None,
+        max_uses=None,
+    )
+    invite = invite_obj.model_dump()
+    await db.campaign_invites.insert_one(invite)
+    campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0, 'name': 1}) or {}
+    return {
+        'campaign_id': campaign_id,
+        'campaign_name': campaign.get('name', 'Untitled Campaign'),
+        'join_code': invite.get('code'),
+        'uses': 0,
+        'created_at': invite.get('created_at'),
+    }
+
+

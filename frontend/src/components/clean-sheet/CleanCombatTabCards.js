@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CLASS_FEATURES } from '@/data/classFeatures';
+import { CLASS_FEATURES } from '../../data/classFeatures';
 import { fmt } from './cleanCombatTabUtils';
 
 export function AttackCard({ action, onAttack, onDamage, children, active }) {

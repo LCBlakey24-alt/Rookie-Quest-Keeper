@@ -131,6 +131,8 @@ export function getMonkProgressionSummary(level = 1, edition = '2014') {
     level: monkLevel,
     disciplineName: getMonkDisciplineName(rules),
     disciplinePoints: getMonkDisciplinePoints(monkLevel),
+    resourceName: getMonkDisciplineName(rules),
+    resourceUses: getMonkDisciplinePoints(monkLevel),
     martialArtsDie: getMonkMartialArtsDie(monkLevel, rules),
     unarmoredMovementBonus: getMonkUnarmoredMovementBonus(monkLevel),
     currentLevelFeatures: getMonkFeaturesForLevel(monkLevel, rules),

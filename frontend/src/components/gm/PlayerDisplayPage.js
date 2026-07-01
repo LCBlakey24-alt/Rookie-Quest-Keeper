@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Maximize2, Monitor, Table2, Users } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { loadDisplayState, subscribeDisplayState } from '@/lib/liveDisplayBus';
+import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -36,7 +36,12 @@ export default function PlayerDisplayPage() {
 
   useEffect(() => {
     setState(loadDisplayState(campaignId));
-    return subscribeDisplayState(campaignId, setState);
+    const unsubscribeLocal = subscribeDisplayState(campaignId, setState);
+    const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState);
+    return () => {
+      unsubscribeLocal();
+      unsubscribeRemote();
+    };
   }, [campaignId]);
 
   const updatedLabel = useMemo(() => {

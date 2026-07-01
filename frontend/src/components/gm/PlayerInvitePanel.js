@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Copy, RefreshCw, ShieldCheck, UserPlus, Users } from 'lucide-react';
+import { ShieldCheck, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -10,7 +11,6 @@ const theme = {
   panel: '#2f2f2f',
   card: '#3a3a3a',
   line: 'rgba(255,255,255,0.16)',
-  lineStrong: 'rgba(255,255,255,0.22)',
   primary: '#d00000',
   text: '#ffffff',
   soft: 'rgba(255,255,255,0.74)',
@@ -101,19 +101,18 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         </div>
       </div>
 
-      <aside style={codeBoxStyle}>
-        <span style={codeLabelStyle}>Campaign join code</span>
-        <strong style={codeStyle}>{loading ? 'Loading…' : code || 'Unavailable'}</strong>
-        <div style={buttonRowStyle}>
-          <button type="button" onClick={copyCode} disabled={!code || loading} style={primaryButtonStyle}>
-            {copying ? <Check size={14} /> : <Copy size={14} />} Copy
-          </button>
-          <button type="button" onClick={rotateCode} disabled={rotating || loading} style={secondaryButtonStyle}>
-            <RefreshCw size={14} /> {rotating ? 'Rotating…' : 'Rotate'}
-          </button>
-        </div>
-        <p style={codeHelpStyle}>Players use this from their dashboard with Join Campaign.</p>
-      </aside>
+      <CampaignJoinCodeCard
+        compact
+        code={code}
+        loading={loading}
+        rotating={rotating}
+        copying={copying}
+        uses={invite?.uses}
+        createdAt={invite?.created_at}
+        description="Players use this code from their dashboard with Join Campaign. Rotating the code stops the old one from working."
+        onCopy={copyCode}
+        onRotate={rotateCode}
+      />
     </section>
   );
 }
@@ -135,10 +134,3 @@ const titleStyle = { margin: 0, color: theme.text, fontSize: 24, fontWeight: 950
 const subtitleStyle = { margin: '7px 0 0', color: theme.soft, lineHeight: 1.45, fontSize: 13, maxWidth: 760 };
 const statsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 };
 const miniStatStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '7px 9px', fontSize: 12 };
-const codeBoxStyle = { minWidth: 230, flex: '0 1 280px', background: theme.bg, border: `1px solid ${theme.lineStrong}`, padding: 12, display: 'grid', gap: 8, alignSelf: 'stretch' };
-const codeLabelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
-const codeStyle = { color: theme.text, fontSize: 30, fontWeight: 950, letterSpacing: '0.14em' };
-const buttonRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
-const primaryButtonStyle = { minHeight: 34, border: 0, borderRadius: 0, background: theme.primary, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const secondaryButtonStyle = { minHeight: 34, border: 0, borderRadius: 0, background: theme.panel, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
-const codeHelpStyle = { margin: 0, color: theme.muted, fontSize: 11, lineHeight: 1.35 };
