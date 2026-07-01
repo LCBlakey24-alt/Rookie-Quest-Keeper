@@ -24,10 +24,10 @@ export function AttackCard({ action, onAttack, onDamage, children, active }) {
   );
 }
 
-export function SimpleActionCard({ title, description, type = 'Action', onClick }) {
+export function SimpleActionCard({ title, description, type = 'Action', onClick, disabled = false }) {
   return (
     <div className="clean-sheet-action-card-shell">
-      <button type="button" className="clean-sheet-action-card" onClick={onClick}>
+      <button type="button" className="clean-sheet-action-card" onClick={onClick} disabled={disabled}>
         <span className="clean-sheet-action-type">{type}</span>
         <strong>{title}</strong>
         <span>{description}</span>
