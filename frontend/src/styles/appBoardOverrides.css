@@ -111,3 +111,60 @@ html[data-theme="gm"] .rqk-app-shell textarea {
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Homebrew Workshop safety pass. The component still uses inline styles, so these
+   overrides keep it aligned with the logged-in app shell while the deeper rebuild waits. */
+[data-testid="homebrew-workshop"] {
+  background: var(--rq-bg-main) !important;
+  color: var(--rq-text-primary) !important;
+}
+
+[data-testid="homebrew-workshop"] *,
+[data-testid="homebrew-workshop"] button,
+[data-testid="homebrew-workshop"] input,
+[data-testid="homebrew-workshop"] select,
+[data-testid="homebrew-workshop"] textarea {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+[data-testid="homebrew-workshop"] header,
+[data-testid="homebrew-workshop"] aside,
+[data-testid="homebrew-workshop"] section,
+[data-testid="homebrew-workshop"] article {
+  background: var(--rq-bg-panel) !important;
+  border-color: var(--rq-border-default) !important;
+}
+
+[data-testid="homebrew-workshop"] header,
+[data-testid="homebrew-workshop"] aside,
+[data-testid="homebrew-workshop"] > section > section,
+[data-testid="homebrew-workshop"] article {
+  border-left: 5px solid var(--rq-accent-primary) !important;
+}
+
+[data-testid="homebrew-workshop"] button,
+[data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+  background: var(--rq-bg-card) !important;
+  color: var(--rq-text-primary) !important;
+  border: 1px solid var(--rq-border-default) !important;
+}
+
+[data-testid="homebrew-workshop"] button:hover,
+[data-testid="homebrew-workshop"] label[for="hb-file-input"]:hover {
+  background: var(--rq-bg-panel) !important;
+}
+
+[data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
+  border-left: 5px solid var(--rq-border-default) !important;
+}
+
+[data-testid="homebrew-workshop"] input,
+[data-testid="homebrew-workshop"] select,
+[data-testid="homebrew-workshop"] textarea {
+  background: var(--rq-bg-input) !important;
+  color: var(--rq-text-primary) !important;
+  border: 1px solid var(--rq-border-default) !important;
+  color-scheme: dark;
+}
