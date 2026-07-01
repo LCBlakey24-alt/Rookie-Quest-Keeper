@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, RefreshCw } from 'lucide-react';
+import { ChevronRight, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
 
@@ -20,11 +20,16 @@ function characterMeta(character) {
   return `Level ${level} ${race} ${className}`.replace(/\s+/g, ' ').trim();
 }
 
+function characterCampaign(character) {
+  return character?.campaign_name || character?.campaign?.name || character?.campaign_title || '';
+}
+
 export default function MyCharactersPage() {
   const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
 
   const sortedCharacters = useMemo(() => [...characters].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
@@ -56,6 +61,26 @@ export default function MyCharactersPage() {
     }
   };
 
+  const deleteCharacter = async (character) => {
+    const id = recordId(character);
+    const name = characterTitle(character);
+    if (!id) return;
+
+    const confirmed = window.confirm(`Delete character "${name}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+      await apiClient.delete(`/characters/${id}`);
+      toast.success('Character deleted');
+      await loadCharacters();
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to delete character');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   if (loading) {
     return (
       <main className="library-page library-page-loading">
@@ -74,7 +99,7 @@ export default function MyCharactersPage() {
         <div>
           <p className="library-page-eyebrow">My Characters</p>
           <h1>Your created characters.</h1>
-          <p>Every character you have made, ready to open, edit, or use in a campaign.</p>
+          <p>Every character you have made, ready to open, edit, delete, or use in a campaign.</p>
         </div>
         <Link to="/characters/new" className="library-page-button">
           <Plus size={16} />
@@ -104,6 +129,8 @@ export default function MyCharactersPage() {
         <section className="library-page-grid" aria-label="Saved characters">
           {sortedCharacters.map((character, index) => {
             const id = recordId(character);
+            const campaignName = characterCampaign(character);
+            const deleting = deletingId === id;
 
             return (
               <article key={id || `character-${index}`} className="library-page-card">
@@ -111,10 +138,17 @@ export default function MyCharactersPage() {
                   <p className="library-page-card-meta">Character</p>
                   <h2>{characterTitle(character)}</h2>
                   <p>{characterMeta(character)}</p>
+                  {campaignName && <p className="library-page-card-note">Linked to {campaignName}</p>}
                 </div>
                 <div className="library-page-actions">
                   <button type="button" onClick={() => id && navigate(`/characters/${id}`)} disabled={!id}>
-                    Open Sheet <ChevronRight size={16} />
+                    Open <ChevronRight size={16} />
+                  </button>
+                  <button type="button" onClick={() => id && navigate(`/characters/${id}/edit`)} disabled={!id}>
+                    <Pencil size={15} /> Edit
+                  </button>
+                  <button type="button" onClick={() => deleteCharacter(character)} disabled={!id || deleting} className="library-page-danger-button">
+                    <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </article>
