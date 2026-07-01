@@ -408,6 +408,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       type={card.type}
       description={card.description}
       onClick={card.onClick}
+      disabled={card.disabled}
     />
   ));
 
