@@ -16,7 +16,7 @@
 .library-page-empty {
   background: var(--rq-bg-panel, #171717);
   border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  border-left: 5px solid var(--rq-accent-primary, #d00000);
+  border-left: 5px solid var(--rq-accent-primary, #c30000);
   border-radius: 0;
   box-shadow: none;
 }
@@ -76,8 +76,9 @@
 
 .library-page-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
+  align-items: stretch;
 }
 
 .library-page-card,
@@ -86,6 +87,7 @@
 }
 
 .library-page-card {
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -98,6 +100,11 @@
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.library-page-card-note {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62)) !important;
+  font-size: 13px;
 }
 
 .library-page-actions {
@@ -129,6 +136,21 @@
 .library-page button:hover,
 .library-page .library-page-button:hover {
   background: var(--rq-bg-panel, #171717) !important;
+}
+
+.library-page button:disabled,
+.library-page .library-page-button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.library-page .library-page-danger-button {
+  color: #ffffff !important;
+  border-left: 4px solid #7a1d1d !important;
+}
+
+.library-page .library-page-danger-button:hover {
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
 }
 
 .library-page-loading {
