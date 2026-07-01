@@ -11,6 +11,8 @@ function titleCaseSlug(value) {
   const wrapped = raw.match(/^\((.*)\)$/);
   const text = wrapped ? wrapped[1] : raw;
   const formatted = text
+    .replace(/[–—]/g, '-')
+    .replace(/\s*-\s*/g, ' ')
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
