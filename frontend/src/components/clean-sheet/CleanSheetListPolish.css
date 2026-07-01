@@ -242,6 +242,209 @@
   border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
 }
 
+/* Individual tab finishing pass */
+.character-page-v2 .clean-sheet-stats-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-spells-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-inventory-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-features-tab .clean-sheet-panel {
+  background: var(--rq-bg-panel, #101010) !important;
+  border-left-width: 3px !important;
+}
+
+.character-page-v2 .clean-sheet-action-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-action-card-shell {
+  min-width: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-action-card {
+  width: 100% !important;
+  min-height: 112px !important;
+  padding: 12px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 8px !important;
+  text-align: left !important;
+  background: var(--rq-bg-card, #151515) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-action-card-shell.active .clean-sheet-action-card,
+.character-page-v2 .clean-sheet-action-card:focus-visible {
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  outline: none !important;
+}
+
+.character-page-v2 .clean-sheet-action-type {
+  width: fit-content !important;
+  background: var(--rq-bg-button, #202020) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  padding: 4px 7px !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.character-page-v2 .clean-sheet-attack-card-top,
+.character-page-v2 .clean-sheet-spell-card-top,
+.character-page-v2 .clean-sheet-item-card-top,
+.character-page-v2 .clean-sheet-caster-card-title {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+}
+
+.character-page-v2 .clean-sheet-attack-stat-row,
+.character-page-v2 .clean-sheet-caster-stats,
+.character-page-v2 .clean-sheet-spell-summary,
+.character-page-v2 .clean-sheet-inventory-summary,
+.character-page-v2 .clean-sheet-skills-summary,
+.character-page-v2 .clean-sheet-readiness-grid,
+.character-page-v2 .clean-sheet-proficiency-lists,
+.character-page-v2 .clean-sheet-equipment-preview,
+.character-page-v2 .clean-sheet-currency-grid {
+  background: transparent !important;
+  gap: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-attack-stat-box {
+  min-height: 58px !important;
+  padding: 9px 10px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 4px !important;
+  background: var(--rq-bg-input, #181818) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 0 !important;
+  text-align: left !important;
+}
+
+.character-page-v2 .clean-sheet-attack-stat-box span,
+.character-page-v2 .clean-sheet-spell-summary span,
+.character-page-v2 .clean-sheet-inventory-summary span,
+.character-page-v2 .clean-sheet-currency-grid span,
+.character-page-v2 .clean-sheet-readiness-grid span,
+.character-page-v2 .clean-sheet-skills-summary span {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.66)) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.character-page-v2 .clean-sheet-attack-stat-box strong {
+  color: var(--rq-text-primary, #ffffff) !important;
+  font-size: 15px !important;
+}
+
+.character-page-v2 .clean-sheet-feature-lane {
+  display: grid !important;
+  gap: 8px !important;
+  align-content: start !important;
+}
+
+.character-page-v2 .clean-sheet-feature-lane h3,
+.character-page-v2 .clean-sheet-spell-level-group h3 {
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  background: var(--rq-bg-input, #181818) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card > div:first-child {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+}
+
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-action-card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.character-page-v2 .clean-sheet-spell-card::after,
+.character-page-v2 .clean-sheet-item-card::after,
+.character-page-v2 .clean-sheet-feature-card::after,
+.character-page-v2 .clean-sheet-action-card::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  border-left: 0 solid transparent !important;
+}
+
+.character-page-v2 .clean-sheet-spell-grid,
+.character-page-v2 .clean-sheet-item-grid,
+.character-page-v2 .clean-sheet-equipped-slot-grid,
+.character-page-v2 .clean-sheet-feature-lanes {
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-feature-card {
+  height: 100% !important;
+}
+
+.character-page-v2 .clean-sheet-spell-card p,
+.character-page-v2 .clean-sheet-item-card p,
+.character-page-v2 .clean-sheet-feature-card p {
+  margin: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-spell-actions,
+.character-page-v2 .clean-sheet-item-actions {
+  margin-top: auto !important;
+}
+
+.character-page-v2 .clean-sheet-spell-actions button,
+.character-page-v2 .clean-sheet-item-actions button,
+.character-page-v2 .clean-sheet-slot-actions button {
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+  font-size: 11px !important;
+}
+
+.character-page-v2 .clean-sheet-core-stat-grid,
+.character-page-v2 .clean-sheet-passive-grid,
+.character-page-v2 .clean-sheet-compact-abilities,
+.character-page-v2 .clean-sheet-readable-saves {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+}
+
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-ability {
+  min-height: 58px !important;
+}
+
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-panel {
     padding: 12px !important;
@@ -262,6 +465,13 @@
   .character-page-v2 .clean-sheet-spell-section-heading {
     gap: 8px !important;
   }
+
+  .character-page-v2 .clean-sheet-action-grid,
+  .character-page-v2 .clean-sheet-spell-grid,
+  .character-page-v2 .clean-sheet-item-grid,
+  .character-page-v2 .clean-sheet-feature-lanes {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 520px) {
@@ -281,5 +491,13 @@
   .character-page-v2 .clean-sheet-spellcasting-heading,
   .character-page-v2 .clean-sheet-spell-section-heading {
     align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills,
+  .character-page-v2 .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-compact-abilities {
+    grid-template-columns: 1fr !important;
   }
 }
