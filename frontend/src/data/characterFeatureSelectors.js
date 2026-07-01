@@ -1,4 +1,4 @@
-import { CLASS_FEATURES, getClassFeatures } from '@/data/classFeatures';
+import { CLASS_FEATURES, getClassFeatures } from './classFeatures';
 
 const normalizeKey = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
