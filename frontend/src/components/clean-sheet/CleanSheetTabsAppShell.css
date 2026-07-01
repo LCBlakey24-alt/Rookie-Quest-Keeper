@@ -1,20 +1,25 @@
-/* Character sheet tab rail when the global app rail is present.
-   The app rail is viewport-fixed/sticky on the far left; this keeps the sheet rail
-   inside the remaining app area and gives tab labels enough room. */
-
-.rqk-app-shell {
-  --rqk-app-rail-width: 58px;
-}
+/* Character sheet rail layout.
+   Character sheets do not use the global app rail. This file keeps the sheet rail
+   on the left and gives the sheet content the rest of the page width. */
 
 .character-page-v2 {
-  --clean-sheet-rail-width: 136px;
-  padding-left: calc(var(--clean-sheet-rail-width) + 22px) !important;
+  --clean-sheet-rail-width: 152px;
+  padding: 12px 18px 40px calc(var(--clean-sheet-rail-width) + 28px) !important;
   background: var(--rq-bg-main, #202020) !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs {
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-tabs {
   position: fixed !important;
-  left: calc(var(--rqk-app-rail-width, 58px) + 12px) !important;
+  left: 12px !important;
   top: 12px !important;
   width: var(--clean-sheet-rail-width) !important;
   max-width: var(--clean-sheet-rail-width) !important;
@@ -28,7 +33,7 @@
   z-index: 65 !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button {
+.character-page-v2 .clean-sheet-tabs button {
   width: 100% !important;
   min-width: 0 !important;
   height: 44px !important;
@@ -46,25 +51,25 @@
   overflow: hidden !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
   margin-bottom: 8px !important;
   background: var(--rq-bg-panel, #171717) !important;
   border-left-color: var(--rq-accent-primary, #c30000) !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button::before {
+.character-page-v2 .clean-sheet-tabs button::before {
   display: none !important;
   width: 0 !important;
   opacity: 0 !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button svg {
+.character-page-v2 .clean-sheet-tabs button svg {
   width: 18px !important;
   height: 18px !important;
   flex: 0 0 auto !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button span {
+.character-page-v2 .clean-sheet-tabs button span {
   display: inline !important;
   min-width: 0 !important;
   overflow: hidden !important;
@@ -75,81 +80,86 @@
   line-height: 1 !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button:hover,
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button:focus-visible {
+.character-page-v2 .clean-sheet-tabs button:hover,
+.character-page-v2 .clean-sheet-tabs button:focus-visible {
   background: var(--rq-bg-panel, #171717) !important;
   border-left-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
 }
 
-.rqk-app-shell .character-page-v2 .clean-sheet-tabs button.active {
+.character-page-v2 .clean-sheet-tabs button.active {
   background: var(--rq-bg-panel, #171717) !important;
   border-left-color: var(--rq-accent-primary, #c30000) !important;
   color: var(--rq-text-primary, #ffffff) !important;
 }
 
+.character-page-v2 .clean-sheet-grid,
+.character-page-v2 .clean-sheet-content > .clean-sheet-grid,
+.character-page-v2 .clean-sheet-content > section {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.rqk-app-shell .character-page-v2 {
+  --rqk-app-rail-width: 58px;
+  padding-left: calc(var(--rqk-app-rail-width) + var(--clean-sheet-rail-width) + 28px) !important;
+}
+
+.rqk-app-shell .character-page-v2 .clean-sheet-tabs {
+  left: calc(var(--rqk-app-rail-width, 58px) + 12px) !important;
+}
+
 @media (min-width: 720px) {
-  .rqk-app-shell {
+  .rqk-app-shell .character-page-v2 {
     --rqk-app-rail-width: 178px;
   }
 }
 
 @media (min-width: 1180px) {
-  .rqk-app-shell {
-    --rqk-app-rail-width: 224px;
+  .character-page-v2 {
+    --clean-sheet-rail-width: 164px;
   }
 
-  .character-page-v2 {
-    --clean-sheet-rail-width: 152px;
+  .rqk-app-shell .character-page-v2 {
+    --rqk-app-rail-width: 224px;
   }
 }
 
 @media (max-width: 760px) {
   .character-page-v2 {
-    --clean-sheet-rail-width: 112px;
-    padding-left: calc(var(--clean-sheet-rail-width) + 16px) !important;
+    --clean-sheet-rail-width: 116px;
+    padding: 10px 12px 32px calc(var(--clean-sheet-rail-width) + 18px) !important;
   }
 
-  .rqk-app-shell .character-page-v2 .clean-sheet-tabs {
-    left: calc(var(--rqk-app-rail-width, 58px) + 8px) !important;
+  .character-page-v2 .clean-sheet-tabs {
+    left: 8px !important;
     top: 10px !important;
     max-height: calc(100dvh - 20px) !important;
   }
 
-  .rqk-app-shell .character-page-v2 .clean-sheet-tabs button {
+  .character-page-v2 .clean-sheet-tabs button {
     height: 42px !important;
     min-height: 42px !important;
     gap: 7px !important;
     padding: 0 9px !important;
   }
 
-  .rqk-app-shell .character-page-v2 .clean-sheet-tabs button span {
+  .character-page-v2 .clean-sheet-tabs button span {
     font-size: 11px !important;
   }
 }
 
 @media (max-width: 520px) {
   .character-page-v2 {
-    --clean-sheet-rail-width: 74px;
+    --clean-sheet-rail-width: 72px;
     padding-left: calc(var(--clean-sheet-rail-width) + 12px) !important;
   }
 
-  .rqk-app-shell .character-page-v2 .clean-sheet-tabs button {
+  .character-page-v2 .clean-sheet-tabs button {
     justify-content: center !important;
     padding: 0 !important;
   }
 
-  .rqk-app-shell .character-page-v2 .clean-sheet-tabs button span {
+  .character-page-v2 .clean-sheet-tabs button span {
     display: none !important;
-  }
-}
-
-@media (max-width: 420px) {
-  .rqk-app-shell {
-    --rqk-app-rail-width: 54px;
-  }
-
-  .character-page-v2 {
-    --clean-sheet-rail-width: 68px;
-    padding-left: calc(var(--clean-sheet-rail-width) + 10px) !important;
   }
 }
