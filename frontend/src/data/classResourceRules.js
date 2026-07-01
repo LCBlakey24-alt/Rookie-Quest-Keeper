@@ -6,6 +6,7 @@ const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const levelOf = (character) => Math.max(1, Number(character?.level || 1));
 const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+const ruleLabel = (rule, character) => (typeof rule.label === 'function' ? rule.label(character) : rule.label);
 
 const classLevelOf = (character, className) => {
   const key = normalizeName(className);
@@ -184,7 +185,7 @@ export function getClassResourceRules(character) {
 export function buildInitialClassResources(character) {
   return getClassResourceRules(character).reduce((resources, rule) => {
     resources[rule.key] = {
-      label: rule.label,
+      label: ruleLabel(rule, character),
       current: rule.maxValue,
       remaining: rule.maxValue,
       max: rule.maxValue,
@@ -204,7 +205,7 @@ export function restoreClassResources(character, restType = 'long-rest') {
     if (!shouldRestore) return;
     restored[rule.key] = {
       ...existing,
-      label: rule.label,
+      label: ruleLabel(rule, character),
       current: rule.maxValue,
       remaining: rule.maxValue,
       max: rule.maxValue,
