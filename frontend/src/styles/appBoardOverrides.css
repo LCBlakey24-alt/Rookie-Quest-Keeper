@@ -3,18 +3,18 @@
    on logged-in app screens without deleting landing/auth CSS. */
 
 :root {
-  --rq-bg-main: #181818;
-  --rq-bg-panel: #101010;
-  --rq-bg-card: #0d0d0d;
-  --rq-bg-input: #0b0b0b;
-  --rq-bg-rail: #0f0f0f;
+  --rq-bg-main: #202020;
+  --rq-bg-panel: #171717;
+  --rq-bg-card: #141414;
+  --rq-bg-input: #111111;
+  --rq-bg-rail: #181818;
   --rq-text-primary: #ffffff;
   --rq-text-secondary: rgba(255, 255, 255, 0.78);
   --rq-text-muted: rgba(255, 255, 255, 0.62);
-  --rq-accent-primary: #d00000;
-  --rq-accent-hover: #ff3b3b;
-  --rq-accent-soft: rgba(208, 0, 0, 0.18);
-  --rq-accent-border: rgba(208, 0, 0, 0.42);
+  --rq-accent-primary: #c30000;
+  --rq-accent-hover: #ffffff;
+  --rq-accent-soft: rgba(195, 0, 0, 0.14);
+  --rq-accent-border: rgba(195, 0, 0, 0.42);
   --rq-border-default: rgba(255, 255, 255, 0.14);
   --rq-border-soft: rgba(255, 255, 255, 0.1);
   --rq-radius-md: 0;
@@ -50,31 +50,27 @@ html[data-theme="gm"] .rqk-app-shell * {
 html[data-theme="player"] .rqk-app-shell button,
 html[data-theme="player"] .rqk-app-shell [role="tab"],
 html[data-theme="player"] .rqk-app-shell .btn-outline,
+html[data-theme="player"] .rqk-app-shell .btn-primary,
+html[data-theme="player"] .rqk-app-shell .dashboard-primary-button,
 html[data-theme="gm"] .rqk-app-shell button,
 html[data-theme="gm"] .rqk-app-shell [role="tab"],
-html[data-theme="gm"] .rqk-app-shell .btn-outline {
+html[data-theme="gm"] .rqk-app-shell .btn-outline,
+html[data-theme="gm"] .rqk-app-shell .btn-primary,
+html[data-theme="gm"] .rqk-app-shell .dashboard-primary-button {
   background: var(--rq-bg-card) !important;
   background-image: none !important;
   color: var(--rq-text-primary) !important;
   border-color: var(--rq-border-default) !important;
 }
 
-html[data-theme="player"] .rqk-app-shell .btn-primary,
-html[data-theme="player"] .rqk-app-shell .dashboard-primary-button,
-html[data-theme="gm"] .rqk-app-shell .btn-primary,
-html[data-theme="gm"] .rqk-app-shell .dashboard-primary-button {
-  background: var(--rq-accent-primary) !important;
-  background-image: none !important;
-  color: var(--rq-text-primary) !important;
-  border-color: var(--rq-accent-primary) !important;
-}
-
 html[data-theme="player"] .rqk-app-shell button:hover,
 html[data-theme="player"] .rqk-app-shell [role="tab"]:hover,
 html[data-theme="player"] .rqk-app-shell .btn-outline:hover,
+html[data-theme="player"] .rqk-app-shell .btn-primary:hover,
 html[data-theme="gm"] .rqk-app-shell button:hover,
 html[data-theme="gm"] .rqk-app-shell [role="tab"]:hover,
-html[data-theme="gm"] .rqk-app-shell .btn-outline:hover {
+html[data-theme="gm"] .rqk-app-shell .btn-outline:hover,
+html[data-theme="gm"] .rqk-app-shell .btn-primary:hover {
   background: var(--rq-bg-panel) !important;
   background-image: none !important;
   color: var(--rq-text-primary) !important;
