@@ -35,6 +35,7 @@ import {
   rollHitDie,
   toArray,
 } from '@/components/clean-sheet/cleanSheetUtils';
+import '@/components/clean-sheet/CleanCharacterSheetPolish.css';
 
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
