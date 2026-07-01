@@ -54,7 +54,6 @@ import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
 const AuthPage = React.lazy(() => import('@/components/AuthPage'));
 const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
-const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
 const MyCharactersPage = React.lazy(() => import('@/components/MyCharactersPage'));
 const MyCampaignsPage = React.lazy(() => import('@/components/MyCampaignsPage'));
 const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
