@@ -3,32 +3,109 @@
    on logged-in app screens without deleting landing/auth CSS. */
 
 :root {
-  --rq-bg-main: #242424;
-  --rq-bg-panel: #2f2f2f;
-  --rq-bg-card: #3a3a3a;
-  --rq-bg-input: #3a3a3a;
+  --rq-bg-main: #181818;
+  --rq-bg-panel: #101010;
+  --rq-bg-card: #0d0d0d;
+  --rq-bg-input: #0b0b0b;
+  --rq-bg-rail: #0f0f0f;
   --rq-text-primary: #ffffff;
   --rq-text-secondary: rgba(255, 255, 255, 0.78);
   --rq-text-muted: rgba(255, 255, 255, 0.62);
   --rq-accent-primary: #d00000;
   --rq-accent-hover: #ff3b3b;
   --rq-accent-soft: rgba(208, 0, 0, 0.18);
-  --rq-accent-border: rgba(208, 0, 0, 0.38);
-  --rq-border-default: rgba(255, 255, 255, 0.16);
+  --rq-accent-border: rgba(208, 0, 0, 0.42);
+  --rq-border-default: rgba(255, 255, 255, 0.14);
+  --rq-border-soft: rgba(255, 255, 255, 0.1);
   --rq-radius-md: 0;
   --rq-radius-sm: 0;
 }
 
 /* Logged-in app shell */
-body[data-theme="player"],
-body[data-theme="gm"] {
-  background: #242424;
-  color: #ffffff;
+html[data-theme="player"],
+html[data-theme="gm"] {
+  background: var(--rq-bg-main);
+  color: var(--rq-text-primary);
+}
+
+html[data-theme="player"] body,
+html[data-theme="gm"] body {
+  background: var(--rq-bg-main);
+  color: var(--rq-text-primary);
+}
+
+/* Global logged-in reset: stop older blue/purple/gold gradients leaking into new app pages. */
+html[data-theme="player"] .rqk-app-shell,
+html[data-theme="gm"] .rqk-app-shell {
+  background: var(--rq-bg-main) !important;
+  color: var(--rq-text-primary) !important;
+}
+
+html[data-theme="player"] .rqk-app-shell *,
+html[data-theme="gm"] .rqk-app-shell * {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="player"] .rqk-app-shell button,
+html[data-theme="player"] .rqk-app-shell [role="tab"],
+html[data-theme="player"] .rqk-app-shell .btn-outline,
+html[data-theme="gm"] .rqk-app-shell button,
+html[data-theme="gm"] .rqk-app-shell [role="tab"],
+html[data-theme="gm"] .rqk-app-shell .btn-outline {
+  background: var(--rq-bg-card) !important;
+  background-image: none !important;
+  color: var(--rq-text-primary) !important;
+  border-color: var(--rq-border-default) !important;
+}
+
+html[data-theme="player"] .rqk-app-shell .btn-primary,
+html[data-theme="player"] .rqk-app-shell .dashboard-primary-button,
+html[data-theme="gm"] .rqk-app-shell .btn-primary,
+html[data-theme="gm"] .rqk-app-shell .dashboard-primary-button {
+  background: var(--rq-accent-primary) !important;
+  background-image: none !important;
+  color: var(--rq-text-primary) !important;
+  border-color: var(--rq-accent-primary) !important;
+}
+
+html[data-theme="player"] .rqk-app-shell button:hover,
+html[data-theme="player"] .rqk-app-shell [role="tab"]:hover,
+html[data-theme="player"] .rqk-app-shell .btn-outline:hover,
+html[data-theme="gm"] .rqk-app-shell button:hover,
+html[data-theme="gm"] .rqk-app-shell [role="tab"]:hover,
+html[data-theme="gm"] .rqk-app-shell .btn-outline:hover {
+  background: var(--rq-bg-panel) !important;
+  background-image: none !important;
+  color: var(--rq-text-primary) !important;
+}
+
+html[data-theme="player"] .rqk-app-shell .is-active,
+html[data-theme="player"] .rqk-app-shell .player-dashboard-tab-active,
+html[data-theme="gm"] .rqk-app-shell .is-active,
+html[data-theme="gm"] .rqk-app-shell .player-dashboard-tab-active {
+  background: var(--rq-bg-panel) !important;
+  background-image: none !important;
+  border-left-color: var(--rq-accent-primary) !important;
+  color: var(--rq-text-primary) !important;
+}
+
+html[data-theme="player"] .rqk-app-shell input,
+html[data-theme="player"] .rqk-app-shell select,
+html[data-theme="player"] .rqk-app-shell textarea,
+html[data-theme="gm"] .rqk-app-shell input,
+html[data-theme="gm"] .rqk-app-shell select,
+html[data-theme="gm"] .rqk-app-shell textarea {
+  background: var(--rq-bg-input) !important;
+  background-image: none !important;
+  color: var(--rq-text-primary) !important;
+  border-color: var(--rq-border-default) !important;
+  color-scheme: dark;
 }
 
 /* Loading state */
 .loading-spinner {
-  border-top-color: #d00000 !important;
+  border-top-color: var(--rq-accent-primary) !important;
 }
 
 /* Board surfaces */
