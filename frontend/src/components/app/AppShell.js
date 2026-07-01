@@ -4,6 +4,7 @@ import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, User
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
+import '@/styles/railFeedbackButtons.css';
 
 const mainNavItems = [
   { label: 'Home', to: '/home', icon: Home, matches: ['/home'] },
