@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BookOpen, Search, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, BookOpen, Search, Sparkles, Wand2 } from "lucide-react";
 
+import { deriveCharacterSnapshot } from "@/data/deriveCharacterSnapshot";
 import {
   SPELLCASTING_CLASSES,
   getMulticlassSpellSlots,
@@ -24,6 +25,7 @@ const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const formatBonus = (value) =>
   Number(value) >= 0 ? `+${Number(value)}` : `${Number(value)}`;
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const hasItems = (value = {}) => Object.keys(value || {}).length > 0;
 
 function normaliseSpell(spell, fallbackLevel = null) {
   if (!spell)
@@ -318,12 +320,17 @@ function SpellGroup({
 
 export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const [spellSearch, setSpellSearch] = useState("");
-  const classLevels = useMemo(() => getClassLevels(character), [character]);
+  const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
+  const classLevels = useMemo(() => {
+    const snapshotLevels = snapshot.identity?.classLevels || {};
+    return hasItems(snapshotLevels) ? snapshotLevels : getClassLevels(character);
+  }, [character, snapshot.identity?.classLevels]);
   const slotMath = useMemo(
-    () => getMulticlassSpellSlots(classLevels, character),
-    [classLevels, character],
+    () => snapshot.spellcasting?.multiclass || getMulticlassSpellSlots(classLevels, character),
+    [classLevels, character, snapshot.spellcasting?.multiclass],
   );
   const proficiencyBonus =
+    snapshot.proficiencyBonus ||
     Number(character?.proficiency_bonus) ||
     2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
   const spellcastingRows = useMemo(
@@ -353,22 +360,28 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   );
 
   const primaryCaster = spellcastingRows[0];
-  const slots =
-    character?.spell_slots && Object.keys(character.spell_slots).length
-      ? character.spell_slots
-      : slotMath?.slots || {};
-  const remaining =
-    character?.spell_slots_remaining &&
-    Object.keys(character.spell_slots_remaining).length
-      ? character.spell_slots_remaining
-      : slots;
+  const savedSlots = normaliseSlotKeys(character?.spell_slots || {});
+  const derivedSlots = normaliseSlotKeys(slotMath?.slots || {});
   const pactSlots = slotMath?.pactMagic
     ? { [String(slotMath.pactMagic.level)]: slotMath.pactMagic.slots }
     : {};
-  const effectiveSlots = Object.keys(slots || {}).length ? slots : pactSlots;
-  const effectiveRemaining = Object.keys(remaining || {}).length
-    ? remaining
-    : effectiveSlots;
+  const effectiveSlots = hasItems(savedSlots)
+    ? savedSlots
+    : hasItems(derivedSlots)
+      ? derivedSlots
+      : pactSlots;
+  const savedRemaining = normaliseSlotKeys(character?.spell_slots_remaining || {});
+  const effectiveRemaining = hasItems(savedRemaining) ? savedRemaining : effectiveSlots;
+  const hasPactMagic = Boolean(slotMath?.pactMagic);
+  const spellWarnings = useMemo(() => {
+    const warnings = [...(snapshot.warnings || [])];
+    if (spellcastingRows.length && !hasItems(effectiveSlots)) warnings.push("Spellcaster has no derived or saved spell slot data.");
+    if (hasPactMagic && hasItems(savedSlots)) warnings.push("Warlock/Pact Magic has saved slot data. Check it still matches the derived pact slot level after levelling.");
+    if (spellcastingRows.length && !character?.cantrips_known?.length && !character?.cantrips?.length && !character?.spells_known?.length && !character?.known_spells?.length && !character?.spellbook?.length && !character?.spells_prepared?.length && !character?.prepared_spells?.length) {
+      warnings.push("Caster has spellcasting math but no saved spell list yet.");
+    }
+    return warnings;
+  }, [snapshot.warnings, spellcastingRows.length, effectiveSlots, hasPactMagic, savedSlots, character]);
 
   const cantrips = uniqueSpells(
     character?.cantrips_known || character?.cantrips,
@@ -521,6 +534,25 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
             placeholder="Search spells…"
           />
         </label>
+      </section>
+
+      <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-snapshot-board">
+        <div className="clean-sheet-spell-section-heading">
+          <h2>Spell Readiness</h2>
+          <span>{snapshot.identity.edition} rules</span>
+        </div>
+        <div className="clean-sheet-spell-summary clean-sheet-spell-readiness-grid">
+          <div><span>Primary</span><strong>{snapshot.spellcasting?.primary || primaryClass || "—"}</strong></div>
+          <div><span>Caster Blocks</span><strong>{snapshot.spellcasting?.blocks?.length || spellcastingRows.length}</strong></div>
+          <div><span>Slot Source</span><strong>{hasItems(savedSlots) ? "Saved" : hasItems(derivedSlots) ? "Derived" : hasPactMagic ? "Pact" : "None"}</strong></div>
+          <div><span>Pact Magic</span><strong>{hasPactMagic ? `L${slotMath.pactMagic.level} × ${slotMath.pactMagic.slots}` : "—"}</strong></div>
+        </div>
+        {!!spellWarnings.length && (
+          <div className="clean-sheet-spell-warning">
+            <AlertTriangle size={15} />
+            <span>{spellWarnings[0]}</span>
+          </div>
+        )}
       </section>
 
       {spellcastingRows.length > 0 && (
