@@ -19,20 +19,22 @@ export default function DashboardListRow({
         </span>
       </button>
 
-      {secondaryLabel && (
+      {secondaryLabel && onSecondary && (
         <button type="button" onClick={onSecondary} className="dashboard-small-button">
           <span>{secondaryLabel}</span>
         </button>
       )}
 
-      <button
-        type="button"
-        onClick={onDelete}
-        className="dashboard-danger-small"
-        aria-label={deleteLabel}
-      >
-        <span>Delete</span>
-      </button>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="dashboard-danger-small"
+          aria-label={deleteLabel}
+        >
+          <span>Delete</span>
+        </button>
+      )}
     </div>
   );
 }
