@@ -40,6 +40,7 @@ import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
 import { Toaster } from '@/components/ui/sonner';
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
+import AppShell from '@/components/app/AppShell';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
@@ -67,6 +68,7 @@ const AdminPage = React.lazy(() => import('@/components/AdminPage'));
 const LandingPage = React.lazy(() => import('@/components/LandingPage'));
 const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
 const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
+const UploadsDashboard = React.lazy(() => import('@/components/UploadsDashboard'));
 const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
 const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV3'));
 const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
@@ -90,7 +92,7 @@ function ThemeRouter() {
       setTheme(THEMES.LANDING);
     } else if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/mobile') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.PLAYER);
@@ -131,6 +133,14 @@ function AppRoutes() {
     window.location.href = '/';
   };
 
+  const protectedAppPage = (page) => (
+    isAuthenticated ? <AppShell>{page}</AppShell> : <Navigate to="/auth" replace />
+  );
+
+  const protectedPlainPage = (page) => (
+    isAuthenticated ? page : <Navigate to="/auth" replace />
+  );
+
   return (
     <>
       <ThemeRouter />
@@ -140,32 +150,33 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <UnifiedDashboard username={username} onLogout={handleLogout} /> : <Navigate to="/auth" replace />} />
-        <Route path="/player" element={isAuthenticated ? <PlayerDashboard /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-screen/:campaignId/display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/homebrew" element={isAuthenticated ? <HomebrewWorkshop /> : <Navigate to="/auth" replace />} />
+        <Route path="/home" element={protectedAppPage(<UnifiedDashboard username={username} onLogout={handleLogout} />)} />
+        <Route path="/player" element={protectedAppPage(<PlayerDashboard />)} />
+        <Route path="/campaign/:campaignId" element={protectedAppPage(<CampaignDashboard />)} />
+        <Route path="/campaign/:campaignId/live" element={protectedPlainPage(<LiveSessionGridPage />)} />
+        <Route path="/gm-screen/:campaignId" element={protectedPlainPage(<LiveSessionGridPage />)} />
+        <Route path="/campaign/:campaignId/player-display" element={protectedPlainPage(<PlayerDisplayPage />)} />
+        <Route path="/gm-screen/:campaignId/display" element={protectedPlainPage(<PlayerDisplayPage />)} />
+        <Route path="/homebrew" element={protectedAppPage(<HomebrewWorkshop />)} />
+        <Route path="/uploads" element={protectedAppPage(<UploadsDashboard />)} />
         <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
         <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
         <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
         <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
-        <Route path="/mobile" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
-        <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
-        <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/account" element={isAuthenticated ? <AccountSettings /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/modes" element={isAuthenticated ? <CharacterCreationModePicker /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/full" element={isAuthenticated ? <FullCharacterCreatorV3 /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/matchmaker" element={isAuthenticated ? <RookCharacterMatchmaker /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/basic" element={isAuthenticated ? <BasicCharacterCreator /> : <Navigate to="/auth" replace />} />
+        <Route path="/mobile" element={protectedAppPage(<MobilePlayerCampaignView />)} />
+        <Route path="/mobile/:campaignId" element={protectedAppPage(<MobilePlayerCampaignView />)} />
+        <Route path="/combat" element={protectedAppPage(<CombatPage />)} />
+        <Route path="/admin" element={protectedAppPage(<AdminPage />)} />
+        <Route path="/account" element={protectedAppPage(<AccountSettings />)} />
+        <Route path="/characters/new" element={protectedAppPage(<CharacterCreationModePicker />)} />
+        <Route path="/characters/new/modes" element={protectedAppPage(<CharacterCreationModePicker />)} />
+        <Route path="/characters/new/full" element={protectedAppPage(<FullCharacterCreatorV3 />)} />
+        <Route path="/characters/new/matchmaker" element={protectedAppPage(<RookCharacterMatchmaker />)} />
+        <Route path="/characters/new/basic" element={protectedAppPage(<BasicCharacterCreator />)} />
         <Route path="/characters/new/premade" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/kids" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <FullCharacterCreatorV3 editMode /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={protectedAppPage(<FullCharacterCreatorV3 editMode />)} />
+        <Route path="/characters/:characterId" element={protectedAppPage(<CleanCharacterSheet />)} />
       </Routes>
       <GlobalGuidedTour isAuthenticated={isAuthenticated} />
       <GlobalUpdatesPanel isAuthenticated={isAuthenticated} />
