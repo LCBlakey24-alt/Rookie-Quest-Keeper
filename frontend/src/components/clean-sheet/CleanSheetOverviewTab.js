@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Eye, Footprints, Gauge, Shield, Sparkles, Swords } from 'lucide-react';
+import { AlertTriangle, Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
