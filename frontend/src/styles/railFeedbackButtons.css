@@ -1,0 +1,16 @@
+.rqk-app-rail-feedback {
+  margin-top: auto;
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+}
+
+.rqk-app-rail-feedback span {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .rqk-app-rail-feedback span {
+    display: inline;
+  }
+}
