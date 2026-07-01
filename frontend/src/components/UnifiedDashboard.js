@@ -7,7 +7,6 @@ import '@/styles/unifiedDashboardBoard.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import UnifiedDashboardStatusBar from '@/components/dashboard/home/UnifiedDashboardStatusBar';
 import DashboardContinuePanel from '@/components/dashboard/home/DashboardContinuePanel';
-import DashboardActionCard from '@/components/dashboard/home/DashboardActionCard';
 import DashboardSummaryPanel from '@/components/dashboard/home/DashboardSummaryPanel';
 import DashboardListRow from '@/components/dashboard/home/DashboardListRow';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
@@ -260,11 +259,8 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     <main className="unified-dashboard-page">
       <UnifiedDashboardHeader
         username={username}
-        isAdmin={isAdmin}
         refreshing={refreshing}
-        onAdmin={() => navigate('/admin')}
         onRefresh={refreshEverything}
-        onAccount={() => navigate('/account')}
         onLogout={onLogout}
       />
 
@@ -297,39 +293,12 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         />
       </section>
 
-      <section className="unified-dashboard-action-grid">
-        <DashboardActionCard
-          title="Player Area"
-          text="Open your characters and player tools."
-          meta={`${safeCharacters.length} character${safeCharacters.length === 1 ? '' : 's'}`}
-          onClick={() => navigate('/player')}
-        />
-        <DashboardActionCard
-          title="Create Character"
-          text="Choose Full Creator, Basic Creator, or Rook Character Matchmaker, then review before saving."
-          meta="Full · Basic · Matchmaker"
-          onClick={() => navigate('/characters/new')}
-        />
-        <DashboardActionCard
-          title="GM Area"
-          text="Open your latest campaign space."
-          meta={`${safeCampaigns.length} campaign${safeCampaigns.length === 1 ? '' : 's'}`}
-          onClick={() => primaryCampaign ? openCampaign(primaryCampaign) : openCreateCampaign()}
-        />
-        <DashboardActionCard
-          title="Create Campaign"
-          text="Set up campaign type, starting point, rules edition, and session zero."
-          meta="GM setup"
-          onClick={openCreateCampaign}
-        />
-      </section>
-
       <section className="dashboard-two-column">
         <DashboardSummaryPanel
           title="Recent Characters"
-          emptyText="Create a character with Full Creator, start quick with Basic Creator, or ask Rook to match you with a hero."
-          actionLabel="Open Player Area"
-          onAction={() => navigate('/player')}
+          emptyText="No characters yet. Use My Characters on the left rail to start building one."
+          actionLabel="My Characters"
+          onAction={() => navigate('/characters')}
         >
           {latestCharacters.map((character, index) => (
             <DashboardListRow
@@ -344,10 +313,10 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         </DashboardSummaryPanel>
 
         <DashboardSummaryPanel
-          title="GM Campaigns"
-          emptyText="No campaigns yet. Create one to start preparing sessions."
-          actionLabel="Create Campaign"
-          onAction={openCreateCampaign}
+          title="Recent Campaigns"
+          emptyText="No campaigns yet. Use My Campaigns on the left rail to view campaigns once created."
+          actionLabel="My Campaigns"
+          onAction={() => navigate('/campaigns')}
         >
           {latestCampaigns.map((campaign, index) => (
             <DashboardListRow
