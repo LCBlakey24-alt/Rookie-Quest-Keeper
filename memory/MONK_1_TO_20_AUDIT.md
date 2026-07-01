@@ -81,6 +81,38 @@ For Monk:
 
 This matters because a Monk has to spend Ki/Discipline Points repeatedly across the adventuring day.
 
+### Resource level-up behaviour
+
+Added a guard against stale stored resource maximums.
+
+Example issue:
+
+1. Monk reaches level 2 and gets Ki max 2.
+2. Player spends Ki.
+3. Monk levels to 3.
+4. Saved resource data can still say `max: 2` even though class rules now say max should be 3.
+
+The action tab now uses the class-rule maximum if it is higher than the saved maximum. When the class-rule maximum grows, the visible resource current value is bumped to the new max so the player does not see an old `1/2` or `2/2` resource on a level 3+ Monk.
+
+### Duplicate action cleanup
+
+Resource-backed features are now filtered out of the passive/simple feature cards when an interactive resource card exists.
+
+This prevents duplicate non-clickable cards for things like:
+
+- Flurry of Blows
+- Patient Defense
+- Step of the Wind
+- Rage
+- Bardic Inspiration
+- Second Wind
+- Action Surge
+- Indomitable
+- Wild Shape
+- Channel Divinity
+- Lay on Hands
+- Arcane Recovery
+
 ## Still not fully proven
 
 These still need manual or automated testing before Monk can be marked complete:
