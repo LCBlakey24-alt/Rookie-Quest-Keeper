@@ -46,8 +46,6 @@ import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
-import GlobalGuidedTour from '@/components/onboarding/GlobalGuidedTour';
-import GlobalUpdatesPanel from '@/components/updates/GlobalUpdatesPanel';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
@@ -179,11 +177,9 @@ function AppRoutes() {
         <Route path="/characters/new/premade" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/new/kids" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId/edit" element={protectedAppPage(<FullCharacterCreatorV3 editMode />)} />
-        <Route path="/characters/:characterId" element={protectedAppPage(<CleanCharacterSheet />)} />
+        <Route path="/characters/:characterId" element={protectedPlainPage(<CleanCharacterSheet />)} />
       </Routes>
-      <GlobalGuidedTour isAuthenticated={isAuthenticated} />
-      <GlobalUpdatesPanel isAuthenticated={isAuthenticated} />
-      <GlobalFeedbackButton />
+      <GlobalFeedbackButton isAuthenticated={isAuthenticated} />
       <Toaster position="top-right" richColors theme="dark" />
     </>
   );
