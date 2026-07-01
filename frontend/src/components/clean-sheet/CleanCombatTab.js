@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { getClassResourceRules } from '@/data/classResourceRules';
+import { getCharacterActionFeatures } from '@/data/characterFeatureSelectors';
 import { ActionSection, AttackCard, SimpleActionCard } from './CleanCombatTabCards';
 import {
   fmt,
@@ -92,6 +93,7 @@ function normaliseFeature(feature) {
 
 function gatherActionFeatures(character = {}) {
   const featureSources = [
+    getCharacterActionFeatures(character),
     character?.features,
     character?.class_features,
     character?.racial_traits,
