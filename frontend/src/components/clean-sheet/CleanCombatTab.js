@@ -12,7 +12,6 @@ import {
   getItemQuantity,
   getPotionHealing,
   hasSaveProficiency,
-  isFighter,
   mod,
   rollDice,
 } from './cleanCombatTabUtils';
@@ -20,6 +19,22 @@ import {
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 const labelText = (label, character) => (typeof label === 'function' ? label(character) : label);
+const RESOURCE_BACKED_FEATURES = new Set([
+  'flurryofblows',
+  'patientdefense',
+  'stepofthewind',
+  'rage',
+  'bardicinspiration',
+  'secondwind',
+  'actionsurge',
+  'indomitable',
+  'battlemastermaneuver',
+  'wildshape',
+  'channeldivinity',
+  'layonhands',
+  'arcanerecovery',
+  'metamagic',
+]);
 
 function actionTypeFromText(text = '', fallback = 'action') {
   const normalised = String(text || '').toLowerCase();
@@ -106,6 +121,7 @@ function gatherActionFeatures(character = {}) {
     .flatMap((features) => toArray(features).map(normaliseFeature))
     .filter(Boolean)
     .filter((feature) => ['action', 'bonus', 'reaction'].includes(feature.actionType))
+    .filter((feature) => !RESOURCE_BACKED_FEATURES.has(normalizeName(feature.name)))
     .filter((feature) => {
       const key = `${feature.actionType}-${normalizeName(feature.name)}`;
       if (!key || seen.has(key)) return false;
@@ -125,8 +141,14 @@ function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
 
 function resourceValue(character, rule) {
   const existing = character?.resources?.[rule.key] || {};
-  const max = Number(existing.max ?? existing.total ?? rule.maxValue ?? 0) || 0;
-  const current = Number(existing.current ?? existing.remaining ?? max) || 0;
+  const rulesMax = Number(rule.maxValue || 0) || 0;
+  const storedMax = Number(existing.max ?? existing.total ?? 0) || 0;
+  const max = Math.max(rulesMax, storedMax);
+  const hasLeveledPastStoredMax = rulesMax > storedMax;
+  const current = hasLeveledPastStoredMax
+    ? rulesMax
+    : Number(existing.current ?? existing.remaining ?? max) || 0;
+
   return {
     ...rule,
     label: labelText(rule.label, character),
@@ -157,7 +179,6 @@ function resourceActionCards(character, resources, handlers) {
   };
 
   const className = normalizeName(character?.character_class || character?.class_name || character?.class);
-  const level = Number(character?.level || 1);
 
   if (byKey.ki || className === 'monk') {
     add('bonus', 'ki', 'Flurry of Blows', 'Spend 1 Ki/Discipline Point to make extra unarmed strikes after taking the Attack action.', () => handlers.spendResource('ki', 'Flurry of Blows'));
@@ -200,7 +221,7 @@ function resourceActionCards(character, resources, handlers) {
   }
 
   if (byKey.channel_divinity) {
-    add(level >= 3 && className === 'paladin' ? 'action' : 'action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
+    add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   }
 
   if (byKey.lay_on_hands || className === 'paladin') {
@@ -227,6 +248,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const bestAttackMod = proficiencyBonus + bestAbilityMod;
   const unarmedDamageMod = Math.max(0, strengthMod);
   const className = character?.character_class || 'Adventurer';
+  const classKey = normalizeName(className);
 
   const equippedWeaponAttacks = useMemo(
     () => gatherEquippedWeapons(character, strengthMod, dexterityMod, bestAbilityMod, proficiencyBonus),
@@ -238,7 +260,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   const classResources = useMemo(() => getClassResourceRules(character).map((rule) => {
     const resource = resourceValue(character, rule);
     const draft = resourceDrafts[rule.key];
-    return draft === undefined ? resource : { ...resource, current: draft };
+    return draft === undefined ? resource : { ...resource, current: Math.min(resource.max, draft) };
   }), [character, resourceDrafts]);
 
   const attackOptions = useMemo(() => ([
@@ -459,7 +481,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           {resourceCards(resourceActions.bonus)}
           {featureCards(groupedFeatures.bonus)}
           <SimpleActionCard title="Off-hand Attack" type="Bonus" description="Use when dual-wielding after taking the Attack action." onClick={() => onRoll('Off-hand Attack', bestAttackMod)} />
-          {className === 'Rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}
+          {classKey === 'rogue' && <SimpleActionCard title="Cunning Action" type="Bonus" description="Dash, Disengage, or Hide as a bonus action." />}
         </ActionSection>
 
         <ActionSection title="Reactions">
