@@ -34,6 +34,7 @@ export default function CampaignJoinCodeCard({
 }) {
   const safeCode = code || '';
   const disabled = loading || rotating;
+  const copyDisabled = !safeCode || disabled;
   const createdLabel = formatCreatedAt(createdAt);
 
   return (
@@ -59,17 +60,17 @@ export default function CampaignJoinCodeCard({
 
       <div style={buttonRowStyle}>
         {onFetch && (
-          <button type="button" onClick={onFetch} disabled={disabled} style={secondaryButtonStyle}>
+          <button type="button" onClick={onFetch} disabled={disabled} style={railButtonStyle({ disabled })}>
             <RefreshCw size={14} /> {loading ? 'Loading…' : fetchLabel}
           </button>
         )}
         {onRotate && (
-          <button type="button" onClick={onRotate} disabled={disabled} style={secondaryButtonStyle}>
+          <button type="button" onClick={onRotate} disabled={disabled} style={railButtonStyle({ disabled })}>
             <RefreshCw size={14} /> {rotating ? 'Rotating…' : rotateLabel}
           </button>
         )}
         {onCopy && (
-          <button type="button" onClick={onCopy} disabled={!safeCode || disabled} style={primaryButtonStyle}>
+          <button type="button" onClick={onCopy} disabled={copyDisabled} style={railButtonStyle({ accent: true, disabled: copyDisabled })}>
             <Copy size={14} /> {copying ? 'Copied' : copyLabel}
           </button>
         )}
@@ -109,5 +110,21 @@ const codeRowStyle = (compact) => ({ display: 'grid', gap: 4, background: compac
 const codeStyle = { color: theme.text, fontSize: 30, fontWeight: 950, letterSpacing: '0.14em', lineHeight: 1.1 };
 const metaStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', color: theme.muted, fontSize: 11, lineHeight: 1.3 };
 const buttonRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
-const primaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.lineStrong}`, borderLeft: `4px solid ${theme.primary}`, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.line}`, borderRadius: 0, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+
+const railButtonStyle = ({ accent = false, disabled = false } = {}) => ({
+  minHeight: 34,
+  border: `1px solid ${accent ? theme.lineStrong : theme.line}`,
+  borderLeft: accent ? `4px solid ${theme.primary}` : `1px solid ${theme.line}`,
+  borderRadius: 0,
+  background: theme.card,
+  color: disabled ? theme.muted : theme.text,
+  padding: accent ? '0 10px 0 8px' : '0 10px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  fontWeight: accent ? 950 : 900,
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  fontFamily: fontStack,
+  opacity: disabled ? 0.62 : 1,
+});
