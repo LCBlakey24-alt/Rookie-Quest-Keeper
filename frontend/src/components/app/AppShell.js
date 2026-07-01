@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
+import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
@@ -35,6 +35,10 @@ function RailLink({ item, pathname }) {
       <span>{item.label}</span>
     </Link>
   );
+}
+
+function openFeedback() {
+  window.dispatchEvent(new Event('rook-feedback-open'));
 }
 
 export default function AppShell({ children }) {
@@ -77,6 +81,11 @@ export default function AppShell({ children }) {
             <RailLink key={item.label} item={item} pathname={location.pathname} />
           ))}
         </nav>
+
+        <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback" onClick={openFeedback}>
+          <MessageSquare size={20} aria-hidden="true" />
+          <span>Feedback</span>
+        </button>
       </aside>
 
       <div className="rqk-app-shell-content">
