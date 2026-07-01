@@ -1,0 +1,126 @@
+/* Extra spacing polish for the overview tab after the character rail was slimmed. */
+
+.character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-section {
+  padding: 14px 16px !important;
+}
+
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save,
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill,
+.character-page-v2 .clean-sheet-skills-summary div {
+  box-sizing: border-box !important;
+}
+
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card {
+  padding: 10px 12px !important;
+}
+
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save {
+  padding: 9px 11px !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 2px !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill {
+  min-height: 56px !important;
+  padding: 10px 12px 10px 14px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
+  padding-left: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-skill-name {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-skill-name > .clean-sheet-skill-label {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+  color: var(--rq-text, #ffffff) !important;
+  font-size: 12px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+.character-page-v2 .clean-sheet-skill-label-word {
+  display: block !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.character-page-v2 .clean-sheet-skill-tags {
+  justify-content: flex-end !important;
+}
+
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-roll-chip {
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 7px !important;
+  font-size: 13px !important;
+}
+
+.character-page-v2 .clean-sheet-skill-filter-row {
+  gap: 2px !important;
+}
+
+.character-page-v2 .clean-sheet-skill-filter-row button {
+  padding: 0 6px !important;
+}
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-section {
+    padding: 12px !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill {
+    min-height: 54px !important;
+    padding: 8px 8px 8px 10px !important;
+    gap: 7px !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
+    padding-left: 7px !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills .clean-sheet-skill-name > .clean-sheet-skill-label {
+    font-size: 11px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-tags em {
+    display: none !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-tags small {
+    font-size: 7px !important;
+    padding: 3px 4px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .character-page-v2 .clean-sheet-readable-skills {
+    grid-template-columns: 1fr !important;
+  }
+}
