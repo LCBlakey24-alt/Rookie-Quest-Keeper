@@ -11,7 +11,10 @@ const palette = {
   gm: { bg: 'rgba(36,36,36,0.97)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)', line: 'rgba(255,255,255,0.16)' },
 };
 
-const WHEEL_EASE = 'cubic-bezier(0.06, 0.78, 0.12, 1)';
+const FLICKER_DURATION = 3500;
+const REVEAL_GAP = 500;
+const FLICKER_INTERVAL = 70;
+const HOLD_AFTER_TOTAL = 5200;
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -22,23 +25,31 @@ const formatModifier = (modifier) => {
 const clampSides = (value) => Math.max(2, Math.min(100, Math.floor(Number(value) || 20)));
 
 function normalizeDice(rolls, fallbackTotal) {
-  const dice = Array.isArray(rolls) ? rolls.filter(roll => roll && Number.isFinite(Number(roll.result))).map((roll, index) => {
-    const sides = clampSides(roll.sides);
-    return { id: `${roll.exploded ? 'x' : 'd'}-${index}`, sides, result: Math.max(1, Math.min(sides, Number(roll.result) || 1)), exploded: Boolean(roll.exploded) };
-  }) : [];
-  if (dice.length) return dice;
+  const dice = Array.isArray(rolls)
+    ? rolls
+      .filter(roll => roll && Number.isFinite(Number(roll.result)))
+      .map((roll, index) => {
+        const sides = clampSides(roll.sides);
+        return {
+          id: `${roll.exploded ? 'x' : 'd'}-${index}`,
+          sides,
+          result: Math.max(1, Math.min(sides, Number(roll.result) || 1)),
+          exploded: Boolean(roll.exploded),
+          originalIndex: index,
+        };
+      })
+    : [];
+
+  if (dice.length) {
+    return [...dice].sort((a, b) => a.sides - b.sides || a.originalIndex - b.originalIndex);
+  }
+
   const result = Math.max(1, Number(fallbackTotal) || 1);
-  return [{ id: 'fallback', sides: Math.max(20, result), result, exploded: false }];
+  return [{ id: 'fallback', sides: Math.max(20, result), result, exploded: false, originalIndex: 0 }];
 }
 
-function wheelTargetStep(die, index) {
-  const rounds = 6 + index;
-  return rounds * die.sides + (die.result - 1);
-}
-
-function wheelNumbers(die, index) {
-  const finalStep = wheelTargetStep(die, index);
-  return Array.from({ length: finalStep + 1 }, (_, itemIndex) => (itemIndex % die.sides) + 1);
+function randomFace(sides) {
+  return Math.floor(Math.random() * sides) + 1;
 }
 
 function getCharacterIdFromPath() {
@@ -64,13 +75,11 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
-  const isHpLevelRoll = String(label || '').startsWith('HP d');
   const finalDisplayValue = Number(animationValue ?? total) || 0;
   const dice = useMemo(() => normalizeDice(rolls, finalDisplayValue), [rolls, finalDisplayValue]);
-  const [wheelStarted, setWheelStarted] = useState(false);
-  const [revealed, setRevealed] = useState(() => dice.map(() => true));
-  const [showTotal, setShowTotal] = useState(true);
-  const [settled, setSettled] = useState(true);
+  const [displayValues, setDisplayValues] = useState(() => dice.map((die) => randomFace(die.sides)));
+  const [revealed, setRevealed] = useState(() => dice.map(() => false));
+  const [showTotal, setShowTotal] = useState(false);
   const [fading, setFading] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 640 : false));
 
@@ -90,6 +99,7 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
     return `${base}${formatModifier(modifier)}${explosionText}`;
   }, [modifier, dice]);
 
+  const diceSubtotal = useMemo(() => dice.reduce((sum, die) => sum + Number(die.result || 0), 0), [dice]);
   const natural20 = useMemo(() => dice.some(die => die.sides === 20 && die.result === 20), [dice]);
   const natural1 = useMemo(() => dice.some(die => die.sides === 20 && die.result === 1), [dice]);
   const finalCrit = Boolean(isCrit || natural20);
@@ -109,49 +119,69 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
       const campaignId = character.campaign_id || character.campaignId || character.campaign?.id || character.current_campaign_id || '';
       if (!campaignId) return;
       const characterName = character.name || character.character_name || 'Player Character';
-      recordRemoteRoll(campaignId, { actor: characterName, actor_type: 'player', character_id: character.id || characterId, character_name: characterName, label: label || 'Player Roll', notation: label || '', total, modifier, rolls, visibleRolls: rolls, isCrit: finalCrit, isFumble: finalFumble, explosionCount: rolls.filter(roll => roll.exploded).length });
+      recordRemoteRoll(campaignId, {
+        actor: characterName,
+        actor_type: 'player',
+        character_id: character.id || characterId,
+        character_name: characterName,
+        label: label || 'Player Roll',
+        notation: label || '',
+        total,
+        modifier,
+        rolls,
+        visibleRolls: rolls,
+        isCrit: finalCrit,
+        isFumble: finalFumble,
+        explosionCount: rolls.filter(roll => roll.exploded).length,
+      });
     });
     return () => { cancelled = true; };
   }, [visible, theme, label, total, modifier, rolls, finalCrit, finalFumble]);
 
   useEffect(() => {
     if (!visible) return undefined;
-    const timers = [];
-    const baseSpin = isHpLevelRoll ? 4300 : 3300;
-    const revealGap = dice.length > 1 ? 540 : 0;
-    const finalReveal = baseSpin + revealGap * Math.max(0, dice.length - 1);
-    const holdDuration = isHpLevelRoll ? 5600 : 6200;
 
-    setWheelStarted(false);
-    setSettled(false);
+    const timers = [];
+    const finalRevealTime = FLICKER_DURATION + REVEAL_GAP * Math.max(0, dice.length - 1);
+    const totalRevealTime = finalRevealTime + REVEAL_GAP;
+
+    setDisplayValues(dice.map((die) => randomFace(die.sides)));
+    setRevealed(dice.map(() => false));
     setShowTotal(false);
     setFading(false);
-    setRevealed(dice.map(() => false));
 
-    timers.push(window.setTimeout(() => setWheelStarted(true), 120));
+    const flickerId = window.setInterval(() => {
+      setDisplayValues((current) => current.map((value, index) => (
+        revealed[index] ? value : randomFace(dice[index]?.sides || 20)
+      )));
+    }, FLICKER_INTERVAL);
 
     dice.forEach((die, dieIndex) => {
       timers.push(window.setTimeout(() => {
-        setRevealed(prev => prev.map((item, index) => index === dieIndex ? true : item));
-      }, baseSpin + revealGap * dieIndex));
+        setRevealed((prev) => prev.map((item, index) => index === dieIndex ? true : item));
+        setDisplayValues((prev) => prev.map((value, index) => index === dieIndex ? die.result : value));
+      }, FLICKER_DURATION + REVEAL_GAP * dieIndex));
     });
 
-    timers.push(window.setTimeout(() => { setShowTotal(true); setSettled(true); }, finalReveal + 360));
-    timers.push(window.setTimeout(() => setFading(true), finalReveal + holdDuration - 650));
-    timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, finalReveal + holdDuration));
-    return () => { timers.forEach(id => window.clearTimeout(id)); };
-  }, [visible, label, dice, isHpLevelRoll]);
+    timers.push(window.setTimeout(() => setShowTotal(true), totalRevealTime));
+    timers.push(window.setTimeout(() => setFading(true), totalRevealTime + HOLD_AFTER_TOTAL - 650));
+    timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, totalRevealTime + HOLD_AFTER_TOTAL));
+
+    return () => {
+      window.clearInterval(flickerId);
+      timers.forEach(id => window.clearTimeout(id));
+    };
+  }, [visible, dice]);
 
   if (!visible) return null;
 
+  const settled = showTotal;
   const statusColor = settled && finalFumble ? colors.accent : colors.text;
-  const status = settled ? (finalCrit ? 'Natural 20' : finalFumble ? 'Natural 1' : label || 'Result') : (isHpLevelRoll ? 'Rolling hit points…' : 'Rolling…');
-  const shellPosition = { left: '50%', bottom: isHpLevelRoll ? (isMobileViewport ? '126px' : '84px') : (isMobileViewport ? '104px' : '34px'), transform: 'translateX(-50%)' };
-  const diceSubtotal = dice.reduce((sum, die) => sum + Number(die.result || 0), 0);
-  const diceCount = dice.length;
-  const wheelHeight = isHpLevelRoll ? (isMobileViewport ? 74 : 66) : (isMobileViewport ? 58 : 52);
-  const wheelWidth = isHpLevelRoll ? (isMobileViewport ? 70 : 62) : (isMobileViewport ? 56 : 50);
-  const fontSize = isHpLevelRoll ? (isMobileViewport ? 42 : 38) : (isMobileViewport ? 34 : 30);
+  const status = settled ? (finalCrit ? 'Natural 20' : finalFumble ? 'Natural 1' : label || 'Result') : 'Rolling…';
+  const shellPosition = { left: '50%', bottom: isMobileViewport ? '104px' : '34px', transform: 'translateX(-50%)' };
+  const wheelHeight = isMobileViewport ? 58 : 52;
+  const wheelWidth = isMobileViewport ? 56 : 50;
+  const fontSize = isMobileViewport ? 34 : 30;
   const resultFontSize = showTotal ? (isMobileViewport ? 38 : 34) : 14;
   const outcomeLabel = finalCrit ? 'Critical success' : finalFumble ? 'Critical fail' : 'Roll complete';
 
@@ -163,24 +193,18 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
   return createPortal(
     <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'auto', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 650ms ease' }}>
       <div style={{ width: 'max-content', maxWidth: 'calc(100vw - 24px)', padding: isMobileViewport ? '10px 12px 9px' : '9px 11px', borderRadius: 0, background: colors.bg, color: colors.text, display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: isMobileViewport ? 12 : 10, textAlign: 'left', borderLeft: `5px solid ${settled && (finalCrit || finalFumble) ? colors.accent : colors.line}`, boxShadow: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: diceCount > 1 ? 6 : 8, flexWrap: diceCount > 3 ? 'wrap' : 'nowrap', maxWidth: isMobileViewport ? 210 : 260 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: dice.length > 1 ? 6 : 8, flexWrap: dice.length > 3 ? 'wrap' : 'nowrap', maxWidth: isMobileViewport ? 210 : 260 }}>
           {dice.map((die, index) => {
             const isRevealed = Boolean(revealed[index]);
             const isNat1 = die.sides === 20 && die.result === 1;
             const isNat20 = die.sides === 20 && die.result === 20;
             const dieColor = isRevealed && (isNat1 || isNat20) ? colors.accent : colors.text;
-            const targetStep = wheelTargetStep(die, index);
-            const duration = isHpLevelRoll ? 4300 + index * 540 : 3300 + index * 540;
             return (
               <div key={die.id} style={{ display: 'grid', gap: 3, justifyItems: 'center' }}>
-                <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', background: colors.card, display: 'block', position: 'relative' }}>
+                <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', background: colors.card, display: 'grid', placeItems: 'center', position: 'relative' }}>
                   <div style={{ position: 'absolute', left: 8, right: 8, bottom: 0, height: 3, background: isRevealed ? colors.accent : 'transparent', opacity: isRevealed ? 0.9 : 0 }} />
-                  <div style={{ transform: `translateY(-${wheelStarted ? targetStep * wheelHeight : 0}px)`, transition: wheelStarted ? `transform ${duration}ms ${WHEEL_EASE}` : 'none' }}>
-                    {wheelNumbers(die, index).map((number, itemIndex) => (
-                      <div key={`${die.id}-${itemIndex}`} style={{ height: wheelHeight, display: 'grid', placeItems: 'center', color: itemIndex === targetStep && isRevealed ? dieColor : colors.text, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums' }}>
-                        {number}
-                      </div>
-                    ))}
+                  <div style={{ color: dieColor, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: isRevealed ? 'color 180ms ease, transform 180ms ease' : 'none', transform: isRevealed ? 'scale(1.08)' : 'scale(1)' }}>
+                    {displayValues[index] ?? die.result}
                   </div>
                 </div>
                 <div style={{ color: colors.muted, fontSize: isMobileViewport ? 10 : 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{die.exploded ? 'ex' : `d${die.sides}`}</div>
@@ -195,8 +219,8 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
             <strong style={{ color: colors.text, fontSize: resultFontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 220ms ease' }}>{showTotal ? finalDisplayValue : 'rolling'}</strong>
           </div>
           {showTotal && <div style={{ color: finalCrit || finalFumble ? colors.text : colors.muted, fontSize: isMobileViewport ? 10 : 9, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{outcomeLabel}</div>}
-          <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobileViewport ? 240 : 280 }}>{showTotal ? (rollDetail || label) : `${dice.length} wheel${dice.length === 1 ? '' : 's'} slowing`}</div>
-          {showTotal && Number(modifier) !== 0 && <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
+          <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobileViewport ? 240 : 280 }}>{showTotal ? (rollDetail || label) : `${dice.length} dice flickering`}</div>
+          {showTotal && <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
         </div>
 
         <button type="button" onClick={closeNow} aria-label="Dismiss roll result" style={{ width: 30, height: 30, minWidth: 30, border: 0, borderRadius: 0, background: colors.card, color: colors.text, display: 'grid', placeItems: 'center', cursor: 'pointer', padding: 0 }}>
