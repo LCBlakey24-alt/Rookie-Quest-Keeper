@@ -1,9 +1,11 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
+import { BookOpen, Home, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
+import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 
-const navItems = [
+const mainNavItems = [
   { label: 'Home', to: '/home', icon: Home, matches: ['/home'] },
   { label: 'Characters', to: '/player', icon: UsersRound, matches: ['/player', '/characters'] },
   { label: 'Campaigns', to: '/home', icon: BookOpen, matches: ['/campaign'] },
@@ -12,12 +14,53 @@ const navItems = [
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'] },
 ];
 
+const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'] };
+
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
 }
 
+function RailLink({ item, pathname }) {
+  const Icon = item.icon;
+  const active = isActive(pathname, item);
+
+  return (
+    <Link
+      to={item.to}
+      className={active ? 'rqk-app-rail-link is-active' : 'rqk-app-rail-link'}
+      aria-label={item.label}
+      title={item.label}
+    >
+      <Icon size={20} aria-hidden="true" />
+      <span>{item.label}</span>
+    </Link>
+  );
+}
+
 export default function AppShell({ children }) {
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    apiClient.get('/admin/check')
+      .then((response) => {
+        if (active) setIsAdmin(Boolean(response.data?.is_admin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const navItems = useMemo(
+    () => isAdmin ? [...mainNavItems, adminNavItem] : mainNavItems,
+    [isAdmin],
+  );
 
   return (
     <div className="rqk-app-shell">
@@ -30,23 +73,9 @@ export default function AppShell({ children }) {
         </Link>
 
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(location.pathname, item);
-
-            return (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={active ? 'rqk-app-rail-link is-active' : 'rqk-app-rail-link'}
-                aria-label={item.label}
-                title={item.label}
-              >
-                <Icon size={20} aria-hidden="true" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {navItems.map((item) => (
+            <RailLink key={item.label} item={item} pathname={location.pathname} />
+          ))}
         </nav>
       </aside>
 
