@@ -1,0 +1,149 @@
+/* Shared pages for My Characters and My Campaigns. */
+
+.library-page {
+  min-height: 100vh;
+  background: var(--rq-bg-main, #202020);
+  color: var(--rq-text-primary, #ffffff);
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.library-page-hero,
+.library-page-toolbar,
+.library-page-card,
+.library-page-empty {
+  background: var(--rq-bg-panel, #171717);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  border-left: 5px solid var(--rq-accent-primary, #d00000);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.library-page-hero {
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.library-page-eyebrow {
+  margin: 0 0 4px;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.library-page-hero h1,
+.library-page-card h2,
+.library-page-empty h2 {
+  margin: 0;
+  color: var(--rq-text-primary, #ffffff);
+}
+
+.library-page-hero h1 {
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1;
+}
+
+.library-page-hero p,
+.library-page-card p,
+.library-page-empty p {
+  margin: 8px 0 0;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
+  line-height: 1.5;
+}
+
+.library-page-toolbar {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.library-page-count {
+  margin: 0;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
+  font-weight: 800;
+}
+
+.library-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.library-page-card,
+.library-page-empty {
+  padding: 16px;
+}
+
+.library-page-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.library-page-card-meta {
+  margin: 0;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.library-page-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.library-page button,
+.library-page .library-page-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--rq-bg-card, #141414) !important;
+  background-image: none !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 13px;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.library-page button:hover,
+.library-page .library-page-button:hover {
+  background: var(--rq-bg-panel, #171717) !important;
+}
+
+.library-page-loading {
+  min-height: 100vh;
+}
+
+@media (max-width: 700px) {
+  .library-page {
+    padding: 12px;
+  }
+
+  .library-page-toolbar,
+  .library-page-actions,
+  .library-page button,
+  .library-page .library-page-button {
+    width: 100%;
+  }
+}
