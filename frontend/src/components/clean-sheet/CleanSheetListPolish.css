@@ -1,0 +1,285 @@
+/* Shared list/card polish for the clean character sheet.
+   Keeps every tab feeling like one app: dark rows, square edges, gentle spacing,
+   and red only as a small left-side accent. */
+
+.character-page-v2 .clean-sheet-grid,
+.character-page-v2 .clean-sheet-feature-lanes,
+.character-page-v2 .clean-sheet-spell-grid,
+.character-page-v2 .clean-sheet-item-grid,
+.character-page-v2 .clean-sheet-equipped-slot-grid,
+.character-page-v2 .clean-sheet-caster-grid,
+.character-page-v2 .clean-sheet-slot-grid,
+.character-page-v2 .clean-sheet-readable-skills,
+.character-page-v2 .clean-sheet-readable-saves,
+.character-page-v2 .clean-sheet-compact-abilities,
+.character-page-v2 .clean-sheet-passive-grid,
+.character-page-v2 .clean-sheet-core-stat-grid {
+  gap: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-panel {
+  padding: 14px !important;
+}
+
+.character-page-v2 .clean-sheet-panel-heading,
+.character-page-v2 .clean-sheet-section-heading-row,
+.character-page-v2 .clean-sheet-inventory-header,
+.character-page-v2 .clean-sheet-spellcasting-heading,
+.character-page-v2 .clean-sheet-spell-section-heading {
+  margin-bottom: 10px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+}
+
+.character-page-v2 .clean-sheet-panel-heading h2,
+.character-page-v2 .clean-sheet-section-heading-row h2,
+.character-page-v2 .clean-sheet-inventory-header h2,
+.character-page-v2 .clean-sheet-spellcasting-heading h2,
+.character-page-v2 .clean-sheet-spell-section-heading h2,
+.character-page-v2 .clean-sheet-panel > h2,
+.character-page-v2 .clean-sheet-feature-lane h3,
+.character-page-v2 .clean-sheet-spell-level-group h3 {
+  color: var(--rq-text-primary, #ffffff) !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.character-page-v2 .clean-sheet-panel-heading p,
+.character-page-v2 .clean-sheet-section-heading-row span,
+.character-page-v2 .clean-sheet-inventory-header p,
+.character-page-v2 .clean-sheet-spellcasting-heading p,
+.character-page-v2 .clean-sheet-feature-empty,
+.character-page-v2 .clean-sheet-empty-note,
+.character-page-v2 .clean-sheet-muted {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.68)) !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-caster-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-pact-card > div,
+.character-page-v2 .clean-sheet-proficiency-lists > div,
+.character-page-v2 .clean-sheet-readiness-grid > div,
+.character-page-v2 .clean-sheet-skills-summary > div,
+.character-page-v2 .clean-sheet-currency-grid > div,
+.character-page-v2 .clean-sheet-equipment-preview > div,
+.character-page-v2 .clean-sheet-damage-result {
+  background: var(--rq-bg-card, #151515) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-caster-card,
+.character-page-v2 .clean-sheet-slot-card {
+  padding: 12px !important;
+  min-width: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card:hover,
+.character-page-v2 .clean-sheet-spell-card:hover,
+.character-page-v2 .clean-sheet-item-card:hover,
+.character-page-v2 .clean-sheet-skill-card:hover,
+.character-page-v2 .clean-sheet-save-card:hover,
+.character-page-v2 .clean-sheet-core-stat-card:hover {
+  background: var(--rq-bg-card-hover, #1d1d1d) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card strong,
+.character-page-v2 .clean-sheet-spell-card strong,
+.character-page-v2 .clean-sheet-item-card strong,
+.character-page-v2 .clean-sheet-caster-card strong,
+.character-page-v2 .clean-sheet-slot-card strong,
+.character-page-v2 .clean-sheet-skill-card strong,
+.character-page-v2 .clean-sheet-save-card strong,
+.character-page-v2 .clean-sheet-core-stat-card strong {
+  color: var(--rq-text-primary, #ffffff) !important;
+  font-weight: 950 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card p,
+.character-page-v2 .clean-sheet-spell-card p,
+.character-page-v2 .clean-sheet-item-card p,
+.character-page-v2 .clean-sheet-caster-card p,
+.character-page-v2 .clean-sheet-slot-card p,
+.character-page-v2 .clean-sheet-pact-card p {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.7)) !important;
+  line-height: 1.45 !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card em,
+.character-page-v2 .clean-sheet-spell-card em,
+.character-page-v2 .clean-sheet-item-card em,
+.character-page-v2 .clean-sheet-caster-card em,
+.character-page-v2 .clean-sheet-slot-card em,
+.character-page-v2 .clean-sheet-save-card em,
+.character-page-v2 .clean-sheet-skill-tags em,
+.character-page-v2 .clean-sheet-skill-tags small {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.68)) !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+.character-page-v2 .clean-sheet-feature-card[data-active='true'],
+.character-page-v2 .clean-sheet-spell-card.prepared,
+.character-page-v2 .clean-sheet-spell-card.cantrip,
+.character-page-v2 .clean-sheet-item-card.favorite,
+.character-page-v2 .clean-sheet-item-card.consumable,
+.character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient,
+.character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save:has(em),
+.character-page-v2 .clean-sheet-core-stat-card--rollable,
+.character-page-v2 .clean-sheet-slot-card:has(.filled),
+.character-page-v2 .clean-sheet-caster-card,
+.character-page-v2 .clean-sheet-empty-slot {
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  padding-left: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-empty-slot {
+  border-left-color: rgba(255, 255, 255, 0.14) !important;
+  opacity: 0.9 !important;
+}
+
+.character-page-v2 .clean-sheet-item-slot,
+.character-page-v2 .clean-sheet-spell-level,
+.character-page-v2 .clean-sheet-spell-state,
+.character-page-v2 .clean-sheet-panel-heading > span,
+.character-page-v2 .clean-sheet-section-heading-row > span,
+.character-page-v2 .clean-sheet-spell-section-heading > span,
+.character-page-v2 .clean-sheet-spellcasting-heading > span {
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-item-actions,
+.character-page-v2 .clean-sheet-spell-actions,
+.character-page-v2 .clean-sheet-slot-actions {
+  gap: 6px !important;
+  padding-top: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-item-actions button,
+.character-page-v2 .clean-sheet-spell-actions button,
+.character-page-v2 .clean-sheet-slot-actions button,
+.character-page-v2 .clean-sheet-roll-chip,
+.character-page-v2 .clean-sheet-skill-filter-row button,
+.character-page-v2 .clean-sheet-panel button,
+.character-page-v2 .clean-sheet-panel input,
+.character-page-v2 .clean-sheet-panel select,
+.character-page-v2 .clean-sheet-panel textarea {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-item-actions button,
+.character-page-v2 .clean-sheet-spell-actions button,
+.character-page-v2 .clean-sheet-slot-actions button,
+.character-page-v2 .clean-sheet-panel button,
+.character-page-v2 .clean-sheet-roll-chip {
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+}
+
+.character-page-v2 .clean-sheet-item-actions button:hover:not(:disabled),
+.character-page-v2 .clean-sheet-spell-actions button:hover:not(:disabled),
+.character-page-v2 .clean-sheet-slot-actions button:hover:not(:disabled),
+.character-page-v2 .clean-sheet-panel button:hover:not(:disabled),
+.character-page-v2 .clean-sheet-roll-chip:hover:not(:disabled) {
+  background: var(--rq-bg-button-hover, #2a2a2a) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.character-page-v2 .clean-sheet-panel input,
+.character-page-v2 .clean-sheet-panel select,
+.character-page-v2 .clean-sheet-panel textarea {
+  background: var(--rq-bg-input, #181818) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+}
+
+.character-page-v2 .clean-sheet-spell-search,
+.character-page-v2 .clean-sheet-equipment-tools label,
+.character-page-v2 .clean-sheet-snapshot-warning,
+.character-page-v2 .clean-sheet-spell-warning {
+  background: var(--rq-bg-card, #151515) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-slot-pips i {
+  border-radius: 0 !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.character-page-v2 .clean-sheet-slot-pips i.filled {
+  background: var(--rq-accent-primary, #c30000) !important;
+}
+
+.character-page-v2 .clean-sheet-damage-result {
+  padding: 12px !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+}
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-panel {
+    padding: 12px !important;
+  }
+
+  .character-page-v2 .clean-sheet-feature-card,
+  .character-page-v2 .clean-sheet-spell-card,
+  .character-page-v2 .clean-sheet-item-card,
+  .character-page-v2 .clean-sheet-caster-card,
+  .character-page-v2 .clean-sheet-slot-card {
+    padding: 10px !important;
+  }
+
+  .character-page-v2 .clean-sheet-panel-heading,
+  .character-page-v2 .clean-sheet-section-heading-row,
+  .character-page-v2 .clean-sheet-inventory-header,
+  .character-page-v2 .clean-sheet-spellcasting-heading,
+  .character-page-v2 .clean-sheet-spell-section-heading {
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .character-page-v2 .clean-sheet-grid,
+  .character-page-v2 .clean-sheet-feature-lanes,
+  .character-page-v2 .clean-sheet-spell-grid,
+  .character-page-v2 .clean-sheet-item-grid,
+  .character-page-v2 .clean-sheet-equipped-slot-grid,
+  .character-page-v2 .clean-sheet-caster-grid,
+  .character-page-v2 .clean-sheet-slot-grid {
+    gap: 7px !important;
+  }
+
+  .character-page-v2 .clean-sheet-panel-heading,
+  .character-page-v2 .clean-sheet-section-heading-row,
+  .character-page-v2 .clean-sheet-inventory-header,
+  .character-page-v2 .clean-sheet-spellcasting-heading,
+  .character-page-v2 .clean-sheet-spell-section-heading {
+    align-items: stretch !important;
+  }
+}
