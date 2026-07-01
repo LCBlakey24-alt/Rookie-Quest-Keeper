@@ -13,7 +13,7 @@ const palette = {
 
 const FLICKER_DURATION = 3500;
 const REVEAL_GAP = 500;
-const FLICKER_INTERVAL = 70;
+const FLICKER_INTERVAL = 55;
 const HOLD_AFTER_TOTAL = 5200;
 
 const formatModifier = (modifier) => {
@@ -143,25 +143,27 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
     if (!visible) return undefined;
 
     const timers = [];
+    const initialRevealState = dice.map(() => false);
     const finalRevealTime = FLICKER_DURATION + REVEAL_GAP * Math.max(0, dice.length - 1);
     const totalRevealTime = finalRevealTime + REVEAL_GAP;
 
-    revealedRef.current = dice.map(() => false);
+    revealedRef.current = initialRevealState;
     setDisplayValues(dice.map((die) => randomFace(die.sides)));
-    setRevealed(dice.map(() => false));
+    setRevealed(initialRevealState);
     setShowTotal(false);
     setFading(false);
 
     const flickerId = window.setInterval(() => {
+      const currentRevealed = revealedRef.current;
       setDisplayValues((current) => current.map((value, index) => (
-        revealedRef.current[index] ? dice[index]?.result ?? value : randomFace(dice[index]?.sides || 20)
+        currentRevealed[index] ? value : randomFace(dice[index]?.sides || 20)
       )));
     }, FLICKER_INTERVAL);
 
     dice.forEach((die, dieIndex) => {
       timers.push(window.setTimeout(() => {
         revealedRef.current = revealedRef.current.map((item, index) => index === dieIndex ? true : item);
-        setRevealed((prev) => prev.map((item, index) => index === dieIndex ? true : item));
+        setRevealed(revealedRef.current);
         setDisplayValues((prev) => prev.map((value, index) => index === dieIndex ? die.result : value));
       }, FLICKER_DURATION + REVEAL_GAP * dieIndex));
     });
