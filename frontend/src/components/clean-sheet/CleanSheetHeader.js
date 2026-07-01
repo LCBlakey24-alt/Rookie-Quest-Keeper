@@ -1,6 +1,38 @@
 import React from 'react';
 import { Edit3, TrendingUp, User } from 'lucide-react';
 
+const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
+
+function titleCaseSlug(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^lv\s*\d+/i.test(raw)) return raw.replace(/^lv/i, 'Lv');
+
+  const wrapped = raw.match(/^\((.*)\)$/);
+  const text = wrapped ? wrapped[1] : raw;
+  const formatted = text
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index > 0 && SMALL_WORDS.has(lower)) return lower;
+      return `${lower.slice(0, 1).toUpperCase()}${lower.slice(1)}`;
+    })
+    .join(' ');
+
+  return wrapped ? `(${formatted})` : formatted;
+}
+
+function formatSubtitle(subtitle) {
+  return String(subtitle || '')
+    .split('•')
+    .map((part) => titleCaseSlug(part))
+    .filter(Boolean)
+    .join(' • ');
+}
+
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
   return (
     <header className="clean-sheet-header clean-sheet-header--simple">
@@ -11,7 +43,7 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
         <div>
           <p className="clean-sheet-kicker">Character</p>
           <h1>{character.name}</h1>
-          <p>{subtitle}</p>
+          <p>{formatSubtitle(subtitle)}</p>
         </div>
       </div>
       <div className="clean-sheet-header-actions">
