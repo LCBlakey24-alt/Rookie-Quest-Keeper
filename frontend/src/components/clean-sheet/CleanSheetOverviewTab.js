@@ -3,6 +3,7 @@ import { Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
 
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
+import './CleanSheetOverviewSpacing.css';
 
 const SAVE_NAMES = {
   STR: 'Strength',
@@ -32,6 +33,18 @@ const ABILITY_FULL_NAMES = {
   wisdom: 'Wisdom',
   charisma: 'Charisma',
 };
+
+function SkillLabel({ skill }) {
+  return (
+    <span className="clean-sheet-skill-label">
+      {skill.split(/\s+/).map((word) => (
+        <span key={`${skill}-${word}`} className="clean-sheet-skill-label-word">
+          {word}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export default function CleanSheetOverviewTab({
   character,
@@ -173,7 +186,7 @@ export default function CleanSheetOverviewTab({
           {visibleSkills.map(({ skill, ability, proficient, skillMod }) => (
             <div key={skill} className={`clean-sheet-skill-card clean-sheet-compact-skill ${proficient ? 'is-proficient' : ''}`}>
               <div className="clean-sheet-skill-name">
-                <span>{skill}</span>
+                <SkillLabel skill={skill} />
                 <div className="clean-sheet-skill-tags">
                   <em title={ABILITY_FULL_NAMES[ability]}>{ability.slice(0, 3).toUpperCase()}</em>
                   {proficient && <small>Prof</small>}
