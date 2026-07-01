@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, RefreshCw } from 'lucide-react';
+import { ChevronRight, KeyRound, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
+import JoinCodeDialog from '@/components/dashboard/home/JoinCodeDialog';
 import {
   buildWorldSettingNotes,
   initialCampaignForm,
@@ -24,6 +25,10 @@ function campaignMeta(campaign) {
   return `${playerCount} player${playerCount === 1 ? '' : 's'} · ${system}`;
 }
 
+function campaignDetail(campaign) {
+  return campaign?.description || campaign?.world_name || campaign?.world_setting || '';
+}
+
 export default function MyCampaignsPage() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
@@ -32,6 +37,9 @@ export default function MyCampaignsPage() {
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
+  const [pendingInvite, setPendingInvite] = useState(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
@@ -122,6 +130,71 @@ export default function MyCampaignsPage() {
     }
   };
 
+  const requestJoinCode = async (campaign) => {
+    const id = recordId(campaign);
+    if (!id) return;
+
+    try {
+      setInviteLoading(true);
+      const response = await apiClient.get(`/campaign-invites/${id}`);
+      setPendingInvite({
+        ...response.data,
+        campaign_name: response.data?.campaign_name || campaignTitle(campaign),
+      });
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to get join code');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const rotateJoinCode = async () => {
+    if (!pendingInvite?.campaign_id) return;
+
+    try {
+      setInviteLoading(true);
+      const response = await apiClient.post(`/campaign-invites/${pendingInvite.campaign_id}`);
+      setPendingInvite(response.data);
+      toast.success('New join code generated');
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to rotate join code');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const copyJoinCode = async () => {
+    const code = pendingInvite?.join_code;
+    if (!code) return;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success('Join code copied');
+    } catch {
+      toast.info(`Join code: ${code}`);
+    }
+  };
+
+  const deleteCampaign = async (campaign) => {
+    const id = recordId(campaign);
+    const name = campaignTitle(campaign);
+    if (!id) return;
+
+    const confirmed = window.confirm(`Delete campaign "${name}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+      await apiClient.delete(`/campaigns/${id}`);
+      toast.success('Campaign deleted');
+      await loadCampaigns();
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to delete campaign');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   if (loading) {
     return (
       <main className="library-page library-page-loading">
@@ -170,6 +243,8 @@ export default function MyCampaignsPage() {
         <section className="library-page-grid" aria-label="Saved campaigns">
           {sortedCampaigns.map((campaign, index) => {
             const id = recordId(campaign);
+            const detail = campaignDetail(campaign);
+            const deleting = deletingId === id;
 
             return (
               <article key={id || `campaign-${index}`} className="library-page-card">
@@ -177,10 +252,17 @@ export default function MyCampaignsPage() {
                   <p className="library-page-card-meta">Campaign</p>
                   <h2>{campaignTitle(campaign)}</h2>
                   <p>{campaignMeta(campaign)}</p>
+                  {detail && <p className="library-page-card-note">{detail}</p>}
                 </div>
                 <div className="library-page-actions">
                   <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id}>
-                    Open Campaign <ChevronRight size={16} />
+                    Open <ChevronRight size={16} />
+                  </button>
+                  <button type="button" onClick={() => requestJoinCode(campaign)} disabled={!id || inviteLoading}>
+                    <KeyRound size={15} /> Code
+                  </button>
+                  <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button">
+                    <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </article>
@@ -197,6 +279,16 @@ export default function MyCampaignsPage() {
           onToggleSessionZero={toggleSessionZero}
           onSubmit={handleCreateCampaign}
           onClose={closeCreateCampaign}
+        />
+      )}
+
+      {pendingInvite && (
+        <JoinCodeDialog
+          invite={pendingInvite}
+          loading={inviteLoading}
+          onClose={() => !inviteLoading && setPendingInvite(null)}
+          onCopy={copyJoinCode}
+          onRotate={rotateJoinCode}
         />
       )}
     </main>
