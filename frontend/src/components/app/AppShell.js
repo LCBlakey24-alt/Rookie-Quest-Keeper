@@ -7,8 +7,8 @@ import '@/styles/appShellRail.css';
 
 const mainNavItems = [
   { label: 'Home', to: '/home', icon: Home, matches: ['/home'] },
-  { label: 'Characters', to: '/player', icon: UsersRound, matches: ['/player', '/characters'] },
-  { label: 'Campaigns', to: '/home', icon: BookOpen, matches: ['/campaign'] },
+  { label: 'My Characters', to: '/characters', icon: UsersRound, matches: ['/characters'] },
+  { label: 'My Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
   { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'] },
   { label: 'Upload', to: '/uploads', icon: UploadCloud, matches: ['/uploads'] },
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'] },
