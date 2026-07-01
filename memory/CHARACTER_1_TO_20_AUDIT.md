@@ -8,6 +8,10 @@ Scope: frontend progression data, class resource rules, action-economy cards, an
 - ⚠️ Partially supported or requires manual playthrough/UX confirmation.
 - ❌ Known gap.
 
+## Manual browser checklist
+
+Use `memory/CHARACTER_MANUAL_TEST_CHECKLIST.md` for the live click-through checks. Automated helper tests prove the data can be derived; the manual checklist proves the actual app flow works for players on mobile, tablet, and desktop.
+
 ## Cross-class audit matrix
 
 | Class | L1 creation | L2 unlocks | L3 subclass | ASI/feat levels | Extra Attack | Spell progression | Resources/recovery | L20 capstone | Subclass features | Action buckets |
