@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MessageSquare } from 'lucide-react';
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 import './CleanSheetTabsAppShell.css';
@@ -11,6 +11,10 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack })
       return;
     }
     window.location.assign('/home');
+  };
+
+  const openFeedback = () => {
+    window.dispatchEvent(new Event('rook-feedback-open'));
   };
 
   return (
@@ -41,6 +45,16 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack })
           </button>
         );
       })}
+      <button
+        type="button"
+        className="clean-sheet-rail-feedback"
+        onClick={openFeedback}
+        aria-label="Send feedback"
+        title="Feedback"
+      >
+        <MessageSquare size={17} />
+        <span>Feedback</span>
+      </button>
     </nav>
   );
 }
