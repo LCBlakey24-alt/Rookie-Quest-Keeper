@@ -1,32 +1,53 @@
-import { FileText, Image, Map, UploadCloud } from 'lucide-react';
+import { FileText, FileUp, Image, Map, UploadCloud } from 'lucide-react';
 
 const uploadOptions = [
   {
-    title: 'Campaign files',
-    text: 'Prepare a place for Tia Karta campaign notes, PDFs, summaries, and world documents.',
+    title: 'Campaign documents',
+    text: 'Notes, PDFs, summaries, session plans, lore documents, and world files.',
     icon: FileText,
   },
   {
     title: 'Maps and images',
-    text: 'Collect maps, NPC art, battle images, and session visuals before linking them into a campaign.',
+    text: 'Battle maps, location art, NPC portraits, item images, clues, and visual references.',
     icon: Map,
   },
   {
-    title: 'Handouts',
-    text: 'Stage player-facing clues, letters, images, and lore drops ready for GM handout tools.',
+    title: 'Homebrew data',
+    text: 'Classes, species, backgrounds, magic items, monsters, NPCs, and custom rules.',
     icon: Image,
   },
+];
+
+const acceptedFiles = [
+  'Images: PNG, JPG, WEBP',
+  'Documents: PDF, DOCX, TXT, MD',
+  'Character sheets: PDF or image uploads',
+  'Homebrew imports: class, species, item, spell, monster, NPC, or rule notes',
 ];
 
 export default function UploadsDashboard() {
   return (
     <main className="uploads-dashboard-page">
       <section className="uploads-dashboard-hero">
-        <p className="uploads-dashboard-eyebrow">Upload hub</p>
-        <h1>Bring campaign material into Rookie Quest Keeper.</h1>
-        <p>
-          This is the first app-shell landing page for future uploads. It gives the left rail a real Upload section while the actual file import flow is built next.
-        </p>
+        <div>
+          <p className="uploads-dashboard-eyebrow">Upload</p>
+          <h1>Your file library.</h1>
+          <p>
+            Upload campaign files, maps, images, character sheets, handouts, and homebrew notes before attaching them to campaigns, characters, or your homebrew builder.
+          </p>
+        </div>
+      </section>
+
+      <section className="uploads-dashboard-dropzone" aria-label="Upload files">
+        <UploadCloud size={34} aria-hidden="true" />
+        <div>
+          <h2>Drop files here</h2>
+          <p>Drag-and-drop upload will live here. For now this page is the cleaned upload hub and file flow plan.</p>
+        </div>
+        <button type="button" disabled>
+          <FileUp size={16} />
+          Upload coming soon
+        </button>
       </section>
 
       <section className="uploads-dashboard-grid" aria-label="Upload areas">
@@ -46,12 +67,14 @@ export default function UploadsDashboard() {
       </section>
 
       <section className="uploads-dashboard-next">
-        <UploadCloud size={22} aria-hidden="true" />
+        <FileText size={22} aria-hidden="true" />
         <div>
-          <h2>Next build step</h2>
-          <p>
-            Add drag-and-drop upload, campaign selection, file type tagging, and a review step before anything is saved into a campaign.
-          </p>
+          <h2>What uploads should support</h2>
+          <ul>
+            {acceptedFiles.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       </section>
     </main>
