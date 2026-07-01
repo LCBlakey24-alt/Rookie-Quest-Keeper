@@ -55,6 +55,8 @@ import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 const AuthPage = React.lazy(() => import('@/components/AuthPage'));
 const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
 const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
+const MyCharactersPage = React.lazy(() => import('@/components/MyCharactersPage'));
+const MyCampaignsPage = React.lazy(() => import('@/components/MyCampaignsPage'));
 const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = React.lazy(() => import('@/components/gm/PlayerDisplayPage'));
@@ -92,7 +94,7 @@ function ThemeRouter() {
       setTheme(THEMES.LANDING);
     } else if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign/') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
+    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
     } else {
       setTheme(THEMES.PLAYER);
@@ -151,7 +153,9 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage onLogin={handleAuthLogin} />} />
         <Route path="/home" element={protectedAppPage(<UnifiedDashboard username={username} onLogout={handleLogout} />)} />
-        <Route path="/player" element={protectedAppPage(<PlayerDashboard />)} />
+        <Route path="/player" element={isAuthenticated ? <Navigate to="/characters" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters" element={protectedAppPage(<MyCharactersPage />)} />
+        <Route path="/campaigns" element={protectedAppPage(<MyCampaignsPage />)} />
         <Route path="/campaign/:campaignId" element={protectedAppPage(<CampaignDashboard />)} />
         <Route path="/campaign/:campaignId/live" element={protectedPlainPage(<LiveSessionGridPage />)} />
         <Route path="/gm-screen/:campaignId" element={protectedPlainPage(<LiveSessionGridPage />)} />
