@@ -3,6 +3,7 @@ import { ArrowLeft, MessageSquare } from 'lucide-react';
 import './CleanSheetTabs.minimal.css';
 import './CleanSheetTabsRail.css';
 import './CleanSheetTabsAppShell.css';
+import './CleanSheetMobileRail.css';
 import './CleanLevelUpWizardPolish.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
