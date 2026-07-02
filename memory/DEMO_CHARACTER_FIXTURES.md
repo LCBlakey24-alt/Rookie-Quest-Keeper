@@ -25,11 +25,13 @@ It currently covers:
 
 ## Test coverage
 
-The test file lives at:
+The test files live at:
 
 - `frontend/src/data/demoCharacterFixtures.test.js`
+- `frontend/src/data/characterAuditReport.test.js`
+- `frontend/src/data/deriveCharacterSnapshot.test.js`
 
-It checks that:
+They check that:
 
 - Every fixture derives a playable character snapshot.
 - Every caster fixture is recognised as a caster.
@@ -38,6 +40,29 @@ It checks that:
 - Non-casters stay non-casters.
 - Every fixture has inventory/equipment data for sheet rendering.
 - The Monk fixture includes Ki and expected bonus action cards.
+- Every core class can be audited from level 1 to 20.
+- Broken characters produce readable, specific audit output.
+
+## How to run the character audit
+
+From the frontend folder:
+
+```bash
+cd frontend
+yarn test:character-audit
+```
+
+The script runs only the character audit/snapshot fixture tests. It is also used by the GitHub Actions workflow at:
+
+- `.github/workflows/character-audit.yml`
+
+## Admin UI
+
+Admins can also view the audit visually in the app:
+
+- Admin Panel → Character Audit
+
+The Admin Character Audit tab shows pass/fail totals, filters for Problems/All/Demo/1-20, searchable results, and a plain text report that can be copied into issues or chat.
 
 ## Suggested next step
 
