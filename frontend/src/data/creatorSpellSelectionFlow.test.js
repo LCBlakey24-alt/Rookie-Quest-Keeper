@@ -43,6 +43,7 @@ describe('creator spell selection flow', () => {
     expect(spellMatchesDropdownSearch(spellPool[0], 'magic')).toBe(true);
     expect(spellMatchesDropdownSearch(spellPool[1], 'abjuration')).toBe(true);
     expect(spellMatchesDropdownSearch(spellPool[2], 'healing')).toBe(true);
+    expect(spellMatchesDropdownSearch(spellPool[0], 'damage')).toBe(true);
     expect(spellMatchesDropdownSearch(spellPool[0], '3d4')).toBe(true);
     expect(spellMatchesDropdownSearch(spellPool[0], 'nature')).toBe(false);
   });
