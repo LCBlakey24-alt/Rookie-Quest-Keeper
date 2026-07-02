@@ -1,0 +1,107 @@
+/* Mobile-first character sheet rail pass.
+   Phone rail should be symbols only. Red appears only on the selected box. */
+
+@media (max-width: 520px) {
+  .character-page-v2 {
+    --clean-sheet-rail-width: 50px !important;
+    --clean-sheet-rail-gap: 8px !important;
+    padding-left: calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 6px) !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    left: 8px !important;
+    top: 10px !important;
+    width: var(--clean-sheet-rail-width) !important;
+    height: calc(100dvh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    padding: 5px 3px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    background: var(--rq-bg-rail, #181818) !important;
+    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.12)) !important;
+    border-left: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button {
+    width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    background: var(--rq-bg-card, #242424) !important;
+    color: var(--rq-text-secondary, rgba(255,255,255,0.78)) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-left: 3px solid transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button span {
+    display: none !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: currentColor !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button:hover,
+  .character-page-v2 .clean-sheet-tabs button:focus-visible {
+    background: var(--rq-bg-button-hover, #2a2a2a) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border-left-color: transparent !important;
+    outline: none !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button.active {
+    background: var(--rq-bg-panel, #101010) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
+    margin-bottom: 6px !important;
+    background: var(--rq-bg-card, #242424) !important;
+    border-left-color: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:hover,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:focus-visible {
+    background: var(--rq-bg-button-hover, #2a2a2a) !important;
+    border-left-color: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    margin-top: auto !important;
+    background: var(--rq-bg-card, #242424) !important;
+    border-left-color: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
+    background: var(--rq-bg-button-hover, #2a2a2a) !important;
+    border-left-color: transparent !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .character-page-v2 {
+    --clean-sheet-rail-width: 48px !important;
+    --clean-sheet-rail-gap: 6px !important;
+    padding-left: calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 5px) !important;
+    padding-right: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    left: 6px !important;
+    padding-inline: 2px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+}
