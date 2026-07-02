@@ -1,0 +1,204 @@
+/* Focused mobile tidy pass for the character sheet.
+   Compact HP controls, stronger equal-box alignment, tighter skills, and no blue leaks. */
+
+.character-page-v2 {
+  --rq-blue-leak-block: var(--rq-text-primary, #ffffff);
+}
+
+.character-page-v2 [class*="blue"],
+.character-page-v2 [class*="sky"],
+.character-page-v2 [class*="cyan"] {
+  --tw-ring-color: rgba(255,255,255,0.18) !important;
+  --tw-border-opacity: 1 !important;
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+}
+
+.character-page-v2 button[class*="blue"],
+.character-page-v2 div[class*="blue"],
+.character-page-v2 span[class*="blue"],
+.character-page-v2 input[class*="blue"],
+.character-page-v2 select[class*="blue"],
+.character-page-v2 textarea[class*="blue"] {
+  background-color: var(--rq-bg-button, #202020) !important;
+  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.character-page-v2 a[class*="blue"],
+.character-page-v2 svg[class*="blue"],
+.character-page-v2 [class*="text-blue"],
+.character-page-v2 [class*="text-sky"],
+.character-page-v2 [class*="text-cyan"] {
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.character-page-v2 [class*="bg-blue"],
+.character-page-v2 [class*="bg-sky"],
+.character-page-v2 [class*="bg-cyan"] {
+  background: var(--rq-bg-button, #202020) !important;
+}
+
+.character-page-v2 [class*="border-blue"],
+.character-page-v2 [class*="border-sky"],
+.character-page-v2 [class*="border-cyan"] {
+  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+}
+
+.character-page-v2 .clean-sheet-compact-status--hp-only {
+  gap: 6px !important;
+  padding: 8px !important;
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-compact-stat--hp {
+  min-height: 42px !important;
+  padding: 7px 9px !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 7px !important;
+}
+
+.character-page-v2 .clean-sheet-compact-stat--hp > span,
+.character-page-v2 .clean-sheet-compact-stat--hp em {
+  white-space: nowrap !important;
+  font-size: 9px !important;
+}
+
+.character-page-v2 .clean-sheet-compact-stat--hp strong {
+  font-size: clamp(1.1rem, 4vw, 1.45rem) !important;
+  text-align: center !important;
+}
+
+.character-page-v2 .clean-sheet-compact-stat--hp em {
+  grid-column: auto !important;
+  justify-self: end !important;
+  padding: 3px 5px !important;
+}
+
+.character-page-v2 .clean-sheet-compact-hp-actions {
+  padding: 7px !important;
+  display: grid !important;
+  grid-template-columns: 44px repeat(4, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-hp-amount-select,
+.character-page-v2 .clean-sheet-compact-hp-actions button {
+  min-width: 0 !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 0 4px !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+  border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.character-page-v2 .clean-sheet-hp-amount-select {
+  appearance: auto !important;
+  font-size: 12px !important;
+}
+
+.character-page-v2 .rq-temp-hp-action-button--minus,
+.character-page-v2 .rq-temp-hp-action-button--plus {
+  border-left-color: rgba(255,255,255,0.18) !important;
+}
+
+.character-page-v2 .clean-sheet-content,
+.character-page-v2 .clean-sheet-grid,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-core-stat-grid,
+.character-page-v2 .clean-sheet-passive-grid,
+.character-page-v2 .clean-sheet-compact-abilities,
+.character-page-v2 .clean-sheet-readable-saves,
+.character-page-v2 .clean-sheet-readable-skills,
+.character-page-v2 .clean-sheet-compact-skills {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.character-page-v2 .clean-sheet-panel {
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.character-page-v2 .clean-sheet-skill-card {
+  overflow: hidden !important;
+  background: var(--rq-bg-card, #151515) !important;
+  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+}
+
+.character-page-v2 .clean-sheet-skill-name {
+  overflow: hidden !important;
+}
+
+.character-page-v2 .clean-sheet-skill-label,
+.character-page-v2 .clean-sheet-skill-label-word {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-compact-status--hp-only {
+    grid-template-columns: 1fr !important;
+  }
+
+  .character-page-v2 .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-skills-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills,
+  .character-page-v2 .clean-sheet-compact-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-card {
+    min-height: 38px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .character-page-v2 .clean-sheet-compact-hp-actions {
+    grid-template-columns: 40px repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .character-page-v2 .clean-sheet-hp-amount-select,
+  .character-page-v2 .clean-sheet-compact-hp-actions button {
+    min-height: 28px !important;
+    height: 28px !important;
+    font-size: 8px !important;
+    padding-inline: 2px !important;
+  }
+
+  .character-page-v2 .clean-sheet-hp-amount-select {
+    font-size: 11px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-skill-label-word {
+    font-size: 8.5px !important;
+  }
+}
