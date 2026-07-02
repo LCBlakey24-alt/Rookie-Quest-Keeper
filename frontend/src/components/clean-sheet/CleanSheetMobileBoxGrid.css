@@ -1,0 +1,237 @@
+/* Mobile-first central box/grid alignment for the character sheet.
+   Goal: equal-width boxes, full-height left accent lines, centred text,
+   no cramped edge text, and compact two-column skill rows. */
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-content {
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  .character-page-v2 .clean-sheet-grid,
+  .character-page-v2 .clean-sheet-action-grid,
+  .character-page-v2 .clean-sheet-spell-grid,
+  .character-page-v2 .clean-sheet-item-grid,
+  .character-page-v2 .clean-sheet-equipped-slot-grid,
+  .character-page-v2 .clean-sheet-feature-lanes,
+  .character-page-v2 .clean-sheet-caster-grid,
+  .character-page-v2 .clean-sheet-slot-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-skills-summary,
+  .character-page-v2 .clean-sheet-spell-summary,
+  .character-page-v2 .clean-sheet-inventory-summary,
+  .character-page-v2 .clean-sheet-currency-grid,
+  .character-page-v2 .clean-sheet-readiness-grid,
+  .character-page-v2 .clean-sheet-proficiency-lists {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-readable-skills,
+  .character-page-v2 .clean-sheet-compact-skills {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-panel,
+  .character-page-v2 .clean-sheet-feature-card,
+  .character-page-v2 .clean-sheet-spell-card,
+  .character-page-v2 .clean-sheet-item-card,
+  .character-page-v2 .clean-sheet-core-stat-card,
+  .character-page-v2 .clean-sheet-passive-card,
+  .character-page-v2 .clean-sheet-ability,
+  .character-page-v2 .clean-sheet-save-card,
+  .character-page-v2 .clean-sheet-skill-card,
+  .character-page-v2 .clean-sheet-caster-card,
+  .character-page-v2 .clean-sheet-slot-card,
+  .character-page-v2 .clean-sheet-action-card,
+  .character-page-v2 .clean-sheet-empty-slot,
+  .character-page-v2 .clean-sheet-skills-summary > div,
+  .character-page-v2 .clean-sheet-spell-summary > div,
+  .character-page-v2 .clean-sheet-inventory-summary > div,
+  .character-page-v2 .clean-sheet-currency-grid > div,
+  .character-page-v2 .clean-sheet-readiness-grid > div,
+  .character-page-v2 .clean-sheet-proficiency-lists > div,
+  .character-page-v2 .clean-sheet-equipment-preview > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    padding-left: max(10px, 0.75rem) !important;
+    padding-right: max(10px, 0.75rem) !important;
+  }
+
+  .character-page-v2 .clean-sheet-core-stat-card,
+  .character-page-v2 .clean-sheet-passive-card,
+  .character-page-v2 .clean-sheet-ability,
+  .character-page-v2 .clean-sheet-save-card,
+  .character-page-v2 .clean-sheet-skill-card,
+  .character-page-v2 .clean-sheet-skills-summary > div,
+  .character-page-v2 .clean-sheet-spell-summary > div,
+  .character-page-v2 .clean-sheet-inventory-summary > div,
+  .character-page-v2 .clean-sheet-currency-grid > div,
+  .character-page-v2 .clean-sheet-readiness-grid > div {
+    min-height: 46px !important;
+    display: grid !important;
+    align-items: center !important;
+    justify-items: center !important;
+    text-align: center !important;
+    gap: 4px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-card {
+    min-height: 42px !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    justify-items: stretch !important;
+    padding: 7px 8px 7px 10px !important;
+    gap: 6px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-name,
+  .character-page-v2 .clean-sheet-save-label,
+  .character-page-v2 .clean-sheet-attack-card-top,
+  .character-page-v2 .clean-sheet-spell-card-top,
+  .character-page-v2 .clean-sheet-item-card-top,
+  .character-page-v2 .clean-sheet-caster-card-title {
+    min-width: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-name {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-skill-label span,
+  .character-page-v2 .clean-sheet-save-label strong,
+  .character-page-v2 .clean-sheet-save-label span,
+  .character-page-v2 .clean-sheet-core-stat-card span,
+  .character-page-v2 .clean-sheet-core-stat-card strong,
+  .character-page-v2 .clean-sheet-passive-card span,
+  .character-page-v2 .clean-sheet-passive-card strong,
+  .character-page-v2 .clean-sheet-ability span,
+  .character-page-v2 .clean-sheet-ability strong,
+  .character-page-v2 .clean-sheet-feature-card strong,
+  .character-page-v2 .clean-sheet-spell-card strong,
+  .character-page-v2 .clean-sheet-item-card strong,
+  .character-page-v2 .clean-sheet-action-card strong,
+  .character-page-v2 .clean-sheet-skills-summary span,
+  .character-page-v2 .clean-sheet-skills-summary strong,
+  .character-page-v2 .clean-sheet-spell-summary span,
+  .character-page-v2 .clean-sheet-spell-summary strong,
+  .character-page-v2 .clean-sheet-inventory-summary span,
+  .character-page-v2 .clean-sheet-inventory-summary strong,
+  .character-page-v2 .clean-sheet-readiness-grid span,
+  .character-page-v2 .clean-sheet-readiness-grid strong {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-skill-label span {
+    font-size: 10px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.01em !important;
+    justify-self: start !important;
+    text-align: left !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-tags {
+    display: inline-flex !important;
+    gap: 3px !important;
+    justify-self: end !important;
+    min-width: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-tags em,
+  .character-page-v2 .clean-sheet-skill-tags small {
+    font-size: 8px !important;
+    line-height: 1 !important;
+    padding: 2px 3px !important;
+    white-space: nowrap !important;
+  }
+
+  .character-page-v2 .clean-sheet-roll-chip,
+  .character-page-v2 .clean-sheet-panel button,
+  .character-page-v2 .clean-sheet-item-actions button,
+  .character-page-v2 .clean-sheet-spell-actions button,
+  .character-page-v2 .clean-sheet-slot-actions button,
+  .character-page-v2 .clean-sheet-compact-hp-actions button {
+    min-width: 0 !important;
+    min-height: 34px !important;
+    display: grid !important;
+    place-items: center !important;
+    text-align: center !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-card .clean-sheet-roll-chip {
+    min-height: 28px !important;
+    width: 38px !important;
+    padding: 0 !important;
+    font-size: 10px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-filter-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-filter-row button {
+    min-height: 34px !important;
+    font-size: 10px !important;
+    border-left: 4px solid transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-filter-row button.active {
+    background: var(--rq-bg-panel, #101010) !important;
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .character-page-v2 .clean-sheet-readable-skills,
+  .character-page-v2 .clean-sheet-compact-skills {
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-card {
+    padding-left: 8px !important;
+    padding-right: 6px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-skill-label span {
+    font-size: 9px !important;
+  }
+
+  .character-page-v2 .clean-sheet-skill-tags em,
+  .character-page-v2 .clean-sheet-skill-tags small {
+    font-size: 7px !important;
+  }
+}
