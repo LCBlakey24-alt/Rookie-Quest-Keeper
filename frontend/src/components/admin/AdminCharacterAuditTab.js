@@ -5,6 +5,65 @@ import { runCharacterAuditSuite } from '@/data/characterAuditReport';
 import { auditCreatorSpellSelection, buildCreatorSpellSelectionReport } from '@/data/creatorSpellSelectionAudit';
 import './AdminCharacterAuditTab.css';
 
+const emptyCharacterReport = {
+  demoResults: [],
+  progressionResults: [],
+  report: {
+    total: 0,
+    passed: 0,
+    failed: 1,
+    failures: [],
+    text: 'Character audit could not start.',
+  },
+};
+
+const emptyCreatorSpellReport = {
+  total: 0,
+  passed: 0,
+  failed: 1,
+  failures: [],
+  text: 'Creator spell picker audit could not start.',
+};
+
+function buildAuditErrorResult(label, error) {
+  return {
+    label,
+    group: 'error',
+    character: { name: label, character_class: 'Audit', level: '?' },
+    snapshot: { identity: { primaryClass: 'Audit', level: '?' } },
+    problems: [`${label}: ${error?.message || String(error)}`],
+  };
+}
+
+function runSafeCharacterAudit() {
+  try {
+    return { suite: runCharacterAuditSuite(), errorResult: null };
+  } catch (error) {
+    return {
+      suite: emptyCharacterReport,
+      errorResult: buildAuditErrorResult('Character Audit Startup', error),
+    };
+  }
+}
+
+function runSafeCreatorSpellAudit() {
+  try {
+    const results = auditCreatorSpellSelection();
+    return { results, report: buildCreatorSpellSelectionReport(results), errorResult: null };
+  } catch (error) {
+    return {
+      results: [],
+      report: emptyCreatorSpellReport,
+      errorResult: {
+        className: 'Creator Spell Audit Startup',
+        requirements: { cantrips: 0, spells: 0, type: 'error' },
+        pools: { cantrips: [], levelOneSpells: [] },
+        problems: [`Creator Spell Audit Startup: ${error?.message || String(error)}`],
+      },
+    };
+  }
+}
+
 function ResultCard({ result }) {
   const failed = result.problems.length > 0;
   const character = result.character || {};
@@ -53,13 +112,20 @@ function CreatorSpellAuditCard({ result }) {
 export default function AdminCharacterAuditTab() {
   const [filter, setFilter] = useState('problems');
   const [search, setSearch] = useState('');
-  const suite = useMemo(() => runCharacterAuditSuite(), []);
-  const creatorSpellResults = useMemo(() => auditCreatorSpellSelection(), []);
-  const creatorSpellReport = useMemo(() => buildCreatorSpellSelectionReport(creatorSpellResults), [creatorSpellResults]);
+  const characterAudit = useMemo(() => runSafeCharacterAudit(), []);
+  const creatorSpellAudit = useMemo(() => runSafeCreatorSpellAudit(), []);
+  const suite = characterAudit.suite || emptyCharacterReport;
+  const creatorSpellResults = creatorSpellAudit.results || [];
+  const creatorSpellReport = creatorSpellAudit.report || emptyCreatorSpellReport;
   const allResults = useMemo(() => ([
+    ...(characterAudit.errorResult ? [characterAudit.errorResult] : []),
     ...suite.demoResults.map((result) => ({ ...result, group: 'demo' })),
     ...suite.progressionResults.map((result) => ({ ...result, group: 'progression' })),
-  ]), [suite]);
+  ]), [suite, characterAudit.errorResult]);
+  const allCreatorSpellResults = useMemo(() => ([
+    ...(creatorSpellAudit.errorResult ? [creatorSpellAudit.errorResult] : []),
+    ...creatorSpellResults,
+  ]), [creatorSpellAudit.errorResult, creatorSpellResults]);
   const failureCount = suite.report.failed + creatorSpellReport.failed;
   const passCount = suite.report.passed + creatorSpellReport.passed;
   const totalCount = suite.report.total + creatorSpellReport.total;
@@ -71,7 +137,7 @@ export default function AdminCharacterAuditTab() {
     if (!lowerSearch) return true;
     return `${result.label} ${result.character?.name || ''} ${result.character?.character_class || ''} ${result.character?.subclass || ''} ${result.problems.join(' ')}`.toLowerCase().includes(lowerSearch);
   });
-  const visibleCreatorSpellResults = creatorSpellResults.filter((result) => {
+  const visibleCreatorSpellResults = allCreatorSpellResults.filter((result) => {
     if (filter === 'problems' && result.problems.length === 0) return false;
     if (!['problems', 'all'].includes(filter)) return false;
     if (!lowerSearch) return true;
