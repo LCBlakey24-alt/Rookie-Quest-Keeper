@@ -1,5 +1,6 @@
 import React from 'react';
 import { Edit3, TrendingUp, User } from 'lucide-react';
+import './CleanSheetHeaderCompact.css';
 
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
 const ACRONYMS = new Set(['ac', 'dc', 'hp', 'str', 'dex', 'con', 'int', 'wis', 'cha']);
@@ -37,6 +38,15 @@ function formatSubtitle(subtitle) {
     .join(' • ');
 }
 
+function compactSubtitle(character, fallbackSubtitle) {
+  const parts = [
+    character?.subclass,
+    character?.character_class,
+    `Lv ${character?.level || 1}`,
+  ].filter(Boolean);
+  return formatSubtitle(parts.join(' • ') || fallbackSubtitle);
+}
+
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
   return (
     <header className="clean-sheet-header clean-sheet-header--simple">
@@ -47,7 +57,7 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
         <div>
           <p className="clean-sheet-kicker">Character</p>
           <h1>{character.name}</h1>
-          <p>{formatSubtitle(subtitle)}</p>
+          <p>{compactSubtitle(character, subtitle)}</p>
         </div>
       </div>
       <div className="clean-sheet-header-actions">
