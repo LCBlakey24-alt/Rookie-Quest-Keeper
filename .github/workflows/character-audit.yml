@@ -31,4 +31,4 @@ jobs:
         working-directory: frontend
         env:
           CI: true
-        run: yarn test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js
+        run: yarn test:character-audit
