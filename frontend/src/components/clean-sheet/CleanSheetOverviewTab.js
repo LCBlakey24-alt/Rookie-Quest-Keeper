@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
+import { Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
@@ -38,11 +38,7 @@ const ABILITY_FULL_NAMES = {
 function SkillLabel({ skill }) {
   return (
     <span className="clean-sheet-skill-label">
-      {skill.split(/\s+/).map((word) => (
-        <span key={`${skill}-${word}`} className="clean-sheet-skill-label-word">
-          {word}
-        </span>
-      ))}
+      <span className="clean-sheet-skill-label-word">{skill}</span>
     </span>
   );
 }
@@ -61,7 +57,6 @@ export default function CleanSheetOverviewTab({
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
   const snapshotSpeed = snapshot.race?.speed || speed || character.speed || 30;
   const snapshotProficiency = snapshot.proficiencyBonus || proficiencyBonus;
-  const warningCount = snapshot.warnings?.length || 0;
   const initiativeMod = mod(character.dexterity);
   const coreStats = [
     { label: 'AC', value: ac ?? character.armor_class ?? 10, icon: Shield },
@@ -88,27 +83,6 @@ export default function CleanSheetOverviewTab({
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
-      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-snapshot-section">
-        <div className="clean-sheet-section-heading-row">
-          <h2>Character Snapshot</h2>
-          <span>{snapshot.identity.edition} rules</span>
-        </div>
-        <div className="clean-sheet-skills-summary">
-          <div><span>Class</span><strong>{snapshot.identity.primaryClass || character.character_class || 'Class'}</strong></div>
-          <div><span>Level</span><strong>{snapshot.identity.level || character.level || 1}</strong></div>
-          <div><span>Race/Species</span><strong>{snapshot.race?.name || character.race || character.species || 'Not set'}</strong></div>
-          <div><span>Features</span><strong>{snapshot.features?.length || 0}</strong></div>
-          <div><span>Resources</span><strong>{snapshot.resources?.length || 0}</strong></div>
-          <div><span>Warnings</span><strong>{warningCount}</strong></div>
-        </div>
-        {!!warningCount && (
-          <div className="clean-sheet-snapshot-warning">
-            <AlertTriangle size={15} />
-            <span>{snapshot.warnings[0]}</span>
-          </div>
-        )}
-      </section>
-
       <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-core-stats-section">
         <h2>Core Stats</h2>
         <div className="clean-sheet-core-stat-grid">
