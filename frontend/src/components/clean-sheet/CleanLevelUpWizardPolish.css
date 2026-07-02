@@ -1,0 +1,100 @@
+/* Visual polish for the Level Up wizard.
+   The wizard uses inline styles, so these rules use important overrides sparingly. */
+
+.character-page-v2 [data-testid="level-up-wizard"] {
+  width: min(920px, calc(100vw - 24px)) !important;
+  max-height: 92dvh !important;
+  background: var(--rq-bg-panel, #101010) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > header,
+.character-page-v2 [data-testid="level-up-wizard"] > footer {
+  background: var(--rq-bg-card, #151515) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > header {
+  padding: 14px 16px !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > header h2 {
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+  font-size: clamp(28px, 4vw, 42px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > header p,
+.character-page-v2 [data-testid="level-up-wizard"] h3 + p {
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.76)) !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > nav {
+  padding: 10px 12px !important;
+  background: var(--rq-bg-panel, #101010) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > nav span {
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] > div {
+  padding: 14px !important;
+  background: var(--rq-bg-main, #202020) !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] button {
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] button:hover:not(:disabled),
+.character-page-v2 [data-testid="level-up-wizard"] button:focus-visible {
+  background: var(--rq-bg-button-hover, #2a2a2a) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  outline: none !important;
+}
+
+.character-page-v2 [data-testid="level-up-wizard"] input,
+.character-page-v2 [data-testid="level-up-wizard"] select {
+  background: var(--rq-bg-input, #181818) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 620px) {
+  .character-page-v2 [data-testid="level-up-wizard"] {
+    width: calc(100vw - 16px) !important;
+    max-height: 94dvh !important;
+  }
+
+  .character-page-v2 [data-testid="level-up-wizard"] > header,
+  .character-page-v2 [data-testid="level-up-wizard"] > footer {
+    padding: 10px !important;
+  }
+
+  .character-page-v2 [data-testid="level-up-wizard"] > footer {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+}
