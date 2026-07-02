@@ -35,6 +35,7 @@ import '@/styles/scrollFixes.css';
 import '@/styles/rqkUnifiedTheme.css';
 import '@/styles/rqkBoardSystem.css';
 import '@/styles/appBoardOverrides.css';
+import '@/styles/appUtilityPagesPolish.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -178,26 +179,28 @@ function AppRoutes() {
         <Route path="/characters/new/kids" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId/edit" element={protectedAppPage(<FullCharacterCreatorV3 editMode />)} />
         <Route path="/characters/:characterId" element={protectedPlainPage(<CleanCharacterSheet />)} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-      <GlobalFeedbackButton isAuthenticated={isAuthenticated} hideLauncher />
-      <Toaster position="top-right" richColors theme="dark" />
+      {isAuthenticated && <GlobalFeedbackButton />}
+      <Toaster richColors />
     </>
   );
 }
 
-function App() {
-  installRollBurstPersistence();
+export default function App() {
+  useEffect(() => {
+    installRollBurstPersistence();
+  }, []);
+
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AppErrorBoundary>
+    <AppErrorBoundary>
+      <ThemeProvider>
+        <BrowserRouter>
           <Suspense fallback={<RouteLoadingScreen />}>
             <AppRoutes />
           </Suspense>
-        </AppErrorBoundary>
-      </BrowserRouter>
-    </ThemeProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </AppErrorBoundary>
   );
 }
-
-export default App;
