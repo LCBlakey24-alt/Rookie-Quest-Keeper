@@ -1,172 +1,112 @@
-# Quest Keeper - Arcane SaaS Design System
+# Rookie Quest Keeper - Sunset Tabletop Design System
 
 ## Overview
-A modern dark fantasy design system for the TTRPG Game Master companion tool. Combines professional SaaS dashboard aesthetics with subtle magical fantasy elements.
 
-## Color Palette
+Rookie Quest Keeper is moving to a warm sunset tabletop identity: dark espresso/charcoal foundations, ember-brown panels, cream text, copper borders, and golden-orange calls to action. The theme should feel polished, beginner-friendly, and slightly game-like without returning to the older blue, purple, or neon direction.
 
-### Background Colors
+## Implementation status
+
+The global app tokens in `frontend/src/App.css` are already mostly sunset-aligned: the root palette uses espresso backgrounds, warm leather cards, parchment text, gold/copper accents, and square/minimal radii. The main gap is consistency: some older docs and component-level styles still reference cyber, blue, purple, or neon palettes, so each page should be checked as it is touched.
+
+## Core palette
+
 | Token | Hex | Usage |
-|-------|-----|-------|
-| `--bg-void` | #0B0F19 | Main app background |
-| `--bg-panel` | #111827 | Primary panels/cards |
-| `--bg-secondary` | #1F2937 | Secondary panels, inputs |
-| `--bg-elevated` | #374151 | Elevated elements, tooltips |
+| --- | --- | --- |
+| `--bg-black` | `#120C08` | Whole app background |
+| `--bg-dark` | `#160F0A` | Deep page sections and form fields |
+| `--bg-panel` | `#21150E` | Primary panels and app shell surfaces |
+| `--bg-card` | `#2E1D13` | Cards, lists, tool blocks |
+| `--bg-hover` | `#3A2619` | Raised, selected, or hover surfaces |
+| `--accent-red` | `#C08A3D` | Primary sunset/gold CTA color; legacy variable name retained |
+| `--accent-red-hover` | `#E0B15C` | CTA hover/focus color |
+| `--rq-role-gm` | `#A45A32` | Copper support accent |
+| `--text-primary` | `#F5E6C8` | Main readable cream text |
+| `--text-secondary` | `#E6D2AA` | Secondary readable text |
+| `--text-muted` | `#CDBA98` | Helper copy and inactive labels |
+| `--success` | `#7A9B66` | Saved, ready, safe creation, and success states |
+| `--warning` | `#D4953C` | True warning states |
+| `--danger` | `#B44732` | Errors and destructive actions |
 
-### Accent Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--arcane-purple` | #7C3AED | Primary accent, buttons, focus states |
-| `--arcane-purple-light` | #8B5CF6 | Hover states, gradients |
-| `--magic-cyan` | #22D3EE | Secondary accent, links, success states |
-| `--gold-accent` | #F59E0B | Highlights, badges, warnings |
+## Placement rules
 
-### Status Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--success-green` | #10B981 | Success messages, HP bars |
-| `--danger-red` | #EF4444 | Errors, delete actions, damage |
-| `--warning-amber` | #F59E0B | Warnings, notifications |
+1. Use one shared sunset shell across player, GM, and character-builder pages.
+2. Use gold/copper for primary actions, selected navigation, focus states, and helpful highlights.
+3. Reserve red for destructive actions and errors; do not use red as a broad page theme.
+4. Keep text cream/parchment on dark surfaces for readability.
+5. Avoid old blue, purple, cyan, and neon glow treatments unless they are being removed in the same PR.
+6. Prefer sharp/minimal cards and restrained shadows over bubbly, over-rounded styling.
 
-### Text Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--text-primary` | #E5E7EB | Body text, descriptions |
-| `--text-secondary` | #9CA3AF | Secondary text, labels |
-| `--text-muted` | #6B7280 | Placeholders, hints |
-| `--text-white` | #F9FAFB | Headings, emphasized text |
-
-## Typography
-
-### Font Families
-- **Headings**: `'Cinzel', serif` - Fantasy-inspired, elegant serif
-- **Body**: `'Inter', sans-serif` - Clean, highly readable sans-serif
-
-### Font Weights
-- Regular: 400
-- Medium: 500
-- Semibold: 600
-- Bold: 700
-
-### Font Sizes
-| Size | Class | Usage |
-|------|-------|-------|
-| 42px | `.logo-title` | Main logo |
-| 24px | `h1` | Page titles |
-| 20px | `h2` | Section headings |
-| 16px | `h3` | Card titles |
-| 14px | Body | Primary content |
-| 13px | Small | Secondary content |
-| 11px | Tiny | Labels, badges |
-
-## Components
+## Component guidance
 
 ### Buttons
+
 ```css
-/* Primary Button */
 .btn-primary {
-  background: linear-gradient(135deg, #7C3AED, #8B5CF6);
-  color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+  background: var(--accent-red);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-red-border);
 }
 
-/* Secondary Button */
-.btn-secondary {
-  background: #1F2937;
-  border: 1px solid #1F2937;
-  color: #E5E7EB;
-}
-.btn-secondary:hover {
-  border-color: #22D3EE;
-  color: #22D3EE;
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--accent-red-hover);
+  box-shadow: 0 0 0 2px var(--accent-red-subtle);
 }
 ```
 
 ### Cards
+
 ```css
 .card {
-  background: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 14px;
-  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
 }
+
 .card:hover {
-  border-color: rgba(124, 58, 237, 0.3);
-  box-shadow: 0 0 25px rgba(124, 58, 237, 0.15);
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
 }
 ```
 
 ### Inputs
+
 ```css
 .input {
-  background: #0B0F19;
-  border: 1px solid #1F2937;
-  border-radius: 10px;
-  color: #E5E7EB;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
 }
+
 .input:focus {
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 0 2px var(--accent-red-subtle);
 }
 ```
 
-### Tabs
-```css
-.tab-item {
-  background: transparent;
-  color: #9CA3AF;
-}
-.tab-item.active {
-  color: #F9FAFB;
-  background: #1F2937;
-  box-shadow: inset 0 -2px 0 #7C3AED;
-}
-```
+## Rebrand review checklist
 
-## Visual Effects
+Use this quick pass when touching a page:
 
-### Glow Effects
-```css
-/* Purple glow */
-box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+- Page background uses espresso/charcoal rather than blue, purple, or white.
+- Primary actions are gold/copper and readable.
+- Cards use leather-brown surfaces with subtle warm borders.
+- Empty, loading, and error states are styled for the dark sunset shell.
+- Text remains readable at mobile widths.
+- No copy calls a creation path “best”, “default”, or “recommended”.
+- No component introduces a separate full-page color theme without a product reason.
 
-/* Cyan glow */
-box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+## How to let Codex visually review the site
 
-/* Gold glow */
-box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-```
+Codex can inspect source files directly, but it needs one of the following to visually verify the running site:
 
-### Background Pattern (Subtle Runes)
-```css
-background-image: url("data:image/svg+xml,...rune-pattern...");
-```
+1. **Committed screenshots** of target routes in docs or an issue, ideally desktop and mobile widths.
+2. **A local screenshot command** checked into the repo, such as a Playwright script that starts the frontend and saves route screenshots.
+3. **A temporary preview URL** that does not require private credentials, plus test login details if auth is required.
+4. **Route-specific acceptance notes**, such as “check `/characters/new/premade` at 390px and 1440px”.
 
-### Animations
-- `glow-pulse`: Subtle glow animation for active elements
-- `float`: Floating animation for decorative elements
-- `shimmer`: Loading shimmer effect
-
-## Spacing
-
-### Radius Scale
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--radius-sm` | 6px | Small elements, badges |
-| `--radius-md` | 10px | Buttons, inputs |
-| `--radius-lg` | 14px | Cards, panels |
-| `--radius-xl` | 20px | Modals, large containers |
-
-## Accessibility
-
-- All interactive elements have focus states with purple outline
-- Text contrast ratios meet WCAG AA standards
-- Focus-visible styling for keyboard navigation
-- Smooth transitions (200ms ease) for reduced motion
-
-## Dark Mode Only
-This design system is optimized for dark mode only. No light theme is provided.
+Never commit real secrets, production tokens, or private user data for visual review.
 
 ---
-Last Updated: March 4, 2026
+Last Updated: July 2, 2026
