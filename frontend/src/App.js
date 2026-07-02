@@ -71,7 +71,8 @@ const AccountSettings = React.lazy(() => import('@/components/AccountSettings'))
 const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = React.lazy(() => import('@/components/UploadsDashboard'));
 const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
-const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV3'));
+// V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
+const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
 const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
 const RookCharacterMatchmaker = React.lazy(() => import('@/components/RookCharacterMatchmaker'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
