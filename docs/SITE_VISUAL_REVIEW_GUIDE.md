@@ -45,20 +45,32 @@ Share a preview deployment URL that Codex can access without private credentials
 
 Do not share production admin credentials, real customer data, API secrets, database URLs, or long-lived tokens.
 
-### Option C: Add a screenshot script
+### Option C: Run the checked-in screenshot script
 
-Add a Playwright script that starts the frontend, opens important routes, and writes screenshots to a ignored local folder such as `tmp/screenshots/`.
+Use the Playwright script in the `tests/` workspace to start the frontend, open the important routes, and write desktop/mobile screenshots to `tests/test-results/site-screenshots/`.
 
-Suggested output names:
-
-```text
-tmp/screenshots/home-desktop.png
-tmp/screenshots/home-mobile.png
-tmp/screenshots-character-new-desktop.png
-tmp/screenshots-character-new-mobile.png
+```bash
+cd tests
+npm install
+npm run install:browsers
+npm run screenshots:site
 ```
 
-Keep generated screenshots out of commits unless they are intentionally part of review documentation.
+To capture a preview deployment instead of starting the local frontend, pass a base URL:
+
+```bash
+cd tests
+ROOK_SCREENSHOT_BASE_URL=https://your-preview-url.example npm run screenshots:site
+```
+
+To limit routes during a focused review, pass a comma-separated route list:
+
+```bash
+cd tests
+ROOK_SCREENSHOT_ROUTES=/characters/new,/characters/new/premade npm run screenshots:site
+```
+
+Generated screenshots are ignored by git. Do not commit them unless they are intentionally part of review documentation.
 
 ## Review checklist
 

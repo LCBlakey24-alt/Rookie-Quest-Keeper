@@ -9,6 +9,7 @@
   "scripts": {
     "install:browsers": "playwright install chromium",
     "install:browsers:deps": "playwright install --with-deps chromium",
-    "check:screenshot": "node scripts/check-playwright-screenshot.mjs"
+    "check:screenshot": "node scripts/check-playwright-screenshot.mjs",
+    "screenshots:site": "node scripts/capture-site-screenshots.mjs"
   }
 }
