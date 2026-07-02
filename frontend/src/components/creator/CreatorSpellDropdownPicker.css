@@ -1,0 +1,6 @@
+/* Creator spell dropdown picker styles are loaded here. */
+
+.creator-spell-dropdown-picker {
+  display: grid;
+  gap: 10px;
+}
