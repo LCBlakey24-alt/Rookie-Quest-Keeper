@@ -1,0 +1,79 @@
+/* Compact identity strip for every character sheet size.
+   The header should show name + class/subclass/level without becoming a giant title block. */
+
+.character-page-v2 .clean-sheet-header--simple {
+  min-height: 54px !important;
+  padding: 7px 8px !important;
+  gap: 6px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-identity {
+  min-height: 40px !important;
+  padding: 6px 8px !important;
+  gap: 7px !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+}
+
+.character-page-v2 .clean-sheet-portrait {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+.character-page-v2 .clean-sheet-portrait svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.character-page-v2 .clean-sheet-kicker {
+  display: none !important;
+}
+
+.character-page-v2 .clean-sheet-identity h1 {
+  margin: 0 !important;
+  font-size: clamp(0.92rem, 2.2vw, 1.15rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.character-page-v2 .clean-sheet-identity p:last-child {
+  margin: 3px 0 0 !important;
+  font-size: clamp(0.66rem, 1.8vw, 0.78rem) !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions {
+  grid-template-columns: repeat(2, minmax(42px, auto)) !important;
+  gap: 5px !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions button {
+  min-width: 42px !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 0 8px !important;
+  font-size: 10px !important;
+  gap: 5px !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions button svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+@media (max-width: 520px) {
+  .character-page-v2 .clean-sheet-header--simple {
+    grid-template-columns: 1fr !important;
+  }
+
+  .character-page-v2 .clean-sheet-header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
