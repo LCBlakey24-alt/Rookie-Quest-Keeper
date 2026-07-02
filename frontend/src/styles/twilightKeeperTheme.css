@@ -1,0 +1,338 @@
+/*
+  Twilight Keeper theme layer.
+  Late-loaded brand pass: dark blue-purple app surfaces with sunset-gradient accents.
+  Keep the app readable first; use the gradient as selected-state/edge magic, not as noise.
+*/
+
+:root {
+  --rq-twilight-bg: #070713;
+  --rq-twilight-bg-2: #110820;
+  --rq-twilight-rail: #100719;
+  --rq-twilight-panel: #24103a;
+  --rq-twilight-panel-deep: #13081f;
+  --rq-twilight-card: #1b0b2d;
+  --rq-twilight-card-2: #2c1047;
+  --rq-twilight-input: #100719;
+  --rq-sunset-purple: #7357ff;
+  --rq-sunset-pink: #eb3fe9;
+  --rq-sunset-red: #ff4f81;
+  --rq-sunset-orange: #ff9542;
+  --rq-sunset-cream: #fff8ef;
+  --rq-sunset-muted: rgba(255, 248, 239, 0.72);
+  --rq-sunset-faint: rgba(255, 248, 239, 0.48);
+  --rq-sunset-line: rgba(255, 248, 239, 0.15);
+  --rq-sunset-line-strong: rgba(255, 248, 239, 0.28);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 38%, #ff4f81 66%, #ff9542 100%);
+  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(115,87,255,0.32), rgba(235,63,233,0.24), rgba(255,149,66,0.22));
+  --rq-sunset-glow: 0 0 28px rgba(235, 63, 233, 0.14), 0 0 42px rgba(255, 149, 66, 0.08);
+
+  --rq-bg: var(--rq-twilight-bg);
+  --rq-bg-main: var(--rq-twilight-bg);
+  --rq-bg-deep: #05050d;
+  --rq-bg-rail: var(--rq-twilight-rail);
+  --rq-bg-panel: var(--rq-twilight-panel-deep);
+  --rq-bg-panel-alt: var(--rq-twilight-panel);
+  --rq-bg-card: var(--rq-twilight-card);
+  --rq-bg-input: var(--rq-twilight-input);
+  --rq-bg-button: #1b0b2d;
+  --rq-bg-button-hover: #2b1243;
+  --rq-surface: var(--rq-twilight-panel);
+  --rq-card: var(--rq-twilight-card);
+  --rq-card-hover: var(--rq-twilight-card-2);
+  --rq-button: #1b0b2d;
+  --rq-button-hover: #2b1243;
+  --rq-primary: var(--rq-sunset-pink);
+  --rq-primary-hover: var(--rq-sunset-orange);
+  --rq-primary-soft: rgba(235, 63, 233, 0.18);
+  --rq-accent-primary: var(--rq-sunset-pink);
+  --rq-accent-soft: rgba(235, 63, 233, 0.18);
+  --rq-accent-border: rgba(255, 149, 66, 0.42);
+  --rq-text: var(--rq-sunset-cream);
+  --rq-text-primary: var(--rq-sunset-cream);
+  --rq-text-secondary: var(--rq-sunset-muted);
+  --rq-text-muted: rgba(255, 248, 239, 0.58);
+  --rq-muted: var(--rq-sunset-muted);
+  --rq-faint: var(--rq-sunset-faint);
+  --rq-line: var(--rq-sunset-line);
+  --rq-line-strong: var(--rq-sunset-line-strong);
+  --rq-border-default: var(--rq-sunset-line);
+  --rq-border-strong: var(--rq-sunset-line-strong);
+  --rq-board-bg: var(--rq-twilight-panel-deep);
+  --rq-board-card: var(--rq-twilight-card);
+  --rq-board-line: var(--rq-sunset-line);
+  --rq-board-red: var(--rq-sunset-pink);
+  --rq-radius: 18px;
+  --rq-title-font: "Cinzel", "Cinzel Decorative", Georgia, serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  color: var(--rq-sunset-cream) !important;
+  background:
+    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.22) 0, rgba(255, 79, 129, 0.12) 22%, transparent 52%),
+    radial-gradient(circle at 82% 18%, rgba(235, 63, 233, 0.20) 0, transparent 38%),
+    radial-gradient(circle at 14% 8%, rgba(115, 87, 255, 0.20) 0, transparent 34%),
+    linear-gradient(180deg, #070713 0%, #110820 46%, #1b082f 100%) !important;
+}
+
+body {
+  background-attachment: fixed !important;
+}
+
+#root .rqk-app-shell,
+#root .rqk-app-shell-content,
+#root .character-page-v2,
+#root .full-creator-page,
+#root .character-mode-page,
+#root .uploads-dashboard-page,
+#root .auth-page,
+#root .loading-screen,
+#root .gm-dashboard-shell,
+#root .clean-sheet-page,
+#root main[style*="clamp(14px, 2vw, 28px)"] {
+  background:
+    radial-gradient(circle at 50% 120%, rgba(255,149,66,0.16), transparent 48%),
+    radial-gradient(circle at 100% 0%, rgba(235,63,233,0.13), transparent 40%),
+    linear-gradient(180deg, rgba(7,7,19,0.98), rgba(17,8,32,0.98) 52%, rgba(24,8,42,0.98)) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .rqk-app-rail,
+#root .character-page-v2 .clean-sheet-tabs {
+  background: rgba(16, 7, 25, 0.94) !important;
+  border-color: rgba(255, 248, 239, 0.12) !important;
+  box-shadow: 0 0 36px rgba(0, 0, 0, 0.28) !important;
+}
+
+#root h1,
+#root h2,
+#root .page-title,
+#root .hero-title,
+#root .clean-sheet-identity h1,
+#root .clean-sheet-panel h2,
+#root .clean-sheet-card h2,
+#root .full-creator-section-title h2,
+#root .character-mode-hero h1,
+#root .admin-character-audit__hero h2,
+#root .gm-campaign-title {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 18px rgba(235, 63, 233, 0.18) !important;
+}
+
+#root .rqk-app-rail-brand,
+#root .rqk-themed-panel,
+#root .rqk-themed-card,
+#root .dashboard-card,
+#root .dashboard-section,
+#root .player-dashboard-card,
+#root .campaign-card,
+#root .character-mode-card,
+#root .character-mode-guide,
+#root .full-creator-header,
+#root .full-creator-panel,
+#root .full-creator-preview,
+#root .full-creator-footer,
+#root .full-creator-choice-block,
+#root .full-creator-auto-box,
+#root .full-creator-review-grid > div,
+#root .clean-sheet-header--simple,
+#root .clean-sheet-compact-status,
+#root .clean-sheet-panel,
+#root .clean-sheet-card,
+#root .clean-sheet-section,
+#root .clean-sheet-tab-panel,
+#root .clean-sheet-mobile-tools,
+#root .clean-sheet-turn-strip,
+#root .clean-sheet-recovery-panel,
+#root .clean-sheet-condition-panel,
+#root .clean-sheet-roll-history-panel,
+#root .uploads-dashboard-hero,
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-next,
+#root .uploads-dashboard-dropzone,
+#root .admin-character-audit__hero,
+#root .admin-character-audit__phone-help,
+#root .admin-character-audit__tools,
+#root .admin-character-audit__report,
+#root .admin-character-audit__plain-report,
+#root .admin-character-audit__stats > div,
+#root .admin-character-audit-card,
+#root main[style*="clamp(14px, 2vw, 28px)"] > header,
+#root main[style*="clamp(14px, 2vw, 28px)"] > section,
+#root [data-testid="gm-active-workspace"],
+#root [data-testid="gm-active-workspace"] > div > section,
+#root [data-testid="live-story-focus-panel"],
+#root [data-testid="live-session-grid"] > aside,
+#root [data-testid="live-session-grid"] > main {
+  position: relative;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius) !important;
+  background:
+    linear-gradient(145deg, rgba(19, 8, 31, 0.96), rgba(36, 16, 58, 0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: var(--rq-sunset-glow) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .clean-sheet-card .clean-sheet-card,
+#root .clean-sheet-panel .clean-sheet-panel,
+#root .clean-sheet-section .clean-sheet-section,
+#root .full-creator-panel .full-creator-choice-block,
+#root .admin-character-audit-card {
+  background:
+    linear-gradient(145deg, rgba(16, 7, 25, 0.98), rgba(27, 11, 45, 0.96)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.62), rgba(235,63,233,0.46), rgba(255,149,66,0.52)) border-box !important;
+}
+
+#root button,
+#root [role="button"],
+#root input,
+#root textarea,
+#root select {
+  border-radius: 14px !important;
+}
+
+#root input,
+#root textarea,
+#root select,
+#root .full-creator-search {
+  background: rgba(16, 7, 25, 0.92) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255, 248, 239, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(115, 87, 255, 0.08) !important;
+}
+
+#root input::placeholder,
+#root textarea::placeholder {
+  color: rgba(255, 248, 239, 0.46) !important;
+}
+
+#root .btn-primary,
+#root .landing-button-primary,
+#root [data-rqk-primary="true"],
+#root button[type="submit"],
+#root .full-creator-footer button:last-child,
+#root .character-mode-choose,
+#root main[style*="clamp(14px, 2vw, 28px)"] button[type="submit"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 248, 239, 0.14) !important;
+  box-shadow: 0 8px 24px rgba(235, 63, 233, 0.18) !important;
+}
+
+#root button:not(.rqk-app-rail-link):not(.clean-sheet-tabs button):not([type="submit"]),
+#root .btn-outline,
+#root .landing-button-ghost,
+#root [data-rqk-secondary="true"] {
+  background: rgba(27, 11, 45, 0.92) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255, 248, 239, 0.14) !important;
+}
+
+#root button:hover,
+#root button:focus-visible,
+#root [role="button"]:hover,
+#root [role="button"]:focus-visible {
+  border-color: rgba(255, 149, 66, 0.46) !important;
+  outline: none !important;
+}
+
+#root .rqk-app-rail-link {
+  border-radius: 16px !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  color: rgba(255, 248, 239, 0.74) !important;
+}
+
+#root .rqk-app-rail-link:hover,
+#root .rqk-app-rail-link:focus-visible {
+  background: rgba(36, 16, 58, 0.92) !important;
+  border-color: rgba(255, 248, 239, 0.14) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .rqk-app-rail-link.is-active,
+#root .character-page-v2 .clean-sheet-tabs button.active {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 248, 239, 0.22) !important;
+  border-left: 1px solid rgba(255, 248, 239, 0.22) !important;
+  box-shadow: 0 0 24px rgba(235, 63, 233, 0.22) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  border-radius: 16px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: rgba(255, 248, 239, 0.76) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button:not(.active):hover,
+#root .character-page-v2 .clean-sheet-tabs button:not(.active):focus-visible {
+  background: rgba(36, 16, 58, 0.86) !important;
+  color: var(--rq-sunset-cream) !important;
+  border-color: rgba(255, 248, 239, 0.14) !important;
+}
+
+#root .clean-sheet-tabs::after,
+#root .rqk-app-rail-nav::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 4px;
+  margin: 4px auto 0;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient);
+  opacity: 0.78;
+}
+
+#root .full-creator-spell-chip.active,
+#root .full-creator-choice-block button.active,
+#root .character-mode-card:focus-within,
+#root .character-mode-card:hover,
+#root .admin-character-audit-card.has-problems {
+  background:
+    linear-gradient(145deg, rgba(27, 11, 45, 0.96), rgba(44, 16, 71, 0.95)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 0 22px rgba(235, 63, 233, 0.16) !important;
+}
+
+#root .clean-sheet-status-pill,
+#root .clean-sheet-pill,
+#root .full-creator-mini-grid,
+#root .full-creator-score-grid > div,
+#root .full-creator-equipment-list span,
+#root .admin-character-audit-card em {
+  background: rgba(16, 7, 25, 0.82) !important;
+  border: 1px solid rgba(255, 248, 239, 0.14) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .loading-screen,
+#root .full-creator-loading {
+  background:
+    radial-gradient(circle at 50% 88%, rgba(255,149,66,0.20), transparent 38%),
+    radial-gradient(circle at 50% 30%, rgba(235,63,233,0.18), transparent 34%),
+    linear-gradient(180deg, #070713, #1b082f) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+@media (max-width: 520px) {
+  #root .rqk-app-rail-link.is-active,
+  #root .character-page-v2 .clean-sheet-tabs button.active {
+    border-radius: 18px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button,
+  #root .rqk-app-rail-link {
+    min-height: 42px !important;
+  }
+}
