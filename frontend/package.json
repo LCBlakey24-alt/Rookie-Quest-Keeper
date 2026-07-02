@@ -64,7 +64,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js"
+    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js src/data/campaignCharacterBridge.test.js"
   },
   "browserslist": {
     "production": [
