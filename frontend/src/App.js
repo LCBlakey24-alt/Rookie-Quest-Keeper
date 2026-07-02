@@ -36,6 +36,7 @@ import '@/styles/rqkUnifiedTheme.css';
 import '@/styles/rqkBoardSystem.css';
 import '@/styles/appBoardOverrides.css';
 import '@/styles/appUtilityPagesPolish.css';
+import '@/styles/mobileAppBoxGrid.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
