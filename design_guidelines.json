@@ -1,196 +1,48 @@
 {
   "theme": {
-    "name": "Rook Cyber-Fantasy Dual Theme",
+    "name": "Rookie Quest Sunset Tabletop",
     "mode": "dark-only",
-    "description": "A dual-theme system replacing the old 'Fantasy Sunset'. GM pages use 'Midnight Neon' (deep darks with indigo/violet glow). Player pages use 'Electric Tundra' (deep blues with soft cyan glow). The Landing page merges both.",
+    "description": "A warm sunset tabletop system using espresso backgrounds, ember-brown cards, cream text, copper borders, and golden-orange actions. This replaces older cyber, blue, purple, and neon directions.",
     "fonts": {
-      "heading": "Outfit",
+      "heading": "Fraunces or existing display token",
       "body": "Manrope",
-      "logo": "Cinzel"
+      "logo": "Fraunces or existing brand token"
     }
   },
   "colors": {
-    "gm_mode": {
-      "background": "#0B0B0D",
-      "foreground": "#F8F8FF",
-      "card": "#131317",
-      "card_foreground": "#F8F8FF",
-      "primary": "#8A2BE2",
-      "primary_foreground": "#FFFFFF",
-      "secondary": "#4B0082",
-      "secondary_foreground": "#FFFFFF",
-      "muted": "#1C1C24",
-      "muted_foreground": "#A0A0B0",
-      "accent": "#2A004D",
-      "accent_foreground": "#F8F8FF",
-      "border": "#262630",
-      "ring": "#8A2BE2",
-      "success": "#10B981",
-      "warning": "#F59E0B",
-      "destructive": "#EF4444"
-    },
-    "player_mode": {
-      "background": "#050A30",
-      "foreground": "#F0F8FF",
-      "card": "#0A1140",
-      "card_foreground": "#F0F8FF",
-      "primary": "#4DD0E1",
-      "primary_foreground": "#000000",
-      "secondary": "#0000FF",
-      "secondary_foreground": "#FFFFFF",
-      "muted": "#0C1650",
-      "muted_foreground": "#9EB0D0",
-      "accent": "#081050",
-      "accent_foreground": "#F0F8FF",
-      "border": "#1A2360",
-      "ring": "#4DD0E1",
-      "success": "#10B981",
-      "warning": "#F59E0B",
-      "destructive": "#EF4444"
-    },
-    "landing_page": {
-      "background": "#080A1A",
-      "foreground": "#FFFFFF",
-      "primary": "#4DD0E1",
-      "secondary": "#8A2BE2",
-      "border": "#1A1A2E"
+    "core": {
+      "background": "#120C08",
+      "backgroundDeep": "#160F0A",
+      "panel": "#21150E",
+      "card": "#2E1D13",
+      "raised": "#3A2619",
+      "primary": "#C08A3D",
+      "primaryHover": "#E0B15C",
+      "copper": "#A45A32",
+      "foreground": "#F5E6C8",
+      "foregroundSecondary": "#E6D2AA",
+      "muted": "#CDBA98",
+      "mutedDeep": "#8D7453",
+      "border": "rgba(192, 138, 61, 0.22)",
+      "borderHover": "rgba(224, 177, 92, 0.34)",
+      "success": "#7A9B66",
+      "warning": "#D4953C",
+      "danger": "#B44732"
     }
   },
-  "typography": {
-    "font_imports": [
-      "@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=Cinzel:wght@600;700;800&display=swap');"
-    ],
-    "headings": {
-      "fontFamily": "Outfit, sans-serif",
-      "weight": "600-800",
-      "letterSpacing": "tracking-tight",
-      "usage": "Use for all page titles, section headers, card titles, and numeric stats."
-    },
-    "body": {
-      "fontFamily": "Manrope, sans-serif",
-      "weight": "400-500",
-      "lineHeight": "leading-relaxed",
-      "usage": "Use for all descriptive text, form inputs, character sheet details, and lore text."
-    },
-    "logo": {
-      "fontFamily": "Cinzel, serif",
-      "weight": "700",
-      "usage": "Use STRICTLY for the 'ROOK' app logo and primary brand wordmark. Do NOT use for standard headers."
-    }
+  "implementation_status": {
+    "global_tokens": "Mostly implemented in frontend/src/App.css root variables.",
+    "known_gaps": [
+      "Some older docs and component-level styles still reference cyber, blue, purple, cyan, or neon treatments.",
+      "Each route should be visually checked at desktop and mobile widths before calling the rebrand complete.",
+      "Screenshots or a preview URL are needed for agent-side visual verification beyond source review."
+    ]
   },
-  "visual_enhancers": {
-    "glassmorphism": {
-      "style": "Crystal Variant",
-      "background": "bg-white/5 or bg-black/40",
-      "blur": "backdrop-blur-xl or backdrop-blur-2xl",
-      "border": "border border-white/10",
-      "shadow": "shadow-[0_8px_32px_rgba(0,0,0,0.3)]",
-      "usage": "Modals, sticky headers, quick reference popovers, dropdowns."
-    },
-    "shadows": {
-      "glow_gm": "shadow-[0_0_15px_rgba(138,43,226,0.3)]",
-      "glow_player": "shadow-[0_0_15px_rgba(77,208,225,0.3)]",
-      "ambient": "shadow-2xl shadow-black/60"
-    },
-    "textures": {
-      "noise": "Apply a subtle 2-4% opacity noise overlay on backgrounds to prevent flat digital looks."
-    }
-  },
-  "layouts": {
-    "landing_page": {
-      "type": "Asymmetric Bento Grid",
-      "spacing": "p-12 to p-24",
-      "container": "max-w-7xl mx-auto",
-      "features": "Use overlapping elements, large typography, and glowing gradients behind crystal glass cards."
-    },
-    "gm_dashboard": {
-      "type": "High Density Grid",
-      "spacing": "p-4 to p-6",
-      "gap": "gap-4 or gap-6",
-      "sidebar": "Fixed left sidebar, width 280px, heavily utilizing the 'Midnight Neon' theme.",
-      "content": "Use cardless or subtle 1px border cards. Every pixel matters for GM tools."
-    },
-    "character_sheet": {
-      "type": "Modular Grid",
-      "spacing": "p-4 to p-8",
-      "gap": "gap-6",
-      "sections": "Separate stats, inventory, and spells into distinct visual blocks with Electric Tundra glow on active elements."
-    }
-  },
-  "component_rules": {
-    "buttons": {
-      "primary": "Pill-shaped or slightly rounded (rounded-md), vibrant background, high contrast text.",
-      "hover": "Translate-y-[-2px], intensify glow (shadow-lg), slightly lighter background.",
-      "disabled": "Opacity 50%, no pointer events."
-    },
-    "cards": {
-      "base": "1px solid border with 10% opacity white, flat dark background.",
-      "hover": "Subtle scale or border glow depending on the theme (Violet for GM, Cyan for Player)."
-    },
-    "forms": {
-      "inputs": "bg-black/20 or bg-white/5, focus:ring-2 focus:ring-primary, border-white/10.",
-      "labels": "Uppercase, tracking-[0.2em], text-xs, text-muted-foreground."
-    },
-    "navigation": {
-      "tabs": "Shadcn Tabs customized. Active tab gets a glowing bottom border (GM: Indigo, Player: Cyan) instead of standard muted background."
-    }
-  },
-  "motion": {
-    "hover": "transition-all duration-200 ease-out",
-    "entrance": "Staggered fade-up (opacity 0 to 1, translate-y 10px to 0) for lists and cards.",
-    "modals": "Scale in from 0.95 to 1, fade in."
-  },
-  "accessibility": {
-    "contrast": "Ensure all text against dark backgrounds meets APCA standards. Use pure white or off-white for primary text.",
-    "focus": "All interactive elements must have visible focus rings.",
-    "testing": "All interactive and key informational elements MUST include a 'data-testid' attribute (e.g., data-testid='login-button', data-testid='character-hp')."
-  },
-  "media": {
-    "images": [
-      {
-        "url": "https://images.pexels.com/photos/36605021/pexels-photo-36605021.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-        "description": "Close-up of a d20 die with glowing numbers against a dark background",
-        "category": "landing_hero_bg"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1762278804729-13d330fad71a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjBuZW9uJTIwYWJzdHJhY3QlMjBkYXJrfGVufDB8fHx8MTc3NDkzNTM1M3ww&ixlib=rb-4.1.0&q=85",
-        "description": "Abstract streaks of purple and pink lights on black background",
-        "category": "gm_dashboard_header_bg"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1579567761406-4684ee0c75b6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwxfHxjeWJlcnB1bmslMjBuZW9uJTIwYWJzdHJhY3QlMjBkYXJrfGVufDB8fHx8MTc3NDkzNTM1M3ww&ixlib=rb-4.1.0&q=85",
-        "description": "Blue and white abstract neon art",
-        "category": "player_dashboard_header_bg"
-      },
-      {
-        "url": "https://images.pexels.com/photos/4129849/pexels-photo-4129849.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-        "description": "Dark forest with warm/glowing light filtering through",
-        "category": "campaign_cover_fallback"
-      }
-    ],
-    "icons": {
-      "library": "lucide-react",
-      "usage": "Use consistently sized icons (w-4 h-4 or w-5 h-5). Stroke width 1.5 for elegance."
-    }
-  },
-  "instructions_to_main_agent": [
-    "CRITICAL: Do NOT center-align the main app container. Always keep reading flow natural.",
-    "Implement the Theme toggler/context provider to switch CSS variables between 'gm_mode' and 'player_mode' seamlessly. This is a core functionality.",
-    "Use 'Outfit' for all headings and 'Manrope' for body text. Remove all usage of Montserrat. Limit 'Cinzel' strictly to the ROOK logo.",
-    "Ensure glassmorphism is implemented correctly: backgrounds must not be fully transparent without a blur. Use backdrop-blur-xl with a slight tint.",
-    "For the Landing page, merge the violet and cyan colors in subtle background gradients (e.g., radial gradients in corners).",
-    "Replace generic button styles with the defined pill-shaped/rounded buttons possessing hover glow effects.",
-    "Do not use generic gray backgrounds for cards; use the specific elevated background colors defined (GM: #131317, Player: #0A1140).",
-    "Add 'sonner' for toast notifications, using the dark theme.",
-    "Add data-testid attributes to EVERY button, input, tab, and clickable card.",
-    "Ensure 'transition-all' is avoided for transforms to prevent breaking framer-motion or interactive hover states. Specify 'transition-colors', 'transition-transform' etc.",
-    "Use the exact color hex codes provided in this guideline for the respective themes."
-  ],
-  "universal_guidelines": {
-    "anti_slop": "Avoid generic uniform styling. Create depth through layered design elements (z-index) and glassmorphism.",
-    "spacing": "Use 2-3x more spacing than feels comfortable. Avoid cramped designs.",
-    "alignment": "Left-align paragraphs, labels, and inputs. Center-align only when visually necessary for hierarchy.",
-    "animations": "Every interaction needs micro-animations (hover, focus, transitions).",
-    "testing": "All interactive and key informational elements MUST include a 'data-testid' attribute in kebab-case."
-  }
+  "rules": [
+    "Use a shared sunset shell across player, GM, and character-builder pages.",
+    "Use gold/copper for primary actions and selected states.",
+    "Reserve red for destructive actions and errors.",
+    "Avoid old blue, purple, cyan, and neon glows.",
+    "Prefer sharp, minimal cards with readable cream text."
+  ]
 }

@@ -175,3 +175,7 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Generated Playwright screenshots
+/tests/test-results/
+/tmp/screenshots/
