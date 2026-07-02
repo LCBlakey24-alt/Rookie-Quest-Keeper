@@ -1,0 +1,181 @@
+/* Final mobile Stats tab overrides.
+   Loaded after the older compact stats CSS so mobile skills stay two-column,
+   boxes line up, and every red accent is a full-height left edge. */
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-stats-tab--compact {
+    gap: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-panel {
+    padding: 10px !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    overflow: hidden !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-summary,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-skills {
+    width: 100% !important;
+    display: grid !important;
+    gap: 6px !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-summary,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-card,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-ability,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-save,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-summary > div,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: var(--rq-bg-card, #151515) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    padding-left: 9px !important;
+    padding-right: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-card,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-ability,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-save {
+    min-height: 44px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill {
+    min-height: 36px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 34px !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-skill.is-proficient {
+    padding-left: 9px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-name {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 4px !important;
+    align-items: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-label-word {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: block !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-tags {
+    display: none !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-roll-chip {
+    min-width: 0 !important;
+    width: 34px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-left: 3px solid rgba(255,255,255,0.18) !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-save .clean-sheet-roll-chip,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-ability .clean-sheet-roll-chip {
+    width: 38px !important;
+    min-height: 30px !important;
+    height: 30px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button {
+    min-height: 30px !important;
+    padding: 0 4px !important;
+    font-size: 9px !important;
+    text-align: center !important;
+    border-left-color: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button.active {
+    background: var(--rq-bg-panel, #101010) !important;
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact span,
+  .character-page-v2 .clean-sheet-stats-tab--compact strong,
+  .character-page-v2 .clean-sheet-stats-tab--compact button,
+  .character-page-v2 .clean-sheet-stats-tab--compact em {
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-save-label span {
+    display: none !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-panel {
+    padding: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-compact-abilities,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-saves,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-summary,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-skills {
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-label,
+  .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-label-word {
+    font-size: 8px !important;
+  }
+}
