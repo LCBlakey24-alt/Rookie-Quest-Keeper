@@ -1,0 +1,215 @@
+/* Final utility page polish for Uploads and Homebrew.
+   These pages sit inside the logged-in app shell, so they should match dashboard/library/sheet styling. */
+
+.uploads-dashboard-page,
+[data-testid="homebrew-workshop"] {
+  min-height: 100dvh !important;
+  background: var(--rq-bg-main, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.uploads-dashboard-page *,
+.uploads-dashboard-page button,
+.uploads-dashboard-page input,
+.uploads-dashboard-page textarea,
+.uploads-dashboard-page select,
+[data-testid="homebrew-workshop"] *,
+[data-testid="homebrew-workshop"] button,
+[data-testid="homebrew-workshop"] input,
+[data-testid="homebrew-workshop"] textarea,
+[data-testid="homebrew-workshop"] select {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+.uploads-dashboard-page {
+  padding: 18px !important;
+  gap: 12px !important;
+}
+
+.uploads-dashboard-hero,
+.uploads-dashboard-dropzone,
+.uploads-dashboard-card,
+.uploads-dashboard-next,
+[data-testid="homebrew-workshop"] header,
+[data-testid="homebrew-workshop"] aside,
+[data-testid="homebrew-workshop"] section,
+[data-testid="homebrew-workshop"] article {
+  background: var(--rq-bg-panel, #101010) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.uploads-dashboard-hero,
+.uploads-dashboard-dropzone,
+.uploads-dashboard-card,
+.uploads-dashboard-next {
+  padding: 14px !important;
+}
+
+.uploads-dashboard-hero > div,
+.uploads-dashboard-card > div,
+.uploads-dashboard-next > div,
+.uploads-dashboard-dropzone > div,
+[data-testid="homebrew-workshop"] header > div,
+[data-testid="homebrew-workshop"] aside > div,
+[data-testid="homebrew-workshop"] section > div,
+[data-testid="homebrew-workshop"] article > div {
+  min-width: 0 !important;
+}
+
+.uploads-dashboard-eyebrow,
+[data-testid="homebrew-workshop"] p[style*="uppercase"],
+[data-testid="homebrew-workshop"] span[style*="uppercase"],
+[data-testid="homebrew-workshop"] label > span {
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.68)) !important;
+}
+
+.uploads-dashboard-hero h1,
+.uploads-dashboard-dropzone h2,
+.uploads-dashboard-card h2,
+.uploads-dashboard-next h2,
+[data-testid="homebrew-workshop"] h1,
+[data-testid="homebrew-workshop"] h2,
+[data-testid="homebrew-workshop"] strong {
+  color: var(--rq-text-primary, #ffffff) !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+}
+
+.uploads-dashboard-hero h1,
+[data-testid="homebrew-workshop"] h1 {
+  font-size: clamp(30px, 5vw, 48px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.uploads-dashboard-hero p,
+.uploads-dashboard-dropzone p,
+.uploads-dashboard-card p,
+.uploads-dashboard-next p,
+.uploads-dashboard-next li,
+[data-testid="homebrew-workshop"] p,
+[data-testid="homebrew-workshop"] textarea,
+[data-testid="homebrew-workshop"] input,
+[data-testid="homebrew-workshop"] select {
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
+}
+
+.uploads-dashboard-grid,
+[data-testid="homebrew-workshop"] section[style*="grid"] {
+  gap: 10px !important;
+}
+
+.uploads-dashboard-card,
+.uploads-dashboard-next {
+  background: var(--rq-bg-card, #151515) !important;
+  border-left-color: transparent !important;
+}
+
+.uploads-dashboard-card:hover,
+.uploads-dashboard-card:focus-within {
+  background: var(--rq-bg-button-hover, #242424) !important;
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
+}
+
+.uploads-dashboard-dropzone {
+  min-height: 150px !important;
+  background: var(--rq-bg-panel, #101010) !important;
+  border-style: dashed !important;
+}
+
+.uploads-dashboard-dropzone button,
+[data-testid="homebrew-workshop"] button,
+[data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+  min-height: 38px !important;
+  background: var(--rq-bg-button, #202020) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid transparent !important;
+  font-weight: 950 !important;
+}
+
+[data-testid="homebrew-workshop"] button[data-testid="hb-back-btn"],
+[data-testid="homebrew-workshop"] button[data-testid="hb-parse-text-btn"],
+[data-testid="homebrew-workshop"] button[data-testid="hb-save-btn"],
+[data-testid="homebrew-workshop"] label[for="hb-file-input"],
+.uploads-dashboard-dropzone button {
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
+}
+
+.uploads-dashboard-dropzone button:hover:not(:disabled),
+[data-testid="homebrew-workshop"] button:hover:not(:disabled),
+[data-testid="homebrew-workshop"] button:focus-visible,
+[data-testid="homebrew-workshop"] label[for="hb-file-input"]:hover {
+  background: var(--rq-bg-button-hover, #2a2a2a) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  outline: none !important;
+}
+
+.uploads-dashboard-dropzone button:disabled,
+[data-testid="homebrew-workshop"] button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+[data-testid="homebrew-workshop"] input,
+[data-testid="homebrew-workshop"] select,
+[data-testid="homebrew-workshop"] textarea {
+  background: var(--rq-bg-input, #181818) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+[data-testid="homebrew-workshop"] input:focus,
+[data-testid="homebrew-workshop"] select:focus,
+[data-testid="homebrew-workshop"] textarea:focus {
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  outline: none !important;
+}
+
+[data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
+  background: var(--rq-bg-card, #151515) !important;
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  border-left: 4px solid transparent !important;
+}
+
+[data-testid="homebrew-workshop"] [data-testid^="hb-type-"]:hover,
+[data-testid="homebrew-workshop"] [data-testid^="hb-type-"]:focus-visible {
+  background: var(--rq-bg-button-hover, #242424) !important;
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
+}
+
+[data-testid="homebrew-workshop"] [style*="border-left"],
+[data-testid="homebrew-workshop"] [style*="borderLeft"] {
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
+}
+
+[data-testid="homebrew-workshop"] [style*="d00000"],
+[data-testid="homebrew-workshop"] [style*="background: rgb(208, 0, 0)"] {
+  background: var(--rq-bg-button, #202020) !important;
+}
+
+@media (max-width: 760px) {
+  .uploads-dashboard-page,
+  [data-testid="homebrew-workshop"] {
+    padding: 10px !important;
+  }
+
+  .uploads-dashboard-dropzone,
+  [data-testid="homebrew-workshop"] header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .uploads-dashboard-card,
+  .uploads-dashboard-next {
+    flex-direction: column !important;
+  }
+
+  [data-testid="homebrew-workshop"] button,
+  [data-testid="homebrew-workshop"] select,
+  [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+    width: 100% !important;
+  }
+}
