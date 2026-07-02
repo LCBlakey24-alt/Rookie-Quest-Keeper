@@ -1,0 +1,177 @@
+/* Mobile-first equal box rhythm for app pages.
+   Applies the same box logic used on the character sheet to dashboard/library/utility pages. */
+
+@media (max-width: 760px) {
+  .unified-dashboard-page,
+  .library-page,
+  .uploads-dashboard-page,
+  [data-testid="homebrew-workshop"] {
+    gap: 10px !important;
+  }
+
+  .unified-dashboard-status,
+  .unified-dashboard-action-grid,
+  .unified-dashboard-continue-grid,
+  .dashboard-two-column,
+  .dashboard-list,
+  .library-page-grid,
+  .uploads-dashboard-grid,
+  [data-testid="homebrew-workshop"] section[style*="grid"] {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+    border: 0 !important;
+  }
+
+  .unified-dashboard-stat,
+  .unified-dashboard-action-card,
+  .unified-dashboard-continue-panel,
+  .unified-dashboard-panel,
+  .dashboard-list-row,
+  .dashboard-system-panel,
+  .dashboard-system-panel > div,
+  .library-page-hero,
+  .library-page-toolbar,
+  .library-page-card,
+  .library-page-empty,
+  .uploads-dashboard-hero,
+  .uploads-dashboard-dropzone,
+  .uploads-dashboard-card,
+  .uploads-dashboard-next,
+  [data-testid="homebrew-workshop"] header,
+  [data-testid="homebrew-workshop"] aside,
+  [data-testid="homebrew-workshop"] section,
+  [data-testid="homebrew-workshop"] article,
+  [data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    padding-left: max(10px, 0.75rem) !important;
+    padding-right: max(10px, 0.75rem) !important;
+  }
+
+  .library-page-card,
+  .uploads-dashboard-card,
+  [data-testid="homebrew-workshop"] [data-testid^="hb-type-"] {
+    background: var(--rq-bg-card, #151515) !important;
+  }
+
+  .unified-dashboard-header,
+  .library-page-hero,
+  .uploads-dashboard-dropzone,
+  [data-testid="homebrew-workshop"] header {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-brand-row,
+  .library-page-hero > div,
+  .uploads-dashboard-hero > div,
+  .uploads-dashboard-dropzone > div,
+  [data-testid="homebrew-workshop"] header > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .unified-dashboard-page button,
+  .library-page button,
+  .library-page .library-page-button,
+  .uploads-dashboard-page button,
+  [data-testid="homebrew-workshop"] button,
+  [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    display: grid !important;
+    place-items: center !important;
+    text-align: center !important;
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .dashboard-action-text,
+  .dashboard-list-open > div,
+  .library-page-card > div,
+  .uploads-dashboard-card > div,
+  .uploads-dashboard-next > div,
+  [data-testid="homebrew-workshop"] article > div,
+  [data-testid="homebrew-workshop"] section > div {
+    min-width: 0 !important;
+  }
+
+  .unified-dashboard-page h1,
+  .unified-dashboard-page h2,
+  .unified-dashboard-page strong,
+  .dashboard-action-text span,
+  .dashboard-action-text em,
+  .dashboard-list-open strong,
+  .dashboard-list-open em,
+  .library-page h1,
+  .library-page h2,
+  .library-page-card-meta,
+  .library-page-card p,
+  .uploads-dashboard-page h1,
+  .uploads-dashboard-page h2,
+  .uploads-dashboard-page p,
+  [data-testid="homebrew-workshop"] h1,
+  [data-testid="homebrew-workshop"] h2,
+  [data-testid="homebrew-workshop"] strong,
+  [data-testid="homebrew-workshop"] p,
+  [data-testid="homebrew-workshop"] span {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .unified-dashboard-page button span,
+  .library-page button span,
+  .library-page .library-page-button,
+  .uploads-dashboard-page button,
+  [data-testid="homebrew-workshop"] button,
+  [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+    white-space: nowrap !important;
+  }
+
+  .library-page-actions,
+  .dashboard-header-buttons,
+  .dashboard-modal-actions,
+  [data-testid="homebrew-workshop"] div[style*="flex"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .library-page-actions button:first-child,
+  .library-page-actions .library-page-button:first-child,
+  .dashboard-header-buttons button:first-child,
+  .dashboard-modal-actions button:first-child,
+  [data-testid="homebrew-workshop"] button[data-testid="hb-parse-text-btn"],
+  [data-testid="homebrew-workshop"] button[data-testid="hb-save-btn"] {
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .library-page-actions,
+  .dashboard-header-buttons,
+  .dashboard-modal-actions,
+  [data-testid="homebrew-workshop"] div[style*="flex"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .unified-dashboard-page h1,
+  .library-page h1,
+  .uploads-dashboard-page h1,
+  [data-testid="homebrew-workshop"] h1 {
+    font-size: clamp(26px, 9vw, 36px) !important;
+  }
+}
