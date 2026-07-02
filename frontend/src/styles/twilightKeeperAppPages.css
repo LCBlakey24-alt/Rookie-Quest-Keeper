@@ -1,0 +1,281 @@
+/* Twilight Keeper app-page polish.
+   Targets logged-in dashboards, libraries, campaign pages, admin, utilities and global feedback. */
+
+/* App frame: make the main shell feel like a twilight desktop, not a grey wrapper. */
+#root .rqk-app-shell {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(235,63,233,0.16), transparent 32%),
+    radial-gradient(circle at 42% 112%, rgba(255,149,66,0.18), transparent 44%),
+    linear-gradient(180deg, #070713, #120720 52%, #1b082f) !important;
+}
+
+#root .rqk-app-shell-content {
+  background: transparent !important;
+}
+
+#root .rqk-app-rail {
+  border-right: 1px solid rgba(255,248,239,0.11) !important;
+  backdrop-filter: blur(14px);
+}
+
+#root .rqk-app-rail-brand {
+  border-radius: 22px !important;
+  overflow: hidden;
+}
+
+#root .rqk-app-rail-brand::after {
+  content: "";
+  display: block;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient);
+  opacity: 0.86;
+}
+
+#root .rqk-app-rail-section-label,
+#root .rqk-app-rail-user,
+#root .rqk-app-rail-footer,
+#root .rqk-app-rail-muted {
+  color: rgba(255,248,239,0.56) !important;
+}
+
+/* Home dashboard / overview boards. */
+#root .unified-dashboard,
+#root .dashboard-page,
+#root .dashboard-main,
+#root .player-dashboard,
+#root .my-characters-page,
+#root .my-campaigns-page,
+#root .library-page,
+#root .uploads-dashboard-page,
+#root .homebrew-workshop-page {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .dashboard-hero,
+#root .unified-dashboard-hero,
+#root .library-page-hero,
+#root .characters-library-hero,
+#root .campaigns-library-hero,
+#root .homebrew-workshop-hero,
+#root .uploads-dashboard-hero,
+#root .dashboard-overview,
+#root .dashboard-list-panel,
+#root .dashboard-empty-state,
+#root .library-page-card,
+#root .character-library-card,
+#root .campaign-library-card,
+#root .homebrew-workshop-card,
+#root .homebrew-section,
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-next {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(34,14,54,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 28px rgba(235,63,233,0.10) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .dashboard-hero h1,
+#root .unified-dashboard-hero h1,
+#root .library-page-hero h1,
+#root .characters-library-hero h1,
+#root .campaigns-library-hero h1,
+#root .homebrew-workshop-hero h1,
+#root .uploads-dashboard-hero h1 {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .dashboard-hero p,
+#root .unified-dashboard-hero p,
+#root .library-page-hero p,
+#root .characters-library-hero p,
+#root .campaigns-library-hero p,
+#root .homebrew-workshop-hero p,
+#root .uploads-dashboard-hero p,
+#root .dashboard-empty-state p,
+#root .library-page-card p,
+#root .character-library-card p,
+#root .campaign-library-card p,
+#root .uploads-dashboard-card p {
+  color: rgba(255,248,239,0.70) !important;
+}
+
+/* Library/action buttons: keep the sunset for primary actions and calm dark for the rest. */
+#root .library-page-actions button:first-child,
+#root .dashboard-hero-actions button:first-child,
+#root .character-library-actions button:first-child,
+#root .campaign-library-actions button:first-child,
+#root .uploads-dashboard-actions button:first-child,
+#root .homebrew-workshop-actions button:first-child {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,248,239,0.16) !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+#root .library-page-actions button:not(:first-child),
+#root .dashboard-hero-actions button:not(:first-child),
+#root .character-library-actions button:not(:first-child),
+#root .campaign-library-actions button:not(:first-child),
+#root .uploads-dashboard-actions button:not(:first-child),
+#root .homebrew-workshop-actions button:not(:first-child) {
+  background: rgba(13,6,23,0.82) !important;
+  color: rgba(255,248,239,0.82) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+}
+
+/* Campaign dashboard / GM panels. */
+#root .campaign-dashboard,
+#root .campaign-dashboard-page,
+#root .campaign-dashboard-shell,
+#root .gm-dashboard-shell {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .campaign-dashboard-header,
+#root .campaign-dashboard-card,
+#root .campaign-dashboard-section,
+#root .campaign-session-card,
+#root .campaign-player-card,
+#root .campaign-notes-card,
+#root .gm-toolbar,
+#root .gm-panel,
+#root .gm-card,
+#root .gm-empty-state,
+#root .gm-stat-card,
+#root [data-testid="live-session-grid"] > aside,
+#root [data-testid="live-session-grid"] > main,
+#root [data-testid="live-story-focus-panel"] {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(33,13,54,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 26px rgba(235,63,233,0.09) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+/* Admin page beyond the audit tab. */
+#root .admin-panel,
+#root .admin-card,
+#root .admin-section,
+#root .admin-users-tab,
+#root .admin-feedback-tab,
+#root .admin-testing-notes,
+#root .admin-site-control,
+#root .rule-system-manager,
+#root .template-editor,
+#root [data-testid="admin-panel"],
+#root [data-testid="admin-users-tab"],
+#root [data-testid="admin-feedback-tab"] {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .admin-panel,
+#root .admin-card,
+#root .admin-section,
+#root .admin-users-tab,
+#root .admin-feedback-tab,
+#root .admin-testing-notes,
+#root .admin-site-control,
+#root .rule-system-manager,
+#root .template-editor,
+#root [data-testid="admin-panel"],
+#root [data-testid="admin-users-tab"],
+#root [data-testid="admin-feedback-tab"] > section {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(31,12,49,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,0.20), 0 0 24px rgba(235,63,233,0.09) !important;
+}
+
+/* Tables/list rows/search boxes inside app pages. */
+#root table,
+#root .table,
+#root .list-row,
+#root .library-list-row,
+#root .feedback-row,
+#root .admin-row,
+#root .campaign-row,
+#root .dashboard-row,
+#root .homebrew-result,
+#root .upload-history-row {
+  background: rgba(13,6,23,0.76) !important;
+  color: var(--rq-sunset-cream) !important;
+  border-color: rgba(255,248,239,0.12) !important;
+}
+
+#root th,
+#root td,
+#root .list-row span,
+#root .library-list-row span,
+#root .feedback-row span,
+#root .admin-row span,
+#root .campaign-row span,
+#root .dashboard-row span {
+  color: rgba(255,248,239,0.74) !important;
+}
+
+/* Modal/dropdown surfaces. */
+#root [role="dialog"],
+#root .modal,
+#root .dialog,
+#root .popover,
+#root .dropdown-menu,
+#root .select-content,
+#root .campaign-create-modal,
+#root .character-edit-modal {
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.98), rgba(34,14,54,0.96)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  color: var(--rq-sunset-cream) !important;
+  box-shadow: 0 22px 58px rgba(0,0,0,0.38), 0 0 34px rgba(235,63,233,0.14) !important;
+}
+
+/* Global feedback should look like part of the sunset system. */
+#root .global-feedback-button,
+#root .feedback-floating-button,
+#root [data-testid="global-feedback-button"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,248,239,0.18) !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+/* The app should still be practical on mobile: fewer huge glows, tighter radius. */
+@media (max-width: 760px) {
+  #root .dashboard-hero,
+  #root .unified-dashboard-hero,
+  #root .library-page-hero,
+  #root .characters-library-hero,
+  #root .campaigns-library-hero,
+  #root .dashboard-card,
+  #root .dashboard-section,
+  #root .library-page-card,
+  #root .character-library-card,
+  #root .campaign-library-card,
+  #root .campaign-dashboard-card,
+  #root .campaign-dashboard-section,
+  #root .admin-panel,
+  #root .admin-card,
+  #root .admin-section,
+  #root .uploads-dashboard-card,
+  #root .homebrew-workshop-card {
+    border-radius: 18px !important;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.20), 0 0 18px rgba(235,63,233,0.07) !important;
+  }
+
+  #root .rqk-app-rail {
+    backdrop-filter: blur(10px);
+  }
+}
