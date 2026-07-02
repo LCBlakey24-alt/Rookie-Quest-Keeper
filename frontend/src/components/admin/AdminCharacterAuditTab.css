@@ -115,7 +115,7 @@
 
 .admin-character-audit__stats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   gap: 8px;
 }
 
@@ -205,6 +205,12 @@
   gap: 10px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+}
+
+.admin-character-audit__subhead {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .admin-character-audit__report-head h3,
