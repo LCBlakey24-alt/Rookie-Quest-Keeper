@@ -7,6 +7,7 @@ import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
 import CleanLoreTab from '@/components/clean-sheet/CleanLoreTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
+import CleanSheetCharacterTab from '@/components/clean-sheet/CleanSheetCharacterTab';
 import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
@@ -50,7 +51,7 @@ export default function CleanCharacterSheet() {
   const [savingQuickState, setSavingQuickState] = useState(false);
   const [hpAmount, setHpAmount] = useState(1);
   const [tempHpAmount, setTempHpAmount] = useState(1);
-  const [activeTab, setActiveTab] = useState('stats');
+  const [activeTab, setActiveTab] = useState('character');
   const [rollBurst, setRollBurst] = useState(null);
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
   const [rollHistory, setRollHistory] = useState([]);
@@ -509,6 +510,14 @@ export default function CleanCharacterSheet() {
       <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
       <main className="clean-sheet-content">
+        {activeTab === 'character' && (
+          <CleanSheetCharacterTab
+            character={character}
+            ac={ac}
+            speed={speed}
+            proficiencyBonus={proficiencyBonus}
+          />
+        )}
         {activeTab === 'stats' && (
           <CleanSheetOverviewTab
             character={character}
