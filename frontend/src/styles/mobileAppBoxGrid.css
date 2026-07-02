@@ -175,3 +175,85 @@
     font-size: clamp(26px, 9vw, 36px) !important;
   }
 }
+
+/* Creator spell picker touch polish.
+   The creator already has spell selection logic; this makes selection obvious on mobile. */
+.full-creator-page .full-creator-spell-chip {
+  position: relative !important;
+  min-height: 88px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  border-left: 4px solid rgba(255,255,255,0.18) !important;
+}
+
+.full-creator-page .full-creator-spell-chip::after {
+  content: "Tap to add";
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  min-height: 18px;
+  padding: 3px 5px;
+  display: grid;
+  place-items: center;
+  background: var(--rq-bg-button, #202020);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--rq-text-muted, rgba(255,255,255,0.68));
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.full-creator-page .full-creator-spell-chip.active {
+  border-left-color: var(--rq-accent-primary, #c30000) !important;
+  background: var(--rq-bg-button-hover, #242424) !important;
+  outline: 1px solid rgba(195,0,0,0.55) !important;
+}
+
+.full-creator-page .full-creator-spell-chip.active::after {
+  content: "Selected";
+  color: var(--rq-text, #ffffff);
+  border-left: 3px solid var(--rq-accent-primary, #c30000);
+}
+
+.full-creator-page .full-creator-spell-chip strong,
+.full-creator-page .full-creator-spell-chip span,
+.full-creator-page .full-creator-spell-chip em {
+  max-width: calc(100% - 72px) !important;
+}
+
+.full-creator-page .full-creator-spell-chip strong {
+  padding-right: 74px !important;
+}
+
+.full-creator-page .full-creator-choice-block:has(.full-creator-spell-chip) h3 {
+  padding: 8px 9px !important;
+  background: var(--rq-bg-card, #151515) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+}
+
+.full-creator-page .full-creator-choice-block:has(.full-creator-spell-chip) h3::after {
+  content: "  • tap a card to select / tap again to remove" !important;
+}
+
+@media (max-width: 680px) {
+  .full-creator-page .full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip) {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .full-creator-page .full-creator-spell-chip {
+    min-height: 74px !important;
+    padding: 8px 9px !important;
+  }
+
+  .full-creator-page .full-creator-spell-chip em {
+    -webkit-line-clamp: 2 !important;
+    font-size: 10px !important;
+  }
+}
