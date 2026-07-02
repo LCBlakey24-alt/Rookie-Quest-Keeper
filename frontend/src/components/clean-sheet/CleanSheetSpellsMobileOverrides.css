@@ -1,0 +1,243 @@
+/* Final mobile Spells tab overrides.
+   Keeps spell cards, spell slots, class spell library and caster cards compact and aligned. */
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-spells-tab {
+    gap: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spells-tab .clean-sheet-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-spellcasting-heading,
+  .character-page-v2 .clean-sheet-spell-section-heading {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-spells-tab h2,
+  .character-page-v2 .clean-sheet-spells-tab h3 {
+    margin: 0 !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  .character-page-v2 .clean-sheet-spells-tab p {
+    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-summary,
+  .character-page-v2 .clean-sheet-caster-grid,
+  .character-page-v2 .clean-sheet-slot-grid,
+  .character-page-v2 .clean-sheet-spell-grid,
+  .character-page-v2 .clean-sheet-caster-stats,
+  .character-page-v2 .clean-sheet-pact-card,
+  .character-page-v2 .clean-sheet-spell-library-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    background: transparent !important;
+    border: 0 !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-summary > div,
+  .character-page-v2 .clean-sheet-caster-card,
+  .character-page-v2 .clean-sheet-caster-stats > div,
+  .character-page-v2 .clean-sheet-slot-card,
+  .character-page-v2 .clean-sheet-spell-card,
+  .character-page-v2 .clean-sheet-pact-card > div,
+  .character-page-v2 .clean-sheet-spell-library-card,
+  .character-page-v2 .clean-sheet-spell-warning,
+  .character-page-v2 .clean-sheet-muted {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    background: var(--rq-bg-card, #151515) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    padding: 8px 9px !important;
+    overflow: hidden !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-card,
+  .character-page-v2 .clean-sheet-spell-library-card {
+    min-height: 96px !important;
+    display: grid !important;
+    gap: 5px !important;
+    align-content: start !important;
+  }
+
+  .character-page-v2 .clean-sheet-slot-card {
+    min-height: 88px !important;
+    display: grid !important;
+    gap: 5px !important;
+    align-content: center !important;
+    text-align: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-card-top,
+  .character-page-v2 .clean-sheet-spell-library-meta {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-level,
+  .character-page-v2 .clean-sheet-spell-state,
+  .character-page-v2 .clean-sheet-spell-library-class {
+    max-width: 100% !important;
+    min-height: 17px !important;
+    padding: 3px 5px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
+    font-size: 7.5px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-card strong,
+  .character-page-v2 .clean-sheet-spell-library-card strong,
+  .character-page-v2 .clean-sheet-slot-card strong,
+  .character-page-v2 .clean-sheet-caster-card strong {
+    max-width: 100% !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    font-size: 12px !important;
+    line-height: 1.05 !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-card em,
+  .character-page-v2 .clean-sheet-spell-card p,
+  .character-page-v2 .clean-sheet-spell-library-card em,
+  .character-page-v2 .clean-sheet-spell-library-card p,
+  .character-page-v2 .clean-sheet-slot-card span,
+  .character-page-v2 .clean-sheet-caster-card span {
+    max-width: 100% !important;
+    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    font-style: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-card p,
+  .character-page-v2 .clean-sheet-spell-library-card p {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-actions,
+  .character-page-v2 .clean-sheet-slot-actions,
+  .character-page-v2 .clean-sheet-spell-library-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-actions button,
+  .character-page-v2 .clean-sheet-slot-actions button,
+  .character-page-v2 .clean-sheet-spell-library-actions button {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 30px !important;
+    padding: 0 6px !important;
+    display: grid !important;
+    place-items: center !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    border-left: 3px solid transparent !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-actions button:first-child,
+  .character-page-v2 .clean-sheet-slot-actions button:first-child,
+  .character-page-v2 .clean-sheet-spell-library-actions button:first-child {
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-search,
+  .character-page-v2 .clean-sheet-spell-library-tools {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: var(--rq-bg-input, #181818) !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    padding: 0 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-search input,
+  .character-page-v2 .clean-sheet-spell-library-tools input {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 36px !important;
+    background: transparent !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .character-page-v2 .clean-sheet-spells-tab .clean-sheet-panel {
+    padding: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-summary,
+  .character-page-v2 .clean-sheet-caster-grid,
+  .character-page-v2 .clean-sheet-slot-grid,
+  .character-page-v2 .clean-sheet-spell-grid,
+  .character-page-v2 .clean-sheet-spell-library-grid {
+    gap: 5px !important;
+  }
+
+  .character-page-v2 .clean-sheet-spell-actions button,
+  .character-page-v2 .clean-sheet-slot-actions button,
+  .character-page-v2 .clean-sheet-spell-library-actions button {
+    font-size: 8px !important;
+    padding-inline: 3px !important;
+  }
+}
