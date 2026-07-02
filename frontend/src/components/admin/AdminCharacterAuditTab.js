@@ -63,6 +63,11 @@ export default function AdminCharacterAuditTab() {
         </div>
       </header>
 
+      <section className="admin-character-audit__phone-help">
+        <strong>Using this from your phone</strong>
+        <span>Open Admin Panel → Character Audit. The audit runs automatically in the page. Leave the filter on Problems, then screenshot the top status and any red problem cards. If there are no problem cards, tap All to spot-check demo characters and level 1–20 checks.</span>
+      </section>
+
       <section className="admin-character-audit__stats" aria-label="Audit totals">
         <div><span>Total</span><strong>{suite.report.total}</strong></div>
         <div><span>Passing</span><strong>{passCount}</strong></div>
