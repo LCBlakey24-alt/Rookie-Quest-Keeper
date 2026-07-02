@@ -1,0 +1,231 @@
+/* Final mobile Actions tab overrides.
+   Keeps Actions/Bonus Actions/Reactions compact, equal-width, and aligned with the mobile sheet rhythm. */
+
+@media (max-width: 760px) {
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-grid,
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border: 0 !important;
+    align-items: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel > h2 {
+    margin: 0 0 8px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 76px !important;
+    padding: 9px 10px 9px 10px !important;
+    display: grid !important;
+    gap: 5px !important;
+    align-content: center !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    background: var(--rq-bg-card, #151515) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    overflow: hidden !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell.active .clean-sheet-action-card {
+    background: var(--rq-bg-panel, #101010) !important;
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-type {
+    width: fit-content !important;
+    max-width: 100% !important;
+    min-height: 18px !important;
+    padding: 3px 5px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card strong {
+    max-width: 100% !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card > span:not(.clean-sheet-action-type),
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-details {
+    max-width: 100% !important;
+    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-card {
+    min-height: 122px !important;
+    align-content: stretch !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-card-top {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    gap: 5px 7px !important;
+    align-items: center !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-card-top .clean-sheet-attack-details {
+    grid-column: 1 / -1 !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-row {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 6px 5px !important;
+    display: grid !important;
+    place-items: center !important;
+    align-content: center !important;
+    gap: 3px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-left: 3px solid rgba(255,255,255,0.18) !important;
+    overflow: hidden !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-roll-box,
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-damage-roll-box {
+    border-left-color: var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box span,
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box strong {
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box span {
+    color: var(--rq-text-muted, rgba(255,255,255,0.62)) !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box strong {
+    color: var(--rq-text-primary, #ffffff) !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage,
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-damage-result {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px !important;
+    background: var(--rq-bg-card, #151515) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
+    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage button {
+    min-height: 30px !important;
+    padding: 0 8px !important;
+    background: var(--rq-bg-button, #202020) !important;
+    color: var(--rq-text-primary, #ffffff) !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    border-left: 3px solid transparent !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab button:disabled,
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel {
+    padding: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card {
+    min-height: 70px !important;
+    padding: 8px !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-card {
+    min-height: 116px !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-row {
+    gap: 4px !important;
+  }
+
+  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box {
+    min-height: 39px !important;
+  }
+}
