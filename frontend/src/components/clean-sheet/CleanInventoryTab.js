@@ -15,6 +15,7 @@ import {
   deriveWeaponAttack,
 } from "@/data/characterCombatDerivations";
 import { ALL_ARMOR, ALL_WEAPONS } from "@/data/equipmentDatabase";
+import "./CleanSheetInventoryMobileOverrides.css";
 
 const EQUIP_SLOTS = [
   ["mainHand", "Main Hand"],
