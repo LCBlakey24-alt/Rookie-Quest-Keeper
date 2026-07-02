@@ -14,7 +14,12 @@ import {
   deriveArmorClass,
   deriveWeaponAttack,
 } from "@/data/characterCombatDerivations";
-import { ALL_ARMOR, ALL_WEAPONS } from "@/data/equipmentDatabase";
+import {
+  ADVENTURING_GEAR,
+  ALL_ARMOR,
+  ALL_TOOLS,
+  ALL_WEAPONS,
+} from "@/data/equipmentDatabase";
 import "./CleanSheetInventoryMobileOverrides.css";
 
 const EQUIP_SLOTS = [
@@ -198,26 +203,31 @@ function normaliseItem(item, source = "") {
 }
 
 function normaliseReferenceItem(item) {
-  const category = String(item?.category || "").toLowerCase();
-  const isShield = category === "shield" || String(item?.name || "").toLowerCase().includes("shield");
-  const isArmor = ["light", "medium", "heavy", "shield"].includes(category) || item?.ac || item?.acBonus;
-  const damageParts = String(item?.damage || "").match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
+  const category = String(item?.category || item?.kind || "").toLowerCase();
+  const typeText = String(item?.type || item?.item_type || item?.kind || "").toLowerCase();
+  const isShield = category === "shield" || typeText === "shield" || String(item?.name || "").toLowerCase().includes("shield");
+  const isArmor = ["light", "medium", "heavy", "armor", "armour", "shield"].includes(category) || item?.ac || item?.acBonus;
+  const damageParts = String(item?.damage || item?.damage_dice || "").match(/(\d+d\d+|\d+)\s*([a-z]+)?/i);
+  const isWeapon = Boolean(damageParts) || typeText.includes("weapon") || category.includes("melee") || category.includes("ranged");
+  const referenceType = isShield ? "Shield" : isArmor ? "Armour" : isWeapon ? "Weapon" : item?.type || item?.kind || "Item";
 
   return normaliseItem(
     {
       name: item?.name || "Equipment",
-      type: isShield ? "Shield" : isArmor ? "Armour" : "Weapon",
+      type: referenceType,
+      item_type: referenceType,
       quantity: 1,
       description: [
+        item?.description,
         item?.category,
         Array.isArray(item?.properties) ? item.properties.join(", ") : item?.properties,
         item?.cost ? `Cost: ${item.cost}` : "",
       ].filter(Boolean).join(" • "),
-      damage_dice: damageParts && !isArmor ? damageParts[1] : "",
-      damage_type: damageParts && !isArmor ? item?.damageType || damageParts[2] || "" : "",
+      damage_dice: damageParts && isWeapon ? damageParts[1] : "",
+      damage_type: damageParts && isWeapon ? item?.damageType || damageParts[2] || "" : "",
       range: item?.range || "",
       properties: Array.isArray(item?.properties) ? item.properties.join(", ") : item?.properties || "",
-      ac_bonus: 0,
+      ac_bonus: isShield ? 2 : 0,
     },
     "reference",
   );
@@ -396,6 +406,8 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
         label: item.name,
         item,
       })),
+      ...ADVENTURING_GEAR.map((item) => ({ key: `gear-${item.id || item.name}`, kind: "gear", label: item.name, item })),
+      ...ALL_TOOLS.map((item) => ({ key: `tool-${item.id || item.name}`, kind: "tool", label: item.name, item })),
     ],
     [],
   );
@@ -404,8 +416,8 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
     const q = equipmentSearch.trim().toLowerCase();
     return referenceCatalog
       .filter((entry) => equipmentTypeFilter === "all" || entry.kind === equipmentTypeFilter)
-      .filter((entry) => !q || `${entry.label} ${entry.kind} ${entry.item?.category || ""} ${entry.item?.damage || ""}`.toLowerCase().includes(q))
-      .slice(0, 80);
+      .filter((entry) => !q || `${entry.label} ${entry.kind} ${entry.item?.category || ""} ${entry.item?.damage || ""} ${entry.item?.description || ""}`.toLowerCase().includes(q))
+      .slice(0, 120);
   }, [equipmentSearch, equipmentTypeFilter, referenceCatalog]);
 
   const selectedReferenceEntry = useMemo(
@@ -413,7 +425,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
     [referenceCatalog, selectedReferenceKey],
   );
   const selectedReference = selectedReferenceEntry?.item || null;
-  const selectedReferenceItem = selectedReference ? normaliseReferenceItem(selectedReference) : null;
+  const selectedReferenceItem = selectedReference ? normaliseReferenceItem({ ...selectedReference, kind: selectedReferenceEntry?.kind }) : null;
   const selectedReferenceSlot = selectedReferenceItem ? inferEquipSlot(selectedReferenceItem) : null;
   const selectedReferenceAttack = selectedReferenceItem && selectedReferenceSlot === "mainHand"
     ? deriveWeaponAttack(selectedReferenceItem, character, proficiencyBonus)
@@ -486,7 +498,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
   };
 
   const addReferenceItem = async (referenceItem, shouldEquip = false) => {
-    const item = normaliseReferenceItem(referenceItem);
+    const item = normaliseReferenceItem({ ...referenceItem, kind: selectedReferenceEntry?.kind });
     const nextInventory = [...inventory, item];
     const slot = inferEquipSlot(item);
     const equippedItem = shouldEquip && slot ? { ...item, equip_slot: slot, equipped_slot: slot, equipped: true, is_equipped: true } : null;
@@ -703,25 +715,27 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
         <div className="clean-sheet-inventory-header">
           <div>
             <h2>Add Equipment from List</h2>
-            <p>Pick a weapon, armour, or shield and add it straight to this character.</p>
+            <p>Search the built-in SRD-safe list of weapons, armour, gear, tools, and basic items.</p>
           </div>
         </div>
         <div className="clean-sheet-equipment-tools">
           <label>
             <Search size={15} />
-            <input value={equipmentSearch} onChange={(event) => setEquipmentSearch(event.target.value)} placeholder="Search weapons, armour, shields…" />
+            <input value={equipmentSearch} onChange={(event) => setEquipmentSearch(event.target.value)} placeholder="Search equipment, gear, tools…" />
           </label>
           <select value={equipmentTypeFilter} onChange={(event) => setEquipmentTypeFilter(event.target.value)} aria-label="Filter equipment type">
             <option value="all">All equipment</option>
             <option value="weapon">Weapons</option>
             <option value="armor">Armour</option>
             <option value="shield">Shields</option>
+            <option value="gear">Gear</option>
+            <option value="tool">Tools</option>
           </select>
         </div>
         <div className="clean-sheet-equipment-picker">
           <select value={selectedReferenceKey} onChange={(event) => setSelectedReferenceKey(event.target.value)}>
             <option value="">Select equipment…</option>
-            {filteredReferenceCatalog.map((entry) => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+            {filteredReferenceCatalog.map((entry) => <option key={entry.key} value={entry.key}>{entry.label} ({entry.kind})</option>)}
           </select>
           <button type="button" disabled={!selectedReference || savingItems} onClick={() => selectedReference && addReferenceItem(selectedReference, false)}>Add to Inventory</button>
           <button type="button" disabled={!selectedReference || savingItems || !selectedReferenceSlot} onClick={() => selectedReference && addReferenceItem(selectedReference, true)}>Add & Equip</button>
@@ -748,7 +762,7 @@ export default function CleanInventoryTab({ character, onCharacterUpdate, onRoll
             <h2>All Items</h2>
             <p>Everything carried, equipped, starter gear, backpack items, and GM-granted items.</p>
           </div>
-          <input value={itemSearch} onChange={(e) => setItemSearch(e.target.value)} placeholder="Search items…" />
+          <input value={itemSearch} onChange={(e) => setItemSearch(e.target.value)} placeholder="Search carried items…" />
         </div>
         <div className="clean-sheet-item-grid">
           {filteredInventory.length ? filteredInventory.map((item, index) => (
