@@ -1,6 +1,7 @@
 import React from 'react';
 import { HeartPulse } from 'lucide-react';
 import './CleanSheetMobileTidyFixes.css';
+import './CleanSheetActionsMobileOverrides.css';
 
 const HP_AMOUNT_OPTIONS = Array.from({ length: 99 }, (_, index) => index + 1);
 
