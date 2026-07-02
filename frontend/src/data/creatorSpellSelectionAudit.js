@@ -31,7 +31,9 @@ export function getCreatorSpellRequirements(className, scores = DEFAULT_SCORES) 
 export function spellMatchesCreatorSearch(spell = {}, search = '') {
   const needle = normalize(search).trim();
   if (!needle) return true;
-  return `${spell.name || ''} ${spell.school || ''} ${spell.description || ''} ${spell.damage || ''} ${spell.healing || ''}`
+  if (needle.includes('damage') && spell.damage) return true;
+  if ((needle.includes('heal') || needle.includes('healing')) && spell.healing) return true;
+  return `${spell.name || ''} ${spell.school || ''} ${spell.description || ''} ${spell.damage || ''} ${spell.damageType || ''} ${spell.healing || ''}`
     .toLowerCase()
     .includes(needle);
 }
