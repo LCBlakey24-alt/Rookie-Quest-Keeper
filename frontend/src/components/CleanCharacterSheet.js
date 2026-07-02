@@ -202,6 +202,17 @@ export default function CleanCharacterSheet() {
     }
   };
 
+  const updateTempHp = async (delta) => {
+    if (!character || savingTempHp) return;
+    const nextTempHp = Math.max(0, tempHp + Number(delta || 0));
+    setSavingTempHp(true);
+    await patchCharacter(
+      { temporary_hit_points: nextTempHp, temp_hp: nextTempHp },
+      { error: 'Could not save temporary HP' }
+    );
+    setSavingTempHp(false);
+  };
+
   const makeRoll = (label, modifier) => {
     const totalModifier = (Number(modifier) || 0) + getRollBonus();
     const result = rollD20(totalModifier, rollMode);
@@ -484,10 +495,15 @@ export default function CleanCharacterSheet() {
         maxHp={maxHp}
         tempHp={tempHp}
         hpAmount={hpAmount}
+        tempHpAmount={tempHpAmount}
         savingHp={savingHp}
+        savingTempHp={savingTempHp}
         onHpAmountChange={setHpAmount}
+        onTempHpAmountChange={setTempHpAmount}
         onDamage={() => updateHp(-getSafeAmount(hpAmount))}
         onHeal={() => updateHp(getSafeAmount(hpAmount))}
+        onTempHpAdd={() => updateTempHp(getSafeAmount(tempHpAmount || hpAmount))}
+        onTempHpRemove={() => updateTempHp(-getSafeAmount(tempHpAmount || hpAmount))}
       />
 
       <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
