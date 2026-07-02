@@ -1,0 +1,34 @@
+name: Character Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  character-audit:
+    name: Character fixture and level audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: yarn install --frozen-lockfile
+
+      - name: Run character audit tests
+        working-directory: frontend
+        env:
+          CI: true
+        run: yarn test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js
