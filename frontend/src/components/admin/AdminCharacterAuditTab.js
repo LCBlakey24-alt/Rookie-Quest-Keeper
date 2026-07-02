@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FlaskConical, Search } from 'lucide-react';
 
 import { runCharacterAuditSuite } from '@/data/characterAuditReport';
+import { auditCreatorSpellSelection, buildCreatorSpellSelectionReport } from '@/data/creatorSpellSelectionAudit';
 import './AdminCharacterAuditTab.css';
 
 function ResultCard({ result }) {
@@ -29,16 +30,39 @@ function ResultCard({ result }) {
   );
 }
 
+function CreatorSpellAuditCard({ result }) {
+  const failed = result.problems.length > 0;
+  return (
+    <article className={`admin-character-audit-card ${failed ? 'has-problems' : 'is-clean'}`}>
+      <div className="admin-character-audit-card__head">
+        <div>
+          <strong>{result.className}</strong>
+          <span>{result.requirements.cantrips} cantrips • {result.requirements.spells} level 1 spells • {result.requirements.type}</span>
+        </div>
+        <em>{failed ? `${result.problems.length} issue${result.problems.length === 1 ? '' : 's'}` : 'Ready'}</em>
+      </div>
+      {failed ? (
+        <ul>{result.problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>
+      ) : (
+        <p>{result.pools.cantrips.length} cantrips and {result.pools.levelOneSpells.length} level 1 spells available in the creator picker.</p>
+      )}
+    </article>
+  );
+}
+
 export default function AdminCharacterAuditTab() {
   const [filter, setFilter] = useState('problems');
   const [search, setSearch] = useState('');
   const suite = useMemo(() => runCharacterAuditSuite(), []);
+  const creatorSpellResults = useMemo(() => auditCreatorSpellSelection(), []);
+  const creatorSpellReport = useMemo(() => buildCreatorSpellSelectionReport(creatorSpellResults), [creatorSpellResults]);
   const allResults = useMemo(() => ([
     ...suite.demoResults.map((result) => ({ ...result, group: 'demo' })),
     ...suite.progressionResults.map((result) => ({ ...result, group: 'progression' })),
   ]), [suite]);
-  const failureCount = suite.report.failed;
-  const passCount = suite.report.passed;
+  const failureCount = suite.report.failed + creatorSpellReport.failed;
+  const passCount = suite.report.passed + creatorSpellReport.passed;
+  const totalCount = suite.report.total + creatorSpellReport.total;
   const lowerSearch = search.trim().toLowerCase();
   const visibleResults = allResults.filter((result) => {
     if (filter === 'problems' && result.problems.length === 0) return false;
@@ -46,6 +70,12 @@ export default function AdminCharacterAuditTab() {
     if (filter === 'progression' && result.group !== 'progression') return false;
     if (!lowerSearch) return true;
     return `${result.label} ${result.character?.name || ''} ${result.character?.character_class || ''} ${result.character?.subclass || ''} ${result.problems.join(' ')}`.toLowerCase().includes(lowerSearch);
+  });
+  const visibleCreatorSpellResults = creatorSpellResults.filter((result) => {
+    if (filter === 'problems' && result.problems.length === 0) return false;
+    if (!['problems', 'all'].includes(filter)) return false;
+    if (!lowerSearch) return true;
+    return `${result.className} ${result.problems.join(' ')}`.toLowerCase().includes(lowerSearch);
   });
 
   return (
@@ -59,7 +89,7 @@ export default function AdminCharacterAuditTab() {
         <div className={`admin-character-audit__status ${failureCount ? 'bad' : 'good'}`}>
           {failureCount ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
           <strong>{failureCount ? `${failureCount} failing` : 'All clear'}</strong>
-          <span>{passCount}/{suite.report.total} passing</span>
+          <span>{passCount}/{totalCount} passing</span>
         </div>
       </header>
 
@@ -69,11 +99,12 @@ export default function AdminCharacterAuditTab() {
       </section>
 
       <section className="admin-character-audit__stats" aria-label="Audit totals">
-        <div><span>Total</span><strong>{suite.report.total}</strong></div>
+        <div><span>Total</span><strong>{totalCount}</strong></div>
         <div><span>Passing</span><strong>{passCount}</strong></div>
         <div><span>Failing</span><strong>{failureCount}</strong></div>
         <div><span>Demo</span><strong>{suite.demoResults.length}</strong></div>
         <div><span>Class Levels</span><strong>{suite.progressionResults.length}</strong></div>
+        <div><span>Creator Spells</span><strong>{creatorSpellReport.total}</strong></div>
       </section>
 
       <section className="admin-character-audit__tools">
@@ -95,25 +126,42 @@ export default function AdminCharacterAuditTab() {
 
       <section className="admin-character-audit__report">
         <div className="admin-character-audit__report-head">
-          <h3>{visibleResults.length} result{visibleResults.length === 1 ? '' : 's'} shown</h3>
+          <h3>{visibleResults.length + visibleCreatorSpellResults.length} result{visibleResults.length + visibleCreatorSpellResults.length === 1 ? '' : 's'} shown</h3>
           <span>{filter === 'problems' ? 'Showing only problems by default' : `Filter: ${filter}`}</span>
         </div>
+        {visibleCreatorSpellResults.length > 0 && (
+          <>
+            <div className="admin-character-audit__report-head admin-character-audit__subhead">
+              <h3>Creator spell picker</h3>
+              <span>{creatorSpellReport.failed ? `${creatorSpellReport.failed} failing` : 'All creator spell pools ready'}</span>
+            </div>
+            <div className="admin-character-audit__grid">
+              {visibleCreatorSpellResults.map((result) => <CreatorSpellAuditCard key={`creator-spell-${result.className}`} result={result} />)}
+            </div>
+          </>
+        )}
         {visibleResults.length ? (
-          <div className="admin-character-audit__grid">
-            {visibleResults.map((result) => <ResultCard key={`${result.group}-${result.label}`} result={result} />)}
-          </div>
-        ) : (
+          <>
+            <div className="admin-character-audit__report-head admin-character-audit__subhead">
+              <h3>Character fixtures and levels</h3>
+              <span>{suite.report.failed ? `${suite.report.failed} failing` : 'All character audits ready'}</span>
+            </div>
+            <div className="admin-character-audit__grid">
+              {visibleResults.map((result) => <ResultCard key={`${result.group}-${result.label}`} result={result} />)}
+            </div>
+          </>
+        ) : visibleCreatorSpellResults.length === 0 ? (
           <div className="admin-character-audit__empty">
             <CheckCircle2 size={34} />
             <strong>No results match this view.</strong>
             <span>That is good news if you are looking at Problems.</span>
           </div>
-        )}
+        ) : null}
       </section>
 
       <section className="admin-character-audit__plain-report">
         <h3>Plain report text</h3>
-        <pre>{suite.report.text}</pre>
+        <pre>{`${creatorSpellReport.text}\n\n${suite.report.text}`}</pre>
       </section>
     </div>
   );
