@@ -1,4 +1,5 @@
 import {
+  auditCharacter,
   auditClassProgression,
   auditDemoCharacters,
   buildCharacterAuditReport,
@@ -32,30 +33,14 @@ describe('character audit report', () => {
       __auditGenerated: false,
     });
     const report = buildCharacterAuditReport([
-      ...auditDemoCharacters().slice(0, 1),
-      ...auditClassProgression(['Fighter'], [1]),
-      ...auditClassProgression(['Wizard'], [5]).map((result) => ({ ...result, character: brokenWizard })),
-    ].map((result) => (result.character === brokenWizard ? result : result)));
-
-    const directReport = buildCharacterAuditReport([
-      ...auditDemoCharacters().slice(0, 1),
-      ...auditClassProgression(['Fighter'], [1]),
-      ...[brokenWizard].map((character) => ({
-        label: character.name,
-        character,
-        snapshot: null,
-        problems: [
-          'Broken Wizard: caster has no spell slot data.',
-          'Broken Wizard: caster has no saved spells/cantrips.',
-          'Broken Wizard: no equipped items found.',
-        ],
-      })),
+      auditCharacter(brokenWizard, brokenWizard.name),
     ]);
 
-    expect(report.total).toBeGreaterThan(0);
-    expect(directReport.text).toContain('Broken Wizard');
-    expect(directReport.text).toContain('caster has no spell slot data');
-    expect(directReport.text).toContain('no equipped items found');
+    expect(report.failed).toBe(1);
+    expect(report.text).toContain('Broken Wizard');
+    expect(report.text).toContain('caster has no spell slot data');
+    expect(report.text).toContain('caster has no saved spells/cantrips');
+    expect(report.text).toContain('no equipped items found');
   });
 
   test('full audit suite returns separate demo/progression results and a summary report', () => {
