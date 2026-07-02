@@ -5,8 +5,11 @@ import { AlertTriangle, Search, Wand2 } from "lucide-react";
 import { deriveCharacterSnapshot } from "@/data/deriveCharacterSnapshot";
 import {
   SPELLCASTING_CLASSES,
+  getMaxSpellLevel,
   getMulticlassSpellSlots,
+  getSpellsForClass,
 } from "@/data/spellDatabase";
+import "./CleanSheetSpellsMobileOverrides.css";
 
 const ABILITY_LABELS = {
   strength: "STR",
@@ -149,6 +152,30 @@ function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
   );
 }
 
+function flattenClassSpellGroups(className, groups = {}, maxSpellLevel = 0) {
+  const results = [];
+  (groups.cantrips || []).forEach((spell) => {
+    results.push({ ...normaliseSpell(spell, 0), level: 0, sourceClass: className });
+  });
+
+  for (let level = 1; level <= Math.min(9, Number(maxSpellLevel || 0)); level += 1) {
+    (groups[level] || []).forEach((spell) => {
+      results.push({ ...normaliseSpell(spell, level), level, sourceClass: className });
+    });
+  }
+
+  return results;
+}
+
+function savedSpellNameSet(...groups) {
+  return new Set(
+    groups
+      .flat()
+      .map((spell) => normalizeName(spell.name))
+      .filter(Boolean),
+  );
+}
+
 function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
   const [savingLevel, setSavingLevel] = useState("");
   const keys = Array.from(
@@ -268,6 +295,62 @@ function SpellCard({ spell, prepared, cantrip, onCast, onConcentrate }) {
         )}
       </div>
     </article>
+  );
+}
+
+function SpellLibraryCard({ spell, saved, onAdd }) {
+  return (
+    <article className={`clean-sheet-spell-library-card ${saved ? "is-saved" : ""}`}>
+      <div className="clean-sheet-spell-library-meta">
+        <span className="clean-sheet-spell-level">{spellLevelLabel(spell.level)}</span>
+        <span className="clean-sheet-spell-library-class">{spell.sourceClass}</span>
+        {saved && <span className="clean-sheet-spell-state">Saved</span>}
+      </div>
+      <strong>{spell.name}</strong>
+      {spell.school && <em>{spell.school}</em>}
+      {spell.description && <p>{spell.description}</p>}
+      <div className="clean-sheet-spell-library-actions">
+        <button type="button" onClick={() => onAdd(spell)} disabled={saved}>
+          {saved ? "Added" : Number(spell.level || 0) === 0 ? "Add Cantrip" : "Add Spell"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function SpellLibrary({ spells, savedNames, onAdd }) {
+  const grouped = groupByLevel(spells);
+  const levels = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+
+  return (
+    <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-library-board">
+      <div className="clean-sheet-spell-section-heading">
+        <h2>Class Spell Library</h2>
+        <span>{spells.length} available</span>
+      </div>
+      {spells.length ? (
+        levels.map((level) => (
+          <div key={`library-${level}`} className="clean-sheet-spell-level-group">
+            <h3>{spellLevelLabel(level)}</h3>
+            <div className="clean-sheet-spell-library-grid">
+              {grouped[level].map((spell) => {
+                const saved = savedNames.has(normalizeName(spell.name));
+                return (
+                  <SpellLibraryCard
+                    key={`${spell.sourceClass}-${spell.level}-${spell.name}`}
+                    spell={spell}
+                    saved={saved}
+                    onAdd={onAdd}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="clean-sheet-muted">No class spells match this search yet.</p>
+      )}
+    </section>
   );
 }
 
@@ -398,6 +481,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const preparedNames = new Set(
     prepared.map((spell) => normalizeName(spell.name)),
   );
+  const savedNames = savedSpellNameSet(cantrips, known, prepared);
   const primaryClass = canonicalSpellClass(character?.character_class || character?.class_name || "");
   const isPreparedCaster = primaryCaster?.castingType === "Prepared";
   const isWizard = primaryClass === "Wizard";
@@ -414,10 +498,28 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     !lowerSearch
       ? spells
       : spells.filter((spell) =>
-          `${spell.name} ${spell.school} ${spell.description}`
+          `${spell.name} ${spell.school} ${spell.description} ${spell.sourceClass || ""}`
             .toLowerCase()
             .includes(lowerSearch),
         );
+
+  const availableClassSpells = useMemo(() => {
+    const seen = new Set();
+    return Object.entries(classLevels)
+      .flatMap(([className, level]) => {
+        const canonical = canonicalSpellClass(className);
+        if (!classHasSpellcasting(character, canonical)) return [];
+        const maxSpellLevel = getMaxSpellLevel(canonical, Number(level) || 0);
+        return flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel);
+      })
+      .filter((spell) => {
+        const key = `${normalizeName(spell.name)}-${spell.level}`;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
+  }, [character, classLevels]);
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
@@ -431,6 +533,37 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       { spell_slots_remaining: normalisedRemaining },
       { error: "Could not update spell slots" },
     );
+  };
+
+  const addSpellFromLibrary = async (spell) => {
+    if (!onCharacterUpdate) return false;
+    const normalised = normaliseSpell(spell, spell.level);
+    const level = Number(normalised.level || 0);
+    let field = "spells_known";
+    let existing = known;
+
+    if (level === 0) {
+      field = "cantrips_known";
+      existing = cantrips;
+    } else if (isWizard) {
+      field = "spellbook";
+      existing = known;
+    } else if (isPreparedCaster) {
+      field = "spells_prepared";
+      existing = prepared;
+    }
+
+    if (existing.some((entry) => normalizeName(entry.name) === normalizeName(normalised.name))) {
+      toast.info(`${normalised.name} is already on this sheet.`);
+      return false;
+    }
+
+    const ok = await onCharacterUpdate(
+      { [field]: [...existing, normalised] },
+      { error: `Could not add ${normalised.name}` },
+    );
+    if (ok !== false) toast.success(`${normalised.name} added`);
+    return ok;
   };
 
   const castSpell = async (spell) => {
@@ -487,8 +620,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast spells, spend slots, and check your spell math from the
-              player sheet.
+              Cast spells, spend slots, search saved spells, and add spells from your class list.
             </p>
           </div>
           <span>{spellcastingRows.length ? "Caster" : "No caster data"}</span>
@@ -531,10 +663,16 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <input
             value={spellSearch}
             onChange={(event) => setSpellSearch(event.target.value)}
-            placeholder="Search spells…"
+            placeholder="Search spells or class library…"
           />
         </label>
       </section>
+
+      <SpellLibrary
+        spells={filterSpells(availableClassSpells)}
+        savedNames={savedNames}
+        onAdd={addSpellFromLibrary}
+      />
 
       <section className="clean-sheet-panel clean-sheet-wide clean-spell-board clean-spell-snapshot-board">
         <div className="clean-sheet-spell-section-heading">
@@ -629,7 +767,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         title="Cantrips"
         spells={filterSpells(cantrips)}
         preparedNames={preparedNames}
-        emptyText="No cantrips found on this character."
+        emptyText="No cantrips found on this character. Add one from the class spell library above."
         onCast={castSpell}
         onConcentrate={concentrateOn}
       />
@@ -638,7 +776,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           title="Prepared Spells"
           spells={filterSpells(prepared)}
           preparedNames={preparedNames}
-          emptyText="No prepared spells found. Edit the character or prepare spells after a rest."
+          emptyText="No prepared spells found. Add one from the class spell library above."
           onCast={castSpell}
           onConcentrate={concentrateOn}
         />
@@ -647,7 +785,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         title={secondaryTitle}
         spells={filterSpells(secondaryLeveled)}
         preparedNames={preparedNames}
-        emptyText={secondaryEmpty}
+        emptyText={`${secondaryEmpty} Add one from the class spell library above.`}
         onCast={castSpell}
         onConcentrate={concentrateOn}
       />
@@ -657,8 +795,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <Wand2 size={22} />
           <h2>No spells saved yet</h2>
           <p>
-            This character has caster info but no spell list saved. Use Edit
-            Character to add cantrips and levelled spells.
+            Use the class spell library above to add cantrips and levelled spells to this sheet.
           </p>
         </section>
       )}
