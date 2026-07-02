@@ -5,6 +5,7 @@
 }
 
 .admin-character-audit__hero,
+.admin-character-audit__phone-help,
 .admin-character-audit__tools,
 .admin-character-audit__report,
 .admin-character-audit__plain-report,
@@ -27,6 +28,8 @@
 .admin-character-audit__hero p,
 .admin-character-audit__hero h2,
 .admin-character-audit__hero span,
+.admin-character-audit__phone-help strong,
+.admin-character-audit__phone-help span,
 .admin-character-audit__report-head h3,
 .admin-character-audit__report-head span,
 .admin-character-audit-card strong,
@@ -90,6 +93,24 @@
 .admin-character-audit__status span {
   color: var(--rq-text-muted, rgba(255,255,255,0.62));
   font-size: 11px;
+}
+
+.admin-character-audit__phone-help {
+  display: grid;
+  gap: 6px;
+  background: var(--rq-bg-card, #151515);
+}
+
+.admin-character-audit__phone-help strong {
+  color: var(--rq-text-primary, #ffffff);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.admin-character-audit__phone-help span {
+  color: var(--rq-text-secondary, rgba(255,255,255,0.72));
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .admin-character-audit__stats {
