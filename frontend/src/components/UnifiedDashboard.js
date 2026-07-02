@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
+import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import UnifiedDashboardStatusBar from '@/components/dashboard/home/UnifiedDashboardStatusBar';
 import DashboardContinuePanel from '@/components/dashboard/home/DashboardContinuePanel';
