@@ -37,6 +37,7 @@ import '@/styles/appBoardOverrides.css';
 import '@/styles/appUtilityPagesPolish.css';
 import '@/styles/mobileAppBoxGrid.css';
 import '@/styles/twilightKeeperTheme.css';
+import '@/styles/twilightKeeperPolish.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
