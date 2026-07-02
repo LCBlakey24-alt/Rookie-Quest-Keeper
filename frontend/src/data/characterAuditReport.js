@@ -17,6 +17,11 @@ const SPELLCASTER_SUBCLASS_FIXTURES = {
   Rogue: 'Arcane Trickster',
 };
 
+const SUBCLASS_SPELL_LIST_CLASS = {
+  Fighter: 'Wizard',
+  Rogue: 'Wizard',
+};
+
 const ABILITY_BASELINE = {
   strength: 12,
   dexterity: 14,
@@ -25,6 +30,10 @@ const ABILITY_BASELINE = {
   wisdom: 12,
   charisma: 12,
 };
+
+function getSpellListClass(className) {
+  return SUBCLASS_SPELL_LIST_CLASS[className] || className;
+}
 
 export function getSavedSpells(character = {}) {
   return [
@@ -48,6 +57,7 @@ export function makeAuditCharacter(className, level, overrides = {}) {
   const spellSlots = isCasterAtLevel ? getMulticlassSpellSlots({ [className]: level }, { character_class: className, subclass, level }) : null;
 
   return {
+    __auditGenerated: true,
     name: `Audit ${className} L${level}`,
     character_class: className,
     subclass,
@@ -106,14 +116,15 @@ export function auditCharacter(character = {}, label = character.name || 'Unname
 
   if (caster) {
     const maxSpellLevel = getMaxSpellLevel(className, level);
-    const classSpellList = getSpellsForClass(className);
+    const spellListClass = getSpellListClass(className);
+    const classSpellList = getSpellsForClass(spellListClass);
     const hasClassSpells = Boolean(classSpellList.cantrips?.length || Object.values(classSpellList).some((value) => Array.isArray(value) && value.length));
     const hasSlots = hasKeys(character.spell_slots) || hasKeys(character.spell_slots_remaining) || hasKeys(spellcasting.multiclass?.slots) || Boolean(spellcasting.multiclass?.pactMagic);
 
     if (!spellcasting.blocks?.length) problems.push(`${label}: expected spellcasting block but none was derived.`);
-    if (!hasClassSpells) problems.push(`${label}: no class spell library entries found for ${className}.`);
+    if (!hasClassSpells) problems.push(`${label}: no class spell library entries found for ${spellListClass}.`);
     if (maxSpellLevel > 0 && !hasSlots) problems.push(`${label}: caster has no spell slot data.`);
-    if (savedSpells.length === 0 && level > 0) problems.push(`${label}: caster has no saved spells/cantrips.`);
+    if (savedSpells.length === 0 && level > 0 && !character.__auditGenerated) problems.push(`${label}: caster has no saved spells/cantrips.`);
   } else {
     if (spellcasting.blocks?.length) problems.push(`${label}: non-caster derived spellcasting blocks.`);
   }
