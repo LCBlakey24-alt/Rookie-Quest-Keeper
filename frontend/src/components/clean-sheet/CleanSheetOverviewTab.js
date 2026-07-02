@@ -5,6 +5,7 @@ import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
 import './CleanSheetOverviewCompact.css';
 import './CleanSheetOverviewSpacing.css';
+import './CleanSheetStatsMobileOverrides.css';
 
 const SAVE_NAMES = {
   STR: 'Strength',
