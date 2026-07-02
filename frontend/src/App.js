@@ -2,8 +2,7 @@ import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import '@/App.css';
 // Style layering: base app/design styles first, route-specific legacy themes next,
-// and the current Rookie Quest grey/white/red board system last so logged-in
-// player, character, and GM screens win over older gold/blue/purple themes.
+// board/layout safety layers after that, then the current Twilight Keeper brand layer last.
 import '@/styles/brandedLoading.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
@@ -37,6 +36,7 @@ import '@/styles/rqkBoardSystem.css';
 import '@/styles/appBoardOverrides.css';
 import '@/styles/appUtilityPagesPolish.css';
 import '@/styles/mobileAppBoxGrid.css';
+import '@/styles/twilightKeeperTheme.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
