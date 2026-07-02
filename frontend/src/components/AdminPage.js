@@ -2,13 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Check, ClipboardList, MessageSquare, Shield, Star, Trash2, User, Users, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, ClipboardList, FlaskConical, MessageSquare, Shield, Star, Trash2, User, Users, X } from 'lucide-react';
 import RuleSystemManager from './RuleSystemManager';
 import TemplateEditor from './TemplateEditor';
 import AdminUsersTab from './admin/AdminUsersTab';
 import AdminSiteControlTab from './admin/AdminSiteControlTab';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
+import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
 import apiClient from '@/lib/apiClient';
 
 const theme = {
@@ -119,6 +120,7 @@ function AdminPage() {
 
   const tabs = [
     { id: 'testing', label: 'Testing Notes', icon: ClipboardList },
+    { id: 'character-audit', label: 'Character Audit', icon: FlaskConical },
     { id: 'feedback', label: `Feedback (${overview.new_feedback_count || 0})`, icon: MessageSquare },
     { id: 'reviews', label: `Reviews (${reviews.length})`, icon: Star },
     { id: 'rules', label: 'Rule Systems', icon: BookOpen },
@@ -153,7 +155,7 @@ function AdminPage() {
           <Button onClick={() => navigate('/home')} style={{ background: 'transparent', border: `1px solid ${theme.border}`, padding: 10, color: theme.text.muted }}><ArrowLeft size={20} /></Button>
           <div style={{ minWidth: 0 }}>
             <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin Panel</h1>
-            <p style={adminSubtitleStyle}>Manage testing notes, feedback, reviews, rule systems, templates, users, and site controls.</p>
+            <p style={adminSubtitleStyle}>Manage testing notes, character audits, feedback, reviews, rule systems, templates, users, and site controls.</p>
           </div>
         </div>
 
@@ -201,6 +203,7 @@ function AdminPage() {
 
         <section style={contentWrapStyle}>
         {activeTab === 'testing' && <AdminTestingNotesTab />}
+        {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
         {activeTab === 'feedback' && <AdminFeedbackTab />}
         {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
         {activeTab === 'rules' && <RuleSystemManager />}
