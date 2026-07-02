@@ -1,0 +1,271 @@
+/* Twilight Keeper creator-flow polish.
+   Focuses on character creation mode picker, full creator and spell/choice surfaces. */
+
+/* Creation mode picker: strong, readable choice cards. */
+#root .character-mode-page {
+  background:
+    radial-gradient(circle at 50% 110%, rgba(255,149,66,0.20), transparent 42%),
+    radial-gradient(circle at 86% 8%, rgba(235,63,233,0.18), transparent 34%),
+    linear-gradient(180deg, #070713, #120720 52%, #1b082f) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .character-mode-hero,
+#root .character-mode-guide,
+#root .character-mode-summary,
+#root .character-mode-card {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(35,14,56,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 26px rgba(235,63,233,0.10) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .character-mode-hero h1,
+#root .character-mode-card h2,
+#root .character-mode-card h3 {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+  text-shadow: 0 2px 22px rgba(235,63,233,0.20) !important;
+}
+
+#root .character-mode-card {
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+#root .character-mode-card:hover,
+#root .character-mode-card:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.26), 0 0 34px rgba(235,63,233,0.16) !important;
+}
+
+#root .character-mode-icon-box,
+#root .character-mode-card-icon {
+  background: var(--rq-sunset-gradient) !important;
+  color: #fff !important;
+  border-radius: 22px !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+/* Full creator page frame. */
+#root .full-creator-page {
+  background:
+    radial-gradient(circle at 48% 108%, rgba(255,149,66,0.20), transparent 44%),
+    radial-gradient(circle at 88% 12%, rgba(235,63,233,0.18), transparent 34%),
+    linear-gradient(180deg, #070713, #120720 52%, #1b082f) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .full-creator-header,
+#root .full-creator-panel,
+#root .full-creator-preview,
+#root .full-creator-footer {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(35,14,56,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 26px rgba(235,63,233,0.10) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .full-creator-header h1,
+#root .full-creator-section-title h2,
+#root .full-creator-preview h2 {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+  letter-spacing: 0.03em;
+}
+
+#root .full-creator-header p,
+#root .full-creator-header span,
+#root .full-creator-section-title p,
+#root .full-creator-preview span,
+#root .full-creator-preview small,
+#root .full-creator-note {
+  color: rgba(255,248,239,0.70) !important;
+}
+
+/* Step rail: selected = sunset marker, unselected = quiet symbols/text. */
+#root .full-creator-steps {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)) !important;
+  gap: 7px !important;
+  background: rgba(13,6,23,0.76) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 24px !important;
+  padding: 8px !important;
+}
+
+#root .full-creator-steps button {
+  min-height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 4px !important;
+  background: rgba(13,6,23,0.68) !important;
+  color: rgba(255,248,239,0.74) !important;
+  border: 1px solid rgba(255,248,239,0.10) !important;
+  border-radius: 18px !important;
+}
+
+#root .full-creator-steps button.active,
+#root .full-creator-steps button[aria-current="step"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #fff !important;
+  border-color: rgba(255,248,239,0.18) !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+#root .full-creator-steps button svg {
+  margin: 0 !important;
+}
+
+/* Form blocks: dark inner cards with warm labels. */
+#root .full-creator-form-grid label,
+#root .full-creator-wide-label,
+#root .full-creator-score-editor label,
+#root .full-creator-choice-block,
+#root .full-creator-auto-box,
+#root .full-creator-review-grid > div,
+#root .full-creator-equipment-list span,
+#root .full-creator-mini-grid,
+#root .full-creator-score-grid > div {
+  background: rgba(13,6,23,0.82) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,248,239,0.13) !important;
+  border-left: 3px solid rgba(255,149,66,0.56) !important;
+  border-radius: 17px !important;
+}
+
+#root .full-creator-form-grid label span,
+#root .full-creator-wide-label span,
+#root .full-creator-score-editor label span,
+#root .full-creator-choice-block h3,
+#root .full-creator-review-grid span {
+  color: rgba(255,248,239,0.64) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+#root .full-creator-score-editor input,
+#root .full-creator-form-grid input,
+#root .full-creator-form-grid select,
+#root .full-creator-wide-label input,
+#root .full-creator-wide-label textarea,
+#root .full-creator-wide-label select,
+#root .full-creator-search,
+#root .full-creator-panel textarea {
+  background: rgba(8,4,14,0.92) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+}
+
+/* Choice chips and spell chips. */
+#root .full-creator-choice-block button,
+#root .full-creator-spell-chip,
+#root .full-creator-equipment-modes button {
+  background: rgba(13,6,23,0.74) !important;
+  color: rgba(255,248,239,0.82) !important;
+  border: 1px solid rgba(255,248,239,0.13) !important;
+  border-radius: 15px !important;
+}
+
+#root .full-creator-choice-block button.active,
+#root .full-creator-spell-chip.active,
+#root .full-creator-equipment-modes button.active {
+  background:
+    linear-gradient(145deg, rgba(27,11,45,0.96), rgba(44,16,71,0.94)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  color: #fff !important;
+  border: 2px solid transparent !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+#root .full-creator-spell-chip {
+  display: grid !important;
+  gap: 4px !important;
+  text-align: left !important;
+  min-height: 86px !important;
+}
+
+#root .full-creator-spell-chip strong,
+#root .full-creator-review-grid strong,
+#root .full-creator-score-grid strong,
+#root .full-creator-mini-grid strong {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .full-creator-spell-chip span,
+#root .full-creator-spell-chip em,
+#root .full-creator-equipment-list span {
+  color: rgba(255,248,239,0.70) !important;
+}
+
+/* Footer buttons: clear backwards/forward movement. */
+#root .full-creator-footer button:first-child {
+  background: rgba(13,6,23,0.78) !important;
+  color: rgba(255,248,239,0.82) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+}
+
+#root .full-creator-footer button:last-child {
+  background: var(--rq-sunset-gradient) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,248,239,0.18) !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+/* Matchmaker/basic creator surfaces if they reuse older classes. */
+#root .matchmaker-page,
+#root .basic-character-creator,
+#root .rook-character-matchmaker {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .matchmaker-card,
+#root .matchmaker-panel,
+#root .basic-creator-card,
+#root .basic-creator-panel,
+#root .rook-matchmaker-card,
+#root .rook-matchmaker-panel {
+  border: 2px solid transparent !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(35,14,56,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+/* Mobile: bigger tap targets, less glow. */
+@media (max-width: 760px) {
+  #root .character-mode-hero,
+  #root .character-mode-guide,
+  #root .character-mode-summary,
+  #root .character-mode-card,
+  #root .full-creator-header,
+  #root .full-creator-panel,
+  #root .full-creator-preview,
+  #root .full-creator-footer {
+    border-radius: 18px !important;
+    border-width: 1px !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.20), 0 0 14px rgba(235,63,233,0.06) !important;
+  }
+
+  #root .full-creator-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    border-radius: 18px !important;
+  }
+
+  #root .full-creator-steps button {
+    min-height: 44px !important;
+  }
+
+  #root .full-creator-spell-chip {
+    min-height: 76px !important;
+  }
+}
