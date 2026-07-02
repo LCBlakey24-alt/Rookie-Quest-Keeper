@@ -24,6 +24,8 @@ export function getCreatorSpellListLabel(className) {
 export function spellMatchesDropdownSearch(spell = {}, search = '') {
   const needle = String(search || '').trim().toLowerCase();
   if (!needle) return true;
+  if (needle.includes('damage') && spell.damage) return true;
+  if ((needle.includes('heal') || needle.includes('healing')) && spell.healing) return true;
   return [spell.name, spell.school, spell.description, spell.damage, spell.healing, spell.damageType]
     .filter(Boolean)
     .join(' ')
