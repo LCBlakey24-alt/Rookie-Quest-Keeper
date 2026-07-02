@@ -41,6 +41,7 @@ import '@/styles/twilightKeeperPolish.css';
 import '@/styles/twilightKeeperScreens.css';
 import '@/styles/twilightKeeperAppPages.css';
 import '@/styles/twilightKeeperCharacterSheet.css';
+import '@/styles/twilightKeeperCreator.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
