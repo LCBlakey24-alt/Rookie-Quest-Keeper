@@ -38,6 +38,7 @@ import {
 } from '@/components/clean-sheet/cleanSheetUtils';
 import '@/components/clean-sheet/CleanCharacterSheetPolish.css';
 import '@/components/clean-sheet/CleanSheetListPolish.css';
+import '@/components/clean-sheet/CleanSheetMobileBoxGrid.css';
 
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
