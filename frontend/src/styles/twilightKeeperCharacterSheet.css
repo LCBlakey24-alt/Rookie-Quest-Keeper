@@ -1,0 +1,293 @@
+/* Twilight Keeper character-sheet polish.
+   Screen-level pass for the sheet players use most: header, HP, tabs, cards and roll surfaces. */
+
+#root .character-page-v2 {
+  background:
+    radial-gradient(circle at 50% 110%, rgba(255,149,66,0.18), transparent 44%),
+    radial-gradient(circle at 88% 10%, rgba(235,63,233,0.16), transparent 34%),
+    linear-gradient(180deg, #070713, #120720 52%, #1b082f) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .character-page-v2 .clean-sheet-layout,
+#root .character-page-v2 .clean-sheet-shell,
+#root .character-page-v2 .clean-sheet-main,
+#root .character-page-v2 .clean-sheet-content,
+#root .character-page-v2 .clean-sheet-tab-content {
+  background: transparent !important;
+}
+
+/* Header: compact but more magical, with a sunset identity line. */
+#root .clean-sheet-header--simple,
+#root .clean-sheet-header,
+#root .clean-sheet-identity-strip {
+  border: 2px solid transparent !important;
+  border-radius: 22px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.94), rgba(36,16,58,0.88)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.22), 0 0 26px rgba(235,63,233,0.10) !important;
+}
+
+#root .clean-sheet-identity h1,
+#root .clean-sheet-character-name,
+#root .clean-sheet-header-title {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+  text-shadow: 0 2px 22px rgba(235,63,233,0.22) !important;
+}
+
+#root .clean-sheet-identity p,
+#root .clean-sheet-identity span,
+#root .clean-sheet-character-subtitle,
+#root .clean-sheet-header-subtitle {
+  color: rgba(255,248,239,0.72) !important;
+}
+
+/* Character rail: selected symbol should be the hero, not a chunky block. */
+#root .character-page-v2 .clean-sheet-tabs {
+  background: rgba(13,6,23,0.92) !important;
+  border-right: 1px solid rgba(255,248,239,0.12) !important;
+  backdrop-filter: blur(14px);
+}
+
+#root .character-page-v2 .clean-sheet-tabs button {
+  min-height: 42px !important;
+  border-radius: 17px !important;
+  color: rgba(255,248,239,0.78) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active {
+  background: rgba(13,6,23,0.56) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
+  background: var(--rq-sunset-gradient) !important;
+  color: #fff !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+/* HP and quick controls: keep readable, but make important numbers feel premium. */
+#root .clean-sheet-compact-status,
+#root .clean-sheet-hp-strip,
+#root .clean-sheet-status-panel,
+#root .clean-sheet-health-card {
+  border: 2px solid transparent !important;
+  border-radius: 22px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(34,14,54,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.20), 0 0 22px rgba(235,63,233,0.09) !important;
+}
+
+#root .clean-sheet-compact-status strong,
+#root .clean-sheet-hp-strip strong,
+#root .clean-sheet-health-card strong,
+#root .clean-sheet-status-panel strong {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .clean-sheet-compact-status button,
+#root .clean-sheet-hp-strip button,
+#root .clean-sheet-status-panel button,
+#root .clean-sheet-health-card button {
+  min-height: 34px !important;
+  background: rgba(13,6,23,0.82) !important;
+  color: rgba(255,248,239,0.88) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+}
+
+#root .clean-sheet-compact-status button:hover,
+#root .clean-sheet-hp-strip button:hover,
+#root .clean-sheet-status-panel button:hover,
+#root .clean-sheet-health-card button:hover {
+  border-color: rgba(255,149,66,0.44) !important;
+}
+
+/* Core content cards: stronger inner-dark, clean sunset outline. */
+#root .clean-sheet-panel,
+#root .clean-sheet-card,
+#root .clean-sheet-section,
+#root .clean-sheet-tab-panel,
+#root .clean-sheet-stat-card,
+#root .clean-sheet-ability-card,
+#root .clean-sheet-feature-card,
+#root .clean-sheet-spell-card,
+#root .clean-sheet-inventory-card,
+#root .clean-sheet-note-card,
+#root .clean-sheet-helper-card {
+  border: 2px solid transparent !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.97), rgba(28,10,46,0.94)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.86), rgba(235,63,233,0.70), rgba(255,149,66,0.76)) border-box !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.20), 0 0 20px rgba(235,63,233,0.08) !important;
+}
+
+#root .clean-sheet-panel h2,
+#root .clean-sheet-card h2,
+#root .clean-sheet-section h2,
+#root .clean-sheet-panel h3,
+#root .clean-sheet-card h3,
+#root .clean-sheet-section h3 {
+  font-family: var(--rq-title-font) !important;
+  color: var(--rq-sunset-cream) !important;
+  letter-spacing: 0.03em;
+}
+
+#root .clean-sheet-panel h2::after,
+#root .clean-sheet-card h2::after,
+#root .clean-sheet-section h2::after,
+#root .clean-sheet-panel h3::after,
+#root .clean-sheet-card h3::after,
+#root .clean-sheet-section h3::after {
+  content: "";
+  display: block;
+  width: min(180px, 62%);
+  height: 3px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient);
+  opacity: 0.70;
+}
+
+/* Stats/skills/action tiles: readable small boxes with a hint of sunset edge. */
+#root .clean-sheet-status-pill,
+#root .clean-sheet-pill,
+#root .clean-sheet-resource-card,
+#root .clean-sheet-action-card,
+#root .clean-sheet-attack-card,
+#root .clean-sheet-skill-card,
+#root .clean-sheet-save-card,
+#root .clean-sheet-slot-card,
+#root .clean-sheet-condition-chip,
+#root .clean-sheet-tag,
+#root .spell-library-card,
+#root .inventory-reference-card,
+#root .inventory-equipped-card,
+#root .inventory-item-card {
+  background: rgba(13,6,23,0.84) !important;
+  border: 1px solid rgba(255,248,239,0.13) !important;
+  border-left: 3px solid rgba(255,149,66,0.58) !important;
+  border-radius: 15px !important;
+  color: var(--rq-sunset-cream) !important;
+  box-shadow: none !important;
+}
+
+#root .clean-sheet-action-card[data-spent="true"],
+#root .clean-sheet-resource-card.is-empty,
+#root .clean-sheet-slot-card.is-empty {
+  opacity: 0.62 !important;
+}
+
+#root .clean-sheet-skill-card strong,
+#root .clean-sheet-save-card strong,
+#root .clean-sheet-action-card strong,
+#root .clean-sheet-attack-card strong,
+#root .clean-sheet-resource-card strong,
+#root .spell-library-card strong,
+#root .inventory-reference-card strong,
+#root .inventory-item-card strong {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .clean-sheet-skill-card span,
+#root .clean-sheet-save-card span,
+#root .clean-sheet-action-card span,
+#root .clean-sheet-attack-card span,
+#root .clean-sheet-resource-card span,
+#root .spell-library-card span,
+#root .inventory-reference-card span,
+#root .inventory-item-card span,
+#root .clean-sheet-card p,
+#root .clean-sheet-panel p,
+#root .clean-sheet-section p {
+  color: rgba(255,248,239,0.70) !important;
+}
+
+/* Dice roller / roll history: make results feel like glowing embers. */
+#root .dice-roller,
+#root .dice-roll-card,
+#root .dice-roll-panel,
+#root .clean-sheet-roll-history-panel,
+#root .clean-sheet-dice-panel,
+#root .roll-burst,
+#root .roll-burst-panel {
+  border: 2px solid transparent !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(32,12,52,0.92)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .dice-result,
+#root .roll-total,
+#root .roll-burst-total,
+#root .clean-sheet-roll-total {
+  color: #ffffff !important;
+  text-shadow: 0 0 18px rgba(255,149,66,0.28), 0 0 28px rgba(235,63,233,0.18) !important;
+}
+
+/* Spell/inventory search areas. */
+#root .clean-sheet-search,
+#root .spell-library-search,
+#root .inventory-search,
+#root .clean-sheet-filter-bar,
+#root .spell-filter-bar,
+#root .inventory-filter-bar {
+  background: rgba(13,6,23,0.78) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 18px !important;
+}
+
+#root .spell-library-card button,
+#root .inventory-reference-card button,
+#root .inventory-item-card button,
+#root .clean-sheet-card button,
+#root .clean-sheet-panel button {
+  background: rgba(13,6,23,0.82) !important;
+  color: rgba(255,248,239,0.88) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+}
+
+#root .spell-library-card button:first-of-type,
+#root .inventory-reference-card button:first-of-type,
+#root .clean-sheet-primary-action {
+  background: var(--rq-sunset-gradient) !important;
+  color: #fff !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+/* Mobile: keep the sunset border but avoid chunky magic bricks. */
+@media (max-width: 760px) {
+  #root .clean-sheet-header--simple,
+  #root .clean-sheet-compact-status,
+  #root .clean-sheet-panel,
+  #root .clean-sheet-card,
+  #root .clean-sheet-section,
+  #root .clean-sheet-tab-panel,
+  #root .dice-roller,
+  #root .clean-sheet-roll-history-panel {
+    border-radius: 17px !important;
+    border-width: 1px !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.20), 0 0 14px rgba(235,63,233,0.06) !important;
+  }
+
+  #root .clean-sheet-panel h2::after,
+  #root .clean-sheet-card h2::after,
+  #root .clean-sheet-section h2::after,
+  #root .clean-sheet-panel h3::after,
+  #root .clean-sheet-card h3::after,
+  #root .clean-sheet-section h3::after {
+    width: 128px;
+    height: 2px;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs {
+    border-right: 0 !important;
+  }
+}
