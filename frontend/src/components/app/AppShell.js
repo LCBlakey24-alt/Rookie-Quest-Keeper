@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
-import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
@@ -70,10 +69,7 @@ export default function AppShell({ children }) {
   return (
     <div className="rqk-app-shell">
       <aside className="rqk-app-rail" aria-label="App navigation">
-        <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper home">
-          <span className="rqk-app-rail-logo">
-            <BrandMiniLogo size={36} />
-          </span>
+        <Link to="/home" className="rqk-app-rail-brand rqk-app-rail-brand--text-only" aria-label="Rookie Quest Keeper home">
           <span className="rqk-app-rail-brand-text">Rookie Quest Keeper</span>
         </Link>
 
