@@ -123,19 +123,26 @@ export default function CleanSheetOverviewTab({
         </section>
       )}
 
-      <section className="clean-sheet-panel clean-sheet-compact-section">
+      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-ability-scores-panel">
         <h2>Ability Scores</h2>
-        <div className="clean-sheet-compact-abilities">
+        <div className="clean-sheet-ability-score-strip">
           {ABILITIES.map(([key, short]) => {
             const abilityMod = mod(character[key]);
+            const score = character[key] ?? 10;
+            const fullName = ABILITY_FULL_NAMES[key] || short;
             return (
-              <div key={key} className="clean-sheet-ability clean-sheet-compact-ability">
-                <span>{short}</span>
-                <strong>{character[key] ?? 10}</strong>
-                <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(`${short} Check`, abilityMod)} aria-label={`Roll ${short} check ${fmt(abilityMod)}`}>
-                  {fmt(abilityMod)}
-                </button>
-              </div>
+              <button
+                key={key}
+                type="button"
+                className="clean-sheet-ability-score-card"
+                onClick={() => onRoll(`${short} Check`, abilityMod)}
+                aria-label={`Roll ${fullName} check ${fmt(abilityMod)}`}
+                title={`Roll ${fullName} check`}
+              >
+                <span className="clean-sheet-ability-score-label">{short}</span>
+                <strong className="clean-sheet-ability-score-value">{score}</strong>
+                <em className="clean-sheet-ability-score-modifier">{fmt(abilityMod)}</em>
+              </button>
             );
           })}
         </div>
