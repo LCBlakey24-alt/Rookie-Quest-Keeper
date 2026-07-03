@@ -8,6 +8,12 @@
   gap: 12px !important;
 }
 
+#root .characters-library-page .library-page-hero h1 {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
 #root .characters-library-page .library-page-action-row {
   align-items: center !important;
   gap: 8px !important;
@@ -147,8 +153,10 @@
   }
 
   #root .characters-library-page .library-page-hero h1 {
-    font-size: clamp(2.9rem, 15vw, 4.5rem) !important;
-    line-height: 0.96 !important;
+    font-size: clamp(2.45rem, 10.4vw, 3.05rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: 0.01em !important;
+    max-width: 100% !important;
   }
 
   #root .characters-library-page .library-page-hero p {
@@ -198,6 +206,10 @@
 }
 
 @media (max-width: 380px) {
+  #root .characters-library-page .library-page-hero h1 {
+    font-size: clamp(2.15rem, 9.5vw, 2.65rem) !important;
+  }
+
   #root .characters-library-page .library-page-card-secondary-actions {
     grid-template-columns: 1fr !important;
   }
