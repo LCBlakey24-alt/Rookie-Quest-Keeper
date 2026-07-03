@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit3, TrendingUp, User } from 'lucide-react';
+import { Edit3, TrendingUp } from 'lucide-react';
 import './CleanSheetHeaderCompact.css';
 
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
@@ -40,34 +40,31 @@ function formatSubtitle(subtitle) {
 
 function compactSubtitle(character, fallbackSubtitle) {
   const parts = [
-    character?.subclass,
+    character?.race,
     character?.character_class,
-    `Lv ${character?.level || 1}`,
+    character?.subclass,
+    `Level ${character?.level || 1}`,
   ].filter(Boolean);
   return formatSubtitle(parts.join(' • ') || fallbackSubtitle);
 }
 
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
   return (
-    <header className="clean-sheet-header clean-sheet-header--simple">
-      <div className="clean-sheet-identity">
-        <div className="clean-sheet-portrait">
-          {character.portrait_url ? <img src={character.portrait_url} alt="" /> : <User size={30} />}
-        </div>
-        <div>
-          <p className="clean-sheet-kicker">Character</p>
+    <>
+      <header className="clean-sheet-header clean-sheet-header--simple">
+        <div className="clean-sheet-identity">
           <h1>{character.name}</h1>
           <p>{compactSubtitle(character, subtitle)}</p>
         </div>
-      </div>
-      <div className="clean-sheet-header-actions">
-        <button className="clean-sheet-level" onClick={onLevelUp}>
+      </header>
+      <div className="clean-sheet-header-actions" aria-label="Character sheet actions">
+        <button className="clean-sheet-level" onClick={onLevelUp} type="button">
           <TrendingUp size={18} /> Level Up
         </button>
-        <button className="clean-sheet-edit" onClick={onEdit}>
+        <button className="clean-sheet-edit" onClick={onEdit} type="button">
           <Edit3 size={18} /> Edit
         </button>
       </div>
-    </header>
+    </>
   );
 }
