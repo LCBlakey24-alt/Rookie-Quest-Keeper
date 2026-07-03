@@ -1,13 +1,12 @@
-/* Unified Twilight Keeper box language.
-   Applies the Ability Scores mock-up style to sheet/app boxes without adding glow clutter. */
+/* Unified sunset box language: dark purple cards, thin gradient borders, no glow clutter. */
 
 :root {
   --rq-box-radius: 10px;
   --rq-inner-radius: 8px;
-  --rq-box-fill: rgba(38, 12, 62, 0.96);
-  --rq-box-fill-2: rgba(31, 8, 52, 0.96);
+  --rq-box-fill: #1b0b2d;
+  --rq-box-fill-2: #160923;
   --rq-inner-fill: rgba(13, 6, 23, 0.82);
-  --rq-inner-fill-hover: rgba(255, 255, 255, 0.08);
+  --rq-inner-fill-hover: rgba(255, 255, 255, 0.06);
   --rq-border-soft: rgba(255, 255, 255, 0.14);
 }
 
@@ -29,18 +28,27 @@
 #root .campaign-library-card,
 #root .homebrew-workshop-card,
 #root .uploads-dashboard-card,
+#root .uploads-dashboard-next,
 #root .character-mode-card,
 #root .full-creator-panel,
 #root .full-creator-header,
 #root .full-creator-preview,
-#root .full-creator-footer {
-  border: 2px solid transparent !important;
-  border-left: 2px solid transparent !important;
+#root .full-creator-footer,
+#root .library-page-empty,
+#root .dashboard-empty-state,
+#root .modal,
+#root .dialog,
+#root [role="dialog"],
+#root .popover,
+#root .dropdown-menu {
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
   border-radius: var(--rq-box-radius) !important;
   background:
     linear-gradient(145deg, var(--rq-box-fill), var(--rq-box-fill-2)) padding-box,
     var(--rq-sunset-gradient) border-box !important;
   box-shadow: none !important;
+  color: #ffffff !important;
 }
 
 #root .clean-sheet-panel h2,
@@ -55,12 +63,50 @@
 #root .characters-library-hero h1,
 #root .campaigns-library-hero h1,
 #root .homebrew-workshop-hero h1,
-#root .uploads-dashboard-hero h1 {
+#root .uploads-dashboard-hero h1,
+#root .library-page-card h2,
+#root .library-page-empty h2,
+#root .full-creator-panel h2,
+#root .full-creator-header h1,
+#root .full-creator-preview h2 {
   margin-top: 0 !important;
   color: #ffffff !important;
-  font-weight: 900 !important;
-  text-transform: uppercase !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  font-weight: 700 !important;
   letter-spacing: 0.02em !important;
+  text-transform: none !important;
+}
+
+#root .clean-sheet-panel h2::after,
+#root .clean-sheet-card h2::after,
+#root .clean-sheet-section h2::after,
+#root .clean-sheet-panel h3::after,
+#root .clean-sheet-card h3::after,
+#root .clean-sheet-section h3::after,
+#root .dashboard-hero h1::after,
+#root .unified-dashboard-hero h1::after,
+#root .library-page-hero h1::after,
+#root .characters-library-hero h1::after,
+#root .campaigns-library-hero h1::after,
+#root .homebrew-workshop-hero h1::after,
+#root .uploads-dashboard-hero h1::after,
+#root .library-page-card h2::after,
+#root .library-page-empty h2::after,
+#root .full-creator-panel h2::after,
+#root .full-creator-header h1::after,
+#root .full-creator-preview h2::after {
+  content: '' !important;
+  display: block !important;
+  width: 100% !important;
+  height: 2px !important;
+  margin: 10px 0 0 !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient) !important;
+}
+
+#root .clean-sheet-section-heading-row h2::after,
+#root .clean-sheet-fighter-heading h2::after {
+  margin-top: 8px !important;
 }
 
 #root .clean-sheet-core-stat-card,
@@ -120,8 +166,6 @@
 
 #root .clean-sheet-core-stat-card strong,
 #root .clean-sheet-passive-card strong,
-#root .clean-sheet-save-card strong,
-#root .clean-sheet-skill-card strong,
 #root .clean-sheet-resource-card strong,
 #root .clean-sheet-action-card strong,
 #root .clean-sheet-attack-card strong,
@@ -134,10 +178,20 @@
   font-weight: 900 !important;
 }
 
-#root .clean-sheet-core-stat-card span,
-#root .clean-sheet-passive-card span,
+#root .clean-sheet-save-card strong,
+#root .clean-sheet-skill-card strong,
 #root .clean-sheet-save-card span,
 #root .clean-sheet-skill-card span,
+#root .clean-sheet-save-card em,
+#root .clean-sheet-skill-card em,
+#root .clean-sheet-save-card small,
+#root .clean-sheet-skill-card small {
+  font-family: var(--rq-body-font, 'Manrope'), system-ui, sans-serif !important;
+  color: #ffffff !important;
+}
+
+#root .clean-sheet-core-stat-card span,
+#root .clean-sheet-passive-card span,
 #root .clean-sheet-resource-card span,
 #root .clean-sheet-action-card span,
 #root .clean-sheet-attack-card span,
@@ -151,40 +205,56 @@
 }
 
 #root .clean-sheet-roll-chip,
-#root .clean-sheet-core-stat-card--rollable,
+#root .clean-sheet-core-stat-roll-chip,
+#root .clean-sheet-ability-score-chip,
 #root .clean-sheet-save-card button,
 #root .clean-sheet-skill-card button,
-#root .clean-sheet-action-card button,
-#root .clean-sheet-attack-card button,
+#root .clean-sheet-attack-stat-box,
 #root .spell-library-card button,
 #root .inventory-reference-card button,
 #root .inventory-item-card button {
   border-radius: var(--rq-inner-radius) !important;
-  border: 1px solid var(--rq-border-soft) !important;
-  border-left: 1px solid var(--rq-border-soft) !important;
-  background: rgba(8, 4, 14, 0.72) !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  background:
+    linear-gradient(var(--rq-card), var(--rq-card)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
 
+#root .clean-sheet-core-stat-card--rollable {
+  cursor: default !important;
+}
+
 #root .clean-sheet-core-stat-card--rollable:hover,
-#root .clean-sheet-core-stat-card--rollable:focus-visible,
+#root .clean-sheet-core-stat-card--rollable:focus-visible {
+  background: var(--rq-inner-fill) !important;
+  border-color: var(--rq-border-soft) !important;
+  outline: none !important;
+}
+
+#root .clean-sheet-roll-chip:hover,
+#root .clean-sheet-roll-chip:focus-visible,
+#root .clean-sheet-core-stat-roll-chip:hover,
+#root .clean-sheet-core-stat-roll-chip:focus-visible,
+#root .clean-sheet-ability-score-chip:hover,
+#root .clean-sheet-ability-score-chip:focus-visible,
 #root .clean-sheet-save-card button:hover,
 #root .clean-sheet-save-card button:focus-visible,
 #root .clean-sheet-skill-card button:hover,
 #root .clean-sheet-skill-card button:focus-visible,
-#root .clean-sheet-action-card button:hover,
-#root .clean-sheet-action-card button:focus-visible,
-#root .clean-sheet-attack-card button:hover,
-#root .clean-sheet-attack-card button:focus-visible,
+#root .clean-sheet-attack-stat-box:hover,
+#root .clean-sheet-attack-stat-box:focus-visible,
 #root .spell-library-card button:hover,
 #root .spell-library-card button:focus-visible,
 #root .inventory-reference-card button:hover,
 #root .inventory-reference-card button:focus-visible,
 #root .inventory-item-card button:hover,
 #root .inventory-item-card button:focus-visible {
-  background: var(--rq-inner-fill-hover) !important;
-  border-color: rgba(255, 255, 255, 0.24) !important;
+  background:
+    linear-gradient(var(--rq-card-hover), var(--rq-card-hover)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
   outline: none !important;
 }
 
@@ -198,52 +268,73 @@
 #root .clean-sheet-ability-score-strip {
   display: grid !important;
   grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: clamp(8px, 2vw, 18px) !important;
+  gap: clamp(7px, 1.6vw, 14px) !important;
   align-items: stretch !important;
 }
 
 #root .clean-sheet-ability-score-card {
   display: grid !important;
-  grid-template-rows: auto auto auto !important;
+  grid-template-rows: auto 1fr !important;
   justify-items: center !important;
   align-content: center !important;
-  gap: 2px !important;
+  gap: 6px !important;
   min-width: 0 !important;
-  min-height: 78px !important;
-  padding: 6px 4px !important;
+  min-height: 86px !important;
+  padding: 7px 4px !important;
   background: transparent !important;
   border: 1px solid transparent !important;
   border-left: 1px solid transparent !important;
   border-radius: var(--rq-inner-radius) !important;
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 #root .clean-sheet-ability-score-card:hover,
 #root .clean-sheet-ability-score-card:focus-visible {
-  background: var(--rq-inner-fill-hover) !important;
-  border-color: rgba(255, 255, 255, 0.24) !important;
-  border-left-color: rgba(255, 255, 255, 0.24) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  border-left-color: transparent !important;
   outline: none !important;
 }
 
 #root .clean-sheet-ability-score-label {
-  font-size: clamp(14px, 3.4vw, 20px) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  font-size: clamp(14px, 3vw, 20px) !important;
   line-height: 1 !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
 }
 
+#root .clean-sheet-ability-score-chip {
+  min-width: min(74px, 100%) !important;
+  min-height: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 2px !important;
+  padding: 7px 8px !important;
+  cursor: pointer !important;
+}
+
 #root .clean-sheet-ability-score-value {
-  font-size: clamp(28px, 7vw, 44px) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  font-size: clamp(26px, 6vw, 42px) !important;
   line-height: 0.95 !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
 }
 
 #root .clean-sheet-ability-score-modifier {
+  font-family: var(--rq-body-font, 'Manrope'), system-ui, sans-serif !important;
   font-style: normal !important;
-  font-size: clamp(15px, 4vw, 22px) !important;
+  font-size: clamp(14px, 3vw, 20px) !important;
   line-height: 1 !important;
   font-weight: 900 !important;
+}
+
+#root .clean-sheet-section-heading-row {
+  align-items: start !important;
+}
+
+#root .clean-sheet-section-heading-row > span {
+  color: #ffffff !important;
 }
 
 /* Remove old left-accent bar system. The new style is full-border only. */
@@ -282,35 +373,6 @@
   border: 0 !important;
 }
 
-#root .clean-sheet-panel,
-#root .clean-sheet-card,
-#root .clean-sheet-section,
-#root .clean-sheet-tab-panel,
-#root .clean-sheet-compact-status,
-#root .clean-sheet-core-stat-card,
-#root .clean-sheet-passive-card,
-#root .clean-sheet-save-card,
-#root .clean-sheet-skill-card,
-#root .clean-sheet-resource-card,
-#root .clean-sheet-action-card,
-#root .clean-sheet-attack-card,
-#root .spell-library-card,
-#root .inventory-reference-card,
-#root .inventory-item-card,
-#root .full-creator-form-grid label,
-#root .full-creator-wide-label,
-#root .full-creator-score-editor label,
-#root .full-creator-auto-box,
-#root .full-creator-review-grid > div,
-#root .library-list-row,
-#root .dashboard-row,
-#root .campaign-row,
-#root .admin-row,
-#root .feedback-row,
-#root .upload-history-row {
-  border-left-color: inherit !important;
-}
-
 @media (max-width: 760px) {
   #root .clean-sheet-panel,
   #root .clean-sheet-card,
@@ -336,8 +398,6 @@
   #root .full-creator-preview,
   #root .full-creator-footer {
     border-radius: 9px !important;
-    border-width: 1px !important;
-    border-left-width: 1px !important;
   }
 
   #root .clean-sheet-ability-score-strip {
@@ -345,7 +405,7 @@
   }
 
   #root .clean-sheet-ability-score-card {
-    min-height: 66px !important;
+    min-height: 68px !important;
     padding: 4px 2px !important;
   }
 }
