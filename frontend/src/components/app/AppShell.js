@@ -69,10 +69,6 @@ export default function AppShell({ children }) {
   return (
     <div className="rqk-app-shell">
       <aside className="rqk-app-rail" aria-label="App navigation">
-        <Link to="/home" className="rqk-app-rail-brand rqk-app-rail-brand--text-only" aria-label="Rookie Quest Keeper home">
-          <span className="rqk-app-rail-brand-text">Rookie Quest Keeper</span>
-        </Link>
-
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
           {navItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} />
