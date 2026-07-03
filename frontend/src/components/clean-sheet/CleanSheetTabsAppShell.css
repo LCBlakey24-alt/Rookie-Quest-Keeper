@@ -1,174 +1,68 @@
-/* Character sheet rail layout.
-   Character sheets do not use the global app rail. This keeps the sheet rail thin
-   on the left and gives the sheet content the rest of the page width. */
+/* Character sheet rail app-shell compatibility.
+   Visual rail styling lives in CleanSheetTabsRail.css and CleanSheetMobileRail.css.
+   This file only keeps safe spacing when a sheet is ever rendered inside AppShell. */
 
 .character-page-v2 {
-  --clean-sheet-rail-width: 124px;
-  --clean-sheet-rail-gap: 16px;
-  padding: 12px 18px 40px calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 12px) !important;
-  background: var(--rq-bg-main, #202020) !important;
+  --clean-sheet-rail-width: 206px;
+  --clean-sheet-rail-gap: 14px;
+  background: var(--rq-bg-main, #070713) !important;
 }
 
 .character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-header-actions,
 .character-page-v2 .clean-sheet-compact-status,
 .character-page-v2 .clean-sheet-content {
   width: 100% !important;
-  max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs {
-  position: fixed !important;
-  left: 10px !important;
-  top: 12px !important;
-  width: var(--clean-sheet-rail-width) !important;
-  max-width: var(--clean-sheet-rail-width) !important;
-  height: calc(100dvh - 24px) !important;
-  max-height: calc(100dvh - 24px) !important;
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  align-content: start !important;
-  gap: 5px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  z-index: 65 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button {
-  width: 100% !important;
-  min-width: 0 !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 7px !important;
-  padding: 0 9px !important;
-  background: var(--rq-bg-card, #141414) !important;
-  background-image: none !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
-  border-left: 4px solid transparent !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  overflow: hidden !important;
-}
-
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
-  margin-bottom: 7px !important;
-  background: var(--rq-bg-panel, #171717) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
-  margin-top: auto !important;
-  background: var(--rq-bg-panel, #171717) !important;
-  border-left-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button::before {
-  display: none !important;
-  width: 0 !important;
-  opacity: 0 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button svg {
-  width: 17px !important;
-  height: 17px !important;
-  flex: 0 0 auto !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button span {
-  display: inline !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  font-size: 11px !important;
-  font-weight: 900 !important;
-  line-height: 1 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button:hover,
-.character-page-v2 .clean-sheet-tabs button:focus-visible {
-  background: var(--rq-bg-panel, #171717) !important;
-  border-left-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button.active {
-  background: var(--rq-bg-panel, #171717) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-}
-
-.character-page-v2 .clean-sheet-grid,
-.character-page-v2 .clean-sheet-content > .clean-sheet-grid,
-.character-page-v2 .clean-sheet-content > section {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-.character-page-v2 .clean-sheet-panel,
-.character-page-v2 .clean-sheet-empty,
-.character-page-v2 .clean-sheet-hp-card,
-.character-page-v2 .clean-sheet-mobile-tools {
-  padding-left: clamp(14px, 1.3vw, 20px) !important;
-  padding-right: clamp(14px, 1.3vw, 20px) !important;
-}
-
-.character-page-v2 .clean-sheet-stat-card {
-  padding-left: 12px !important;
-  padding-right: 12px !important;
+  max-width: 1180px !important;
+  box-sizing: border-box !important;
 }
 
 .rqk-app-shell .character-page-v2 {
   --rqk-app-rail-width: 58px;
-  padding-left: calc(var(--rqk-app-rail-width) + var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 12px) !important;
+  padding-left: calc(var(--rqk-app-rail-width) + var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 18px) !important;
 }
 
 .rqk-app-shell .character-page-v2 .clean-sheet-tabs {
-  left: calc(var(--rqk-app-rail-width, 58px) + 10px) !important;
+  left: calc(var(--rqk-app-rail-width, 58px) + 14px) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  border-left: 1px solid transparent !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  border-left-color: transparent !important;
 }
 
 @media (min-width: 720px) {
   .rqk-app-shell .character-page-v2 {
-    --rqk-app-rail-width: 178px;
+    --rqk-app-rail-width: 196px;
   }
 }
 
 @media (min-width: 1180px) {
-  .character-page-v2 {
-    --clean-sheet-rail-width: 132px;
-  }
-
   .rqk-app-shell .character-page-v2 {
     --rqk-app-rail-width: 224px;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 759px) {
   .character-page-v2 {
-    --clean-sheet-rail-width: 104px;
-    --clean-sheet-rail-gap: 12px;
-    padding: 10px 12px 32px calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 8px) !important;
+    --clean-sheet-rail-width: 50px;
+    --clean-sheet-rail-gap: 8px;
   }
 
-  .character-page-v2 .clean-sheet-tabs {
-    left: 8px !important;
-    top: 10px !important;
-    height: calc(100dvh - 20px) !important;
-    max-height: calc(100dvh - 20px) !important;
+  .rqk-app-shell .character-page-v2 {
+    --rqk-app-rail-width: 54px;
+    padding-left: calc(var(--rqk-app-rail-width) + var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 8px) !important;
   }
 
-  .character-page-v2 .clean-sheet-tabs button {
-    height: 38px !important;
-    min-height: 38px !important;
-    gap: 6px !important;
-    padding: 0 8px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button span {
-    font-size: 10px !important;
+  .rqk-app-shell .character-page-v2 .clean-sheet-tabs {
+    left: calc(var(--rqk-app-rail-width, 54px) + 8px) !important;
   }
 }
 
@@ -176,156 +70,12 @@
   .character-page-v2 {
     --clean-sheet-rail-width: 50px;
     --clean-sheet-rail-gap: 8px;
-    padding-left: calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 6px) !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs {
-    width: var(--clean-sheet-rail-width) !important;
-    gap: 6px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button {
-    width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    justify-content: center !important;
-    padding: 0 !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button span {
-    display: none !important;
   }
 }
 
 @media (max-width: 390px) {
   .character-page-v2 {
-    --clean-sheet-rail-width: 46px;
-    --clean-sheet-rail-gap: 6px;
-    padding-left: calc(var(--clean-sheet-rail-width) + var(--clean-sheet-rail-gap) + 5px) !important;
-    padding-right: 8px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button {
-    width: 42px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-  }
-}
-
-/* Rail visual finishing pass. */
-.character-page-v2 {
-  --clean-sheet-rail-width: 118px;
-  --clean-sheet-rail-gap: 14px;
-}
-
-.character-page-v2 .clean-sheet-tabs {
-  padding: 7px 5px !important;
-  gap: 6px !important;
-  background: var(--rq-bg-panel, #101010) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button {
-  height: 39px !important;
-  min-height: 39px !important;
-  padding: 0 8px !important;
-  gap: 7px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border-color: rgba(255, 255, 255, 0.11) !important;
-  border-left-color: transparent !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.01em !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button svg {
-  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.78)) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button span {
-  font-size: 10.5px !important;
-  font-weight: 950 !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button:hover,
-.character-page-v2 .clean-sheet-tabs button:focus-visible {
-  background: var(--rq-bg-button-hover, #242424) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  border-left-color: rgba(255, 255, 255, 0.24) !important;
-  outline: none !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button.active {
-  background: var(--rq-bg-button-hover, #242424) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs button.active svg,
-.character-page-v2 .clean-sheet-tabs button.active span {
-  color: var(--rq-text-primary, #ffffff) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
-  margin-bottom: 8px !important;
-  background: var(--rq-bg-button, #202020) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
-  margin-top: auto !important;
-  background: var(--rq-bg-button, #202020) !important;
-  border-left-color: rgba(255, 255, 255, 0.16) !important;
-}
-
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
-.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-@media (min-width: 1180px) {
-  .character-page-v2 {
-    --clean-sheet-rail-width: 124px;
-  }
-}
-
-@media (max-width: 760px) {
-  .character-page-v2 {
-    --clean-sheet-rail-width: 98px;
-    --clean-sheet-rail-gap: 10px;
-  }
-
-  .character-page-v2 .clean-sheet-tabs {
-    padding: 6px 4px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button {
-    height: 37px !important;
-    min-height: 37px !important;
-    padding: 0 7px !important;
-  }
-}
-
-@media (max-width: 520px) {
-  .character-page-v2 {
     --clean-sheet-rail-width: 48px;
-    --clean-sheet-rail-gap: 7px;
-  }
-
-  .character-page-v2 .clean-sheet-tabs {
-    padding: 5px 2px !important;
-    gap: 6px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs button {
-    width: 40px !important;
-    height: 40px !important;
-    min-height: 40px !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback,
-  .character-page-v2 .clean-sheet-tabs button.active {
-    border-left-width: 3px !important;
+    --clean-sheet-rail-gap: 6px;
   }
 }
