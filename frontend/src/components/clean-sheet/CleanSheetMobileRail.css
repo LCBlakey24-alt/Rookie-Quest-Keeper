@@ -1,5 +1,4 @@
-/* Mobile-first character sheet rail pass.
-   Phone rail should be symbols only. Red appears only on the selected box. */
+/* Mobile character sheet rail: symbols only, selected icon gets the sunset square. */
 
 @media (max-width: 520px) {
   .character-page-v2 {
@@ -18,71 +17,71 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
-    background: var(--rq-bg-rail, #181818) !important;
-    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.12)) !important;
-    border-left: 0 !important;
+    background: var(--rq-bg-rail, #0d0617) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-radius: var(--rq-radius, 10px) !important;
   }
 
-  .character-page-v2 .clean-sheet-tabs button {
+  .character-page-v2 .clean-sheet-tabs button,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
     width: 42px !important;
+    min-width: 42px !important;
     height: 42px !important;
     min-height: 42px !important;
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
-    background: var(--rq-bg-card, #242424) !important;
-    color: var(--rq-text-secondary, rgba(255,255,255,0.78)) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-left: 3px solid transparent !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--rq-inner-radius, 8px) !important;
   }
 
-  .character-page-v2 .clean-sheet-tabs button span {
+  .character-page-v2 .clean-sheet-tabs button span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
     display: none !important;
   }
 
-  .character-page-v2 .clean-sheet-tabs button svg {
+  .character-page-v2 .clean-sheet-tabs button svg,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
     width: 18px !important;
     height: 18px !important;
-    color: currentColor !important;
+    color: #ffffff !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button:hover,
-  .character-page-v2 .clean-sheet-tabs button:focus-visible {
-    background: var(--rq-bg-button-hover, #2a2a2a) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border-left-color: transparent !important;
+  .character-page-v2 .clean-sheet-tabs button:focus-visible,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:hover,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:focus-visible,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
+    background: rgba(255,255,255,0.05) !important;
     outline: none !important;
   }
 
   .character-page-v2 .clean-sheet-tabs button.active {
-    background: var(--rq-bg-panel, #101010) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border-color: rgba(255,255,255,0.18) !important;
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs button.active svg {
+    width: 18px !important;
+    height: 18px !important;
+    padding: 8px !important;
+    background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+    border-radius: var(--rq-inner-radius, 8px) !important;
+    box-sizing: content-box !important;
   }
 
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back {
     margin-bottom: 6px !important;
-    background: var(--rq-bg-card, #242424) !important;
-    border-left-color: transparent !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:hover,
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back:focus-visible {
-    background: var(--rq-bg-button-hover, #2a2a2a) !important;
-    border-left-color: transparent !important;
   }
 
   .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
     margin-top: auto !important;
-    background: var(--rq-bg-card, #242424) !important;
-    border-left-color: transparent !important;
-  }
-
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:hover,
-  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback:focus-visible {
-    background: var(--rq-bg-button-hover, #2a2a2a) !important;
-    border-left-color: transparent !important;
   }
 }
 
@@ -99,8 +98,11 @@
     padding-inline: 2px !important;
   }
 
-  .character-page-v2 .clean-sheet-tabs button {
+  .character-page-v2 .clean-sheet-tabs button,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
     width: 40px !important;
+    min-width: 40px !important;
     height: 40px !important;
     min-height: 40px !important;
   }
