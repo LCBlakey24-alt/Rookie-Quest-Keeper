@@ -1,0 +1,270 @@
+/* Final Twilight Keeper lock. Loaded after every mockup/theme file. */
+
+:root {
+  --rq-twilight-bg: #070713;
+  --rq-twilight-bg-2: #110820;
+  --rq-twilight-bg-3: #1b082f;
+  --rq-twilight-rail: #0d0617;
+  --rq-twilight-panel: #24103a;
+  --rq-twilight-panel-deep: #13081f;
+  --rq-twilight-card: #1b0b2d;
+  --rq-twilight-card-2: #2c1047;
+  --rq-sunset-purple: #7357ff;
+  --rq-sunset-pink: #eb3fe9;
+  --rq-sunset-red: #ff4f81;
+  --rq-sunset-orange: #ff9542;
+  --rq-sunset-cream: #fff8ef;
+  --rq-sunset-muted: rgba(255, 248, 239, 0.74);
+  --rq-sunset-line: rgba(255, 248, 239, 0.15);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(115,87,255,0.34), rgba(235,63,233,0.24), rgba(255,79,129,0.18), rgba(255,149,66,0.20));
+  --rq-sunset-glow: 0 0 24px rgba(235, 63, 233, 0.15), 0 0 36px rgba(255, 149, 66, 0.08);
+  --rq-twilight-selected-shadow: 0 0 18px rgba(235, 63, 233, 0.28), 0 0 30px rgba(255, 149, 66, 0.14);
+
+  --rq-bg: var(--rq-twilight-bg);
+  --rq-bg-main: var(--rq-twilight-bg);
+  --rq-bg-rail: var(--rq-twilight-rail);
+  --rq-bg-panel: var(--rq-twilight-panel-deep);
+  --rq-bg-card: var(--rq-twilight-card);
+  --rq-surface: var(--rq-twilight-panel);
+  --rq-card: var(--rq-twilight-card);
+  --rq-card-hover: var(--rq-twilight-card-2);
+  --rq-primary: var(--rq-sunset-pink);
+  --rq-primary-hover: var(--rq-sunset-orange);
+  --rq-accent-primary: var(--rq-sunset-pink);
+  --rq-accent-hover: var(--rq-sunset-orange);
+  --rq-text: var(--rq-sunset-cream);
+  --rq-text-primary: var(--rq-sunset-cream);
+  --rq-text-secondary: var(--rq-sunset-muted);
+  --rq-line: var(--rq-sunset-line);
+  --rq-border-default: var(--rq-sunset-line);
+  --rq-board-bg: var(--rq-twilight-panel-deep);
+  --rq-board-card: var(--rq-twilight-card);
+  --rq-board-red: var(--rq-sunset-pink);
+}
+
+html,
+body,
+#root,
+#root .rqk-app-shell,
+#root .rqk-app-shell-content,
+#root .landing-page,
+#root .auth-page,
+#root .loading-screen,
+#root .full-creator-page,
+#root .character-mode-page,
+#root .character-page-v2,
+#root .clean-sheet-page,
+#root .dashboard-page,
+#root .unified-dashboard,
+#root .my-characters-page,
+#root .my-campaigns-page,
+#root .homebrew-workshop-page,
+#root .uploads-dashboard-page,
+#root .gm-dashboard-shell,
+#root .campaign-dashboard,
+#root .campaign-dashboard-page {
+  background:
+    radial-gradient(circle at 50% 118%, rgba(255,149,66,0.20), rgba(255,79,129,0.12) 22%, transparent 52%),
+    radial-gradient(circle at 86% 12%, rgba(235,63,233,0.20), transparent 38%),
+    radial-gradient(circle at 12% 8%, rgba(115,87,255,0.20), transparent 34%),
+    linear-gradient(180deg, #070713 0%, #110820 48%, #1b082f 100%) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .rqk-app-rail,
+#root .character-page-v2 .clean-sheet-tabs {
+  background: rgba(13,6,23,0.96) !important;
+  border-color: rgba(255,248,239,0.12) !important;
+  box-shadow: 0 0 34px rgba(0,0,0,0.28) !important;
+}
+
+#root .rqk-app-rail-brand::after,
+#root .rqk-app-rail-nav::after,
+#root .clean-sheet-tabs::after,
+#root .clean-sheet-panel h2::after,
+#root .clean-sheet-card h2::after,
+#root .clean-sheet-section h2::after,
+#root .full-creator-section-title::after {
+  background: var(--rq-sunset-gradient) !important;
+}
+
+#root .rqk-app-rail-link.is-active svg,
+#root .character-page-v2 .clean-sheet-tabs button.active svg,
+#root .character-mode-icon-box,
+#root .character-mode-card-icon,
+#root .full-creator-steps button.active,
+#root .full-creator-steps button[aria-current="step"],
+#root .loading-spinner {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+#root .dashboard-hero,
+#root .unified-dashboard-hero,
+#root .library-page-hero,
+#root .characters-library-hero,
+#root .campaigns-library-hero,
+#root .homebrew-workshop-hero,
+#root .uploads-dashboard-hero,
+#root .library-page-card,
+#root .character-library-card,
+#root .campaign-library-card,
+#root .homebrew-workshop-card,
+#root .uploads-dashboard-card,
+#root .character-mode-hero,
+#root .character-mode-guide,
+#root .character-mode-summary,
+#root .character-mode-card,
+#root .full-creator-header,
+#root .full-creator-panel,
+#root .full-creator-preview,
+#root .full-creator-footer,
+#root .clean-sheet-header--simple,
+#root .clean-sheet-compact-status,
+#root .clean-sheet-panel,
+#root .clean-sheet-card,
+#root .clean-sheet-section,
+#root .clean-sheet-tab-panel,
+#root .admin-character-audit__hero,
+#root .admin-character-audit__tools,
+#root .admin-character-audit__report,
+#root .admin-character-audit-card {
+  border: 2px solid transparent !important;
+  border-left: 2px solid transparent !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.97), rgba(28,10,46,0.94)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.20), 0 0 20px rgba(235,63,233,0.08) !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root .clean-sheet-status-pill,
+#root .clean-sheet-pill,
+#root .clean-sheet-resource-card,
+#root .clean-sheet-action-card,
+#root .clean-sheet-attack-card,
+#root .clean-sheet-skill-card,
+#root .clean-sheet-save-card,
+#root .spell-library-card,
+#root .inventory-reference-card,
+#root .inventory-item-card,
+#root .full-creator-form-grid label,
+#root .full-creator-wide-label,
+#root .full-creator-score-editor label,
+#root .full-creator-auto-box,
+#root .full-creator-review-grid > div,
+#root .full-creator-equipment-list span {
+  background: rgba(13,6,23,0.84) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,248,239,0.13) !important;
+  border-left: 3px solid rgba(255,149,66,0.58) !important;
+  border-radius: 15px !important;
+}
+
+#root h1,
+#root h2,
+#root h3,
+#root .page-title,
+#root .hero-title,
+#root .clean-sheet-identity h1,
+#root .full-creator-header h1,
+#root .full-creator-section-title h2,
+#root .full-creator-preview h2 {
+  color: var(--rq-sunset-cream) !important;
+  text-shadow: 0 2px 20px rgba(235,63,233,0.18) !important;
+}
+
+#root p,
+#root li,
+#root small,
+#root span,
+#root label,
+#root th,
+#root td {
+  color: rgba(255,248,239,0.74) !important;
+}
+
+#root strong,
+#root b {
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root input,
+#root textarea,
+#root select,
+#root .full-creator-search,
+#root .clean-sheet-search,
+#root .spell-library-search,
+#root .inventory-search {
+  background: rgba(8,4,14,0.92) !important;
+  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+}
+
+#root .btn-primary,
+#root .landing-button-primary,
+#root [data-rqk-primary="true"],
+#root button[type="submit"],
+#root .character-mode-choose,
+#root .library-page-actions button:first-child,
+#root .dashboard-hero-actions button:first-child,
+#root .character-library-actions button:first-child,
+#root .campaign-library-actions button:first-child,
+#root .uploads-dashboard-actions button:first-child,
+#root .homebrew-workshop-actions button:first-child,
+#root .full-creator-footer button:last-child,
+#root .global-feedback-button,
+#root .feedback-floating-button,
+#root [data-testid="global-feedback-button"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,248,239,0.18) !important;
+  box-shadow: var(--rq-twilight-selected-shadow) !important;
+}
+
+#root button:not(.rqk-app-rail-link):not(.clean-sheet-tabs button):not([type="submit"]),
+#root .btn-outline,
+#root .landing-button-ghost,
+#root [data-rqk-secondary="true"],
+#root .full-creator-footer button:first-child {
+  background: rgba(13,6,23,0.82) !important;
+  color: rgba(255,248,239,0.88) !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+}
+
+@media (max-width: 760px) {
+  #root .rqk-app-shell {
+    grid-template-columns: 58px minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-rail-link.is-active svg,
+  #root .character-page-v2 .clean-sheet-tabs button.active svg {
+    width: 20px !important;
+    height: 20px !important;
+    padding: 8px !important;
+    border-radius: 14px !important;
+  }
+
+  #root .dashboard-hero,
+  #root .unified-dashboard-hero,
+  #root .library-page-hero,
+  #root .characters-library-hero,
+  #root .campaigns-library-hero,
+  #root .homebrew-workshop-hero,
+  #root .uploads-dashboard-hero,
+  #root .library-page-card,
+  #root .character-library-card,
+  #root .campaign-library-card,
+  #root .character-mode-card,
+  #root .full-creator-panel,
+  #root .clean-sheet-panel,
+  #root .clean-sheet-card,
+  #root .clean-sheet-section {
+    border-radius: 17px !important;
+    border-width: 1px !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.20), 0 0 14px rgba(235,63,233,0.06) !important;
+  }
+}
