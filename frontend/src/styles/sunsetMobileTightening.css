@@ -1,0 +1,208 @@
+/* Final mobile tightening pass for the sunset character library. */
+
+#root .characters-library-page {
+  gap: 10px !important;
+}
+
+#root .characters-library-page .library-page-hero {
+  gap: 12px !important;
+}
+
+#root .characters-library-page .library-page-action-row {
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+#root .characters-library-page .library-page-action-main,
+#root .characters-library-page .library-page-action-secondary {
+  width: auto !important;
+  flex: 0 1 auto !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button,
+#root .characters-library-page .library-page-action-row button,
+#root .characters-library-page .character-library-card-actions button,
+#root .characters-library-page .character-library-card-actions .library-page-button {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button svg,
+#root .characters-library-page .library-page-action-row button svg,
+#root .characters-library-page .character-library-card-actions button svg,
+#root .characters-library-page .character-library-card-actions .library-page-button svg {
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button,
+#root .characters-library-page .library-page-action-row button {
+  min-height: 42px !important;
+  padding: 0 14px !important;
+}
+
+#root .characters-library-page .library-page-toolbar {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  padding: 10px 12px !important;
+}
+
+#root .characters-library-page .library-page-card {
+  min-height: 0 !important;
+  padding: 12px !important;
+  gap: 10px !important;
+}
+
+#root .characters-library-page .character-library-card-copy {
+  gap: 6px !important;
+}
+
+#root .characters-library-page .library-page-card h2 {
+  font-size: clamp(2rem, 8vw, 2.8rem) !important;
+  line-height: 0.95 !important;
+}
+
+#root .characters-library-page .library-page-card h2::after {
+  margin-top: 8px !important;
+}
+
+#root .characters-library-page .library-page-card p {
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+}
+
+#root .characters-library-page .character-library-card-actions {
+  gap: 6px !important;
+  margin-top: 4px !important;
+}
+
+#root .characters-library-page .library-page-card-open {
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: 0 12px !important;
+}
+
+#root .characters-library-page .library-page-card-secondary-actions {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+#root .characters-library-page .library-page-card-secondary-actions button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  font-size: 0.92rem !important;
+}
+
+#root .characters-library-page .library-page-card-secondary-actions .library-page-danger-button {
+  grid-column: 1 / -1 !important;
+  justify-self: start !important;
+  width: auto !important;
+  min-width: 112px !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  font-size: 0.86rem !important;
+  opacity: 0.86 !important;
+}
+
+#root .characters-library-page .library-page-card-secondary-actions .library-page-danger-button:hover,
+#root .characters-library-page .library-page-card-secondary-actions .library-page-danger-button:focus-visible {
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  #root .rqk-app-rail-link.is-active span::after,
+  #root .rqk-app-rail-link::after,
+  #root .rqk-app-rail-nav::after,
+  #root .rqk-app-rail::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .rqk-app-rail-link.is-active svg {
+    border-radius: var(--rq-inner-radius, 8px) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .characters-library-page {
+    padding: 10px 9px !important;
+  }
+
+  #root .characters-library-page .library-page-hero {
+    padding: 13px !important;
+  }
+
+  #root .characters-library-page .library-page-hero h1 {
+    font-size: clamp(2.9rem, 15vw, 4.5rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  #root .characters-library-page .library-page-hero p {
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+  }
+
+  #root .characters-library-page .library-page-action-row {
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  #root .characters-library-page .library-page-action-main,
+  #root .characters-library-page .library-page-action-secondary {
+    width: auto !important;
+  }
+
+  #root .characters-library-page .library-page-action-row .library-page-button,
+  #root .characters-library-page .library-page-action-row button {
+    width: auto !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    font-size: 0.95rem !important;
+  }
+
+  #root .characters-library-page .library-page-toolbar {
+    padding: 9px 11px !important;
+  }
+
+  #root .characters-library-page .library-page-grid {
+    gap: 9px !important;
+  }
+
+  #root .characters-library-page .library-page-card {
+    padding: 11px !important;
+  }
+
+  #root .characters-library-page .library-page-card-open {
+    min-height: 40px !important;
+  }
+
+  #root .characters-library-page .library-page-card-secondary-actions button {
+    min-height: 36px !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #root .characters-library-page .library-page-card-secondary-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .characters-library-page .library-page-card-secondary-actions .library-page-danger-button {
+    width: auto !important;
+  }
+}
