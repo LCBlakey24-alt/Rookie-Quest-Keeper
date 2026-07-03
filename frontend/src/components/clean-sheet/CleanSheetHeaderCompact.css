@@ -1,79 +1,118 @@
-/* Compact identity strip for every character sheet size.
-   The header should show name + class/subclass/level without becoming a giant title block. */
+/* Clean, practical sheet hero: title card first, actions below. */
 
 .character-page-v2 .clean-sheet-header--simple {
-  min-height: 54px !important;
-  padding: 7px 8px !important;
-  gap: 6px !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  align-items: stretch !important;
+  width: 100% !important;
+  max-width: 1180px !important;
+  min-height: auto !important;
+  margin: 0 auto 8px !important;
+  padding: clamp(14px, 2.4vw, 24px) !important;
+  display: block !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-identity {
-  min-height: 40px !important;
-  padding: 6px 8px !important;
-  gap: 7px !important;
-  grid-template-columns: 34px minmax(0, 1fr) !important;
+  min-height: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
 }
 
-.character-page-v2 .clean-sheet-portrait {
-  width: 34px !important;
-  height: 34px !important;
-}
-
-.character-page-v2 .clean-sheet-portrait svg {
-  width: 19px !important;
-  height: 19px !important;
-}
-
+.character-page-v2 .clean-sheet-portrait,
 .character-page-v2 .clean-sheet-kicker {
   display: none !important;
 }
 
 .character-page-v2 .clean-sheet-identity h1 {
   margin: 0 !important;
-  font-size: clamp(0.92rem, 2.2vw, 1.15rem) !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  font-size: clamp(1.85rem, 4.6vw, 3rem) !important;
+  font-weight: 700 !important;
   line-height: 1 !important;
-  letter-spacing: -0.01em !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  letter-spacing: 0.02em !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.character-page-v2 .clean-sheet-identity h1::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
 }
 
 .character-page-v2 .clean-sheet-identity p:last-child {
-  margin: 3px 0 0 !important;
-  font-size: clamp(0.66rem, 1.8vw, 0.78rem) !important;
-  line-height: 1.05 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: clamp(0.88rem, 2.1vw, 1rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions {
-  grid-template-columns: repeat(2, minmax(42px, auto)) !important;
-  gap: 5px !important;
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin: 0 auto 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions button {
-  min-width: 42px !important;
+  min-width: 0 !important;
   min-height: 40px !important;
-  height: 40px !important;
-  padding: 0 8px !important;
-  font-size: 10px !important;
-  gap: 5px !important;
+  height: auto !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  color: #ffffff !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  box-shadow: none !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions .clean-sheet-level {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions .clean-sheet-edit {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
 }
 
 .character-page-v2 .clean-sheet-header-actions button svg {
-  width: 14px !important;
-  height: 14px !important;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 @media (max-width: 520px) {
   .character-page-v2 .clean-sheet-header--simple {
-    grid-template-columns: 1fr !important;
+    padding: 13px !important;
   }
 
   .character-page-v2 .clean-sheet-header-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    justify-content: flex-start !important;
   }
 }
