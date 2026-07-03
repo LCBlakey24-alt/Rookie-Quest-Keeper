@@ -1,6 +1,9 @@
-/* Final simple Twilight Keeper guard. Loaded last. */
+/* Sunset fantasy guard. Loaded near the end to keep the app dark, white-text, and non-parchment. */
 
 :root {
+  --rq-heading-font: 'Cinzel', Georgia, serif;
+  --rq-body-font: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
   --rq-white: #ffffff;
   --rq-bg: #070713;
   --rq-bg-main: #070713;
@@ -10,23 +13,34 @@
   --rq-surface: #13081f;
   --rq-card: #1b0b2d;
   --rq-card-hover: #24103a;
+  --rq-button: #1b0b2d;
+  --rq-button-hover: #24103a;
+  --rq-bg-button: #1b0b2d;
+  --rq-bg-button-hover: #24103a;
+  --rq-bg-input: #0b0614;
+
   --rq-primary: #eb3fe9;
   --rq-primary-hover: #ff9542;
   --rq-accent-primary: #eb3fe9;
   --rq-accent-hover: #ff9542;
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+
   --rq-text: #ffffff;
   --rq-text-primary: #ffffff;
   --rq-text-secondary: #ffffff;
+  --rq-text-muted: #ffffff;
   --rq-muted: #ffffff;
-  --rq-line: rgba(255,255,255,0.16);
-  --rq-border-default: rgba(255,255,255,0.16);
   --rq-sunset-cream: #ffffff;
   --rq-sunset-muted: #ffffff;
-  --rq-sunset-line: rgba(255,255,255,0.16);
-  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+
+  --rq-line: rgba(255, 255, 255, 0.16);
+  --rq-border-default: rgba(255, 255, 255, 0.16);
+  --rq-sunset-line: rgba(255, 255, 255, 0.16);
   --rq-sunset-glow: none;
   --rq-twilight-selected-shadow: none;
+
   --rq-radius: 10px;
+  --rq-inner-radius: 8px;
 }
 
 html,
@@ -47,18 +61,21 @@ body,
 #root .unified-dashboard,
 #root .my-characters-page,
 #root .my-campaigns-page,
+#root .library-page,
 #root .homebrew-workshop-page,
 #root .uploads-dashboard-page,
 #root .gm-dashboard-shell {
-  background: radial-gradient(circle at 50% 118%, rgba(255,149,66,0.14), transparent 42%), radial-gradient(circle at 88% 10%, rgba(235,63,233,0.14), transparent 34%), radial-gradient(circle at 10% 8%, rgba(115,87,255,0.14), transparent 34%), linear-gradient(180deg, #070713 0%, #110820 52%, #1b082f 100%) !important;
+  background: linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
   color: #ffffff !important;
+  font-family: var(--rq-body-font) !important;
 }
 
 #root *,
 #root *::before,
 #root *::after {
-  color: #ffffff !important;
+  color: inherit;
   text-shadow: none !important;
+  box-shadow: none !important;
 }
 
 #root h1,
@@ -71,11 +88,33 @@ body,
 #root .hero-title,
 #root .loading-title,
 #root .clean-sheet-identity h1,
+#root .clean-sheet-panel h2,
+#root .clean-sheet-card h2,
+#root .clean-sheet-section h2,
+#root .clean-sheet-panel h3,
+#root .clean-sheet-card h3,
+#root .clean-sheet-section h3,
 #root .full-creator-header h1,
 #root .full-creator-section-title h2,
-#root .full-creator-preview h2 {
+#root .full-creator-preview h2,
+#root .library-page-hero h1,
+#root .library-page-card h2,
+#root .library-page-empty h2,
+#root .dashboard-hero h1,
+#root .unified-dashboard-hero h1,
+#root .characters-library-hero h1,
+#root .campaigns-library-hero h1,
+#root .homebrew-workshop-hero h1,
+#root .uploads-dashboard-hero h1,
+#root .clean-sheet-ability-score-label,
+#root .clean-sheet-core-stat-card strong,
+#root .clean-sheet-compact-stat strong,
+#root .clean-sheet-hp-total,
+#root .clean-sheet-hp-current,
+#root .clean-sheet-hp-max {
   color: #ffffff !important;
-  font-weight: 900 !important;
+  font-family: var(--rq-heading-font) !important;
+  font-weight: 700 !important;
   text-shadow: none !important;
 }
 
@@ -87,53 +126,23 @@ body,
 #root th,
 #root td,
 #root strong,
-#root b {
+#root b,
+#root em,
+#root input,
+#root textarea,
+#root select,
+#root button,
+#root a {
   color: #ffffff !important;
 }
 
-#root .rqk-app-shell {
-  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr) !important;
-}
-
-#root .rqk-app-rail,
-#root .character-page-v2 .clean-sheet-tabs {
-  background: rgba(13,6,23,0.96) !important;
-  border-color: rgba(255,255,255,0.14) !important;
-  box-shadow: none !important;
-}
-
-#root .character-page-v2 .clean-sheet-tabs {
-  width: min(250px, 28vw) !important;
-  min-width: 210px !important;
-  padding: 18px 14px !important;
-  gap: 14px !important;
-}
-
 #root .rqk-app-rail-logo,
+#root .rqk-app-rail-brand,
 #root .loading-logo,
 #root img[src*="/brand/"],
 #root img[alt="RQK"],
 #root img[alt="Rookie Quest Keeper"] {
   display: none !important;
-}
-
-#root .rqk-app-rail-brand::after,
-#root .rqk-app-rail-nav::after,
-#root .clean-sheet-tabs::after,
-#root .clean-sheet-panel h2::after,
-#root .clean-sheet-card h2::after,
-#root .clean-sheet-section h2::after,
-#root .clean-sheet-panel h3::after,
-#root .clean-sheet-card h3::after,
-#root .clean-sheet-section h3::after,
-#root .full-creator-section-title::after,
-#root .admin-character-audit__report-head::after,
-#root .loading-screen::before,
-#root .loading-screen::after,
-#root .full-creator-loading::before,
-#root .full-creator-loading::after {
-  display: none !important;
-  content: none !important;
 }
 
 #root .loading-screen,
@@ -162,119 +171,23 @@ body,
 #root .full-creator-loading p:first-of-type {
   margin: 0 !important;
   padding: 0 !important;
+  font-family: var(--rq-heading-font) !important;
   font-size: clamp(20px, 6vw, 32px) !important;
   line-height: 1.15 !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
   letter-spacing: 0.02em !important;
 }
 
 #root .loading-title::after,
 #root .clean-sheet-loading p:first-of-type::after,
 #root .full-creator-loading p:first-of-type::after {
-  content: "";
+  content: '';
   display: block;
   width: min(180px, 54vw);
-  height: 4px;
+  height: 2px;
   margin: 14px auto 0;
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
-}
-
-#root .landing-final-hero,
-#root .landing-final-feature,
-#root .landing-benefit-card,
-#root .landing-marketing-block,
-#root .landing-roadmap,
-#root .landing-final-cta,
-#root .rqk-public-screen-card,
-#root .auth-card,
-#root .auth-panel,
-#root .dashboard-hero,
-#root .unified-dashboard-hero,
-#root .library-page-hero,
-#root .characters-library-hero,
-#root .campaigns-library-hero,
-#root .homebrew-workshop-hero,
-#root .uploads-dashboard-hero,
-#root .dashboard-overview,
-#root .dashboard-list-panel,
-#root .dashboard-empty-state,
-#root .library-page-card,
-#root .character-library-card,
-#root .campaign-library-card,
-#root .homebrew-workshop-card,
-#root .uploads-dashboard-card,
-#root .uploads-dashboard-next,
-#root .character-mode-hero,
-#root .character-mode-guide,
-#root .character-mode-summary,
-#root .character-mode-card,
-#root .full-creator-header,
-#root .full-creator-panel,
-#root .full-creator-preview,
-#root .full-creator-footer,
-#root .clean-sheet-header--simple,
-#root .clean-sheet-compact-status,
-#root .clean-sheet-panel,
-#root .clean-sheet-card,
-#root .clean-sheet-section,
-#root .clean-sheet-tab-panel,
-#root .admin-character-audit__hero,
-#root .admin-character-audit__tools,
-#root .admin-character-audit__report,
-#root .admin-character-audit-card,
-#root .modal,
-#root .dialog,
-#root [role="dialog"],
-#root .popover,
-#root .dropdown-menu {
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  border-radius: 10px !important;
-  background: rgba(19,8,31,0.94) !important;
-  box-shadow: none !important;
-}
-
-#root .clean-sheet-status-pill,
-#root .clean-sheet-pill,
-#root .clean-sheet-resource-card,
-#root .clean-sheet-action-card,
-#root .clean-sheet-attack-card,
-#root .clean-sheet-skill-card,
-#root .clean-sheet-save-card,
-#root .spell-library-card,
-#root .inventory-reference-card,
-#root .inventory-item-card,
-#root .full-creator-form-grid label,
-#root .full-creator-wide-label,
-#root .full-creator-score-editor label,
-#root .full-creator-auto-box,
-#root .full-creator-review-grid > div,
-#root .full-creator-equipment-list span,
-#root table,
-#root .table,
-#root .list-row,
-#root .library-list-row,
-#root .feedback-row,
-#root .admin-row,
-#root .campaign-row,
-#root .dashboard-row,
-#root .homebrew-result,
-#root .upload-history-row {
-  background: rgba(13,6,23,0.88) !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
-}
-
-#root .rqk-app-rail-link,
-#root .character-page-v2 .clean-sheet-tabs button,
-#root button,
-#root [role="button"],
-#root input,
-#root textarea,
-#root select {
-  border-radius: 8px !important;
-  box-shadow: none !important;
 }
 
 #root input,
@@ -284,63 +197,91 @@ body,
 #root .clean-sheet-search,
 #root .spell-library-search,
 #root .inventory-search {
-  background: rgba(8,4,14,0.92) !important;
+  background: rgba(8, 4, 14, 0.92) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255,255,255,0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: var(--rq-inner-radius) !important;
+}
+
+#root button,
+#root [role="button"],
+#root input,
+#root textarea,
+#root select,
+#root .rqk-app-rail-link,
+#root .character-page-v2 .clean-sheet-tabs button {
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+}
+
+#root .btn-primary,
+#root .landing-button-primary,
+#root [data-rqk-primary="true"],
+#root button[type="submit"],
+#root .character-mode-choose,
+#root .library-page-button-primary,
+#root .library-page-card-open,
+#root .dashboard-hero-actions button:first-child,
+#root .character-library-actions button:first-child,
+#root .campaign-library-actions button:first-child,
+#root .uploads-dashboard-actions button:first-child,
+#root .homebrew-workshop-actions button:first-child,
+#root .full-creator-footer button:last-child,
+#root .clean-sheet-level,
+#root .global-feedback-button,
+#root .feedback-floating-button,
+#root [data-testid="global-feedback-button"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+#root .btn-secondary,
+#root .library-page-button-secondary,
+#root .clean-sheet-edit,
+#root .clean-sheet-rail-back,
+#root .clean-sheet-rail-feedback,
+#root .library-page-card-secondary-actions button,
+#root .full-creator-footer button:first-child,
+#root .dashboard-hero-actions button:not(:first-child) {
+  background:
+    linear-gradient(var(--rq-card), var(--rq-card)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail,
+#root .character-page-v2 .clean-sheet-tabs {
+  background: var(--rq-bg-rail) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
 }
 
 #root .rqk-app-rail-link,
 #root .character-page-v2 .clean-sheet-tabs button,
 #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
 #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
-  position: relative !important;
-  display: grid !important;
-  grid-template-columns: 64px minmax(0, 1fr) !important;
-  align-items: center !important;
-  gap: 14px !important;
-  min-height: 72px !important;
-  padding: 8px 10px !important;
   background: transparent !important;
-  border: 1px solid transparent !important;
-  text-align: left !important;
-}
-
-#root .rqk-app-rail-link svg,
-#root .character-page-v2 .clean-sheet-tabs button svg,
-#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
-#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
-  grid-column: 1 !important;
-  justify-self: center !important;
-  width: 34px !important;
-  height: 34px !important;
-  padding: 0 !important;
-  background: transparent !important;
+  border-color: transparent !important;
   color: #ffffff !important;
-  box-shadow: none !important;
 }
 
 #root .rqk-app-rail-link span,
 #root .character-page-v2 .clean-sheet-tabs button span,
 #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
 #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
-  grid-column: 2 !important;
-  font-weight: 900 !important;
-  font-size: clamp(18px, 1.5vw, 27px) !important;
-  letter-spacing: 0.03em !important;
-  text-transform: uppercase !important;
+  font-family: var(--rq-heading-font) !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
 }
 
 #root .rqk-app-rail-link:not(.is-active)::after,
-#root .character-page-v2 .clean-sheet-tabs button:not(.active):not(.clean-sheet-rail-back):not(.clean-sheet-rail-feedback)::after {
-  content: "" !important;
-  position: absolute !important;
-  left: 20px !important;
-  bottom: 7px !important;
-  width: 52px !important;
-  height: 3px !important;
-  border-radius: 999px !important;
-  background: var(--rq-sunset-gradient) !important;
-  display: block !important;
+#root .character-page-v2 .clean-sheet-tabs button:not(.active)::after {
+  display: none !important;
+  content: none !important;
 }
 
 #root .rqk-app-rail-link.is-active svg,
@@ -354,117 +295,67 @@ body,
   box-shadow: none !important;
 }
 
-#root .rqk-app-rail-link.is-active svg,
-#root .character-page-v2 .clean-sheet-tabs button.active svg {
-  width: 34px !important;
-  height: 34px !important;
-  padding: 11px !important;
-  border-radius: 10px !important;
-  box-sizing: content-box !important;
-}
-
-#root .clean-sheet-ability-scores-panel {
-  border: 2px solid transparent !important;
-  border-radius: 10px !important;
-  background: linear-gradient(145deg, rgba(38,12,62,0.96), rgba(31,8,52,0.96)) padding-box, var(--rq-sunset-gradient) border-box !important;
+#root .clean-sheet-roll-chip,
+#root .clean-sheet-core-stat-roll-chip,
+#root .clean-sheet-ability-score-chip,
+#root .clean-sheet-save-card button,
+#root .clean-sheet-skill-card button,
+#root .clean-sheet-attack-stat-box,
+#root .spell-library-card button,
+#root .inventory-reference-card button,
+#root .inventory-item-card button {
+  background:
+    linear-gradient(var(--rq-card), var(--rq-card)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius) !important;
+  color: #ffffff !important;
   box-shadow: none !important;
-  padding: clamp(14px, 2.6vw, 22px) !important;
+  font-weight: 800 !important;
 }
 
-#root .clean-sheet-ability-scores-panel h2 {
-  margin: 0 0 10px !important;
-  font-size: clamp(16px, 2.8vw, 24px) !important;
-  line-height: 1 !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.02em !important;
-  text-transform: uppercase !important;
-}
-
-#root .clean-sheet-ability-score-strip {
-  display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: clamp(8px, 2vw, 18px) !important;
-  align-items: stretch !important;
+#root .clean-sheet-roll-chip:hover,
+#root .clean-sheet-roll-chip:focus-visible,
+#root .clean-sheet-core-stat-roll-chip:hover,
+#root .clean-sheet-core-stat-roll-chip:focus-visible,
+#root .clean-sheet-ability-score-chip:hover,
+#root .clean-sheet-ability-score-chip:focus-visible,
+#root .clean-sheet-save-card button:hover,
+#root .clean-sheet-save-card button:focus-visible,
+#root .clean-sheet-skill-card button:hover,
+#root .clean-sheet-skill-card button:focus-visible,
+#root .clean-sheet-attack-stat-box:hover,
+#root .clean-sheet-attack-stat-box:focus-visible {
+  filter: brightness(1.08) !important;
+  outline: none !important;
 }
 
 #root .clean-sheet-ability-score-card {
-  display: grid !important;
-  grid-template-rows: auto auto auto !important;
-  justify-items: center !important;
-  align-content: center !important;
-  gap: 2px !important;
-  min-width: 0 !important;
-  min-height: 78px !important;
-  padding: 6px 4px !important;
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 #root .clean-sheet-ability-score-card:hover,
 #root .clean-sheet-ability-score-card:focus-visible {
-  background: rgba(255,255,255,0.08) !important;
-  border-color: rgba(255,255,255,0.20) !important;
+  background: transparent !important;
+  border-color: transparent !important;
   outline: none !important;
 }
 
-#root .clean-sheet-ability-score-label {
-  font-size: clamp(14px, 3.4vw, 20px) !important;
-  line-height: 1 !important;
-  font-weight: 900 !important;
-  text-transform: uppercase !important;
+#root .clean-sheet-ability-score-chip {
+  display: grid !important;
+  justify-items: center !important;
+  gap: 2px !important;
+  min-width: 62px !important;
+  padding: 7px 8px !important;
 }
 
-#root .clean-sheet-ability-score-value {
-  font-size: clamp(28px, 7vw, 44px) !important;
-  line-height: 0.95 !important;
-  font-weight: 900 !important;
-}
-
+#root .clean-sheet-ability-score-value,
 #root .clean-sheet-ability-score-modifier {
-  font-style: normal !important;
-  font-size: clamp(15px, 4vw, 22px) !important;
-  line-height: 1 !important;
-  font-weight: 900 !important;
-}
-
-#root .btn-primary,
-#root .landing-button-primary,
-#root [data-rqk-primary="true"],
-#root button[type="submit"],
-#root .character-mode-choose,
-#root .library-page-actions button:first-child,
-#root .dashboard-hero-actions button:first-child,
-#root .character-library-actions button:first-child,
-#root .campaign-library-actions button:first-child,
-#root .uploads-dashboard-actions button:first-child,
-#root .homebrew-workshop-actions button:first-child,
-#root .full-creator-footer button:last-child,
-#root .global-feedback-button,
-#root .feedback-floating-button,
-#root [data-testid="global-feedback-button"] {
-  background: var(--rq-sunset-gradient) !important;
+  display: block !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255,255,255,0.16) !important;
-  box-shadow: none !important;
 }
 
 @media (max-width: 760px) {
-  #root .rqk-app-shell {
-    grid-template-columns: 58px minmax(0, 1fr) !important;
-  }
-
-  #root .rqk-app-rail-link,
-  #root .character-page-v2 .clean-sheet-tabs button,
-  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
-  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
-    grid-template-columns: 1fr !important;
-    min-height: 48px !important;
-    padding: 5px !important;
-    justify-items: center !important;
-  }
-
   #root .rqk-app-rail-link span,
   #root .character-page-v2 .clean-sheet-tabs button span,
   #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
@@ -473,46 +364,8 @@ body,
     display: none !important;
   }
 
-  #root .rqk-app-rail-link:not(.is-active)::after,
-  #root .character-page-v2 .clean-sheet-tabs button:not(.active):not(.clean-sheet-rail-back):not(.clean-sheet-rail-feedback)::after {
-    left: 50% !important;
-    bottom: 3px !important;
-    width: 28px !important;
-    transform: translateX(-50%) !important;
-  }
-
-  #root .rqk-app-rail-link svg,
-  #root .character-page-v2 .clean-sheet-tabs button svg,
-  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
-  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
-    width: 22px !important;
-    height: 22px !important;
-  }
-
-  #root .rqk-app-rail-link.is-active svg,
-  #root .character-page-v2 .clean-sheet-tabs button.active svg {
-    width: 20px !important;
-    height: 20px !important;
-    padding: 8px !important;
-    border-radius: 8px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-tabs {
-    width: 56px !important;
-    min-width: 56px !important;
-    padding: 8px 5px !important;
-  }
-
-  #root .clean-sheet-ability-scores-panel {
-    padding: 12px 10px !important;
-  }
-
-  #root .clean-sheet-ability-score-strip {
-    gap: 3px !important;
-  }
-
-  #root .clean-sheet-ability-score-card {
-    min-height: 66px !important;
-    padding: 4px 2px !important;
+  #root .clean-sheet-ability-score-chip {
+    min-width: 42px !important;
+    padding: 5px 4px !important;
   }
 }
