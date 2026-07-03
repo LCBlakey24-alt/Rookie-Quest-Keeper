@@ -87,24 +87,25 @@ export default function CleanSheetOverviewTab({
       <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-core-stats-section">
         <h2>Core Stats</h2>
         <div className="clean-sheet-core-stat-grid">
-          {coreStats.map(({ label, value, icon: Icon, roll }) => {
-            const inner = (
-              <>
-                <Icon size={15} />
-                <span>{label}</span>
+          {coreStats.map(({ label, value, icon: Icon, roll }) => (
+            <div key={label} className="clean-sheet-core-stat-card">
+              <Icon size={15} />
+              <span>{label}</span>
+              {roll ? (
+                <button
+                  type="button"
+                  className="clean-sheet-roll-chip clean-sheet-core-stat-roll-chip"
+                  onClick={() => onRoll('Initiative', initiativeMod)}
+                  aria-label={`Roll initiative ${fmt(initiativeMod)}`}
+                  title="Roll initiative"
+                >
+                  {value}
+                </button>
+              ) : (
                 <strong>{value}</strong>
-              </>
-            );
-            return roll ? (
-              <button key={label} type="button" className="clean-sheet-core-stat-card clean-sheet-core-stat-card--rollable" onClick={() => onRoll('Initiative', initiativeMod)} aria-label={`Roll initiative ${fmt(initiativeMod)}`}>
-                {inner}
-              </button>
-            ) : (
-              <div key={label} className="clean-sheet-core-stat-card">
-                {inner}
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -131,18 +132,19 @@ export default function CleanSheetOverviewTab({
             const score = character[key] ?? 10;
             const fullName = ABILITY_FULL_NAMES[key] || short;
             return (
-              <button
-                key={key}
-                type="button"
-                className="clean-sheet-ability-score-card"
-                onClick={() => onRoll(`${short} Check`, abilityMod)}
-                aria-label={`Roll ${fullName} check ${fmt(abilityMod)}`}
-                title={`Roll ${fullName} check`}
-              >
+              <div key={key} className="clean-sheet-ability-score-card">
                 <span className="clean-sheet-ability-score-label">{short}</span>
-                <strong className="clean-sheet-ability-score-value">{score}</strong>
-                <em className="clean-sheet-ability-score-modifier">{fmt(abilityMod)}</em>
-              </button>
+                <button
+                  type="button"
+                  className="clean-sheet-ability-score-chip clean-sheet-ability-roll-chip"
+                  onClick={() => onRoll(`${short} Check`, abilityMod)}
+                  aria-label={`Roll ${fullName} check ${fmt(abilityMod)}`}
+                  title={`Roll ${fullName} check`}
+                >
+                  <strong className="clean-sheet-ability-score-value">{score}</strong>
+                  <em className="clean-sheet-ability-score-modifier">{fmt(abilityMod)}</em>
+                </button>
+              </div>
             );
           })}
         </div>
