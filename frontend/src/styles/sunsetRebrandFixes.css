@@ -58,6 +58,7 @@ body,
 #root *::before,
 #root *::after {
   color: #ffffff !important;
+  text-shadow: none !important;
 }
 
 #root h1,
@@ -108,6 +109,14 @@ body,
 #root .rqk-app-rail-brand::after,
 #root .rqk-app-rail-nav::after,
 #root .clean-sheet-tabs::after,
+#root .clean-sheet-panel h2::after,
+#root .clean-sheet-card h2::after,
+#root .clean-sheet-section h2::after,
+#root .clean-sheet-panel h3::after,
+#root .clean-sheet-card h3::after,
+#root .clean-sheet-section h3::after,
+#root .full-creator-section-title::after,
+#root .admin-character-audit__report-head::after,
 #root .loading-screen::before,
 #root .loading-screen::after,
 #root .full-creator-loading::before,
@@ -160,6 +169,15 @@ body,
   background: var(--rq-sunset-gradient);
 }
 
+#root .landing-final-hero,
+#root .landing-final-feature,
+#root .landing-benefit-card,
+#root .landing-marketing-block,
+#root .landing-roadmap,
+#root .landing-final-cta,
+#root .rqk-public-screen-card,
+#root .auth-card,
+#root .auth-panel,
 #root .dashboard-hero,
 #root .unified-dashboard-hero,
 #root .library-page-hero,
@@ -167,11 +185,15 @@ body,
 #root .campaigns-library-hero,
 #root .homebrew-workshop-hero,
 #root .uploads-dashboard-hero,
+#root .dashboard-overview,
+#root .dashboard-list-panel,
+#root .dashboard-empty-state,
 #root .library-page-card,
 #root .character-library-card,
 #root .campaign-library-card,
 #root .homebrew-workshop-card,
 #root .uploads-dashboard-card,
+#root .uploads-dashboard-next,
 #root .character-mode-hero,
 #root .character-mode-guide,
 #root .character-mode-summary,
@@ -189,7 +211,12 @@ body,
 #root .admin-character-audit__hero,
 #root .admin-character-audit__tools,
 #root .admin-character-audit__report,
-#root .admin-character-audit-card {
+#root .admin-character-audit-card,
+#root .modal,
+#root .dialog,
+#root [role="dialog"],
+#root .popover,
+#root .dropdown-menu {
   border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 10px !important;
   background: rgba(19,8,31,0.94) !important;
@@ -211,7 +238,17 @@ body,
 #root .full-creator-score-editor label,
 #root .full-creator-auto-box,
 #root .full-creator-review-grid > div,
-#root .full-creator-equipment-list span {
+#root .full-creator-equipment-list span,
+#root table,
+#root .table,
+#root .list-row,
+#root .library-list-row,
+#root .feedback-row,
+#root .admin-row,
+#root .campaign-row,
+#root .dashboard-row,
+#root .homebrew-result,
+#root .upload-history-row {
   background: rgba(13,6,23,0.88) !important;
   border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 8px !important;
@@ -226,6 +263,7 @@ body,
 #root textarea,
 #root select {
   border-radius: 8px !important;
+  box-shadow: none !important;
 }
 
 #root input,
