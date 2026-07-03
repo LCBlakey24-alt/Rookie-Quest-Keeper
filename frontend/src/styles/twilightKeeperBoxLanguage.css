@@ -1,0 +1,280 @@
+/* Unified Twilight Keeper box language.
+   Applies the Ability Scores mock-up style to sheet/app boxes without adding glow clutter. */
+
+:root {
+  --rq-box-radius: 10px;
+  --rq-inner-radius: 8px;
+  --rq-box-fill: rgba(38, 12, 62, 0.96);
+  --rq-box-fill-2: rgba(31, 8, 52, 0.96);
+  --rq-inner-fill: rgba(13, 6, 23, 0.82);
+  --rq-inner-fill-hover: rgba(255, 255, 255, 0.08);
+  --rq-border-soft: rgba(255, 255, 255, 0.14);
+}
+
+#root .clean-sheet-panel,
+#root .clean-sheet-card,
+#root .clean-sheet-section,
+#root .clean-sheet-tab-panel,
+#root .clean-sheet-compact-status,
+#root .clean-sheet-header--simple,
+#root .dashboard-hero,
+#root .unified-dashboard-hero,
+#root .library-page-hero,
+#root .characters-library-hero,
+#root .campaigns-library-hero,
+#root .homebrew-workshop-hero,
+#root .uploads-dashboard-hero,
+#root .library-page-card,
+#root .character-library-card,
+#root .campaign-library-card,
+#root .homebrew-workshop-card,
+#root .uploads-dashboard-card,
+#root .character-mode-card,
+#root .full-creator-panel,
+#root .full-creator-header,
+#root .full-creator-preview,
+#root .full-creator-footer {
+  border: 2px solid transparent !important;
+  border-radius: var(--rq-box-radius) !important;
+  background:
+    linear-gradient(145deg, var(--rq-box-fill), var(--rq-box-fill-2)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: none !important;
+}
+
+#root .clean-sheet-panel h2,
+#root .clean-sheet-card h2,
+#root .clean-sheet-section h2,
+#root .clean-sheet-panel h3,
+#root .clean-sheet-card h3,
+#root .clean-sheet-section h3,
+#root .dashboard-hero h1,
+#root .unified-dashboard-hero h1,
+#root .library-page-hero h1,
+#root .characters-library-hero h1,
+#root .campaigns-library-hero h1,
+#root .homebrew-workshop-hero h1,
+#root .uploads-dashboard-hero h1 {
+  margin-top: 0 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+}
+
+#root .clean-sheet-core-stat-card,
+#root .clean-sheet-passive-card,
+#root .clean-sheet-save-card,
+#root .clean-sheet-skill-card,
+#root .clean-sheet-resource-card,
+#root .clean-sheet-action-card,
+#root .clean-sheet-attack-card,
+#root .clean-sheet-slot-card,
+#root .clean-sheet-condition-chip,
+#root .clean-sheet-status-pill,
+#root .clean-sheet-pill,
+#root .spell-library-card,
+#root .inventory-reference-card,
+#root .inventory-equipped-card,
+#root .inventory-item-card,
+#root .clean-sheet-snapshot-warning,
+#root .clean-sheet-readiness-grid > div,
+#root .clean-sheet-skills-summary > div,
+#root .full-creator-form-grid label,
+#root .full-creator-wide-label,
+#root .full-creator-score-editor label,
+#root .full-creator-auto-box,
+#root .full-creator-review-grid > div,
+#root .full-creator-equipment-list span,
+#root .full-creator-choice-block,
+#root .full-creator-spell-chip,
+#root .library-list-row,
+#root .dashboard-row,
+#root .campaign-row,
+#root .admin-row,
+#root .feedback-row,
+#root .upload-history-row {
+  background: var(--rq-inner-fill) !important;
+  border: 1px solid var(--rq-border-soft) !important;
+  border-radius: var(--rq-inner-radius) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+#root .clean-sheet-core-stat-card,
+#root .clean-sheet-passive-card,
+#root .clean-sheet-save-card,
+#root .clean-sheet-skill-card,
+#root .clean-sheet-resource-card,
+#root .clean-sheet-action-card,
+#root .clean-sheet-attack-card,
+#root .spell-library-card,
+#root .inventory-reference-card,
+#root .inventory-item-card,
+#root .clean-sheet-readiness-grid > div,
+#root .clean-sheet-skills-summary > div {
+  padding: clamp(8px, 1.8vw, 13px) !important;
+}
+
+#root .clean-sheet-core-stat-card strong,
+#root .clean-sheet-passive-card strong,
+#root .clean-sheet-save-card strong,
+#root .clean-sheet-skill-card strong,
+#root .clean-sheet-resource-card strong,
+#root .clean-sheet-action-card strong,
+#root .clean-sheet-attack-card strong,
+#root .spell-library-card strong,
+#root .inventory-reference-card strong,
+#root .inventory-item-card strong,
+#root .clean-sheet-readiness-grid strong,
+#root .clean-sheet-skills-summary strong {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+#root .clean-sheet-core-stat-card span,
+#root .clean-sheet-passive-card span,
+#root .clean-sheet-save-card span,
+#root .clean-sheet-skill-card span,
+#root .clean-sheet-resource-card span,
+#root .clean-sheet-action-card span,
+#root .clean-sheet-attack-card span,
+#root .spell-library-card span,
+#root .inventory-reference-card span,
+#root .inventory-item-card span,
+#root .clean-sheet-readiness-grid span,
+#root .clean-sheet-skills-summary span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+#root .clean-sheet-roll-chip,
+#root .clean-sheet-core-stat-card--rollable,
+#root .clean-sheet-save-card button,
+#root .clean-sheet-skill-card button,
+#root .clean-sheet-action-card button,
+#root .clean-sheet-attack-card button,
+#root .spell-library-card button,
+#root .inventory-reference-card button,
+#root .inventory-item-card button {
+  border-radius: var(--rq-inner-radius) !important;
+  border: 1px solid var(--rq-border-soft) !important;
+  background: rgba(8, 4, 14, 0.72) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .clean-sheet-core-stat-card--rollable:hover,
+#root .clean-sheet-core-stat-card--rollable:focus-visible,
+#root .clean-sheet-save-card button:hover,
+#root .clean-sheet-save-card button:focus-visible,
+#root .clean-sheet-skill-card button:hover,
+#root .clean-sheet-skill-card button:focus-visible,
+#root .clean-sheet-action-card button:hover,
+#root .clean-sheet-action-card button:focus-visible,
+#root .clean-sheet-attack-card button:hover,
+#root .clean-sheet-attack-card button:focus-visible,
+#root .spell-library-card button:hover,
+#root .spell-library-card button:focus-visible,
+#root .inventory-reference-card button:hover,
+#root .inventory-reference-card button:focus-visible,
+#root .inventory-item-card button:hover,
+#root .inventory-item-card button:focus-visible {
+  background: var(--rq-inner-fill-hover) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  outline: none !important;
+}
+
+#root .clean-sheet-ability-scores-panel,
+#root .clean-sheet-core-stats-section,
+#root .clean-sheet-passives-section,
+#root .clean-sheet-skills-section {
+  padding: clamp(14px, 2.6vw, 22px) !important;
+}
+
+#root .clean-sheet-ability-score-strip {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: clamp(8px, 2vw, 18px) !important;
+  align-items: stretch !important;
+}
+
+#root .clean-sheet-ability-score-card {
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  min-height: 78px !important;
+  padding: 6px 4px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius) !important;
+  cursor: pointer !important;
+}
+
+#root .clean-sheet-ability-score-card:hover,
+#root .clean-sheet-ability-score-card:focus-visible {
+  background: var(--rq-inner-fill-hover) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  outline: none !important;
+}
+
+#root .clean-sheet-ability-score-label {
+  font-size: clamp(14px, 3.4vw, 20px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+#root .clean-sheet-ability-score-value {
+  font-size: clamp(28px, 7vw, 44px) !important;
+  line-height: 0.95 !important;
+  font-weight: 900 !important;
+}
+
+#root .clean-sheet-ability-score-modifier {
+  font-style: normal !important;
+  font-size: clamp(15px, 4vw, 22px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+@media (max-width: 760px) {
+  #root .clean-sheet-panel,
+  #root .clean-sheet-card,
+  #root .clean-sheet-section,
+  #root .clean-sheet-tab-panel,
+  #root .clean-sheet-compact-status,
+  #root .clean-sheet-header--simple,
+  #root .dashboard-hero,
+  #root .unified-dashboard-hero,
+  #root .library-page-hero,
+  #root .characters-library-hero,
+  #root .campaigns-library-hero,
+  #root .homebrew-workshop-hero,
+  #root .uploads-dashboard-hero,
+  #root .library-page-card,
+  #root .character-library-card,
+  #root .campaign-library-card,
+  #root .homebrew-workshop-card,
+  #root .uploads-dashboard-card,
+  #root .character-mode-card,
+  #root .full-creator-panel,
+  #root .full-creator-header,
+  #root .full-creator-preview,
+  #root .full-creator-footer {
+    border-radius: 9px !important;
+    border-width: 1px !important;
+  }
+
+  #root .clean-sheet-ability-score-strip {
+    gap: 3px !important;
+  }
+
+  #root .clean-sheet-ability-score-card {
+    min-height: 66px !important;
+    padding: 4px 2px !important;
+  }
+}
