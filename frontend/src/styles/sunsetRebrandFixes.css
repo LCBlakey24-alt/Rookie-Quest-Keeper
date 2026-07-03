@@ -91,11 +91,22 @@ body,
   color: #ffffff !important;
 }
 
+#root .rqk-app-shell {
+  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr) !important;
+}
+
 #root .rqk-app-rail,
 #root .character-page-v2 .clean-sheet-tabs {
   background: rgba(13,6,23,0.96) !important;
   border-color: rgba(255,255,255,0.14) !important;
   box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs {
+  width: min(250px, 28vw) !important;
+  min-width: 210px !important;
+  padding: 18px 14px !important;
+  gap: 14px !important;
 }
 
 #root .rqk-app-rail-logo,
@@ -278,6 +289,60 @@ body,
   border: 1px solid rgba(255,255,255,0.16) !important;
 }
 
+#root .rqk-app-rail-link,
+#root .character-page-v2 .clean-sheet-tabs button,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  min-height: 72px !important;
+  padding: 8px 10px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  text-align: left !important;
+}
+
+#root .rqk-app-rail-link svg,
+#root .character-page-v2 .clean-sheet-tabs button svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+  grid-column: 1 !important;
+  justify-self: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-link span,
+#root .character-page-v2 .clean-sheet-tabs button span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+  grid-column: 2 !important;
+  font-weight: 900 !important;
+  font-size: clamp(18px, 1.5vw, 27px) !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+}
+
+#root .rqk-app-rail-link:not(.is-active)::after,
+#root .character-page-v2 .clean-sheet-tabs button:not(.active):not(.clean-sheet-rail-back):not(.clean-sheet-rail-feedback)::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 20px !important;
+  bottom: 7px !important;
+  width: 52px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient) !important;
+  display: block !important;
+}
+
 #root .rqk-app-rail-link.is-active svg,
 #root .character-page-v2 .clean-sheet-tabs button.active svg,
 #root .character-mode-icon-box,
@@ -287,6 +352,81 @@ body,
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
   box-shadow: none !important;
+}
+
+#root .rqk-app-rail-link.is-active svg,
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
+  width: 34px !important;
+  height: 34px !important;
+  padding: 11px !important;
+  border-radius: 10px !important;
+  box-sizing: content-box !important;
+}
+
+#root .clean-sheet-ability-scores-panel {
+  border: 2px solid transparent !important;
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, rgba(38,12,62,0.96), rgba(31,8,52,0.96)) padding-box, var(--rq-sunset-gradient) border-box !important;
+  box-shadow: none !important;
+  padding: clamp(14px, 2.6vw, 22px) !important;
+}
+
+#root .clean-sheet-ability-scores-panel h2 {
+  margin: 0 0 10px !important;
+  font-size: clamp(16px, 2.8vw, 24px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+}
+
+#root .clean-sheet-ability-score-strip {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: clamp(8px, 2vw, 18px) !important;
+  align-items: stretch !important;
+}
+
+#root .clean-sheet-ability-score-card {
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  min-height: 78px !important;
+  padding: 6px 4px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+}
+
+#root .clean-sheet-ability-score-card:hover,
+#root .clean-sheet-ability-score-card:focus-visible {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.20) !important;
+  outline: none !important;
+}
+
+#root .clean-sheet-ability-score-label {
+  font-size: clamp(14px, 3.4vw, 20px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+#root .clean-sheet-ability-score-value {
+  font-size: clamp(28px, 7vw, 44px) !important;
+  line-height: 0.95 !important;
+  font-weight: 900 !important;
+}
+
+#root .clean-sheet-ability-score-modifier {
+  font-style: normal !important;
+  font-size: clamp(15px, 4vw, 22px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
 }
 
 #root .btn-primary,
@@ -315,11 +455,64 @@ body,
     grid-template-columns: 58px minmax(0, 1fr) !important;
   }
 
+  #root .rqk-app-rail-link,
+  #root .character-page-v2 .clean-sheet-tabs button,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    grid-template-columns: 1fr !important;
+    min-height: 48px !important;
+    padding: 5px !important;
+    justify-items: center !important;
+  }
+
+  #root .rqk-app-rail-link span,
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span,
+  #root .rqk-app-rail-brand-text {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-link:not(.is-active)::after,
+  #root .character-page-v2 .clean-sheet-tabs button:not(.active):not(.clean-sheet-rail-back):not(.clean-sheet-rail-feedback)::after {
+    left: 50% !important;
+    bottom: 3px !important;
+    width: 28px !important;
+    transform: translateX(-50%) !important;
+  }
+
+  #root .rqk-app-rail-link svg,
+  #root .character-page-v2 .clean-sheet-tabs button svg,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
   #root .rqk-app-rail-link.is-active svg,
   #root .character-page-v2 .clean-sheet-tabs button.active svg {
     width: 20px !important;
     height: 20px !important;
     padding: 8px !important;
     border-radius: 8px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs {
+    width: 56px !important;
+    min-width: 56px !important;
+    padding: 8px 5px !important;
+  }
+
+  #root .clean-sheet-ability-scores-panel {
+    padding: 12px 10px !important;
+  }
+
+  #root .clean-sheet-ability-score-strip {
+    gap: 3px !important;
+  }
+
+  #root .clean-sheet-ability-score-card {
+    min-height: 66px !important;
+    padding: 4px 2px !important;
   }
 }
