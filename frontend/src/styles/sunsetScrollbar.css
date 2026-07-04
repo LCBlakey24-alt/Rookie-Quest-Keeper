@@ -1,0 +1,43 @@
+/* Sunset scrollbar treatment for app pages and form fields. */
+
+:root {
+  scrollbar-color: #d84df1 #080512;
+  scrollbar-width: thin;
+}
+
+* {
+  scrollbar-color: #d84df1 #080512;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #080512;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7357ff 0%, #d84df1 36%, #ff4f81 68%, #ff9542 100%);
+  border: 2px solid #080512;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8a73ff 0%, #e264f6 34%, #ff6492 68%, #ffa45d 100%);
+}
+
+textarea::-webkit-scrollbar,
+.rqk-app-shell-content::-webkit-scrollbar,
+.unified-dashboard-page::-webkit-scrollbar,
+.library-page::-webkit-scrollbar,
+[data-testid='homebrew-workshop']::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  border-width: 1px;
+}
