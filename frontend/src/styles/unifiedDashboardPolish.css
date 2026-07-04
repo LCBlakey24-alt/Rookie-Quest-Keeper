@@ -1,270 +1,346 @@
-/* Final home dashboard polish.
-   Keeps /home aligned with the cleaned character sheet, creator, and library pages. */
+/* Final dashboard noticeboard style: information first, sunset fantasy language, mobile friendly. */
 
-.unified-dashboard-page {
-  background: var(--rq-bg-main, #202020) !important;
-  gap: 12px !important;
-  padding: 18px !important;
+#root .unified-dashboard-page {
+  min-height: 100dvh !important;
+  background: linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: #ffffff !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  padding: clamp(10px, 2vw, 22px) !important;
 }
 
-.unified-dashboard-page *,
-.unified-dashboard-page button,
-.unified-dashboard-page input,
-.unified-dashboard-page select,
-.unified-dashboard-page textarea {
-  border-radius: 0 !important;
+#root .unified-dashboard-page *,
+#root .unified-dashboard-page *::before,
+#root .unified-dashboard-page *::after {
   box-shadow: none !important;
-  background-image: none !important;
+  text-shadow: none !important;
 }
 
-.unified-dashboard-board,
-.unified-dashboard-header,
-.unified-dashboard-panel,
-.unified-dashboard-continue-panel {
-  background: var(--rq-bg-panel, #101010) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+#root .unified-dashboard-board,
+#root .unified-dashboard-header,
+#root .unified-dashboard-panel,
+#root .unified-dashboard-continue-panel,
+#root .dashboard-info-card,
+#root .dashboard-update-card,
+#root .dashboard-system-panel {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: #ffffff !important;
 }
 
-.unified-dashboard-header {
-  padding: 14px !important;
+#root .unified-dashboard-header {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
-  align-items: stretch !important;
+  align-items: start !important;
   gap: 12px !important;
+  padding: clamp(14px, 2.6vw, 22px) !important;
 }
 
-.dashboard-brand-row {
+#root .dashboard-brand-row {
+  display: block !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
   min-width: 0 !important;
-  padding: 12px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-.dashboard-logo-tile {
-  background: var(--rq-bg-input, #181818) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+#root .dashboard-logo-tile {
+  display: none !important;
 }
 
-.unified-dashboard-header h1 {
-  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
-  font-size: clamp(30px, 5vw, 48px) !important;
-  letter-spacing: -0.03em !important;
-  line-height: 0.98 !important;
+#root .dashboard-eyebrow {
+  margin: 0 0 6px !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  opacity: 0.86 !important;
 }
 
-.dashboard-header-buttons {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, auto)) !important;
+#root .unified-dashboard-header h1,
+#root .dashboard-section-heading h2,
+#root .dashboard-info-card h3,
+#root .dashboard-update-card h3 {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 700 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
+#root .unified-dashboard-header h1 {
+  margin: 0 !important;
+  font-size: clamp(2.45rem, 7vw, 4.3rem) !important;
+  line-height: 1 !important;
+  letter-spacing: 0.01em !important;
+}
+
+#root .unified-dashboard-header h1::after,
+#root .dashboard-section-heading h2::after,
+#root .dashboard-info-card h3::after,
+#root .dashboard-update-card h3::after {
+  content: '' !important;
+  display: block !important;
+  width: 100% !important;
+  height: 2px !important;
+  margin-top: 9px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .dashboard-muted,
+#root .dashboard-info-card p,
+#root .dashboard-update-card p {
+  margin: 0 !important;
+  color: #ffffff !important;
+  line-height: 1.45 !important;
+}
+
+#root .dashboard-muted strong {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+#root .dashboard-header-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
   gap: 8px !important;
-  align-content: stretch !important;
 }
 
-.unified-dashboard-button,
-.dashboard-link-button,
-.dashboard-small-button,
-.dashboard-primary-button,
-.dashboard-danger-small,
-.dashboard-danger-button {
-  background: var(--rq-bg-button, #202020) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  border-left: 4px solid transparent !important;
+#root .unified-dashboard-button,
+#root .dashboard-link-button,
+#root .dashboard-small-button,
+#root .dashboard-primary-button,
+#root .dashboard-danger-small,
+#root .dashboard-danger-button {
   min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  background-image:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)),
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
   padding: 0 13px !important;
-  font-weight: 950 !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
 }
 
-.dashboard-primary-button,
-.dashboard-link-button,
-.unified-dashboard-continue-panel .dashboard-link-button,
-.dashboard-system-panel .dashboard-link-button {
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-.dashboard-danger-small,
-.dashboard-danger-button {
-  border-left-color: rgba(255, 255, 255, 0.16) !important;
-}
-
-.unified-dashboard-button:hover,
-.dashboard-link-button:hover,
-.dashboard-small-button:hover,
-.dashboard-primary-button:hover,
-.dashboard-danger-small:hover,
-.dashboard-danger-button:hover,
-.unified-dashboard-button:focus-visible,
-.dashboard-link-button:focus-visible,
-.dashboard-small-button:focus-visible,
-.dashboard-primary-button:focus-visible,
-.dashboard-danger-small:focus-visible,
-.dashboard-danger-button:focus-visible {
-  background: var(--rq-bg-button-hover, #2a2a2a) !important;
-  border-color: rgba(255, 255, 255, 0.24) !important;
+#root .unified-dashboard-button:hover,
+#root .dashboard-link-button:hover,
+#root .dashboard-small-button:hover,
+#root .dashboard-primary-button:hover,
+#root .dashboard-danger-small:hover,
+#root .dashboard-danger-button:hover,
+#root .unified-dashboard-button:focus-visible,
+#root .dashboard-link-button:focus-visible,
+#root .dashboard-small-button:focus-visible,
+#root .dashboard-primary-button:focus-visible,
+#root .dashboard-danger-small:focus-visible,
+#root .dashboard-danger-button:focus-visible {
+  filter: brightness(1.08) !important;
   outline: none !important;
 }
 
-.unified-dashboard-status {
+#root .unified-dashboard-button:disabled {
+  opacity: 0.6 !important;
+  cursor: wait !important;
+}
+
+#root .unified-dashboard-status {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 8px !important;
   border: 0 !important;
 }
 
-.unified-dashboard-stat {
+#root .unified-dashboard-stat {
   min-height: 72px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  padding: 10px 12px !important;
-}
-
-.unified-dashboard-continue-grid,
-.dashboard-two-column {
-  gap: 10px !important;
-}
-
-.unified-dashboard-continue-panel {
-  padding: 14px !important;
   display: grid !important;
-  gap: 10px !important;
-  background: var(--rq-bg-panel, #101010) !important;
+  align-content: center !important;
+  gap: 4px !important;
+  padding: 12px !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
 }
 
-.unified-dashboard-continue-panel h2 {
-  margin: 2px 0 0 !important;
-  font-size: clamp(22px, 3vw, 30px) !important;
-  line-height: 1.05 !important;
+#root .unified-dashboard-stat span:first-child {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.55rem, 5vw, 2.2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
 }
 
-.unified-dashboard-action-grid {
+#root .unified-dashboard-stat span:last-child {
+  color: #ffffff !important;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  opacity: 0.86 !important;
+}
+
+#root .dashboard-updates-panel {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 12px !important;
+  padding: clamp(13px, 2vw, 18px) !important;
+}
+
+#root .dashboard-section-heading {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+#root .dashboard-section-heading h2 {
+  margin: 0 !important;
+  font-size: clamp(2rem, 5.2vw, 3.15rem) !important;
+  line-height: 1.02 !important;
+}
+
+#root .dashboard-updates-grid,
+#root .dashboard-info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
   gap: 8px !important;
+}
+
+#root .dashboard-update-card,
+#root .dashboard-info-card {
+  padding: 12px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-update-label {
+  justify-self: start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 26px !important;
+  padding: 0 9px !important;
+  background:
+    linear-gradient(#13081f, #13081f) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-update-card h3,
+#root .dashboard-info-card h3 {
+  margin: 0 !important;
+  font-size: clamp(1.2rem, 4.3vw, 1.75rem) !important;
+  line-height: 1.08 !important;
+}
+
+#root .dashboard-system-panel {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  padding: 12px !important;
+}
+
+#root .dashboard-system-panel > div {
+  min-width: min(100%, 260px) !important;
+  padding: 0 !important;
+  background: transparent !important;
   border: 0 !important;
 }
 
-.unified-dashboard-action-card {
-  min-height: 126px !important;
-  padding: 12px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-left: 4px solid transparent !important;
+#root .dashboard-home-refresh {
+  min-width: 138px !important;
 }
 
-.unified-dashboard-action-card:hover,
-.unified-dashboard-action-card:focus-visible {
-  background: var(--rq-bg-button-hover, #242424) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-  outline: none !important;
-}
-
-.dashboard-card-accent {
-  width: 4px !important;
-  min-height: 42px !important;
-  height: auto !important;
-  background: var(--rq-accent-primary, #c30000) !important;
-}
-
-.unified-dashboard-panel {
-  padding: 14px !important;
-}
-
-.dashboard-panel-header {
-  padding-bottom: 10px !important;
-  margin-bottom: 10px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
-
-.dashboard-list {
-  display: grid !important;
-  gap: 8px !important;
-}
-
-.dashboard-list-row {
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-left: 4px solid transparent !important;
-}
-
-.dashboard-list-row:hover,
-.dashboard-list-row:focus-within {
-  background: var(--rq-bg-button-hover, #242424) !important;
-  border-left-color: var(--rq-accent-primary, #c30000) !important;
-}
-
-.dashboard-list-open {
-  min-height: 56px !important;
-  padding: 10px 12px !important;
-}
-
-.dashboard-system-panel {
-  padding: 14px !important;
-  background: var(--rq-bg-panel, #101010) !important;
-}
-
-.dashboard-system-panel > div {
-  min-width: 0 !important;
-  padding: 10px 12px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
-
-.dashboard-modal-panel {
-  background: var(--rq-bg-panel, #101010) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-}
-
-.dashboard-setup-preview,
-.dashboard-join-code,
-.dashboard-checklist {
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-}
-
-.dashboard-setup-preview,
-.dashboard-join-code {
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-}
-
-.dashboard-field input,
-.dashboard-field select,
-.dashboard-field textarea {
-  background: var(--rq-bg-input, #181818) !important;
-}
-
-.dashboard-field input:focus,
-.dashboard-field select:focus,
-.dashboard-field textarea:focus {
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+#root .unified-dashboard-continue-grid,
+#root .dashboard-two-column,
+#root .unified-dashboard-action-grid,
+#root .dashboard-list-row,
+#root .dashboard-card-accent {
+  display: none !important;
 }
 
 @media (max-width: 760px) {
-  .unified-dashboard-page {
-    padding: 10px !important;
+  #root .unified-dashboard-page {
+    padding: 10px 9px !important;
+    gap: 9px !important;
   }
 
-  .unified-dashboard-header {
+  #root .unified-dashboard-header {
     grid-template-columns: 1fr !important;
+    padding: 13px !important;
   }
 
-  .dashboard-header-buttons {
-    grid-template-columns: 1fr !important;
+  #root .unified-dashboard-header h1 {
+    font-size: clamp(2.35rem, 11vw, 3rem) !important;
   }
 
-  .dashboard-header-buttons button,
-  .unified-dashboard-page button {
+  #root .dashboard-header-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     width: 100% !important;
   }
 
-  .unified-dashboard-action-grid,
-  .unified-dashboard-continue-grid,
-  .dashboard-two-column {
+  #root .dashboard-header-buttons button {
+    width: 100% !important;
+  }
+
+  #root .unified-dashboard-status {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #root .dashboard-section-heading h2 {
+    font-size: clamp(2rem, 9vw, 2.6rem) !important;
+  }
+
+  #root .dashboard-updates-grid,
+  #root .dashboard-info-grid {
     grid-template-columns: 1fr !important;
   }
 
-  .dashboard-system-panel {
+  #root .dashboard-system-panel {
     display: grid !important;
+  }
+
+  #root .dashboard-home-refresh {
+    width: auto !important;
+    justify-self: start !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #root .unified-dashboard-header h1 {
+    font-size: clamp(2.1rem, 10vw, 2.55rem) !important;
+  }
+
+  #root .unified-dashboard-status {
+    grid-template-columns: 1fr !important;
   }
 }
