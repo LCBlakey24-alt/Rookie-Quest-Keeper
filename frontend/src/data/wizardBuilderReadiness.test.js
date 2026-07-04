@@ -84,6 +84,37 @@ describe('Wizard builder options and readiness', () => {
       .toContain('Choose a valid Scholar skill.');
   });
 
+  test('validates spellbook and prepared spell consistency', () => {
+    const duplicateSpellbook = validateWizardBuilderSelections({
+      level: 3,
+      edition: '2024',
+      subclass: 'School of Illusion',
+      scholarSkill: 'Arcana',
+      spellbookSpells: ['Detect Magic', 'detect   magic'],
+    });
+    expect(duplicateSpellbook.errors).toContain('Record each Wizard spellbook spell only once.');
+
+    const duplicatePrepared = validateWizardBuilderSelections({
+      level: 3,
+      edition: '2024',
+      subclass: 'School of Illusion',
+      scholarSkill: 'Arcana',
+      spellbookSpells: ['Shield', 'Magic Missile'],
+      preparedSpells: ['Shield', 'shield'],
+    });
+    expect(duplicatePrepared.errors).toContain('Prepare each Wizard spell only once.');
+
+    const missingFromSpellbook = validateWizardBuilderSelections({
+      level: 3,
+      edition: '2024',
+      subclass: 'School of Illusion',
+      scholarSkill: 'Arcana',
+      spellbookSpells: ['Magic Missile'],
+      preparedSpells: ['Shield'],
+    });
+    expect(missingFromSpellbook.errors).toContain('Prepared Wizard spells must also be in the spellbook.');
+  });
+
   test('builds selected Wizard choice summaries', () => {
     const summary = getWizardBuilderChoiceSummary({
       level: 3,
@@ -131,7 +162,7 @@ describe('Wizard builder options and readiness', () => {
       edition: '2024',
       subclass: 'School of Evocation',
       scholarSkill: 'Arcana',
-      spellbookSpells: ['Detect Magic'],
+      spellbookSpells: ['Detect Magic', 'Shield'],
       preparedSpells: ['Shield'],
     });
 
@@ -144,7 +175,7 @@ describe('Wizard builder options and readiness', () => {
     });
     expect(readiness.choiceSummary.subclass.key).toBe('evocation');
     expect(readiness.choiceSummary.scholarSkill.key).toBe('arcana');
-    expect(readiness.choiceSummary.spellbookSpells).toEqual(['Detect Magic']);
+    expect(readiness.choiceSummary.spellbookSpells).toEqual(['Detect Magic', 'Shield']);
     expect(readiness.choiceSummary.preparedSpells).toEqual(['Shield']);
   });
 });

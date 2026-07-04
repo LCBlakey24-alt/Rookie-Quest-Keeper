@@ -21,7 +21,7 @@ describe('Wizard package exports', () => {
         level: 2,
         rules_edition: '2014',
         subclass: 'School of Evocation',
-        spellbookSpells: ['Detect Magic'],
+        spellbookSpells: ['Detect Magic', 'Shield'],
         preparedSpells: ['Shield'],
       },
     });
@@ -36,7 +36,7 @@ describe('Wizard package exports', () => {
     expect(status.sheetSummary.className).toBe('Wizard');
     expect(status.sheetSummary.subclassKey).toBe('evocation');
     expect(status.sheetSummary.arcaneRecoveryLevel).toBe(1);
-    expect(status.sheetSummary.spellbookSpellsLabel).toBe('Detect Magic');
+    expect(status.sheetSummary.spellbookSpellsLabel).toBe('Detect Magic, Shield');
     expect(status.sheetSummary.preparedSpellsLabel).toBe('Shield');
   });
 
@@ -46,7 +46,7 @@ describe('Wizard package exports', () => {
       edition: '2024',
       subclass: 'School of Illusion',
       scholarSkill: 'Arcana',
-      spellbookSpells: ['Detect Magic'],
+      spellbookSpells: ['Detect Magic', 'Shield'],
       preparedSpells: ['Shield'],
       character: {
         character_class: 'Wizard',
@@ -54,7 +54,7 @@ describe('Wizard package exports', () => {
         rules_edition: '2024',
         subclass: 'School of Illusion',
         scholarSkill: 'Arcana',
-        spellbookSpells: ['Detect Magic'],
+        spellbookSpells: ['Detect Magic', 'Shield'],
         preparedSpells: ['Shield'],
       },
     });
