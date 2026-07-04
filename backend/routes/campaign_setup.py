@@ -88,79 +88,101 @@ async def attach_campaign_counts(campaigns: List[dict]) -> List[dict]:
     return campaigns
 
 
-@router.post('/campaigns', status_code=status.HTTP_201_CREATED)
-async def create_campaign(campaign_data: Dict[str, Any], username: str = Depends(get_current_user)):
-    """Create a campaign, save setup context, and automatically create its join code."""
-    if not await site_flag_enabled('campaign_creation_enabled', True):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Campaign creation is currently disabled')
+def build_campaign_update(campaign_data: Dict[str, Any], existing: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    existing = existing or {}
 
-    name = clean_text(campaign_data.get('name'))
+    name = clean_text(campaign_data.get('name'), existing.get('name', ''))
     if not name:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Campaign name is required')
 
-    rules_edition = clean_text(campaign_data.get('rules_edition'), '2024')
+    rules_edition = clean_text(campaign_data.get('rules_edition'), existing.get('rules_edition', '2024'))
     if rules_edition not in VALID_RULES_EDITIONS:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Rules edition must be 2014 or 2024')
 
-    campaign_type = clean_text(campaign_data.get('campaign_type') or campaign_data.get('world_genre'), 'fantasy')
+    campaign_type = clean_text(
+        campaign_data.get('campaign_type') or campaign_data.get('world_genre'),
+        existing.get('campaign_type') or existing.get('world_genre') or 'fantasy'
+    )
     if campaign_type not in VALID_CAMPAIGN_TYPES:
         campaign_type = 'mixed_other'
 
-    join_mode = clean_text(campaign_data.get('join_mode'), 'gm_approval')
+    join_mode = clean_text(campaign_data.get('join_mode'), existing.get('join_mode', 'gm_approval'))
     if join_mode not in VALID_JOIN_MODES:
         join_mode = 'gm_approval'
 
-    visibility = clean_text(campaign_data.get('visibility'), 'private')
+    visibility = clean_text(campaign_data.get('visibility'), existing.get('visibility', 'private'))
     if visibility not in VALID_VISIBILITY:
         visibility = 'private'
 
-    allow_epic_levels = bool(campaign_data.get('allow_epic_levels', False))
-    max_character_level = clamp_int(campaign_data.get('max_character_level'), 20, 1, 60)
+    allow_epic_levels = bool(campaign_data.get('allow_epic_levels', existing.get('allow_epic_levels', False)))
+    max_character_level = clamp_int(campaign_data.get('max_character_level', existing.get('max_character_level')), 20, 1, 60)
     if not allow_epic_levels:
         max_character_level = min(max_character_level, 20)
 
-    available_classes = [
-        str(class_name).strip()
-        for class_name in campaign_data.get('available_classes', [])
-        if str(class_name).strip()
-    ] if isinstance(campaign_data.get('available_classes'), list) else []
+    available_classes = campaign_data.get('available_classes', existing.get('available_classes', []))
+    if not isinstance(available_classes, list):
+        available_classes = []
+    available_classes = [str(class_name).strip() for class_name in available_classes if str(class_name).strip()]
 
     system = clean_text(
         campaign_data.get('system'),
         'D&D 5e 2024 Compatible' if rules_edition == '2024' else 'D&D 5e 2014 Compatible'
     )
 
-    now = datetime.now(timezone.utc).isoformat()
-    campaign_obj = Campaign(
-        dm_user_id=username,
-        name=name,
-        description=clean_text(campaign_data.get('description')),
-        system=system,
-        rules_edition=rules_edition,
-        world_name=clean_text(campaign_data.get('world_name')),
-        world_genre=campaign_type,
-        world_setting=clean_text(campaign_data.get('world_setting'), 'custom'),
-        world_setting_notes=clean_text(campaign_data.get('world_setting_notes')),
-        allow_exploding_dice=bool(campaign_data.get('allow_exploding_dice', False)),
-        allow_epic_levels=allow_epic_levels,
-        max_character_level=max_character_level,
-        available_classes=available_classes,
-    )
-    doc = campaign_obj.model_dump()
-    doc.update({
+    return {
+        'name': name,
+        'description': clean_text(campaign_data.get('description'), existing.get('description', '')),
+        'system': system,
+        'rules_edition': rules_edition,
+        'world_name': clean_text(campaign_data.get('world_name'), existing.get('world_name', '')),
+        'world_genre': campaign_type,
+        'world_setting': clean_text(campaign_data.get('world_setting'), existing.get('world_setting', 'custom')),
+        'world_setting_notes': clean_text(campaign_data.get('world_setting_notes'), existing.get('world_setting_notes', '')),
+        'allow_exploding_dice': bool(campaign_data.get('allow_exploding_dice', existing.get('allow_exploding_dice', False))),
+        'allow_epic_levels': allow_epic_levels,
+        'max_character_level': max_character_level,
+        'available_classes': available_classes,
         'campaign_type': campaign_type,
-        'tone_preset': clean_text(campaign_data.get('tone_preset'), 'heroic_fantasy'),
-        'tone_sliders': campaign_data.get('tone_sliders') if isinstance(campaign_data.get('tone_sliders'), dict) else {},
-        'campaign_feel': clean_text(campaign_data.get('campaign_feel')),
-        'starting_level': clamp_int(campaign_data.get('starting_level'), 1, 1, 20),
-        'party_size': clamp_int(campaign_data.get('party_size'), 4, 1, 12),
+        'tone_preset': clean_text(campaign_data.get('tone_preset'), existing.get('tone_preset', 'heroic_fantasy')),
+        'tone_sliders': campaign_data.get('tone_sliders') if isinstance(campaign_data.get('tone_sliders'), dict) else existing.get('tone_sliders', {}),
+        'campaign_feel': clean_text(campaign_data.get('campaign_feel'), existing.get('campaign_feel', '')),
+        'starting_level': clamp_int(campaign_data.get('starting_level', existing.get('starting_level')), 1, 1, 20),
+        'party_size': clamp_int(campaign_data.get('party_size', existing.get('party_size')), 4, 1, 12),
         'visibility': visibility,
         'join_mode': join_mode,
-        'join_code_enabled': True,
+        'join_code_enabled': bool(campaign_data.get('join_code_enabled', existing.get('join_code_enabled', True))),
+        'updated_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.post('/campaigns', status_code=status.HTTP_201_CREATED)
+async def create_campaign(campaign_data: Dict[str, Any], username: str = Depends(get_current_user)):
+    """Create a campaign, save setup context, and automatically create its join code."""
+    if not await site_flag_enabled('campaign_creation_enabled', True):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Campaign creation is currently disabled')
+
+    update_data = build_campaign_update(campaign_data)
+    campaign_obj = Campaign(
+        dm_user_id=username,
+        name=update_data['name'],
+        description=update_data['description'],
+        system=update_data['system'],
+        rules_edition=update_data['rules_edition'],
+        world_name=update_data['world_name'],
+        world_genre=update_data['world_genre'],
+        world_setting=update_data['world_setting'],
+        world_setting_notes=update_data['world_setting_notes'],
+        allow_exploding_dice=update_data['allow_exploding_dice'],
+        allow_epic_levels=update_data['allow_epic_levels'],
+        max_character_level=update_data['max_character_level'],
+        available_classes=update_data['available_classes'],
+    )
+    doc = campaign_obj.model_dump()
+    doc.update(update_data)
+    doc.update({
         'player_count': 0,
         'linked_character_count': 0,
         'pending_approval_count': 0,
-        'updated_at': now,
     })
 
     await db.campaigns.insert_one(doc)
@@ -183,6 +205,25 @@ async def create_campaign(campaign_data: Dict[str, Any], username: str = Depends
 async def get_campaigns(username: str = Depends(get_current_user)):
     campaigns = await db.campaigns.find({'dm_user_id': username}, {'_id': 0}).to_list(1000)
     return await attach_campaign_counts(campaigns)
+
+
+@router.put('/campaigns/{campaign_id}')
+async def update_campaign(campaign_id: str, campaign_data: Dict[str, Any], username: str = Depends(get_current_user)):
+    existing = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username}, {'_id': 0})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found')
+
+    update_data = build_campaign_update(campaign_data, existing)
+    result = await db.campaigns.update_one(
+        {'id': campaign_id, 'dm_user_id': username},
+        {'$set': update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign not found')
+
+    campaign = await db.campaigns.find_one({'id': campaign_id, 'dm_user_id': username}, {'_id': 0})
+    enriched = await attach_campaign_counts([campaign])
+    return enriched[0]
 
 
 @router.get('/campaigns/{campaign_id}')
