@@ -23,8 +23,8 @@ export default function UnifiedDashboardStatusBar({
     <section className="unified-dashboard-status" aria-label="Dashboard status">
       <StatChip label="Characters" value={characterCount} />
       <StatChip label="Campaigns" value={campaignCount} />
-      <StatChip label="Access" value={isAdmin ? 'Admin' : 'Player'} />
-      <StatChip label="Backend" value={backendStatus} tone={backendStatus} />
+      <StatChip label="Access" value={isAdmin ? 'Admin' : 'User'} />
+      <StatChip label="System" value={backendStatus} tone={backendStatus} />
     </section>
   );
 }
