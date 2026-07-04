@@ -1,0 +1,167 @@
+/* Final button colour override.
+   Purpose: kill the old muddy brown button/card background on mobile/tablet/desktop pages. */
+
+#root {
+  --rq-btn-dark-purple: #170824;
+  --rq-btn-dark-purple-2: #1b0b2d;
+  --rq-btn-danger-purple: #241325;
+  --rq-btn-sunset: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 68%, #ff9542 100%);
+}
+
+/* Library pages: My Characters + My Campaigns */
+#root .library-page button,
+#root .library-page a[role='button'],
+#root .library-page .library-page-actions button,
+#root .library-page .library-page-toolbar button,
+#root .library-page .library-page-card button,
+#root .library-page .library-page-empty button {
+  min-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)) padding-box,
+    var(--rq-btn-sunset) border-box !important;
+  background-color: var(--rq-btn-dark-purple) !important;
+  background-image:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)),
+    var(--rq-btn-sunset) !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+}
+
+/* True primary actions */
+#root .library-page .library-page-hero > button,
+#root .library-page .library-page-empty .library-page-actions button,
+#root .library-page .library-page-card .library-page-actions button:first-child {
+  background: var(--rq-btn-sunset) !important;
+  background-color: #d84df1 !important;
+  background-image: var(--rq-btn-sunset) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+/* Secondary action buttons */
+#root .library-page .library-page-toolbar button,
+#root .library-page .library-page-card .library-page-actions button:not(:first-child) {
+  background:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)) padding-box,
+    var(--rq-btn-sunset) border-box !important;
+  background-color: var(--rq-btn-dark-purple) !important;
+  background-image:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)),
+    var(--rq-btn-sunset) !important;
+  border: 1px solid transparent !important;
+}
+
+/* Delete stays dark, with a controlled danger/sunset outline. */
+#root .library-page .library-page-danger-button,
+#root .library-page button.library-page-danger-button,
+#root .library-page .library-page-card .library-page-actions button.library-page-danger-button {
+  background:
+    linear-gradient(var(--rq-btn-danger-purple), var(--rq-btn-danger-purple)) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.92), rgba(255, 149, 66, 0.72)) border-box !important;
+  background-color: var(--rq-btn-danger-purple) !important;
+  background-image:
+    linear-gradient(var(--rq-btn-danger-purple), var(--rq-btn-danger-purple)),
+    linear-gradient(135deg, rgba(255, 79, 129, 0.92), rgba(255, 149, 66, 0.72)) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+/* Homebrew Workshop: type cards and action buttons */
+#root [data-testid='homebrew-workshop'] button,
+#root [data-testid='homebrew-workshop'] label[for='hb-file-input'],
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  background:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)) padding-box,
+    var(--rq-btn-sunset) border-box !important;
+  background-color: var(--rq-btn-dark-purple) !important;
+  background-image:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)),
+    var(--rq-btn-sunset) !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  min-height: 82px !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid='hb-parse-text-btn'],
+#root [data-testid='homebrew-workshop'] [data-testid='hb-save-btn'],
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
+  background: var(--rq-btn-sunset) !important;
+  background-color: #d84df1 !important;
+  background-image: var(--rq-btn-sunset) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Homebrew panels had old thick left rails; force them back to the thin-box language. */
+#root [data-testid='homebrew-workshop'] header,
+#root [data-testid='homebrew-workshop'] aside,
+#root [data-testid='homebrew-workshop'] section,
+#root [data-testid='homebrew-workshop'] article,
+#root [data-testid='homebrew-workshop'] div[style*='border-left'],
+#root [data-testid='homebrew-workshop'] div[style*='borderLeft'] {
+  border-left: 1px solid transparent !important;
+}
+
+/* Account and upload buttons too, in case old route styles reapply. */
+#root .account-settings-page button,
+#root .uploads-dashboard-page button {
+  background:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)) padding-box,
+    var(--rq-btn-sunset) border-box !important;
+  background-color: var(--rq-btn-dark-purple) !important;
+  background-image:
+    linear-gradient(var(--rq-btn-dark-purple), var(--rq-btn-dark-purple)),
+    var(--rq-btn-sunset) !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .account-settings-primary,
+#root .uploads-dashboard-page .uploads-dashboard-hero button {
+  background: var(--rq-btn-sunset) !important;
+  background-image: var(--rq-btn-sunset) !important;
+}
+
+#root button:disabled,
+#root .library-page button:disabled,
+#root [data-testid='homebrew-workshop'] button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+@media (max-width: 760px) {
+  #root .library-page .library-page-toolbar button,
+  #root .library-page .library-page-hero > button,
+  #root .library-page .library-page-empty .library-page-actions button,
+  #root .library-page .library-page-card .library-page-actions button,
+  #root [data-testid='homebrew-workshop'] button,
+  #root [data-testid='homebrew-workshop'] label[for='hb-file-input'] {
+    min-height: 42px !important;
+  }
+
+  #root .library-page .library-page-card .library-page-actions {
+    gap: 8px !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+    min-height: 74px !important;
+  }
+}
