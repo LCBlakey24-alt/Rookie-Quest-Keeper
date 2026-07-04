@@ -33,6 +33,7 @@ const bardLevelOf = (character) => classLevelOf(character, 'bard');
 const clericLevelOf = (character) => classLevelOf(character, 'cleric');
 const monkLevelOf = (character) => classLevelOf(character, 'monk');
 const paladinLevelOf = (character) => classLevelOf(character, 'paladin');
+const rangerLevelOf = (character) => classLevelOf(character, 'ranger');
 const sorcererLevelOf = (character) => classLevelOf(character, 'sorcerer');
 const warlockLevelOf = (character) => classLevelOf(character, 'warlock');
 
@@ -105,7 +106,18 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'lay_on_hands', label: 'Lay on Hands', minLevel: 1, restore: 'long-rest', max: (character) => paladinLevelOf(character) * 5 },
     { key: 'channel_divinity', label: 'Channel Divinity', minLevel: 3, restore: (character) => is2024Rules(character) ? 'long-rest' : 'short-rest', max: (character) => is2024Rules(character) ? proficiencyBonusOf(character) : 1 },
   ],
-  Ranger: [],
+  Ranger: [
+    {
+      key: 'favored_enemy',
+      label: 'Favored Enemy',
+      minLevel: 1,
+      restore: 'long-rest',
+      max: (character) => {
+        if (!is2024Rules(character)) return 0;
+        return Math.max(2, Math.ceil(rangerLevelOf(character) / 2));
+      },
+    },
+  ],
   Rogue: [],
   Sorcerer: [
     { key: 'sorcery_points', label: 'Sorcery Points', minLevel: 2, restore: 'long-rest', max: (character) => sorcererLevelOf(character) },
@@ -159,6 +171,7 @@ const resourceLevelOf = (character, className) => {
   if (normalizedClass === 'cleric') return clericLevelOf(character);
   if (normalizedClass === 'monk') return monkLevelOf(character);
   if (normalizedClass === 'paladin') return paladinLevelOf(character);
+  if (normalizedClass === 'ranger') return rangerLevelOf(character);
   if (normalizedClass === 'sorcerer') return sorcererLevelOf(character);
   if (normalizedClass === 'warlock') return warlockLevelOf(character);
   return classLevelOf(character, className);

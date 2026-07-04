@@ -1,6 +1,21 @@
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 const labelText = (label, character) => (typeof label === 'function' ? label(character) : label);
-const levelOf = (character) => Math.max(1, Number(character?.level || character?.character_level || 1));
+
+const classLevelOf = (character, className) => {
+  const key = normalizeName(className);
+  const classLevels = { ...(character?.multiclass_levels || {}), ...(character?.classLevels || {}), ...(character?.class_levels || {}) };
+  const mappedLevel = Number(classLevels[key] || classLevels[className] || classLevels[className?.charAt?.(0)?.toUpperCase?.() + className?.slice?.(1)] || 0);
+  if (mappedLevel > 0) return mappedLevel;
+
+  const entry = (Array.isArray(character?.classes) ? character.classes : [])
+    .find(item => normalizeName(item?.name || item?.class_name || item?.className || item?.class) === key);
+  const entryLevel = Number(entry?.level || entry?.class_level || entry?.classLevel || 0);
+  if (entryLevel > 0) return entryLevel;
+
+  return Math.max(1, Number(character?.level || character?.character_level || 1));
+};
+
+const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
 
 export function resourceValue(character, rule) {
   const existing = character?.resources?.[rule.key] || {};
@@ -60,9 +75,13 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.lay_on_hands || className === 'paladin') add('action', 'lay_on_hands', 'Lay on Hands', 'Spend points from your healing pool.', () => handlers.spendResource('lay_on_hands', 'Lay on Hands'));
   if (byKey.arcane_recovery || className === 'wizard') add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
+  if (byKey.favored_enemy || (className === 'ranger' && (is2024Rules(character) || classLevelOf(character, 'ranger') >= 2))) {
+    const spendFavoredEnemy = byKey.favored_enemy ? () => handlers.spendResource('favored_enemy', "Hunter's Mark") : undefined;
+    add('bonus', 'favored_enemy', "Hunter's Mark", "Cast or move Hunter's Mark when your Ranger features or spells make it available.", spendFavoredEnemy, 'Core Ranger feature');
+  }
   if (className === 'rogue') {
     add('action', 'rogue', 'Sneak Attack', 'Once per turn, add extra damage when you hit with a finesse or ranged weapon and meet Sneak Attack conditions.', undefined, 'Core Rogue feature');
-    if (levelOf(character) >= 2) {
+    if (classLevelOf(character, 'rogue') >= 2) {
       add('bonus', 'rogue', 'Cunning Action', 'Take the Dash, Disengage, or Hide action as a bonus action.', undefined, 'Core Rogue feature');
     }
   }

@@ -79,8 +79,13 @@ describe('class resource unlocks and action economy audit', () => {
     expect(actionTitlesFor(character('barbarian', 1)).bonus).toContain('Rage');
     expect(actionTitlesFor(character('paladin', 1)).action).toContain('Lay on Hands');
     expect(actionTitlesFor(character('paladin', 3)).action).toContain('Channel Divinity');
+    expect(actionTitlesFor(character('ranger', 2, { rules_edition: '2014' })).bonus).toContain("Hunter's Mark");
+    expect(actionTitlesFor(character('ranger', 1, { rules_edition: '2024' })).bonus).toContain("Hunter's Mark");
     expect(getClassResourceRules(character('warlock', 1)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 1, restore: 'short-rest' });
     expect(getClassResourceRules(character('warlock', 2)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 2 });
+    expect(getClassResourceRules(character('ranger', 1, { rules_edition: '2014' })).find(rule => rule.key === 'favored_enemy')).toBeUndefined();
+    expect(getClassResourceRules(character('ranger', 1, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 2, restore: 'long-rest' });
+    expect(getClassResourceRules(character('ranger', 7, { rules_edition: '2024' })).find(rule => rule.key === 'favored_enemy')).toMatchObject({ maxValue: 4 });
   });
 
   test('Rogue core turn reminders appear at the correct levels', () => {
