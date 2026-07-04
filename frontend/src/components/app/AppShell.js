@@ -6,15 +6,15 @@ import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 
 const mainNavItems = [
-  { label: 'Home', to: '/home', icon: Home, matches: ['/home'] },
+  { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'] },
   { label: 'My Characters', to: '/characters', icon: UsersRound, matches: ['/characters'] },
   { label: 'My Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
-  { label: 'Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'] },
-  { label: 'Upload', to: '/uploads', icon: UploadCloud, matches: ['/uploads'] },
-  { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'] },
+  { label: 'My Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'] },
+  { label: 'My Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'] },
 ];
 
 const adminNavItem = { label: 'Admin', to: '/admin', icon: ShieldCheck, matches: ['/admin'] };
+const settingsNavItem = { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'] };
 
 function isActive(pathname, item) {
   return item.matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
@@ -62,7 +62,7 @@ export default function AppShell({ children }) {
   }, []);
 
   const navItems = useMemo(
-    () => isAdmin ? [...mainNavItems, adminNavItem] : mainNavItems,
+    () => isAdmin ? [...mainNavItems, adminNavItem, settingsNavItem] : [...mainNavItems, settingsNavItem],
     [isAdmin],
   );
 
