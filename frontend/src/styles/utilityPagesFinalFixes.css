@@ -1,0 +1,410 @@
+/* Final utility page fixes for Homebrew, Uploads, and Account Settings.
+   This file loads after the sunset theme so it can beat older brown/red inline-heavy screens. */
+
+#root .uploads-dashboard-page,
+#root [data-testid='homebrew-workshop'],
+#root .account-settings-page {
+  min-height: 100dvh !important;
+  background: linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: #ffffff !important;
+}
+
+#root .uploads-dashboard-page *,
+#root [data-testid='homebrew-workshop'] *,
+#root .account-settings-page * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+#root .uploads-dashboard-hero,
+#root .uploads-dashboard-dropzone,
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-next,
+#root [data-testid='homebrew-workshop'] header,
+#root [data-testid='homebrew-workshop'] aside,
+#root [data-testid='homebrew-workshop'] section,
+#root [data-testid='homebrew-workshop'] article,
+#root .account-settings-panel {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: #ffffff !important;
+}
+
+#root .uploads-dashboard-page {
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  padding: clamp(10px, 2vw, 20px) !important;
+}
+
+#root .uploads-dashboard-hero,
+#root .uploads-dashboard-dropzone,
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-next {
+  padding: clamp(13px, 2.4vw, 20px) !important;
+}
+
+#root .uploads-dashboard-hero h1,
+#root .uploads-dashboard-dropzone h2,
+#root .uploads-dashboard-card h2,
+#root .uploads-dashboard-next h2,
+#root [data-testid='homebrew-workshop'] h1,
+#root [data-testid='homebrew-workshop'] h2,
+#root .account-settings-page h1,
+#root .account-settings-page h2 {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 700 !important;
+  line-height: 1.02 !important;
+  letter-spacing: 0.01em !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+#root .uploads-dashboard-hero h1 {
+  font-size: clamp(2.25rem, 8vw, 4rem) !important;
+  max-width: 11ch !important;
+}
+
+#root .uploads-dashboard-dropzone h2,
+#root .uploads-dashboard-card h2,
+#root .uploads-dashboard-next h2,
+#root [data-testid='homebrew-workshop'] h2,
+#root .account-settings-page h2 {
+  font-size: clamp(1.45rem, 5.7vw, 2.25rem) !important;
+}
+
+#root .uploads-dashboard-hero h1::after,
+#root .uploads-dashboard-dropzone h2::after,
+#root .uploads-dashboard-card h2::after,
+#root .uploads-dashboard-next h2::after,
+#root [data-testid='homebrew-workshop'] h2::after,
+#root .account-settings-page h2::after {
+  content: '' !important;
+  display: block !important;
+  height: 2px !important;
+  width: 100% !important;
+  margin-top: 8px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .uploads-dashboard-page p,
+#root .uploads-dashboard-page li,
+#root [data-testid='homebrew-workshop'] p,
+#root .account-settings-page p,
+#root .account-settings-page label {
+  color: #ffffff !important;
+}
+
+#root .uploads-dashboard-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .uploads-dashboard-card {
+  min-height: 0 !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+}
+
+#root .uploads-dashboard-dropzone {
+  min-height: 0 !important;
+  display: grid !important;
+  gap: 10px !important;
+  align-items: start !important;
+  background:
+    linear-gradient(#13081f, #13081f) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border-style: solid !important;
+}
+
+#root .uploads-dashboard-next ul {
+  margin: 10px 0 0 !important;
+  padding-left: 1.1rem !important;
+}
+
+#root [data-testid='homebrew-workshop'] {
+  padding: clamp(9px, 2vw, 18px) !important;
+}
+
+#root [data-testid='homebrew-workshop'] > section {
+  max-width: 1220px !important;
+  gap: 10px !important;
+}
+
+#root [data-testid='homebrew-workshop'] header {
+  padding: 13px !important;
+  align-items: flex-start !important;
+}
+
+#root [data-testid='homebrew-workshop'] h1 {
+  font-size: clamp(2rem, 8vw, 4rem) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+  min-height: 86px !important;
+  background:
+    linear-gradient(#13081f, #13081f) padding-box,
+    rgba(255, 255, 255, 0.15) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 5px !important;
+  padding: 10px !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] span {
+  max-width: 100% !important;
+  color: #ffffff !important;
+  font-size: 0.8rem !important;
+  line-height: 1.28 !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+#root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] strong {
+  color: #ffffff !important;
+  font-size: 1rem !important;
+}
+
+#root [data-testid='homebrew-workshop'] aside,
+#root [data-testid='homebrew-workshop'] section,
+#root [data-testid='homebrew-workshop'] article {
+  padding: 13px !important;
+}
+
+#root [data-testid='homebrew-workshop'] textarea,
+#root [data-testid='homebrew-workshop'] input,
+#root [data-testid='homebrew-workshop'] select,
+#root .account-settings-page input {
+  width: 100% !important;
+  min-height: 42px !important;
+  background: #0d0618 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  padding: 10px 12px !important;
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  outline: none !important;
+}
+
+#root [data-testid='homebrew-workshop'] textarea:focus,
+#root [data-testid='homebrew-workshop'] input:focus,
+#root [data-testid='homebrew-workshop'] select:focus,
+#root .account-settings-page input:focus {
+  background:
+    linear-gradient(#0d0618, #0d0618) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border-color: transparent !important;
+  border-left-color: transparent !important;
+}
+
+#root [data-testid='homebrew-workshop'] button,
+#root [data-testid='homebrew-workshop'] label[for='hb-file-input'],
+#root .uploads-dashboard-dropzone button,
+#root .account-settings-page button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  padding: 0 12px !important;
+  font-weight: 900 !important;
+}
+
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn'],
+#root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn'],
+#root .account-settings-primary {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root [data-testid='homebrew-workshop'] button:disabled,
+#root .account-settings-page button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+#root [data-testid='homebrew-workshop'] [style*='border-left'],
+#root [data-testid='homebrew-workshop'] [style*='borderLeft'] {
+  border-left: 1px solid transparent !important;
+}
+
+#root [data-testid='homebrew-workshop'] [style*='background: rgb(58, 58, 58)'],
+#root [data-testid='homebrew-workshop'] [style*='background: rgb(47, 47, 47)'],
+#root [data-testid='homebrew-workshop'] [style*='background: #3a3a3a'],
+#root [data-testid='homebrew-workshop'] [style*='background: #2f2f2f'] {
+  background: var(--rq-card, #1b0b2d) !important;
+}
+
+#root [data-testid='homebrew-workshop'] [style*='justify-content: flex-end'] {
+  justify-content: stretch !important;
+}
+
+#root [data-testid='homebrew-workshop'] h2 span {
+  display: inline !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+}
+
+#root .account-settings-page {
+  padding: clamp(10px, 2vw, 20px) !important;
+}
+
+#root .account-settings-container {
+  max-width: 820px !important;
+}
+
+#root .account-settings-header {
+  margin-bottom: 12px !important;
+  align-items: flex-start !important;
+}
+
+#root .account-settings-back {
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px !important;
+  padding: 0 !important;
+}
+
+#root .account-settings-page h1 {
+  margin: 0 !important;
+  font-size: clamp(2.2rem, 9vw, 4rem) !important;
+}
+
+#root .account-settings-panel {
+  padding: clamp(14px, 3vw, 22px) !important;
+  margin-bottom: 12px !important;
+}
+
+#root .account-settings-page input {
+  padding-right: 54px !important;
+}
+
+#root .account-password-toggle {
+  width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  right: 4px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+#root .account-settings-danger {
+  background:
+    linear-gradient(#241325, #241325) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.8), rgba(255, 149, 66, 0.7)) border-box !important;
+}
+
+#root .account-settings-danger-button {
+  background:
+    linear-gradient(#241325, #241325) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.9), rgba(255, 149, 66, 0.7)) border-box !important;
+  color: #ffffff !important;
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  #root [data-testid='homebrew-workshop'] [style*='grid-template-columns: minmax'] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #root .uploads-dashboard-hero h1 {
+    font-size: clamp(2.35rem, 11vw, 3.15rem) !important;
+  }
+
+  #root .uploads-dashboard-dropzone h2,
+  #root .uploads-dashboard-card h2,
+  #root .uploads-dashboard-next h2,
+  #root [data-testid='homebrew-workshop'] h2,
+  #root .account-settings-page h2 {
+    font-size: clamp(1.45rem, 7vw, 2rem) !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] [style*='grid-template-columns: minmax'],
+  #root [data-testid='homebrew-workshop'] [style*='repeat(auto-fit'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+    min-height: 76px !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] button,
+  #root [data-testid='homebrew-workshop'] label[for='hb-file-input'],
+  #root .account-settings-page button {
+    width: 100% !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] header button,
+  #root .account-settings-back,
+  #root .account-password-toggle {
+    width: 42px !important;
+  }
+
+  #root .account-settings-header {
+    gap: 10px !important;
+  }
+
+  #root .account-settings-page h1 {
+    font-size: clamp(2.15rem, 10vw, 3rem) !important;
+  }
+
+  #root .account-settings-panel > div:first-child {
+    align-items: flex-start !important;
+  }
+
+  #root .account-settings-primary {
+    width: auto !important;
+    justify-self: start !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .uploads-dashboard-page,
+  #root [data-testid='homebrew-workshop'],
+  #root .account-settings-page {
+    padding: 8px !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] span {
+    display: none !important;
+  }
+
+  #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
+    min-height: 62px !important;
+  }
+}
