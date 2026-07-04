@@ -48,6 +48,7 @@ import '@/styles/sunsetMobileTightening.css';
 import '@/styles/utilityPagesFinalFixes.css';
 import '@/styles/sunsetButtonFinalOverride.css';
 import '@/styles/sunsetScrollbar.css';
+import '@/styles/fullCreatorReadiness.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
