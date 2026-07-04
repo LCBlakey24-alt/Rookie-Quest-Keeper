@@ -1,0 +1,346 @@
+/* Final sunset character sheet pass.
+   This file intentionally loads after the older sheet polish layers so the
+   character sheet matches Dashboard, My Characters, and My Campaigns. */
+
+.character-page-v2.clean-sheet-page {
+  --sheet-bg: var(--rq-bg-main, #080512);
+  --sheet-rail: var(--rq-rail-bg, #0d0617);
+  --sheet-panel: var(--rq-card, #1b0b2d);
+  --sheet-panel-2: var(--rq-panel, #130820);
+  --sheet-input: #10071d;
+  --sheet-text: #ffffff;
+  --sheet-soft: rgba(255, 255, 255, 0.86);
+  --sheet-muted: rgba(255, 255, 255, 0.66);
+  --sheet-border-fallback: rgba(255, 255, 255, 0.14);
+  --sheet-sunset: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  --sheet-danger: linear-gradient(135deg, #ff4f81, #ff9542);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(115, 87, 255, 0.12), transparent 26rem),
+    radial-gradient(circle at 80% 8%, rgba(255, 79, 129, 0.1), transparent 26rem),
+    var(--sheet-bg) !important;
+  color: var(--sheet-text) !important;
+}
+
+.character-page-v2 *,
+.character-page-v2 button,
+.character-page-v2 input,
+.character-page-v2 select,
+.character-page-v2 textarea {
+  border-radius: revert-layer;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-vitals,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-empty,
+.character-page-v2 .clean-sheet-identity,
+.character-page-v2 .clean-sheet-compact-stat,
+.character-page-v2 .clean-sheet-compact-hp-actions,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-skills-summary,
+.character-page-v2 .clean-sheet-readable-saves,
+.character-page-v2 .clean-sheet-readable-skills,
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-turn-strip,
+.character-page-v2 .clean-sheet-play-tools {
+  background:
+    linear-gradient(var(--sheet-panel), var(--sheet-panel)) padding-box,
+    var(--sheet-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: var(--sheet-text) !important;
+}
+
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-compact-status {
+  padding: 14px !important;
+}
+
+.character-page-v2 .clean-sheet-header--simple {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+.character-page-v2 .clean-sheet-identity {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+.character-page-v2 .clean-sheet-portrait,
+.character-page-v2 .clean-sheet-character-portrait {
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: var(--sheet-panel-2) !important;
+}
+
+.character-page-v2 .clean-sheet-identity h1,
+.character-page-v2 .clean-sheet-panel h2,
+.character-page-v2 .clean-sheet-panel-heading h2,
+.character-page-v2 .clean-sheet-section-heading-row h2,
+.character-page-v2 .clean-sheet-empty h3,
+.character-page-v2 .clean-sheet-feature-lane h3,
+.character-page-v2 .clean-sheet-proficiency-lists h3,
+.character-page-v2 .clean-sheet-item-card strong,
+.character-page-v2 .clean-sheet-feature-card strong,
+.character-page-v2 .clean-sheet-core-stat-card strong,
+.character-page-v2 .clean-sheet-compact-ability > strong,
+.character-page-v2 .clean-sheet-stat-value,
+.character-page-v2 .clean-sheet-skills-summary strong,
+.character-page-v2 .clean-sheet-passives strong,
+.character-page-v2 .clean-sheet-hitdice-row strong {
+  color: var(--sheet-text) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 800 !important;
+}
+
+.character-page-v2 p,
+.character-page-v2 em,
+.character-page-v2 small,
+.character-page-v2 .clean-sheet-muted,
+.character-page-v2 .clean-sheet-empty p,
+.character-page-v2 .clean-sheet-backstory-text,
+.character-page-v2 .clean-sheet-note-field p,
+.character-page-v2 .clean-sheet-item-card p,
+.character-page-v2 .clean-sheet-feature-card p,
+.character-page-v2 .clean-sheet-panel-heading p,
+.character-page-v2 .clean-sheet-section-heading-row > span,
+.character-page-v2 .clean-sheet-identity p:last-child {
+  color: var(--sheet-soft) !important;
+}
+
+.character-page-v2 span,
+.character-page-v2 .clean-sheet-kicker,
+.character-page-v2 .clean-sheet-stat-label,
+.character-page-v2 .clean-sheet-card-meta,
+.character-page-v2 .clean-sheet-note-field span,
+.character-page-v2 .clean-sheet-skills-summary span,
+.character-page-v2 .clean-sheet-core-stat-card span,
+.character-page-v2 .clean-sheet-save-label span,
+.character-page-v2 .clean-sheet-passives span,
+.character-page-v2 .clean-sheet-hitdice-row span {
+  color: var(--sheet-muted) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs {
+  background:
+    linear-gradient(var(--sheet-rail), var(--sheet-rail)) padding-box,
+    var(--sheet-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button svg,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active {
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active svg {
+  background: var(--sheet-sunset) !important;
+  color: #ffffff !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button span,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 800 !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active span::after {
+  background: var(--sheet-sunset) !important;
+}
+
+.character-page-v2 button,
+.character-page-v2 .clean-sheet-back,
+.character-page-v2 .clean-sheet-edit,
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-inspiration,
+.character-page-v2 .clean-sheet-rest-button,
+.character-page-v2 .clean-sheet-condition-toggle,
+.character-page-v2 .clean-sheet-roll-history-toggle,
+.character-page-v2 .clean-sheet-death-actions button,
+.character-page-v2 .clean-sheet-roll-mode-group button,
+.character-page-v2 .clean-sheet-skill-filter-row button,
+.character-page-v2 .clean-sheet-hp-actions button,
+.character-page-v2 .clean-sheet-hp-bulk-row button,
+.character-page-v2 .clean-sheet-temp-hp-bulk-row button,
+.character-page-v2 .clean-sheet-hitdice-row button,
+.character-page-v2 .clean-sheet-slot-actions button,
+.character-page-v2 .clean-sheet-notes-actions button,
+.character-page-v2 .clean-sheet-item-actions button,
+.character-page-v2 .clean-sheet-equipment-picker button,
+.character-page-v2 .clean-sheet-roll-chip {
+  background:
+    linear-gradient(var(--sheet-panel), var(--sheet-panel)) padding-box,
+    var(--sheet-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-notes-actions button,
+.character-page-v2 .clean-sheet-equipment-picker button:first-of-type,
+.character-page-v2 .clean-sheet-header-actions button:last-child,
+.character-page-v2 .clean-sheet-compact-hp-actions button:not(.clean-sheet-hp-wheel *) {
+  background: var(--sheet-sunset) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.character-page-v2 button:hover,
+.character-page-v2 button:focus-visible,
+.character-page-v2 .clean-sheet-clickable:hover,
+.character-page-v2 .clean-sheet-save-card:hover,
+.character-page-v2 .clean-sheet-skill-card:hover,
+.character-page-v2 .clean-sheet-spell-card:hover,
+.character-page-v2 .clean-sheet-slot-card:hover,
+.character-page-v2 .clean-sheet-item-card:hover,
+.character-page-v2 .clean-sheet-feature-card:hover {
+  border-color: transparent !important;
+  filter: brightness(1.06);
+  outline: none !important;
+}
+
+.character-page-v2 input,
+.character-page-v2 select,
+.character-page-v2 textarea,
+.character-page-v2 .clean-sheet-hp-bulk-row input,
+.character-page-v2 .clean-sheet-temp-hp-bulk-row input,
+.character-page-v2 .clean-sheet-roll-controls input {
+  background:
+    linear-gradient(var(--sheet-input), var(--sheet-input)) padding-box,
+    rgba(255, 255, 255, 0.16) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  box-shadow: none !important;
+  color-scheme: dark;
+}
+
+.character-page-v2 input:focus,
+.character-page-v2 select:focus,
+.character-page-v2 textarea:focus {
+  background:
+    linear-gradient(var(--sheet-input), var(--sheet-input)) padding-box,
+    var(--sheet-sunset) border-box !important;
+  outline: none !important;
+}
+
+.character-page-v2 .clean-sheet-hp-bar,
+.character-page-v2 .clean-sheet-slot-pips i,
+.character-page-v2 .clean-sheet-death-track button {
+  background: var(--sheet-input) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  border-radius: 999px !important;
+}
+
+.character-page-v2 .clean-sheet-hp-bar div,
+.character-page-v2 .clean-sheet-slot-pips i.filled,
+.character-page-v2 .clean-sheet-death-track button.marked,
+.character-page-v2 .clean-sheet-roll-mode-group button.active,
+.character-page-v2 .clean-sheet-condition-picker button.active,
+.character-page-v2 .clean-sheet-inspiration.active {
+  background: var(--sheet-sunset) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.character-page-v2 .clean-sheet-attention-section,
+.character-page-v2 .clean-sheet-snapshot-warning,
+.character-page-v2 .clean-sheet-detail-warning,
+.character-page-v2 .clean-sheet-tabs button.needs-attention {
+  background:
+    linear-gradient(var(--sheet-panel), var(--sheet-panel)) padding-box,
+    var(--sheet-danger) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.needs-attention:not(.active)::after,
+.character-page-v2 .clean-sheet-tabs button.needs-attention.active::after,
+.character-page-v2 .clean-sheet-tab-warning {
+  background: var(--sheet-danger) !important;
+}
+
+.character-page-v2 .clean-sheet-core-stat-grid,
+.character-page-v2 .clean-sheet-passive-grid,
+.character-page-v2 .clean-sheet-compact-abilities,
+.character-page-v2 .clean-sheet-readable-saves,
+.character-page-v2 .clean-sheet-readable-skills,
+.character-page-v2 .clean-sheet-feature-grid,
+.character-page-v2 .clean-sheet-item-grid,
+.character-page-v2 .clean-sheet-equipped-slot-grid,
+.character-page-v2 .clean-sheet-spell-summary,
+.character-page-v2 .clean-sheet-readiness-grid,
+.character-page-v2 .clean-sheet-proficiency-lists,
+.character-page-v2 .clean-sheet-character-detail-grid {
+  gap: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-content {
+  padding-bottom: 48px !important;
+}
+
+@media (min-width: 760px) {
+  .character-page-v2 .clean-sheet-tabs button,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    min-height: 52px !important;
+  }
+}
+
+@media (max-width: 759px) {
+  .character-page-v2 .clean-sheet-tabs button span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+    display: none !important;
+  }
+
+  .character-page-v2 .clean-sheet-header--simple,
+  .character-page-v2 .clean-sheet-compact-status--hp-only {
+    grid-template-columns: 1fr !important;
+  }
+}
