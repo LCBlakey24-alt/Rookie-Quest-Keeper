@@ -15,7 +15,7 @@
   z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   padding: 10px 7px;
   background: var(--rq-bg-rail, #0d0617);
   border-right: 1px solid rgba(255, 255, 255, 0.12);
@@ -29,7 +29,8 @@
 }
 
 .rqk-app-rail-feedback {
-  margin-top: auto;
+  margin-top: 0;
+  flex: 0 0 auto;
 }
 
 .rqk-app-rail-link {
