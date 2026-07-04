@@ -1,6 +1,7 @@
 import React from 'react';
 import { Edit3, TrendingUp } from 'lucide-react';
 import './CleanSheetHeaderCompact.css';
+import './CleanSheetFinalHammer.css';
 
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
 const ACRONYMS = new Set(['ac', 'dc', 'hp', 'str', 'dex', 'con', 'int', 'wis', 'cha']);
