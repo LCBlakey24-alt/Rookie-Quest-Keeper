@@ -1,6 +1,5 @@
 /* Mobile-first central box/grid alignment for the character sheet.
-   Goal: equal-width boxes, full-height left accent lines, centred text,
-   no cramped edge text, and compact two-column skill rows. */
+   Equal-width boxes, sunset borders, centred text, no full-height side bars. */
 
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-content {
@@ -19,7 +18,7 @@
     width: 100% !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 8px !important;
+    gap: 10px !important;
     align-items: stretch !important;
   }
 
@@ -45,7 +44,7 @@
     width: 100% !important;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    gap: 8px !important;
     align-items: stretch !important;
   }
 
@@ -72,7 +71,7 @@
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    border-left: 1px solid transparent !important;
     padding-left: max(10px, 0.75rem) !important;
     padding-right: max(10px, 0.75rem) !important;
   }
@@ -205,33 +204,18 @@
   .character-page-v2 .clean-sheet-skill-filter-row button {
     min-height: 34px !important;
     font-size: 10px !important;
-    border-left: 4px solid transparent !important;
+    border-left: 1px solid transparent !important;
   }
 
   .character-page-v2 .clean-sheet-skill-filter-row button.active {
-    background: var(--rq-bg-panel, #101010) !important;
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
+    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    border-left-color: transparent !important;
   }
 }
 
 @media (max-width: 390px) {
   .character-page-v2 .clean-sheet-readable-skills,
   .character-page-v2 .clean-sheet-compact-skills {
-    gap: 5px !important;
-  }
-
-  .character-page-v2 .clean-sheet-skill-card {
-    padding-left: 8px !important;
-    padding-right: 6px !important;
-  }
-
-  .character-page-v2 .clean-sheet-skill-label,
-  .character-page-v2 .clean-sheet-skill-label span {
-    font-size: 9px !important;
-  }
-
-  .character-page-v2 .clean-sheet-skill-tags em,
-  .character-page-v2 .clean-sheet-skill-tags small {
-    font-size: 7px !important;
+    gap: 6px !important;
   }
 }
