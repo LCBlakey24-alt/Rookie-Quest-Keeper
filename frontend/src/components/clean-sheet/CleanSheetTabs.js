@@ -38,12 +38,14 @@ export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack })
           <button
             key={tab.id}
             onClick={() => onSelectTab(tab)}
-            className={selected ? 'active' : ''}
-            aria-label={tab.label}
-            title={tab.label}
+            className={`${selected ? 'active' : ''} ${tab.needsAttention ? 'needs-attention' : ''}`.trim()}
+            aria-label={tab.needsAttention ? `${tab.label} needs attention` : tab.label}
+            title={tab.needsAttention ? `${tab.label} needs attention` : tab.label}
             type="button"
           >
-            <Icon size={17} /> <span>{tab.label}</span>
+            <Icon size={17} />
+            <span>{tab.label}</span>
+            {tab.needsAttention && <em className="clean-sheet-tab-warning" aria-hidden="true" />}
           </button>
         );
       })}
