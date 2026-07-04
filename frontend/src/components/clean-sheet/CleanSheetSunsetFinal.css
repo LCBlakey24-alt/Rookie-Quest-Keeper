@@ -223,7 +223,7 @@
 .character-page-v2 .clean-sheet-notes-actions button,
 .character-page-v2 .clean-sheet-equipment-picker button:first-of-type,
 .character-page-v2 .clean-sheet-header-actions button:last-child,
-.character-page-v2 .clean-sheet-compact-hp-actions button:not(.clean-sheet-hp-wheel *) {
+.character-page-v2 .clean-sheet-compact-hp-actions button {
   background: var(--sheet-sunset) !important;
   border-color: transparent !important;
   color: #ffffff !important;
