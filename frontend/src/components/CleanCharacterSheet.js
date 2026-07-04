@@ -5,14 +5,15 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import CleanCombatTab from '@/components/clean-sheet/CleanCombatTab';
 import CleanInventoryTab from '@/components/clean-sheet/CleanInventoryTab';
-import CleanLoreTab from '@/components/clean-sheet/CleanLoreTab';
 import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
 import CleanSheetCharacterTab from '@/components/clean-sheet/CleanSheetCharacterTab';
 import CleanSheetCompactStatus from '@/components/clean-sheet/CleanSheetCompactStatus';
+import CleanSheetFeatsTab from '@/components/clean-sheet/CleanSheetFeatsTab';
 import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTab';
 import CleanSheetHeader from '@/components/clean-sheet/CleanSheetHeader';
 import CleanSheetOverviewTab from '@/components/clean-sheet/CleanSheetOverviewTab';
 import CleanSheetPlayTools from '@/components/clean-sheet/CleanSheetPlayTools';
+import CleanSheetSpeciesTab from '@/components/clean-sheet/CleanSheetSpeciesTab';
 import CleanSheetTabs from '@/components/clean-sheet/CleanSheetTabs';
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
@@ -40,6 +41,9 @@ import {
 import '@/components/clean-sheet/CleanCharacterSheetPolish.css';
 import '@/components/clean-sheet/CleanSheetListPolish.css';
 import '@/components/clean-sheet/CleanSheetMobileBoxGrid.css';
+
+const hasObjectItems = (value = {}) => Object.keys(value || {}).length > 0;
+const hasAnyText = (...values) => values.some(value => String(value || '').trim().length > 0);
 
 export default function CleanCharacterSheet() {
   const { characterId } = useParams();
@@ -115,6 +119,48 @@ export default function CleanCharacterSheet() {
   }, [character, proficiencyBonus, skillProficiencies]);
 
   const rulesEdition = String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
+  const personalityMissing = !hasAnyText(
+    character?.personality_trait,
+    character?.personality_traits,
+    character?.ideal,
+    character?.ideals,
+    character?.bond,
+    character?.bonds,
+    character?.flaw,
+    character?.flaws,
+  );
+  const speciesTraitsMissing = !toArray(character?.racial_traits || character?.species_traits || character?.traits).length;
+  const languagesMissing = !toArray(character?.languages).length;
+  const featsMissing = rulesEdition === '2024' && !toArray(character?.feats).length;
+  const hasSpellcasting = Boolean(
+    character?.spellcasting_ability ||
+    hasObjectItems(character?.spell_slots) ||
+    hasObjectItems(character?.spell_slots_remaining)
+  );
+  const spellChoicesMissing = hasSpellcasting && (
+    !toArray(character?.cantrips_known || character?.cantrips).length ||
+    ![
+      ...toArray(character?.spells_known || character?.known_spells),
+      ...toArray(character?.spells_prepared || character?.prepared_spells),
+      ...toArray(character?.spellbook),
+    ].length
+  );
+  const equipmentMissing = !toArray(character?.starting_equipment || character?.startingEquipment).length && !toArray(character?.equipment).length && !toArray(character?.inventory).length;
+  const shoppingByGold = toArray(character?.starting_equipment || character?.startingEquipment).some(item => /starting gold|shopping/i.test(String(item)));
+  const classMissing = !toArray(character?.class_features || character?.features).length;
+  const tabAttention = {
+    character: personalityMissing || !character?.backstory || (!character?.appearance && !character?.portrait_url),
+    inventory: equipmentMissing || shoppingByGold,
+    spells: spellChoicesMissing,
+    class: classMissing,
+    species: speciesTraitsMissing || languagesMissing,
+    feats: featsMissing,
+  };
+  const sheetTabs = useMemo(() => SHEET_TABS.map(tab => ({
+    ...tab,
+    label: tab.id === 'species' ? (rulesEdition === '2024' ? 'Species' : 'Race') : tab.label,
+    needsAttention: Boolean(tabAttention[tab.id]),
+  })), [rulesEdition, tabAttention.character, tabAttention.inventory, tabAttention.spells, tabAttention.class, tabAttention.species, tabAttention.feats]);
 
   const classFeatureSummary = useMemo(() => {
     const className = character?.character_class;
@@ -507,7 +553,7 @@ export default function CleanCharacterSheet() {
         onTempHpRemove={() => updateTempHp(-getSafeAmount(tempHpAmount || hpAmount))}
       />
 
-      <CleanSheetTabs tabs={SHEET_TABS} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
+      <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
 
       <main className="clean-sheet-content">
         {activeTab === 'character' && (
@@ -535,6 +581,20 @@ export default function CleanCharacterSheet() {
         {activeTab === 'rook' && <RookPlayerHelperTab character={character} />}
         {activeTab === 'spells' && <CleanSpellsTab character={character} onCharacterUpdate={patchCharacter} />}
         {activeTab === 'inventory' && <CleanInventoryTab character={character} onCharacterUpdate={updateCharacterLocal} onRoll={makeRoll} />}
+        {activeTab === 'class' && (
+          <CleanSheetFeaturesTab
+            ac={ac}
+            actionEconomyGroups={actionEconomyGroups}
+            character={character}
+            classFeatureSummary={classFeatureSummary}
+            exhaustionLevel={exhaustionLevel}
+            proficiencyBonus={proficiencyBonus}
+            proficiencySummary={proficiencySummary}
+            rulesEdition={rulesEdition}
+            speed={speed}
+            onOpenInventory={() => setActiveTab('inventory')}
+          />
+        )}
         {activeTab === 'features' && (
           <CleanSheetFeaturesTab
             ac={ac}
@@ -549,7 +609,8 @@ export default function CleanCharacterSheet() {
             onOpenInventory={() => setActiveTab('inventory')}
           />
         )}
-        {activeTab === 'lore' && <CleanLoreTab character={character} />}
+        {activeTab === 'species' && <CleanSheetSpeciesTab character={character} rulesEdition={rulesEdition} />}
+        {activeTab === 'feats' && <CleanSheetFeatsTab character={character} />}
         {activeTab === 'notes' && <CleanNotesTab character={character} onCharacterUpdate={updateCharacterLocal} />}
       </main>
     </div>
