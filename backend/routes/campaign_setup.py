@@ -164,6 +164,7 @@ async def create_campaign(campaign_data: Dict[str, Any], username: str = Depends
     })
 
     await db.campaigns.insert_one(doc)
+    doc.pop('_id', None)
 
     invite_obj = CampaignInvite(
         campaign_id=doc['id'],
