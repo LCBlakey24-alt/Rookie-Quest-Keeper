@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices, Shield, Sparkles, Swords, Wand2 } from 'lucide-react';
@@ -7,6 +7,7 @@ import apiClient from '@/lib/apiClient';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
+import { buildInitialClassResources } from '@/data/classResourceRules';
 import './FullCharacterCreatorV2.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -111,6 +112,22 @@ function abilityBonus({ edition, raceData, subrace, backgroundData, floatingAsi 
   return bonus;
 }
 
+function equipmentEntries(items = []) {
+  return arr(items).map((item) => ({ name: String(item), equipped: false }));
+}
+
+function inferEquipped(items = []) {
+  const lower = items.map((item) => String(item).toLowerCase());
+  const hasShield = lower.some((item) => item.includes('shield'));
+  const mainHand = items.find((item) => !/armor|armour|mail|shield|pack|kit|tools|clothes|rations|rope|torch/i.test(String(item))) || '';
+  return {
+    armor: null,
+    shield: hasShield ? { name: 'Shield', equipped: true } : null,
+    mainHand: mainHand || null,
+    offHand: hasShield ? 'Shield' : null,
+  };
+}
+
 export default function FullCharacterCreatorV2({ editMode = false }) {
   const navigate = useNavigate();
   const { characterId } = useParams();
@@ -136,6 +153,10 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const floatingBudget = draft.edition === '2014' ? Number(raceData.asi2014?.choice || 0) : 0;
   const floatingSpent = Object.values(draft.floatingAsi || {}).reduce((sum, value) => sum + Number(value || 0), 0);
   const baseLanguages = arr(raceData.languages).filter((language) => !isChoiceLang(language));
+  const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
+  const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) }));
+  const classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({ name, description: `${draft.characterClass} feature gained at level 1.` }));
+  const equipmentList = startingEquipment();
   const spellReq = spellRequirements(draft.characterClass, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
   const cantripPool = arr(spellLists.cantrips || spellLists[0]);
@@ -214,10 +235,6 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     }
     if (stepId === 'abilities' && floatingBudget && floatingSpent !== floatingBudget) return `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.`;
     if (stepId === 'skills' && draft.selectedSkills.length !== skillTarget) return `Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'}.`;
-    if (stepId === 'spells') {
-      if (draft.selectedCantrips.length !== spellReq.cantrips) return `Choose ${spellReq.cantrips} cantrip${spellReq.cantrips === 1 ? '' : 's'}.`;
-      if (draft.selectedSpells.length !== spellReq.spells) return `Choose ${spellReq.spells} level 1 spell${spellReq.spells === 1 ? '' : 's'}.`;
-    }
     return '';
   }
 
@@ -256,11 +273,65 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     };
   }
 
-  async function saveCharacter() {
-    const problem = validate();
-    if (problem) { toast.error(problem); return; }
-    const payload = {
+  function readinessReport() {
+    const priority = [];
+    const later = [];
+    const complete = [];
+
+    if (!draft.name.trim()) priority.push('Name is missing. The sheet needs a character name before it can be saved.');
+    else complete.push('Name is ready.');
+
+    if (!draft.race || !draft.characterClass || !draft.background) priority.push('Species, class, and background must all be selected.');
+    else complete.push('Species, class, and background are selected.');
+
+    if (subraces.length && !draft.subrace) priority.push('Choose a subrace/species option for this species.');
+    if (subclassAllowed && arr(classData.subclasses).length && !draft.subclass) priority.push('Choose the required level 1 subclass, patron, or domain.');
+
+    if (ABILITIES.some((ability) => !Number.isFinite(Number(finalScores[ability])) || finalScores[ability] < 3 || finalScores[ability] > 30)) priority.push('Ability scores need checking before the character can be saved.');
+    else complete.push('Ability scores are ready.');
+
+    if (floatingBudget && floatingSpent !== floatingBudget) priority.push(`Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'} before saving.`);
+    if (draft.selectedSkills.length !== skillTarget) priority.push(`Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'} before saving.`);
+    else complete.push('Skill choices are ready.');
+
+    if (!hp || hp <= 0) priority.push('Hit points could not be calculated.');
+    else complete.push('HP is calculated.');
+
+    if (!ac || ac <= 0) priority.push('Armour Class could not be calculated.');
+    else complete.push('AC is calculated.');
+
+    if (!arr(classData.savingThrows).length) later.push('Saving throw proficiencies are not listed for this class yet. Check the sheet after saving.');
+    else complete.push('Saving throws are ready.');
+
+    if (!baseLanguages.length) later.push('Languages are missing or all language choices are unresolved. You can add these on the sheet later.');
+    if (languageChoices > 0) later.push('This species has an extra language choice. Pick the exact language later if it is not handled here yet.');
+    if (!racialTraits.length) later.push('Species traits are missing from the rules data. You can still save, but the traits section may need review.');
+    if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
+
+    if (draft.edition === '2024' && !chosenFeat) later.push('No 2024 origin feat is selected. This can be added later if your table uses origin feats.');
+    if (!equipmentList.length) later.push('No starting equipment is listed. You can create the sheet and add gear later.');
+    if (draft.equipmentMode === 'gold') later.push('Starting gold selected. Shopping and exact gear will need finishing later.');
+
+    if (hasSpells) {
+      if (draft.selectedCantrips.length !== spellReq.cantrips) later.push(`Cantrip choices are incomplete: ${draft.selectedCantrips.length}/${spellReq.cantrips}. You can finish these on the sheet later.`);
+      if (draft.selectedSpells.length !== spellReq.spells) later.push(`Starting spell choices are incomplete: ${draft.selectedSpells.length}/${spellReq.spells}. You can finish these on the sheet later.`);
+      if (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells) complete.push('Spell choices are ready.');
+    }
+
+    if (!draft.personalityTrait.trim()) later.push('Personality trait is blank. This can be filled in later.');
+    if (!draft.ideal.trim()) later.push('Ideal is blank. This can be filled in later.');
+    if (!draft.bond.trim()) later.push('Bond is blank. This can be filled in later.');
+    if (!draft.flaw.trim()) later.push('Flaw is blank. This can be filled in later.');
+
+    return { priority, later, complete };
+  }
+
+  function buildPayload() {
+    const spellData = spellFields();
+    const equipment = equipmentEntries(equipmentList);
+    const basePayload = {
       name: draft.name.trim(),
+      creation_mode: 'full',
       race: draft.race,
       subrace: draft.subrace || '',
       character_class: draft.characterClass,
@@ -279,6 +350,10 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       charisma: finalScores.charisma,
       max_hit_points: hp,
       current_hit_points: hp,
+      temporary_hit_points: 0,
+      temp_hp: 0,
+      hit_dice: `1d${classData.hitDie || 8}`,
+      hit_dice_remaining: 1,
       armor_class: ac,
       speed: raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30,
       proficiency_bonus: proficiencyBonus,
@@ -288,18 +363,41 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       weapon_proficiencies: arr(classData.weaponProficiencies),
       tool_proficiencies: arr(backgroundData.toolProficiencies),
       languages: baseLanguages,
-      racial_traits: [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) })),
-      class_features: arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({ name, description: `${draft.characterClass} feature gained at level 1.` })),
+      racial_traits: racialTraits,
+      class_features: classFeatures,
       feats: chosenFeat ? [{ name: chosenFeat, source: draft.edition === '2024' ? 'origin' : 'optional' }] : [],
       equipment_choice: draft.equipmentMode,
-      starting_equipment: startingEquipment(),
+      starting_equipment: equipmentList,
+      equipment,
+      inventory: equipment,
+      equipped: inferEquipped(equipmentList),
+      currency: { copper: 0, silver: 0, electrum: 0, gold: draft.equipmentMode === 'gold' ? 10 : 0, platinum: 0 },
+      gold: draft.equipmentMode === 'gold' ? 10 : 0,
       personality_trait: draft.personalityTrait,
+      personality_traits: draft.personalityTrait,
       ideal: draft.ideal,
+      ideals: draft.ideal,
       bond: draft.bond,
+      bonds: draft.bond,
       flaw: draft.flaw,
+      flaws: draft.flaw,
       backstory: draft.backstory,
-      ...spellFields(),
+      conditions: [],
+      inspiration: false,
+      has_inspiration: false,
+      ...spellData,
     };
+    return { ...basePayload, resources: buildInitialClassResources(basePayload) };
+  }
+
+  async function saveCharacter() {
+    const report = readinessReport();
+    if (report.priority.length) {
+      setStep(steps.length - 1);
+      toast.error('Priority checks need fixing before this character can be created.');
+      return;
+    }
+    const payload = buildPayload();
 
     try {
       setSaving(true);
@@ -311,7 +409,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         const response = await apiClient.post('/characters', payload);
         localStorage.removeItem(DRAFT_KEY);
         const id = response.data?.character_id || response.data?.character?.id || response.data?.id;
-        toast.success('Character created');
+        toast.success(report.later.length ? 'Character created with reminders' : 'Character created and ready');
         navigate(id ? `/characters/${id}` : '/characters');
       }
     } catch (error) {
@@ -320,6 +418,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       setSaving(false);
     }
   }
+
+  const report = readinessReport();
 
   if (loading) return <main className="full-creator-page"><div className="full-creator-loading">Loading character…</div></main>;
 
@@ -354,8 +454,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           {stepId === 'skills' && <Skills backgroundSkills={backgroundSkills} skillOptions={skillOptions} selected={draft.selectedSkills} target={skillTarget} toggle={(skill) => toggleList('selectedSkills', skill, skillTarget)} />}
           {stepId === 'feats' && <Feats draft={draft} update={update} originFeat={backgroundData.originFeat2024} />}
           {stepId === 'spells' && <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
-          {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={startingEquipment()} />}
-          {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} />}
+          {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} />}
+          {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} />}
         </article>
 
         <aside className="full-creator-preview">
@@ -366,6 +466,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
           <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
           {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
+          <small>{report.priority.length ? `${report.priority.length} priority item${report.priority.length === 1 ? '' : 's'} to fix` : report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create'}</small>
         </aside>
       </section>
 
@@ -373,7 +474,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         <button type="button" onClick={() => setStep(step - 1)} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
         {step < steps.length - 1
           ? <button type="button" onClick={() => { const problem = validate(); if (problem) toast.error(problem); else setStep(step + 1); }}>Next <ChevronRight size={16} /></button>
-          : <button type="button" onClick={saveCharacter} disabled={saving}><Check size={16} /> {saving ? 'Saving…' : editMode ? 'Save Changes' : 'Create Character'}</button>}
+          : <button type="button" onClick={saveCharacter} disabled={saving || report.priority.length > 0}><Check size={16} /> {saving ? 'Saving…' : report.priority.length ? 'Fix Priority Items' : editMode ? 'Save Changes' : 'Create Character'}</button>}
       </footer>
     </main>
   );
@@ -439,7 +540,7 @@ function Feats({ draft, update, originFeat }) {
 
 function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
   return <>
-    <Title icon={Wand2} title="Spell choices" text="Search, tap to select, and fill the required spell choices." />
+    <Title icon={Wand2} title="Spell choices" text="Search, tap to select, and fill the required spell choices. Missing spells now show as review reminders instead of blocking the whole sheet." />
     <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search name, school, damage, healing…" />
     {spellReq.cantrips > 0 && <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>{visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedCantrips.includes(spell.name)} onClick={() => toggleCantrip(spell.name)} />) : <p className="full-creator-note">No cantrips match this search.</p>}</Choice>}
     {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedSpells.includes(spell.name)} onClick={() => toggleSpell(spell.name)} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
@@ -459,9 +560,10 @@ function Equipment({ draft, update, equipment }) {
   </>;
 }
 
-function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells }) {
+function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, report }) {
   return <>
-    <Title icon={BookOpen} title="Review and save" text="Add roleplay notes, check the preview, then create the saved character." />
+    <Title icon={BookOpen} title="Review and save" text="Priority items must be fixed before saving. Later items can be finished on the sheet." />
+    <ReadinessPanel report={report} />
     <div className="full-creator-form-grid">
       <label><span>Personality trait</span><input value={draft.personalityTrait} onChange={(event) => update({ personalityTrait: event.target.value })} /></label>
       <label><span>Ideal</span><input value={draft.ideal} onChange={(event) => update({ ideal: event.target.value })} /></label>
@@ -471,6 +573,32 @@ function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells }) 
     <label className="full-creator-wide-label"><span>Backstory notes</span><textarea value={draft.backstory} onChange={(event) => update({ backstory: event.target.value })} /></label>
     <div className="full-creator-review-grid"><ReviewItem label="HP" value={hp} /><ReviewItem label="AC" value={ac} /><ReviewItem label="Skills" value={skills.length} /><ReviewItem label="Feat" value={feat || 'None'} /><ReviewItem label="Equipment" value={draft.equipmentMode} /><ReviewItem label="Spells" value={hasSpells ? spellCount : 'None'} /></div>
   </>;
+}
+
+function ReadinessPanel({ report }) {
+  const isReady = !report.priority.length && !report.later.length;
+  return (
+    <section className="full-creator-readiness-panel">
+      <div className="full-creator-readiness-hero">
+        <strong>{report.priority.length ? 'Priority fixes needed' : isReady ? 'Ready to create' : 'Create now, finish later'}</strong>
+        <span>{report.priority.length ? 'These must be fixed before the character sheet can be created.' : isReady ? 'Everything important looks ready for the first saved sheet.' : 'No blockers found. These reminders can be handled after saving.'}</span>
+      </div>
+      {report.priority.length > 0 && <ReadinessList title="Priority" tone="priority" items={report.priority} />}
+      {report.later.length > 0 && <ReadinessList title="Can finish later" tone="later" items={report.later} />}
+      {!report.priority.length && !report.later.length && <ReadinessList title="Ready" tone="ready" items={report.complete.slice(0, 7)} />}
+    </section>
+  );
+}
+
+function ReadinessList({ title, tone, items }) {
+  return (
+    <div className={`full-creator-readiness-list ${tone}`}>
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+  );
 }
 
 function ReviewItem({ label, value }) {
