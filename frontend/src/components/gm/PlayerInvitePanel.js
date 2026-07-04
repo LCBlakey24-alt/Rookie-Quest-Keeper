@@ -20,6 +20,7 @@ const theme = {
 export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers = null }) {
   const [invite, setInvite] = useState(null);
   const [players, setPlayers] = useState(Array.isArray(suppliedPlayers) ? suppliedPlayers : []);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -33,15 +34,17 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
     async function loadPanel() {
       try {
         setLoading(true);
-        const [inviteRes, playersRes] = await Promise.all([
+        const [inviteRes, playersRes, membersRes] = await Promise.all([
           apiClient.get(`/campaign-invites/${campaignId}`).catch(() => ({ data: null })),
           Array.isArray(suppliedPlayers)
             ? Promise.resolve({ data: suppliedPlayers })
             : apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+          apiClient.get(`/campaign-invites/${campaignId}/members`).catch(() => ({ data: [] })),
         ]);
         if (!cancelled) {
           setInvite(inviteRes.data);
           setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
+          setMembers(Array.isArray(membersRes.data) ? membersRes.data : []);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -52,12 +55,14 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
   }, [campaignId, suppliedPlayers]);
 
   const code = invite?.join_code || invite?.code || '';
+  const joinModeLabel = invite?.join_mode === 'auto_accept' ? 'Auto-accept' : 'GM approval';
   const playerSummary = useMemo(() => {
-    const count = players.length;
-    const levels = players.map(player => Number(player.level || 1)).filter(Boolean);
-    const avgLevel = levels.length ? Math.round(levels.reduce((sum, level) => sum + level, 0) / levels.length) : 0;
-    return { count, avgLevel };
-  }, [players]);
+    const rosterCount = players.length;
+    const liveMembers = members.filter(member => String(member.status || 'active').toLowerCase() !== 'removed');
+    const linkedCount = liveMembers.filter(member => member.character_id).length;
+    const pendingCount = liveMembers.filter(member => String(member.status || '').toLowerCase() === 'pending').length;
+    return { rosterCount, linkedCount, pendingCount };
+  }, [players, members]);
 
   const copyCode = async () => {
     if (!code) return;
@@ -93,11 +98,12 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
       <div style={{ minWidth: 0, flex: 1 }}>
         <p style={eyebrowStyle}>Players & Invites</p>
         <h3 style={titleStyle}>Bring players into this campaign</h3>
-        <p style={subtitleStyle}>Share the join code with players. Once they join with a character, they appear in the roster and can receive lore, secrets, handouts, and campaign updates.</p>
+        <p style={subtitleStyle}>Share the join code with players. Each user links one character. The current join mode is {joinModeLabel}.</p>
 
         <div style={statsStyle}>
-          <MiniStat icon={Users} label="Roster" value={`${playerSummary.count} player${playerSummary.count === 1 ? '' : 's'}`} />
-          <MiniStat icon={ShieldCheck} label="Average level" value={playerSummary.avgLevel ? `Lv ${playerSummary.avgLevel}` : 'Not set'} />
+          <MiniStat icon={Users} label="Roster" value={`${playerSummary.rosterCount} GM player${playerSummary.rosterCount === 1 ? '' : 's'}`} />
+          <MiniStat icon={ShieldCheck} label="Linked" value={`${playerSummary.linkedCount} character${playerSummary.linkedCount === 1 ? '' : 's'}`} />
+          <MiniStat icon={UserPlus} label="Pending" value={`${playerSummary.pendingCount} approval${playerSummary.pendingCount === 1 ? '' : 's'}`} />
         </div>
       </div>
 
@@ -109,7 +115,7 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         copying={copying}
         uses={invite?.uses}
         createdAt={invite?.created_at}
-        description="Players use this code from their dashboard with Join Campaign. Rotating the code stops the old one from working."
+        description={`Players use this code with Join Campaign. Mode: ${joinModeLabel}. Rotating the code stops the old one from working.`}
         onCopy={copyCode}
         onRotate={rotateCode}
       />
