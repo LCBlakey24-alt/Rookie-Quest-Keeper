@@ -41,6 +41,7 @@ import {
 import '@/components/clean-sheet/CleanCharacterSheetPolish.css';
 import '@/components/clean-sheet/CleanSheetListPolish.css';
 import '@/components/clean-sheet/CleanSheetMobileBoxGrid.css';
+import '@/components/clean-sheet/CleanSheetSunsetFinal.css';
 
 const hasObjectItems = (value = {}) => Object.keys(value || {}).length > 0;
 const hasAnyText = (...values) => values.some(value => String(value || '').trim().length > 0);
