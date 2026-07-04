@@ -231,6 +231,7 @@ function deriveSpellFields(className = '', level = 1, abilities = {}, template =
     spell_slots_remaining: slots,
     cantrips_known: cantrips,
     spells_known: templateKnown,
+    ...(className === 'Wizard' ? { spellbook: templateKnown } : {}),
     spells_prepared: preparedSpells,
     spell_preparation_loadout: options.spellLoadoutId || (preparedSpells.length ? 'rook-balanced' : ''),
   };
