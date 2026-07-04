@@ -1,0 +1,336 @@
+/* Campaign setup modal: one big launch form that works as mobile sheet, tablet modal, desktop wide modal. */
+
+#root .dashboard-campaign-setup-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 120 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(10px, 3vw, 28px) !important;
+  background: rgba(4, 3, 12, 0.86) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+#root .dashboard-campaign-setup-modal {
+  width: min(1120px, 100%) !important;
+  max-height: min(92dvh, 940px) !important;
+  overflow: auto !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+#root .dashboard-campaign-setup-modal .dashboard-modal-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  padding: 16px !important;
+  background: rgba(27, 11, 45, 0.96) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13) !important;
+}
+
+#root .dashboard-campaign-setup-modal .dashboard-modal-header h2,
+#root .dashboard-campaign-setup-modal .dashboard-form-section-heading h3 {
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 700 !important;
+  line-height: 1.05 !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
+#root .dashboard-campaign-setup-modal .dashboard-modal-header h2 {
+  font-size: clamp(2rem, 5vw, 3.4rem) !important;
+}
+
+#root .dashboard-campaign-setup-modal .dashboard-form-section-heading h3 {
+  font-size: clamp(1.35rem, 2.4vw, 2rem) !important;
+}
+
+#root .dashboard-campaign-setup-modal .dashboard-close-button {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+}
+
+#root .dashboard-campaign-setup-form {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 16px !important;
+}
+
+#root .dashboard-form-section,
+#root .dashboard-setup-preview,
+#root .dashboard-generated-feel {
+  background:
+    linear-gradient(#13081f, #13081f) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #ffffff !important;
+  padding: 13px !important;
+}
+
+#root .dashboard-form-section {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+#root .dashboard-form-section-heading {
+  margin-bottom: 2px !important;
+}
+
+#root .dashboard-form-section-heading h3::after {
+  content: '' !important;
+  display: block !important;
+  width: 100% !important;
+  height: 2px !important;
+  margin-top: 8px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .dashboard-form-split {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .dashboard-form-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+#root .dashboard-field {
+  display: grid !important;
+  gap: 6px !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-field input,
+#root .dashboard-field select,
+#root .dashboard-field textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  background: #0d0618 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  padding: 10px 11px !important;
+  font: inherit !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  outline: none !important;
+}
+
+#root .dashboard-field textarea {
+  min-height: 82px !important;
+  resize: vertical !important;
+}
+
+#root .dashboard-field input:focus,
+#root .dashboard-field select:focus,
+#root .dashboard-field textarea:focus {
+  border-color: transparent !important;
+  background:
+    linear-gradient(#0d0618, #0d0618) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+}
+
+#root .dashboard-tone-presets {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-tone-preset {
+  min-height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background:
+    linear-gradient(#13081f, #13081f) padding-box,
+    rgba(255, 255, 255, 0.16) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  padding: 0 11px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+#root .dashboard-tone-preset.is-active {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-tone-sliders {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+#root .dashboard-tone-slider {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 10px !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.11) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+}
+
+#root .dashboard-tone-slider-labels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-tone-slider-labels em {
+  color: #ffffff !important;
+  font-style: normal !important;
+  font-size: 0.78rem !important;
+  opacity: 0.82 !important;
+}
+
+#root .dashboard-tone-slider-labels em:last-child {
+  text-align: right !important;
+}
+
+#root .dashboard-tone-slider-labels strong {
+  min-width: 46px !important;
+  text-align: center !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 700 !important;
+}
+
+#root .dashboard-tone-slider input[type='range'] {
+  width: 100% !important;
+  accent-color: #ff4f81 !important;
+}
+
+#root .dashboard-generated-feel p:not(.dashboard-eyebrow) {
+  margin: 0 !important;
+  color: #ffffff !important;
+  line-height: 1.5 !important;
+}
+
+#root .dashboard-modal-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding-top: 2px !important;
+}
+
+#root .dashboard-create-campaign-submit {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  #root .dashboard-campaign-setup-modal {
+    width: min(860px, 96vw) !important;
+  }
+
+  #root .dashboard-form-three {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1101px) {
+  #root .dashboard-campaign-setup-form {
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  #root .dashboard-tone-section {
+    grid-row: span 2 !important;
+  }
+
+  #root .dashboard-setup-preview,
+  #root .dashboard-modal-actions {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #root .dashboard-campaign-setup-overlay {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  #root .dashboard-campaign-setup-modal {
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+  }
+
+  #root .dashboard-campaign-setup-modal .dashboard-modal-header {
+    padding: 13px !important;
+  }
+
+  #root .dashboard-campaign-setup-modal .dashboard-modal-header h2 {
+    font-size: clamp(2rem, 11vw, 2.8rem) !important;
+  }
+
+  #root .dashboard-campaign-setup-form {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+
+  #root .dashboard-form-split,
+  #root .dashboard-form-three {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .dashboard-tone-presets {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #root .dashboard-tone-preset {
+    width: 100% !important;
+  }
+
+  #root .dashboard-modal-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .dashboard-modal-actions button {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #root .dashboard-tone-presets {
+    grid-template-columns: 1fr !important;
+  }
+}
