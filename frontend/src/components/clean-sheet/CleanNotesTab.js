@@ -31,6 +31,91 @@ function flattenProgressionChoices(levelProgression = {}) {
     .sort((a, b) => Number(a.level || 0) - Number(b.level || 0));
 }
 
+const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const hasObjectItems = (value = {}) => Object.keys(value || {}).length > 0;
+const normaliseKey = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function hasPersonalityDetails(character = {}) {
+  return Boolean(
+    character?.personality_trait || character?.personality_traits ||
+    character?.ideal || character?.ideals ||
+    character?.bond || character?.bonds ||
+    character?.flaw || character?.flaws
+  );
+}
+
+function buildCreationReviewChoices(character = {}) {
+  const choices = [];
+  const add = (id, title, note, required = false) => {
+    choices.push({
+      id: `creator-${id}`,
+      level: 1,
+      title,
+      note,
+      status: 'review',
+      required,
+    });
+  };
+
+  if (!hasPersonalityDetails(character)) {
+    add('personality', 'Finish personality details', 'Trait, ideal, bond, and flaw can be completed when the player knows the character better.');
+  } else {
+    if (!(character?.personality_trait || character?.personality_traits)) add('trait', 'Add personality trait', 'The character has no personality trait saved yet.');
+    if (!(character?.ideal || character?.ideals)) add('ideal', 'Add ideal', 'The character has no ideal saved yet.');
+    if (!(character?.bond || character?.bonds)) add('bond', 'Add bond', 'The character has no bond saved yet.');
+    if (!(character?.flaw || character?.flaws)) add('flaw', 'Add flaw', 'The character has no flaw saved yet.');
+  }
+
+  if (!character?.backstory) {
+    add('backstory', 'Add backstory notes', 'This is optional, but useful before a campaign starts.');
+  }
+
+  const hasSpellcasting = Boolean(
+    character?.spellcasting_ability ||
+    hasObjectItems(character?.spell_slots) ||
+    hasObjectItems(character?.spell_slots_remaining)
+  );
+  const cantrips = toArray(character?.cantrips_known || character?.cantrips);
+  const spells = [
+    ...toArray(character?.spells_known || character?.known_spells),
+    ...toArray(character?.spells_prepared || character?.prepared_spells),
+    ...toArray(character?.spellbook),
+  ];
+
+  if (hasSpellcasting && !cantrips.length) {
+    add('cantrips', 'Pick starting cantrips', 'This spellcaster has spellcasting data but no cantrips saved yet.');
+  }
+  if (hasSpellcasting && !spells.length) {
+    add('spells', 'Pick starting spells', 'This spellcaster has spell slots or spellcasting math but no starting spells saved yet.');
+  }
+
+  const starterGear = toArray(character?.starting_equipment || character?.startingEquipment);
+  const inventory = toArray(character?.inventory);
+  const equipment = toArray(character?.equipment);
+  const shoppingByGold = starterGear.some((item) => /starting gold|shopping/i.test(String(item)));
+  if (shoppingByGold) {
+    add('shopping', 'Finish starting equipment shopping', 'This character was created with starting gold. Add final weapons, armour, and gear when ready.');
+  } else if (!starterGear.length && !inventory.length && !equipment.length) {
+    add('gear', 'Add starting equipment', 'No starting equipment or inventory was found on this sheet yet.');
+  }
+
+  if (!toArray(character?.languages).length) {
+    add('languages', 'Add languages', 'No languages are saved yet. Add them once the player confirms choices.');
+  }
+
+  return choices;
+}
+
+function combineReviewChoices(savedChoices = [], generatedChoices = []) {
+  const seen = new Set();
+  return [...savedChoices, ...generatedChoices].filter((choice) => {
+    const key = choice.id || normaliseKey(`${choice.level}-${choice.title}-${choice.note}`);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function FeatureCard({ entry, fallbackSource }) {
   const [expanded, setExpanded] = useState(false);
   const item = normaliseEntry(entry);
@@ -94,20 +179,20 @@ function BuildReviewSection({ choices }) {
 
   return (
     <section className="clean-sheet-panel clean-sheet-wide">
-      <h2>Build Review</h2>
+      <h2>Creation Review</h2>
       <p className="clean-sheet-muted">
-        Choices saved during character creation or starting-level catch-up. Use these to finish anything that was left for full edit or level-up review.
+        These are things left from character creation or starting-level setup. They do not stop the sheet being usable, but they are worth finishing before play.
       </p>
       <div className="clean-sheet-chip-list">
         <span>{decidedCount} decided</span>
-        <span>{reviewCount} needs review</span>
+        <span>{reviewCount} can finish later</span>
       </div>
       <div className="clean-sheet-feature-grid">
         {choices.map(choice => (
           <article key={choice.id || `${choice.level}-${choice.title}`} className="clean-sheet-feature-card">
             <div className="clean-sheet-feature-topline">
               <span>Level {choice.level}</span>
-              <em>{choice.status === 'done' ? 'Decided' : choice.required ? 'Needs review' : 'Optional'}</em>
+              <em>{choice.status === 'done' ? 'Decided' : choice.required ? 'Priority' : 'Can finish later'}</em>
             </div>
             <strong>{choice.title || choice.type}</strong>
             {choice.selection && <p>{choice.selection}</p>}
@@ -142,12 +227,7 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
     }
   };
 
-  const hasPersonality = Boolean(
-    character?.personality_trait || character?.personality_traits ||
-    character?.ideal || character?.ideals ||
-    character?.bond || character?.bonds ||
-    character?.flaw || character?.flaws
-  );
+  const hasPersonality = hasPersonalityDetails(character);
 
   const racialTraits = useMemo(() => character?.racial_traits || character?.traits || [], [character]);
   const classFeatures = useMemo(() => character?.class_features || character?.features || [], [character]);
@@ -156,7 +236,10 @@ export default function CleanNotesTab({ character, onCharacterUpdate }) {
   const tools = useMemo(() => character?.tool_proficiencies || [], [character]);
   const weapons = useMemo(() => character?.weapon_proficiencies || [], [character]);
   const armour = useMemo(() => character?.armor_proficiencies || character?.armour_proficiencies || [], [character]);
-  const buildReviewChoices = useMemo(() => flattenProgressionChoices(character?.level_progression), [character?.level_progression]);
+  const buildReviewChoices = useMemo(
+    () => combineReviewChoices(flattenProgressionChoices(character?.level_progression), buildCreationReviewChoices(character)),
+    [character],
+  );
 
   return (
     <div className="clean-sheet-grid">
