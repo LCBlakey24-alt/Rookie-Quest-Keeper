@@ -93,4 +93,14 @@ describe('class resource unlocks and action economy audit', () => {
     expect(actionTitlesFor(character('rogue', 1)).bonus).not.toContain('Cunning Action');
     expect(actionTitlesFor(character('rogue', 2)).bonus).toContain('Cunning Action');
   });
+
+  test('2024 Bardic Inspiration feature text stays aligned with Bard resource rules', () => {
+    const levelOne = getCharacterClassFeatures(character('bard', 1, { rules_edition: '2024' }), '2024');
+    expect(levelOne.find(feature => feature.name === 'Bardic Inspiration')).toMatchObject({ uses: 'CHA mod/long rest' });
+
+    const levelTwelveNames = getCharacterClassFeatures(character('bard', 12, { rules_edition: '2024' }), '2024').map(feature => feature.name);
+    const levelFifteenNames = getCharacterClassFeatures(character('bard', 15, { rules_edition: '2024' }), '2024').map(feature => feature.name);
+    expect(levelTwelveNames).not.toContain('Bardic Inspiration (d12)');
+    expect(levelFifteenNames).toContain('Bardic Inspiration (d12)');
+  });
 });
