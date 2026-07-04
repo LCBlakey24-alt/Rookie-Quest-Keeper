@@ -114,9 +114,40 @@
 }
 
 #root .characters-library-page .library-page-action-row .library-page-button,
+#root .characters-library-page .library-page-action-row button,
+#root .characters-library-page .library-page-card-open,
+#root .characters-library-page .library-page-card-secondary-actions button {
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button,
 #root .characters-library-page .library-page-action-row button {
   min-height: 42px !important;
   padding: 0 14px !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button-primary {
+  background: var(--rq-sunset-gradient) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+#root .characters-library-page .library-page-action-row .library-page-button-secondary,
+#root .characters-library-page .library-page-action-row button:not(.library-page-button-primary),
+#root .characters-library-page .library-page-card-open,
+#root .characters-library-page .library-page-card-secondary-actions button {
+  background:
+    linear-gradient(#1b0b2d, #1b0b2d) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  color: #ffffff !important;
+}
+
+#root .characters-library-page .library-page-card-secondary-actions .library-page-danger-button {
+  background:
+    linear-gradient(#221025, #221025) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.72), rgba(255, 149, 66, 0.62)) border-box !important;
+  color: #ffffff !important;
 }
 
 #root .characters-library-page .library-page-toolbar {
