@@ -136,10 +136,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        <div style={headerStyle}>
-          <Button onClick={() => navigate('/home')} className="btn-outline" style={backButtonStyle} data-testid="back-btn">
+    <div className="account-settings-page" style={pageStyle}>
+      <div className="account-settings-container" style={containerStyle}>
+        <div className="account-settings-header" style={headerStyle}>
+          <Button onClick={() => navigate('/home')} className="btn-outline account-settings-back" style={backButtonStyle} data-testid="back-btn">
             <ArrowLeft size={18} />
           </Button>
           <div>
@@ -148,7 +148,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </div>
         </div>
 
-        <section style={panelStyle}>
+        <section className="account-settings-panel" style={panelStyle}>
           <SectionHeader icon={User} title="Profile Information" />
           <form onSubmit={handleUpdateProfile}>
             <div style={{ display: 'grid', gap: '20px' }}>
@@ -160,7 +160,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
               <p style={helpTextStyle}>Existing accounts can keep using their original email to sign in. New accounts can leave this blank unless they want password recovery.</p>
 
-              <Button type="submit" disabled={saving} className="btn-primary" style={buttonFitStyle} data-testid="save-profile-btn">
+              <Button type="submit" disabled={saving} className="btn-primary account-settings-primary" style={buttonFitStyle} data-testid="save-profile-btn">
                 <Save size={16} style={{ marginRight: '8px' }} />
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -168,7 +168,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </form>
         </section>
 
-        <section style={panelStyle}>
+        <section className="account-settings-panel" style={panelStyle}>
           <SectionHeader icon={Shield} title="Change Password" />
           <form onSubmit={handleChangePassword}>
             <div style={{ display: 'grid', gap: '20px' }}>
@@ -192,7 +192,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                 )}
               </div>
 
-              <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary" style={buttonFitStyle} data-testid="change-password-btn">
+              <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary account-settings-primary" style={buttonFitStyle} data-testid="change-password-btn">
                 <Lock size={16} style={{ marginRight: '8px' }} />
                 {saving ? 'Changing...' : 'Change Password'}
               </Button>
@@ -200,14 +200,14 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </form>
         </section>
 
-        <section style={dangerPanelStyle}>
+        <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />
           <p style={dangerTextStyle}>
             Once you delete your account, there is no going back. All your campaigns, characters, and data will be permanently removed. Please be certain.
           </p>
 
           {!showDeleteConfirm ? (
-            <Button onClick={() => setShowDeleteConfirm(true)} style={dangerButtonStyle} data-testid="delete-account-btn">
+            <Button onClick={() => setShowDeleteConfirm(true)} className="account-settings-danger-button" style={dangerButtonStyle} data-testid="delete-account-btn">
               <Trash2 size={16} style={{ marginRight: '8px' }} />
               Delete Account
             </Button>
@@ -218,7 +218,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               </p>
               <Input type="text" value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())} placeholder="Type DELETE" style={{ marginBottom: '12px' }} data-testid="delete-confirm-input" />
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <Button onClick={handleDeleteAccount} disabled={saving || deleteConfirmText !== 'DELETE'} style={confirmDeleteButtonStyle} data-testid="confirm-delete-btn">
+                <Button onClick={handleDeleteAccount} disabled={saving || deleteConfirmText !== 'DELETE'} className="account-settings-danger-button" style={confirmDeleteButtonStyle} data-testid="confirm-delete-btn">
                   {saving ? 'Deleting...' : 'Permanently Delete'}
                 </Button>
                 <Button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} className="btn-outline">
@@ -253,9 +253,9 @@ function FieldLabel({ icon: Icon, text }) {
 
 function PasswordInput({ value, setValue, show, setShow, placeholder, testId }) {
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="account-password-wrap" style={{ position: 'relative' }}>
       <Input type={show ? 'text' : 'password'} value={value} onChange={(e) => setValue(e.target.value)} placeholder={placeholder} data-testid={testId} />
-      <button type="button" onClick={() => setShow(!show)} style={eyeButtonStyle} aria-label={show ? 'Hide password' : 'Show password'}>
+      <button type="button" onClick={() => setShow(!show)} className="account-password-toggle" style={eyeButtonStyle} aria-label={show ? 'Hide password' : 'Show password'}>
         {show ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>
     </div>
