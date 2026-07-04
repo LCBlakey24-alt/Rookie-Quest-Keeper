@@ -1,5 +1,3 @@
-import { BrandMiniLogo } from '@/components/ui/BrandLogo';
-
 export default function UnifiedDashboardHeader({
   username,
   refreshing,
@@ -9,15 +7,11 @@ export default function UnifiedDashboardHeader({
   return (
     <header className="unified-dashboard-board unified-dashboard-header">
       <div className="dashboard-brand-row">
-        <div className="dashboard-logo-tile">
-          <BrandMiniLogo size={44} />
-        </div>
-
         <div>
           <p className="dashboard-eyebrow">Rookie Quest Keeper</p>
-          <h1>Home Dashboard</h1>
+          <h1>Dashboard</h1>
           <p className="dashboard-muted">
-            Welcome back, <strong>{username || 'Adventurer'}</strong>. Use the left rail for characters, campaigns, homebrew, uploads, admin, and settings.
+            Welcome back, <strong>{username || 'User'}</strong>. Check site updates, account information, and app status here.
           </p>
         </div>
       </div>
