@@ -1,6 +1,5 @@
-/* Shared list/card polish for the clean character sheet.
-   Keeps every tab feeling like one app: dark rows, square edges, gentle spacing,
-   and red only as a small left-side accent. */
+/* Shared card/list polish for the clean character sheet.
+   Sunset card language: dark purple cards, thin gradient borders, no red side bars. */
 
 .character-page-v2 .clean-sheet-grid,
 .character-page-v2 .clean-sheet-feature-lanes,
@@ -14,7 +13,7 @@
 .character-page-v2 .clean-sheet-compact-abilities,
 .character-page-v2 .clean-sheet-passive-grid,
 .character-page-v2 .clean-sheet-core-stat-grid {
-  gap: 8px !important;
+  gap: 10px !important;
 }
 
 .character-page-v2 .clean-sheet-panel {
@@ -28,7 +27,7 @@
 .character-page-v2 .clean-sheet-spell-section-heading {
   margin-bottom: 10px !important;
   padding-bottom: 8px !important;
-  border-bottom: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  border-bottom: 0 !important;
 }
 
 .character-page-v2 .clean-sheet-panel-heading h2,
@@ -39,9 +38,27 @@
 .character-page-v2 .clean-sheet-panel > h2,
 .character-page-v2 .clean-sheet-feature-lane h3,
 .character-page-v2 .clean-sheet-spell-level-group h3 {
-  color: var(--rq-text-primary, #ffffff) !important;
-  font-weight: 950 !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 800 !important;
   letter-spacing: 0.02em !important;
+}
+
+.character-page-v2 .clean-sheet-panel-heading h2::after,
+.character-page-v2 .clean-sheet-section-heading-row h2::after,
+.character-page-v2 .clean-sheet-inventory-header h2::after,
+.character-page-v2 .clean-sheet-spellcasting-heading h2::after,
+.character-page-v2 .clean-sheet-spell-section-heading h2::after,
+.character-page-v2 .clean-sheet-panel > h2::after,
+.character-page-v2 .clean-sheet-feature-lane h3::after,
+.character-page-v2 .clean-sheet-spell-level-group h3::after {
+  content: '';
+  display: block;
+  width: min(100%, 420px);
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
 }
 
 .character-page-v2 .clean-sheet-panel-heading p,
@@ -51,7 +68,7 @@
 .character-page-v2 .clean-sheet-feature-empty,
 .character-page-v2 .clean-sheet-empty-note,
 .character-page-v2 .clean-sheet-muted {
-  color: var(--rq-text-muted, rgba(255, 255, 255, 0.68)) !important;
+  color: rgba(255, 255, 255, 0.68) !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -71,11 +88,14 @@
 .character-page-v2 .clean-sheet-currency-grid > div,
 .character-page-v2 .clean-sheet-equipment-preview > div,
 .character-page-v2 .clean-sheet-damage-result {
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
-  border-radius: 0 !important;
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.8), rgba(255, 149, 66, 0.52)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
   box-shadow: none !important;
-  color: var(--rq-text-primary, #ffffff) !important;
+  color: #ffffff !important;
 }
 
 .character-page-v2 .clean-sheet-feature-card,
@@ -93,8 +113,7 @@
 .character-page-v2 .clean-sheet-skill-card:hover,
 .character-page-v2 .clean-sheet-save-card:hover,
 .character-page-v2 .clean-sheet-core-stat-card:hover {
-  background: var(--rq-bg-card-hover, #1d1d1d) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  filter: brightness(1.06) !important;
   transform: none !important;
   box-shadow: none !important;
 }
@@ -107,8 +126,8 @@
 .character-page-v2 .clean-sheet-skill-card strong,
 .character-page-v2 .clean-sheet-save-card strong,
 .character-page-v2 .clean-sheet-core-stat-card strong {
-  color: var(--rq-text-primary, #ffffff) !important;
-  font-weight: 950 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
   overflow-wrap: anywhere !important;
 }
 
@@ -118,7 +137,7 @@
 .character-page-v2 .clean-sheet-caster-card p,
 .character-page-v2 .clean-sheet-slot-card p,
 .character-page-v2 .clean-sheet-pact-card p {
-  color: var(--rq-text-muted, rgba(255, 255, 255, 0.7)) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
   line-height: 1.45 !important;
 }
 
@@ -130,7 +149,7 @@
 .character-page-v2 .clean-sheet-save-card em,
 .character-page-v2 .clean-sheet-skill-tags em,
 .character-page-v2 .clean-sheet-skill-tags small {
-  color: var(--rq-text-muted, rgba(255, 255, 255, 0.68)) !important;
+  color: rgba(255, 255, 255, 0.68) !important;
   font-style: normal !important;
   font-weight: 850 !important;
 }
@@ -146,12 +165,11 @@
 .character-page-v2 .clean-sheet-slot-card:has(.filled),
 .character-page-v2 .clean-sheet-caster-card,
 .character-page-v2 .clean-sheet-empty-slot {
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  padding-left: 10px !important;
+  border-left: 1px solid transparent !important;
+  padding-left: 12px !important;
 }
 
 .character-page-v2 .clean-sheet-empty-slot {
-  border-left-color: rgba(255, 255, 255, 0.14) !important;
   opacity: 0.9 !important;
 }
 
@@ -162,11 +180,13 @@
 .character-page-v2 .clean-sheet-section-heading-row > span,
 .character-page-v2 .clean-sheet-spell-section-heading > span,
 .character-page-v2 .clean-sheet-spellcasting-heading > span {
-  background: var(--rq-bg-button, #202020) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  border-radius: 0 !important;
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
   box-shadow: none !important;
 }
 
@@ -186,7 +206,7 @@
 .character-page-v2 .clean-sheet-panel input,
 .character-page-v2 .clean-sheet-panel select,
 .character-page-v2 .clean-sheet-panel textarea {
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   box-shadow: none !important;
 }
 
@@ -195,9 +215,12 @@
 .character-page-v2 .clean-sheet-slot-actions button,
 .character-page-v2 .clean-sheet-panel button,
 .character-page-v2 .clean-sheet-roll-chip {
-  background: var(--rq-bg-button, #202020) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
 }
 
 .character-page-v2 .clean-sheet-item-actions button:hover:not(:disabled),
@@ -205,299 +228,65 @@
 .character-page-v2 .clean-sheet-slot-actions button:hover:not(:disabled),
 .character-page-v2 .clean-sheet-panel button:hover:not(:disabled),
 .character-page-v2 .clean-sheet-roll-chip:hover:not(:disabled) {
-  background: var(--rq-bg-button-hover, #2a2a2a) !important;
-  border-color: rgba(255, 255, 255, 0.24) !important;
+  filter: brightness(1.06) !important;
 }
 
 .character-page-v2 .clean-sheet-panel input,
 .character-page-v2 .clean-sheet-panel select,
 .character-page-v2 .clean-sheet-panel textarea {
-  background: var(--rq-bg-input, #181818) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  background:
+    linear-gradient(#090313, #090313) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(255, 149, 66, 0.42)) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
 }
 
 .character-page-v2 .clean-sheet-spell-search,
 .character-page-v2 .clean-sheet-equipment-tools label,
 .character-page-v2 .clean-sheet-snapshot-warning,
 .character-page-v2 .clean-sheet-spell-warning {
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  border-radius: 0 !important;
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i {
-  border-radius: 0 !important;
+  border-radius: 999px !important;
   background: rgba(255, 255, 255, 0.16) !important;
 }
 
 .character-page-v2 .clean-sheet-slot-pips i.filled {
-  background: var(--rq-accent-primary, #c30000) !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
 }
 
 .character-page-v2 .clean-sheet-damage-result {
   padding: 12px !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  border-left: 1px solid transparent !important;
 }
 
-/* Individual tab finishing pass */
 .character-page-v2 .clean-sheet-stats-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-spells-tab .clean-sheet-panel,
 .character-page-v2 .clean-sheet-inventory-tab .clean-sheet-panel,
-.character-page-v2 .clean-sheet-features-tab .clean-sheet-panel {
-  background: var(--rq-bg-panel, #101010) !important;
-  border-left-width: 3px !important;
+.character-page-v2 .clean-sheet-features-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-class-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-species-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-feats-tab .clean-sheet-panel,
+.character-page-v2 .clean-sheet-character-tab .clean-sheet-panel {
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-radius: 10px !important;
 }
 
 .character-page-v2 .clean-sheet-action-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-  gap: 8px !important;
-}
-
-.character-page-v2 .clean-sheet-action-card-shell {
-  min-width: 0 !important;
-}
-
-.character-page-v2 .clean-sheet-action-card {
-  width: 100% !important;
-  min-height: 112px !important;
-  padding: 12px !important;
-  display: grid !important;
-  align-content: start !important;
-  gap: 8px !important;
-  text-align: left !important;
-  background: var(--rq-bg-card, #151515) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.12)) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.character-page-v2 .clean-sheet-action-card-shell.active .clean-sheet-action-card,
-.character-page-v2 .clean-sheet-action-card:focus-visible {
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  outline: none !important;
-}
-
-.character-page-v2 .clean-sheet-action-type {
-  width: fit-content !important;
-  background: var(--rq-bg-button, #202020) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  padding: 4px 7px !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  font-size: 9px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-}
-
-.character-page-v2 .clean-sheet-attack-card-top,
-.character-page-v2 .clean-sheet-spell-card-top,
-.character-page-v2 .clean-sheet-item-card-top,
-.character-page-v2 .clean-sheet-caster-card-title {
-  display: flex !important;
-  gap: 8px !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  flex-wrap: wrap !important;
-}
-
-.character-page-v2 .clean-sheet-attack-stat-row,
-.character-page-v2 .clean-sheet-caster-stats,
-.character-page-v2 .clean-sheet-spell-summary,
-.character-page-v2 .clean-sheet-inventory-summary,
-.character-page-v2 .clean-sheet-skills-summary,
-.character-page-v2 .clean-sheet-readiness-grid,
-.character-page-v2 .clean-sheet-proficiency-lists,
-.character-page-v2 .clean-sheet-equipment-preview,
-.character-page-v2 .clean-sheet-currency-grid {
-  background: transparent !important;
-  gap: 8px !important;
-}
-
-.character-page-v2 .clean-sheet-attack-stat-box {
-  min-height: 58px !important;
-  padding: 9px 10px !important;
-  display: grid !important;
-  align-content: center !important;
-  gap: 4px !important;
-  background: var(--rq-bg-input, #181818) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 0 !important;
-  text-align: left !important;
-}
-
-.character-page-v2 .clean-sheet-attack-stat-box span,
-.character-page-v2 .clean-sheet-spell-summary span,
-.character-page-v2 .clean-sheet-inventory-summary span,
-.character-page-v2 .clean-sheet-currency-grid span,
-.character-page-v2 .clean-sheet-readiness-grid span,
-.character-page-v2 .clean-sheet-skills-summary span {
-  color: var(--rq-text-muted, rgba(255, 255, 255, 0.66)) !important;
-  font-size: 9px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-}
-
-.character-page-v2 .clean-sheet-attack-stat-box strong {
-  color: var(--rq-text-primary, #ffffff) !important;
-  font-size: 15px !important;
-}
-
-.character-page-v2 .clean-sheet-feature-lane {
-  display: grid !important;
-  gap: 8px !important;
-  align-content: start !important;
-}
-
-.character-page-v2 .clean-sheet-feature-lane h3,
-.character-page-v2 .clean-sheet-spell-level-group h3 {
-  margin: 0 !important;
-  padding: 8px 10px !important;
-  background: var(--rq-bg-input, #181818) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-}
-
-.character-page-v2 .clean-sheet-feature-card > div:first-child {
-  display: flex !important;
-  gap: 8px !important;
-  align-items: baseline !important;
-  justify-content: space-between !important;
-  flex-wrap: wrap !important;
-}
-
-.character-page-v2 .clean-sheet-spell-card,
-.character-page-v2 .clean-sheet-item-card,
-.character-page-v2 .clean-sheet-feature-card,
-.character-page-v2 .clean-sheet-action-card {
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.character-page-v2 .clean-sheet-spell-card::after,
-.character-page-v2 .clean-sheet-item-card::after,
-.character-page-v2 .clean-sheet-feature-card::after,
-.character-page-v2 .clean-sheet-action-card::after {
-  content: '' !important;
-  position: absolute !important;
-  inset: 0 !important;
-  pointer-events: none !important;
-  border-left: 0 solid transparent !important;
-}
-
-.character-page-v2 .clean-sheet-spell-grid,
-.character-page-v2 .clean-sheet-item-grid,
-.character-page-v2 .clean-sheet-equipped-slot-grid,
-.character-page-v2 .clean-sheet-feature-lanes {
-  align-items: stretch !important;
-}
-
-.character-page-v2 .clean-sheet-spell-card,
-.character-page-v2 .clean-sheet-item-card,
-.character-page-v2 .clean-sheet-feature-card {
-  height: 100% !important;
-}
-
-.character-page-v2 .clean-sheet-spell-card p,
-.character-page-v2 .clean-sheet-item-card p,
-.character-page-v2 .clean-sheet-feature-card p {
-  margin: 0 !important;
-}
-
-.character-page-v2 .clean-sheet-spell-actions,
-.character-page-v2 .clean-sheet-item-actions {
-  margin-top: auto !important;
-}
-
-.character-page-v2 .clean-sheet-spell-actions button,
-.character-page-v2 .clean-sheet-item-actions button,
-.character-page-v2 .clean-sheet-slot-actions button {
-  min-height: 34px !important;
-  padding: 7px 9px !important;
-  font-size: 11px !important;
-}
-
-.character-page-v2 .clean-sheet-core-stat-grid,
-.character-page-v2 .clean-sheet-passive-grid,
-.character-page-v2 .clean-sheet-compact-abilities,
-.character-page-v2 .clean-sheet-readable-saves {
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
-}
-
-.character-page-v2 .clean-sheet-readable-skills {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
-}
-
-.character-page-v2 .clean-sheet-skill-card,
-.character-page-v2 .clean-sheet-save-card,
-.character-page-v2 .clean-sheet-core-stat-card,
-.character-page-v2 .clean-sheet-passive-card,
-.character-page-v2 .clean-sheet-ability {
-  min-height: 58px !important;
-}
-
-@media (max-width: 760px) {
-  .character-page-v2 .clean-sheet-panel {
-    padding: 12px !important;
-  }
-
-  .character-page-v2 .clean-sheet-feature-card,
-  .character-page-v2 .clean-sheet-spell-card,
-  .character-page-v2 .clean-sheet-item-card,
-  .character-page-v2 .clean-sheet-caster-card,
-  .character-page-v2 .clean-sheet-slot-card {
-    padding: 10px !important;
-  }
-
-  .character-page-v2 .clean-sheet-panel-heading,
-  .character-page-v2 .clean-sheet-section-heading-row,
-  .character-page-v2 .clean-sheet-inventory-header,
-  .character-page-v2 .clean-sheet-spellcasting-heading,
-  .character-page-v2 .clean-sheet-spell-section-heading {
-    gap: 8px !important;
-  }
-
-  .character-page-v2 .clean-sheet-action-grid,
-  .character-page-v2 .clean-sheet-spell-grid,
-  .character-page-v2 .clean-sheet-item-grid,
-  .character-page-v2 .clean-sheet-feature-lanes {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 520px) {
-  .character-page-v2 .clean-sheet-grid,
-  .character-page-v2 .clean-sheet-feature-lanes,
-  .character-page-v2 .clean-sheet-spell-grid,
-  .character-page-v2 .clean-sheet-item-grid,
-  .character-page-v2 .clean-sheet-equipped-slot-grid,
-  .character-page-v2 .clean-sheet-caster-grid,
-  .character-page-v2 .clean-sheet-slot-grid {
-    gap: 7px !important;
-  }
-
-  .character-page-v2 .clean-sheet-panel-heading,
-  .character-page-v2 .clean-sheet-section-heading-row,
-  .character-page-v2 .clean-sheet-inventory-header,
-  .character-page-v2 .clean-sheet-spellcasting-heading,
-  .character-page-v2 .clean-sheet-spell-section-heading {
-    align-items: stretch !important;
-  }
-
-  .character-page-v2 .clean-sheet-readable-skills,
-  .character-page-v2 .clean-sheet-readable-saves,
-  .character-page-v2 .clean-sheet-core-stat-grid,
-  .character-page-v2 .clean-sheet-passive-grid,
-  .character-page-v2 .clean-sheet-compact-abilities {
-    grid-template-columns: 1fr !important;
-  }
+  gap: 10px !important;
 }
