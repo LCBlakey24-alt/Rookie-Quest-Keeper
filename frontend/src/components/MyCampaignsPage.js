@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, KeyRound, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import CreateCampaignDialog from '@/components/dashboard/home/CreateCampaignDialog';
-import JoinCodeDialog from '@/components/dashboard/home/JoinCodeDialog';
 import {
+  buildCampaignFeel,
   buildWorldSettingNotes,
+  campaignTypes,
   initialCampaignForm,
+  rulesSystemOptions,
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
+import '@/styles/unifiedDashboardBoard.css';
+import '@/styles/unifiedDashboardPolish.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.campaign_id || record?.campaignId || '';
@@ -20,13 +24,19 @@ function campaignTitle(campaign) {
 }
 
 function campaignMeta(campaign) {
-  const playerCount = campaign?.player_count || campaign?.players?.length || 0;
-  const system = campaign?.system || campaign?.rules_edition || 'Fantasy';
-  return `${playerCount} player${playerCount === 1 ? '' : 's'} · ${system}`;
+  const linkedCount = campaign?.linked_character_count ?? campaign?.player_count ?? campaign?.players?.length ?? 0;
+  const system = campaign?.system || rulesSystemOptions[campaign?.rules_edition] || 'Campaign';
+  return `${system} · ${linkedCount} linked character${linkedCount === 1 ? '' : 's'}`;
 }
 
-function campaignDetail(campaign) {
-  return campaign?.description || campaign?.world_name || campaign?.world_setting || '';
+function campaignTypeLabel(campaign) {
+  return campaignTypes[campaign?.campaign_type] || campaignTypes[campaign?.world_genre] || 'Campaign';
+}
+
+function clampNumber(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, Math.floor(parsed)));
 }
 
 export default function MyCampaignsPage() {
@@ -38,8 +48,6 @@ export default function MyCampaignsPage() {
   const [campaignForm, setCampaignForm] = useState(initialCampaignForm);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [deletingId, setDeletingId] = useState('');
-  const [pendingInvite, setPendingInvite] = useState(null);
-  const [inviteLoading, setInviteLoading] = useState(false);
 
   const sortedCampaigns = useMemo(() => [...campaigns].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
@@ -75,18 +83,6 @@ export default function MyCampaignsPage() {
     setCampaignForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleSessionZero = (id) => {
-    setCampaignForm((prev) => {
-      const current = Array.isArray(prev.session_zero) ? prev.session_zero : [];
-      return {
-        ...prev,
-        session_zero: current.includes(id)
-          ? current.filter((item) => item !== id)
-          : [...current, id],
-      };
-    });
-  };
-
   const closeCreateCampaign = () => {
     if (!creatingCampaign) setShowCreateCampaign(false);
   };
@@ -100,6 +96,11 @@ export default function MyCampaignsPage() {
       return;
     }
 
+    const campaignFeel = buildCampaignFeel(campaignForm);
+    const setupForm = { ...campaignForm, campaign_feel: campaignFeel };
+    const startingLevel = clampNumber(campaignForm.starting_level, 1, 1, 20);
+    const partySize = clampNumber(campaignForm.party_size, 4, 1, 12);
+
     try {
       setCreatingCampaign(true);
       const response = await apiClient.post('/campaigns', {
@@ -107,10 +108,18 @@ export default function MyCampaignsPage() {
         description: campaignForm.description.trim(),
         world_name: campaignForm.world_name.trim(),
         rules_edition: campaignForm.rules_edition,
-        system: campaignForm.rules_edition === '2024' ? '5e 2024 Compatible' : '5e 2014 Compatible',
-        world_genre: 'fantasy',
-        world_setting: campaignForm.world_setting,
-        world_setting_notes: buildWorldSettingNotes(campaignForm),
+        system: campaignForm.rules_edition === '2024' ? 'D&D 5e 2024 Compatible' : 'D&D 5e 2014 Compatible',
+        campaign_type: campaignForm.campaign_type,
+        world_genre: campaignForm.campaign_type,
+        world_setting: 'custom',
+        world_setting_notes: buildWorldSettingNotes(setupForm),
+        tone_preset: campaignForm.tone_preset,
+        tone_sliders: campaignForm.tone_sliders,
+        campaign_feel: campaignFeel,
+        starting_level: startingLevel,
+        party_size: partySize,
+        visibility: campaignForm.visibility,
+        join_mode: campaignForm.join_mode,
         allow_exploding_dice: false,
         allow_epic_levels: false,
         max_character_level: 20,
@@ -122,56 +131,11 @@ export default function MyCampaignsPage() {
       setCampaignForm(initialCampaignForm);
       setShowCreateCampaign(false);
       await loadCampaigns();
-      if (campaignId) navigate(`/campaign/${campaignId}`);
+      if (campaignId) navigate(`/campaign/${campaignId}#tab-campaign-rules`);
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to create campaign');
     } finally {
       setCreatingCampaign(false);
-    }
-  };
-
-  const requestJoinCode = async (campaign) => {
-    const id = recordId(campaign);
-    if (!id) return;
-
-    try {
-      setInviteLoading(true);
-      const response = await apiClient.get(`/campaign-invites/${id}`);
-      setPendingInvite({
-        ...response.data,
-        campaign_name: response.data?.campaign_name || campaignTitle(campaign),
-      });
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to get join code');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const rotateJoinCode = async () => {
-    if (!pendingInvite?.campaign_id) return;
-
-    try {
-      setInviteLoading(true);
-      const response = await apiClient.post(`/campaign-invites/${pendingInvite.campaign_id}`);
-      setPendingInvite(response.data);
-      toast.success('New join code generated');
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to rotate join code');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  const copyJoinCode = async () => {
-    const code = pendingInvite?.join_code;
-    if (!code) return;
-
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success('Join code copied');
-    } catch {
-      toast.info(`Join code: ${code}`);
     }
   };
 
@@ -234,7 +198,7 @@ export default function MyCampaignsPage() {
       {sortedCampaigns.length === 0 ? (
         <section className="library-page-empty">
           <h2>No campaigns yet</h2>
-          <p>Create a campaign here to start preparing sessions, players, notes, and handouts.</p>
+          <p>Create a campaign here to set the basics, choose the feel, generate a join code, and open the full GM builder.</p>
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)}>Create Campaign</button>
           </div>
@@ -243,23 +207,18 @@ export default function MyCampaignsPage() {
         <section className="library-page-grid" aria-label="Saved campaigns">
           {sortedCampaigns.map((campaign, index) => {
             const id = recordId(campaign);
-            const detail = campaignDetail(campaign);
             const deleting = deletingId === id;
 
             return (
               <article key={id || `campaign-${index}`} className="library-page-card">
                 <div>
-                  <p className="library-page-card-meta">Campaign</p>
+                  <p className="library-page-card-meta">{campaignTypeLabel(campaign)}</p>
                   <h2>{campaignTitle(campaign)}</h2>
                   <p>{campaignMeta(campaign)}</p>
-                  {detail && <p className="library-page-card-note">{detail}</p>}
                 </div>
                 <div className="library-page-actions">
                   <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id}>
-                    Open <ChevronRight size={16} />
-                  </button>
-                  <button type="button" onClick={() => requestJoinCode(campaign)} disabled={!id || inviteLoading}>
-                    <KeyRound size={15} /> Code
+                    Open Campaign <ChevronRight size={16} />
                   </button>
                   <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button">
                     <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
@@ -276,19 +235,8 @@ export default function MyCampaignsPage() {
           form={campaignForm}
           creating={creatingCampaign}
           onChange={updateCampaignForm}
-          onToggleSessionZero={toggleSessionZero}
           onSubmit={handleCreateCampaign}
           onClose={closeCreateCampaign}
-        />
-      )}
-
-      {pendingInvite && (
-        <JoinCodeDialog
-          invite={pendingInvite}
-          loading={inviteLoading}
-          onClose={() => !inviteLoading && setPendingInvite(null)}
-          onCopy={copyJoinCode}
-          onRotate={rotateJoinCode}
         />
       )}
     </main>
