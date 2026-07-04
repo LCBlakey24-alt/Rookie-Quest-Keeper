@@ -5,6 +5,7 @@ import './CleanSheetTabsRail.css';
 import './CleanSheetTabsAppShell.css';
 import './CleanSheetMobileRail.css';
 import './CleanLevelUpWizardPolish.css';
+import './CleanSheetTabAttention.css';
 
 export default function CleanSheetTabs({ tabs, activeTab, onSelectTab, onBack }) {
   const handleBack = () => {
