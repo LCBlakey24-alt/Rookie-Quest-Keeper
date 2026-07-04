@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, Backpack, Scroll, Sparkles } from 'lucide-react';
-import { getFeatsByEdition } from '@/data/levelUpData';
+import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { DetailPanel, Pill, SelectCard, StepHeader } from '../../character-builder/BuilderPrimitives';
 import { detailHeaderStyle, traitChipStyle } from '../../character-builder/builderTheme';
 
@@ -92,7 +92,7 @@ export default function BackgroundStep({
             Pick a 2024-style Origin feat granted by your background. (Origin feats are a new 2024 PHB feature replacing the 2014 background ASI flow.)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 6 }}>
-            {getFeatsByEdition('2024', 'origin').map(feat => {
+            {getFeatsForRuleset({ edition: '2024', category: 'origin' }).map(feat => {
               const sel = originFeat === feat.name;
               return (
                 <button

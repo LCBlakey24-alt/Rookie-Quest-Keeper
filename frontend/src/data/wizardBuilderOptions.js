@@ -23,6 +23,10 @@ function readList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [value];
 }
 
+function normaliseSpellName(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 function optionMatches(option, value = '') {
   const key = normaliseChoice(value);
   return Boolean(key && (option.key === key || normaliseChoice(option.name) === key));
@@ -61,9 +65,13 @@ export function validateWizardBuilderSelections({
   edition = '2014',
   subclass = '',
   scholarSkill = '',
+  spellbookSpells = [],
+  preparedSpells = [],
 } = {}) {
   const options = getWizardBuilderOptions({ level, edition });
   const errors = [];
+  const spellbookList = readList(spellbookSpells);
+  const preparedList = readList(preparedSpells);
 
   if (options.subclassRequired && !subclass) errors.push('Choose a Wizard school.');
   if (subclass && !isValidWizardSubclass(subclass, options.edition)) errors.push('Choose a Wizard school available in this ruleset.');
@@ -71,6 +79,14 @@ export function validateWizardBuilderSelections({
   if (options.scholarRequired && !scholarSkill) errors.push('Choose a Scholar skill.');
   if (scholarSkill && !options.scholarOptions.some(option => optionMatches(option, scholarSkill))) {
     errors.push('Choose a valid Scholar skill.');
+  }
+  const spellbookNames = spellbookList.map(normaliseSpellName).filter(Boolean);
+  const preparedNames = preparedList.map(normaliseSpellName).filter(Boolean);
+  if (new Set(spellbookNames).size < spellbookList.length) errors.push('Record each Wizard spellbook spell only once.');
+  if (new Set(preparedNames).size < preparedList.length) errors.push('Prepare each Wizard spell only once.');
+  const spellbookSet = new Set(spellbookNames);
+  if (spellbookSet.size && preparedNames.some(name => !spellbookSet.has(name))) {
+    errors.push('Prepared Wizard spells must also be in the spellbook.');
   }
 
   return {
@@ -81,6 +97,8 @@ export function validateWizardBuilderSelections({
     selections: {
       subclass: subclass || null,
       scholarSkill: scholarSkill || null,
+      spellbookSpells: spellbookList,
+      preparedSpells: preparedList,
     },
   };
 }

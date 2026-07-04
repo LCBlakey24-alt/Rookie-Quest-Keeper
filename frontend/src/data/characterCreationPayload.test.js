@@ -49,6 +49,7 @@ describe('character creation payload helper', () => {
 
     expect(payload.cantrips_known).toEqual([{ name: 'Fire Bolt' }, { name: 'Mage Hand' }, { name: 'Prestidigitation' }]);
     expect(payload.spells_known).toEqual([{ name: 'Magic Missile' }, { name: 'Shield' }]);
+    expect(payload.spellbook).toEqual([{ name: 'Magic Missile' }, { name: 'Shield' }]);
     expect(payload.spellcasting_ability).toBe('intelligence');
     expect(payload.spell_save_dc).toBe(12);
     expect(payload.spell_attack_bonus).toBe(4);
