@@ -1,5 +1,71 @@
 /* Final mobile tightening pass for the sunset character library. */
 
+#root .loading-screen,
+#root .full-creator-loading,
+#root .clean-sheet-loading {
+  background: linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  overflow: hidden !important;
+}
+
+#root .loading-screen::before,
+#root .loading-screen::after,
+#root .full-creator-loading::before,
+#root .full-creator-loading::after,
+#root .clean-sheet-loading::before,
+#root .clean-sheet-loading::after,
+#root .loading-screen .loading-spinner,
+#root .full-creator-loading .loading-spinner,
+#root .clean-sheet-loading .loading-spinner {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+#root .loading-screen .loading-title,
+#root .loading-screen p:first-of-type,
+#root .full-creator-loading p:first-of-type,
+#root .clean-sheet-loading p:first-of-type {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), serif !important;
+  font-size: clamp(1.45rem, 6.2vw, 2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.02em !important;
+  max-width: min(420px, calc(100vw - 80px)) !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
+#root .loading-screen .loading-title::after,
+#root .loading-screen p:first-of-type::after,
+#root .full-creator-loading p:first-of-type::after,
+#root .clean-sheet-loading p:first-of-type::after {
+  content: '' !important;
+  display: block !important;
+  width: min(260px, 64vw) !important;
+  height: 2px !important;
+  margin: 14px auto 0 !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient) !important;
+}
+
+#root .loading-screen .loading-tip,
+#root .loading-screen p:last-of-type,
+#root .full-creator-loading p:last-of-type,
+#root .clean-sheet-loading p:last-of-type {
+  display: none !important;
+}
+
 #root .characters-library-page {
   gap: 10px !important;
 }
