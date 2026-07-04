@@ -46,6 +46,8 @@ import '@/styles/sunsetRebrandFixes.css';
 import '@/styles/twilightKeeperBoxLanguage.css';
 import '@/styles/sunsetMobileTightening.css';
 import '@/styles/utilityPagesFinalFixes.css';
+import '@/styles/sunsetButtonFinalOverride.css';
+import '@/styles/sunsetScrollbar.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
