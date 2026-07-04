@@ -60,14 +60,14 @@ export default function CleanSheetFeaturesTab({
   const warnings = snapshot.warnings || [];
 
   return (
-    <div className="clean-sheet-grid clean-sheet-features-tab">
+    <div className="clean-sheet-grid clean-sheet-features-tab clean-sheet-class-tab">
       <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-feature-action-economy">
         <div className="clean-sheet-panel-heading">
           <div>
-            <h2>Features</h2>
+            <h2>Class</h2>
             <p>{rulesEdition} rules • {snapshot.identity.primaryClass || character.character_class || 'Class'} level {snapshot.identity.level || character.level || 1}</p>
           </div>
-          <span>{canonicalFeatures.length} features</span>
+          <span>{canonicalFeatures.length} feature{canonicalFeatures.length === 1 ? '' : 's'}</span>
         </div>
         <div className="clean-sheet-feature-lanes">
           {Object.entries(featureGroups).map(([label, features]) => (
@@ -84,7 +84,7 @@ export default function CleanSheetFeaturesTab({
                   {feature.description && <p>{feature.description}</p>}
                 </article>
               )) : (
-                <p className="clean-sheet-feature-empty">No {label.toLowerCase()} features found yet.</p>
+                <p className="clean-sheet-feature-empty">No {label.toLowerCase()} class features found yet.</p>
               )}
             </div>
           ))}
@@ -95,8 +95,8 @@ export default function CleanSheetFeaturesTab({
         <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-resource-summary">
           <div className="clean-sheet-panel-heading">
             <div>
-              <h2>Class resources</h2>
-              <p>Derived from the same resource rules used by rests and action cards.</p>
+              <h2>Class Resources</h2>
+              <p>Class abilities with uses, recovery rules, and rest tracking.</p>
             </div>
             <span>{resources.length} resource{resources.length === 1 ? '' : 's'}</span>
           </div>
@@ -116,8 +116,8 @@ export default function CleanSheetFeaturesTab({
         <section className="clean-sheet-panel clean-sheet-wide" data-testid="character-progression-warnings">
           <div className="clean-sheet-panel-heading">
             <div>
-              <h2>Progression warnings</h2>
-              <p>These are not blockers, but they flag data that should be checked before public use.</p>
+              <h2>Class Warnings</h2>
+              <p>These are not blockers, but they flag class data that should be checked.</p>
             </div>
             <span>{warnings.length}</span>
           </div>
@@ -135,7 +135,7 @@ export default function CleanSheetFeaturesTab({
       <section className="clean-sheet-panel clean-sheet-wide" data-testid="proficiency-equipment-summary">
         <div className="clean-sheet-panel-heading">
           <div>
-            <h2>Readiness</h2>
+            <h2>Class Readiness</h2>
             <p>Quick checks for armour, weapons, tools, languages, AC, speed, and proficiency.</p>
           </div>
           <button type="button" onClick={onOpenInventory}>Open inventory</button>
