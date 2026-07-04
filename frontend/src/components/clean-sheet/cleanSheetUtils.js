@@ -1,4 +1,4 @@
-import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, Swords, UserCircle } from 'lucide-react';
+import { Activity, Backpack, BookOpen, Bot, Edit3, ListChecks, ScrollText, Sparkles, Swords, UserCircle, UsersRound } from 'lucide-react';
 
 export const ABILITIES = [
   ['strength', 'STR'],
@@ -47,7 +47,9 @@ export const SHEET_TABS = [
   { id: 'combat', label: 'Actions', icon: Swords },
   { id: 'inventory', label: 'Inventory', icon: Backpack },
   { id: 'spells', label: 'Spells', icon: BookOpen },
-  { id: 'features', label: 'Features', icon: ListChecks },
+  { id: 'class', label: 'Class', icon: ListChecks },
+  { id: 'species', label: 'Species', icon: UsersRound },
+  { id: 'feats', label: 'Feats', icon: Sparkles },
   { id: 'rook', label: 'Rook Helper', icon: Bot },
   { id: 'notes', label: 'Notes', icon: Edit3 },
 ];
