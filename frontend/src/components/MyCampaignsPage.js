@@ -14,6 +14,7 @@ import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
 import '@/styles/unifiedDashboardBoard.css';
 import '@/styles/unifiedDashboardPolish.css';
+import '@/styles/campaignSetupModal.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.campaign_id || record?.campaignId || '';
