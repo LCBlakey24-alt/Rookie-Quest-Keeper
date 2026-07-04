@@ -1,26 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
 import '@/styles/unifiedDashboardPolish.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import UnifiedDashboardStatusBar from '@/components/dashboard/home/UnifiedDashboardStatusBar';
-import DashboardContinuePanel from '@/components/dashboard/home/DashboardContinuePanel';
-import DashboardSummaryPanel from '@/components/dashboard/home/DashboardSummaryPanel';
-import DashboardListRow from '@/components/dashboard/home/DashboardListRow';
 import {
-  campaignMeta,
-  campaignTitle,
-  characterMeta,
-  characterTitle,
-  recordId,
   safeArray,
   statusMessage,
 } from '@/components/dashboard/home/unifiedDashboardUtils';
 
-export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) {
-  const navigate = useNavigate();
+const dashboardUpdates = [
+  {
+    label: 'Update',
+    title: 'Mobile layout polish',
+    text: 'Character cards, action buttons, loading screens, and navigation are being tightened for phone and tablet use.',
+  },
+  {
+    label: 'Coming Soon',
+    title: 'Campaign join codes',
+    text: 'Campaign owners will be able to share a code so users can link one character to that campaign.',
+  },
+  {
+    label: 'Coming Soon',
+    title: 'Campaign uploads',
+    text: 'Uploads are being prepared for campaign PDFs, maps, handouts, notes, images, and reference files.',
+  },
+  {
+    label: 'Beta',
+    title: 'Public launch preparation',
+    text: 'The app is being cleaned up for user accounts, admin-only tools, campaign permissions, and smoother mobile use.',
+  },
+];
+
+const dashboardInfo = [
+  {
+    title: 'Use the left rail',
+    text: 'Dashboard, My Characters, My Campaigns, My Homebrew, My Uploads, Settings, and Feedback live in the main rail.',
+  },
+  {
+    title: 'Users and admin access',
+    text: 'Normal accounts are Users. Admin tools are only shown to admin accounts and remain locked away from everyone else.',
+  },
+  {
+    title: 'Campaign direction',
+    text: 'Campaigns will use join codes, linked characters, and GM-controlled character statuses as the next major feature pass.',
+  },
+];
+
+export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
 
@@ -31,17 +59,11 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     slowLoad,
     refreshing,
     isAdmin,
-    recentCharacters,
-    recentCampaigns,
     loadDashboard,
   } = useDashboardData();
 
   const safeCharacters = safeArray(characters);
   const safeCampaigns = safeArray(campaigns);
-  const latestCharacters = safeArray(recentCharacters).slice(0, 4);
-  const latestCampaigns = safeArray(recentCampaigns).slice(0, 4);
-  const primaryCharacter = latestCharacters[0];
-  const primaryCampaign = latestCampaigns[0];
 
   const checkBackend = async () => {
     setBackendStatus('Checking');
@@ -65,16 +87,6 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
     await Promise.allSettled([loadDashboard(), checkBackend()]);
   };
 
-  const openCampaign = (campaign) => {
-    const id = recordId(campaign);
-    if (id) navigate(`/campaign/${id}`);
-  };
-
-  const openCharacter = (character) => {
-    const id = recordId(character);
-    if (id) navigate(`/characters/${id}`);
-  };
-
   if (loading) {
     return (
       <main className="unified-dashboard-page">
@@ -92,7 +104,7 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
   }
 
   return (
-    <main className="unified-dashboard-page">
+    <main className="unified-dashboard-page unified-dashboard-page--noticeboard">
       <UnifiedDashboardHeader
         username={username}
         refreshing={refreshing}
@@ -107,71 +119,54 @@ export default function UnifiedDashboard({ username = 'Adventurer', onLogout }) 
         backendStatus={backendStatus}
       />
 
-      <section className="unified-dashboard-continue-grid" aria-label="Continue where you left off">
-        <DashboardContinuePanel
-          label="Continue playing"
-          title={primaryCharacter ? characterTitle(primaryCharacter) : 'No character selected yet'}
-          text={primaryCharacter
-            ? characterMeta(primaryCharacter)
-            : 'Use My Characters on the left rail to create and manage your characters.'}
-          action={primaryCharacter ? 'Open Sheet' : 'My Characters'}
-          onClick={() => primaryCharacter ? openCharacter(primaryCharacter) : navigate('/characters')}
-        />
+      <section className="unified-dashboard-board dashboard-updates-panel" aria-labelledby="dashboard-updates-title">
+        <div className="dashboard-section-heading">
+          <p className="dashboard-eyebrow">Latest information</p>
+          <h2 id="dashboard-updates-title">Site Updates</h2>
+          <p className="dashboard-muted">Short notes about what has changed, what is being prepared, and anything users should know.</p>
+        </div>
 
-        <DashboardContinuePanel
-          label="GM workspace"
-          title={primaryCampaign ? campaignTitle(primaryCampaign) : 'No campaign selected yet'}
-          text={primaryCampaign
-            ? campaignMeta(primaryCampaign)
-            : 'Use My Campaigns on the left rail to create and manage your campaigns.'}
-          action={primaryCampaign ? 'Open Campaign' : 'My Campaigns'}
-          onClick={() => primaryCampaign ? openCampaign(primaryCampaign) : navigate('/campaigns')}
-        />
+        <div className="dashboard-updates-grid">
+          {dashboardUpdates.map((update) => (
+            <DashboardUpdateCard key={`${update.label}-${update.title}`} {...update} />
+          ))}
+        </div>
       </section>
 
-      <section className="dashboard-two-column">
-        <DashboardSummaryPanel
-          title="Recent Characters"
-          emptyText="No characters yet. Open My Characters from the left rail to start building one."
-          actionLabel="View My Characters"
-          onAction={() => navigate('/characters')}
-        >
-          {latestCharacters.map((character, index) => (
-            <DashboardListRow
-              key={recordId(character) || `character-${index}`}
-              title={characterTitle(character)}
-              meta={characterMeta(character)}
-              onOpen={() => openCharacter(character)}
-            />
-          ))}
-        </DashboardSummaryPanel>
-
-        <DashboardSummaryPanel
-          title="Recent Campaigns"
-          emptyText="No campaigns yet. Open My Campaigns from the left rail to create one."
-          actionLabel="View My Campaigns"
-          onAction={() => navigate('/campaigns')}
-        >
-          {latestCampaigns.map((campaign, index) => (
-            <DashboardListRow
-              key={recordId(campaign) || `campaign-${index}`}
-              title={campaignTitle(campaign)}
-              meta={campaignMeta(campaign)}
-              onOpen={() => openCampaign(campaign)}
-            />
-          ))}
-        </DashboardSummaryPanel>
+      <section className="dashboard-info-grid" aria-label="Dashboard information">
+        {dashboardInfo.map((item) => (
+          <DashboardInfoCard key={item.title} {...item} />
+        ))}
       </section>
 
-      <section className="unified-dashboard-board dashboard-system-panel">
+      <section className="unified-dashboard-board dashboard-system-panel dashboard-system-panel--quiet">
         <div>
           <p className="dashboard-eyebrow">System status</p>
           <p className="dashboard-muted">{statusMessage(backendStatus, backendCheckedAt)}</p>
         </div>
-        <button type="button" onClick={checkBackend} className="dashboard-link-button">
+        <button type="button" onClick={checkBackend} className="dashboard-link-button dashboard-home-refresh">
           <span>Check backend</span>
         </button>
       </section>
     </main>
+  );
+}
+
+function DashboardUpdateCard({ label, title, text }) {
+  return (
+    <article className="dashboard-update-card">
+      <span className="dashboard-update-label">{label}</span>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </article>
+  );
+}
+
+function DashboardInfoCard({ title, text }) {
+  return (
+    <article className="unified-dashboard-board dashboard-info-card">
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </article>
   );
 }
