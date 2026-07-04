@@ -1,4 +1,6 @@
 import { RACES } from './characterRules5e';
+import { SRD_RACES_2014, SRD_RACES_2024 } from './editionRules';
+import { STARTER_SPECIES } from './starterOrigins5e';
 import { getCharacterClassFeatures } from './characterFeatureSelectors';
 import { getClassResourceRules } from './classResourceRules';
 import { resourceActionCards, resourceValue } from './actionEconomyCards';
@@ -20,6 +22,7 @@ const normalizeKey = (value = '') => String(value).toLowerCase().replace(/[^a-z0
 const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const proficiencyFor = (level = 1) => 2 + Math.floor((Math.max(1, Number(level || 1)) - 1) / 4);
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const ALL_RACES = { ...RACES, ...STARTER_SPECIES };
 
 export function normalizeEdition(character = {}) {
   return String(character?.rules_edition || character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
@@ -30,7 +33,7 @@ export function getCanonicalCoreClassName(className = '') {
 }
 
 export function getCanonicalRaceName(raceName = '') {
-  return Object.keys(RACES).find(name => normalizeKey(name) === normalizeKey(raceName)) || String(raceName || '').trim();
+  return Object.keys(ALL_RACES).find(name => normalizeKey(name) === normalizeKey(raceName)) || String(raceName || '').trim();
 }
 
 function getClassLevels(character = {}) {
@@ -51,7 +54,7 @@ function getClassLevels(character = {}) {
 
 function getRaceTraits(character = {}, edition = '2014') {
   const raceName = getCanonicalRaceName(character?.race || character?.species || '');
-  const raceData = RACES[raceName];
+  const raceData = ALL_RACES[raceName];
   if (!raceData) return { name: raceName, found: false, traits: [], languages: [], warnings: raceName ? [`No race/species data found for ${raceName}.`] : ['No race/species selected.'] };
 
   const subraceName = character?.subrace || character?.lineage || '';
@@ -59,7 +62,6 @@ function getRaceTraits(character = {}, edition = '2014') {
   const traits = [...toArray(raceData.traits), ...toArray(subraceData?.traits)];
   const languages = toArray(raceData.languages).filter(language => !/choice/i.test(String(language)));
   const warnings = [];
-  if (edition === '2024' && raceData.asi2014 && !raceData.asi2024) warnings.push(`${raceName} uses 2014 ability-score data; 2024 ASI should come from background/origin.`);
   if (toArray(raceData.languages).some(language => /choice/i.test(String(language)))) warnings.push(`${raceName} has a language choice that must be resolved before save.`);
 
   return { name: raceName, subrace: subraceName, found: true, speed: subraceData?.speed || raceData.speed || 30, size: raceData.size || 'Medium', traits, languages, warnings };
@@ -150,6 +152,12 @@ export function deriveCharacterSnapshot(character = {}) {
   return snapshot;
 }
 
-export function getSupportedRaceNames() {
-  return Object.keys(RACES);
+export function getSupportedRaceNames(edition) {
+  const editionList = String(edition || '').includes('2024')
+    ? SRD_RACES_2024
+    : String(edition || '').includes('2014')
+      ? SRD_RACES_2014
+      : null;
+  const names = editionList ? editionList.map(race => race.name) : Object.keys(ALL_RACES);
+  return names.filter(name => Boolean(ALL_RACES[getCanonicalRaceName(name)]));
 }
