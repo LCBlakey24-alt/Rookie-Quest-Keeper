@@ -1,5 +1,6 @@
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 const labelText = (label, character) => (typeof label === 'function' ? label(character) : label);
+const levelOf = (character) => Math.max(1, Number(character?.level || character?.character_level || 1));
 
 export function resourceValue(character, rule) {
   const existing = character?.resources?.[rule.key] || {};
@@ -23,13 +24,13 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   const byKey = Object.fromEntries(resources.map((resource) => [resource.key, resource]));
   const cards = { action: [], bonus: [], reaction: [] };
 
-  const add = (bucket, key, title, description, onClick) => {
+  const add = (bucket, key, title, description, onClick, displayType = 'Resource') => {
     const resource = byKey[key];
     const suffix = resource ? ` • ${resource.label} ${resource.current}/${resource.max}` : '';
     cards[bucket].push({
       key: `${bucket}-${key}-${title}`,
       title,
-      type: resource?.label || 'Resource',
+      type: resource?.label || displayType,
       description: `${description}${suffix}`,
       disabled: Boolean(resource && resource.current <= 0),
       onClick,
@@ -59,5 +60,11 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.lay_on_hands || className === 'paladin') add('action', 'lay_on_hands', 'Lay on Hands', 'Spend points from your healing pool.', () => handlers.spendResource('lay_on_hands', 'Lay on Hands'));
   if (byKey.arcane_recovery || className === 'wizard') add('action', 'arcane_recovery', 'Arcane Recovery', 'Recover spell slots during a short rest when this applies.', () => handlers.spendResource('arcane_recovery', 'Arcane Recovery'));
+  if (className === 'rogue') {
+    add('action', 'rogue', 'Sneak Attack', 'Once per turn, add extra damage when you hit with a finesse or ranged weapon and meet Sneak Attack conditions.', undefined, 'Core Rogue feature');
+    if (levelOf(character) >= 2) {
+      add('bonus', 'rogue', 'Cunning Action', 'Take the Dash, Disengage, or Hide action as a bonus action.', undefined, 'Core Rogue feature');
+    }
+  }
   return cards;
 }

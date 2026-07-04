@@ -82,4 +82,10 @@ describe('class resource unlocks and action economy audit', () => {
     expect(getClassResourceRules(character('warlock', 1)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 1, restore: 'short-rest' });
     expect(getClassResourceRules(character('warlock', 2)).find(rule => rule.key === 'pact_magic')).toMatchObject({ maxValue: 2 });
   });
+
+  test('Rogue core turn reminders appear at the correct levels', () => {
+    expect(actionTitlesFor(character('rogue', 1)).action).toContain('Sneak Attack');
+    expect(actionTitlesFor(character('rogue', 1)).bonus).not.toContain('Cunning Action');
+    expect(actionTitlesFor(character('rogue', 2)).bonus).toContain('Cunning Action');
+  });
 });
