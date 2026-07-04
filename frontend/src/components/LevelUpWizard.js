@@ -4,7 +4,8 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { CLASS_FEATURES } from '@/data/classFeatures';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from '@/data/spellDatabase';
-import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE, getFeatsByEdition } from '@/data/levelUpData';
+import { ABILITIES, ABILITY_SHORT, ASI_LEVELS, HIT_DICE } from '@/data/levelUpData';
+import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { CLASSES, MULTICLASS_REQUIREMENTS, getMulticlassOptions } from '@/data/characterRules5e';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -90,7 +91,7 @@ function localCantripsToLearn(characterClass, currentClassLevel, nextClassLevel)
 function normaliseFeatOptions(preflight, character) {
   const edition = preflight?.edition || (String(character?.edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014');
   const backendNames = preflight?.feat_options || preflight?.general_feat_options || [];
-  const localFeats = getFeatsByEdition(edition, 'general');
+  const localFeats = getFeatsForRuleset({ edition, category: 'general' });
   const localByName = new Map(localFeats.map(feat => [feat.name.toLowerCase(), feat]));
 
   if (backendNames.length > 0) {
