@@ -191,7 +191,7 @@ export default function MyCharactersPage() {
 
       <section className="library-page-action-row" aria-label="Character library actions">
         <div className="library-page-action-main">
-          <Link to="/characters/new" className="library-page-button library-page-button-primary">
+          <Link to="/characters/create" className="library-page-button library-page-button-primary">
             <Plus size={16} />
             Create Character
           </Link>
@@ -215,37 +215,28 @@ export default function MyCharactersPage() {
           <h2>No characters yet</h2>
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
-            <Link to="/characters/new" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/create" className="library-page-button library-page-button-primary">Create Character</Link>
           </div>
         </section>
       ) : (
-        <section className="library-page-grid" aria-label="Saved characters">
-          {sortedCharacters.map((character, index) => {
+        <section className="library-card-grid characters-card-grid" aria-label="Saved characters">
+          {sortedCharacters.map((character) => {
             const id = recordId(character);
-            const deleting = deletingId === id;
-            const duplicating = duplicatingId === id;
-
             return (
-              <article key={id || `character-${index}`} className="library-page-card character-library-card">
-                <div className="character-library-card-copy">
+              <article key={id || characterTitle(character)} className="library-card character-library-card">
+                <div className="character-card-main">
+                  <p className="library-card-kicker">{characterLevel(character)}</p>
                   <h2>{characterTitle(character)}</h2>
                   <p>{characterLine(character)}</p>
-                  <p>{characterLevel(character)}</p>
                 </div>
-                <div className="library-page-actions character-library-card-actions">
-                  <button type="button" onClick={() => id && navigate(`/characters/${id}`)} disabled={!id} className="library-page-card-open">
+                <div className="character-card-actions">
+                  <Link to={`/characters/${id}`} className="library-page-button library-page-button-primary character-card-open">
                     Open Sheet <ChevronRight size={16} />
-                  </button>
-                  <div className="library-page-card-secondary-actions">
-                    <button type="button" onClick={() => id && navigate(`/characters/${id}/edit`)} disabled={!id}>
-                      <Pencil size={15} /> Edit
-                    </button>
-                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={!id || duplicating}>
-                      <Copy size={15} /> {duplicating ? 'Duplicating...' : 'Duplicate'}
-                    </button>
-                    <button type="button" onClick={() => deleteCharacter(character)} disabled={!id || deleting} className="library-page-danger-button">
-                      <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
-                    </button>
+                  </Link>
+                  <div className="character-card-secondary-actions">
+                    <Link to={`/characters/${id}?edit=true`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
+                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicatingId === id} className="library-page-button-secondary"><Copy size={15} /> {duplicatingId === id ? 'Duplicating...' : 'Duplicate'}</button>
+                    <button type="button" onClick={() => deleteCharacter(character)} disabled={deletingId === id} className="library-page-button-secondary library-page-button-danger"><Trash2 size={15} /> {deletingId === id ? 'Deleting...' : 'Delete'}</button>
                   </div>
                 </div>
               </article>
