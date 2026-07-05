@@ -1,0 +1,168 @@
+/* Final play-header compaction.
+   Keeps HP, AC, Speed, and Initiative visible near the top without eating the whole mobile screen. */
+
+#root .character-page-v2 .clean-sheet-header-actions {
+  gap: 10px !important;
+}
+
+#root .character-page-v2 .clean-sheet-header-actions button {
+  min-height: 48px !important;
+  padding: 10px 12px !important;
+  border-radius: 9px !important;
+  font-size: 0.95rem !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  padding: 14px !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-status--battle-bar .clean-sheet-compact-stat--hp {
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 4px !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-status--battle-bar .clean-sheet-compact-stat--hp strong {
+  font-size: clamp(1.75rem, 8vw, 3rem) !important;
+  line-height: 0.95 !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat-strip {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat {
+  min-width: 0 !important;
+  min-height: 74px !important;
+  padding: 9px 6px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 3px !important;
+  text-align: center !important;
+  color: #ffffff !important;
+  background: rgba(13, 2, 24, 0.86) !important;
+  border: 1px solid rgba(216, 77, 241, 0.35) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 button.clean-sheet-quick-stat {
+  appearance: none !important;
+  cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat svg {
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat span {
+  font-size: 0.64rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-weight: 850 !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat strong {
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: 1.2rem !important;
+  line-height: 1 !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 0.75fr 1fr 1fr 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions select,
+#root .character-page-v2 .clean-sheet-compact-hp-actions button {
+  min-height: 42px !important;
+  padding: 8px 7px !important;
+  border-radius: 8px !important;
+  font-size: 0.78rem !important;
+  line-height: 1.1 !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-header-actions {
+    gap: 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header-actions button {
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+    font-size: 0.86rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar .clean-sheet-compact-stat--hp {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar .clean-sheet-compact-stat--hp strong {
+    justify-self: end !important;
+    font-size: clamp(2rem, 11vw, 3.15rem) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar .clean-sheet-compact-stat--hp em {
+    justify-self: end !important;
+    font-size: 0.72rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat {
+    min-height: 58px !important;
+    padding: 7px 5px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat strong {
+    font-size: 1.02rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions {
+    grid-template-columns: 0.8fr 1fr 1fr !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions .rq-temp-hp-action-button--minus,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions .rq-temp-hp-action-button--plus {
+    min-height: 36px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-compact-hp-actions {
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions select,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions button {
+    font-size: 0.72rem !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
