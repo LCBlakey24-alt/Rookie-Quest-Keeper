@@ -253,3 +253,4 @@ Status key:
 - Text/list starting equipment is better than nothing, but structured equipment is still the goal for AC, attacks, and inventory quality.
 - Premade and Kids Mode should show friendly warnings/defaults when template/rules data is missing instead of silently creating thin sheets.
 - Continue using Velvet Tabletop tokens for UI work. This tracker does not change app styling or logic.
+- Homebrew/private sharing model: see [Homebrew Content Sharing Model](./HOMEBREW_CONTENT_SHARING.md) for user-provided subclasses, monsters, and content packs.
