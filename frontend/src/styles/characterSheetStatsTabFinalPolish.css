@@ -1,0 +1,121 @@
+/* Last mobile polish pass for the Stats tab.
+   Keeps controls in the dark-purple/sunset language and removes remaining solid pink/brown leaks. */
+
+@media (max-width: 759px) {
+  #root .character-page-v2 {
+    --rqk-stats-sunset: linear-gradient(135deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+    --rqk-stats-chip: #12051c;
+    --rqk-stats-chip-muted: #1a0b24;
+  }
+
+  /* Header/HP controls: dark purple fill, sunset outline. */
+  #root .character-page-v2 .clean-sheet-hero-options-toggle,
+  #root .character-page-v2 button.clean-sheet-hero-options-toggle,
+  #root .character-page-v2 .clean-sheet-combat-temp-pill,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle,
+  #root .character-page-v2 button.clean-sheet-combat-rest-toggle,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle,
+  #root .character-page-v2 button.clean-sheet-inspiration-toggle,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button {
+    color: #ffffff !important;
+    background: linear-gradient(var(--rqk-stats-chip), var(--rqk-stats-chip)) padding-box, var(--rqk-stats-sunset) border-box !important;
+    background-color: var(--rqk-stats-chip) !important;
+    border: 1px solid transparent !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle *,
+  #root .character-page-v2 .clean-sheet-combat-temp-pill *,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle *,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle *,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button *,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::before,
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::after,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::before,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::after,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::before,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::after,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::before,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::after,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button::before,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Hero cog should not read as a selected gradient block unless the menu is open. */
+  #root .character-page-v2 .clean-sheet-hero-options-toggle[aria-expanded='true'],
+  #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'] {
+    background: var(--rqk-stats-sunset) border-box !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  /* Disabled temp control stays quiet, but still purple rather than brown. */
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button:disabled,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button[disabled] {
+    color: rgba(255, 255, 255, 0.45) !important;
+    background: linear-gradient(var(--rqk-stats-chip-muted), var(--rqk-stats-chip-muted)) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.35), rgba(216, 77, 241, 0.35), rgba(255, 79, 129, 0.32), rgba(255, 149, 66, 0.32)) border-box !important;
+    border: 1px solid transparent !important;
+    opacity: 1 !important;
+  }
+
+  /* Saving throw proficiency badge: no solid pink pill. */
+  #root .character-page-v2 .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge,
+  #root .character-page-v2 .clean-sheet-readable-saves .clean-sheet-save-prof-badge {
+    min-height: 11px !important;
+    padding: 1px 4px !important;
+    color: #ffffff !important;
+    background: linear-gradient(var(--rqk-stats-chip), var(--rqk-stats-chip)) padding-box, var(--rqk-stats-sunset) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    font-size: 0.42rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  /* Keep selected skill filter as sunset gradient, but remove flat pink fallback. */
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
+    color: #ffffff !important;
+    background: var(--rqk-stats-sunset) border-box !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button:not(.active):not([aria-pressed='true']) {
+    color: #ffffff !important;
+    background: linear-gradient(var(--rqk-stats-chip), var(--rqk-stats-chip)) padding-box, var(--rqk-stats-sunset) border-box !important;
+    background-color: var(--rqk-stats-chip) !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Small tightening to remove the last floaty feel in passive scores. */
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2 {
+    margin-bottom: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2::after {
+    margin-top: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid {
+    margin-top: 1px !important;
+  }
+}
