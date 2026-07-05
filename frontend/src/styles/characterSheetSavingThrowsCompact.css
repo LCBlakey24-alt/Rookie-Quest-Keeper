@@ -1,0 +1,125 @@
+/* Mobile-only compact Saving Throws strip.
+   Mirrors the Ability Scores strip while keeping each modifier tappable for rolls. */
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel {
+    padding: 10px !important;
+    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throws-panel h2 {
+    margin-bottom: 7px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
+    min-width: 0 !important;
+    min-height: 52px !important;
+    padding: 5px 2px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr !important;
+    place-items: center !important;
+    gap: 4px !important;
+    text-align: center !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label strong {
+    width: 100% !important;
+    font-size: 0.62rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+    text-align: center !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label span {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+    padding: 1px 3px !important;
+    font-size: 0.44rem !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save:not(.is-proficient) .clean-sheet-save-label span {
+    display: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: auto !important;
+    min-width: 31px !important;
+    max-width: 44px !important;
+    min-height: 25px !important;
+    height: 25px !important;
+    padding: 0 5px !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: 0.72rem !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    border-radius: 7px !important;
+    color: #ffffff !important;
+    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip {
+    gap: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
+    min-height: 49px !important;
+    padding-left: 1px !important;
+    padding-right: 1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip {
+    min-width: 28px !important;
+    max-width: 38px !important;
+    font-size: 0.66rem !important;
+  }
+}
