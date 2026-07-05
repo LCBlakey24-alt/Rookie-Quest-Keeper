@@ -9,6 +9,7 @@ import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCas
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import './FullCharacterCreatorV2.css';
+import './FullCharacterCreatorFlow.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
@@ -135,11 +136,13 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const [loading, setLoading] = useState(Boolean(editMode && characterId));
   const [saving, setSaving] = useState(false);
   const [spellSearch, setSpellSearch] = useState('');
+  const [touchStartX, setTouchStartX] = useState(null);
 
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
   const backgroundData = BACKGROUNDS[draft.background] || {};
   const subclassAllowed = draft.edition === '2014' && LEVEL_ONE_SUBCLASS.has(draft.characterClass);
+  const classChoicesRequired = subclassAllowed && arr(classData.subclasses).length > 0;
   const subraces = Object.keys(raceData.subraces || {});
   const bonus = abilityBonus({ edition: draft.edition, raceData, subrace: draft.subrace, backgroundData, floatingAsi: draft.floatingAsi });
   const finalScores = Object.fromEntries(ABILITIES.map((ability) => [ability, clamp(draft.scores[ability]) + (bonus[ability] || 0)]));
@@ -164,17 +167,43 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const visibleCantrips = cantripPool.filter((spell) => searchMatch(spell, spellSearch));
   const visibleSpells = levelOnePool.filter((spell) => searchMatch(spell, spellSearch));
   const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0;
+  const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
+  const featRequired = draft.edition === '2024';
+  const equipmentComplete = draft.equipmentMode === 'custom' ? draft.customEquipment.trim().length > 0 : true;
+  const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
+  const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
+  const completionByStep = {
+    species: Boolean(draft.name.trim() && draft.race && (!subraces.length || draft.subrace)),
+    class: Boolean(draft.characterClass),
+    classChoices: !classChoicesRequired || Boolean(draft.subclass),
+    background: Boolean(draft.background && draft.alignment),
+    abilities: abilitiesComplete,
+    skills: draft.selectedSkills.length === skillTarget,
+    feats: !featRequired || Boolean(chosenFeat),
+    spells: spellsComplete,
+    equipment: equipmentComplete,
+    review: true,
+  };
   const steps = [
-    { id: 'basics', label: 'Basics', icon: Shield },
+    { id: 'species', label: 'Species', icon: Shield },
+    { id: 'class', label: 'Class', icon: Swords },
+    ...(classChoicesRequired ? [{ id: 'classChoices', label: 'Class Choices', icon: Sparkles }] : []),
+    { id: 'background', label: 'Background', icon: BookOpen },
     { id: 'abilities', label: 'Abilities', icon: Dices },
     { id: 'skills', label: 'Skills', icon: Swords },
     { id: 'feats', label: 'Feats', icon: Sparkles },
     ...(hasSpells ? [{ id: 'spells', label: 'Spells', icon: Wand2 }] : []),
     { id: 'equipment', label: 'Equipment', icon: Backpack },
-    { id: 'review', label: 'Review', icon: BookOpen },
+    { id: 'review', label: 'Review', icon: Check },
   ];
+  const requiredStepIds = steps.filter((item) => item.id !== 'review' && (item.id !== 'feats' || featRequired)).map((item) => item.id);
+  const completedRequired = requiredStepIds.filter((id) => completionByStep[id]);
+  const progressPercent = requiredStepIds.length ? Math.round((completedRequired.length / requiredStepIds.length) * 100) : 100;
+  const firstIncompleteStepId = requiredStepIds.find((id) => !completionByStep[id]);
+  const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
   const step = Math.min(Number(draft.step || 0), steps.length - 1);
-  const stepId = steps[step]?.id || 'basics';
+  const stepId = steps[step]?.id || 'species';
+  const currentStep = steps[step] || steps[0];
 
   useEffect(() => {
     if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, step }));
@@ -224,18 +253,50 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const update = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
   const setStep = (nextStep) => update({ step: Math.max(0, Math.min(steps.length - 1, nextStep)) });
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
-  const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
 
   function validate() {
-    if (stepId === 'basics') {
+    if (stepId === 'species') {
       if (!draft.name.trim()) return 'Give your character a name.';
-      if (!draft.race || !draft.characterClass || !draft.background) return 'Choose species, class and background.';
+      if (!draft.race) return 'Choose a species or race.';
       if (subraces.length && !draft.subrace) return 'Choose a subrace/species option.';
-      if (subclassAllowed && arr(classData.subclasses).length && !draft.subclass) return 'Choose your level 1 subclass/patron/domain.';
     }
-    if (stepId === 'abilities' && floatingBudget && floatingSpent !== floatingBudget) return `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.`;
+    if (stepId === 'class' && !draft.characterClass) return 'Choose a class.';
+    if (stepId === 'classChoices' && classChoicesRequired && !draft.subclass) return 'Choose your level 1 subclass, patron, or domain.';
+    if (stepId === 'background' && (!draft.background || !draft.alignment)) return 'Choose a background and alignment.';
+    if (stepId === 'abilities' && !abilitiesComplete) return floatingBudget && floatingSpent !== floatingBudget ? `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.` : 'Check your ability scores.';
     if (stepId === 'skills' && draft.selectedSkills.length !== skillTarget) return `Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'}.`;
+    if (stepId === 'feats' && featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
+    if (stepId === 'spells' && !spellsComplete) return `Choose ${spellReq.cantrips} cantrip${spellReq.cantrips === 1 ? '' : 's'} and ${spellReq.spells} level 1 spell${spellReq.spells === 1 ? '' : 's'}.`;
+    if (stepId === 'equipment' && !equipmentComplete) return 'Add at least one custom equipment item, or choose recommended gear/starting gold.';
     return '';
+  }
+
+  function goNext() {
+    if (step >= steps.length - 1) return;
+    const problem = validate();
+    if (problem) {
+      toast.error(problem);
+      return;
+    }
+    setStep(step + 1);
+  }
+
+  function goPrevious() {
+    if (step > 0) setStep(step - 1);
+  }
+
+  function handleTouchStart(event) {
+    setTouchStartX(event.touches?.[0]?.clientX ?? null);
+  }
+
+  function handleTouchEnd(event) {
+    if (touchStartX === null) return;
+    const endX = event.changedTouches?.[0]?.clientX ?? touchStartX;
+    const delta = endX - touchStartX;
+    setTouchStartX(null);
+    if (Math.abs(delta) < 60) return;
+    if (delta < 0) goNext();
+    else goPrevious();
   }
 
   function toggleList(field, value, max = Infinity) {
@@ -285,12 +346,11 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     else complete.push('Species, class, and background are selected.');
 
     if (subraces.length && !draft.subrace) priority.push('Choose a subrace/species option for this species.');
-    if (subclassAllowed && arr(classData.subclasses).length && !draft.subclass) priority.push('Choose the required level 1 subclass, patron, or domain.');
+    if (classChoicesRequired && !draft.subclass) priority.push('Choose the required level 1 subclass, patron, or domain.');
 
-    if (ABILITIES.some((ability) => !Number.isFinite(Number(finalScores[ability])) || finalScores[ability] < 3 || finalScores[ability] > 30)) priority.push('Ability scores need checking before the character can be saved.');
+    if (!abilitiesComplete) priority.push('Ability scores need checking before the character can be saved.');
     else complete.push('Ability scores are ready.');
 
-    if (floatingBudget && floatingSpent !== floatingBudget) priority.push(`Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'} before saving.`);
     if (draft.selectedSkills.length !== skillTarget) priority.push(`Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'} before saving.`);
     else complete.push('Skill choices are ready.');
 
@@ -308,14 +368,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (!racialTraits.length) later.push('Species traits are missing from the rules data. You can still save, but the traits section may need review.');
     if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
 
-    if (draft.edition === '2024' && !chosenFeat) later.push('No 2024 origin feat is selected. This can be added later if your table uses origin feats.');
-    if (!equipmentList.length) later.push('No starting equipment is listed. You can create the sheet and add gear later.');
+    if (featRequired && !chosenFeat) priority.push('Choose or confirm your 2024 origin feat before saving.');
+    if (!equipmentComplete) priority.push('Equipment needs a choice before saving.');
+    if (!equipmentList.length) priority.push('No starting equipment is listed. Choose starting gold or add custom gear before saving.');
     if (draft.equipmentMode === 'gold') later.push('Starting gold selected. Shopping and exact gear will need finishing later.');
 
     if (hasSpells) {
-      if (draft.selectedCantrips.length !== spellReq.cantrips) later.push(`Cantrip choices are incomplete: ${draft.selectedCantrips.length}/${spellReq.cantrips}. You can finish these on the sheet later.`);
-      if (draft.selectedSpells.length !== spellReq.spells) later.push(`Starting spell choices are incomplete: ${draft.selectedSpells.length}/${spellReq.spells}. You can finish these on the sheet later.`);
-      if (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells) complete.push('Spell choices are ready.');
+      if (!spellsComplete) priority.push(`Spell choices are incomplete: ${draft.selectedCantrips.length}/${spellReq.cantrips} cantrips and ${draft.selectedSpells.length}/${spellReq.spells} level 1 spells.`);
+      else complete.push('Spell choices are ready.');
     }
 
     if (!draft.personalityTrait.trim()) later.push('Personality trait is blank. This can be filled in later.');
@@ -335,7 +395,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       race: draft.race,
       subrace: draft.subrace || '',
       character_class: draft.characterClass,
-      subclass: subclassAllowed ? draft.subclass || '' : '',
+      subclass: classChoicesRequired ? draft.subclass || '' : '',
       background: draft.background,
       edition: draft.edition,
       rules_edition: draft.edition,
@@ -392,6 +452,11 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
 
   async function saveCharacter() {
     const report = readinessReport();
+    if (progressPercent < 100) {
+      setStep(firstIncompleteStepIndex);
+      toast.error('Complete the required choices until the progress bar reaches 100%.');
+      return;
+    }
     if (report.priority.length) {
       setStep(steps.length - 1);
       toast.error('Priority checks need fixing before this character can be created.');
@@ -420,6 +485,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
 
   const report = readinessReport();
+  const canSave = progressPercent === 100 && report.priority.length === 0;
 
   if (loading) return <main className="full-creator-page"><div className="full-creator-loading">Loading character…</div></main>;
 
@@ -428,23 +494,39 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <header className="full-creator-header">
         <button type="button" onClick={() => navigate('/characters')}><ArrowLeft size={17} /> Characters</button>
         <div>
-          <p>Player character builder</p>
-          <h1>{editMode ? 'Edit Character' : 'Full Character Creation'}</h1>
-          <span>Safe creator flow for abilities, skills, feats, spells and equipment.</span>
+          <p>Level 1 guided builder</p>
+          <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
+          <span>Swipe or use the buttons to move through each required choice.</span>
         </div>
         <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
 
+      <section className="full-creator-progress-card" aria-label="Character creation progress">
+        <div className="full-creator-progress-heading">
+          <span>{currentStep?.label || 'Step'}</span>
+          <strong>{progressPercent}% complete</strong>
+        </div>
+        <div className="full-creator-progress-track" aria-hidden="true">
+          <span style={{ width: `${progressPercent}%` }} />
+        </div>
+        <p>{canSave ? 'All required choices are complete. Review and save when ready.' : 'Fill the required choices to reach 100% and unlock saving.'}</p>
+      </section>
+
       <nav className="full-creator-steps" aria-label="Character creation steps">
         {steps.map((item, index) => {
           const Icon = item.icon;
-          return <button key={item.id} type="button" className={index === step ? 'active' : ''} onClick={() => setStep(index)}><Icon size={16} /><span>{item.label}</span></button>;
+          const isComplete = item.id === 'review' ? progressPercent === 100 : Boolean(completionByStep[item.id]);
+          return <button key={item.id} type="button" className={`${index === step ? 'active' : ''} ${isComplete ? 'is-complete' : ''}`} onClick={() => setStep(index)}><Icon size={16} /><span>{item.label}</span></button>;
         })}
       </nav>
 
       <section className="full-creator-layout">
-        <article className="full-creator-panel">
-          {stepId === 'basics' && <Basics draft={draft} update={update} subraces={subraces} classData={classData} subclassAllowed={subclassAllowed} />}
+        <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
+          {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} />}
+          {stepId === 'class' && <ClassStep draft={draft} update={update} />}
+          {stepId === 'classChoices' && <ClassChoices draft={draft} update={update} classData={classData} />}
+          {stepId === 'background' && <Background draft={draft} update={update} />}
           {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
             const next = { ...draft.floatingAsi };
             if (next[ability]) delete next[ability];
@@ -452,10 +534,10 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             update({ floatingAsi: next });
           }} />}
           {stepId === 'skills' && <Skills backgroundSkills={backgroundSkills} skillOptions={skillOptions} selected={draft.selectedSkills} target={skillTarget} toggle={(skill) => toggleList('selectedSkills', skill, skillTarget)} />}
-          {stepId === 'feats' && <Feats draft={draft} update={update} originFeat={backgroundData.originFeat2024} />}
+          {stepId === 'feats' && <Feats draft={draft} update={update} originFeat={backgroundData.originFeat2024} featRequired={featRequired} />}
           {stepId === 'spells' && <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
           {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} />}
-          {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} />}
+          {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} progressPercent={progressPercent} />}
         </article>
 
         <aside className="full-creator-preview">
@@ -466,15 +548,15 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
           <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
           {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
-          <small>{report.priority.length ? `${report.priority.length} priority item${report.priority.length === 1 ? '' : 's'} to fix` : report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create'}</small>
+          <small>{progressPercent < 100 ? `${progressPercent}% complete` : report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create'}</small>
         </aside>
       </section>
 
       <footer className="full-creator-footer">
-        <button type="button" onClick={() => setStep(step - 1)} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
+        <button type="button" onClick={goPrevious} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
         {step < steps.length - 1
-          ? <button type="button" onClick={() => { const problem = validate(); if (problem) toast.error(problem); else setStep(step + 1); }}>Next <ChevronRight size={16} /></button>
-          : <button type="button" onClick={saveCharacter} disabled={saving || report.priority.length > 0}><Check size={16} /> {saving ? 'Saving…' : report.priority.length ? 'Fix Priority Items' : editMode ? 'Save Changes' : 'Create Character'}</button>}
+          ? <button type="button" onClick={goNext}>Next <ChevronRight size={16} /></button>
+          : <button type="button" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : `Complete ${progressPercent}%`}</button>}
       </footer>
     </main>
   );
@@ -492,16 +574,40 @@ function Choice({ title, children }) {
   return <section className="full-creator-choice-block"><h3>{title}</h3><div>{children}</div></section>;
 }
 
-function Basics({ draft, update, subraces, classData, subclassAllowed }) {
+function Species({ draft, update, subraces }) {
   return <>
-    <Title icon={Shield} title="Core choices" text="Name, rules edition, species, class, background and level-one choices." />
+    <Title icon={Shield} title="Choose species" text="Start with your character name, rules edition, and species or race." />
     <div className="full-creator-form-grid">
-      <label><span>Name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} /></label>
-      <label><span>Edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
+      <label><span>Name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Character name" /></label>
+      <label><span>Edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None' })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
       <label><span>Species / Race</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {} })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
       {subraces.length > 0 && <label><span>Subrace</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
+    </div>
+  </>;
+}
+
+function ClassStep({ draft, update }) {
+  return <>
+    <Title icon={Swords} title="Choose class" text="Pick the main class for this level 1 character." />
+    <div className="full-creator-form-grid">
       <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [] })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
-      {subclassAllowed && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((name) => <option key={name}>{name}</option>)}</select></label>}
+    </div>
+  </>;
+}
+
+function ClassChoices({ draft, update, classData }) {
+  return <>
+    <Title icon={Sparkles} title="Class choices" text="Some level 1 classes need a subclass, patron, origin, or domain straight away." />
+    <div className="full-creator-form-grid">
+      <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((name) => <option key={name}>{name}</option>)}</select></label>
+    </div>
+  </>;
+}
+
+function Background({ draft, update }) {
+  return <>
+    <Title icon={BookOpen} title="Choose background" text="Pick where your character came from, then choose alignment." />
+    <div className="full-creator-form-grid">
       <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None' })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
       <label><span>Alignment</span><select value={draft.alignment} onChange={(event) => update({ alignment: event.target.value })}>{['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'].map((name) => <option key={name}>{name}</option>)}</select></label>
     </div>
@@ -525,14 +631,14 @@ function Skills({ backgroundSkills, skillOptions, selected, target, toggle }) {
   </>;
 }
 
-function Feats({ draft, update, originFeat }) {
+function Feats({ draft, update, originFeat, featRequired }) {
   const featOptions = ['None', ...getFeatsForRuleset({
     edition: draft.edition,
     category: draft.edition === '2024' ? 'origin' : 'general',
   }).map(feat => feat.name)];
 
   return <>
-    <Title icon={Sparkles} title="Feats" text="Confirm the 2024 origin feat or optional table feat." />
+    <Title icon={Sparkles} title="Feats" text={featRequired ? 'Confirm the 2024 origin feat for this character.' : 'Optional table feat. Leave this as None unless your table starts with a feat.'} />
     {draft.edition === '2024' && <div className="full-creator-auto-box"><strong>Suggested origin feat</strong><span>{originFeat || 'Choose one below'}</span></div>}
     <label className="full-creator-wide-label"><span>{draft.edition === '2024' ? 'Origin feat override' : 'Optional feat'}</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{featOptions.map((name) => <option key={name}>{name}</option>)}</select></label>
   </>;
@@ -540,7 +646,7 @@ function Feats({ draft, update, originFeat }) {
 
 function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
   return <>
-    <Title icon={Wand2} title="Spell choices" text="Search, tap to select, and fill the required spell choices. Missing spells now show as review reminders instead of blocking the whole sheet." />
+    <Title icon={Wand2} title="Spell choices" text="Choose the required starting cantrips and level 1 spells before saving." />
     <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search name, school, damage, healing…" />
     {spellReq.cantrips > 0 && <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>{visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedCantrips.includes(spell.name)} onClick={() => toggleCantrip(spell.name)} />) : <p className="full-creator-note">No cantrips match this search.</p>}</Choice>}
     {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedSpells.includes(spell.name)} onClick={() => toggleSpell(spell.name)} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
@@ -560,9 +666,9 @@ function Equipment({ draft, update, equipment }) {
   </>;
 }
 
-function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, report }) {
+function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, report, progressPercent }) {
   return <>
-    <Title icon={BookOpen} title="Review and save" text="Priority items must be fixed before saving. Later items can be finished on the sheet." />
+    <Title icon={BookOpen} title="Review and save" text={progressPercent === 100 ? 'Everything required is complete. Add optional story notes, then save.' : 'Complete the missing required choices before saving.'} />
     <ReadinessPanel report={report} />
     <div className="full-creator-form-grid">
       <label><span>Personality trait</span><input value={draft.personalityTrait} onChange={(event) => update({ personalityTrait: event.target.value })} /></label>
