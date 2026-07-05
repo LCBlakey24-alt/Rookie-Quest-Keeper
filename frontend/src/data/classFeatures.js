@@ -506,17 +506,6 @@ export const CLASS_FEATURES = {
           { level: 17, name: 'Thief\'s Reflexes', description: 'Take two turns during the first round of combat. Second turn is at initiative minus 10.' },
         ],
       },
-      assassin: {
-        name: 'Assassin',
-        description: 'Deadly focus on eliminating targets with ruthless efficiency. Master of poison and disguise.',
-        features: [
-          { level: 3, name: 'Bonus Proficiencies', description: 'Gain proficiency with disguise kit and poisoner\'s kit.' },
-          { level: 3, name: 'Assassinate', description: 'Advantage on attacks against creatures that haven\'t acted yet. Any hit against a surprised creature is a critical hit.' },
-          { level: 9, name: 'Infiltration Expertise', description: 'Spend 7 days and 25 gp to create a false identity with documentation, established acquaintances, and disguises.' },
-          { level: 13, name: 'Impostor', description: 'Unerringly mimic another person\'s speech, writing, and behavior after studying them for 3 hours.' },
-          { level: 17, name: 'Death Strike', description: 'When you hit a surprised creature, it must make a CON save or take double damage.' },
-        ],
-      },
     },
     features: [
       { level: 1, name: 'Expertise', type: 'passive', description: 'Double proficiency bonus on two skills' },
@@ -544,7 +533,7 @@ export const CLASS_FEATURES = {
       { level: 1, name: 'Sneak Attack', type: 'action_modifier', description: 'Once per turn, deal extra 1d6 damage when you have advantage or an ally is within 5 ft of target' },
       { level: 1, name: 'Thieves\' Cant', type: 'passive', description: 'Secret mix of dialect, jargon, and code' },
       { level: 2, name: 'Cunning Action', type: 'bonus_action', description: 'Dash, Disengage, or Hide as a bonus action' },
-      { level: 3, name: 'Rogue Subclass', type: 'passive', description: 'Choose a Rogue subclass', isChoice: true },
+      { level: 3, name: 'Rogue Subclass', type: 'passive', description: 'Choose a Rogue subclass. Built-in automation is limited to public-license subclass data.', isChoice: true },
       { level: 3, name: 'Steady Aim', type: 'bonus_action', description: 'If you haven\'t moved, gain advantage on next attack. Speed becomes 0.' },
       { level: 5, name: 'Cunning Strike', type: 'action_modifier', description: 'On Sneak Attack, forgo 1d6 to apply Disarm, Poison, Trip, or Withdraw effects' },
       { level: 5, name: 'Uncanny Dodge', type: 'reaction', description: 'Halve the damage from one attack you can see' },

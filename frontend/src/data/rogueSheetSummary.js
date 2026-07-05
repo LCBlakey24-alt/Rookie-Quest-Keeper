@@ -17,6 +17,8 @@ export function getRogueSheetSummary(character = {}) {
     subclassLabel: subclass?.label || character?.subclass || (level >= 3 ? 'Choose/record Roguish Archetype' : 'None yet'),
     subclassRole: subclass?.role || '',
     subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
+    subclassSupportedAutomation: subclass?.supportedAutomation ?? false,
+    subclassCustom: Boolean(subclass?.custom),
     subclassFeatures: subclass?.activeFeatures || [],
     nextSubclassFeatures: subclass?.nextFeatures || [],
     sneakAttackDice: progression.sneakAttackDice,

@@ -15,5 +15,13 @@ describe('rogue sheet summary', () => {
     expect(summary.uncannyDodge).toBe(true);
     expect(summary.evasion).toBe(true);
     expect(summary.subclassLabel).toBe('Thief');
+    expect(summary.subclassSupportedAutomation).toBe(true);
+  });
+
+  test('summarises user-added Rogue subclasses without built-in automation', () => {
+    const summary = getRogueSheetSummary({ character_class: 'Rogue', level: 7, subclass: 'Custom Rogue Subclass' });
+    expect(summary.subclassLabel).toBe('Custom / user-added subclass');
+    expect(summary.subclassSupportedAutomation).toBe(false);
+    expect(summary.subclassCustom).toBe(true);
   });
 });
