@@ -220,6 +220,24 @@
     color: #ffffff !important;
     stroke: #ffffff !important;
   }
+
+  /* Pull the character details and always-visible HP line closer together on mobile. */
+  #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
+    padding-bottom: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    margin-bottom: -1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple + .clean-sheet-compact-status--battle-bar,
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+    padding-top: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+    margin-top: 0 !important;
+  }
 }
 
 @media (max-width: 390px) {
