@@ -39,6 +39,7 @@ function defaultDraft() {
     step: 0,
     name: '',
     edition: '2014',
+    startingLevel: 1,
     race: 'Human',
     subrace: '',
     characterClass: 'Fighter',
@@ -64,7 +65,7 @@ function defaultDraft() {
 function loadDraft() {
   try {
     const stored = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-    return stored ? { ...defaultDraft(), ...stored, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
+    return stored ? { ...defaultDraft(), ...stored, startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
   } catch {
     return defaultDraft();
   }
@@ -151,12 +152,13 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const classData = CLASSES[draft.characterClass] || {};
   const backgroundData = BACKGROUNDS[draft.background] || {};
   const speciesLabel = draft.edition === '2024' ? 'Species' : 'Race';
+  const startingLevel = 1;
   const subclassAllowed = draft.edition === '2014' && LEVEL_ONE_SUBCLASS.has(draft.characterClass);
   const classChoicesRequired = subclassAllowed && arr(classData.subclasses).length > 0;
   const subraces = Object.keys(raceData.subraces || {});
   const bonus = abilityBonus({ edition: draft.edition, raceData, subrace: draft.subrace, backgroundData, floatingAsi: draft.floatingAsi });
   const finalScores = Object.fromEntries(ABILITIES.map((ability) => [ability, clamp(draft.scores[ability]) + (bonus[ability] || 0)]));
-  const proficiencyBonus = getProficiencyBonus(1);
+  const proficiencyBonus = getProficiencyBonus(startingLevel);
   const hp = Math.max(1, (classData.hitDie || 8) + mod(finalScores.constitution));
   const ac = 10 + mod(finalScores.dexterity);
   const backgroundSkills = arr(backgroundData.skillProficiencies);
@@ -183,44 +185,32 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
-    name: Boolean(draft.name.trim()),
-    edition: Boolean(EDITIONS[draft.edition] || draft.edition),
+    setup: Boolean(draft.name.trim() && draft.edition),
     species: Boolean(draft.race && (!subraces.length || draft.subrace)),
-    class: Boolean(draft.characterClass),
-    classChoices: !classChoicesRequired || Boolean(draft.subclass),
-    background: Boolean(draft.background && draft.alignment),
+    class: Boolean(draft.characterClass && (!classChoicesRequired || draft.subclass) && draft.selectedSkills.length === skillTarget && spellsComplete),
+    background: Boolean(draft.background && draft.alignment && (!featRequired || chosenFeat)),
     abilities: abilitiesComplete,
-    skills: draft.selectedSkills.length === skillTarget,
-    feats: !featRequired || Boolean(chosenFeat),
-    spells: spellsComplete,
     equipment: equipmentComplete,
     review: true,
   };
   const steps = [
-    { id: 'name', label: 'Name', icon: Sparkles },
-    { id: 'edition', label: 'Edition', icon: BookOpen },
+    { id: 'setup', label: 'Setup', icon: Sparkles },
     { id: 'species', label: speciesLabel, icon: Shield },
     { id: 'class', label: 'Class', icon: Swords },
-    ...(classChoicesRequired ? [{ id: 'classChoices', label: 'Class Choices', icon: Sparkles }] : []),
     { id: 'background', label: 'Background', icon: BookOpen },
     { id: 'abilities', label: 'Abilities', icon: Dices },
-    { id: 'skills', label: 'Skills', icon: Swords },
-    { id: 'feats', label: 'Feats', icon: Sparkles },
-    ...(hasSpells ? [{ id: 'spells', label: 'Spells', icon: Wand2 }] : []),
     { id: 'equipment', label: 'Equipment', icon: Backpack },
     { id: 'review', label: 'Review', icon: Check },
   ];
-  const requiredStepIds = steps.filter((item) => item.id !== 'review' && (item.id !== 'feats' || featRequired)).map((item) => item.id);
-  const completedRequired = requiredStepIds.filter((id) => completionByStep[id]);
-  const progressPercent = requiredStepIds.length ? Math.round((completedRequired.length / requiredStepIds.length) * 100) : 100;
-  const firstIncompleteStepId = requiredStepIds.find((id) => !completionByStep[id]);
-  const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
   const step = Math.min(Number(draft.step || 0), steps.length - 1);
-  const stepId = steps[step]?.id || 'name';
+  const stepId = steps[step]?.id || 'setup';
   const currentStep = steps[step] || steps[0];
+  const journeyPercent = steps.length > 1 ? Math.round((step / (steps.length - 1)) * 100) : 100;
+  const firstIncompleteStepId = steps.find((item) => item.id !== 'review' && !completionByStep[item.id])?.id;
+  const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
 
   useEffect(() => {
-    if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, step }));
+    if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, step, startingLevel: 1 }));
   }, [draft, step, editMode]);
 
   useEffect(() => {
@@ -235,6 +225,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           ...prev,
           name: data.name || '',
           edition: data.edition || (String(data.ruleset_id || '').includes('2024') ? '2024' : '2014'),
+          startingLevel: Number(data.level || 1),
           race: data.race || 'Human',
           subrace: data.subrace || '',
           characterClass: data.character_class || 'Fighter',
@@ -269,19 +260,25 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
 
   function validate() {
-    if (stepId === 'name' && !draft.name.trim()) return 'Give your character a name.';
-    if (stepId === 'edition' && !draft.edition) return 'Choose the rules edition.';
+    if (stepId === 'setup') {
+      if (!draft.name.trim()) return 'Give your character a name.';
+      if (!draft.edition) return 'Choose the rules edition.';
+    }
     if (stepId === 'species') {
       if (!draft.race) return `Choose a ${speciesLabel.toLowerCase()}.`;
       if (subraces.length && !draft.subrace) return `Choose a ${speciesLabel.toLowerCase()} option.`;
     }
-    if (stepId === 'class' && !draft.characterClass) return 'Choose a class.';
-    if (stepId === 'classChoices' && classChoicesRequired && !draft.subclass) return 'Choose your level 1 subclass, patron, or domain.';
-    if (stepId === 'background' && (!draft.background || !draft.alignment)) return 'Choose a background and alignment.';
+    if (stepId === 'class') {
+      if (!draft.characterClass) return 'Choose a class.';
+      if (classChoicesRequired && !draft.subclass) return 'Choose your level 1 subclass, patron, or domain.';
+      if (draft.selectedSkills.length !== skillTarget) return `Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'}.`;
+      if (!spellsComplete) return `Choose ${spellReq.cantrips} cantrip${spellReq.cantrips === 1 ? '' : 's'} and ${spellReq.spells} level 1 spell${spellReq.spells === 1 ? '' : 's'}.`;
+    }
+    if (stepId === 'background') {
+      if (!draft.background || !draft.alignment) return 'Choose a background and alignment.';
+      if (featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
+    }
     if (stepId === 'abilities' && !abilitiesComplete) return floatingBudget && floatingSpent !== floatingBudget ? `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.` : 'Check your ability scores.';
-    if (stepId === 'skills' && draft.selectedSkills.length !== skillTarget) return `Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'}.`;
-    if (stepId === 'feats' && featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
-    if (stepId === 'spells' && !spellsComplete) return `Choose ${spellReq.cantrips} cantrip${spellReq.cantrips === 1 ? '' : 's'} and ${spellReq.spells} level 1 spell${spellReq.spells === 1 ? '' : 's'}.`;
     if (stepId === 'equipment' && !equipmentComplete) return 'Add at least one custom equipment item, or choose recommended gear/starting gold.';
     return '';
   }
@@ -470,14 +467,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
 
   async function saveCharacter() {
     const report = readinessReport();
-    if (progressPercent < 100) {
-      setStep(firstIncompleteStepIndex);
-      toast.error('Complete the required choices until the progress bar reaches 100%.');
-      return;
-    }
     if (report.priority.length) {
-      setStep(steps.length - 1);
-      toast.error('Priority checks need fixing before this character can be created.');
+      setStep(firstIncompleteStepIndex);
+      toast.error('Complete the required choices before saving.');
       return;
     }
     const payload = buildPayload();
@@ -503,7 +495,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
 
   const report = readinessReport();
-  const canSave = progressPercent === 100 && report.priority.length === 0;
+  const canSave = stepId === 'review' && report.priority.length === 0;
 
   if (loading) return <main className="full-creator-page"><div className="full-creator-loading">Loading character…</div></main>;
 
@@ -514,7 +506,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         <div>
           <p>Level 1 full builder</p>
           <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
-          <span>Name, edition, then each character choice in order.</span>
+          <span>Start with setup, then move through each builder section one page at a time.</span>
         </div>
         <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
@@ -522,61 +514,58 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <section className="full-creator-progress-card" aria-label="Character creation progress">
         <div className="full-creator-progress-heading">
           <span>{currentStep?.label || 'Step'}</span>
-          <strong>{progressPercent}% complete</strong>
+          <strong>{journeyPercent}% complete</strong>
         </div>
         <div className="full-creator-progress-track" aria-hidden="true">
-          <span style={{ width: `${progressPercent}%` }} />
+          <span style={{ width: `${journeyPercent}%` }} />
         </div>
-        <p>{canSave ? 'All required choices are complete. Review and save when ready.' : 'Fill the required choices to reach 100% and unlock saving.'}</p>
+        <p>{canSave ? 'All required choices are complete. Review and save when ready.' : 'Move through each section to complete the character.'}</p>
       </section>
 
-      <nav className="full-creator-steps" aria-label="Character creation steps">
-        {steps.map((item, index) => {
-          const Icon = item.icon;
-          const isComplete = item.id === 'review' ? progressPercent === 100 : Boolean(completionByStep[item.id]);
-          return <button key={item.id} type="button" className={`${index === step ? 'active' : ''} ${isComplete ? 'is-complete' : ''}`} onClick={() => setStep(index)}><Icon size={16} /><span>{item.label}</span></button>;
-        })}
-      </nav>
+      <section className="full-creator-workspace">
+        <nav className="full-creator-steps" aria-label="Character creation steps">
+          {steps.map((item, index) => {
+            const Icon = item.icon;
+            const isComplete = item.id === 'review' ? canSave : Boolean(completionByStep[item.id]);
+            return <button key={item.id} type="button" className={`${index === step ? 'active' : ''} ${isComplete ? 'is-complete' : ''}`} onClick={() => setStep(index)}><Icon size={16} /><span>{item.label}</span></button>;
+          })}
+        </nav>
 
-      <section className="full-creator-layout">
-        <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
-          {stepId === 'name' && <NameStep draft={draft} update={update} />}
-          {stepId === 'edition' && <EditionStep draft={draft} update={update} />}
-          {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} />}
-          {stepId === 'class' && <ClassStep draft={draft} update={update} />}
-          {stepId === 'classChoices' && <ClassChoices draft={draft} update={update} classData={classData} />}
-          {stepId === 'background' && <Background draft={draft} update={update} />}
-          {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
-            const next = { ...draft.floatingAsi };
-            if (next[ability]) delete next[ability];
-            else if (floatingSpent < floatingBudget) next[ability] = 1;
-            update({ floatingAsi: next });
-          }} />}
-          {stepId === 'skills' && <Skills backgroundSkills={backgroundSkills} skillOptions={skillOptions} selected={draft.selectedSkills} target={skillTarget} toggle={(skill) => toggleList('selectedSkills', skill, skillTarget)} />}
-          {stepId === 'feats' && <Feats draft={draft} update={update} originFeat={backgroundData.originFeat2024} featRequired={featRequired} />}
-          {stepId === 'spells' && <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
-          {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} />}
-          {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} progressPercent={progressPercent} />}
-        </article>
+        <section className="full-creator-layout">
+          <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+            <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
+            {stepId === 'setup' && <Setup draft={draft} update={update} />}
+            {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} />}
+            {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classChoicesRequired={classChoicesRequired} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
+            {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} />}
+            {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
+              const next = { ...draft.floatingAsi };
+              if (next[ability]) delete next[ability];
+              else if (floatingSpent < floatingBudget) next[ability] = 1;
+              update({ floatingAsi: next });
+            }} />}
+            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} />}
+            {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} journeyPercent={journeyPercent} />}
+          </article>
 
-        <aside className="full-creator-preview">
-          <p>Live sheet preview</p>
-          <h2>{draft.name || 'Unnamed Character'}</h2>
-          <span>{draft.edition} rules • {draft.race}{draft.subrace ? ` (${draft.subrace})` : ''} • {draft.characterClass} • Lv 1</span>
-          <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
-          <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
-          <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
-          {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
-          <small>{progressPercent < 100 ? `${progressPercent}% complete` : report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create'}</small>
-        </aside>
+          <aside className="full-creator-preview">
+            <p>Live sheet preview</p>
+            <h2>{draft.name || 'Unnamed Character'}</h2>
+            <span>{draft.edition} rules • {draft.race}{draft.subrace ? ` (${draft.subrace})` : ''} • {draft.characterClass} • Lv 1</span>
+            <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
+            <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
+            <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
+            {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
+            <small>{canSave ? report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create' : `${journeyPercent}% through builder`}</small>
+          </aside>
+        </section>
       </section>
 
       <footer className="full-creator-footer">
         <button type="button" onClick={goPrevious} disabled={step === 0}><ChevronLeft size={16} /> Previous</button>
         {step < steps.length - 1
           ? <button type="button" onClick={goNext}>Next <ChevronRight size={16} /></button>
-          : <button type="button" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : `Complete ${progressPercent}%`}</button>}
+          : <button type="button" onClick={saveCharacter} disabled={saving || !canSave}><Check size={16} /> {saving ? 'Saving…' : canSave ? editMode ? 'Save Changes' : 'Create Character' : 'Complete choices'}</button>}
       </footer>
     </main>
   );
@@ -594,24 +583,14 @@ function Choice({ title, children }) {
   return <section className="full-creator-choice-block"><h3>{title}</h3><div>{children}</div></section>;
 }
 
-function NameStep({ draft, update }) {
+function Setup({ draft, update }) {
   return <>
-    <Title icon={Sparkles} title="Name your character" text="Start with the name that will appear on the character sheet." />
-    <label className="full-creator-wide-label"><span>Character name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Pip, Javen, Thorne, Mira…" autoFocus /></label>
-    <p className="full-creator-note">You can change this later from the character sheet if the first name does not stick.</p>
-  </>;
-}
-
-function EditionStep({ draft, update }) {
-  return <>
-    <Title icon={BookOpen} title="Choose rules edition" text="Pick the rules version first so the builder can use the right wording and options." />
-    <Choice title="Rules edition">
-      {Object.entries(EDITIONS).map(([id, item]) => (
-        <Chip key={id} active={draft.edition === id} onClick={() => update({ edition: id, floatingAsi: {}, extraFeat: 'None' })}>
-          {item.name}
-        </Chip>
-      ))}
-    </Choice>
+    <Title icon={Sparkles} title="Character setup" text="Start with name, rules edition, and starting level. Higher starting levels will come after the level-up pass." />
+    <div className="full-creator-form-grid">
+      <label><span>Character name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Pip, Javen, Thorne, Mira…" autoFocus /></label>
+      <label><span>Rules edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None' })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
+      <label><span>Starting level</span><select value="1" disabled><option value="1">Level 1</option></select></label>
+    </div>
     <div className="full-creator-auto-box"><strong>{EDITIONS[draft.edition]?.name || 'Edition selected'}</strong><span>{EDITIONS[draft.edition]?.description || 'The builder will use this ruleset for wording and choices.'}</span></div>
   </>;
 }
@@ -640,12 +619,12 @@ function Species({ draft, update, subraces, raceData, racialTraits, baseLanguage
   </>;
 }
 
-function ClassStep({ draft, update }) {
-  const classData = CLASSES[draft.characterClass] || {};
+function ClassStep({ draft, update, classData, classChoicesRequired, backgroundSkills, skillOptions, selectedSkills, skillTarget, toggleSkill, hasSpells, spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
   return <>
-    <Title icon={Swords} title="Choose class" text="Pick the main class for this level 1 character." />
+    <Title icon={Swords} title="Choose class" text="Class handles class, subclass, skills, spells, and class-linked choices." />
     <div className="full-creator-form-grid">
       <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [] })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
+      {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
     </div>
     <div className="full-creator-review-grid">
       <ReviewItem label="Hit die" value={`d${classData.hitDie || 8}`} />
@@ -653,37 +632,32 @@ function ClassStep({ draft, update }) {
       <ReviewItem label="Skills" value={classData.skillCount || 0} />
       <ReviewItem label="Saves" value={arr(classData.savingThrows).join(', ') || 'None listed'} />
     </div>
+    <Skills backgroundSkills={backgroundSkills} skillOptions={skillOptions} selected={selectedSkills} target={skillTarget} toggle={toggleSkill} />
+    {hasSpells && <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={selectedCantrips} selectedSpells={selectedSpells} toggleCantrip={toggleCantrip} toggleSpell={toggleSpell} />}
   </>;
 }
 
-function ClassChoices({ draft, update, classData }) {
-  return <>
-    <Title icon={Sparkles} title="Class choices" text="Some level 1 classes need a subclass, patron, origin, or domain straight away." />
-    <div className="full-creator-form-grid">
-      <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
-    </div>
-  </>;
-}
-
-function Background({ draft, update }) {
+function Background({ draft, update, featRequired, originFeat }) {
   const backgroundData = BACKGROUNDS[draft.background] || {};
   return <>
-    <Title icon={BookOpen} title="Choose background" text="Pick where your character came from, then choose alignment." />
+    <Title icon={BookOpen} title="Choose background" text="Pick where your character came from. Origin feat lives here for 2024 characters." />
     <div className="full-creator-form-grid">
       <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None' })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
       <label><span>Alignment</span><select value={draft.alignment} onChange={(event) => update({ alignment: event.target.value })}>{['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'].map((name) => <option key={name}>{name}</option>)}</select></label>
+      {featRequired && <label><span>Origin feat</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{['None', ...getFeatsForRuleset({ edition: draft.edition, category: 'origin' }).map(feat => feat.name)].map((name) => <option key={name}>{name}</option>)}</select></label>}
     </div>
+    {featRequired && <div className="full-creator-auto-box"><strong>Suggested origin feat</strong><span>{originFeat || 'Choose one above'}</span></div>}
     <div className="full-creator-review-grid">
       <ReviewItem label="Skills" value={arr(backgroundData.skillProficiencies).join(', ') || 'None listed'} />
       <ReviewItem label="Tools" value={arr(backgroundData.toolProficiencies).join(', ') || 'None listed'} />
-      <ReviewItem label="Origin feat" value={draft.edition === '2024' ? backgroundData.originFeat2024 || 'Choose later' : 'Not required'} />
+      <ReviewItem label="Equipment" value={arr(backgroundData.equipment).slice(0, 2).join(', ') || 'None listed'} />
     </div>
   </>;
 }
 
 function Abilities({ draft, update, setScore, finalScores, floatingBudget, floatingSpent, toggleFloating }) {
   return <>
-    <Title icon={Dices} title="Ability scores" text="Use the standard array, then adjust each score." />
+    <Title icon={Dices} title="Ability scores" text="Use the standard array for now, or manually adjust each score." />
     <button type="button" onClick={() => update({ scores: STANDARD })}>Reset to standard array</button>
     <div className="full-creator-score-editor">{ABILITIES.map((ability) => <label key={ability}><span>{LABELS[ability]}</span><input type="number" min="3" max="20" value={draft.scores[ability]} onChange={(event) => setScore(ability, event.target.value)} /><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></label>)}</div>
     {floatingBudget > 0 && <Choice title={`Floating species bonus ${floatingSpent}/${floatingBudget}`}>{ABILITIES.map((ability) => <Chip key={ability} active={Boolean(draft.floatingAsi[ability])} onClick={() => toggleFloating(ability)}>{LABELS[ability]} +1</Chip>)}</Choice>}
@@ -692,30 +666,17 @@ function Abilities({ draft, update, setScore, finalScores, floatingBudget, float
 
 function Skills({ backgroundSkills, skillOptions, selected, target, toggle }) {
   return <>
-    <Title icon={Swords} title="Skill proficiencies" text="Background skills are automatic. Choose class skills here." />
     <div className="full-creator-auto-box"><strong>Background skills</strong><span>{backgroundSkills.length ? backgroundSkills.join(', ') : 'None listed'}</span></div>
     <Choice title={`Class skills ${selected.length}/${target}`}>{skillOptions.map((skill) => <Chip key={skill} active={selected.includes(skill)} onClick={() => toggle(skill)}>{skill}</Chip>)}</Choice>
   </>;
 }
 
-function Feats({ draft, update, originFeat, featRequired }) {
-  const featOptions = ['None', ...getFeatsForRuleset({
-    edition: draft.edition,
-    category: draft.edition === '2024' ? 'origin' : 'general',
-  }).map(feat => feat.name)];
-
-  return <>
-    <Title icon={Sparkles} title="Feats" text={featRequired ? 'Confirm the 2024 origin feat for this character.' : 'Optional table feat. Leave this as None unless your table starts with a feat.'} />
-    {draft.edition === '2024' && <div className="full-creator-auto-box"><strong>Suggested origin feat</strong><span>{originFeat || 'Choose one below'}</span></div>}
-    <label className="full-creator-wide-label"><span>{draft.edition === '2024' ? 'Origin feat override' : 'Optional feat'}</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{featOptions.map((name) => <option key={name}>{name}</option>)}</select></label>
-  </>;
-}
-
 function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
   return <>
-    <Title icon={Wand2} title="Spell choices" text="Choose the required starting cantrips and level 1 spells before saving." />
-    <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search name, school, damage, healing…" />
-    {spellReq.cantrips > 0 && <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>{visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedCantrips.includes(spellName(spell))} onClick={() => toggleCantrip(spellName(spell))} />) : <p className="full-creator-note">No cantrips match this search.</p>}</Choice>}
+    <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>
+      <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search spells, damage, healing…" />
+      {spellReq.cantrips > 0 && (visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedCantrips.includes(spellName(spell))} onClick={() => toggleCantrip(spellName(spell))} />) : <p className="full-creator-note">No cantrips match this search.</p>)}
+    </Choice>
     {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedSpells.includes(spellName(spell))} onClick={() => toggleSpell(spellName(spell))} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
   </>;
 }
@@ -734,9 +695,9 @@ function Equipment({ draft, update, equipment }) {
   </>;
 }
 
-function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, report, progressPercent }) {
+function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, report, journeyPercent }) {
   return <>
-    <Title icon={BookOpen} title="Review and save" text={progressPercent === 100 ? 'Everything required is complete. Add optional story notes, then save.' : 'Complete the missing required choices before saving.'} />
+    <Title icon={BookOpen} title="Review and save" text={journeyPercent === 100 ? 'Check the saved sheet details, add optional story notes, then save.' : 'Move through the previous sections before saving.'} />
     <ReadinessPanel report={report} />
     <div className="full-creator-form-grid">
       <label><span>Personality trait</span><input value={draft.personalityTrait} onChange={(event) => update({ personalityTrait: event.target.value })} /></label>
