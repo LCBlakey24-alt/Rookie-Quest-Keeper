@@ -75,14 +75,17 @@
     width: auto !important;
     max-width: 100% !important;
     padding: 1px 4px !important;
-    font-size: 0.44rem !important;
-    line-height: 1.1 !important;
+    font-size: 0.42rem !important;
+    line-height: 1 !important;
     letter-spacing: 0.04em !important;
     text-transform: uppercase !important;
     color: #ffffff !important;
-    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-    border: 0 !important;
+    background-image: linear-gradient(#12051c, #12051c), linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    border: 1px solid transparent !important;
     border-radius: 4px !important;
+    box-shadow: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip {
@@ -125,7 +128,7 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
-    font-size: 0.4rem !important;
+    font-size: 0.38rem !important;
     padding-inline: 3px !important;
   }
 }
