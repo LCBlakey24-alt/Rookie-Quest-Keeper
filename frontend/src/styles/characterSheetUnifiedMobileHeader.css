@@ -202,3 +202,22 @@
   display: none !important;
   content: none !important;
 }
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-identity {
+    gap: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-identity h1 {
+    margin-bottom: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-identity h1::after {
+    margin-top: 7px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    margin-top: 0 !important;
+    line-height: 1.25 !important;
+  }
+}
