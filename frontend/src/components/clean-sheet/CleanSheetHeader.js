@@ -1,5 +1,5 @@
-import React from 'react';
-import { Edit3, Moon, Sun, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Edit3, Moon, Settings, Sun, TrendingUp } from 'lucide-react';
 import './CleanSheetHeaderCompact.css';
 import './CleanSheetFinalHammer.css';
 
@@ -48,6 +48,7 @@ function compactSubtitleParts(character, fallbackSubtitle) {
 }
 
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
+  const [showOptions, setShowOptions] = useState(false);
   const subtitleParts = compactSubtitleParts(character, subtitle);
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
   const secondaryLine = subtitleParts[2] || '';
@@ -63,6 +64,11 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
     else onShortRest?.();
   };
 
+  const handleHeroAction = (action) => {
+    setShowOptions(false);
+    action?.();
+  };
+
   return (
     <>
       <header className="clean-sheet-header clean-sheet-header--simple">
@@ -73,6 +79,26 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
             {primaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--primary">{primaryLine}</span>}
             {secondaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--secondary">{secondaryLine}</span>}
           </p>
+          <button
+            type="button"
+            className="clean-sheet-hero-options-toggle"
+            aria-label="Character options"
+            aria-expanded={showOptions}
+            onClick={() => setShowOptions(value => !value)}
+          >
+            <Settings size={17} />
+          </button>
+          {showOptions && (
+            <div className="clean-sheet-hero-options-menu" role="menu" aria-label="Character options">
+              <button type="button" role="menuitem" onClick={() => handleHeroAction(onLevelUp)}>
+                <TrendingUp size={16} /> Level Up Character
+              </button>
+              <button type="button" role="menuitem" onClick={() => handleHeroAction(onEdit)}>
+                <Edit3 size={16} /> Edit Character
+              </button>
+              <button type="button" role="menuitem" onClick={() => setShowOptions(false)}>Cancel</button>
+            </div>
+          )}
         </div>
       </header>
       <div className="clean-sheet-header-actions clean-sheet-header-actions--play" aria-label="Character sheet actions">
