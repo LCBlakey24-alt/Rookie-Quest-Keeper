@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Footprints, HeartPulse, Shield, Sparkles, Swords } from 'lucide-react';
+import { Footprints, HeartPulse, Moon, Shield, Sparkles, Swords, Sun } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
 import { fmt } from './cleanSheetUtils';
@@ -32,6 +32,8 @@ export default function CleanSheetCompactStatus({
   onTempHpAdd,
   onTempHpRemove,
   onToggleInspiration,
+  onShortRest,
+  onLongRest,
   onRollInitiative,
 }) {
   const { characterId } = useParams();
@@ -44,6 +46,7 @@ export default function CleanSheetCompactStatus({
   const hpState = hpPercent <= 25 ? 'critical' : hpPercent <= 50 ? 'hurt' : 'healthy';
   const [localInspiration, setLocalInspiration] = useState(Boolean(hasInspiration));
   const [savingLocalAction, setSavingLocalAction] = useState(false);
+  const [showRestMenu, setShowRestMenu] = useState(false);
   const inspirationActive = hasInspiration === undefined ? localInspiration : Boolean(hasInspiration);
   const actionsDisabled = Boolean(savingQuickState || savingLocalAction);
 
@@ -83,6 +86,35 @@ export default function CleanSheetCompactStatus({
     }
   };
 
+  const handleRest = async (restType) => {
+    const isLongRest = restType === 'long';
+    const restLabel = isLongRest ? 'Long Rest' : 'Short Rest';
+    const message = isLongRest
+      ? 'Take a Long Rest? This may restore HP, reset temporary HP, restore spell slots/resources, reset death saves, and recover hit dice where the sheet supports it.'
+      : 'Take a Short Rest? This may restore short-rest resources and allow hit dice recovery where the sheet supports it.';
+    const externalHandler = isLongRest ? onLongRest : onShortRest;
+
+    setShowRestMenu(false);
+    if (!window.confirm(message)) return;
+    if (externalHandler) {
+      externalHandler();
+      return;
+    }
+    if (!characterId || savingLocalAction) return;
+
+    setSavingLocalAction(true);
+    try {
+      const endpoint = isLongRest ? 'long-rest' : 'short-rest';
+      await apiClient.post(`/characters/${characterId}/${endpoint}`);
+      toast.success(`${restLabel} completed`);
+      window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || `Could not apply ${restLabel.toLowerCase()}`);
+    } finally {
+      setSavingLocalAction(false);
+    }
+  };
+
   return (
     <section className={`clean-sheet-compact-status clean-sheet-compact-status--battle-bar hp-state-${hpState}`} aria-label="Character combat snapshot">
       <div className="clean-sheet-combat-dashboard-topline">
@@ -104,6 +136,29 @@ export default function CleanSheetCompactStatus({
           >
             <Sparkles size={16} />
           </button>
+          <div className="clean-sheet-rest-menu-wrap">
+            <button
+              type="button"
+              className="clean-sheet-combat-rest-toggle"
+              aria-expanded={showRestMenu}
+              aria-label="Rest options"
+              onClick={() => setShowRestMenu(value => !value)}
+              disabled={actionsDisabled}
+            >
+              Rest
+            </button>
+            {showRestMenu && (
+              <div className="clean-sheet-rest-menu" role="menu" aria-label="Rest options">
+                <button type="button" role="menuitem" onClick={() => handleRest('short')}>
+                  <Moon size={15} /> Short Rest
+                </button>
+                <button type="button" role="menuitem" onClick={() => handleRest('long')}>
+                  <Sun size={15} /> Long Rest
+                </button>
+                <button type="button" role="menuitem" onClick={() => setShowRestMenu(false)}>Cancel</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
