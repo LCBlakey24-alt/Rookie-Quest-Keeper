@@ -57,6 +57,7 @@ import '@/styles/characterSheetSpellUnavailableState.css';
 import '@/styles/characterSheetPlayHeaderCompact.css';
 import '@/styles/characterSheetUnifiedMobileHeader.css';
 import '@/styles/characterSheetSavingThrowsCompact.css';
+import '@/styles/characterSheetSkillsCompact.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
