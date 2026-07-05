@@ -22,6 +22,13 @@ function classSummary(character) {
   return character?.character_class || character?.class_name || character?.class || 'Adventurer';
 }
 
+function characterSubclass(character) {
+  const raw = character?.subclass || character?.subclass_name || character?.class_subclass || character?.archetype || '';
+  if (!raw) return '';
+  if (typeof raw === 'string') return raw;
+  return raw?.name || raw?.title || '';
+}
+
 function characterLine(character) {
   const race = character?.race || character?.species || 'Unknown origin';
   return `${race} • ${classSummary(character)}`.replace(/\s+/g, ' ').trim();
@@ -222,12 +229,18 @@ export default function MyCharactersPage() {
         <section className="library-card-grid characters-card-grid" aria-label="Saved characters">
           {sortedCharacters.map((character) => {
             const id = recordId(character);
+            const subclass = characterSubclass(character);
             return (
               <article key={id || characterTitle(character)} className="library-card character-library-card">
                 <div className="character-card-main">
-                  <p className="library-card-kicker">{characterLevel(character)}</p>
-                  <h2>{characterTitle(character)}</h2>
-                  <p>{characterLine(character)}</p>
+                  <div className="character-card-identity-row">
+                    <h2>{characterTitle(character)}</h2>
+                    <span className="character-card-level-badge">{characterLevel(character)}</span>
+                  </div>
+                  <div className="character-card-subtitle-stack">
+                    <p className="character-card-primary-line">{characterLine(character)}</p>
+                    {subclass && <p className="character-card-subclass-line">{subclass}</p>}
+                  </div>
                 </div>
                 <div className="character-card-actions">
                   <Link to={`/characters/${id}`} className="library-page-button library-page-button-primary character-card-open">
