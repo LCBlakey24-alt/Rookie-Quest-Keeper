@@ -15,6 +15,7 @@ const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wis
 const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
 const STANDARD = { strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8 };
 const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
+const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
@@ -43,6 +44,7 @@ const isChoiceLang = (value) => /choice|additional/i.test(String(value || ''));
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || '';
 const getStartingGoldRule = (characterClass, edition) => edition === '2024' ? STARTING_GOLD_2024 : STARTING_GOLD_2014_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 };
+const getSubclassLevel = (characterClass, edition) => edition === '2024' ? 3 : SUBCLASS_LEVEL_2014[characterClass] || 3;
 const normalizeEquipmentMode = (mode) => mode === 'gold' ? 'gold' : 'equipment';
 const rollStartingGold = (rule) => {
   if (rule.fixed) return rule.average;
@@ -180,6 +182,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const speciesLabel = draft.edition === '2024' ? 'Species' : 'Race';
   const startingLevel = 1;
+  const subclassLevel = getSubclassLevel(draft.characterClass, draft.edition);
   const subclassAllowed = draft.edition === '2014' && LEVEL_ONE_SUBCLASS.has(draft.characterClass);
   const classChoicesRequired = subclassAllowed && arr(classData.subclasses).length > 0;
   const subraces = Object.keys(raceData.subraces || {});
@@ -567,7 +570,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
             {stepId === 'setup' && <Setup draft={draft} update={update} />}
             {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} />}
-            {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classChoicesRequired={classChoicesRequired} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
+            {stepId === 'class' && <ClassStep draft={draft} update={update} classData={classData} classFeatures={classFeatures} classChoicesRequired={classChoicesRequired} subclassLevel={subclassLevel} backgroundSkills={backgroundSkills} skillOptions={skillOptions} selectedSkills={draft.selectedSkills} skillTarget={skillTarget} toggleSkill={(skill) => toggleList('selectedSkills', skill, skillTarget)} hasSpells={hasSpells} spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={draft.selectedCantrips} selectedSpells={draft.selectedSpells} toggleCantrip={(name) => toggleList('selectedCantrips', name, spellReq.cantrips)} toggleSpell={(name) => toggleList('selectedSpells', name, spellReq.spells)} />}
             {stepId === 'background' && <Background draft={draft} update={update} featRequired={featRequired} originFeat={backgroundData.originFeat2024} />}
             {stepId === 'abilities' && <Abilities draft={draft} update={update} setScore={setScore} finalScores={finalScores} floatingBudget={floatingBudget} floatingSpent={floatingSpent} toggleFloating={(ability) => {
               const next = { ...draft.floatingAsi };
@@ -651,21 +654,32 @@ function Species({ draft, update, subraces, raceData, racialTraits, baseLanguage
   </>;
 }
 
-function ClassStep({ draft, update, classData, classChoicesRequired, backgroundSkills, skillOptions, selectedSkills, skillTarget, toggleSkill, hasSpells, spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
+function ClassStep({ draft, update, classData, classFeatures, classChoicesRequired, subclassLevel, backgroundSkills, skillOptions, selectedSkills, skillTarget, toggleSkill, hasSpells, spellSearch, setSpellSearch, spellReq, visibleCantrips, visibleSpells, selectedCantrips, selectedSpells, toggleCantrip, toggleSpell }) {
+  const armor = arr(classData.armorProficiencies);
+  const weapons = arr(classData.weaponProficiencies);
+  const saves = arr(classData.savingThrows);
   return <>
-    <Title icon={Swords} title="Choose class" text="Class handles class, subclass, skills, spells, and class-linked choices." />
+    <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
     <div className="full-creator-form-grid">
       <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
       {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
     </div>
+    {!classChoicesRequired && <div className="full-creator-auto-box"><strong>Subclass timing</strong><span>{draft.edition === '2024' ? 'This class chooses its subclass at level 3 in the 2024 flow.' : `This class chooses its subclass at level ${subclassLevel}. It will be handled through level-up later.`}</span></div>}
     <div className="full-creator-review-grid">
       <ReviewItem label="Hit die" value={`d${classData.hitDie || 8}`} />
       <ReviewItem label="Primary" value={String(classData.primaryAbility || 'varies').toUpperCase()} />
-      <ReviewItem label="Skills" value={classData.skillCount || 0} />
-      <ReviewItem label="Saves" value={arr(classData.savingThrows).join(', ') || 'None listed'} />
+      <ReviewItem label="Class skills" value={`${selectedSkills.length}/${skillTarget}`} />
+      <ReviewItem label="Saves" value={saves.length ? saves.join(', ') : 'None listed'} />
+    </div>
+    <Choice title="Level 1 class features">
+      {classFeatures.length ? classFeatures.map((feature) => <span className="full-creator-note" key={feature.name}>{feature.name}</span>) : <span className="full-creator-note">No level 1 class features listed yet.</span>}
+    </Choice>
+    <div className="full-creator-review-grid">
+      <ReviewItem label="Armour" value={armor.length ? armor.join(', ') : 'None'} />
+      <ReviewItem label="Weapons" value={weapons.length ? weapons.join(', ') : 'None'} />
     </div>
     <Skills backgroundSkills={backgroundSkills} skillOptions={skillOptions} selected={selectedSkills} target={skillTarget} toggle={toggleSkill} />
-    {hasSpells && <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={selectedCantrips} selectedSpells={selectedSpells} toggleCantrip={toggleCantrip} toggleSpell={toggleSpell} />}
+    {hasSpells ? <Spells spellSearch={spellSearch} setSpellSearch={setSpellSearch} spellReq={spellReq} visibleCantrips={visibleCantrips} visibleSpells={visibleSpells} selectedCantrips={selectedCantrips} selectedSpells={selectedSpells} toggleCantrip={toggleCantrip} toggleSpell={toggleSpell} /> : <div className="full-creator-auto-box"><strong>Spellcasting</strong><span>This class has no level 1 spell choices in the current builder.</span></div>}
   </>;
 }
 
