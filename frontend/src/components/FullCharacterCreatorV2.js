@@ -16,6 +16,7 @@ const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelli
 const STANDARD = { strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8 };
 const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
+const FIGHTER_FIGHTING_STYLES = ['Archery', 'Defense', 'Dueling', 'Great Weapon Fighting', 'Protection', 'Two-Weapon Fighting'];
 const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
@@ -71,6 +72,7 @@ function defaultDraft() {
     subrace: '',
     characterClass: 'Fighter',
     subclass: '',
+    fighterFightingStyle: '',
     background: 'Soldier',
     alignment: 'Neutral',
     scores: STANDARD,
@@ -200,7 +202,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const baseLanguages = arr(raceData.languages).filter((language) => !isChoiceLang(language));
   const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
   const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) }));
-  const classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({ name, description: `${draft.characterClass} feature gained at level 1.` }));
+  let classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({
+    name: name === 'Fighting Style' && draft.fighterFightingStyle ? `Fighting Style: ${draft.fighterFightingStyle}` : String(name),
+    description: name === 'Fighting Style' && draft.fighterFightingStyle ? `Fighter level 1 fighting style: ${draft.fighterFightingStyle}.` : `${draft.characterClass} feature gained at level 1.`,
+  }));
+  if (draft.characterClass === 'Fighter' && draft.fighterFightingStyle && !classFeatures.some((feature) => feature.name.startsWith('Fighting Style'))) {
+    classFeatures = [{ name: `Fighting Style: ${draft.fighterFightingStyle}`, description: `Fighter level 1 fighting style: ${draft.fighterFightingStyle}.` }, ...classFeatures];
+  }
+  const fighterStyleComplete = draft.characterClass !== 'Fighter' || Boolean(draft.fighterFightingStyle);
   const startingGoldRule = getStartingGoldRule(draft.characterClass, draft.edition);
   const startingGold = equipmentMode === 'gold' ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0)) : 0;
   const equipmentList = startingEquipment();
@@ -219,7 +228,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const completionByStep = {
     setup: Boolean(draft.name.trim() && draft.edition),
     species: Boolean(draft.race && (!subraces.length || draft.subrace)),
-    class: Boolean(draft.characterClass && (!classChoicesRequired || draft.subclass) && draft.selectedSkills.length === skillTarget && spellsComplete),
+    class: Boolean(draft.characterClass && fighterStyleComplete && (!classChoicesRequired || draft.subclass) && draft.selectedSkills.length === skillTarget && spellsComplete),
     background: Boolean(draft.background && draft.alignment && (!featRequired || chosenFeat)),
     abilities: abilitiesComplete,
     equipment: equipmentComplete,
@@ -254,6 +263,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         const { data } = await apiClient.get(`/characters/${characterId}`);
         if (cancelled) return;
         const loadedGold = Number(data.gold || data.currency?.gold || 0);
+        const loadedFightingStyle = arr(data.class_features).map((feature) => displayName(feature)).find((name) => name.startsWith('Fighting Style:'))?.replace('Fighting Style:', '').trim() || '';
         setDraft((prev) => ({
           ...prev,
           name: data.name || '',
@@ -263,6 +273,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           subrace: data.subrace || '',
           characterClass: data.character_class || 'Fighter',
           subclass: data.subclass || '',
+          fighterFightingStyle: loadedFightingStyle,
           background: data.background || 'Soldier',
           alignment: data.alignment || 'Neutral',
           scores: Object.fromEntries(ABILITIES.map((ability) => [ability, Number(data[ability] || 10)])),
@@ -304,6 +315,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     }
     if (stepId === 'class') {
       if (!draft.characterClass) return 'Choose a class.';
+      if (draft.characterClass === 'Fighter' && !draft.fighterFightingStyle) return 'Choose a Fighter fighting style.';
       if (classChoicesRequired && !draft.subclass) return 'Choose your level 1 subclass, patron, or domain.';
       if (draft.selectedSkills.length !== skillTarget) return `Choose ${skillTarget} class skill${skillTarget === 1 ? '' : 's'}.`;
       if (!spellsComplete) return `Choose ${spellReq.cantrips} cantrip${spellReq.cantrips === 1 ? '' : 's'} and ${spellReq.spells} level 1 spell${spellReq.spells === 1 ? '' : 's'}.`;
@@ -394,6 +406,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     else complete.push(`${speciesLabel}, class, and background are selected.`);
 
     if (subraces.length && !draft.subrace) priority.push(`Choose a ${speciesLabel.toLowerCase()} option for this ${speciesLabel.toLowerCase()}.`);
+    if (draft.characterClass === 'Fighter' && !draft.fighterFightingStyle) priority.push('Choose a Fighter fighting style before saving.');
     if (classChoicesRequired && !draft.subclass) priority.push('Choose the required level 1 subclass, patron, or domain.');
 
     if (!abilitiesComplete) priority.push('Ability scores need checking before the character can be saved.');
@@ -589,6 +602,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
             <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
             <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
+            {draft.characterClass === 'Fighter' && <small>Fighting Style: {draft.fighterFightingStyle || 'choose style'}</small>}
             {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
             <small>{equipmentMode === 'gold' ? `Gold: ${startingGold || 'not rolled'} gp` : 'Starting equipment selected'}</small>
             <small>{canSave ? report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create' : `${journeyPercent}% through builder`}</small>
@@ -661,10 +675,11 @@ function ClassStep({ draft, update, classData, classFeatures, classChoicesRequir
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass timing, class skills, spells, features, and proficiencies." />
     <div className="full-creator-form-grid">
-      <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
+      <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', fighterFightingStyle: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
       {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
     </div>
     {!classChoicesRequired && <div className="full-creator-auto-box"><strong>Subclass timing</strong><span>{draft.edition === '2024' ? 'This class chooses its subclass at level 3 in the 2024 flow.' : `This class chooses its subclass at level ${subclassLevel}. It will be handled through level-up later.`}</span></div>}
+    {draft.characterClass === 'Fighter' && <Choice title={`Fighting Style ${draft.fighterFightingStyle ? 'selected' : 'required'}`}>{FIGHTER_FIGHTING_STYLES.map((style) => <Chip key={style} active={draft.fighterFightingStyle === style} onClick={() => update({ fighterFightingStyle: draft.fighterFightingStyle === style ? '' : style })}>{style}</Chip>)}</Choice>}
     <div className="full-creator-review-grid">
       <ReviewItem label="Hit die" value={`d${classData.hitDie || 8}`} />
       <ReviewItem label="Primary" value={String(classData.primaryAbility || 'varies').toUpperCase()} />
