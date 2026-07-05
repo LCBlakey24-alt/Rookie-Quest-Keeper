@@ -44,16 +44,14 @@
   overflow: hidden;
 }
 
-.rqk-auth-panel::before {
+.rqk-auth-heading::after {
   content: '';
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 102px;
+  display: block;
+  width: 100%;
   height: 4px;
+  margin: 14px auto 0;
   border-radius: 999px;
   background: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
-  pointer-events: none;
 }
 
 .rqk-auth-form {
@@ -141,14 +139,12 @@
     border-radius: 10px !important;
   }
 
-  .rqk-auth-panel::before {
-    top: 95px;
-    left: 14px;
-    right: 14px;
-  }
-
   .rqk-auth-heading {
     margin-bottom: 12px !important;
+  }
+
+  .rqk-auth-heading::after {
+    margin-top: 12px;
   }
 
   .rqk-auth-heading h1 {
