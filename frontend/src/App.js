@@ -58,6 +58,7 @@ import '@/styles/characterSheetPlayHeaderCompact.css';
 import '@/styles/characterSheetUnifiedMobileHeader.css';
 import '@/styles/characterSheetSavingThrowsCompact.css';
 import '@/styles/characterSheetSkillsCompact.css';
+import '@/styles/characterSheetStatsFinalMobileTweaks.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
