@@ -147,12 +147,30 @@
     border-radius: 8px !important;
     box-shadow: none !important;
     overflow: hidden !important;
+    position: relative !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill::before,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill::after {
     display: none !important;
     content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient {
+    padding-left: 12px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient::before {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    top: 5px !important;
+    bottom: 5px !important;
+    left: 4px !important;
+    width: 4px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    box-shadow: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-name {
@@ -180,7 +198,10 @@
     min-width: 0 !important;
   }
 
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags small,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags small {
+    display: none !important;
+  }
+
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags em {
     padding: 1px 3px !important;
     display: inline-grid !important;
@@ -193,11 +214,6 @@
     text-transform: uppercase !important;
     color: rgba(255, 255, 255, 0.75) !important;
     background: rgba(255, 255, 255, 0.06) !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags small {
-    color: #ffffff !important;
-    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
@@ -229,6 +245,15 @@
     padding-left: 5px !important;
     padding-right: 4px !important;
     gap: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient {
+    padding-left: 11px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient::before {
+    left: 3px !important;
+    width: 3px !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-label {
