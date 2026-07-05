@@ -73,8 +73,10 @@ export default function CleanSheetOverviewTab({
             return (
               <div className={`clean-sheet-compact-save ${proficient ? 'is-proficient' : ''}`} key={key}>
                 <div className="clean-sheet-save-label"><strong>{label}</strong></div>
-                <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(`${label} Save`, modifier)}>{fmt(modifier)}</button>
-                {proficient && <span className="clean-sheet-save-prof-badge">Prof</span>}
+                <div className="clean-sheet-save-roll-row">
+                  {proficient && <span className="clean-sheet-save-prof-marker" aria-label="Proficient saving throw" title="Proficient" />}
+                  <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(`${label} Save`, modifier)}>{fmt(modifier)}</button>
+                </div>
               </div>
             );
           })}
