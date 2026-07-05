@@ -96,6 +96,26 @@ describe('Warlock builder options and readiness', () => {
     ]));
   });
 
+  test('rejects too many or duplicate invocations', () => {
+    const tooMany = validateWarlockBuilderSelections({
+      level: 3,
+      edition: '2024',
+      subclass: 'Archfey Patron',
+      pactBoon: 'Pact of the Chain',
+      invocations: ['One', 'Two', 'Three', 'Four'],
+    });
+    expect(tooMany.errors).toContain('Choose only 3 Eldritch Invocations.');
+
+    const duplicate = validateWarlockBuilderSelections({
+      level: 3,
+      edition: '2024',
+      subclass: 'Archfey Patron',
+      pactBoon: 'Pact of the Chain',
+      invocations: ['Agonizing Blast', 'agonizing   blast', 'Eldritch Sight'],
+    });
+    expect(duplicate.errors).toContain('Choose each Eldritch Invocation only once.');
+  });
+
   test('builds selected choice summaries', () => {
     const summary = getWarlockBuilderChoiceSummary({
       level: 3,

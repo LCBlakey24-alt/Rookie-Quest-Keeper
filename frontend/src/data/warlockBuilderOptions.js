@@ -22,6 +22,10 @@ function readList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [value];
 }
 
+function normaliseInvocation(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 function optionMatches(option, value = '') {
   const key = normaliseChoice(value);
   return Boolean(key && (option.key === key || normaliseChoice(option.name) === key));
@@ -79,6 +83,13 @@ export function validateWarlockBuilderSelections({
 
   if (options.invocationsRequired && invocationList.length < options.invocationCount) {
     errors.push(`Choose ${options.invocationCount} Eldritch Invocation${options.invocationCount === 1 ? '' : 's'}.`);
+  }
+  if (options.invocationsRequired && invocationList.length > options.invocationCount) {
+    errors.push(`Choose only ${options.invocationCount} Eldritch Invocation${options.invocationCount === 1 ? '' : 's'}.`);
+  }
+  const uniqueInvocations = new Set(invocationList.map(normaliseInvocation).filter(Boolean));
+  if (uniqueInvocations.size < invocationList.length) {
+    errors.push('Choose each Eldritch Invocation only once.');
   }
 
   return {

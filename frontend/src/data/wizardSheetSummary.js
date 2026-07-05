@@ -5,6 +5,10 @@ import { getWizardBuilderSelectionList } from './wizardBuilderOptions';
 
 const normaliseRuleset = (character = {}) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
 const joinSelection = (value, fallback = '') => Array.isArray(value) ? value.filter(Boolean).join(', ') : value || fallback;
+const joinSelectionOrFallback = (value, fallback = '') => {
+  const joined = joinSelection(value, '');
+  return joined || fallback;
+};
 const getSubclassName = (character = {}) => character?.subclass || character?.wizard_subclass || character?.wizardSubclass || character?.school || character?.wizardSchool || '';
 
 function getScholarLabel(selection = {}) {
@@ -41,8 +45,8 @@ export function getWizardSheetSummary(character = {}) {
     arcaneRecoveryLevel: progression.arcaneRecoveryLevel,
     arcaneRecoveryLabel: getArcaneRecoveryLabel(progression),
     scholarLabel: getScholarLabel({ ...selections, level, edition }),
-    spellbookSpellsLabel: joinSelection(selections.spellbookSpells, progression.spellcastingLevel > 0 ? 'Record spellbook spells' : 'None yet'),
-    preparedSpellsLabel: joinSelection(selections.preparedSpells, progression.spellcastingLevel > 0 ? 'Choose prepared Wizard spells' : 'None yet'),
+    spellbookSpellsLabel: joinSelectionOrFallback(selections.spellbookSpells, progression.spellcastingLevel > 0 ? 'Record spellbook spells' : 'None yet'),
+    preparedSpellsLabel: joinSelectionOrFallback(selections.preparedSpells, progression.spellcastingLevel > 0 ? 'Choose prepared Wizard spells' : 'None yet'),
     currentLevelFeatures: progression.currentLevelFeatures,
     activeFeatures: progression.activeFeatures,
     nextFeatures: progression.nextFeatures,
