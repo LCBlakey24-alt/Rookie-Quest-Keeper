@@ -8,6 +8,12 @@ function display(value, fallback = 'Not set') {
   return value === undefined || value === null || value === '' ? fallback : value;
 }
 
+function hasValue(value) {
+  if (value === undefined || value === null) return false;
+  const normalised = String(value).trim().toLowerCase();
+  return Boolean(normalised) && !['none', 'not set', 'not set yet', 'subclass', 'unknown', '—', '-'].includes(normalised);
+}
+
 function FieldBlock({ label, value, emptyText = 'Not set yet' }) {
   return (
     <div className="clean-sheet-note-field">
@@ -41,6 +47,17 @@ export default function CleanSheetCharacterTab({ character, ac, speed, proficien
     !character?.backstory ? 'Backstory is empty. This can be filled in later from the editor.' : null,
     !character?.appearance && !character?.portrait_url ? 'Appearance or portrait is not set yet.' : null,
   ].filter(Boolean);
+  const raceLabel = String(identity.edition || character?.edition || character?.ruleset_id || '').includes('2024') ? 'Species' : 'Race';
+  const detailCards = [
+    ['Name', display(character?.name, 'Unnamed')],
+    ['Class', display(identity.primaryClass || character?.character_class, 'Class')],
+    hasValue(character?.subclass) ? ['Subclass', display(character.subclass)] : null,
+    ['Level', display(identity.level || character?.level || 1)],
+    [raceLabel, display(snapshot.race?.name || character?.race || character?.species)],
+    ['Background', display(character?.background)],
+    ['Alignment', display(character?.alignment)],
+    ['Ruleset', display(character?.ruleset_id || character?.rules_edition || character?.edition)],
+  ].filter(Boolean);
 
   return (
     <div className="clean-sheet-grid clean-sheet-character-tab">
@@ -51,14 +68,9 @@ export default function CleanSheetCharacterTab({ character, ac, speed, proficien
         </div>
 
         <div className="clean-sheet-skills-summary clean-sheet-character-summary-grid">
-          <div><span>Name</span><strong>{display(character?.name, 'Unnamed')}</strong></div>
-          <div><span>Class</span><strong>{display(identity.primaryClass || character?.character_class, 'Class')}</strong></div>
-          <div><span>Subclass</span><strong>{display(character?.subclass, 'None')}</strong></div>
-          <div><span>Level</span><strong>{display(identity.level || character?.level || 1)}</strong></div>
-          <div><span>{String(identity.edition || character?.edition || character?.ruleset_id || '').includes('2024') ? 'Species' : 'Race'}</span><strong>{display(snapshot.race?.name || character?.race || character?.species)}</strong></div>
-          <div><span>Background</span><strong>{display(character?.background)}</strong></div>
-          <div><span>Alignment</span><strong>{display(character?.alignment)}</strong></div>
-          <div><span>Ruleset</span><strong>{display(character?.ruleset_id || character?.rules_edition || character?.edition)}</strong></div>
+          {detailCards.map(([label, value]) => (
+            <div key={label}><span>{label}</span><strong>{value}</strong></div>
+          ))}
         </div>
       </section>
 
