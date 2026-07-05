@@ -58,13 +58,19 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2 {
-    margin-bottom: 7px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2::after {
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 5px !important;
+    margin-top: 3px !important;
     background: transparent !important;
     border: 0 !important;
     padding: 0 !important;
@@ -249,6 +255,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid {
     gap: 3px !important;
+    margin-top: 2px !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card {
