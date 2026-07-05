@@ -74,7 +74,11 @@ describe('class resource unlocks and action economy audit', () => {
   });
 
   test('reference class action/resource cards are available at intended levels', () => {
+    expect(actionTitlesFor(character('fighter', 1)).bonus).toContain('Second Wind');
+    expect(actionTitlesFor(character('fighter', 1)).action).not.toContain('Action Surge');
+    expect(actionTitlesFor(character('fighter', 8)).reaction).not.toContain('Indomitable');
     expect(actionTitlesFor(character('fighter', 2)).action).toContain('Action Surge');
+    expect(actionTitlesFor(character('fighter', 9)).reaction).toContain('Indomitable');
     expect(actionTitlesFor(character('sorcerer', 2)).bonus).toEqual(expect.arrayContaining(['Convert Sorcery Points', 'Metamagic']));
     expect(actionTitlesFor(character('barbarian', 1)).bonus).toContain('Rage');
     expect(actionTitlesFor(character('paladin', 1)).action).toContain('Lay on Hands');

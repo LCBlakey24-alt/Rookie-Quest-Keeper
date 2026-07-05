@@ -64,13 +64,10 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   }
   if (byKey.rage || className === 'barbarian') add('bonus', 'rage', 'Rage', 'Enter a rage and apply your rage bonuses and resistances.', () => handlers.spendResource('rage', 'Rage'));
   if (byKey.bardic_inspiration || className === 'bard') add('bonus', 'bardic_inspiration', 'Bardic Inspiration', 'Give one creature an inspiration die.', () => handlers.spendResource('bardic_inspiration', 'Bardic Inspiration'));
-  if (byKey.second_wind || className === 'fighter') add('bonus', 'second_wind', 'Second Wind', 'Regain hit points using your fighter resource.', () => handlers.spendResource('second_wind', 'Second Wind'));
-  if (byKey.action_surge || className === 'fighter') add('action', 'action_surge', 'Action Surge', 'Take one additional action on your turn.', () => handlers.spendResource('action_surge', 'Action Surge'));
-  if (byKey.indomitable || className === 'fighter') add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
-  if (byKey.superiority_dice) {
-    add('action', 'superiority_dice', 'Battle Master Maneuver', 'Spend a superiority die when a maneuver applies.', () => handlers.spendResource('superiority_dice', 'Superiority Die'));
-    add('reaction', 'superiority_dice', 'Reaction Maneuver', 'Use a reaction maneuver such as Riposte or Parry if known.', () => handlers.spendResource('superiority_dice', 'Reaction Maneuver'));
-  }
+  const fighterLevel = className === 'fighter' || byKey.second_wind || byKey.action_surge || byKey.indomitable ? classLevelOf(character, 'fighter') : 0;
+  if (byKey.second_wind || fighterLevel >= 1) add('bonus', 'second_wind', 'Second Wind', 'Regain hit points using your fighter resource.', () => handlers.spendResource('second_wind', 'Second Wind'));
+  if (byKey.action_surge || fighterLevel >= 2) add('action', 'action_surge', 'Action Surge', 'Take one additional action on your turn.', () => handlers.spendResource('action_surge', 'Action Surge'));
+  if (byKey.indomitable || fighterLevel >= 9) add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
   if (byKey.wild_shape || className === 'druid') add('action', 'wild_shape', 'Wild Shape', 'Transform using a Wild Shape use.', () => handlers.spendResource('wild_shape', 'Wild Shape'));
   if (byKey.channel_divinity) add('action', 'channel_divinity', 'Channel Divinity', 'Use a Channel Divinity option from your class or subclass.', () => handlers.spendResource('channel_divinity', 'Channel Divinity'));
   if (byKey.lay_on_hands || className === 'paladin') add('action', 'lay_on_hands', 'Lay on Hands', 'Spend points from your healing pool.', () => handlers.spendResource('lay_on_hands', 'Lay on Hands'));

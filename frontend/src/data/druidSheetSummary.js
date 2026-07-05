@@ -4,7 +4,13 @@ import { getDruidSubclassKey, getDruidSubclassSummary } from './druidSubclasses'
 import { getDruidBuilderSelectionList } from './druidBuilderOptions';
 
 const normaliseRuleset = (character = {}) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
-const joinSelection = (value, fallback = '') => Array.isArray(value) ? value.filter(Boolean).join(', ') : value || fallback;
+const joinSelection = (value, fallback = '') => {
+  if (Array.isArray(value)) {
+    const selected = value.filter(Boolean);
+    return selected.length ? selected.join(', ') : fallback;
+  }
+  return value || fallback;
+};
 const getSubclassName = (character = {}) => character?.subclass || character?.druid_subclass || character?.druidSubclass || character?.circle || character?.druidCircle || '';
 
 function getPrimalOrderLabel(selection = {}) {
@@ -37,7 +43,9 @@ export function getDruidSheetSummary(character = {}) {
     subclassKey: getDruidSubclassKey(subclassName),
     subclassLabel: subclass?.label || subclassName || (level >= progression.subclassChoiceLevel ? 'Choose/record Druid Circle' : 'None yet'),
     subclassRole: subclass?.role || '',
-    subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
+    subclassSupportedInRuleset: subclass?.supportedInRuleset ?? !subclassName,
+    subclassSupportedAutomation: subclass?.supportedAutomation ?? false,
+    subclassCustom: Boolean(subclass?.custom),
     subclassFeatures: subclass?.activeFeatures || [],
     nextSubclassFeatures: subclass?.nextFeatures || [],
     wildShapeUses: progression.wildShapeUses,

@@ -1,7 +1,5 @@
 import { getFighterProgressionSummary } from './fighterProgression';
 import { getChampionSummary, isChampionSubclass } from './fighterChampion';
-import { getBattleMasterSummary, isBattleMasterSubclass } from './fighterBattleMaster';
-import { getFighterMagicSummary, isFighterMagicSubclass } from './fighterMagicSubclass';
 
 function normaliseRuleset(character = {}) {
   return String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
@@ -37,8 +35,8 @@ export function getFighterSheetSummary(character = {}) {
   const subclassKey = normaliseSubclass(character?.subclass || '');
   const fighter = getFighterProgressionSummary(level, edition);
   const champion = isChampionSubclass(subclassKey) ? getChampionSummary(level, edition) : null;
-  const battleMaster = isBattleMasterSubclass(subclassKey) ? getBattleMasterSummary(level, edition) : null;
-  const magicSubclass = isFighterMagicSubclass(subclassKey) ? getFighterMagicSummary(level, edition) : null;
+  const hasSubclass = Boolean(subclassKey);
+  const hasSupportedSubclass = Boolean(champion);
 
   return {
     className: 'Fighter',
@@ -51,11 +49,13 @@ export function getFighterSheetSummary(character = {}) {
     currentLevelFeatures: fighter.currentLevelFeatures,
     nextFeatures: fighter.nextFeatures,
     criticalRange: champion?.criticalRange || { minimum: 20, label: '20' },
-    subclassFeatures: champion?.activeFeatures || battleMaster?.activeFeatures || magicSubclass?.activeFeatures || [],
+    subclassFeatures: champion?.activeFeatures || [],
     isChampion: Boolean(champion),
-    isBattleMaster: Boolean(battleMaster),
-    isMagicSubclass: Boolean(magicSubclass),
-    battleMaster,
-    magicSubclass,
+    isBattleMaster: false,
+    isMagicSubclass: false,
+    isUnsupportedSubclass: hasSubclass && !hasSupportedSubclass,
+    unsupportedSubclassLabel: hasSubclass && !hasSupportedSubclass ? character?.subclass : '',
+    battleMaster: null,
+    magicSubclass: null,
   };
 }

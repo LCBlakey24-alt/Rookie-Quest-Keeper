@@ -6,7 +6,7 @@ describe('Druid sheet summary helper', () => {
       character_class: 'Druid',
       level: 8,
       rules_edition: '2014',
-      subclass: 'Circle of the Moon',
+      subclass: 'Circle of the Land',
       preparedSpells: ['Entangle', 'Cure Wounds'],
     });
 
@@ -15,9 +15,9 @@ describe('Druid sheet summary helper', () => {
       edition: '2014',
       level: 8,
       isDruid: true,
-      subclassKey: 'moon',
-      subclassLabel: 'Circle of the Moon',
-      subclassRole: 'Wild Shape bruiser',
+      subclassKey: 'land',
+      subclassLabel: 'Circle of the Land',
+      subclassRole: 'Prepared nature caster',
       subclassSupportedInRuleset: true,
       wildShapeUses: 2,
       wildShapeLabel: '2 Wild Shape uses',
@@ -40,7 +40,7 @@ describe('Druid sheet summary helper', () => {
       character_class: 'Druid',
       level: 7,
       rules_edition: '2024',
-      subclass: 'Circle of the Sea',
+      subclass: 'Circle of the Land',
       primalOrder: 'Warden',
       elementalFury: 'Primal Strike',
       prepared_spells: ['Healing Word', 'Faerie Fire'],
@@ -49,8 +49,8 @@ describe('Druid sheet summary helper', () => {
     expect(summary).toMatchObject({
       edition: '2024',
       level: 7,
-      subclassKey: 'sea',
-      subclassLabel: 'Circle of the Sea',
+      subclassKey: 'land',
+      subclassLabel: 'Circle of the Land',
       subclassSupportedInRuleset: true,
       wildShapeUses: 2,
       wildShapeLimitLabel: '2024 Wild Shape forms online',
@@ -81,7 +81,7 @@ describe('Druid sheet summary helper', () => {
       level: 12,
       class_levels: { Fighter: 7, Druid: 5 },
       rules_edition: '2014',
-      druid_subclass: 'Circle of the Land',
+      druid_subclass: 'Custom Druid Subclass',
     });
 
     expect(summary.level).toBe(5);
@@ -89,7 +89,9 @@ describe('Druid sheet summary helper', () => {
     expect(summary.spellcastingLevel).toBe(5);
     expect(summary.wildShapeUses).toBe(2);
     expect(summary.wildShapeLimitLabel).toBe('CR 1/2 beast forms; no flying speed');
-    expect(summary.subclassKey).toBe('land');
+    expect(summary.subclassKey).toBe('custom_druid_subclass');
+    expect(summary.subclassSupportedAutomation).toBe(false);
+    expect(summary.subclassCustom).toBe(true);
   });
 
   test('flags unsupported circle for the selected ruleset', () => {
@@ -103,7 +105,9 @@ describe('Druid sheet summary helper', () => {
     expect(summary.subclassKey).toBe('spores');
     expect(summary.subclassLabel).toBe('Circle of Spores');
     expect(summary.subclassSupportedInRuleset).toBe(false);
+    expect(summary.subclassSupportedAutomation).toBe(false);
     expect(summary.subclassRole).toBe('');
+    expect(summary.subclassFeatures).toEqual([]);
   });
 
   test('returns a safe non-Druid summary', () => {

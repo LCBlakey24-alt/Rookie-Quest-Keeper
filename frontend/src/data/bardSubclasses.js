@@ -5,73 +5,20 @@ export const BARD_SUBCLASSES = [
     value: 'College of Lore',
     label: 'College of Lore',
     key: 'college_of_lore',
-    summary: 'A Bard focused on knowledge, skills, cutting words, and flexible spell choices.',
+    summary: 'Public-license Bard subclass support focused on knowledge, skills, Cutting Words, and flexible spell choices.',
     role: 'Skill and support specialist',
     rulesets: ['2014', '2024'],
+    supportedAutomation: true,
   },
   {
-    value: 'College of Valor',
-    label: 'College of Valor',
-    key: 'college_of_valor',
-    summary: 'A battle-ready Bard who supports allies while holding their own in combat.',
-    role: 'Combat support',
+    value: 'Custom Bard Subclass',
+    label: 'Custom / user-added subclass',
+    key: 'custom_bard_subclass',
+    summary: 'User-provided Bard college from private or shared homebrew content.',
+    role: 'User-provided Bard college',
     rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'College of Glamour',
-    label: 'College of Glamour',
-    key: 'college_of_glamour',
-    summary: 'A fey-touched performer who protects and repositions allies with dazzling presence.',
-    role: 'Charm and mobility support',
-    rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'College of Dance',
-    label: 'College of Dance',
-    key: 'college_of_dance',
-    summary: 'A mobile Bard who blends performance, movement, and close-range support.',
-    role: 'Mobile support',
-    rulesets: ['2024'],
-  },
-  {
-    value: 'College of Swords',
-    label: 'College of Swords',
-    key: 'college_of_swords',
-    summary: 'A flashy martial Bard who turns performance into weapon flourishes.',
-    role: 'Martial skirmisher',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'College of Whispers',
-    label: 'College of Whispers',
-    key: 'college_of_whispers',
-    summary: 'A secretive Bard who weaponises fear, secrets, and social manipulation.',
-    role: 'Intrigue striker',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'College of Creation',
-    label: 'College of Creation',
-    key: 'college_of_creation',
-    summary: 'A Bard who shapes magical performance into objects, inspiration, and animated support.',
-    role: 'Creative support',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'College of Eloquence',
-    label: 'College of Eloquence',
-    key: 'college_of_eloquence',
-    summary: 'A silver-tongued Bard who excels at social mastery and reliable inspiration.',
-    role: 'Face and support',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'College of Spirits',
-    label: 'College of Spirits',
-    key: 'college_of_spirits',
-    summary: 'A supernatural storyteller who channels tales, spirits, and occult support.',
-    role: 'Mystic support',
-    rulesets: ['2014'],
+    supportedAutomation: false,
+    custom: true,
   },
 ];
 
@@ -96,6 +43,8 @@ export function getBardSubclassOptions(edition = '2014') {
       summary: option.summary,
       role: option.role,
       ruleset,
+      supportedAutomation: Boolean(option.supportedAutomation),
+      custom: Boolean(option.custom),
     }));
 }
 
@@ -113,7 +62,8 @@ export function getBardSubclassSummary(value = '', level = 1, edition = '2014') 
   const bardLevel = Math.max(1, Number(level || 1));
   const fallbackKey = getBardSubclassKey(value) || 'custom';
 
-  const activeFeatures = BARD_SUBCLASS_FEATURE_LEVELS
+  const featureLevels = subclass?.supportedAutomation ? BARD_SUBCLASS_FEATURE_LEVELS : [];
+  const activeFeatures = featureLevels
     .filter(featureLevel => featureLevel <= bardLevel)
     .map(featureLevel => ({
       level: featureLevel,
@@ -122,7 +72,7 @@ export function getBardSubclassSummary(value = '', level = 1, edition = '2014') 
       type: 'subclass',
     }));
 
-  const nextLevel = BARD_SUBCLASS_FEATURE_LEVELS.find(featureLevel => featureLevel > bardLevel);
+  const nextLevel = featureLevels.find(featureLevel => featureLevel > bardLevel);
   const nextFeatures = nextLevel ? [{
     level: nextLevel,
     key: `${subclass?.key || fallbackKey}_${nextLevel}`,
@@ -136,6 +86,8 @@ export function getBardSubclassSummary(value = '', level = 1, edition = '2014') 
     role: subclass?.role || '',
     summary: subclass?.summary || '',
     supportedInRuleset: Boolean(!value || subclass),
+    supportedAutomation: Boolean(subclass?.supportedAutomation),
+    custom: Boolean(subclass?.custom),
     activeFeatures,
     nextFeatures,
   };

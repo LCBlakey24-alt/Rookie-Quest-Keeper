@@ -38,6 +38,11 @@ describe('Fighter builder options', () => {
 
     expect(options.needsSubclass).toBe(true);
     expect(options.requiredChoiceLabels).toEqual(['Subclass']);
+    expect(options.subclassOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'champion', supportedAutomation: true }),
+      expect.objectContaining({ key: 'custom_fighter_subclass', custom: true, supportedAutomation: false }),
+    ]));
+    expect(options.helperText).toContain('custom/user-added Fighter subclass');
   });
 
   test('validates fighting style by edition', () => {
@@ -54,5 +59,17 @@ describe('Fighter builder options', () => {
       'Choose a valid Fighter Fighting Style.',
       'Choose 3 Weapon Mastery options.',
     ]);
+  });
+
+  test('rejects duplicate 2024 Fighter weapon mastery choices', () => {
+    const result = validateFighterBuilderSelections({
+      level: 1,
+      edition: '2024',
+      fightingStyle: 'Blind Fighting',
+      weaponMasteries: ['Cleave', 'cleave', 'Topple'],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Choose unique Weapon Mastery options.');
   });
 });

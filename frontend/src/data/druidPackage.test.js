@@ -15,12 +15,12 @@ describe('Druid package exports', () => {
     const status = druidPackage.getDruidFinalStatus({
       level: 2,
       edition: '2014',
-      subclass: 'Circle of the Moon',
+      subclass: 'Circle of the Land',
       character: {
         character_class: 'Druid',
         level: 2,
         rules_edition: '2014',
-        subclass: 'Circle of the Moon',
+        subclass: 'Circle of the Land',
         preparedSpells: ['Entangle', 'Cure Wounds'],
       },
     });
@@ -33,7 +33,7 @@ describe('Druid package exports', () => {
       errors: [],
     });
     expect(status.sheetSummary.className).toBe('Druid');
-    expect(status.sheetSummary.subclassKey).toBe('moon');
+    expect(status.sheetSummary.subclassKey).toBe('land');
     expect(status.sheetSummary.wildShapeLabel).toBe('2 Wild Shape uses');
     expect(status.sheetSummary.preparedSpellsLabel).toBe('Entangle, Cure Wounds');
   });
@@ -42,7 +42,7 @@ describe('Druid package exports', () => {
     const status = druidPackage.getDruidFinalStatus({
       level: 7,
       edition: '2024',
-      subclass: 'Circle of the Sea',
+      subclass: 'Circle of the Land',
       primalOrder: 'Warden',
       elementalFury: 'Primal Strike',
       preparedSpells: ['Healing Word'],
@@ -50,7 +50,7 @@ describe('Druid package exports', () => {
         character_class: 'Druid',
         level: 7,
         rules_edition: '2024',
-        subclass: 'Circle of the Sea',
+        subclass: 'Circle of the Land',
         primalOrder: 'Warden',
         elementalFury: 'Primal Strike',
         preparedSpells: ['Healing Word'],
@@ -59,7 +59,7 @@ describe('Druid package exports', () => {
 
     expect(status.ready).toBe(true);
     expect(status.errors).toEqual([]);
-    expect(status.choiceSummary.subclass.key).toBe('sea');
+    expect(status.choiceSummary.subclass.key).toBe('land');
     expect(status.choiceSummary.primalOrder.key).toBe('warden');
     expect(status.choiceSummary.elementalFury.key).toBe('primal_strike');
     expect(status.sheetSummary.primalOrderLabel).toBe('Warden');
@@ -71,7 +71,7 @@ describe('Druid package exports', () => {
 
     expect(status.ready).toBe(false);
     expect(status.errors).toEqual(expect.arrayContaining([
-      'Choose a Druid circle.',
+      'Choose or record a Druid circle.',
       'Choose a Primal Order.',
       'Choose an Elemental Fury option.',
     ]));

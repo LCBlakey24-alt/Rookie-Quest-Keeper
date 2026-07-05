@@ -68,8 +68,8 @@ export function validateDruidBuilderSelections({
   const options = getDruidBuilderOptions({ level, edition });
   const errors = [];
 
-  if (options.subclassRequired && !subclass) errors.push('Choose a Druid circle.');
-  if (subclass && !isValidDruidSubclass(subclass, options.edition)) errors.push('Choose a Druid circle available in this ruleset.');
+  if (options.subclassRequired && !subclass) errors.push('Choose or record a Druid circle.');
+  if (subclass && !isValidDruidSubclass(subclass, options.edition)) errors.push('Choose Circle of the Land for built-in public-license automation, or record a custom/user-added Druid circle.');
 
   if (options.primalOrderRequired && !primalOrder) errors.push('Choose a Primal Order.');
   if (primalOrder && !options.primalOrderOptions.some(option => optionMatches(option, primalOrder))) {

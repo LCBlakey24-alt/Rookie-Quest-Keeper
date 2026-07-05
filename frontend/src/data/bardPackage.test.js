@@ -38,7 +38,7 @@ describe('Bard package exports', () => {
 
     expect(status.ready).toBe(false);
     expect(status.errors).toEqual(expect.arrayContaining([
-      'Choose a Bard subclass.',
+      'Choose or record a Bard subclass.',
       'Choose 2 Expertise skills.',
     ]));
   });

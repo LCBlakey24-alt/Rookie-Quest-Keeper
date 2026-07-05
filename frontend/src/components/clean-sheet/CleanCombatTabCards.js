@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { CLASS_FEATURES } from '../../data/classFeatures';
 import { fmt } from './cleanCombatTabUtils';
 
 export function AttackCard({ action, onAttack, onDamage, children, active }) {
@@ -62,7 +61,6 @@ export function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, 
   const actionSurge = resources.find(resource => resource.key === 'action_surge');
   const secondWind = resources.find(resource => resource.key === 'second_wind');
   const indomitable = resources.find(resource => resource.key === 'indomitable');
-  const superiority = resources.find(resource => resource.key === 'superiority_dice');
   return (
     <section className="clean-sheet-panel clean-sheet-wide clean-sheet-fighter-panel" data-testid="fighter-focus-panel">
       <div className="clean-sheet-fighter-heading">
@@ -87,28 +85,6 @@ export function FighterFocusPanel({ fighterLevel, fighterSubclass, fighterPlan, 
         <button type="button" onClick={onActionSurge} disabled={!actionSurge || actionSurge.current <= 0}>Action Surge {actionSurge ? `${actionSurge.current}/${actionSurge.max}` : ''}</button>
         <button type="button" onClick={onIndomitable} disabled={!indomitable || indomitable.current <= 0}>Indomitable {indomitable ? `${indomitable.current}/${indomitable.max}` : ''}</button>
       </div>
-      {fighterSubclass === 'battle_master' && (
-        <div className="clean-sheet-maneuver-panel">
-          <div className="clean-sheet-maneuver-header">
-            <strong>Battle Master Maneuvers</strong>
-            <span>{superiority ? `${superiority.current}/${superiority.max}` : 'No'} superiority dice • d{fighterPlan.superiorityDie}</span>
-          </div>
-          <div className="clean-sheet-maneuver-grid">
-            {(maneuvers.length ? maneuvers : (CLASS_FEATURES.fighter?.subclasses?.battle_master?.maneuvers || []).slice(0, 6)).map((maneuver) => {
-              const name = typeof maneuver === 'string' ? maneuver : maneuver.name;
-              const description = typeof maneuver === 'string'
-                ? (CLASS_FEATURES.fighter?.subclasses?.battle_master?.maneuvers || []).find(item => item.name === maneuver)?.description || 'Spend a superiority die when the maneuver applies.'
-                : maneuver.description;
-              return (
-                <button key={name} type="button" onClick={() => onManeuver(name)} disabled={!superiority || superiority.current <= 0}>
-                  <strong>{name}</strong>
-                  <span>{description}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </section>
   );
 }

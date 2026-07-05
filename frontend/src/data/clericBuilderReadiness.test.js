@@ -18,34 +18,23 @@ describe('Cleric subclass and builder readiness helpers', () => {
   test('returns 2014 Cleric subclass options', () => {
     const options = getClericSubclassOptions('2014');
 
-    expect(options.map(option => option.key)).toEqual(expect.arrayContaining([
-      'life_domain',
-      'light_domain',
-      'trickery_domain',
-      'war_domain',
-      'knowledge_domain',
-      'nature_domain',
-      'tempest_domain',
-      'forge_domain',
-      'grave_domain',
-      'peace_domain',
-      'twilight_domain',
-    ]));
+    expect(options.map(option => option.key)).toEqual(['life_domain', 'custom_cleric_subclass']);
+    expect(options.find(option => option.key === 'custom_cleric_subclass')).toMatchObject({ custom: true, supportedAutomation: false });
   });
 
   test('returns 2024 Cleric subclass options', () => {
     const options = getClericSubclassOptions('2024');
 
-    expect(options.map(option => option.key)).toEqual(['life_domain', 'light_domain', 'trickery_domain', 'war_domain']);
+    expect(options.map(option => option.key)).toEqual(['life_domain', 'custom_cleric_subclass']);
   });
 
   test('finds and validates Cleric subclasses by key or name', () => {
     expect(getClericSubclassByKey('Life Domain', '2014')?.key).toBe('life_domain');
-    expect(getClericSubclassByKey('tempest_domain', '2014')?.name).toBe('Tempest Domain');
-    expect(isClericSubclassAvailable('Twilight Domain', '2014')).toBe(true);
+    expect(getClericSubclassByKey('Custom Cleric Subclass', '2014')?.key).toBe('custom_cleric_subclass');
+    expect(isClericSubclassAvailable('Twilight Domain', '2014')).toBe(false);
     expect(isClericSubclassAvailable('Twilight Domain', '2024')).toBe(false);
-    expect(isValidClericSubclass('War Domain', '2024')).toBe(true);
-    expect(isValidClericSubclass('Forge Domain', '2024')).toBe(false);
+    expect(isValidClericSubclass('War Domain', '2024')).toBe(false);
+    expect(isValidClericSubclass('Custom Cleric Subclass', '2024')).toBe(true);
   });
 
   test('summarises Cleric subclass progression', () => {
@@ -81,7 +70,7 @@ describe('Cleric subclass and builder readiness helpers', () => {
     const result = validateClericBuilderSelections({ level: 1, edition: '2014' });
 
     expect(result.ready).toBe(false);
-    expect(result.errors).toEqual(['Choose a Cleric subclass.']);
+    expect(result.errors).toEqual(['Choose or record a Cleric subclass.']);
   });
 
   test('validates complete 2014 Cleric selections', () => {
@@ -105,7 +94,7 @@ describe('Cleric subclass and builder readiness helpers', () => {
     const result = validateClericBuilderSelections({
       level: 7,
       edition: '2024',
-      subclass: 'War Domain',
+      subclass: 'Life Domain',
       divineOrder: 'Protector',
       blessedStrikes: 'Divine Strike',
     });
@@ -119,21 +108,21 @@ describe('Cleric subclass and builder readiness helpers', () => {
       level: 7,
       edition: '2024',
       selections: {
-        subclass: 'Trickery Domain',
+        subclass: 'Custom Cleric Subclass',
         divineOrder: 'Thaumaturge',
         blessedStrikes: 'Potent Spellcasting',
         preparedSpells: ['cure wounds', 'bless'],
       },
     });
 
-    expect(summary.subclass.key).toBe('trickery_domain');
+    expect(summary.subclass.key).toBe('custom_cleric_subclass');
     expect(summary.divineOrder.key).toBe('thaumaturge');
     expect(summary.blessedStrikes.key).toBe('potent_spellcasting');
     expect(summary.preparedSpells).toEqual(['cure wounds', 'bless']);
   });
 
   test('returns selected subclass and selection list aliases', () => {
-    expect(getSelectedClericSubclass({ cleric_subclass: 'Light Domain' }, '2014')?.key).toBe('light_domain');
+    expect(getSelectedClericSubclass({ cleric_subclass: 'Custom Cleric Subclass' }, '2014')?.key).toBe('custom_cleric_subclass');
     expect(getClericBuilderSelectionList({
       clericSubclass: 'Life Domain',
       divine_order: 'Protector',

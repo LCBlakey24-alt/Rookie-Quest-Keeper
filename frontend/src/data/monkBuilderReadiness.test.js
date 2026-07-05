@@ -5,15 +5,15 @@ import { getMonkBuilderReadiness } from './monkBuilderReadiness';
 
 describe('Monk builder options and readiness', () => {
   test('returns 2014 and 2024 subclass options', () => {
-    expect(getMonkSubclassOptions('2014').map(option => option.key)).toEqual(['open_hand', 'shadow', 'four_elements']);
-    expect(getMonkSubclassOptions('2024').map(option => option.key)).toEqual(['open_hand', 'shadow', 'elements', 'mercy']);
+    expect(getMonkSubclassOptions('2014').map(option => option.key)).toEqual(['open_hand', 'custom_monk_subclass']);
+    expect(getMonkSubclassOptions('2024').map(option => option.key)).toEqual(['open_hand', 'custom_monk_subclass']);
   });
 
   test('validates subclass selections by rules edition', () => {
     expect(isValidMonkSubclass('Way of the Open Hand', '2014')).toBe(true);
     expect(isValidMonkSubclass('open_hand', '2024')).toBe(true);
-    expect(isValidMonkSubclass('mercy', '2024')).toBe(true);
-    expect(isValidMonkSubclass('mercy', '2014')).toBe(false);
+    expect(isValidMonkSubclass('Custom Monk Subclass', '2024')).toBe(true);
+    expect(isValidMonkSubclass('mercy', '2024')).toBe(false);
   });
 
   test('does not require subclass before level 3', () => {
@@ -38,11 +38,11 @@ describe('Monk builder options and readiness', () => {
 
     expect(readiness.ready).toBe(false);
     expect(readiness.missingSections).toContain('Subclass');
-    expect(readiness.errors).toContain('Choose a Monk subclass.');
+    expect(readiness.errors).toContain('Choose or record a Monk subclass.');
   });
 
   test('passes readiness when a valid subclass is selected', () => {
-    const readiness = getMonkBuilderReadiness({ level: 6, edition: '2024', subclass: 'Warrior of Shadow' });
+    const readiness = getMonkBuilderReadiness({ level: 6, edition: '2024', subclass: 'Custom Monk Subclass' });
 
     expect(readiness.ready).toBe(true);
     expect(readiness.errors).toEqual([]);
@@ -51,6 +51,7 @@ describe('Monk builder options and readiness', () => {
 
   test('validates builder selections directly', () => {
     expect(validateMonkBuilderSelections({ level: 3, edition: '2014', subclass: '' }).valid).toBe(false);
-    expect(validateMonkBuilderSelections({ level: 3, edition: '2014', subclass: 'Way of Shadow' }).valid).toBe(true);
+    expect(validateMonkBuilderSelections({ level: 3, edition: '2014', subclass: 'Custom Monk Subclass' }).valid).toBe(true);
+    expect(validateMonkBuilderSelections({ level: 3, edition: '2014', subclass: 'Way of Shadow' }).valid).toBe(false);
   });
 });

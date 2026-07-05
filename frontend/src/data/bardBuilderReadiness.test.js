@@ -5,16 +5,16 @@ import { getBardSubclassOptions, getBardSubclassSummary } from './bardSubclasses
 
 describe('Bard builder options and readiness', () => {
   test('returns subclass options for 2014 and 2024 rules', () => {
-    expect(getBardSubclassOptions('2014').map(option => option.key)).toEqual(expect.arrayContaining(['college_of_lore', 'college_of_valor', 'college_of_glamour']));
-    expect(getBardSubclassOptions('2024').map(option => option.key)).toEqual(expect.arrayContaining(['college_of_lore', 'college_of_valor', 'college_of_glamour', 'college_of_dance']));
-    expect(getBardSubclassOptions('2024').map(option => option.key)).not.toContain('college_of_swords');
+    expect(getBardSubclassOptions('2014').map(option => option.key)).toEqual(['college_of_lore', 'custom_bard_subclass']);
+    expect(getBardSubclassOptions('2024').map(option => option.key)).toEqual(['college_of_lore', 'custom_bard_subclass']);
+    expect(getBardSubclassOptions('2024').find(option => option.key === 'custom_bard_subclass')).toMatchObject({ custom: true, supportedAutomation: false });
   });
 
   test('validates subclass selections by edition', () => {
     expect(isValidBardSubclass('College of Lore', '2014')).toBe(true);
-    expect(isValidBardSubclass('college_of_valor', '2024')).toBe(true);
-    expect(isValidBardSubclass('College of Dance', '2024')).toBe(true);
-    expect(isValidBardSubclass('College of Dance', '2014')).toBe(false);
+    expect(isValidBardSubclass('college_of_valor', '2024')).toBe(false);
+    expect(isValidBardSubclass('College of Dance', '2024')).toBe(false);
+    expect(isValidBardSubclass('Custom Bard Subclass', '2014')).toBe(true);
   });
 
   test('summarises subclass feature levels', () => {
@@ -43,7 +43,7 @@ describe('Bard builder options and readiness', () => {
     expect(options.bardicInspirationUses).toBe(4);
     expect(options.needsSubclass).toBe(true);
     expect(options.needsExpertise).toBe(true);
-    expect(options.subclassOptions.map(option => option.key)).toContain('college_of_dance');
+    expect(options.subclassOptions.map(option => option.key)).toEqual(['college_of_lore', 'custom_bard_subclass']);
   });
 
   test('fails readiness when required choices are missing', () => {
@@ -52,7 +52,7 @@ describe('Bard builder options and readiness', () => {
     expect(readiness.ready).toBe(false);
     expect(readiness.missingSections).toEqual(expect.arrayContaining(['Subclass', 'Expertise']));
     expect(readiness.errors).toEqual(expect.arrayContaining([
-      'Choose a Bard subclass.',
+      'Choose or record a Bard subclass.',
       'Choose 2 Expertise skills.',
     ]));
   });

@@ -1,5 +1,34 @@
 export const LATEST_UPDATES = [
   {
+    id: 'rules-data-class-wiring-2026-07-05',
+    date: '2026-07-05',
+    badge: 'Improved',
+    category: 'Class Support',
+    title: 'Class rules wiring push is underway',
+    summary: 'Rules data is being centralised so builders and sheets can handle spells, feats, class resources, and 2014/2024 differences more reliably.',
+    details: [
+      'Added canonical spell and feat registries so builders can use one source of truth instead of scattered hardcoded lists.',
+      'Improved Wizard spellbook/prepared spell validation, Warlock invocation validation, and Fighter Weapon Mastery validation.',
+      'Added 2024-aware Ranger Favored Enemy resources and tightened Rogue and Fighter action reminders so they unlock at the right class levels.',
+      'Improved race/species handling for starter species and edition-scoped 2014/2024 supported race lists.',
+    ],
+    public: true,
+  },
+  {
+    id: 'fighter-completion-pass-2026-07-04',
+    date: '2026-07-04',
+    badge: 'Improved',
+    category: 'Fighter',
+    title: 'Fighter completion pass started',
+    summary: 'Fighter support is being checked class-first, with 2024 Weapon Mastery validation and action-card unlock timing tightened first.',
+    details: [
+      'Duplicate 2024 Fighter Weapon Mastery choices are now rejected by builder readiness checks.',
+      'Second Wind, Action Surge, and Indomitable action cards now appear at their intended Fighter levels.',
+      'Built-in Fighter subclass automation is being kept public-license safe: Champion is wired now, and the builder includes a custom/user-added subclass path that records the choice without non-public automation.',
+    ],
+    public: true,
+  },
+  {
     id: 'number-wheel-inputs-2026-06-25',
     date: '2026-06-25',
     badge: 'Improved',
@@ -226,6 +255,8 @@ export const LATEST_UPDATES = [
 ];
 
 export function getLatestUpdates({ limit = 5, publicOnly = false } = {}) {
-  const updates = publicOnly ? LATEST_UPDATES.filter(update => update.public) : LATEST_UPDATES;
+  const updates = publicOnly
+    ? LATEST_UPDATES.filter(update => update.public).filter((update, index, list) => list.findIndex(item => item.date === update.date) === index)
+    : LATEST_UPDATES;
   return updates.slice(0, limit);
 }

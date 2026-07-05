@@ -1,4 +1,4 @@
-import { getSpellsForClass } from './spellDatabase';
+import { getClassSpellAccess } from './rules/spells/spellRegistry';
 
 const arr = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const normalize = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -33,8 +33,8 @@ export function spellMatchesDropdownSearch(spell = {}, search = '') {
     .includes(needle);
 }
 
-export function getCreatorAvailableSpellPools(className, search = '') {
-  const spellLists = getSpellsForClass(className) || {};
+export function getCreatorAvailableSpellPools(className, search = '', ruleset = '2014') {
+  const spellLists = getClassSpellAccess(className, { ruleset }) || {};
   const cantrips = arr(spellLists.cantrips).filter((spell) => spellMatchesDropdownSearch(spell, search));
   const levelOneSpells = arr(spellLists[1]).filter((spell) => spellMatchesDropdownSearch(spell, search));
 

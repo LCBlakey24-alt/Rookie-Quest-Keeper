@@ -18,6 +18,7 @@ describe('Bard sheet summary', () => {
     expect(summary.subclassLabel).toBe('College of Lore');
     expect(summary.subclassRole).toBe('Skill and support specialist');
     expect(summary.subclassSupportedInRuleset).toBe(true);
+    expect(summary.subclassSupportedAutomation).toBe(true);
     expect(summary.bardicInspirationDie).toBe('d8');
     expect(summary.bardicInspirationUses).toBe(4);
     expect(summary.bardicInspirationLabel).toBe('4 Bardic Inspiration d8');
@@ -33,16 +34,18 @@ describe('Bard sheet summary', () => {
       character_class: 'Bard',
       level: 10,
       rules_edition: '2024',
-      subclass: 'College of Dance',
+      subclass: 'Custom Bard Subclass',
       charisma_modifier: 5,
       expertise_skills: ['Acrobatics', 'Performance', 'Persuasion', 'Stealth'],
       magicalSecrets: ['Counterspell', 'Fireball'],
     });
 
     expect(summary.edition).toBe('2024');
-    expect(summary.subclassKey).toBe('college_of_dance');
-    expect(summary.subclassLabel).toBe('College of Dance');
+    expect(summary.subclassKey).toBe('custom_bard_subclass');
+    expect(summary.subclassLabel).toBe('Custom / user-added subclass');
     expect(summary.subclassSupportedInRuleset).toBe(true);
+    expect(summary.subclassSupportedAutomation).toBe(false);
+    expect(summary.subclassCustom).toBe(true);
     expect(summary.bardicInspirationDie).toBe('d10');
     expect(summary.bardicInspirationUses).toBe(5);
     expect(summary.expertiseLabel).toBe('Acrobatics, Performance, Persuasion, Stealth');
@@ -66,11 +69,13 @@ describe('Bard sheet summary', () => {
     expect(summary.bardicInspirationUses).toBe(3);
   });
 
-  test('marks unsupported subclass rulesets', () => {
+  test('marks non-built-in subclass records as unsupported automation', () => {
     const summary = getBardSheetSummary({ character_class: 'Bard', level: 6, rules_edition: '2014', subclass: 'College of Dance' });
 
     expect(summary.subclassSupportedInRuleset).toBe(false);
+    expect(summary.subclassSupportedAutomation).toBe(false);
     expect(summary.subclassLabel).toBe('College of Dance');
+    expect(summary.subclassFeatures).toEqual([]);
   });
 
   test('includes active, next, and subclass features', () => {

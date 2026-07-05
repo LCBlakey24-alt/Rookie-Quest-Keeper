@@ -11,6 +11,7 @@ export const BARBARIAN_SUBCLASS_FEATURES = {
     label: 'Path of the Berserker',
     rulesets: ['2014', '2024'],
     role: 'direct rage damage and retaliation',
+    supportedAutomation: true,
     features: [
       { level: 3, key: 'frenzy', name: 'Frenzy', summary: 'Turn Rage into a more aggressive attack routine.' },
       { level: 6, key: 'mindless_rage', name: 'Mindless Rage', summary: 'Rage helps prevent charm and fear from shutting you down.' },
@@ -18,21 +19,11 @@ export const BARBARIAN_SUBCLASS_FEATURES = {
       { level: 14, key: 'retaliation', name: 'Retaliation', summary: 'Punish nearby enemies that damage you.' },
     ],
   },
-  totem_warrior: {
-    label: 'Path of the Totem Warrior',
-    rulesets: ['2014'],
-    role: 'animal-aspect defense, mobility, and utility',
-    features: [
-      { level: 3, key: 'totem_spirit', name: 'Totem Spirit', summary: 'Choose the rage spirit that defines your combat role.' },
-      { level: 6, key: 'aspect_of_the_beast', name: 'Aspect of the Beast', summary: 'Gain exploration and utility gifts from your totem.' },
-      { level: 10, key: 'spirit_walker', name: 'Spirit Walker', summary: 'Commune with nature through your spirit guide.' },
-      { level: 14, key: 'totemic_attunement', name: 'Totemic Attunement', summary: 'Unlock your final totem combat expression.' },
-    ],
-  },
   wild_heart: {
     label: 'Path of the Wild Heart',
     rulesets: ['2024'],
     role: 'flexible bestial rage benefits',
+    supportedAutomation: true,
     features: [
       { level: 3, key: 'animal_speaker', name: 'Animal Speaker', summary: 'Bring primal communication into exploration scenes.' },
       { level: 3, key: 'rage_of_the_wilds', name: 'Rage of the Wilds', summary: 'Choose a bestial rage benefit for the current fight.' },
@@ -45,6 +36,7 @@ export const BARBARIAN_SUBCLASS_FEATURES = {
     label: 'Path of the World Tree',
     rulesets: ['2024'],
     role: 'protection, reach, and repositioning',
+    supportedAutomation: true,
     features: [
       { level: 3, key: 'vitality_of_the_tree', name: 'Vitality of the Tree', summary: 'Turn Rage into protective vitality.' },
       { level: 6, key: 'branches_of_the_tree', name: 'Branches of the Tree', summary: 'Pull creatures through spectral branches.' },
@@ -56,6 +48,7 @@ export const BARBARIAN_SUBCLASS_FEATURES = {
     label: 'Path of the Zealot',
     rulesets: ['2024'],
     role: 'divine rage damage and staying power',
+    supportedAutomation: true,
     features: [
       { level: 3, key: 'divine_fury', name: 'Divine Fury', summary: 'Add divine damage while Rage drives the assault.' },
       { level: 3, key: 'warrior_of_the_gods', name: 'Warrior of the Gods', summary: 'Divine power helps keep you in the fight.' },
@@ -64,11 +57,18 @@ export const BARBARIAN_SUBCLASS_FEATURES = {
       { level: 14, key: 'rage_beyond_death', name: 'Rage Beyond Death', summary: 'Keep fighting past the point others would fall.' },
     ],
   },
+  custom_barbarian_subclass: {
+    label: 'Custom / user-added subclass',
+    rulesets: ['2014', '2024'],
+    role: 'user-provided Barbarian path',
+    supportedAutomation: false,
+    custom: true,
+    features: [],
+  },
 };
 
 export function getBarbarianSubclassKey(value = '') {
   const key = normaliseSubclass(value);
-  if (key === 'totem' || key === 'totem_warrior') return 'totem_warrior';
   if (key === 'wildheart' || key === 'wild_heart') return 'wild_heart';
   if (key === 'worldtree' || key === 'world_tree') return 'world_tree';
   return key;
@@ -87,6 +87,8 @@ export function getBarbarianSubclassSummary(subclass = '', level = 1, edition = 
     role: data.role,
     ruleset,
     supportedInRuleset: data.rulesets.includes(ruleset),
+    supportedAutomation: Boolean(data.supportedAutomation),
+    custom: Boolean(data.custom),
     activeFeatures: data.features.filter(feature => feature.level <= barbarianLevel),
     nextFeatures: data.features.filter(feature => feature.level > barbarianLevel).slice(0, 2),
   };
