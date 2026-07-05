@@ -21,6 +21,13 @@ describe('FighterSubclassSummaryPanel', () => {
     expect(screen.getByText('9')).toBeInTheDocument();
   });
 
+  test('renders unsupported subclass notice', () => {
+    render(<FighterSubclassSummaryPanel summary={{ edition: '2014', isUnsupportedSubclass: true, unsupportedSubclassLabel: 'Samurai', subclassFeatures: [] }} />);
+    expect(screen.getByText('Fighter Subclass Support')).toBeInTheDocument();
+    expect(screen.getByText('Samurai')).toBeInTheDocument();
+    expect(screen.getByText(/detailed sheet automation is still being wired/i)).toBeInTheDocument();
+  });
+
   test('renders magic subclass spell slots', () => {
     render(<FighterSubclassSummaryPanel summary={{ edition: '2024', isMagicSubclass: true, magicSubclass: { spellSlots: [4, 3, 3, 0] }, subclassFeatures: [] }} />);
     expect(screen.getByText('Magic Fighter Features')).toBeInTheDocument();

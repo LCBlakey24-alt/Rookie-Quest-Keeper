@@ -22,13 +22,15 @@ function FeatureCards({ title, features = [] }) {
 }
 
 export default function FighterSubclassSummaryPanel({ summary }) {
-  if (!summary || (!summary.isChampion && !summary.isBattleMaster && !summary.isMagicSubclass)) return null;
+  if (!summary || (!summary.isChampion && !summary.isBattleMaster && !summary.isMagicSubclass && !summary.isUnsupportedSubclass)) return null;
 
   const title = summary.isChampion
     ? 'Champion Features'
     : summary.isBattleMaster
       ? 'Battle Master Features'
-      : 'Magic Fighter Features';
+      : summary.isMagicSubclass
+        ? 'Magic Fighter Features'
+        : 'Fighter Subclass Support';
 
   return (
     <section className="clean-sheet-panel clean-sheet-wide clean-sheet-fighter-panel" data-testid="fighter-subclass-summary-panel">
@@ -39,6 +41,12 @@ export default function FighterSubclassSummaryPanel({ summary }) {
         </div>
         <span>{summary.edition} rules</span>
       </div>
+      {summary.isUnsupportedSubclass && (
+        <div className="clean-sheet-empty-state">
+          <strong>{summary.unsupportedSubclassLabel || 'This Fighter subclass'}</strong>
+          <p>This subclass is recorded on the character, but detailed sheet automation is still being wired. Core Fighter actions, resources, attacks, and level reminders still work.</p>
+        </div>
+      )}
       <div className="clean-sheet-fighter-stat-grid">
         {summary.isChampion && (
           <div><span>Critical range</span><strong>{summary.criticalRange?.label || '20'}</strong><em>Champion critical scaling.</em></div>

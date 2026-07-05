@@ -44,6 +44,15 @@ describe('Fighter sheet summary', () => {
     expect(summary.subclassFeatures.map(feature => feature.key)).toContain('relentless');
   });
 
+  test('flags listed but unsupported Fighter subclasses instead of silently hiding them', () => {
+    const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Samurai', level: 7, rules_edition: '2014' });
+
+    expect(summary.isUnsupportedSubclass).toBe(true);
+    expect(summary.unsupportedSubclassLabel).toBe('Samurai');
+    expect(summary.subclassFeatures).toEqual([]);
+    expect(summary.attacksPerAction).toBe(2);
+  });
+
   test('adds magic subclass spell slots and feature summary', () => {
     const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Eldritch Knight', level: 18, rules_edition: '2024' });
 

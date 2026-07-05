@@ -39,6 +39,8 @@ export function getFighterSheetSummary(character = {}) {
   const champion = isChampionSubclass(subclassKey) ? getChampionSummary(level, edition) : null;
   const battleMaster = isBattleMasterSubclass(subclassKey) ? getBattleMasterSummary(level, edition) : null;
   const magicSubclass = isFighterMagicSubclass(subclassKey) ? getFighterMagicSummary(level, edition) : null;
+  const hasSubclass = Boolean(subclassKey);
+  const hasSupportedSubclass = Boolean(champion || battleMaster || magicSubclass);
 
   return {
     className: 'Fighter',
@@ -55,6 +57,8 @@ export function getFighterSheetSummary(character = {}) {
     isChampion: Boolean(champion),
     isBattleMaster: Boolean(battleMaster),
     isMagicSubclass: Boolean(magicSubclass),
+    isUnsupportedSubclass: hasSubclass && !hasSupportedSubclass,
+    unsupportedSubclassLabel: hasSubclass && !hasSupportedSubclass ? character?.subclass : '',
     battleMaster,
     magicSubclass,
   };
