@@ -47,9 +47,9 @@ export default function CleanSheetOverviewTab({
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
-      <section className="clean-sheet-panel clean-sheet-compact-section">
+      <section className="clean-sheet-panel clean-sheet-compact-section clean-sheet-ability-scores-panel">
         <h2>Ability Scores</h2>
-        <div className="clean-sheet-compact-abilities">
+        <div className="clean-sheet-compact-abilities clean-sheet-ability-score-strip">
           {ABILITIES.map(([key, label]) => {
             const score = Number(character?.[key] || 10);
             const modifier = mod(score);
