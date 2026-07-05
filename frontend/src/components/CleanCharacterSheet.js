@@ -56,7 +56,7 @@ export default function CleanCharacterSheet() {
   const [savingQuickState, setSavingQuickState] = useState(false);
   const [hpAmount, setHpAmount] = useState(1);
   const [tempHpAmount, setTempHpAmount] = useState(1);
-  const [activeTab, setActiveTab] = useState('character');
+  const [activeTab, setActiveTab] = useState('stats');
   const [rollBurst, setRollBurst] = useState(null);
   const [showLevelUpWizard, setShowLevelUpWizard] = useState(false);
   const [rollHistory, setRollHistory] = useState([]);
@@ -98,6 +98,7 @@ export default function CleanCharacterSheet() {
   const proficiencyBonus = Number(character?.proficiency_bonus) || 2 + Math.floor(((Number(character?.level) || 1) - 1) / 4);
   const ac = deriveArmorClass(character);
   const speed = Number(character?.speed ?? 30);
+  const initiative = mod(character?.dexterity);
   const skillProficiencies = character?.skill_proficiencies || [];
   const saveProficiencies = character?.saving_throw_proficiencies || [];
   const activeConditions = character?.conditions || [];
@@ -546,12 +547,16 @@ export default function CleanCharacterSheet() {
         tempHpAmount={tempHpAmount}
         savingHp={savingHp}
         savingTempHp={savingTempHp}
+        ac={ac}
+        speed={speed}
+        initiative={initiative}
         onHpAmountChange={setHpAmount}
         onTempHpAmountChange={setTempHpAmount}
         onDamage={() => updateHp(-getSafeAmount(hpAmount))}
         onHeal={() => updateHp(getSafeAmount(hpAmount))}
         onTempHpAdd={() => updateTempHp(getSafeAmount(tempHpAmount || hpAmount))}
         onTempHpRemove={() => updateTempHp(-getSafeAmount(tempHpAmount || hpAmount))}
+        onRollInitiative={() => makeRoll('Initiative', initiative)}
       />
 
       <CleanSheetTabs tabs={sheetTabs} activeTab={activeTab} onSelectTab={handleSelectTab} onBack={() => navigate('/home')} />
@@ -568,8 +573,6 @@ export default function CleanCharacterSheet() {
         {activeTab === 'stats' && (
           <CleanSheetOverviewTab
             character={character}
-            ac={ac}
-            speed={speed}
             proficiencyBonus={proficiencyBonus}
             passiveScores={passiveScores}
             saveProficiencies={saveProficiencies}
