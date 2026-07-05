@@ -149,6 +149,36 @@
   cursor: not-allowed;
 }
 
+/* Equipment should mirror the 2014/2024 rules choice: starting equipment OR starting gold. */
+.full-creator-equipment-modes {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.full-creator-equipment-modes button:nth-child(1) {
+  font-size: 0 !important;
+}
+
+.full-creator-equipment-modes button:nth-child(1)::after {
+  content: 'Starting equipment';
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.full-creator-equipment-modes button:nth-child(2) {
+  font-size: 0 !important;
+}
+
+.full-creator-equipment-modes button:nth-child(2)::after {
+  content: 'Starting gold';
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.full-creator-equipment-modes button:nth-child(3),
+.full-creator-panel textarea[placeholder*='Longsword'] {
+  display: none !important;
+}
+
 @media (max-width: 980px) {
   .full-creator-workspace {
     grid-template-columns: 86px minmax(0, 1fr);
