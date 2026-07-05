@@ -19,6 +19,40 @@
   content: none !important;
 }
 
+#root .character-page-v2 .clean-sheet-identity h1,
+#root .character-page-v2 .clean-sheet-panel h2,
+#root .character-page-v2 .clean-sheet-panel h3,
+#root .character-page-v2 .clean-sheet-card h2,
+#root .character-page-v2 .clean-sheet-card h3,
+#root .character-page-v2 .clean-sheet-section h2,
+#root .character-page-v2 .clean-sheet-section h3,
+#root .character-page-v2 .clean-sheet-section-heading-row h2,
+#root .character-page-v2 .clean-sheet-panel-heading h2,
+#root .character-page-v2 .clean-sheet-spellcasting-heading h2,
+#root .character-page-v2 .clean-sheet-spell-section-heading h2,
+#root .character-page-v2 .clean-sheet-inventory-header h2 {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1::after,
+#root .character-page-v2 .clean-sheet-panel h2::after,
+#root .character-page-v2 .clean-sheet-panel h3::after,
+#root .character-page-v2 .clean-sheet-card h2::after,
+#root .character-page-v2 .clean-sheet-card h3::after,
+#root .character-page-v2 .clean-sheet-section h2::after,
+#root .character-page-v2 .clean-sheet-section h3::after,
+#root .character-page-v2 .clean-sheet-section-heading-row h2::after,
+#root .character-page-v2 .clean-sheet-panel-heading h2::after,
+#root .character-page-v2 .clean-sheet-spellcasting-heading h2::after,
+#root .character-page-v2 .clean-sheet-spell-section-heading h2::after,
+#root .character-page-v2 .clean-sheet-inventory-header h2::after {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
 #root .character-page-v2 .clean-sheet-tabs {
   background: #10051d !important;
   border: 0 !important;
