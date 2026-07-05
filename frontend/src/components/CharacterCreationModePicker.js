@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/characterCreationModePicker.css';
+import '../styles/characterCreationModePickerSunset.css';
 import { ChevronLeft, ChevronRight, Clock, Sparkles, Wand2, Zap, Search } from 'lucide-react';
 import { characterCreationModes } from '../data/characterCreationModes';
 
