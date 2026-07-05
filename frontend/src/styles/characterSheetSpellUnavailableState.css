@@ -1,0 +1,45 @@
+/* Final spell tab unavailable state.
+   Shows a clear banner for characters with no spellcasting access yet, without changing caster layouts. */
+
+#root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card)) > .clean-spell-board {
+  display: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card))::before {
+  content: "Spellcasting not unlocked yet\A Unfortunately, this character does not currently have the ability to cast spells.\A When a class, subclass, feat, species trait, magic item, or level-up gives them spellcasting, this tab will show spell slots, cantrips, known spells, prepared spells, and casting details here.";
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 28px 20px !important;
+  white-space: pre-line !important;
+  text-align: center !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card))::after {
+  content: "✦";
+  display: grid !important;
+  place-items: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  margin: -78px auto 34px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border-radius: 8px !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-spells-tab:has(.clean-sheet-spell-search input:placeholder-shown):not(:has(.clean-sheet-spell-level-group)):not(:has(.clean-sheet-spell-card)):not(:has(.clean-sheet-slot-card)):not(:has(.clean-sheet-caster-card))::before {
+    min-height: 280px !important;
+    padding: 78px 18px 28px !important;
+    font-size: 0.96rem !important;
+  }
+}

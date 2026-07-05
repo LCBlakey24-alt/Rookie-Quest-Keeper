@@ -1,0 +1,142 @@
+/* Full Character Creator readiness review: priority vs can-finish-later checks. */
+
+.full-creator-readiness-panel {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.full-creator-readiness-hero,
+.full-creator-readiness-list {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  color: #ffffff;
+  box-shadow: none !important;
+}
+
+.full-creator-readiness-hero {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+}
+
+.full-creator-readiness-hero strong {
+  color: #ffffff;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif;
+  font-size: clamp(1.35rem, 5vw, 2rem);
+  line-height: 1.02;
+}
+
+.full-creator-readiness-hero span {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.full-creator-readiness-list {
+  padding: 12px;
+}
+
+.full-creator-readiness-list.priority {
+  background:
+    linear-gradient(#241325, #241325) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.96), rgba(255, 149, 66, 0.76)) border-box !important;
+}
+
+.full-creator-readiness-list.later {
+  background:
+    linear-gradient(#160a28, #160a28) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.82), rgba(216, 77, 241, 0.82), rgba(255, 149, 66, 0.55)) border-box !important;
+}
+
+.full-creator-readiness-list.ready {
+  background:
+    linear-gradient(#101f22, #101f22) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.72), rgba(67, 219, 173, 0.72), rgba(255, 149, 66, 0.5)) border-box !important;
+}
+
+.full-creator-readiness-list h3 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.full-creator-readiness-list ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.full-creator-readiness-list li {
+  position: relative;
+  padding-left: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.full-creator-readiness-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 950;
+}
+
+.full-creator-readiness-list.priority li::before {
+  content: '!';
+  background: linear-gradient(135deg, #ff4f81, #ff9542);
+  color: #ffffff;
+}
+
+.full-creator-readiness-list.later li::before {
+  content: '•';
+  background: linear-gradient(135deg, #7357ff, #d84df1);
+  color: #ffffff;
+}
+
+.full-creator-readiness-list.ready li::before {
+  content: '✓';
+  background: linear-gradient(135deg, #7357ff, #43dbad);
+  color: #ffffff;
+}
+
+.full-creator-footer button:disabled {
+  opacity: 0.58 !important;
+  cursor: not-allowed !important;
+}
+
+.full-creator-preview small:last-child {
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  padding: 8px;
+  color: #ffffff !important;
+  font-weight: 900;
+}
+
+@media (max-width: 680px) {
+  .full-creator-readiness-hero,
+  .full-creator-readiness-list {
+    padding: 11px;
+  }
+
+  .full-creator-readiness-list li {
+    font-size: 0.9rem;
+  }
+}

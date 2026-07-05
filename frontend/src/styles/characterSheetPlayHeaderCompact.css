@@ -1,0 +1,394 @@
+/* Final play-header compaction.
+   Keeps the always-visible play dashboard useful without eating the whole mobile screen. */
+
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button,
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-rest {
+  min-height: 38px !important;
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity {
+  position: relative !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-toggle {
+  display: none !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  z-index: 5 !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu,
+#root .character-page-v2 .clean-sheet-rest-menu {
+  position: absolute !important;
+  z-index: 30 !important;
+  min-width: 190px !important;
+  padding: 8px !important;
+  display: grid !important;
+  gap: 6px !important;
+  background: linear-gradient(#100318, #100318) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu {
+  right: 0 !important;
+  top: calc(100% + 8px) !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu button,
+#root .character-page-v2 .clean-sheet-rest-menu button {
+  min-height: 38px !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  background: rgba(22, 7, 34, 0.96) !important;
+  border: 1px solid rgba(216, 77, 241, 0.22) !important;
+  box-shadow: none !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  padding: 12px !important;
+  background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-hp-title {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-hp-title svg {
+  position: relative !important;
+  top: 2px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-hp-title span {
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 900 !important;
+  font-size: 0.92rem !important;
+  letter-spacing: 0.04em !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-hp-title strong {
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.16rem, 4vw, 1.65rem) !important;
+  line-height: 1 !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-top-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .character-page-v2 .clean-sheet-rest-menu-wrap {
+  position: relative !important;
+  display: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-temp-pill,
+#root .character-page-v2 .clean-sheet-inspiration-toggle,
+#root .character-page-v2 .clean-sheet-combat-rest-toggle {
+  min-height: 28px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-temp-pill {
+  padding: 0 8px !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+#root .character-page-v2 .clean-sheet-inspiration-toggle {
+  width: 30px !important;
+  min-width: 30px !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-rest-toggle {
+  padding: 0 9px !important;
+  font-size: 0.66rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-rest-menu {
+  right: 0 !important;
+  top: calc(100% + 8px) !important;
+}
+
+#root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border-color: transparent !important;
+}
+
+#root .character-page-v2 .clean-sheet-hp-progress {
+  width: 100% !important;
+  height: 5px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.11) !important;
+  border-radius: 999px !important;
+}
+
+#root .character-page-v2 .clean-sheet-hp-progress span {
+  display: block !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  transition: width 180ms ease !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
+  display: grid !important;
+  grid-template-columns: 0.9fr 0.62fr 0.9fr 0.9fr 0.9fr !important;
+  gap: 6px !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-hp-action-button--minus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-hp-action-button--plus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-temp-hp-action-button--minus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-temp-hp-action-button--plus {
+  min-height: 32px !important;
+  padding: 5px 4px !important;
+  border-radius: 8px !important;
+  font-size: 0.66rem !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  color: #ffffff !important;
+  background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button:disabled,
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button:disabled,
+#root .character-page-v2 .clean-sheet-combat-rest-toggle:disabled,
+#root .character-page-v2 .clean-sheet-inspiration-toggle:disabled {
+  opacity: 0.45 !important;
+  filter: grayscale(0.2) !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat-strip {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat-strip .clean-sheet-quick-stat,
+#root .character-page-v2 .clean-sheet-quick-stat-strip button.clean-sheet-quick-stat,
+#root .character-page-v2 button.clean-sheet-quick-stat.clean-sheet-quick-stat--rollable {
+  appearance: none !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  padding: 6px 3px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 2px !important;
+  text-align: center !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat svg {
+  width: 13px !important;
+  height: 13px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat span {
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: 0.7rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+#root .character-page-v2 .clean-sheet-quick-stat strong {
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
+  line-height: 0.9 !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-rest-actions {
+  display: none !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play {
+    display: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle {
+    display: grid !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    padding-right: 44px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-rest-menu-wrap {
+    display: inline-grid !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+    gap: 7px !important;
+    padding: 11px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-hp-title strong {
+    font-size: 1.18rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-temp-pill {
+    font-size: 0.64rem !important;
+    padding-inline: 7px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-inspiration-toggle {
+    width: 29px !important;
+    min-width: 29px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
+    grid-template-columns: 0.88fr 0.58fr 0.88fr 0.88fr 0.88fr !important;
+    gap: 5px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button {
+    min-height: 30px !important;
+    font-size: 0.61rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat-strip .clean-sheet-quick-stat,
+  #root .character-page-v2 .clean-sheet-quick-stat-strip button.clean-sheet-quick-stat,
+  #root .character-page-v2 button.clean-sheet-quick-stat.clean-sheet-quick-stat--rollable {
+    min-height: 49px !important;
+    padding: 5px 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat span {
+    font-size: 0.64rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-quick-stat strong {
+    font-size: clamp(1.35rem, 7.5vw, 2rem) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-top-actions {
+    gap: 5px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-temp-pill,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle {
+    font-size: 0.58rem !important;
+    padding-inline: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
+    gap: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button {
+    font-size: 0.56rem !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+}

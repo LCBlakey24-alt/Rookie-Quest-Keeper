@@ -1,0 +1,319 @@
+/* Final clean sheet rail + hero corrections.
+   Imported after the app-level sheet override so the mobile rail stays icon-only. */
+
+#root .character-page-v2 .clean-sheet-header {
+  padding: 12px !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  padding: 14px 16px !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity::before,
+#root .character-page-v2 .clean-sheet-identity::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row,
+#root .character-page-v2 .clean-sheet-panel-heading,
+#root .character-page-v2 .clean-sheet-spellcasting-heading,
+#root .character-page-v2 .clean-sheet-spell-section-heading,
+#root .character-page-v2 .clean-sheet-inventory-header {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row > svg,
+#root .character-page-v2 .clean-sheet-panel-heading > svg,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > svg,
+#root .character-page-v2 .clean-sheet-spell-section-heading > svg,
+#root .character-page-v2 .clean-sheet-inventory-header > svg {
+  position: absolute !important;
+  top: 2px !important;
+  right: 0 !important;
+  z-index: 2 !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row > span,
+#root .character-page-v2 .clean-sheet-panel-heading > span,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > span,
+#root .character-page-v2 .clean-sheet-spell-section-heading > span,
+#root .character-page-v2 .clean-sheet-inventory-header > span {
+  position: absolute !important;
+  top: 1px !important;
+  right: 0 !important;
+  z-index: 2 !important;
+  min-height: 18px !important;
+  padding: 2px 6px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 4px !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1,
+#root .character-page-v2 .clean-sheet-panel h2,
+#root .character-page-v2 .clean-sheet-panel h3,
+#root .character-page-v2 .clean-sheet-card h2,
+#root .character-page-v2 .clean-sheet-card h3,
+#root .character-page-v2 .clean-sheet-section h2,
+#root .character-page-v2 .clean-sheet-section h3,
+#root .character-page-v2 .clean-sheet-section-heading-row h2,
+#root .character-page-v2 .clean-sheet-panel-heading h2,
+#root .character-page-v2 .clean-sheet-spellcasting-heading h2,
+#root .character-page-v2 .clean-sheet-spell-section-heading h2,
+#root .character-page-v2 .clean-sheet-inventory-header h2 {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1::after,
+#root .character-page-v2 .clean-sheet-panel h2::after,
+#root .character-page-v2 .clean-sheet-panel h3::after,
+#root .character-page-v2 .clean-sheet-card h2::after,
+#root .character-page-v2 .clean-sheet-card h3::after,
+#root .character-page-v2 .clean-sheet-section h2::after,
+#root .character-page-v2 .clean-sheet-section h3::after,
+#root .character-page-v2 .clean-sheet-section-heading-row h2::after,
+#root .character-page-v2 .clean-sheet-panel-heading h2::after,
+#root .character-page-v2 .clean-sheet-spellcasting-heading h2::after,
+#root .character-page-v2 .clean-sheet-spell-section-heading h2::after,
+#root .character-page-v2 .clean-sheet-inventory-header h2::after {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-character-summary-grid,
+#root .character-page-v2 .clean-sheet-character-detail-grid,
+#root .character-page-v2 .clean-sheet-core-stat-grid,
+#root .character-page-v2 .clean-sheet-passive-grid,
+#root .character-page-v2 .clean-sheet-compact-abilities,
+#root .character-page-v2 .clean-sheet-readable-saves,
+#root .character-page-v2 .clean-sheet-readable-skills,
+#root .character-page-v2 .clean-sheet-skills-summary,
+#root .character-page-v2 .clean-sheet-skill-filter-row,
+#root .character-page-v2 .clean-sheet-spell-summary,
+#root .character-page-v2 .clean-sheet-inventory-summary,
+#root .character-page-v2 .clean-sheet-currency-grid,
+#root .character-page-v2 .clean-sheet-equipment-preview,
+#root .character-page-v2 .clean-sheet-readiness-grid,
+#root .character-page-v2 .clean-sheet-proficiency-lists,
+#root .character-page-v2 .clean-sheet-caster-grid,
+#root .character-page-v2 .clean-sheet-caster-stats,
+#root .character-page-v2 .clean-sheet-slot-grid,
+#root .character-page-v2 .clean-sheet-spell-grid,
+#root .character-page-v2 .clean-sheet-spell-library-grid,
+#root .character-page-v2 .clean-sheet-item-grid,
+#root .character-page-v2 .clean-sheet-equipped-slot-grid,
+#root .character-page-v2 .clean-sheet-feature-lanes,
+#root .character-page-v2 .clean-sheet-action-grid {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  padding: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-character-summary-grid::before,
+#root .character-page-v2 .clean-sheet-character-summary-grid::after,
+#root .character-page-v2 .clean-sheet-character-detail-grid::before,
+#root .character-page-v2 .clean-sheet-character-detail-grid::after,
+#root .character-page-v2 .clean-sheet-core-stat-grid::before,
+#root .character-page-v2 .clean-sheet-core-stat-grid::after,
+#root .character-page-v2 .clean-sheet-skills-summary::before,
+#root .character-page-v2 .clean-sheet-skills-summary::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs {
+  background: #10051d !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  padding: 8px 4px !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs::before,
+#root .character-page-v2 .clean-sheet-tabs::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+  display: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active,
+#root .character-page-v2 .clean-sheet-tabs button.active:hover,
+#root .character-page-v2 .clean-sheet-tabs button.active:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 8px !important;
+  box-sizing: content-box !important;
+  display: block !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active::before,
+#root .character-page-v2 .clean-sheet-tabs button.active::after,
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention.active::before,
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention.active::after {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button .clean-sheet-tab-warning,
+#root .character-page-v2 .clean-sheet-tabs button.active .clean-sheet-tab-warning,
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention.active .clean-sheet-tab-warning {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention:not(.active)::after {
+  right: 3px !important;
+  top: 3px !important;
+  width: 6px !important;
+  height: 6px !important;
+  left: auto !important;
+  bottom: auto !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #ff4f81, #ff9542) !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  order: 999 !important;
+  align-self: center !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback::before,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback::after,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span::before,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span::after {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+@media (min-width: 760px) {
+  #root .character-page-v2 .clean-sheet-tabs button,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    justify-items: start !important;
+    padding: 0 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+    display: block !important;
+    color: #ffffff !important;
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-weight: 800 !important;
+  }
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-tabs {
+    left: 7px !important;
+    width: 46px !important;
+    max-width: 46px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    margin-top: 0 !important;
+  }
+}

@@ -1,5 +1,4 @@
-/* Final mobile Actions tab overrides.
-   Keeps Actions/Bonus Actions/Reactions compact, equal-width, and aligned with the mobile sheet rhythm. */
+/* Mobile Actions tab polish using the sunset sheet language. */
 
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-grid,
@@ -7,7 +6,7 @@
     width: 100% !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 8px !important;
+    gap: 10px !important;
     background: transparent !important;
     border: 0 !important;
     align-items: stretch !important;
@@ -19,17 +18,23 @@
     padding: 10px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-panel > h2 {
     margin: 0 0 8px !important;
-    font-size: 12px !important;
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-size: clamp(1.25rem, 5vw, 1.7rem) !important;
     line-height: 1 !important;
-    font-weight: 950 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    color: var(--rq-text-primary, #ffffff) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: none !important;
+    color: #ffffff !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell {
@@ -42,35 +47,42 @@
     width: 100% !important;
     min-width: 0 !important;
     min-height: 76px !important;
-    padding: 9px 10px 9px 10px !important;
+    padding: 10px !important;
     display: grid !important;
-    gap: 5px !important;
+    gap: 6px !important;
     align-content: center !important;
     text-align: left !important;
     box-sizing: border-box !important;
-    background: var(--rq-bg-card, #151515) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#10051d, #10051d) padding-box,
+      linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 9px !important;
     overflow: hidden !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card-shell.active .clean-sheet-action-card {
-    background: var(--rq-bg-panel, #101010) !important;
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#10051d, #10051d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-type {
     width: fit-content !important;
     max-width: 100% !important;
     min-height: 18px !important;
-    padding: 3px 5px !important;
+    padding: 3px 6px !important;
     display: inline-grid !important;
     place-items: center !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#160722, #160722) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 6px !important;
     font-size: 8px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -83,7 +95,7 @@
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card strong {
     max-width: 100% !important;
-    color: var(--rq-text-primary, #ffffff) !important;
+    color: #ffffff !important;
     font-size: 13px !important;
     line-height: 1.05 !important;
     font-weight: 950 !important;
@@ -95,7 +107,7 @@
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-action-card > span:not(.clean-sheet-action-type),
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-details {
     max-width: 100% !important;
-    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
+    color: rgba(255,255,255,0.76) !important;
     font-size: 10px !important;
     line-height: 1.25 !important;
     display: -webkit-box !important;
@@ -142,16 +154,14 @@
     gap: 3px !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-left: 3px solid rgba(255,255,255,0.18) !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(255, 149, 66, 0.52)) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 8px !important;
     overflow: hidden !important;
-  }
-
-  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-roll-box,
-  .character-page-v2 .clean-sheet-actions-tab .clean-sheet-damage-roll-box {
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box span,
@@ -163,7 +173,7 @@
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box span {
-    color: var(--rq-text-muted, rgba(255,255,255,0.62)) !important;
+    color: rgba(255,255,255,0.68) !important;
     font-size: 8px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -172,7 +182,7 @@
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-attack-stat-box strong {
-    color: var(--rq-text-primary, #ffffff) !important;
+    color: #ffffff !important;
     font-size: 11px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -183,19 +193,25 @@
     width: 100% !important;
     min-width: 0 !important;
     padding: 8px !important;
-    background: var(--rq-bg-card, #151515) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#10051d, #10051d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 9px !important;
   }
 
   .character-page-v2 .clean-sheet-actions-tab .clean-sheet-pending-damage button {
     min-height: 30px !important;
     padding: 0 8px !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 3px solid transparent !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 8px !important;
     font-size: 10px !important;
     font-weight: 950 !important;
   }

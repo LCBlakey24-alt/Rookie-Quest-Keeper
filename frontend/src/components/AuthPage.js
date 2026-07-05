@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
-import { BrandMainLogo } from '@/components/ui/BrandLogo';
+import './AuthPage.css';
 
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
@@ -148,35 +148,35 @@ export default function AuthPage({ onLogin = () => {} }) {
   };
 
   return (
-    <div style={pageStyle}>
-      <div style={contentStyle}>
-        <button type="button" onClick={() => navigate('/')} style={logoWrapStyle} data-no-fill-animation="true" aria-label="Back to Rookie Quest Keeper home">
-          <BrandMainLogo height={104} />
+    <div className="rqk-auth-page" style={pageStyle}>
+      <div className="rqk-auth-content" style={contentStyle}>
+        <button type="button" onClick={() => navigate('/')} className="rqk-auth-mark" style={logoWrapStyle} data-no-fill-animation="true" aria-label="Back to Rookie Quest Keeper home">
+          <span aria-hidden="true">RQK</span>
         </button>
 
-        <div style={panelStyle}>
-          <div style={headingStyle}>
+        <div className="rqk-auth-panel" style={panelStyle}>
+          <div className="rqk-auth-heading" style={headingStyle}>
             <p style={eyebrowStyle}>Rookie Quest Keeper</p>
             <h1 style={titleStyle}>{authCopy[mode]?.title}</h1>
             <p style={subtitleStyle}>{authCopy[mode]?.subtitle}</p>
           </div>
 
           {mode === 'register' && (
-            <div style={nextStepNoteStyle}>
+            <div className="rqk-auth-note" style={nextStepNoteStyle}>
               <ShieldCheck size={15} />
               <span>After signup, start with <strong>Build Your First Character</strong>. Use a nickname instead of a real name.</span>
             </div>
           )}
 
           {mode === 'login' && (
-            <div style={accountChangeNoticeStyle}>
+            <div className="rqk-auth-note" style={accountChangeNoticeStyle}>
               <ShieldCheck size={15} />
               <span>Use your username or recovery email. New player? Tap <strong>Create an account</strong> below.</span>
             </div>
           )}
 
           {mode === 'login' && (
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} className="rqk-auth-form">
               <AuthInput
                 icon={User}
                 type="text"
@@ -201,7 +201,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 }
               />
 
-              <button type="button" onClick={() => setMode('forgot')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('forgot')} className="rqk-auth-link-button" style={linkButtonStyle}>
                 <span>Forgot password?</span>
               </button>
 
@@ -214,7 +214,7 @@ export default function AuthPage({ onLogin = () => {} }) {
           )}
 
           {mode === 'register' && (
-            <form onSubmit={handleRegister}>
+            <form onSubmit={handleRegister} className="rqk-auth-form">
               <AuthInput
                 icon={User}
                 type="text"
@@ -222,7 +222,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 value={registerData.username}
                 onChange={(value) => setRegisterData({ ...registerData, username: value })}
               />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Kid-friendly signup: no email needed. Use a nickname, not a real name.</p>
+              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Kid-friendly signup: no email needed. Use a nickname, not a real name.</p>
               <AuthInput
                 icon={Mail}
                 type="email"
@@ -251,7 +251,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 value={registerData.confirmPassword}
                 onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
               />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Passwords need at least 8 characters. Recovery email helps if you forget it later.</p>
+              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Passwords need at least 8 characters. Recovery email helps if you forget it later.</p>
 
               <PrimaryButton type="submit" disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account'}
@@ -262,7 +262,7 @@ export default function AuthPage({ onLogin = () => {} }) {
           )}
 
           {mode === 'forgot' && (
-            <form onSubmit={handleForgotPassword}>
+            <form onSubmit={handleForgotPassword} className="rqk-auth-form">
               <AuthInput
                 icon={Mail}
                 type="email"
@@ -282,7 +282,7 @@ export default function AuthPage({ onLogin = () => {} }) {
           )}
 
           {mode === 'reset' && (
-            <form onSubmit={handleResetPassword}>
+            <form onSubmit={handleResetPassword} className="rqk-auth-form">
               <AuthInput
                 icon={Lock}
                 type={showResetPassword ? 'text' : 'password'}
@@ -297,7 +297,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   />
                 }
               />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Use at least 8 characters.</p>
+              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Use at least 8 characters.</p>
 
               <PrimaryButton type="submit" disabled={loading}>
                 {loading ? 'Resetting...' : 'Reset Password'}
@@ -306,7 +306,7 @@ export default function AuthPage({ onLogin = () => {} }) {
           )}
         </div>
 
-        <p style={footerStyle}>© {new Date().getFullYear()} Rookie Quest Keeper</p>
+        <p className="rqk-auth-footer" style={footerStyle}>© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
     </div>
   );
@@ -314,9 +314,10 @@ export default function AuthPage({ onLogin = () => {} }) {
 
 function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId, rightAction }) {
   return (
-    <div style={inputWrapStyle}>
-      <Icon size={18} style={inputIconStyle} />
+    <div className="rqk-auth-input" style={inputWrapStyle}>
+      <Icon size={18} className="rqk-auth-input-icon" style={inputIconStyle} />
       <input
+        className="rqk-auth-field"
         type={type}
         placeholder={placeholder}
         value={value}
@@ -331,35 +332,36 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId, rig
 
 function IconButton({ icon: Icon, label, onClick }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} style={iconButtonStyle}>
+    <button type="button" onClick={onClick} aria-label={label} title={label} className="rqk-auth-icon-button" style={iconButtonStyle}>
       <Icon size={17} />
     </button>
   );
 }
 
 function PrimaryButton({ children, disabled, type = 'button', testId }) {
-  return <button type={type} disabled={disabled} data-testid={testId} style={primaryButtonStyle}><span>{children}</span></button>;
+  return <button type={type} disabled={disabled} data-testid={testId} className="rqk-auth-primary" style={primaryButtonStyle}><span>{children}</span></button>;
 }
 
 function SecondaryButton({ children, onClick, type = 'button' }) {
-  return <button type={type} onClick={onClick} style={secondaryButtonStyle}>{children}</button>;
+  return <button type={type} onClick={onClick} className="rqk-auth-secondary" style={secondaryButtonStyle}>{children}</button>;
 }
 
 function AuthSwitch({ text, actionText, onClick }) {
   return (
-    <div style={switchStyle}>
+    <div className="rqk-auth-switch" style={switchStyle}>
       <span>{text}</span>
-      <button type="button" onClick={onClick} style={switchButtonStyle}><span>{actionText}</span></button>
+      <button type="button" onClick={onClick} className="rqk-auth-switch-button" style={switchButtonStyle}><span>{actionText}</span></button>
     </div>
   );
 }
 
 const pageStyle = {
+  minHeight: '100dvh',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  padding: '16px 16px 24px',
-  background: 'var(--rq-bg, #242424)',
+  padding: '18px 14px 24px',
+  background: 'linear-gradient(180deg, #07040d 0%, #10051d 100%)',
   position: 'relative',
   overflowX: 'hidden',
   overflowY: 'auto',
@@ -369,61 +371,63 @@ const pageStyle = {
 const contentStyle = {
   position: 'relative',
   zIndex: 1,
-  width: 'min(100%, 430px)',
+  width: 'min(100%, 410px)',
   display: 'grid',
-  gap: 14,
+  gap: 12,
   justifyItems: 'center',
 };
 
 const logoWrapStyle = {
   cursor: 'pointer',
-  display: 'inline-flex',
-  justifyContent: 'center',
-  border: 0,
-  background: 'transparent',
+  width: 38,
+  height: 38,
+  display: 'inline-grid',
+  placeItems: 'center',
+  border: '1px solid transparent',
+  borderRadius: 8,
+  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
   padding: 0,
   margin: '0 0 2px',
-  color: 'var(--rq-text, #ffffff)',
+  color: '#ffffff',
 };
 
 const panelStyle = {
   width: '100%',
-  padding: '16px 0 0',
-  borderRadius: 0,
-  background: 'transparent',
-  border: 0,
-  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
+  padding: 16,
+  borderRadius: 12,
+  background: 'linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
+  border: '1px solid transparent',
   boxShadow: 'none',
 };
 
 const headingStyle = { textAlign: 'center', marginBottom: 14 };
-const eyebrowStyle = { margin: '0 0 6px', color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.11em', fontWeight: 950 };
-const titleStyle = { margin: 0, color: 'var(--rq-text, #ffffff)', fontSize: 30, fontWeight: 950, lineHeight: 1.05, letterSpacing: '-0.02em' };
-const subtitleStyle = { margin: '7px auto 0', maxWidth: 360, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14, lineHeight: 1.42 };
+const eyebrowStyle = { margin: '0 0 6px', color: 'rgba(255,255,255,0.78)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.13em', fontWeight: 950 };
+const titleStyle = { margin: 0, color: '#ffffff', fontFamily: "var(--rq-heading-font, 'Cinzel'), Georgia, serif", fontSize: 34, fontWeight: 950, lineHeight: 1.02, letterSpacing: '0.01em' };
+const subtitleStyle = { margin: '8px auto 0', maxWidth: 360, color: 'rgba(255,255,255,0.82)', fontSize: 15, lineHeight: 1.38 };
 
 const inputWrapStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: 9,
   marginBottom: 9,
-  padding: '0 10px',
-  minHeight: 46,
-  borderRadius: 0,
-  border: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
-  background: 'var(--rq-surface, #3a3a3a)',
+  padding: '0 9px',
+  minHeight: 48,
+  borderRadius: 10,
+  border: '1px solid transparent',
+  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, rgba(115,87,255,0.92), rgba(216,77,241,0.9), rgba(255,79,129,0.86), rgba(255,149,66,0.78)) border-box',
 };
 
-const inputIconStyle = { color: 'var(--rq-primary, #d00000)', flexShrink: 0 };
-const inputStyle = { width: '100%', minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: 'var(--rq-text, #ffffff)', fontSize: 15 };
-const iconButtonStyle = { border: 0, background: 'transparent', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', minHeight: 34, width: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const inputIconStyle = { color: '#ff4fdd', flexShrink: 0 };
+const inputStyle = { width: '100%', minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: '#ffffff', fontSize: 15 };
+const iconButtonStyle = { border: '1px solid transparent', background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box', borderRadius: 8, color: '#ffffff', cursor: 'pointer', minHeight: 34, width: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 
 const primaryButtonStyle = {
   width: '100%',
   minHeight: 46,
-  borderRadius: 0,
+  borderRadius: 10,
   border: 0,
-  background: 'var(--rq-surface, #3a3a3a)',
-  color: 'var(--rq-text, #ffffff)',
+  background: 'linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%)',
+  color: '#ffffff',
   fontWeight: 950,
   fontSize: 15,
   cursor: 'pointer',
@@ -435,10 +439,10 @@ const secondaryButtonStyle = {
   width: '100%',
   minHeight: 42,
   marginTop: 8,
-  borderRadius: 0,
-  border: 0,
-  background: 'var(--rq-surface, #3a3a3a)',
-  color: 'var(--rq-text, #ffffff)',
+  borderRadius: 10,
+  border: '1px solid transparent',
+  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
+  color: '#ffffff',
   fontWeight: 850,
   cursor: 'pointer',
   display: 'inline-flex',
@@ -449,31 +453,31 @@ const secondaryButtonStyle = {
 };
 
 const linkButtonStyle = {
-  border: 0,
-  background: 'transparent',
-  color: 'var(--rq-text, #ffffff)',
+  border: '1px solid transparent',
+  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
+  color: '#ffffff',
   cursor: 'pointer',
   fontSize: 12,
   margin: '0 0 8px',
-  padding: '6px 0',
+  padding: '8px 10px',
+  borderRadius: 9,
   textAlign: 'left',
   fontWeight: 900,
 };
 
-const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 13, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14 };
-const switchButtonStyle = { border: 0, background: 'var(--rq-surface, #3a3a3a)', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 0 };
-const footerStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12 };
+const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 13, color: 'rgba(255,255,255,0.82)', fontSize: 14 };
+const switchButtonStyle = { border: '1px solid transparent', background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box', color: '#ffffff', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 9 };
+const footerStyle = { margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: 12 };
 
 const nextStepNoteStyle = {
   display: 'flex',
   gap: 8,
   alignItems: 'flex-start',
-  padding: '10px 0',
-  borderRadius: 0,
-  background: 'transparent',
-  border: 0,
-  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+  padding: '10px 11px',
+  borderRadius: 10,
+  background: 'rgba(18, 5, 28, 0.82)',
+  border: '1px solid rgba(216,77,241,0.24)',
+  color: 'rgba(255,255,255,0.82)',
   fontSize: 12,
   lineHeight: 1.35,
   marginBottom: 10,
@@ -481,14 +485,14 @@ const nextStepNoteStyle = {
 
 const accountChangeNoticeStyle = {
   ...nextStepNoteStyle,
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+  color: 'rgba(255,255,255,0.82)',
 };
 
 const kidSafeNoteStyle = {
   display: 'flex',
   gap: 7,
   alignItems: 'flex-start',
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
+  color: 'rgba(255,255,255,0.76)',
   fontSize: 12,
   lineHeight: 1.3,
   margin: '-2px 0 9px',

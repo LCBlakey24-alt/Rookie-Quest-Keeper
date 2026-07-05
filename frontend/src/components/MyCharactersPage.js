@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ChevronRight, Copy, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
+import './MyCharactersPage.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.characterId || '';
@@ -19,6 +20,13 @@ function classSummary(character) {
     : [];
   if (classLevels.length > 0) return classLevels.map(([name]) => name).join(' / ');
   return character?.character_class || character?.class_name || character?.class || 'Adventurer';
+}
+
+function characterSubclass(character) {
+  const raw = character?.subclass || character?.subclass_name || character?.class_subclass || character?.archetype || '';
+  if (!raw) return '';
+  if (typeof raw === 'string') return raw;
+  return raw?.name || raw?.title || '';
 }
 
 function characterLine(character) {
@@ -95,7 +103,6 @@ function duplicatePayload(source) {
 }
 
 export default function MyCharactersPage() {
-  const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -191,7 +198,7 @@ export default function MyCharactersPage() {
 
       <section className="library-page-action-row" aria-label="Character library actions">
         <div className="library-page-action-main">
-          <Link to="/characters/new" className="library-page-button library-page-button-primary">
+          <Link to="/characters/create" className="library-page-button library-page-button-primary">
             <Plus size={16} />
             Create Character
           </Link>
@@ -215,37 +222,34 @@ export default function MyCharactersPage() {
           <h2>No characters yet</h2>
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
-            <Link to="/characters/new" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/create" className="library-page-button library-page-button-primary">Create Character</Link>
           </div>
         </section>
       ) : (
-        <section className="library-page-grid" aria-label="Saved characters">
-          {sortedCharacters.map((character, index) => {
+        <section className="library-card-grid characters-card-grid" aria-label="Saved characters">
+          {sortedCharacters.map((character) => {
             const id = recordId(character);
-            const deleting = deletingId === id;
-            const duplicating = duplicatingId === id;
-
+            const subclass = characterSubclass(character);
             return (
-              <article key={id || `character-${index}`} className="library-page-card character-library-card">
-                <div className="character-library-card-copy">
-                  <h2>{characterTitle(character)}</h2>
-                  <p>{characterLine(character)}</p>
-                  <p>{characterLevel(character)}</p>
+              <article key={id || characterTitle(character)} className="library-card character-library-card">
+                <div className="character-card-main">
+                  <div className="character-card-identity-row">
+                    <h2>{characterTitle(character)}</h2>
+                    <span className="character-card-level-badge">{characterLevel(character)}</span>
+                  </div>
+                  <div className="character-card-subtitle-stack">
+                    <p className="character-card-primary-line">{characterLine(character)}</p>
+                    {subclass && <p className="character-card-subclass-line">{subclass}</p>}
+                  </div>
                 </div>
-                <div className="library-page-actions character-library-card-actions">
-                  <button type="button" onClick={() => id && navigate(`/characters/${id}`)} disabled={!id} className="library-page-card-open">
+                <div className="character-card-actions">
+                  <Link to={`/characters/${id}`} className="library-page-button library-page-button-primary character-card-open">
                     Open Sheet <ChevronRight size={16} />
-                  </button>
-                  <div className="library-page-card-secondary-actions">
-                    <button type="button" onClick={() => id && navigate(`/characters/${id}/edit`)} disabled={!id}>
-                      <Pencil size={15} /> Edit
-                    </button>
-                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={!id || duplicating}>
-                      <Copy size={15} /> {duplicating ? 'Duplicating...' : 'Duplicate'}
-                    </button>
-                    <button type="button" onClick={() => deleteCharacter(character)} disabled={!id || deleting} className="library-page-danger-button">
-                      <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
-                    </button>
+                  </Link>
+                  <div className="character-card-secondary-actions">
+                    <Link to={`/characters/${id}?edit=true`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
+                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicatingId === id} className="library-page-button-secondary"><Copy size={15} /> {duplicatingId === id ? 'Duplicating...' : 'Duplicate'}</button>
+                    <button type="button" onClick={() => deleteCharacter(character)} disabled={deletingId === id} className="library-page-button-secondary library-page-button-danger"><Trash2 size={15} /> {deletingId === id ? 'Deleting...' : 'Delete'}</button>
                   </div>
                 </div>
               </article>
