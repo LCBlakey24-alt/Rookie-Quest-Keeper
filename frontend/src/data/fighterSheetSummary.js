@@ -2,6 +2,7 @@ import { getFighterProgressionSummary } from './fighterProgression';
 import { getChampionSummary, isChampionSubclass } from './fighterChampion';
 import { getBattleMasterSummary, isBattleMasterSubclass } from './fighterBattleMaster';
 import { getFighterMagicSummary, isFighterMagicSubclass } from './fighterMagicSubclass';
+import { getSamuraiSummary, isSamuraiSubclass } from './fighterSamurai';
 
 function normaliseRuleset(character = {}) {
   return String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
@@ -39,8 +40,9 @@ export function getFighterSheetSummary(character = {}) {
   const champion = isChampionSubclass(subclassKey) ? getChampionSummary(level, edition) : null;
   const battleMaster = isBattleMasterSubclass(subclassKey) ? getBattleMasterSummary(level, edition) : null;
   const magicSubclass = isFighterMagicSubclass(subclassKey) ? getFighterMagicSummary(level, edition) : null;
+  const samurai = isSamuraiSubclass(subclassKey) ? getSamuraiSummary(level, edition) : null;
   const hasSubclass = Boolean(subclassKey);
-  const hasSupportedSubclass = Boolean(champion || battleMaster || magicSubclass);
+  const hasSupportedSubclass = Boolean(champion || battleMaster || magicSubclass || samurai);
 
   return {
     className: 'Fighter',
@@ -53,13 +55,15 @@ export function getFighterSheetSummary(character = {}) {
     currentLevelFeatures: fighter.currentLevelFeatures,
     nextFeatures: fighter.nextFeatures,
     criticalRange: champion?.criticalRange || { minimum: 20, label: '20' },
-    subclassFeatures: champion?.activeFeatures || battleMaster?.activeFeatures || magicSubclass?.activeFeatures || [],
+    subclassFeatures: champion?.activeFeatures || battleMaster?.activeFeatures || magicSubclass?.activeFeatures || samurai?.activeFeatures || [],
     isChampion: Boolean(champion),
     isBattleMaster: Boolean(battleMaster),
     isMagicSubclass: Boolean(magicSubclass),
+    isSamurai: Boolean(samurai),
     isUnsupportedSubclass: hasSubclass && !hasSupportedSubclass,
     unsupportedSubclassLabel: hasSubclass && !hasSupportedSubclass ? character?.subclass : '',
     battleMaster,
     magicSubclass,
+    samurai,
   };
 }

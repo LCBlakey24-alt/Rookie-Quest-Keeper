@@ -22,7 +22,7 @@ function FeatureCards({ title, features = [] }) {
 }
 
 export default function FighterSubclassSummaryPanel({ summary }) {
-  if (!summary || (!summary.isChampion && !summary.isBattleMaster && !summary.isMagicSubclass && !summary.isUnsupportedSubclass)) return null;
+  if (!summary || (!summary.isChampion && !summary.isBattleMaster && !summary.isMagicSubclass && !summary.isSamurai && !summary.isUnsupportedSubclass)) return null;
 
   const title = summary.isChampion
     ? 'Champion Features'
@@ -30,7 +30,9 @@ export default function FighterSubclassSummaryPanel({ summary }) {
       ? 'Battle Master Features'
       : summary.isMagicSubclass
         ? 'Magic Fighter Features'
-        : 'Fighter Subclass Support';
+        : summary.isSamurai
+          ? 'Samurai Features'
+          : 'Fighter Subclass Support';
 
   return (
     <section className="clean-sheet-panel clean-sheet-wide clean-sheet-fighter-panel" data-testid="fighter-subclass-summary-panel">
@@ -50,6 +52,12 @@ export default function FighterSubclassSummaryPanel({ summary }) {
       <div className="clean-sheet-fighter-stat-grid">
         {summary.isChampion && (
           <div><span>Critical range</span><strong>{summary.criticalRange?.label || '20'}</strong><em>Champion critical scaling.</em></div>
+        )}
+        {summary.isSamurai && summary.samurai && (
+          <>
+            <div><span>Fighting Spirit</span><strong>{summary.samurai.fightingSpiritUses}</strong><em>Long-rest uses tracked by Fighter level.</em></div>
+            <div><span>Subclass features</span><strong>{summary.subclassFeatures?.length || 0}</strong><em>Active Samurai unlocks.</em></div>
+          </>
         )}
         {summary.isBattleMaster && summary.battleMaster && (
           <>

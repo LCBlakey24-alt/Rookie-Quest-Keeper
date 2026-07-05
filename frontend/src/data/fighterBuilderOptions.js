@@ -24,6 +24,13 @@ export const FIGHTER_SUBCLASS_OPTIONS = [
     summary: 'A weapon-focused Fighter with limited spellcasting support.',
     rulesets: ['2014', '2024'],
   },
+  {
+    value: 'Samurai',
+    label: 'Samurai',
+    key: 'samurai',
+    summary: 'A focused martial subclass with a limited-use combat boost and social resilience.',
+    rulesets: ['2014'],
+  },
 ];
 
 function toChoiceLabel(choiceType = '') {

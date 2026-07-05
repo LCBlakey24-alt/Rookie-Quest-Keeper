@@ -44,11 +44,20 @@ describe('Fighter sheet summary', () => {
     expect(summary.subclassFeatures.map(feature => feature.key)).toContain('relentless');
   });
 
+  test('adds Samurai subclass features and Fighting Spirit summary', () => {
+    const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Samurai', level: 10, rules_edition: '2014' });
+
+    expect(summary.isSamurai).toBe(true);
+    expect(summary.isUnsupportedSubclass).toBe(false);
+    expect(summary.samurai).toMatchObject({ fightingSpiritUses: 3 });
+    expect(summary.subclassFeatures.map(feature => feature.key)).toEqual(expect.arrayContaining(['fighting_spirit', 'tireless_spirit']));
+  });
+
   test('flags listed but unsupported Fighter subclasses instead of silently hiding them', () => {
-    const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Samurai', level: 7, rules_edition: '2014' });
+    const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Rune Knight', level: 7, rules_edition: '2014' });
 
     expect(summary.isUnsupportedSubclass).toBe(true);
-    expect(summary.unsupportedSubclassLabel).toBe('Samurai');
+    expect(summary.unsupportedSubclassLabel).toBe('Rune Knight');
     expect(summary.subclassFeatures).toEqual([]);
     expect(summary.attacksPerAction).toBe(2);
   });
