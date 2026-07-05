@@ -64,14 +64,14 @@ export default function CleanSheetOverviewTab({
         </div>
       </section>
 
-      <section className="clean-sheet-panel clean-sheet-compact-section">
+      <section className="clean-sheet-panel clean-sheet-compact-section clean-sheet-saving-throws-panel">
         <h2>Saving Throws</h2>
-        <div className="clean-sheet-readable-saves">
+        <div className="clean-sheet-readable-saves clean-sheet-saving-throw-strip">
           {ABILITIES.map(([key, label]) => {
             const proficient = saveProficiencies.includes(label) || saveProficiencies.includes(key);
             const modifier = mod(character?.[key]) + (proficient ? proficiencyBonus : 0);
             return (
-              <div className="clean-sheet-compact-save" key={key}>
+              <div className={`clean-sheet-compact-save ${proficient ? 'is-proficient' : ''}`} key={key}>
                 <div className="clean-sheet-save-label"><strong>{label}</strong>{proficient && <span>Prof</span>}</div>
                 <button type="button" className="clean-sheet-roll-chip" onClick={() => onRoll(`${label} Save`, modifier)}>{fmt(modifier)}</button>
               </div>
