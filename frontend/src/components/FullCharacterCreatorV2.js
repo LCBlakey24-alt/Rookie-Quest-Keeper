@@ -18,6 +18,21 @@ const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
+const STARTING_GOLD_BY_CLASS = {
+  Barbarian: { formula: '2d4 × 10 gp', average: 50 },
+  Bard: { formula: '5d4 × 10 gp', average: 125 },
+  Cleric: { formula: '5d4 × 10 gp', average: 125 },
+  Druid: { formula: '2d4 × 10 gp', average: 50 },
+  Fighter: { formula: '5d4 × 10 gp', average: 125 },
+  Monk: { formula: '5d4 gp', average: 13 },
+  Paladin: { formula: '5d4 × 10 gp', average: 125 },
+  Ranger: { formula: '5d4 × 10 gp', average: 125 },
+  Rogue: { formula: '4d4 × 10 gp', average: 100 },
+  Sorcerer: { formula: '3d4 × 10 gp', average: 75 },
+  Warlock: { formula: '4d4 × 10 gp', average: 100 },
+  Wizard: { formula: '4d4 × 10 gp', average: 100 },
+};
+
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const fmt = (value) => value >= 0 ? `+${value}` : `${value}`;
@@ -25,6 +40,8 @@ const clamp = (value) => Math.max(3, Math.min(20, Number.parseInt(value, 10) || 
 const isChoiceLang = (value) => /choice|additional/i.test(String(value || ''));
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || '';
+const getStartingGoldRule = (characterClass) => STARTING_GOLD_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', average: 100 };
+const normalizeEquipmentMode = (mode) => mode === 'gold' ? 'gold' : 'equipment';
 const searchMatch = (spell, search) => {
   const needle = String(search || '').trim().toLowerCase();
   if (!needle) return true;
@@ -52,7 +69,7 @@ function defaultDraft() {
     selectedCantrips: [],
     selectedSpells: [],
     extraFeat: 'None',
-    equipmentMode: 'recommended',
+    equipmentMode: 'equipment',
     customEquipment: '',
     personalityTrait: '',
     ideal: '',
@@ -65,7 +82,7 @@ function defaultDraft() {
 function loadDraft() {
   try {
     const stored = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-    return stored ? { ...defaultDraft(), ...stored, startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
+    return stored ? { ...defaultDraft(), ...stored, equipmentMode: normalizeEquipmentMode(stored.equipmentMode), startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
   } catch {
     return defaultDraft();
   }
@@ -151,6 +168,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
   const backgroundData = BACKGROUNDS[draft.background] || {};
+  const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   const speciesLabel = draft.edition === '2024' ? 'Species' : 'Race';
   const startingLevel = 1;
   const subclassAllowed = draft.edition === '2014' && LEVEL_ONE_SUBCLASS.has(draft.characterClass);
@@ -171,6 +189,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
   const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) }));
   const classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({ name, description: `${draft.characterClass} feature gained at level 1.` }));
+  const startingGoldRule = getStartingGoldRule(draft.characterClass);
+  const startingGold = equipmentMode === 'gold' ? startingGoldRule.average : 0;
   const equipmentList = startingEquipment();
   const spellReq = spellRequirements(draft.characterClass, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
@@ -181,7 +201,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0;
   const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
   const featRequired = draft.edition === '2024';
-  const equipmentComplete = draft.equipmentMode === 'custom' ? draft.customEquipment.trim().length > 0 : true;
+  const equipmentComplete = equipmentMode === 'equipment' || equipmentMode === 'gold';
   const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
@@ -210,8 +230,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
 
   useEffect(() => {
-    if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, step, startingLevel: 1 }));
-  }, [draft, step, editMode]);
+    if (!editMode) localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, equipmentMode, step, startingLevel: 1 }));
+  }, [draft, equipmentMode, step, editMode]);
 
   useEffect(() => {
     if (!editMode || !characterId) return;
@@ -221,6 +241,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         setLoading(true);
         const { data } = await apiClient.get(`/characters/${characterId}`);
         if (cancelled) return;
+        const loadedGold = Number(data.gold || data.currency?.gold || 0);
         setDraft((prev) => ({
           ...prev,
           name: data.name || '',
@@ -236,8 +257,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           selectedSkills: arr(data.skill_proficiencies),
           selectedCantrips: arr(data.cantrips_known || data.cantrips).map((spell) => spell.name || spell),
           selectedSpells: [...arr(data.spells_known || data.known_spells), ...arr(data.spellbook), ...arr(data.spells_prepared || data.prepared_spells)].map((spell) => spell.name || spell),
-          customEquipment: arr(data.starting_equipment).join('\n'),
-          equipmentMode: 'custom',
+          customEquipment: '',
+          equipmentMode: loadedGold > 0 && !arr(data.starting_equipment).length ? 'gold' : 'equipment',
           personalityTrait: data.personality_trait || data.personality_traits || '',
           ideal: data.ideal || data.ideals || '',
           bond: data.bond || data.bonds || '',
@@ -279,7 +300,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       if (featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
     }
     if (stepId === 'abilities' && !abilitiesComplete) return floatingBudget && floatingSpent !== floatingBudget ? `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.` : 'Check your ability scores.';
-    if (stepId === 'equipment' && !equipmentComplete) return 'Add at least one custom equipment item, or choose recommended gear/starting gold.';
+    if (stepId === 'equipment' && !equipmentComplete) return 'Choose starting equipment or starting gold.';
     return '';
   }
 
@@ -317,8 +338,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   }
 
   function startingEquipment() {
-    if (draft.equipmentMode === 'gold') return ['Starting gold instead of gear — confirm shopping with GM'];
-    if (draft.equipmentMode === 'custom') return draft.customEquipment.split('\n').map((item) => item.trim()).filter(Boolean);
+    if (equipmentMode === 'gold') return [];
     return Array.from(new Set([...arr(classData.startingEquipment), ...arr(backgroundData.equipment)]));
   }
 
@@ -384,9 +404,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
 
     if (featRequired && !chosenFeat) priority.push('Choose or confirm your 2024 origin feat before saving.');
-    if (!equipmentComplete) priority.push('Equipment needs a choice before saving.');
-    if (!equipmentList.length) priority.push('No starting equipment is listed. Choose starting gold or add custom gear before saving.');
-    if (draft.equipmentMode === 'gold') later.push('Starting gold selected. Shopping and exact gear will need finishing later.');
+    if (!equipmentComplete) priority.push('Choose starting equipment or starting gold before saving.');
+    if (equipmentMode === 'equipment' && !equipmentList.length) priority.push('No starting equipment is listed. Choose starting gold instead.');
+    if (equipmentMode === 'gold') later.push(`Starting gold selected: ${startingGoldRule.formula}, saved as ${startingGold} gp using the average.`);
 
     if (hasSpells) {
       if (!spellsComplete) priority.push(`Spell choices are incomplete: ${draft.selectedCantrips.length}/${spellReq.cantrips} cantrips and ${draft.selectedSpells.length}/${spellReq.spells} level 1 spells.`);
@@ -441,13 +461,14 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       racial_traits: racialTraits,
       class_features: classFeatures,
       feats: chosenFeat ? [{ name: chosenFeat, source: draft.edition === '2024' ? 'origin' : 'optional' }] : [],
-      equipment_choice: draft.equipmentMode,
+      equipment_choice: equipmentMode === 'gold' ? 'starting_gold' : 'starting_equipment',
+      starting_gold_formula: equipmentMode === 'gold' ? startingGoldRule.formula : '',
       starting_equipment: equipmentList,
       equipment,
       inventory: equipment,
       equipped: inferEquipped(equipmentList),
-      currency: { copper: 0, silver: 0, electrum: 0, gold: draft.equipmentMode === 'gold' ? 10 : 0, platinum: 0 },
-      gold: draft.equipmentMode === 'gold' ? 10 : 0,
+      currency: { copper: 0, silver: 0, electrum: 0, gold: startingGold, platinum: 0 },
+      gold: startingGold,
       personality_trait: draft.personalityTrait,
       personality_traits: draft.personalityTrait,
       ideal: draft.ideal,
@@ -544,7 +565,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
               else if (floatingSpent < floatingBudget) next[ability] = 1;
               update({ floatingAsi: next });
             }} />}
-            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} />}
+            {stepId === 'equipment' && <Equipment draft={draft} update={update} equipment={equipmentList} startingGoldRule={startingGoldRule} startingGold={startingGold} />}
             {stepId === 'review' && <Review draft={draft} update={update} hp={hp} ac={ac} skills={allSkills} feat={chosenFeat} spellCount={draft.selectedCantrips.length + draft.selectedSpells.length} hasSpells={hasSpells} report={report} journeyPercent={journeyPercent} />}
           </article>
 
@@ -556,6 +577,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
             <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
             {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
+            <small>{equipmentMode === 'gold' ? `Gold: ${startingGold} gp` : 'Starting equipment selected'}</small>
             <small>{canSave ? report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create' : `${journeyPercent}% through builder`}</small>
           </aside>
         </section>
@@ -686,12 +708,22 @@ function SpellChip({ spell, active, onClick }) {
   return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
 }
 
-function Equipment({ draft, update, equipment }) {
+function Equipment({ draft, update, equipment, startingGoldRule, startingGold }) {
+  const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
   return <>
-    <Title icon={Backpack} title="Equipment" text="Pick recommended gear, starting gold, or type your own kit." />
-    <div className="full-creator-equipment-modes">{['recommended', 'gold', 'custom'].map((mode) => <button key={mode} type="button" className={draft.equipmentMode === mode ? 'active' : ''} onClick={() => update({ equipmentMode: mode })}>{mode === 'recommended' ? 'Recommended gear' : mode === 'gold' ? 'Starting gold' : 'Custom kit'}</button>)}</div>
-    {draft.equipmentMode === 'custom' && <textarea value={draft.customEquipment} onChange={(event) => update({ customEquipment: event.target.value })} placeholder={'Longsword\nShield\nExplorer pack'} />}
-    <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
+    <Title icon={Backpack} title="Equipment" text="Choose either starting equipment or starting gold." />
+    <div className="full-creator-equipment-modes">
+      <button type="button" className={equipmentMode === 'equipment' ? 'active' : ''} onClick={() => update({ equipmentMode: 'equipment', customEquipment: '' })}>Starting equipment</button>
+      <button type="button" className={equipmentMode === 'gold' ? 'active' : ''} onClick={() => update({ equipmentMode: 'gold', customEquipment: '' })}>Starting gold</button>
+    </div>
+    {equipmentMode === 'gold' ? (
+      <div className="full-creator-review-grid">
+        <ReviewItem label="Gold rule" value={startingGoldRule.formula} />
+        <ReviewItem label="Saved gold" value={`${startingGold} gp`} />
+      </div>
+    ) : (
+      <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
+    )}
   </>;
 }
 
@@ -706,7 +738,7 @@ function Review({ draft, update, hp, ac, skills, feat, spellCount, hasSpells, re
       <label><span>Flaw</span><input value={draft.flaw} onChange={(event) => update({ flaw: event.target.value })} /></label>
     </div>
     <label className="full-creator-wide-label"><span>Backstory notes</span><textarea value={draft.backstory} onChange={(event) => update({ backstory: event.target.value })} /></label>
-    <div className="full-creator-review-grid"><ReviewItem label="HP" value={hp} /><ReviewItem label="AC" value={ac} /><ReviewItem label="Skills" value={skills.length} /><ReviewItem label="Feat" value={feat || 'None'} /><ReviewItem label="Equipment" value={draft.equipmentMode} /><ReviewItem label="Spells" value={hasSpells ? spellCount : 'None'} /></div>
+    <div className="full-creator-review-grid"><ReviewItem label="HP" value={hp} /><ReviewItem label="AC" value={ac} /><ReviewItem label="Skills" value={skills.length} /><ReviewItem label="Feat" value={feat || 'None'} /><ReviewItem label="Equipment" value={normalizeEquipmentMode(draft.equipmentMode) === 'gold' ? 'starting gold' : 'starting equipment'} /><ReviewItem label="Spells" value={hasSpells ? spellCount : 'None'} /></div>
   </>;
 }
 
