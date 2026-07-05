@@ -32,14 +32,14 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
     min-width: 0 !important;
-    min-height: 62px !important;
-    padding: 5px 2px !important;
+    min-height: 52px !important;
+    padding: 5px 1px !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
-    grid-template-rows: auto auto auto !important;
+    grid-template-rows: auto auto !important;
     place-items: center !important;
     align-content: start !important;
-    gap: 3px !important;
+    gap: 4px !important;
     text-align: center !important;
     background: transparent !important;
     border: 0 !important;
@@ -66,25 +66,26 @@
     text-align: center !important;
   }
 
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label span {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label span,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
     display: none !important;
   }
 
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
-    display: block !important;
-    width: auto !important;
-    max-width: 100% !important;
-    padding: 1px 4px !important;
-    font-size: 0.42rem !important;
-    line-height: 1 !important;
-    letter-spacing: 0.04em !important;
-    text-transform: uppercase !important;
-    color: #ffffff !important;
-    background-image: linear-gradient(#12051c, #12051c), linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
-    background-origin: border-box !important;
-    background-clip: padding-box, border-box !important;
-    border: 1px solid transparent !important;
-    border-radius: 4px !important;
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-roll-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-marker {
+    width: 4px !important;
+    height: 24px !important;
+    flex: 0 0 4px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%) !important;
     box-shadow: none !important;
   }
 
@@ -116,19 +117,24 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
-    min-height: 58px !important;
-    padding-left: 1px !important;
-    padding-right: 1px !important;
+    min-height: 50px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-roll-row {
+    gap: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-marker {
+    width: 3px !important;
+    height: 22px !important;
+    flex-basis: 3px !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip {
     min-width: 28px !important;
     max-width: 38px !important;
     font-size: 0.66rem !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
-    font-size: 0.38rem !important;
-    padding-inline: 3px !important;
   }
 }
