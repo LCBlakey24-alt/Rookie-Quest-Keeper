@@ -93,11 +93,8 @@ const LandingPage = React.lazy(() => import('@/components/LandingPage'));
 const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
 const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = React.lazy(() => import('@/components/UploadsDashboard'));
-const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
 // V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
 const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
-const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
-const RookCharacterMatchmaker = React.lazy(() => import('@/components/RookCharacterMatchmaker'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
@@ -175,10 +172,10 @@ function AppRoutes() {
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={isAuthenticated ? <AppShell><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create" element={<Navigate to="/characters/create/full" replace />} />
         <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={isAuthenticated ? <AppShell><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/rook" element={isAuthenticated ? <AppShell><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
