@@ -31,31 +31,39 @@ function titleCaseSlug(value) {
   return wrapped ? `(${formatted})` : formatted;
 }
 
-function formatSubtitle(subtitle) {
-  return String(subtitle || '')
-    .split('•')
-    .map((part) => titleCaseSlug(part))
-    .filter(Boolean)
-    .join(' • ');
+function formatSubtitleParts(parts) {
+  return parts.map((part) => titleCaseSlug(part)).filter(Boolean);
 }
 
-function compactSubtitle(character, fallbackSubtitle) {
-  const parts = [
+function compactSubtitleParts(character, fallbackSubtitle) {
+  const directParts = [
     character?.race,
     character?.character_class,
     character?.subclass,
     `Level ${character?.level || 1}`,
   ].filter(Boolean);
-  return formatSubtitle(parts.join(' • ') || fallbackSubtitle);
+
+  if (directParts.length) return formatSubtitleParts(directParts);
+
+  return formatSubtitleParts(String(fallbackSubtitle || '').split('•'));
 }
 
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
+  const subtitleParts = compactSubtitleParts(character, subtitle);
+  const primaryLine = subtitleParts.slice(0, 2).join(' • ');
+  const secondaryLine = subtitleParts[2] || '';
+  const levelLine = subtitleParts[3] || '';
+
   return (
     <>
       <header className="clean-sheet-header clean-sheet-header--simple">
         <div className="clean-sheet-identity">
           <h1>{character.name}</h1>
-          <p>{compactSubtitle(character, subtitle)}</p>
+          <p className="clean-sheet-hero-subtitle" aria-label={subtitleParts.join(' • ')}>
+            {primaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--primary">{primaryLine}</span>}
+            {secondaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--secondary">{secondaryLine}</span>}
+            {levelLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--level">{levelLine}</span>}
+          </p>
         </div>
       </header>
       <div className="clean-sheet-header-actions" aria-label="Character sheet actions">
