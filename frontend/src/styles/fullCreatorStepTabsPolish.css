@@ -1,0 +1,308 @@
+/* Full Character Creator: first practical step/tab pass.
+   This keeps the creator functional and form-based while matching the sunset app language. */
+
+#root .full-creator-page {
+  --rqk-creator-bg: #08040f;
+  --rqk-creator-panel: #190728;
+  --rqk-creator-card: #12051c;
+  --rqk-creator-card-soft: #160821;
+  --rqk-creator-text: #ffffff;
+  --rqk-creator-muted: rgba(255, 255, 255, 0.72);
+  --rqk-creator-line: linear-gradient(90deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+  --rqk-creator-sunset: linear-gradient(135deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+
+  background:
+    radial-gradient(circle at 50% -10%, rgba(115, 87, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #07040d 0%, #10051d 100%) !important;
+  color: var(--rqk-creator-text) !important;
+  padding: clamp(10px, 2vw, 18px) !important;
+}
+
+#root .full-creator-page *,
+#root .full-creator-page button,
+#root .full-creator-page input,
+#root .full-creator-page select,
+#root .full-creator-page textarea {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+#root .full-creator-header,
+#root .full-creator-panel,
+#root .full-creator-preview,
+#root .full-creator-footer,
+#root .full-creator-loading {
+  background: linear-gradient(var(--rqk-creator-panel), var(--rqk-creator-panel)) padding-box, var(--rqk-creator-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 10px !important;
+}
+
+#root .full-creator-header {
+  padding: 14px !important;
+}
+
+#root .full-creator-header > div::after,
+#root .full-creator-section-title::after,
+#root .full-creator-preview h2::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: var(--rqk-creator-line);
+}
+
+#root .full-creator-header p,
+#root .full-creator-preview p {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.13em !important;
+}
+
+#root .full-creator-header h1,
+#root .full-creator-section-title h2,
+#root .full-creator-preview h2,
+#root .full-creator-review-grid strong,
+#root .full-creator-score-editor strong,
+#root .full-creator-mini-grid strong,
+#root .full-creator-score-grid strong {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 950 !important;
+}
+
+#root .full-creator-header h1 {
+  font-size: clamp(2.05rem, 7vw, 3.1rem) !important;
+  line-height: 0.95 !important;
+}
+
+#root .full-creator-header span,
+#root .full-creator-section-title p,
+#root .full-creator-preview span,
+#root .full-creator-preview small,
+#root .full-creator-note,
+#root .full-creator-auto-box span,
+#root .full-creator-spell-chip em,
+#root .full-creator-score-grid em {
+  color: var(--rqk-creator-muted) !important;
+}
+
+#root .full-creator-steps {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  padding: 2px 0 6px !important;
+  scrollbar-width: thin;
+}
+
+#root .full-creator-steps button {
+  min-width: max-content !important;
+  min-height: 42px !important;
+  padding: 0 11px !important;
+  color: #ffffff !important;
+  background: linear-gradient(var(--rqk-creator-card), var(--rqk-creator-card)) padding-box, var(--rqk-creator-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-weight: 950 !important;
+}
+
+#root .full-creator-steps button.active {
+  background: var(--rqk-creator-sunset) border-box !important;
+  border-color: transparent !important;
+}
+
+#root .full-creator-steps button svg,
+#root .full-creator-header button svg,
+#root .full-creator-footer button svg,
+#root .full-creator-section-title svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+#root .full-creator-section-title {
+  display: block !important;
+  padding: 0 0 12px !important;
+  margin-bottom: 14px !important;
+  border-bottom: 0 !important;
+}
+
+#root .full-creator-section-title svg {
+  display: none !important;
+}
+
+#root .full-creator-section-title h2 {
+  margin: 0 !important;
+  font-size: clamp(1.85rem, 6vw, 2.7rem) !important;
+  line-height: 0.96 !important;
+}
+
+#root .full-creator-section-title p {
+  margin: 8px 0 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.35 !important;
+}
+
+#root .full-creator-header button,
+#root .full-creator-footer button,
+#root .full-creator-choice-block button,
+#root .full-creator-equipment-modes button,
+#root .full-creator-preset-banner button {
+  color: #ffffff !important;
+  background: linear-gradient(var(--rqk-creator-card), var(--rqk-creator-card)) padding-box, var(--rqk-creator-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+}
+
+#root .full-creator-footer button:last-child,
+#root .full-creator-choice-block button.active,
+#root .full-creator-equipment-modes button.active,
+#root .full-creator-spell-chip.active {
+  background: var(--rqk-creator-sunset) border-box !important;
+  border-color: transparent !important;
+}
+
+#root .full-creator-form-grid input,
+#root .full-creator-form-grid select,
+#root .full-creator-wide-label input,
+#root .full-creator-wide-label select,
+#root .full-creator-wide-label textarea,
+#root .full-creator-search,
+#root .full-creator-panel textarea,
+#root .full-creator-score-editor input {
+  color: #ffffff !important;
+  background: linear-gradient(#0d0416, #0d0416) padding-box, var(--rqk-creator-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+}
+
+#root .full-creator-form-grid input:focus,
+#root .full-creator-form-grid select:focus,
+#root .full-creator-wide-label input:focus,
+#root .full-creator-wide-label select:focus,
+#root .full-creator-wide-label textarea:focus,
+#root .full-creator-search:focus,
+#root .full-creator-panel textarea:focus {
+  outline: none !important;
+  filter: brightness(1.08);
+}
+
+#root .full-creator-form-grid span,
+#root .full-creator-wide-label span,
+#root .full-creator-choice-block h3,
+#root .full-creator-auto-box strong,
+#root .full-creator-score-editor span,
+#root .full-creator-score-grid span,
+#root .full-creator-review-grid span {
+  color: rgba(255, 255, 255, 0.66) !important;
+}
+
+#root .full-creator-note,
+#root .full-creator-auto-box,
+#root .full-creator-equipment-list span,
+#root .full-creator-review-grid div,
+#root .full-creator-mini-grid strong,
+#root .full-creator-mini-grid span,
+#root .full-creator-score-grid div,
+#root .full-creator-score-editor label,
+#root .full-creator-spell-chip,
+#root .full-creator-preset-banner {
+  background: linear-gradient(var(--rqk-creator-card), var(--rqk-creator-card)) padding-box, var(--rqk-creator-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+}
+
+#root .full-creator-score-editor {
+  gap: 10px !important;
+}
+
+#root .full-creator-equipment-list,
+#root .full-creator-mini-grid,
+#root .full-creator-score-grid,
+#root .full-creator-review-grid {
+  gap: 8px !important;
+}
+
+#root .full-creator-preview {
+  gap: 10px !important;
+}
+
+#root .full-creator-preview h2 {
+  margin: 0 !important;
+  font-size: clamp(1.8rem, 5vw, 2.35rem) !important;
+}
+
+#root .full-creator-footer {
+  position: sticky;
+  bottom: 10px;
+  z-index: 3;
+}
+
+@media (max-width: 900px) {
+  #root .full-creator-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .full-creator-preview {
+    position: static !important;
+    order: -1 !important;
+  }
+}
+
+@media (max-width: 680px) {
+  #root .full-creator-page {
+    padding: 10px !important;
+  }
+
+  #root .full-creator-header {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  #root .full-creator-header button {
+    width: 100% !important;
+    min-height: 40px !important;
+  }
+
+  #root .full-creator-steps {
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+    padding-inline: 10px !important;
+  }
+
+  #root .full-creator-steps button {
+    min-height: 40px !important;
+  }
+
+  #root .full-creator-steps button span {
+    font-size: 0.78rem !important;
+  }
+
+  #root .full-creator-panel,
+  #root .full-creator-preview,
+  #root .full-creator-footer {
+    padding: 12px !important;
+  }
+
+  #root .full-creator-form-grid,
+  #root .full-creator-score-editor,
+  #root .full-creator-review-grid,
+  #root .full-creator-equipment-modes,
+  #root .full-creator-panel .full-creator-choice-block > div:has(.full-creator-spell-chip),
+  #root .full-creator-equipment-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .full-creator-score-editor label {
+    min-height: 68px !important;
+  }
+
+  #root .full-creator-footer {
+    grid-template-columns: 1fr !important;
+  }
+}
