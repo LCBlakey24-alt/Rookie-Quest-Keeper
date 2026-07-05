@@ -42,6 +42,29 @@
     display: none !important;
   }
 
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row {
+    position: relative !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 4px !important;
+    border-radius: 999px !important;
+    background: var(--rqk-mobile-sunset-gradient) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row h2::after {
+    display: none !important;
+    content: none !important;
+  }
+
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives {
     padding: 10px !important;
     background: linear-gradient(var(--rqk-mobile-panel-purple), var(--rqk-mobile-panel-purple)) padding-box, var(--rqk-mobile-sunset-gradient) border-box !important;
