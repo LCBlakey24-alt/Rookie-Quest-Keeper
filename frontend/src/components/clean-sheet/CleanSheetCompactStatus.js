@@ -1,5 +1,6 @@
 import React from 'react';
-import { HeartPulse } from 'lucide-react';
+import { Footprints, HeartPulse, Shield, Swords } from 'lucide-react';
+import { fmt } from './cleanSheetUtils';
 import './CleanSheetMobileTidyFixes.css';
 import './CleanSheetActionsMobileOverrides.css';
 import './CleanSheetFinalHammer.css';
@@ -14,23 +15,45 @@ export default function CleanSheetCompactStatus({
   tempHpAmount,
   savingHp,
   savingTempHp,
+  ac,
+  speed,
+  initiative,
   onHpAmountChange,
   onTempHpAmountChange,
   onDamage,
   onHeal,
   onTempHpAdd,
   onTempHpRemove,
+  onRollInitiative,
 }) {
   const amount = Math.max(1, Number(hpAmount) || 1);
   const tempAmount = Math.max(1, Number(tempHpAmount || hpAmount) || 1);
   const currentTempHp = Math.max(0, Number(tempHp) || 0);
 
   return (
-    <section className="clean-sheet-compact-status clean-sheet-compact-status--hp-only" aria-label="Character hit points">
+    <section className="clean-sheet-compact-status clean-sheet-compact-status--battle-bar" aria-label="Character combat snapshot">
       <div className="clean-sheet-compact-stat clean-sheet-compact-stat--hp">
         <span><HeartPulse size={15} /> HP</span>
         <strong>{currentHp}/{maxHp}</strong>
         <em>Temp {currentTempHp}</em>
+      </div>
+
+      <div className="clean-sheet-quick-stat-strip" aria-label="Always visible combat stats">
+        <div className="clean-sheet-quick-stat">
+          <Shield size={14} />
+          <span>AC</span>
+          <strong>{ac ?? '—'}</strong>
+        </div>
+        <div className="clean-sheet-quick-stat">
+          <Footprints size={14} />
+          <span>Speed</span>
+          <strong>{speed ? `${speed}ft` : '—'}</strong>
+        </div>
+        <button type="button" className="clean-sheet-quick-stat clean-sheet-quick-stat--rollable" onClick={onRollInitiative}>
+          <Swords size={14} />
+          <span>Init</span>
+          <strong>{initiative !== undefined ? fmt(initiative) : '—'}</strong>
+        </button>
       </div>
 
       <div className="clean-sheet-compact-hp-actions">
