@@ -123,7 +123,9 @@ export default function CleanSheetOverviewTab({
         <div className="clean-sheet-passive-grid">
           {passiveScores.map(([name, value]) => (
             <div className="clean-sheet-passive-card" key={name}>
-              <Eye size={15} /><span>Passive {name}</span><strong>{value}</strong>
+              <Eye size={15} />
+              <span className="clean-sheet-passive-label"><small>Passive</small><em>{name}</em></span>
+              <strong>{value}</strong>
             </div>
           ))}
         </div>
