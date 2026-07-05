@@ -53,6 +53,54 @@
   min-width: 0 !important;
 }
 
+#root .character-page-v2 .clean-sheet-character-summary-grid,
+#root .character-page-v2 .clean-sheet-character-detail-grid,
+#root .character-page-v2 .clean-sheet-core-stat-grid,
+#root .character-page-v2 .clean-sheet-passive-grid,
+#root .character-page-v2 .clean-sheet-compact-abilities,
+#root .character-page-v2 .clean-sheet-readable-saves,
+#root .character-page-v2 .clean-sheet-readable-skills,
+#root .character-page-v2 .clean-sheet-skills-summary,
+#root .character-page-v2 .clean-sheet-skill-filter-row,
+#root .character-page-v2 .clean-sheet-spell-summary,
+#root .character-page-v2 .clean-sheet-inventory-summary,
+#root .character-page-v2 .clean-sheet-currency-grid,
+#root .character-page-v2 .clean-sheet-equipment-preview,
+#root .character-page-v2 .clean-sheet-readiness-grid,
+#root .character-page-v2 .clean-sheet-proficiency-lists,
+#root .character-page-v2 .clean-sheet-caster-grid,
+#root .character-page-v2 .clean-sheet-caster-stats,
+#root .character-page-v2 .clean-sheet-slot-grid,
+#root .character-page-v2 .clean-sheet-spell-grid,
+#root .character-page-v2 .clean-sheet-spell-library-grid,
+#root .character-page-v2 .clean-sheet-item-grid,
+#root .character-page-v2 .clean-sheet-equipped-slot-grid,
+#root .character-page-v2 .clean-sheet-feature-lanes,
+#root .character-page-v2 .clean-sheet-action-grid {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  padding: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-character-summary-grid::before,
+#root .character-page-v2 .clean-sheet-character-summary-grid::after,
+#root .character-page-v2 .clean-sheet-character-detail-grid::before,
+#root .character-page-v2 .clean-sheet-character-detail-grid::after,
+#root .character-page-v2 .clean-sheet-core-stat-grid::before,
+#root .character-page-v2 .clean-sheet-core-stat-grid::after,
+#root .character-page-v2 .clean-sheet-skills-summary::before,
+#root .character-page-v2 .clean-sheet-skills-summary::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
 #root .character-page-v2 .clean-sheet-tabs {
   background: #10051d !important;
   border: 0 !important;
