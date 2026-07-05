@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit3, TrendingUp } from 'lucide-react';
+import { Edit3, Moon, Sun, TrendingUp } from 'lucide-react';
 import './CleanSheetHeaderCompact.css';
 import './CleanSheetFinalHammer.css';
 
@@ -47,11 +47,21 @@ function compactSubtitleParts(character, fallbackSubtitle) {
   return formatSubtitleParts(String(fallbackSubtitle || '').split('•')).filter((part) => !/^level\s+\d+/i.test(part));
 }
 
-export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
+export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
   const subtitleParts = compactSubtitleParts(character, subtitle);
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
   const secondaryLine = subtitleParts[2] || '';
   const levelLabel = `Level ${character?.level || 1}`;
+
+  const confirmRest = (type) => {
+    const isLongRest = type === 'long';
+    const message = isLongRest
+      ? 'Take a Long Rest? This may restore HP, reset temporary HP, restore spell slots/resources, reset death saves, and recover hit dice where the sheet supports it.'
+      : 'Take a Short Rest? This may restore short-rest resources and allow hit dice recovery where the sheet supports it.';
+    if (!window.confirm(message)) return;
+    if (isLongRest) onLongRest?.();
+    else onShortRest?.();
+  };
 
   return (
     <>
@@ -65,12 +75,18 @@ export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelU
           </p>
         </div>
       </header>
-      <div className="clean-sheet-header-actions" aria-label="Character sheet actions">
+      <div className="clean-sheet-header-actions clean-sheet-header-actions--play" aria-label="Character sheet actions">
         <button className="clean-sheet-level" onClick={onLevelUp} type="button">
           <TrendingUp size={18} /> Level Up
         </button>
         <button className="clean-sheet-edit" onClick={onEdit} type="button">
           <Edit3 size={18} /> Edit
+        </button>
+        <button className="clean-sheet-rest clean-sheet-rest--short" onClick={() => confirmRest('short')} type="button" disabled={resting}>
+          <Moon size={17} /> Short Rest
+        </button>
+        <button className="clean-sheet-rest clean-sheet-rest--long" onClick={() => confirmRest('long')} type="button" disabled={resting}>
+          <Sun size={17} /> Long Rest
         </button>
       </div>
     </>
