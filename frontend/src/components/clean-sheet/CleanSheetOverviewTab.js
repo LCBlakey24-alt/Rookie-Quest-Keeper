@@ -81,7 +81,7 @@ export default function CleanSheetOverviewTab({
         </div>
       </section>
 
-      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section">
+      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section clean-sheet-skills-panel">
         <div className="clean-sheet-section-heading-row">
           <h2>Skills</h2>
           <span>{SKILLS.filter(([skill, ability]) => skillMatchesFilter(ability, skillFilter, skillProficiencies.includes(skill) || skillProficiencies.includes(skill.toLowerCase()))).length}/{SKILLS.length} shown</span>
