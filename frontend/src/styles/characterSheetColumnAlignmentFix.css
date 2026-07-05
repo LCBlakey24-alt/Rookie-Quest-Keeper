@@ -50,6 +50,7 @@
 }
 
 #root .character-page-v2 .clean-sheet-identity {
+  position: relative !important;
   padding: 0 !important;
 }
 
@@ -61,11 +62,37 @@
   margin-right: 0 !important;
 }
 
+#root .character-page-v2 .clean-sheet-identity h1 {
+  padding-right: 92px !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-level-badge {
+  position: absolute !important;
+  top: 2px !important;
+  right: 0 !important;
+  z-index: 2 !important;
+  min-height: 20px !important;
+  padding: 3px 7px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
 #root .character-page-v2 .clean-sheet-hero-subtitle {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 0 8px !important;
   max-width: 100% !important;
+  margin-top: 10px !important;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -133,6 +160,15 @@
     padding: 18px !important;
   }
 
+  #root .character-page-v2 .clean-sheet-identity h1 {
+    padding-right: 78px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-level-badge {
+    top: 4px !important;
+    font-size: 0.62rem !important;
+  }
+
   #root .character-page-v2 .clean-sheet-hero-subtitle {
     display: grid !important;
     gap: 2px !important;
@@ -177,5 +213,9 @@
   #root .character-page-v2 .clean-sheet-card,
   #root .character-page-v2 .clean-sheet-section {
     padding: 14px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-identity h1 {
+    padding-right: 70px !important;
   }
 }
