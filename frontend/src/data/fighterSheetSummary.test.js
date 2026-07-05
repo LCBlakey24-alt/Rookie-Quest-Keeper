@@ -30,18 +30,15 @@ describe('Fighter sheet summary', () => {
     expect(summary.subclassFeatures.map(feature => feature.key)).toContain('heroic_warrior');
   });
 
-  test('adds Battle Master resource and maneuver summary', () => {
+  test('flags non-public built-in subclass names as recorded but unsupported', () => {
     const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Battle Master', level: 15, rules_edition: '2014' });
 
-    expect(summary.isBattleMaster).toBe(true);
-    expect(summary.isChampion).toBe(false);
-    expect(summary.isMagicSubclass).toBe(false);
-    expect(summary.battleMaster).toMatchObject({
-      superiorityDie: 10,
-      superiorityDice: 6,
-      maneuverCount: 9,
-    });
-    expect(summary.subclassFeatures.map(feature => feature.key)).toContain('relentless');
+    expect(summary.isUnsupportedSubclass).toBe(true);
+    expect(summary.unsupportedSubclassLabel).toBe('Battle Master');
+    expect(summary.isBattleMaster).toBe(false);
+    expect(summary.battleMaster).toBeNull();
+    expect(summary.subclassFeatures).toEqual([]);
+    expect(summary.attacksPerAction).toBe(3);
   });
 
   test('flags listed but unsupported Fighter subclasses instead of silently hiding them', () => {
@@ -53,15 +50,12 @@ describe('Fighter sheet summary', () => {
     expect(summary.attacksPerAction).toBe(2);
   });
 
-  test('adds magic subclass spell slots and feature summary', () => {
+  test('does not provide built-in spellcasting automation for non-public Fighter subclasses', () => {
     const summary = getFighterSheetSummary({ character_class: 'Fighter', subclass: 'Eldritch Knight', level: 18, rules_edition: '2024' });
 
-    expect(summary.isMagicSubclass).toBe(true);
-    expect(summary.isChampion).toBe(false);
-    expect(summary.isBattleMaster).toBe(false);
-    expect(summary.magicSubclass).toMatchObject({
-      spellSlots: [4, 3, 3, 0],
-    });
-    expect(summary.subclassFeatures.map(feature => feature.key)).toContain('improved_war_magic');
+    expect(summary.isUnsupportedSubclass).toBe(true);
+    expect(summary.isMagicSubclass).toBe(false);
+    expect(summary.magicSubclass).toBeNull();
+    expect(summary.subclassFeatures).toEqual([]);
   });
 });

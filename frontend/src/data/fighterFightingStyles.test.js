@@ -28,7 +28,6 @@ describe('Fighter fighting style options', () => {
 
     expect(names).toContain('Blind Fighting');
     expect(names).toContain('Interception');
-    expect(names).toContain('Superior Technique');
     expect(names).toContain('Thrown Weapon Fighting');
     expect(names).toContain('Unarmed Fighting');
   });

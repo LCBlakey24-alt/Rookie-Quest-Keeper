@@ -1,28 +1,21 @@
 import { getFighterBuilderOptions, getFighterSubclassOptions, isValidFighterSubclass, validateFighterBuilderSelections } from './fighterBuilderOptions';
 
 describe('Fighter subclass builder options', () => {
-  test('returns ready-to-render subclass choices', () => {
+  test('returns public-license subclass choices for builder rendering', () => {
     const options = getFighterBuilderOptions(3, '2014');
 
     expect(options.needsSubclass).toBe(true);
-    expect(options.subclassOptions.map(option => option.key)).toEqual([
-      'champion',
-      'battle_master',
-      'eldritch_knight',
-    ]);
+    expect(options.subclassOptions.map(option => option.key)).toEqual(['champion']);
   });
 
-  test('keeps subclass choices available for 2024 rules', () => {
-    expect(getFighterSubclassOptions('2024').map(option => option.value)).toEqual([
-      'Champion',
-      'Battle Master',
-      'Eldritch Knight',
-    ]);
+  test('keeps public-license subclass choices available for 2024 rules', () => {
+    expect(getFighterSubclassOptions('2024').map(option => option.value)).toEqual(['Champion']);
   });
 
-  test('validates subclass selections by label or key', () => {
+  test('validates only built-in public-license subclass selections by label or key', () => {
     expect(isValidFighterSubclass('Champion', '2024')).toBe(true);
-    expect(isValidFighterSubclass('battle_master', '2024')).toBe(true);
+    expect(isValidFighterSubclass('champion', '2024')).toBe(true);
+    expect(isValidFighterSubclass('battle_master', '2024')).toBe(false);
     expect(isValidFighterSubclass('Unknown Subclass', '2024')).toBe(false);
   });
 

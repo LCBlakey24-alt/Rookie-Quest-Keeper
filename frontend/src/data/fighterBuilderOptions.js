@@ -7,21 +7,7 @@ export const FIGHTER_SUBCLASS_OPTIONS = [
     value: 'Champion',
     label: 'Champion',
     key: 'champion',
-    summary: 'Simple, reliable martial features with improved critical hits.',
-    rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Battle Master',
-    label: 'Battle Master',
-    key: 'battle_master',
-    summary: 'Tactical maneuvers powered by superiority dice.',
-    rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Eldritch Knight',
-    label: 'Eldritch Knight',
-    key: 'eldritch_knight',
-    summary: 'A weapon-focused Fighter with limited spellcasting support.',
+    summary: 'Public-license Fighter subclass support with simple, reliable martial features.',
     rulesets: ['2014', '2024'],
   },
 ];

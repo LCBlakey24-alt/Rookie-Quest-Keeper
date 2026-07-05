@@ -97,7 +97,6 @@ export const CLASS_RESOURCE_RULES = {
     { key: 'second_wind', label: 'Second Wind', minLevel: 1, restore: (character) => is2024Rules(character) ? 'long-rest' : 'short-rest', max: (character) => is2024Rules(character) ? proficiencyBonusOf(character) : 1 },
     { key: 'action_surge', label: 'Action Surge', minLevel: 2, restore: 'short-rest', max: (character) => fighterLevelOf(character) >= 17 ? 2 : 1 },
     { key: 'indomitable', label: 'Indomitable', minLevel: 9, restore: 'long-rest', max: (character) => fighterLevelOf(character) >= 17 ? 3 : fighterLevelOf(character) >= 13 ? 2 : 1 },
-    { key: 'superiority_dice', label: 'Superiority Dice', minLevel: 3, restore: 'short-rest', max: (character) => { const subclass = normalizeName(character?.subclass); if (subclass !== 'battlemaster') return 0; const level = fighterLevelOf(character); if (level >= 15) return 6; if (level >= 7) return 5; return 4; } },
   ],
   Monk: [
     { key: 'ki', label: (character) => is2024Rules(character) ? 'Discipline Points' : 'Ki', minLevel: 2, restore: 'short-rest', max: (character) => monkLevelOf(character) },
