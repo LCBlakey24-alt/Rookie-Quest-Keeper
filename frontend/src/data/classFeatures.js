@@ -171,17 +171,6 @@ export const CLASS_FEATURES = {
           { level: 14, name: 'Nature\'s Sanctuary', description: 'Beasts and plant creatures that attack you must make a WIS save. On fail, they must choose a different target.' },
         ],
       },
-      circle_of_the_moon: {
-        name: 'Circle of the Moon',
-        description: 'Powerful Wild Shape transformations. Take on more dangerous beast forms and gain combat abilities while shapeshifted.',
-        features: [
-          { level: 2, name: 'Combat Wild Shape', description: 'Wild Shape as a bonus action. While in beast form, expend a spell slot to regain 1d8 HP per slot level.' },
-          { level: 2, name: 'Circle Forms', description: 'Wild Shape into beasts with CR up to 1 (scales with level: CR 2 at 6th, CR 3 at 9th, etc.).' },
-          { level: 6, name: 'Primal Strike', description: 'Attacks in beast form count as magical for overcoming resistance and immunity.' },
-          { level: 10, name: 'Elemental Wild Shape', description: 'Expend two Wild Shape uses to transform into an air, earth, fire, or water elemental.' },
-          { level: 14, name: 'Thousand Forms', description: 'Cast Alter Self at will.' },
-        ],
-      },
     },
     features: [
       { level: 1, name: 'Druidic', type: 'passive', description: 'Know the secret Druidic language' },
@@ -197,7 +186,7 @@ export const CLASS_FEATURES = {
       { level: 1, name: 'Spellcasting', type: 'passive', description: 'Cast druid spells using WIS. Prepare from full druid list each long rest.' },
       { level: 2, name: 'Wild Shape', type: 'bonus_action', description: 'Transform as bonus action. Temp HP replaces beast stat block. Uses = PB per long rest.', uses: 'PB/long rest' },
       { level: 2, name: 'Wild Companion', type: 'action', description: 'Expend Wild Shape use to cast Find Familiar without material components' },
-      { level: 3, name: 'Druid Subclass', type: 'passive', description: 'Choose a Druid subclass', isChoice: true },
+      { level: 3, name: 'Druid Subclass', type: 'passive', description: 'Choose a Druid subclass. Built-in automation is limited to public-license subclass data.', isChoice: true },
       { level: 5, name: 'Wild Resurgence', type: 'passive', description: 'Once per turn, convert a Wild Shape use into a spell slot (level = PB/2 rounded up)' },
       { level: 7, name: 'Elemental Fury', type: 'passive', description: 'Add extra damage to one cantrip or weapon attack per turn' },
       { level: 9, name: 'Improved Wild Shape', type: 'passive', description: 'Wild Shape temp HP and forms improve' },

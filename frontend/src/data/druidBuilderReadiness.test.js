@@ -21,7 +21,7 @@ describe('Druid builder options and readiness', () => {
 
     const levelTwoOptions = getDruidBuilderOptions({ level: 2, edition: '2014' });
     expect(levelTwoOptions.subclassRequired).toBe(true);
-    expect(levelTwoOptions.subclassOptions.map(option => option.key)).toContain('moon');
+    expect(levelTwoOptions.subclassOptions.map(option => option.key)).toEqual(['land', 'custom_druid_subclass']);
     expect(levelTwoOptions.primalOrderOptions).toEqual([]);
     expect(levelTwoOptions.elementalFuryOptions).toEqual([]);
   });
@@ -51,10 +51,10 @@ describe('Druid builder options and readiness', () => {
 
     expect(validateDruidBuilderSelections({ level: 2, edition: '2014' })).toMatchObject({
       ready: false,
-      errors: ['Choose a Druid circle.'],
+      errors: ['Choose or record a Druid circle.'],
     });
 
-    expect(validateDruidBuilderSelections({ level: 2, edition: '2014', subclass: 'Circle of the Moon' })).toMatchObject({
+    expect(validateDruidBuilderSelections({ level: 2, edition: '2014', subclass: 'Circle of the Land' })).toMatchObject({
       ready: true,
       errors: [],
     });
@@ -65,7 +65,7 @@ describe('Druid builder options and readiness', () => {
 
     expect(missing.ready).toBe(false);
     expect(missing.errors).toEqual(expect.arrayContaining([
-      'Choose a Druid circle.',
+      'Choose or record a Druid circle.',
       'Choose a Primal Order.',
       'Choose an Elemental Fury option.',
     ]));
@@ -73,7 +73,7 @@ describe('Druid builder options and readiness', () => {
     expect(validateDruidBuilderSelections({
       level: 7,
       edition: '2024',
-      subclass: 'Circle of the Sea',
+      subclass: 'Circle of the Land',
       primalOrder: 'Warden',
       elementalFury: 'Primal Strike',
     })).toMatchObject({
@@ -84,7 +84,7 @@ describe('Druid builder options and readiness', () => {
 
   test('rejects options not available in the chosen ruleset', () => {
     expect(validateDruidBuilderSelections({ level: 3, edition: '2024', subclass: 'Circle of Spores', primalOrder: 'Magician' }).errors)
-      .toContain('Choose a Druid circle available in this ruleset.');
+      .toContain('Choose Circle of the Land for built-in public-license automation, or record a custom/user-added Druid circle.');
     expect(validateDruidBuilderSelections({ level: 1, edition: '2024', primalOrder: 'Guardian' }).errors)
       .toContain('Choose a valid Primal Order.');
     expect(validateDruidBuilderSelections({ level: 7, edition: '2024', subclass: 'Circle of the Land', primalOrder: 'Magician', elementalFury: 'Lightning' }).errors)
@@ -96,7 +96,7 @@ describe('Druid builder options and readiness', () => {
       level: 7,
       edition: '2024',
       selections: {
-        subclass: 'Circle of Stars',
+        subclass: 'Custom Druid Subclass',
         primalOrder: 'Magician',
         elementalFury: 'Potent Spellcasting',
         preparedSpells: ['Entangle', 'Healing Word'],
@@ -113,7 +113,7 @@ describe('Druid builder options and readiness', () => {
         elementalFury: true,
       },
     });
-    expect(summary.subclass.key).toBe('stars');
+    expect(summary.subclass.key).toBe('custom_druid_subclass');
     expect(summary.primalOrder.key).toBe('magician');
     expect(summary.elementalFury.key).toBe('potent_spellcasting');
     expect(summary.preparedSpells).toEqual(['Entangle', 'Healing Word']);
@@ -137,7 +137,7 @@ describe('Druid builder options and readiness', () => {
     const readiness = getDruidBuilderReadiness({
       level: 7,
       edition: '2024',
-      subclass: 'Circle of the Sea',
+      subclass: 'Circle of the Land',
       primalOrder: 'Warden',
       elementalFury: 'Primal Strike',
       preparedSpells: ['Cure Wounds'],
@@ -150,7 +150,7 @@ describe('Druid builder options and readiness', () => {
       ready: true,
       errors: [],
     });
-    expect(readiness.choiceSummary.subclass.key).toBe('sea');
+    expect(readiness.choiceSummary.subclass.key).toBe('land');
     expect(readiness.choiceSummary.primalOrder.key).toBe('warden');
     expect(readiness.choiceSummary.elementalFury.key).toBe('primal_strike');
     expect(readiness.choiceSummary.preparedSpells).toEqual(['Cure Wounds']);
