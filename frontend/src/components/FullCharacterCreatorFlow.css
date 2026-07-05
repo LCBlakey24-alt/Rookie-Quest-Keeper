@@ -1,0 +1,117 @@
+/* Guided character creator flow: progress bar, step completion states, and swipe hint. */
+
+.full-creator-progress-card {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 12px;
+  background: linear-gradient(var(--rqk-creator-panel, #190728), var(--rqk-creator-panel, #190728)) padding-box, var(--rqk-creator-sunset, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #ffffff;
+}
+
+.full-creator-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.full-creator-progress-heading span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.full-creator-progress-heading strong {
+  color: #ffffff;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.full-creator-progress-track {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+}
+
+.full-creator-progress-track span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  background: linear-gradient(90deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+  border-radius: 999px;
+  transition: width 180ms ease;
+}
+
+.full-creator-progress-card p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.full-creator-steps button.is-complete:not(.active) {
+  position: relative;
+}
+
+.full-creator-steps button.is-complete:not(.active)::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+}
+
+.full-creator-swipe-hint {
+  margin: 0 0 10px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.full-creator-footer button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: none !important;
+}
+
+.full-creator-panel > button[type='button']:not(.full-creator-spell-chip),
+.full-creator-panel > .full-creator-score-editor + button {
+  background: linear-gradient(var(--rqk-creator-card, #12051c), var(--rqk-creator-card, #12051c)) padding-box, var(--rqk-creator-sunset, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box;
+  border: 1px solid transparent;
+  color: #ffffff;
+}
+
+@media (max-width: 680px) {
+  .full-creator-progress-card {
+    padding: 11px;
+  }
+
+  .full-creator-progress-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .full-creator-progress-heading strong {
+    font-size: 1rem;
+  }
+
+  .full-creator-progress-track {
+    height: 9px;
+  }
+
+  .full-creator-swipe-hint {
+    display: block;
+  }
+}
