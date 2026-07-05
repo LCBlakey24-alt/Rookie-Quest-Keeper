@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ChevronRight, Copy, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
+import './MyCharactersPage.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.characterId || '';
@@ -95,7 +96,6 @@ function duplicatePayload(source) {
 }
 
 export default function MyCharactersPage() {
-  const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
