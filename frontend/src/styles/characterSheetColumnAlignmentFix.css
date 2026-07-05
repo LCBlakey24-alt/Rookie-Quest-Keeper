@@ -61,6 +61,27 @@
   margin-right: 0 !important;
 }
 
+#root .character-page-v2 .clean-sheet-hero-subtitle {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0 8px !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-subtitle-line {
+  color: rgba(255, 255, 255, 0.74) !important;
+  white-space: nowrap !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-subtitle-line + .clean-sheet-hero-subtitle-line::before {
+  content: '•';
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 #root .character-page-v2 .clean-sheet-identity h1::after,
 #root .character-page-v2 .clean-sheet-panel h2::after,
 #root .character-page-v2 .clean-sheet-panel h3::after,
@@ -110,6 +131,25 @@
   #root .character-page-v2 .clean-sheet-card,
   #root .character-page-v2 .clean-sheet-section {
     padding: 18px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    display: grid !important;
+    gap: 2px !important;
+    line-height: 1.26 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle-line {
+    display: block !important;
+    width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle-line + .clean-sheet-hero-subtitle-line::before {
+    content: none !important;
+    display: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-header-actions {
