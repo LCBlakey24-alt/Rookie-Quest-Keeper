@@ -51,6 +51,7 @@ import '@/styles/sunsetScrollbar.css';
 import '@/styles/fullCreatorReadiness.css';
 import '@/styles/characterSheetSunsetFinalOverride.css';
 import '@/styles/characterSheetRailAndHeroFix.css';
+import '@/styles/characterSheetColumnAlignmentFix.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
