@@ -53,6 +53,7 @@ import '@/styles/characterSheetSunsetFinalOverride.css';
 import '@/styles/characterSheetRailAndHeroFix.css';
 import '@/styles/characterSheetColumnAlignmentFix.css';
 import '@/styles/characterSheetHeroBadgeFix.css';
+import '@/styles/characterSheetSpellUnavailableState.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
