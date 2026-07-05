@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Eye, Footprints, Gauge, Shield, Swords } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { ABILITIES, SKILLS, fmt, mod } from './cleanSheetUtils';
@@ -7,15 +7,6 @@ import './CleanSheetOverviewCompact.css';
 import './CleanSheetOverviewSpacing.css';
 import './CleanSheetStatsMobileOverrides.css';
 import './CleanSheetFinalHammer.css';
-
-const SAVE_NAMES = {
-  STR: 'Strength',
-  DEX: 'Dexterity',
-  CON: 'Constitution',
-  INT: 'Intelligence',
-  WIS: 'Wisdom',
-  CHA: 'Charisma',
-};
 
 const SKILL_FILTERS = [
   ['all', 'All'],
@@ -45,8 +36,6 @@ function skillMatchesFilter(ability, activeFilter, proficient) {
 
 export default function CleanSheetOverviewTab({
   character,
-  ac,
-  speed,
   proficiencyBonus,
   passiveScores,
   saveProficiencies,
@@ -55,35 +44,9 @@ export default function CleanSheetOverviewTab({
 }) {
   const [skillFilter, setSkillFilter] = useState('all');
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
-  const initiative = mod(character?.dexterity);
 
   return (
     <div className="clean-sheet-grid clean-sheet-stats-tab clean-sheet-stats-tab--compact">
-      <section className="clean-sheet-panel clean-sheet-wide clean-sheet-compact-section">
-        <div className="clean-sheet-section-heading-row">
-          <h2>Core Stats</h2>
-        </div>
-        <div className="clean-sheet-core-stat-grid">
-          <div className="clean-sheet-core-stat-card"><Shield size={15} /><span>AC</span><strong>{ac}</strong></div>
-          <div className="clean-sheet-core-stat-card"><Footprints size={15} /><span>Speed</span><strong>{speed}ft</strong></div>
-          <div className="clean-sheet-core-stat-card"><Gauge size={15} /><span>Prof</span><strong>{fmt(proficiencyBonus)}</strong></div>
-          <button type="button" className="clean-sheet-core-stat-card clean-sheet-core-stat-card--rollable" onClick={() => onRoll('Initiative', initiative)}>
-            <Swords size={15} /><span>Init</span><strong>{fmt(initiative)}</strong>
-          </button>
-        </div>
-      </section>
-
-      <section className="clean-sheet-panel clean-sheet-compact-section clean-sheet-passives">
-        <h2>Passives</h2>
-        <div className="clean-sheet-passive-grid">
-          {passiveScores.map(([name, value]) => (
-            <div className="clean-sheet-passive-card" key={name}>
-              <Eye size={15} /><span>Passive {name}</span><strong>{value}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <section className="clean-sheet-panel clean-sheet-compact-section">
         <h2>Ability Scores</h2>
         <div className="clean-sheet-compact-abilities">
@@ -151,6 +114,17 @@ export default function CleanSheetOverviewTab({
                 </div>
               );
             })}
+        </div>
+      </section>
+
+      <section className="clean-sheet-panel clean-sheet-compact-section clean-sheet-passives">
+        <h2>Passive Scores</h2>
+        <div className="clean-sheet-passive-grid">
+          {passiveScores.map(([name, value]) => (
+            <div className="clean-sheet-passive-card" key={name}>
+              <Eye size={15} /><span>Passive {name}</span><strong>{value}</strong>
+            </div>
+          ))}
         </div>
       </section>
     </div>
