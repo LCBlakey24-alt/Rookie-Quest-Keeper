@@ -40,29 +40,28 @@ function compactSubtitleParts(character, fallbackSubtitle) {
     character?.race,
     character?.character_class,
     character?.subclass,
-    `Level ${character?.level || 1}`,
   ].filter(Boolean);
 
   if (directParts.length) return formatSubtitleParts(directParts);
 
-  return formatSubtitleParts(String(fallbackSubtitle || '').split('•'));
+  return formatSubtitleParts(String(fallbackSubtitle || '').split('•')).filter((part) => !/^level\s+\d+/i.test(part));
 }
 
 export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
   const subtitleParts = compactSubtitleParts(character, subtitle);
   const primaryLine = subtitleParts.slice(0, 2).join(' • ');
   const secondaryLine = subtitleParts[2] || '';
-  const levelLine = subtitleParts[3] || '';
+  const levelLabel = `Level ${character?.level || 1}`;
 
   return (
     <>
       <header className="clean-sheet-header clean-sheet-header--simple">
         <div className="clean-sheet-identity">
+          <span className="clean-sheet-hero-level-badge">{levelLabel}</span>
           <h1>{character.name}</h1>
-          <p className="clean-sheet-hero-subtitle" aria-label={subtitleParts.join(' • ')}>
+          <p className="clean-sheet-hero-subtitle" aria-label={[...subtitleParts, levelLabel].join(' • ')}>
             {primaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--primary">{primaryLine}</span>}
             {secondaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--secondary">{secondaryLine}</span>}
-            {levelLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--level">{levelLine}</span>}
           </p>
         </div>
       </header>
