@@ -98,6 +98,52 @@ When a recipient accepts a private share, create a new record:
 
 This keeps the recipient's copy usable even if the original creator later edits or deletes their private version, unless we intentionally add a synced-share mode later.
 
+
+## Re-sharing accepted copies
+
+Rookie Quest Keeper can allow accepted private copies to be re-shared again, but the app should treat each acceptance as a new private copy rather than one global public listing.
+
+Example chain:
+
+1. User 1 creates a Monk subclass in their private library.
+2. User 1 shares it with Campaign A.
+3. Player 2 accepts and saves a copy to their account.
+4. Player 2 shares their accepted copy with Player 3.
+5. Player 3 accepts and saves a new copy.
+6. Player 3 shares with Player 4, and so on.
+
+This is still private sharing, not a marketplace, as long as each transfer has a sender, a specific recipient or campaign, and an accept step.
+
+Accepted copies should keep a provenance chain:
+
+```json
+{
+  "id": "homebrew-subclass-copy-player-3",
+  "ownerUserId": "user_3",
+  "createdByUserId": "user_1",
+  "sharedFromUserId": "user_2",
+  "originContentId": "homebrew-subclass-original-user-1",
+  "parentContentId": "homebrew-subclass-copy-player-2",
+  "provenance": [
+    { "userId": "user_1", "action": "created" },
+    { "userId": "user_1", "action": "shared_to", "target": "user_2" },
+    { "userId": "user_2", "action": "accepted_copy" },
+    { "userId": "user_2", "action": "shared_to", "target": "user_3" },
+    { "userId": "user_3", "action": "accepted_copy" }
+  ]
+}
+```
+
+Recommended first-version rule:
+
+- Private re-sharing is allowed when `sharePolicy.allowPrivateShare` is true.
+- Campaign sharing is allowed when `sharePolicy.allowCampaignUse` is true.
+- Public listing remains disabled unless `sharePolicy.allowPublicListing` is true and a future moderation flow approves it.
+- Each recipient must accept and save their own copy before they can use or re-share it.
+- The app should show that the content is user-provided and name the account it was received from.
+
+This means a homebrew subclass can spread from friend to friend or party to party, but it remains a chain of private user copies rather than app-published official content.
+
 ## Sharing modes
 
 ### Copy share
