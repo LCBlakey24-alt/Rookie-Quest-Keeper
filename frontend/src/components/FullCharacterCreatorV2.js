@@ -23,9 +23,12 @@ const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const fmt = (value) => value >= 0 ? `+${value}` : `${value}`;
 const clamp = (value) => Math.max(3, Math.min(20, Number.parseInt(value, 10) || 10));
 const isChoiceLang = (value) => /choice|additional/i.test(String(value || ''));
+const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
+const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || '';
 const searchMatch = (spell, search) => {
   const needle = String(search || '').trim().toLowerCase();
   if (!needle) return true;
+  if (typeof spell === 'string') return spell.toLowerCase().includes(needle);
   if (needle.includes('damage') && spell.damage) return true;
   if ((needle.includes('heal') || needle.includes('healing')) && spell.healing) return true;
   return [spell.name, spell.school, spell.description, spell.damage, spell.damageType, spell.healing].filter(Boolean).join(' ').toLowerCase().includes(needle);
@@ -82,12 +85,13 @@ function spellRequirements(characterClass, scores) {
 }
 
 function toSpellEntry(spell, fallbackLevel) {
+  const name = spellName(spell) || String(spell || '');
   return {
-    ...(spell || {}),
-    name: spell?.name || String(spell || ''),
-    level: Number(spell?.level ?? fallbackLevel),
-    school: spell?.school || '',
-    description: spell?.description || '',
+    ...(typeof spell === 'object' && spell ? spell : {}),
+    name,
+    level: Number(typeof spell === 'object' ? spell?.level ?? fallbackLevel : fallbackLevel),
+    school: typeof spell === 'object' ? spell?.school || '' : '',
+    description: typeof spell === 'object' ? spell?.description || '' : '',
   };
 }
 
@@ -129,6 +133,11 @@ function inferEquipped(items = []) {
   };
 }
 
+function bonusText(bonus) {
+  const entries = Object.entries(bonus || {}).filter(([, value]) => Number(value) > 0);
+  return entries.length ? entries.map(([ability, value]) => `${LABELS[ability]} +${value}`).join(', ') : 'No direct ability bonus here';
+}
+
 export default function FullCharacterCreatorV2({ editMode = false }) {
   const navigate = useNavigate();
   const { characterId } = useParams();
@@ -141,6 +150,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const raceData = RACES[draft.race] || {};
   const classData = CLASSES[draft.characterClass] || {};
   const backgroundData = BACKGROUNDS[draft.background] || {};
+  const speciesLabel = draft.edition === '2024' ? 'Species' : 'Race';
   const subclassAllowed = draft.edition === '2014' && LEVEL_ONE_SUBCLASS.has(draft.characterClass);
   const classChoicesRequired = subclassAllowed && arr(classData.subclasses).length > 0;
   const subraces = Object.keys(raceData.subraces || {});
@@ -173,7 +183,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
-    species: Boolean(draft.name.trim() && draft.race && (!subraces.length || draft.subrace)),
+    name: Boolean(draft.name.trim()),
+    edition: Boolean(EDITIONS[draft.edition] || draft.edition),
+    species: Boolean(draft.race && (!subraces.length || draft.subrace)),
     class: Boolean(draft.characterClass),
     classChoices: !classChoicesRequired || Boolean(draft.subclass),
     background: Boolean(draft.background && draft.alignment),
@@ -185,7 +197,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     review: true,
   };
   const steps = [
-    { id: 'species', label: 'Species', icon: Shield },
+    { id: 'name', label: 'Name', icon: Sparkles },
+    { id: 'edition', label: 'Edition', icon: BookOpen },
+    { id: 'species', label: speciesLabel, icon: Shield },
     { id: 'class', label: 'Class', icon: Swords },
     ...(classChoicesRequired ? [{ id: 'classChoices', label: 'Class Choices', icon: Sparkles }] : []),
     { id: 'background', label: 'Background', icon: BookOpen },
@@ -202,7 +216,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const firstIncompleteStepId = requiredStepIds.find((id) => !completionByStep[id]);
   const firstIncompleteStepIndex = Math.max(0, steps.findIndex((item) => item.id === firstIncompleteStepId));
   const step = Math.min(Number(draft.step || 0), steps.length - 1);
-  const stepId = steps[step]?.id || 'species';
+  const stepId = steps[step]?.id || 'name';
   const currentStep = steps[step] || steps[0];
 
   useEffect(() => {
@@ -255,10 +269,11 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const setScore = (ability, value) => update({ scores: { ...draft.scores, [ability]: clamp(value) } });
 
   function validate() {
+    if (stepId === 'name' && !draft.name.trim()) return 'Give your character a name.';
+    if (stepId === 'edition' && !draft.edition) return 'Choose the rules edition.';
     if (stepId === 'species') {
-      if (!draft.name.trim()) return 'Give your character a name.';
-      if (!draft.race) return 'Choose a species or race.';
-      if (subraces.length && !draft.subrace) return 'Choose a subrace/species option.';
+      if (!draft.race) return `Choose a ${speciesLabel.toLowerCase()}.`;
+      if (subraces.length && !draft.subrace) return `Choose a ${speciesLabel.toLowerCase()} option.`;
     }
     if (stepId === 'class' && !draft.characterClass) return 'Choose a class.';
     if (stepId === 'classChoices' && classChoicesRequired && !draft.subclass) return 'Choose your level 1 subclass, patron, or domain.';
@@ -316,8 +331,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     const ability = classInfo.ability;
     const abilityMod = mod(finalScores[ability]);
     const slots = getSpellSlotsForCaster(classInfo, 1);
-    const cantrips = draft.selectedCantrips.map((name) => toSpellEntry(cantripPool.find((spell) => spell.name === name) || { name }, 0));
-    const spells = draft.selectedSpells.map((name) => toSpellEntry(levelOnePool.find((spell) => spell.name === name) || { name }, 1));
+    const cantrips = draft.selectedCantrips.map((name) => toSpellEntry(cantripPool.find((spell) => spellName(spell) === name) || { name }, 0));
+    const spells = draft.selectedSpells.map((name) => toSpellEntry(levelOnePool.find((spell) => spellName(spell) === name) || { name }, 1));
     const preparedLimit = Math.max(1, abilityMod + 1);
     return {
       spellcasting_ability: ability,
@@ -342,10 +357,13 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (!draft.name.trim()) priority.push('Name is missing. The sheet needs a character name before it can be saved.');
     else complete.push('Name is ready.');
 
-    if (!draft.race || !draft.characterClass || !draft.background) priority.push('Species, class, and background must all be selected.');
-    else complete.push('Species, class, and background are selected.');
+    if (!draft.edition) priority.push('Rules edition is missing. Choose 2014 or 2024 before saving.');
+    else complete.push('Rules edition is selected.');
 
-    if (subraces.length && !draft.subrace) priority.push('Choose a subrace/species option for this species.');
+    if (!draft.race || !draft.characterClass || !draft.background) priority.push(`${speciesLabel}, class, and background must all be selected.`);
+    else complete.push(`${speciesLabel}, class, and background are selected.`);
+
+    if (subraces.length && !draft.subrace) priority.push(`Choose a ${speciesLabel.toLowerCase()} option for this ${speciesLabel.toLowerCase()}.`);
     if (classChoicesRequired && !draft.subclass) priority.push('Choose the required level 1 subclass, patron, or domain.');
 
     if (!abilitiesComplete) priority.push('Ability scores need checking before the character can be saved.');
@@ -364,8 +382,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     else complete.push('Saving throws are ready.');
 
     if (!baseLanguages.length) later.push('Languages are missing or all language choices are unresolved. You can add these on the sheet later.');
-    if (languageChoices > 0) later.push('This species has an extra language choice. Pick the exact language later if it is not handled here yet.');
-    if (!racialTraits.length) later.push('Species traits are missing from the rules data. You can still save, but the traits section may need review.');
+    if (languageChoices > 0) later.push(`This ${speciesLabel.toLowerCase()} has an extra language choice. Pick the exact language later if it is not handled here yet.`);
+    if (!racialTraits.length) later.push(`${speciesLabel} traits are missing from the rules data. You can still save, but the traits section may need review.`);
     if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
 
     if (featRequired && !chosenFeat) priority.push('Choose or confirm your 2024 origin feat before saving.');
@@ -494,9 +512,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <header className="full-creator-header">
         <button type="button" onClick={() => navigate('/characters')}><ArrowLeft size={17} /> Characters</button>
         <div>
-          <p>Level 1 guided builder</p>
+          <p>Level 1 full builder</p>
           <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
-          <span>Swipe or use the buttons to move through each required choice.</span>
+          <span>Name, edition, then each character choice in order.</span>
         </div>
         <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
@@ -523,7 +541,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <section className="full-creator-layout">
         <article className="full-creator-panel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           <p className="full-creator-swipe-hint">Swipe left for next • swipe right for previous</p>
-          {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} />}
+          {stepId === 'name' && <NameStep draft={draft} update={update} />}
+          {stepId === 'edition' && <EditionStep draft={draft} update={update} />}
+          {stepId === 'species' && <Species draft={draft} update={update} subraces={subraces} raceData={raceData} racialTraits={racialTraits} baseLanguages={baseLanguages} languageChoices={languageChoices} bonus={bonus} speciesLabel={speciesLabel} />}
           {stepId === 'class' && <ClassStep draft={draft} update={update} />}
           {stepId === 'classChoices' && <ClassChoices draft={draft} update={update} classData={classData} />}
           {stepId === 'background' && <Background draft={draft} update={update} />}
@@ -543,7 +563,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
         <aside className="full-creator-preview">
           <p>Live sheet preview</p>
           <h2>{draft.name || 'Unnamed Character'}</h2>
-          <span>{draft.race}{draft.subrace ? ` (${draft.subrace})` : ''} • {draft.characterClass} • Lv 1</span>
+          <span>{draft.edition} rules • {draft.race}{draft.subrace ? ` (${draft.subrace})` : ''} • {draft.characterClass} • Lv 1</span>
           <div className="full-creator-mini-grid"><strong>{hp}</strong><span>HP</span><strong>{ac}</strong><span>AC</span><strong>{fmt(mod(finalScores.dexterity))}</strong><span>Init</span></div>
           <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
           <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
@@ -574,23 +594,64 @@ function Choice({ title, children }) {
   return <section className="full-creator-choice-block"><h3>{title}</h3><div>{children}</div></section>;
 }
 
-function Species({ draft, update, subraces }) {
+function NameStep({ draft, update }) {
   return <>
-    <Title icon={Shield} title="Choose species" text="Start with your character name, rules edition, and species or race." />
+    <Title icon={Sparkles} title="Name your character" text="Start with the name that will appear on the character sheet." />
+    <label className="full-creator-wide-label"><span>Character name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Pip, Javen, Thorne, Mira…" autoFocus /></label>
+    <p className="full-creator-note">You can change this later from the character sheet if the first name does not stick.</p>
+  </>;
+}
+
+function EditionStep({ draft, update }) {
+  return <>
+    <Title icon={BookOpen} title="Choose rules edition" text="Pick the rules version first so the builder can use the right wording and options." />
+    <Choice title="Rules edition">
+      {Object.entries(EDITIONS).map(([id, item]) => (
+        <Chip key={id} active={draft.edition === id} onClick={() => update({ edition: id, floatingAsi: {}, extraFeat: 'None' })}>
+          {item.name}
+        </Chip>
+      ))}
+    </Choice>
+    <div className="full-creator-auto-box"><strong>{EDITIONS[draft.edition]?.name || 'Edition selected'}</strong><span>{EDITIONS[draft.edition]?.description || 'The builder will use this ruleset for wording and choices.'}</span></div>
+  </>;
+}
+
+function Species({ draft, update, subraces, raceData, racialTraits, baseLanguages, languageChoices, bonus, speciesLabel }) {
+  const speed = raceData.subraces?.[draft.subrace]?.speed || raceData.speed || 30;
+  return <>
+    <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
     <div className="full-creator-form-grid">
-      <label><span>Name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Character name" /></label>
-      <label><span>Edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None' })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
-      <label><span>Species / Race</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {} })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
-      {subraces.length > 0 && <label><span>Subrace</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
+      <label><span>{speciesLabel}</span><select value={draft.race} onChange={(event) => update({ race: event.target.value, subrace: '', floatingAsi: {} })}>{Object.keys(RACES).map((name) => <option key={name}>{name}</option>)}</select></label>
+      {subraces.length > 0 && <label><span>{speciesLabel} option</span><select value={draft.subrace} onChange={(event) => update({ subrace: event.target.value })}><option value="">Choose…</option>{subraces.map((name) => <option key={name}>{name}</option>)}</select></label>}
     </div>
+    <section className="full-creator-auto-box">
+      <strong>{draft.race}{draft.subrace ? ` — ${draft.subrace}` : ''}</strong>
+      <span>{raceData.description || `Review the ${speciesLabel.toLowerCase()} traits before moving on.`}</span>
+    </section>
+    <div className="full-creator-review-grid">
+      <ReviewItem label="Speed" value={`${speed} ft`} />
+      <ReviewItem label="Size" value={raceData.size || 'Medium'} />
+      <ReviewItem label="Ability bonus" value={draft.edition === '2024' ? 'From background' : bonusText(bonus)} />
+      <ReviewItem label="Languages" value={[...baseLanguages, languageChoices ? `${languageChoices} choice` : ''].filter(Boolean).join(', ') || 'None listed'} />
+    </div>
+    <Choice title="Traits preview">
+      {racialTraits.length ? racialTraits.slice(0, 8).map((trait) => <span className="full-creator-note" key={trait.description}>{trait.description}</span>) : <span className="full-creator-note">No traits listed yet.</span>}
+    </Choice>
   </>;
 }
 
 function ClassStep({ draft, update }) {
+  const classData = CLASSES[draft.characterClass] || {};
   return <>
     <Title icon={Swords} title="Choose class" text="Pick the main class for this level 1 character." />
     <div className="full-creator-form-grid">
       <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [] })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
+    </div>
+    <div className="full-creator-review-grid">
+      <ReviewItem label="Hit die" value={`d${classData.hitDie || 8}`} />
+      <ReviewItem label="Primary" value={String(classData.primaryAbility || 'varies').toUpperCase()} />
+      <ReviewItem label="Skills" value={classData.skillCount || 0} />
+      <ReviewItem label="Saves" value={arr(classData.savingThrows).join(', ') || 'None listed'} />
     </div>
   </>;
 }
@@ -599,17 +660,23 @@ function ClassChoices({ draft, update, classData }) {
   return <>
     <Title icon={Sparkles} title="Class choices" text="Some level 1 classes need a subclass, patron, origin, or domain straight away." />
     <div className="full-creator-form-grid">
-      <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((name) => <option key={name}>{name}</option>)}</select></label>
+      <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
     </div>
   </>;
 }
 
 function Background({ draft, update }) {
+  const backgroundData = BACKGROUNDS[draft.background] || {};
   return <>
     <Title icon={BookOpen} title="Choose background" text="Pick where your character came from, then choose alignment." />
     <div className="full-creator-form-grid">
       <label><span>Background</span><select value={draft.background} onChange={(event) => update({ background: event.target.value, extraFeat: 'None' })}>{Object.keys(BACKGROUNDS).map((name) => <option key={name}>{name}</option>)}</select></label>
       <label><span>Alignment</span><select value={draft.alignment} onChange={(event) => update({ alignment: event.target.value })}>{['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'].map((name) => <option key={name}>{name}</option>)}</select></label>
+    </div>
+    <div className="full-creator-review-grid">
+      <ReviewItem label="Skills" value={arr(backgroundData.skillProficiencies).join(', ') || 'None listed'} />
+      <ReviewItem label="Tools" value={arr(backgroundData.toolProficiencies).join(', ') || 'None listed'} />
+      <ReviewItem label="Origin feat" value={draft.edition === '2024' ? backgroundData.originFeat2024 || 'Choose later' : 'Not required'} />
     </div>
   </>;
 }
@@ -648,13 +715,14 @@ function Spells({ spellSearch, setSpellSearch, spellReq, visibleCantrips, visibl
   return <>
     <Title icon={Wand2} title="Spell choices" text="Choose the required starting cantrips and level 1 spells before saving." />
     <input className="full-creator-search" value={spellSearch} onChange={(event) => setSpellSearch(event.target.value)} placeholder="Search name, school, damage, healing…" />
-    {spellReq.cantrips > 0 && <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>{visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedCantrips.includes(spell.name)} onClick={() => toggleCantrip(spell.name)} />) : <p className="full-creator-note">No cantrips match this search.</p>}</Choice>}
-    {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spell.name} spell={spell} active={selectedSpells.includes(spell.name)} onClick={() => toggleSpell(spell.name)} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
+    {spellReq.cantrips > 0 && <Choice title={`Cantrips ${selectedCantrips.length}/${spellReq.cantrips}`}>{visibleCantrips.length ? visibleCantrips.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedCantrips.includes(spellName(spell))} onClick={() => toggleCantrip(spellName(spell))} />) : <p className="full-creator-note">No cantrips match this search.</p>}</Choice>}
+    {spellReq.spells > 0 && <Choice title={`Level 1 spells ${selectedSpells.length}/${spellReq.spells}`}>{visibleSpells.length ? visibleSpells.map((spell) => <SpellChip key={spellName(spell)} spell={spell} active={selectedSpells.includes(spellName(spell))} onClick={() => toggleSpell(spellName(spell))} />) : <p className="full-creator-note">No spells match this search.</p>}</Choice>}
   </>;
 }
 
 function SpellChip({ spell, active, onClick }) {
-  return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} onClick={onClick}><strong>{spell.name}</strong><span>{spell.school || 'Spell'}</span><em>{spell.description || ''}</em></button>;
+  const entry = toSpellEntry(spell, spell?.level || 0);
+  return <button type="button" className={`full-creator-spell-chip ${active ? 'active' : ''}`} onClick={onClick}><strong>{entry.name}</strong><span>{entry.school || 'Spell'}</span><em>{entry.description || ''}</em></button>;
 }
 
 function Equipment({ draft, update, equipment }) {
