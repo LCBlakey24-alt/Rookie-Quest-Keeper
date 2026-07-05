@@ -4,88 +4,26 @@ export const CLERIC_SUBCLASSES = [
     name: 'Life Domain',
     rulesets: ['2014', '2024'],
     role: 'Healing and protective support',
-    summary: 'Boosts healing magic, durability, and party sustain.',
-    featureLevels: [1, 2, 6, 8, 17],
+    summary: 'Public-license Cleric subclass support for healing magic, durability, and party sustain.',
+    supportedAutomation: true,
+    featureLevels: {
+      '2014': [1, 2, 6, 8, 17],
+      '2024': [3, 6, 17],
+    },
   },
   {
-    key: 'light_domain',
-    name: 'Light Domain',
+    key: 'custom_cleric_subclass',
+    name: 'Custom / user-added subclass',
+    value: 'Custom Cleric Subclass',
     rulesets: ['2014', '2024'],
-    role: 'Radiant blaster and defensive support',
-    summary: 'Uses fire and light magic to punish enemies and protect allies.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'trickery_domain',
-    name: 'Trickery Domain',
-    rulesets: ['2014', '2024'],
-    role: 'Illusion, stealth, and misdirection support',
-    summary: 'Adds stealth, deception, and duplicate-based divine tricks.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'war_domain',
-    name: 'War Domain',
-    rulesets: ['2014', '2024'],
-    role: 'Martial divine striker',
-    summary: 'Blends weapon pressure, battle blessings, and combat durability.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'knowledge_domain',
-    name: 'Knowledge Domain',
-    rulesets: ['2014'],
-    role: 'Skill and lore specialist',
-    summary: 'Adds expertise-style knowledge, languages, and mind-affecting utility.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'nature_domain',
-    name: 'Nature Domain',
-    rulesets: ['2014'],
-    role: 'Nature-themed divine controller',
-    summary: 'Adds druidic flavour, elemental protection, and nature control.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'tempest_domain',
-    name: 'Tempest Domain',
-    rulesets: ['2014'],
-    role: 'Storm damage and battlefield control',
-    summary: 'Leans into thunder, lightning, martial armour, and retaliation.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'forge_domain',
-    name: 'Forge Domain',
-    rulesets: ['2014'],
-    role: 'Armour, crafting, and fire resilience',
-    summary: 'Improves equipment, defence, fire power, and magical craftsmanship.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'grave_domain',
-    name: 'Grave Domain',
-    rulesets: ['2014'],
-    role: 'Death warding and burst setup support',
-    summary: 'Protects the dying, disrupts death, and marks enemies for punishment.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'peace_domain',
-    name: 'Peace Domain',
-    rulesets: ['2014'],
-    role: 'Bonding and defensive support',
-    summary: 'Creates powerful ally bonds, shared protection, and team support.',
-    featureLevels: [1, 2, 6, 8, 17],
-  },
-  {
-    key: 'twilight_domain',
-    name: 'Twilight Domain',
-    rulesets: ['2014'],
-    role: 'Protective aura and darkness support',
-    summary: 'Protects allies with twilight sanctuary, darkvision, and night-themed magic.',
-    featureLevels: [1, 2, 6, 8, 17],
+    role: 'User-provided Cleric domain',
+    summary: 'User-provided Cleric domain from private or shared homebrew content.',
+    supportedAutomation: false,
+    custom: true,
+    featureLevels: {
+      '2014': [],
+      '2024': [],
+    },
   },
 ];
 
@@ -105,7 +43,16 @@ export function getClericSubclassKey(value = '') {
 
 export function getClericSubclassOptions(edition = '2014') {
   const ruleset = normaliseRuleset(edition);
-  return CLERIC_SUBCLASSES.filter(subclass => subclass.rulesets.includes(ruleset));
+  return CLERIC_SUBCLASSES
+    .filter(subclass => subclass.rulesets.includes(ruleset))
+    .map(subclass => ({
+      ...subclass,
+      value: subclass.value || subclass.name,
+      label: subclass.name,
+      ruleset,
+      supportedAutomation: Boolean(subclass.supportedAutomation),
+      custom: Boolean(subclass.custom),
+    }));
 }
 
 export function getClericSubclassByKey(key = '', edition = '2014') {
@@ -122,14 +69,20 @@ export function getClericSubclassSummary(key = '', level = 1, edition = '2014') 
   if (!subclass) return null;
 
   const clericLevel = Math.max(1, Number(level || 1));
-  const activeFeatureLevels = subclass.featureLevels.filter(featureLevel => featureLevel <= clericLevel);
-  const nextFeatureLevel = subclass.featureLevels.find(featureLevel => featureLevel > clericLevel) || null;
+  const ruleset = normaliseRuleset(edition);
+  const featureLevels = Array.isArray(subclass.featureLevels)
+    ? subclass.featureLevels
+    : (subclass.featureLevels?.[ruleset] || []);
+  const activeFeatureLevels = subclass.supportedAutomation ? featureLevels.filter(featureLevel => featureLevel <= clericLevel) : [];
+  const nextFeatureLevel = subclass.supportedAutomation ? featureLevels.find(featureLevel => featureLevel > clericLevel) || null : null;
 
   return {
     ...subclass,
     level: clericLevel,
     activeFeatureLevels,
     nextFeatureLevel,
-    supportedInRuleset: subclass.rulesets.includes(normaliseRuleset(edition)),
+    supportedInRuleset: subclass.rulesets.includes(ruleset),
+    supportedAutomation: Boolean(subclass.supportedAutomation),
+    custom: Boolean(subclass.custom),
   };
 }

@@ -66,8 +66,8 @@ export function validateClericBuilderSelections({
   const options = getClericBuilderOptions({ level, edition });
   const errors = [];
 
-  if (options.subclassRequired && !subclass) errors.push('Choose a Cleric subclass.');
-  if (subclass && !isValidClericSubclass(subclass, options.edition)) errors.push('Choose a Cleric subclass available in this ruleset.');
+  if (options.subclassRequired && !subclass) errors.push('Choose or record a Cleric subclass.');
+  if (subclass && !isValidClericSubclass(subclass, options.edition)) errors.push('Choose Life Domain for built-in public-license automation, or record a custom/user-added Cleric subclass.');
 
   if (options.divineOrderRequired && !divineOrder) errors.push('Choose a Divine Order.');
   if (divineOrder && !options.divineOrderOptions.some(option => option.key === normaliseChoice(divineOrder) || normaliseChoice(option.name) === normaliseChoice(divineOrder))) {
