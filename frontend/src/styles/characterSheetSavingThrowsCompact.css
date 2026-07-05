@@ -32,13 +32,14 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
     min-width: 0 !important;
-    min-height: 52px !important;
+    min-height: 62px !important;
     padding: 5px 2px !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
-    grid-template-rows: auto 1fr !important;
+    grid-template-rows: auto auto auto !important;
     place-items: center !important;
-    gap: 4px !important;
+    align-content: start !important;
+    gap: 3px !important;
     text-align: center !important;
     background: transparent !important;
     border: 0 !important;
@@ -53,7 +54,7 @@
     min-width: 0 !important;
     display: grid !important;
     place-items: center !important;
-    gap: 1px !important;
+    gap: 0 !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label strong {
@@ -66,10 +67,14 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-label span {
+    display: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
     display: block !important;
     width: auto !important;
     max-width: 100% !important;
-    padding: 1px 3px !important;
+    padding: 1px 4px !important;
     font-size: 0.44rem !important;
     line-height: 1.1 !important;
     letter-spacing: 0.04em !important;
@@ -78,10 +83,6 @@
     background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
     border: 0 !important;
     border-radius: 4px !important;
-  }
-
-  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save:not(.is-proficient) .clean-sheet-save-label span {
-    display: none !important;
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip {
@@ -112,7 +113,7 @@
   }
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-compact-save {
-    min-height: 49px !important;
+    min-height: 58px !important;
     padding-left: 1px !important;
     padding-right: 1px !important;
   }
@@ -121,5 +122,10 @@
     min-width: 28px !important;
     max-width: 38px !important;
     font-size: 0.66rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-save-prof-badge {
+    font-size: 0.4rem !important;
+    padding-inline: 3px !important;
   }
 }
