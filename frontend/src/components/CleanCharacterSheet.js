@@ -535,8 +535,11 @@ export default function CleanCharacterSheet() {
       <CleanSheetHeader
         character={character}
         subtitle={subtitle}
+        resting={savingQuickState}
         onEdit={() => navigate(`/characters/${character.id}/edit`)}
         onLevelUp={() => setShowLevelUpWizard(true)}
+        onShortRest={() => handleRest('short')}
+        onLongRest={() => handleRest('long')}
       />
 
       <CleanSheetCompactStatus
@@ -547,6 +550,9 @@ export default function CleanCharacterSheet() {
         tempHpAmount={tempHpAmount}
         savingHp={savingHp}
         savingTempHp={savingTempHp}
+        savingQuickState={savingQuickState}
+        hasInspiration={hasInspiration}
+        inspirationLabel={rulesEdition === '2024' ? 'Heroic Inspiration' : 'Inspiration'}
         ac={ac}
         speed={speed}
         initiative={initiative}
@@ -556,6 +562,7 @@ export default function CleanCharacterSheet() {
         onHeal={() => updateHp(getSafeAmount(hpAmount))}
         onTempHpAdd={() => updateTempHp(getSafeAmount(tempHpAmount || hpAmount))}
         onTempHpRemove={() => updateTempHp(-getSafeAmount(tempHpAmount || hpAmount))}
+        onToggleInspiration={toggleInspiration}
         onRollInitiative={() => makeRoll('Initiative', initiative)}
       />
 
