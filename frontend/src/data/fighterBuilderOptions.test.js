@@ -38,6 +38,11 @@ describe('Fighter builder options', () => {
 
     expect(options.needsSubclass).toBe(true);
     expect(options.requiredChoiceLabels).toEqual(['Subclass']);
+    expect(options.subclassOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'champion', supportedAutomation: true }),
+      expect.objectContaining({ key: 'custom_fighter_subclass', custom: true, supportedAutomation: false }),
+    ]));
+    expect(options.helperText).toContain('custom/user-added Fighter subclass');
   });
 
   test('validates fighting style by edition', () => {

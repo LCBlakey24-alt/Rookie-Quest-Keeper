@@ -24,7 +24,7 @@ export const LATEST_UPDATES = [
     details: [
       'Duplicate 2024 Fighter Weapon Mastery choices are now rejected by builder readiness checks.',
       'Second Wind, Action Surge, and Indomitable action cards now appear at their intended Fighter levels.',
-      'Built-in Fighter subclass automation is being kept public-license safe: Champion is wired now, while recorded custom or official subclasses show a clear support notice until users add their own details.',
+      'Built-in Fighter subclass automation is being kept public-license safe: Champion is wired now, and the builder includes a custom/user-added subclass path that records the choice without non-public automation.',
     ],
     public: true,
   },
