@@ -32,11 +32,6 @@ describe('Fighter class resources', () => {
     expect(getClassResourceRules({ ...fighter, level: 17 }).find(rule => rule.key === 'action_surge')).toMatchObject({ maxValue: 2 });
   });
 
-  test('Samurai Fighting Spirit unlocks only for Samurai Fighters', () => {
-    expect(getClassResourceRules({ ...fighter, level: 3, subclass: 'Samurai' }).find(rule => rule.key === 'samurai_fighting_spirit')).toMatchObject({ maxValue: 3, restore: 'long-rest' });
-    expect(getClassResourceRules({ ...fighter, level: 3, subclass: 'Champion' }).find(rule => rule.key === 'samurai_fighting_spirit')).toBeUndefined();
-  });
-
   test('fighter Indomitable scales by level', () => {
     expect(getClassResourceRules({ ...fighter, level: 8 }).find(rule => rule.key === 'indomitable')).toBeUndefined();
     expect(getClassResourceRules({ ...fighter, level: 9 }).find(rule => rule.key === 'indomitable')).toMatchObject({ maxValue: 1 });

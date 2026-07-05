@@ -68,9 +68,6 @@ export function resourceActionCards(character, resources, handlers = { spendReso
   if (byKey.second_wind || fighterLevel >= 1) add('bonus', 'second_wind', 'Second Wind', 'Regain hit points using your fighter resource.', () => handlers.spendResource('second_wind', 'Second Wind'));
   if (byKey.action_surge || fighterLevel >= 2) add('action', 'action_surge', 'Action Surge', 'Take one additional action on your turn.', () => handlers.spendResource('action_surge', 'Action Surge'));
   if (byKey.indomitable || fighterLevel >= 9) add('reaction', 'indomitable', 'Indomitable', 'Reroll a failed saving throw when this feature applies.', () => handlers.spendResource('indomitable', 'Indomitable'));
-  if (byKey.samurai_fighting_spirit) {
-    add('bonus', 'samurai_fighting_spirit', 'Fighting Spirit', 'Spend a use for a focused Samurai combat turn.', () => handlers.spendResource('samurai_fighting_spirit', 'Fighting Spirit'));
-  }
   if (byKey.superiority_dice) {
     add('action', 'superiority_dice', 'Battle Master Maneuver', 'Spend a superiority die when a maneuver applies.', () => handlers.spendResource('superiority_dice', 'Superiority Die'));
     add('reaction', 'superiority_dice', 'Reaction Maneuver', 'Use a reaction maneuver such as Riposte or Parry if known.', () => handlers.spendResource('superiority_dice', 'Reaction Maneuver'));

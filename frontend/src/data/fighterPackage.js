@@ -8,4 +8,3 @@ export * from './fighterBuilderReadiness';
 export * from './fighterFinalStatus';
 export * from './fighterSheetSummary';
 
-export * from './fighterSamurai';

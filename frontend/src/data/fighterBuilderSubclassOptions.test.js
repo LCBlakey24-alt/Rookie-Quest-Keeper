@@ -9,7 +9,6 @@ describe('Fighter subclass builder options', () => {
       'champion',
       'battle_master',
       'eldritch_knight',
-      'samurai',
     ]);
   });
 
@@ -24,8 +23,6 @@ describe('Fighter subclass builder options', () => {
   test('validates subclass selections by label or key', () => {
     expect(isValidFighterSubclass('Champion', '2024')).toBe(true);
     expect(isValidFighterSubclass('battle_master', '2024')).toBe(true);
-    expect(isValidFighterSubclass('Samurai', '2014')).toBe(true);
-    expect(isValidFighterSubclass('Samurai', '2024')).toBe(false);
     expect(isValidFighterSubclass('Unknown Subclass', '2024')).toBe(false);
   });
 

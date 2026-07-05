@@ -21,13 +21,6 @@ describe('FighterSubclassSummaryPanel', () => {
     expect(screen.getByText('9')).toBeInTheDocument();
   });
 
-  test('renders Samurai subclass summary', () => {
-    render(<FighterSubclassSummaryPanel summary={{ edition: '2014', isSamurai: true, samurai: { fightingSpiritUses: 3 }, subclassFeatures: [{ level: 3, key: 'fighting_spirit', name: 'Fighting Spirit', description: 'Focused turn.' }] }} />);
-    expect(screen.getByText('Samurai Features')).toBeInTheDocument();
-    expect(screen.getByText('Fighting Spirit')).toBeInTheDocument();
-    expect(screen.getByText('Active subclass features')).toBeInTheDocument();
-  });
-
   test('renders unsupported subclass notice', () => {
     render(<FighterSubclassSummaryPanel summary={{ edition: '2014', isUnsupportedSubclass: true, unsupportedSubclassLabel: 'Samurai', subclassFeatures: [] }} />);
     expect(screen.getByText('Fighter Subclass Support')).toBeInTheDocument();
