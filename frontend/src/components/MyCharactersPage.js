@@ -198,7 +198,7 @@ export default function MyCharactersPage() {
 
       <section className="library-page-action-row" aria-label="Character library actions">
         <div className="library-page-action-main">
-          <Link to="/characters/create" className="library-page-button library-page-button-primary">
+          <Link to="/characters/create/full" className="library-page-button library-page-button-primary">
             <Plus size={16} />
             Create Character
           </Link>
@@ -222,7 +222,7 @@ export default function MyCharactersPage() {
           <h2>No characters yet</h2>
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
-            <Link to="/characters/create" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/create/full" className="library-page-button library-page-button-primary">Create Character</Link>
           </div>
         </section>
       ) : (
