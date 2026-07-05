@@ -316,16 +316,6 @@ export const CLASS_FEATURES = {
           { level: 17, name: 'Quivering Palm', description: 'Spend 3 ki points when you hit with an unarmed strike. Within 14 days, reduce creature to 0 HP (CON save) or deal 10d10 necrotic damage.' },
         ],
       },
-      way_of_shadow: {
-        name: 'Way of Shadow',
-        description: 'Follow the tradition of stealth and subterfuge. Use ki to duplicate shadow-based spells and teleport through darkness.',
-        features: [
-          { level: 3, name: 'Shadow Arts', description: 'Spend 2 ki to cast Darkness, Darkvision, Pass without Trace, or Silence. Also gain Minor Illusion cantrip.' },
-          { level: 6, name: 'Shadow Step', description: 'When in dim light/darkness, teleport 60 ft to another dim/dark spot as a bonus action. Gain advantage on first melee attack after teleporting.' },
-          { level: 11, name: 'Cloak of Shadows', description: 'Become invisible in dim light/darkness until you attack or cast a spell.' },
-          { level: 17, name: 'Opportunist', description: 'When a creature within 5 ft is hit by another creature\'s attack, you can make a melee attack as a reaction.' },
-        ],
-      },
     },
     features: [
       { level: 1, name: 'Unarmored Defense', type: 'passive', description: 'AC = 10 + DEX + WIS when not wearing armor' },
@@ -356,7 +346,7 @@ export const CLASS_FEATURES = {
       { level: 2, name: 'Unarmored Movement', type: 'passive', description: '+10 ft speed when not wearing armor' },
       { level: 2, name: 'Uncanny Metabolism', type: 'passive', description: 'On initiative, regain all Discipline Points. Regain hit die = martial arts die once per long rest.' },
       { level: 3, name: 'Deflect Attacks', type: 'reaction', description: 'Reduce any attack damage by 1d10 + DEX + monk level. Spend 1 DP to redirect.' },
-      { level: 3, name: 'Monk Subclass', type: 'passive', description: 'Choose a Monk subclass', isChoice: true },
+      { level: 3, name: 'Monk Subclass', type: 'passive', description: 'Choose a Monk subclass. Built-in automation is limited to public-license subclass data.', isChoice: true },
       { level: 4, name: 'Slow Fall', type: 'reaction', description: 'Reduce falling damage by 5 x monk level' },
       { level: 5, name: 'Extra Attack', type: 'passive', description: 'Attack twice per Attack action' },
       { level: 5, name: 'Stunning Strike', type: 'action_modifier', description: 'Spend 1 DP on hit: target makes CON save or is Stunned until start of your next turn', uses: '1 DP' },

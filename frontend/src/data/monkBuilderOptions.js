@@ -35,7 +35,7 @@ function buildChoiceSummary(choice) {
   };
 
   if (choice.choiceType === 'subclass') {
-    return { ...base, count: 1, helperText: 'Choose a Monk subclass.' };
+    return { ...base, count: 1, helperText: 'Choose Open Hand for built-in public-license automation, or record a custom/user-added Monk subclass.' };
   }
 
   return { ...base, count: choice.choices || 1, helperText: `Choose ${choice.name}.` };
@@ -71,7 +71,7 @@ export function validateMonkBuilderSelections({ level = 1, edition = '2014', sub
   const errors = [];
 
   if (options.needsSubclass && !isValidMonkSubclass(subclass, edition)) {
-    errors.push('Choose a Monk subclass.');
+    errors.push('Choose or record a Monk subclass.');
   }
 
   return {
