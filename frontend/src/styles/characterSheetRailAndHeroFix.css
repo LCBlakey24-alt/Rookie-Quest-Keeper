@@ -1,0 +1,137 @@
+/* Final clean sheet rail + hero corrections.
+   Imported after the app-level sheet override so the mobile rail stays icon-only. */
+
+#root .character-page-v2 .clean-sheet-header {
+  padding: 12px !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  padding: 14px 16px !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity::before,
+#root .character-page-v2 .clean-sheet-identity::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs {
+  background: #10051d !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  padding: 8px 4px !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs::before,
+#root .character-page-v2 .clean-sheet-tabs::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+  display: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back svg,
+#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active,
+#root .character-page-v2 .clean-sheet-tabs button.active:hover,
+#root .character-page-v2 .clean-sheet-tabs button.active:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
+  width: 20px !important;
+  height: 20px !important;
+  padding: 8px !important;
+  box-sizing: content-box !important;
+  display: block !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention:not(.active)::after,
+#root .character-page-v2 .clean-sheet-tabs button.needs-attention.active::after {
+  right: 3px !important;
+  top: 3px !important;
+  width: 6px !important;
+  height: 6px !important;
+  left: auto !important;
+  bottom: auto !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #ff4f81, #ff9542) !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 760px) {
+  #root .character-page-v2 .clean-sheet-tabs button,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    justify-items: start !important;
+    padding: 0 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back span,
+  #root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback span {
+    display: block !important;
+    color: #ffffff !important;
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-weight: 800 !important;
+  }
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-tabs {
+    left: 7px !important;
+    width: 46px !important;
+    max-width: 46px !important;
+  }
+}
