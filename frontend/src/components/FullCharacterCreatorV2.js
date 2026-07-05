@@ -18,20 +18,22 @@ const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
-const STARTING_GOLD_BY_CLASS = {
-  Barbarian: { formula: '2d4 × 10 gp', average: 50 },
-  Bard: { formula: '5d4 × 10 gp', average: 125 },
-  Cleric: { formula: '5d4 × 10 gp', average: 125 },
-  Druid: { formula: '2d4 × 10 gp', average: 50 },
-  Fighter: { formula: '5d4 × 10 gp', average: 125 },
-  Monk: { formula: '5d4 gp', average: 13 },
-  Paladin: { formula: '5d4 × 10 gp', average: 125 },
-  Ranger: { formula: '5d4 × 10 gp', average: 125 },
-  Rogue: { formula: '4d4 × 10 gp', average: 100 },
-  Sorcerer: { formula: '3d4 × 10 gp', average: 75 },
-  Warlock: { formula: '4d4 × 10 gp', average: 100 },
-  Wizard: { formula: '4d4 × 10 gp', average: 100 },
+const STARTING_GOLD_2014_BY_CLASS = {
+  Barbarian: { formula: '2d4 × 10 gp', dice: 2, die: 4, multiplier: 10, average: 50 },
+  Bard: { formula: '5d4 × 10 gp', dice: 5, die: 4, multiplier: 10, average: 125 },
+  Cleric: { formula: '5d4 × 10 gp', dice: 5, die: 4, multiplier: 10, average: 125 },
+  Druid: { formula: '2d4 × 10 gp', dice: 2, die: 4, multiplier: 10, average: 50 },
+  Fighter: { formula: '5d4 × 10 gp', dice: 5, die: 4, multiplier: 10, average: 125 },
+  Monk: { formula: '5d4 gp', dice: 5, die: 4, multiplier: 1, average: 13 },
+  Paladin: { formula: '5d4 × 10 gp', dice: 5, die: 4, multiplier: 10, average: 125 },
+  Ranger: { formula: '5d4 × 10 gp', dice: 5, die: 4, multiplier: 10, average: 125 },
+  Rogue: { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 },
+  Sorcerer: { formula: '3d4 × 10 gp', dice: 3, die: 4, multiplier: 10, average: 75 },
+  Warlock: { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 },
+  Wizard: { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 },
 };
+
+const STARTING_GOLD_2024 = { formula: '50 gp', dice: 0, die: 0, multiplier: 1, average: 50, fixed: true };
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
@@ -40,8 +42,14 @@ const clamp = (value) => Math.max(3, Math.min(20, Number.parseInt(value, 10) || 
 const isChoiceLang = (value) => /choice|additional/i.test(String(value || ''));
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const spellName = (spell) => typeof spell === 'string' ? spell : spell?.name || '';
-const getStartingGoldRule = (characterClass) => STARTING_GOLD_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', average: 100 };
+const getStartingGoldRule = (characterClass, edition) => edition === '2024' ? STARTING_GOLD_2024 : STARTING_GOLD_2014_BY_CLASS[characterClass] || { formula: '4d4 × 10 gp', dice: 4, die: 4, multiplier: 10, average: 100 };
 const normalizeEquipmentMode = (mode) => mode === 'gold' ? 'gold' : 'equipment';
+const rollStartingGold = (rule) => {
+  if (rule.fixed) return rule.average;
+  let total = 0;
+  for (let i = 0; i < Number(rule.dice || 0); i += 1) total += 1 + Math.floor(Math.random() * Number(rule.die || 1));
+  return total * Number(rule.multiplier || 1);
+};
 const searchMatch = (spell, search) => {
   const needle = String(search || '').trim().toLowerCase();
   if (!needle) return true;
@@ -70,6 +78,7 @@ function defaultDraft() {
     selectedSpells: [],
     extraFeat: 'None',
     equipmentMode: 'equipment',
+    rolledStartingGold: 0,
     customEquipment: '',
     personalityTrait: '',
     ideal: '',
@@ -82,7 +91,7 @@ function defaultDraft() {
 function loadDraft() {
   try {
     const stored = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-    return stored ? { ...defaultDraft(), ...stored, equipmentMode: normalizeEquipmentMode(stored.equipmentMode), startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
+    return stored ? { ...defaultDraft(), ...stored, equipmentMode: normalizeEquipmentMode(stored.equipmentMode), rolledStartingGold: Number(stored.rolledStartingGold || 0), startingLevel: 1, scores: { ...STANDARD, ...(stored.scores || {}) } } : defaultDraft();
   } catch {
     return defaultDraft();
   }
@@ -189,8 +198,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const languageChoices = arr(raceData.languages).filter(isChoiceLang).length;
   const racialTraits = [...arr(raceData.traits), ...arr(raceData.subraces?.[draft.subrace]?.traits)].map((trait) => ({ name: String(trait).split(' (')[0], description: String(trait) }));
   const classFeatures = arr(classData.features?.[1]).filter((name) => name && name !== '---').map((name) => ({ name, description: `${draft.characterClass} feature gained at level 1.` }));
-  const startingGoldRule = getStartingGoldRule(draft.characterClass);
-  const startingGold = equipmentMode === 'gold' ? startingGoldRule.average : 0;
+  const startingGoldRule = getStartingGoldRule(draft.characterClass, draft.edition);
+  const startingGold = equipmentMode === 'gold' ? (startingGoldRule.fixed ? startingGoldRule.average : Number(draft.rolledStartingGold || 0)) : 0;
   const equipmentList = startingEquipment();
   const spellReq = spellRequirements(draft.characterClass, finalScores);
   const spellLists = getSpellsForClass(draft.characterClass) || {};
@@ -201,7 +210,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   const hasSpells = spellReq.cantrips > 0 || spellReq.spells > 0;
   const chosenFeat = draft.extraFeat !== 'None' ? draft.extraFeat : (draft.edition === '2024' ? backgroundData.originFeat2024 || '' : '');
   const featRequired = draft.edition === '2024';
-  const equipmentComplete = equipmentMode === 'equipment' || equipmentMode === 'gold';
+  const equipmentComplete = equipmentMode === 'equipment' || (equipmentMode === 'gold' && (startingGoldRule.fixed || startingGold > 0));
   const spellsComplete = !hasSpells || (draft.selectedCantrips.length === spellReq.cantrips && draft.selectedSpells.length === spellReq.spells);
   const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(finalScores[ability])) && finalScores[ability] >= 3 && finalScores[ability] <= 30) && (!floatingBudget || floatingSpent === floatingBudget);
   const completionByStep = {
@@ -259,6 +268,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
           selectedSpells: [...arr(data.spells_known || data.known_spells), ...arr(data.spellbook), ...arr(data.spells_prepared || data.prepared_spells)].map((spell) => spell.name || spell),
           customEquipment: '',
           equipmentMode: loadedGold > 0 && !arr(data.starting_equipment).length ? 'gold' : 'equipment',
+          rolledStartingGold: loadedGold,
           personalityTrait: data.personality_trait || data.personality_traits || '',
           ideal: data.ideal || data.ideals || '',
           bond: data.bond || data.bonds || '',
@@ -300,7 +310,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       if (featRequired && !chosenFeat) return 'Choose or confirm your 2024 origin feat.';
     }
     if (stepId === 'abilities' && !abilitiesComplete) return floatingBudget && floatingSpent !== floatingBudget ? `Assign ${floatingBudget} floating ability bonus${floatingBudget === 1 ? '' : 'es'}.` : 'Check your ability scores.';
-    if (stepId === 'equipment' && !equipmentComplete) return 'Choose starting equipment or starting gold.';
+    if (stepId === 'equipment' && !equipmentComplete) return draft.edition === '2014' ? 'Roll starting gold or choose starting equipment.' : 'Choose starting equipment or starting gold.';
     return '';
   }
 
@@ -404,9 +414,9 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     if (!classFeatures.length) later.push('Class features are missing from the rules data. You can still save, but the features section may need review.');
 
     if (featRequired && !chosenFeat) priority.push('Choose or confirm your 2024 origin feat before saving.');
-    if (!equipmentComplete) priority.push('Choose starting equipment or starting gold before saving.');
+    if (!equipmentComplete) priority.push(draft.edition === '2014' ? 'Roll starting gold or choose starting equipment before saving.' : 'Choose starting equipment or starting gold before saving.');
     if (equipmentMode === 'equipment' && !equipmentList.length) priority.push('No starting equipment is listed. Choose starting gold instead.');
-    if (equipmentMode === 'gold') later.push(`Starting gold selected: ${startingGoldRule.formula}, saved as ${startingGold} gp using the average.`);
+    if (equipmentMode === 'gold') later.push(startingGoldRule.fixed ? `Starting gold selected: ${startingGold} gp.` : `Starting gold rolled using ${startingGoldRule.formula}: ${startingGold} gp.`);
 
     if (hasSpells) {
       if (!spellsComplete) priority.push(`Spell choices are incomplete: ${draft.selectedCantrips.length}/${spellReq.cantrips} cantrips and ${draft.selectedSpells.length}/${spellReq.spells} level 1 spells.`);
@@ -461,7 +471,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       racial_traits: racialTraits,
       class_features: classFeatures,
       feats: chosenFeat ? [{ name: chosenFeat, source: draft.edition === '2024' ? 'origin' : 'optional' }] : [],
-      equipment_choice: equipmentMode === 'gold' ? 'starting_gold' : 'starting_equipment',
+      equipment_choice: equipmentMode === 'gold' ? (startingGoldRule.fixed ? 'starting_gold_fixed' : 'starting_gold_rolled') : 'starting_equipment',
       starting_gold_formula: equipmentMode === 'gold' ? startingGoldRule.formula : '',
       starting_equipment: equipmentList,
       equipment,
@@ -577,7 +587,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             <div className="full-creator-score-grid">{ABILITIES.map((ability) => <div key={ability}><span>{LABELS[ability]}</span><strong>{finalScores[ability]}</strong><em>{fmt(mod(finalScores[ability]))}</em></div>)}</div>
             <small>Skills: {allSkills.length ? allSkills.join(', ') : 'choose skills'}</small>
             {hasSpells && <small>Spells: {draft.selectedCantrips.length}/{spellReq.cantrips} cantrips, {draft.selectedSpells.length}/{spellReq.spells} spells</small>}
-            <small>{equipmentMode === 'gold' ? `Gold: ${startingGold} gp` : 'Starting equipment selected'}</small>
+            <small>{equipmentMode === 'gold' ? `Gold: ${startingGold || 'not rolled'} gp` : 'Starting equipment selected'}</small>
             <small>{canSave ? report.later.length ? `${report.later.length} reminder${report.later.length === 1 ? '' : 's'} for later` : 'Ready to create' : `${journeyPercent}% through builder`}</small>
           </aside>
         </section>
@@ -610,7 +620,7 @@ function Setup({ draft, update }) {
     <Title icon={Sparkles} title="Character setup" text="Start with name, rules edition, and starting level. Higher starting levels will come after the level-up pass." />
     <div className="full-creator-form-grid">
       <label><span>Character name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Pip, Javen, Thorne, Mira…" autoFocus /></label>
-      <label><span>Rules edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None' })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
+      <label><span>Rules edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None', rolledStartingGold: 0 })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>
       <label><span>Starting level</span><select value="1" disabled><option value="1">Level 1</option></select></label>
     </div>
     <div className="full-creator-auto-box"><strong>{EDITIONS[draft.edition]?.name || 'Edition selected'}</strong><span>{EDITIONS[draft.edition]?.description || 'The builder will use this ruleset for wording and choices.'}</span></div>
@@ -645,7 +655,7 @@ function ClassStep({ draft, update, classData, classChoicesRequired, backgroundS
   return <>
     <Title icon={Swords} title="Choose class" text="Class handles class, subclass, skills, spells, and class-linked choices." />
     <div className="full-creator-form-grid">
-      <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [] })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
+      <label><span>Class</span><select value={draft.characterClass} onChange={(event) => update({ characterClass: event.target.value, subclass: '', selectedSkills: [], selectedCantrips: [], selectedSpells: [], rolledStartingGold: 0 })}>{Object.keys(CLASSES).map((name) => <option key={name}>{name}</option>)}</select></label>
       {classChoicesRequired && <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>}
     </div>
     <div className="full-creator-review-grid">
@@ -710,17 +720,21 @@ function SpellChip({ spell, active, onClick }) {
 
 function Equipment({ draft, update, equipment, startingGoldRule, startingGold }) {
   const equipmentMode = normalizeEquipmentMode(draft.equipmentMode);
+  const is2024 = draft.edition === '2024';
   return <>
-    <Title icon={Backpack} title="Equipment" text="Choose either starting equipment or starting gold." />
+    <Title icon={Backpack} title="Equipment" text={is2024 ? 'Choose starting equipment or the fixed 2024 starting gold option.' : 'Choose starting equipment or roll starting gold by class.'} />
     <div className="full-creator-equipment-modes">
-      <button type="button" className={equipmentMode === 'equipment' ? 'active' : ''} onClick={() => update({ equipmentMode: 'equipment', customEquipment: '' })}>Starting equipment</button>
-      <button type="button" className={equipmentMode === 'gold' ? 'active' : ''} onClick={() => update({ equipmentMode: 'gold', customEquipment: '' })}>Starting gold</button>
+      <button type="button" className={equipmentMode === 'equipment' ? 'active' : ''} onClick={() => update({ equipmentMode: 'equipment', customEquipment: '', rolledStartingGold: 0 })}>Starting equipment</button>
+      <button type="button" className={equipmentMode === 'gold' ? 'active' : ''} onClick={() => update({ equipmentMode: 'gold', customEquipment: '', rolledStartingGold: is2024 ? STARTING_GOLD_2024.average : 0 })}>{is2024 ? 'Starting gold' : 'Roll starting gold'}</button>
     </div>
     {equipmentMode === 'gold' ? (
-      <div className="full-creator-review-grid">
-        <ReviewItem label="Gold rule" value={startingGoldRule.formula} />
-        <ReviewItem label="Saved gold" value={`${startingGold} gp`} />
-      </div>
+      <>
+        {!startingGoldRule.fixed && <button type="button" onClick={() => update({ rolledStartingGold: rollStartingGold(startingGoldRule) })}>Roll {startingGoldRule.formula}</button>}
+        <div className="full-creator-review-grid">
+          <ReviewItem label={startingGoldRule.fixed ? 'Gold option' : 'Gold roll'} value={startingGoldRule.formula} />
+          <ReviewItem label="Saved gold" value={startingGold ? `${startingGold} gp` : 'Not rolled yet'} />
+        </div>
+      </>
     ) : (
       <div className="full-creator-equipment-list">{equipment.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div>
     )}
