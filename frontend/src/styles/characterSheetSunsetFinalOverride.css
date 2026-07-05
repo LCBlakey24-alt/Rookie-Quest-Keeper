@@ -1,0 +1,285 @@
+/* Final app-level character sheet override.
+   This is imported last from App.js so it beats older global sheet files that use #root selectors. */
+
+#root .character-page-v2.clean-sheet-page,
+#root .clean-sheet-page.character-page-v2 {
+  --rq-sheet-bg: #070513;
+  --rq-sheet-panel: #1a0b2d;
+  --rq-sheet-card: #10051d;
+  --rq-sheet-input: #090313;
+  --rq-sheet-text: #ffffff;
+  --rq-sheet-muted: rgba(255, 255, 255, 0.68);
+  --rq-sheet-soft: rgba(255, 255, 255, 0.84);
+  --rq-sheet-sunset: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+  --rq-sheet-sunset-line: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(115, 87, 255, 0.14), transparent 22rem),
+    radial-gradient(circle at 95% 12%, rgba(255, 79, 129, 0.1), transparent 18rem),
+    #070513 !important;
+  color: #ffffff !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+#root .character-page-v2 *,
+#root .character-page-v2 *::before,
+#root .character-page-v2 *::after {
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-header,
+#root .character-page-v2 .clean-sheet-header--simple,
+#root .character-page-v2 .clean-sheet-compact-status,
+#root .character-page-v2 .clean-sheet-compact-status--hp-only,
+#root .character-page-v2 .clean-sheet-panel,
+#root .character-page-v2 .clean-sheet-card,
+#root .character-page-v2 .clean-sheet-section,
+#root .character-page-v2 .clean-sheet-tab-panel,
+#root .character-page-v2 .clean-sheet-vitals,
+#root .character-page-v2 .clean-sheet-play-tools,
+#root .character-page-v2 .clean-sheet-recovery-panel,
+#root .character-page-v2 .clean-sheet-condition-panel,
+#root .character-page-v2 .clean-sheet-roll-history-panel,
+#root .character-page-v2 .clean-sheet-turn-strip,
+#root .character-page-v2 .clean-sheet-empty {
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-header::before,
+#root .character-page-v2 .clean-sheet-header::after,
+#root .character-page-v2 .clean-sheet-compact-status::before,
+#root .character-page-v2 .clean-sheet-compact-status::after,
+#root .character-page-v2 .clean-sheet-panel::before,
+#root .character-page-v2 .clean-sheet-panel::after,
+#root .character-page-v2 .clean-sheet-card::before,
+#root .character-page-v2 .clean-sheet-card::after,
+#root .character-page-v2 .clean-sheet-section::before,
+#root .character-page-v2 .clean-sheet-section::after,
+#root .character-page-v2 .clean-sheet-identity::before,
+#root .character-page-v2 .clean-sheet-identity::after {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  border: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity,
+#root .character-page-v2 .clean-sheet-core-stat-card,
+#root .character-page-v2 .clean-sheet-passive-card,
+#root .character-page-v2 .clean-sheet-compact-ability,
+#root .character-page-v2 .clean-sheet-save-card,
+#root .character-page-v2 .clean-sheet-compact-save,
+#root .character-page-v2 .clean-sheet-skill-card,
+#root .character-page-v2 .clean-sheet-compact-skill,
+#root .character-page-v2 .clean-sheet-action-card,
+#root .character-page-v2 .clean-sheet-attack-card,
+#root .character-page-v2 .clean-sheet-feature-card,
+#root .character-page-v2 .clean-sheet-spell-card,
+#root .character-page-v2 .clean-sheet-slot-card,
+#root .character-page-v2 .clean-sheet-item-card,
+#root .character-page-v2 .clean-sheet-helper-card,
+#root .character-page-v2 .clean-sheet-resource-card,
+#root .character-page-v2 .clean-sheet-note-field,
+#root .character-page-v2 .clean-sheet-empty-slot,
+#root .character-page-v2 .clean-sheet-damage-result,
+#root .character-page-v2 .clean-sheet-caster-card,
+#root .character-page-v2 .clean-sheet-spell-library-card,
+#root .character-page-v2 .clean-sheet-skills-summary > div,
+#root .character-page-v2 .clean-sheet-spell-summary > div,
+#root .character-page-v2 .clean-sheet-inventory-summary > div,
+#root .character-page-v2 .clean-sheet-currency-grid > div,
+#root .character-page-v2 .clean-sheet-equipment-preview > div,
+#root .character-page-v2 .clean-sheet-readiness-grid > div,
+#root .character-page-v2 .clean-sheet-proficiency-lists > div,
+#root .character-page-v2 .clean-sheet-caster-stats > div,
+#root .character-page-v2 .clean-sheet-pact-card > div {
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.9), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.55)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-status-pill,
+#root .character-page-v2 .clean-sheet-pill,
+#root .character-page-v2 .clean-sheet-condition-chip,
+#root .character-page-v2 .clean-sheet-tag,
+#root .character-page-v2 .clean-sheet-item-slot,
+#root .character-page-v2 .clean-sheet-spell-level,
+#root .character-page-v2 .clean-sheet-spell-state,
+#root .character-page-v2 .clean-sheet-action-type,
+#root .character-page-v2 .clean-sheet-panel-heading > span,
+#root .character-page-v2 .clean-sheet-section-heading-row > span,
+#root .character-page-v2 .clean-sheet-spell-section-heading > span,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > span {
+  background:
+    linear-gradient(#160722, #160722) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 7px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-header-actions button,
+#root .character-page-v2 .clean-sheet-edit,
+#root .character-page-v2 .clean-sheet-compact-hp-actions button,
+#root .character-page-v2 .clean-sheet-roll-chip,
+#root .character-page-v2 .clean-sheet-panel button,
+#root .character-page-v2 .clean-sheet-item-actions button,
+#root .character-page-v2 .clean-sheet-spell-actions button,
+#root .character-page-v2 .clean-sheet-slot-actions button,
+#root .character-page-v2 .clean-sheet-notes-actions button {
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-level,
+#root .character-page-v2 .clean-sheet-notes-actions button,
+#root .character-page-v2 .clean-sheet-skill-filter-row button.active {
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border: 1px solid transparent !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1,
+#root .character-page-v2 .clean-sheet-panel h2,
+#root .character-page-v2 .clean-sheet-panel h3,
+#root .character-page-v2 .clean-sheet-card h2,
+#root .character-page-v2 .clean-sheet-card h3,
+#root .character-page-v2 .clean-sheet-section h2,
+#root .character-page-v2 .clean-sheet-section h3,
+#root .character-page-v2 .clean-sheet-feature-card strong,
+#root .character-page-v2 .clean-sheet-item-card strong,
+#root .character-page-v2 .clean-sheet-core-stat-card strong,
+#root .character-page-v2 .clean-sheet-compact-ability > strong,
+#root .character-page-v2 .clean-sheet-stat-value {
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+
+#root .character-page-v2 p,
+#root .character-page-v2 em,
+#root .character-page-v2 small,
+#root .character-page-v2 .clean-sheet-muted,
+#root .character-page-v2 .clean-sheet-panel p,
+#root .character-page-v2 .clean-sheet-card p,
+#root .character-page-v2 .clean-sheet-section p,
+#root .character-page-v2 .clean-sheet-feature-card p,
+#root .character-page-v2 .clean-sheet-item-card p {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+#root .character-page-v2 span,
+#root .character-page-v2 .clean-sheet-kicker,
+#root .character-page-v2 .clean-sheet-stat-label,
+#root .character-page-v2 .clean-sheet-skills-summary span,
+#root .character-page-v2 .clean-sheet-core-stat-card span {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1::after,
+#root .character-page-v2 .clean-sheet-panel h2::after,
+#root .character-page-v2 .clean-sheet-panel h3::after,
+#root .character-page-v2 .clean-sheet-card h2::after,
+#root .character-page-v2 .clean-sheet-card h3::after,
+#root .character-page-v2 .clean-sheet-section h2::after,
+#root .character-page-v2 .clean-sheet-section h3::after,
+#root .character-page-v2 .clean-sheet-section-heading-row h2::after {
+  content: '' !important;
+  display: block !important;
+  width: min(100%, 420px) !important;
+  height: 3px !important;
+  margin-top: 8px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  opacity: 1 !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-stat--hp em {
+  background:
+    linear-gradient(#160722, #160722) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+}
+
+#root .character-page-v2 input,
+#root .character-page-v2 select,
+#root .character-page-v2 textarea,
+#root .character-page-v2 .clean-sheet-hp-wheel select,
+#root .character-page-v2 .clean-sheet-spell-search,
+#root .character-page-v2 .clean-sheet-spell-library-tools,
+#root .character-page-v2 .clean-sheet-equipment-tools label {
+  background:
+    linear-gradient(#090313, #090313) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.8), rgba(255, 149, 66, 0.45)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs {
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(216, 77, 241, 0.75), rgba(255, 149, 66, 0.5)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2.clean-sheet-page,
+  #root .clean-sheet-page.character-page-v2 {
+    padding: 8px 8px 34px 66px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section {
+    border-radius: 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-tabs {
+    left: 7px !important;
+    width: 46px !important;
+    max-width: 46px !important;
+  }
+}
