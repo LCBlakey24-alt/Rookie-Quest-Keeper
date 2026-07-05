@@ -19,6 +19,50 @@
   content: none !important;
 }
 
+#root .character-page-v2 .clean-sheet-section-heading-row,
+#root .character-page-v2 .clean-sheet-panel-heading,
+#root .character-page-v2 .clean-sheet-spellcasting-heading,
+#root .character-page-v2 .clean-sheet-spell-section-heading,
+#root .character-page-v2 .clean-sheet-inventory-header {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row > svg,
+#root .character-page-v2 .clean-sheet-panel-heading > svg,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > svg,
+#root .character-page-v2 .clean-sheet-spell-section-heading > svg,
+#root .character-page-v2 .clean-sheet-inventory-header > svg {
+  position: absolute !important;
+  top: 2px !important;
+  right: 0 !important;
+  z-index: 2 !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row > span,
+#root .character-page-v2 .clean-sheet-panel-heading > span,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > span,
+#root .character-page-v2 .clean-sheet-spell-section-heading > span,
+#root .character-page-v2 .clean-sheet-inventory-header > span {
+  position: absolute !important;
+  top: 1px !important;
+  right: 0 !important;
+  z-index: 2 !important;
+  min-height: 18px !important;
+  padding: 2px 6px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 4px !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
 #root .character-page-v2 .clean-sheet-identity h1,
 #root .character-page-v2 .clean-sheet-panel h2,
 #root .character-page-v2 .clean-sheet-panel h3,
