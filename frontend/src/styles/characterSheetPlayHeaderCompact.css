@@ -7,7 +7,8 @@
   gap: 8px !important;
 }
 
-#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button {
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button,
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-rest {
   min-height: 38px !important;
   padding: 7px 8px !important;
   border-radius: 8px !important;
@@ -17,6 +18,8 @@
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
   color: #ffffff !important;
+  background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
   box-shadow: none !important;
 }
 
@@ -26,9 +29,66 @@
   flex: 0 0 auto !important;
 }
 
-#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-rest {
-  background: rgba(55, 26, 16, 0.78) !important;
-  border: 1px solid rgba(255, 149, 66, 0.24) !important;
+#root .character-page-v2 .clean-sheet-identity {
+  position: relative !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-toggle {
+  display: none !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  z-index: 5 !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu,
+#root .character-page-v2 .clean-sheet-rest-menu {
+  position: absolute !important;
+  z-index: 30 !important;
+  min-width: 190px !important;
+  padding: 8px !important;
+  display: grid !important;
+  gap: 6px !important;
+  background: linear-gradient(#100318, #100318) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu {
+  right: 0 !important;
+  top: calc(100% + 8px) !important;
+}
+
+#root .character-page-v2 .clean-sheet-hero-options-menu button,
+#root .character-page-v2 .clean-sheet-rest-menu button {
+  min-height: 38px !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  background: rgba(22, 7, 34, 0.96) !important;
+  border: 1px solid rgba(216, 77, 241, 0.22) !important;
+  box-shadow: none !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
 }
 
 #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
@@ -87,8 +147,14 @@
   flex: 0 0 auto !important;
 }
 
+#root .character-page-v2 .clean-sheet-rest-menu-wrap {
+  position: relative !important;
+  display: none !important;
+}
+
 #root .character-page-v2 .clean-sheet-combat-temp-pill,
-#root .character-page-v2 .clean-sheet-inspiration-toggle {
+#root .character-page-v2 .clean-sheet-inspiration-toggle,
+#root .character-page-v2 .clean-sheet-combat-rest-toggle {
   min-height: 28px !important;
   display: inline-grid !important;
   place-items: center !important;
@@ -112,6 +178,20 @@
   min-width: 30px !important;
   padding: 0 !important;
   cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-combat-rest-toggle {
+  padding: 0 9px !important;
+  font-size: 0.66rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+
+#root .character-page-v2 .clean-sheet-rest-menu {
+  right: 0 !important;
+  top: calc(100% + 8px) !important;
 }
 
 #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active {
@@ -142,7 +222,11 @@
 }
 
 #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
-#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button {
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-hp-action-button--minus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-hp-action-button--plus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-temp-hp-action-button--minus,
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls .rq-temp-hp-action-button--plus {
   min-height: 32px !important;
   padding: 5px 4px !important;
   border-radius: 8px !important;
@@ -150,6 +234,18 @@
   line-height: 1.05 !important;
   font-weight: 900 !important;
   letter-spacing: 0.02em !important;
+  color: #ffffff !important;
+  background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button:disabled,
+#root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button:disabled,
+#root .character-page-v2 .clean-sheet-combat-rest-toggle:disabled,
+#root .character-page-v2 .clean-sheet-inspiration-toggle:disabled {
+  opacity: 0.45 !important;
+  filter: grayscale(0.2) !important;
 }
 
 #root .character-page-v2 .clean-sheet-quick-stat-strip {
@@ -172,6 +268,7 @@
   color: #ffffff !important;
   background: transparent !important;
   background-color: transparent !important;
+  background-image: none !important;
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -208,14 +305,19 @@
 
 @media (max-width: 759px) {
   #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    display: none !important;
   }
 
-  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button {
-    min-height: 36px !important;
-    padding: 6px 7px !important;
-    font-size: 0.68rem !important;
+  #root .character-page-v2 .clean-sheet-hero-options-toggle {
+    display: grid !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    padding-right: 44px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-rest-menu-wrap {
+    display: inline-grid !important;
   }
 
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
@@ -265,6 +367,20 @@
 }
 
 @media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+    gap: 6px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-top-actions {
+    gap: 5px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-temp-pill,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle {
+    font-size: 0.58rem !important;
+    padding-inline: 6px !important;
+  }
+
   #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls {
     gap: 4px !important;
   }
