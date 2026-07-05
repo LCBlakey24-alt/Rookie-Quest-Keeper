@@ -42,7 +42,6 @@ export const COMMON_CONDITIONS = [
 ];
 
 export const SHEET_TABS = [
-  { id: 'character', label: 'Character', icon: UserCircle },
   { id: 'stats', label: 'Stats', icon: Activity },
   { id: 'combat', label: 'Actions', icon: Swords },
   { id: 'inventory', label: 'Inventory', icon: Backpack },
@@ -50,6 +49,7 @@ export const SHEET_TABS = [
   { id: 'class', label: 'Class', icon: ListChecks },
   { id: 'species', label: 'Species', icon: UsersRound },
   { id: 'feats', label: 'Feats', icon: Sparkles },
+  { id: 'character', label: 'Character', icon: UserCircle },
   { id: 'rook', label: 'Rook Helper', icon: Bot },
   { id: 'notes', label: 'Notes', icon: Edit3 },
 ];
