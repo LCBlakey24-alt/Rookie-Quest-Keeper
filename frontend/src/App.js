@@ -49,6 +49,7 @@ import '@/styles/utilityPagesFinalFixes.css';
 import '@/styles/sunsetButtonFinalOverride.css';
 import '@/styles/sunsetScrollbar.css';
 import '@/styles/fullCreatorReadiness.css';
+import '@/styles/characterSheetSunsetFinalOverride.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -139,54 +140,56 @@ function AppRoutes() {
     });
   }, [isAuthenticated, handleLogout]);
 
-  return (
+  const appContent = (
     <>
-      <ThemeRouter />
       <ImpersonationBanner />
-      <GlobalActionFillEffects />
+      <ThemeRouter />
       <GlobalScrollRecovery />
-      <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
-        <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
-        <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
-        <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
-        <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
-        <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={isAuthenticated ? <AppShell><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={isAuthenticated ? <AppShell><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/rook" element={isAuthenticated ? <AppShell><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
-        <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
-      </Routes>
-      {isAuthenticated && <GlobalFeedbackButton />}
+      <GlobalFeedbackButton />
+      <GlobalActionFillEffects />
+      <Suspense fallback={<RouteLoadingScreen />}>
+        <Routes>
+          <Route path="/" element={<LandingPage onEnter={() => isAuthenticated ? null : null} />} />
+          <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
+          <Route path="/home" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><UnifiedDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/new" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/new/basic" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/new/full" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/new/matchmaker" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
+          <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/campaigns" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/campaigns/:campaignId" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/campaigns/:campaignId/live" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+          <Route path="/gm-screen" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+          <Route path="/player-display/:campaignId" element={<PlayerDisplayPage />} />
+          <Route path="/combat" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><CombatPage /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/admin" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/settings" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><AccountSettings /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/homebrew" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/uploads" element={isAuthenticated ? <AppShell username={username} onLogout={handleLogout}><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+          <Route path="/mobile" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
+          <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
+          <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
+          <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
+          <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
+          <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/auth'} replace />} />
+        </Routes>
+      </Suspense>
+      <Toaster richColors position="top-right" />
     </>
   );
+
+  return appContent;
 }
 
 export default function App() {
-  useEffect(() => installRollBurstPersistence(), []);
-
   return (
     <ThemeProvider>
       <BrowserRouter>
         <AppErrorBoundary>
-          <Suspense fallback={<RouteLoadingScreen />}>
-            <AppRoutes />
-          </Suspense>
-          <Toaster richColors position="top-center" />
+          <AppRoutes />
         </AppErrorBoundary>
       </BrowserRouter>
     </ThemeProvider>
