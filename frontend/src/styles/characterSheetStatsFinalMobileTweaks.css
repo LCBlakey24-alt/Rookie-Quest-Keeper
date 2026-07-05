@@ -2,6 +2,12 @@
    Long skill names can wrap without growing the row, and passive scores become compact quick stats. */
 
 @media (max-width: 759px) {
+  #root .character-page-v2 {
+    --rqk-mobile-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+    --rqk-mobile-panel-purple: #190728;
+    --rqk-mobile-chip-purple: #12051c;
+  }
+
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
     height: 44px !important;
     min-height: 44px !important;
@@ -38,7 +44,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives {
     padding: 10px !important;
-    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    background: linear-gradient(var(--rqk-mobile-panel-purple), var(--rqk-mobile-panel-purple)) padding-box, var(--rqk-mobile-sunset-gradient) border-box !important;
     border: 1px solid transparent !important;
     border-left: 1px solid transparent !important;
     border-radius: 10px !important;
@@ -111,6 +117,62 @@
     line-height: 0.95 !important;
     font-weight: 900 !important;
     color: #ffffff !important;
+  }
+
+  /* Sunset button language: no solid pink, no copper/gold fill leaks. */
+  #root .character-page-v2 .clean-sheet-hero-options-toggle,
+  #root .character-page-v2 .clean-sheet-combat-temp-pill,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button,
+  #root .character-page-v2 .clean-sheet-roll-chip,
+  #root .character-page-v2 .clean-sheet-panel button.clean-sheet-roll-chip {
+    color: #ffffff !important;
+    background-color: var(--rqk-mobile-chip-purple) !important;
+    background-image: linear-gradient(var(--rqk-mobile-chip-purple), var(--rqk-mobile-chip-purple)), var(--rqk-mobile-sunset-gradient) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::before,
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::after,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::before,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::after,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::before,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::after,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::before,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::after,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'],
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    background-image: var(--rqk-mobile-sunset-gradient) !important;
+    background-origin: border-box !important;
+    background-clip: border-box !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active svg,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'] svg,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
   }
 }
 
