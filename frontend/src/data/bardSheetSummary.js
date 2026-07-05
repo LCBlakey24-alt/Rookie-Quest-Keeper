@@ -35,6 +35,8 @@ export function getBardSheetSummary(character = {}) {
     subclassLabel: subclass?.label || subclassName || (level >= 3 ? 'Choose/record Bard Subclass' : 'None yet'),
     subclassRole: subclass?.role || '',
     subclassSupportedInRuleset: subclass?.supportedInRuleset ?? true,
+    subclassSupportedAutomation: subclass?.supportedAutomation ?? false,
+    subclassCustom: Boolean(subclass?.custom),
     subclassFeatures: subclass?.activeFeatures || [],
     nextSubclassFeatures: subclass?.nextFeatures || [],
     bardicInspirationDie: progression.bardicInspirationDie,
