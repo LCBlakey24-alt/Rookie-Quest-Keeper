@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Footprints, HeartPulse, Moon, Shield, Sparkles, Swords, Sun } from 'lucide-react';
+import { Footprints, HeartPulse, Shield, Sparkles, Swords } from 'lucide-react';
 
 import apiClient from '@/lib/apiClient';
 import { fmt } from './cleanSheetUtils';
@@ -32,8 +32,6 @@ export default function CleanSheetCompactStatus({
   onTempHpAdd,
   onTempHpRemove,
   onToggleInspiration,
-  onShortRest,
-  onLongRest,
   onRollInitiative,
 }) {
   const { characterId } = useParams();
@@ -80,33 +78,6 @@ export default function CleanSheetCompactStatus({
     } catch (error) {
       setLocalInspiration(!nextValue);
       toast.error(error?.formattedDetail || error?.response?.data?.detail || `Could not update ${inspirationLabel.toLowerCase()}`);
-    } finally {
-      setSavingLocalAction(false);
-    }
-  };
-
-  const handleRest = async (restType) => {
-    const restLabel = restType === 'long' ? 'Long Rest' : 'Short Rest';
-    const confirmMessage = restType === 'long'
-      ? 'Take a Long Rest? This may restore HP, reset temporary HP, restore spell slots/resources, reset death saves, and recover hit dice where the sheet supports it.'
-      : 'Take a Short Rest? This may restore short-rest resources and allow hit dice recovery where the sheet supports it.';
-    const externalHandler = restType === 'long' ? onLongRest : onShortRest;
-
-    if (!window.confirm(confirmMessage)) return;
-    if (externalHandler) {
-      externalHandler();
-      return;
-    }
-    if (!characterId || savingLocalAction) return;
-
-    setSavingLocalAction(true);
-    try {
-      const endpoint = restType === 'long' ? 'long-rest' : 'short-rest';
-      await apiClient.post(`/characters/${characterId}/${endpoint}`);
-      toast.success(`${restLabel} completed`);
-      window.setTimeout(() => window.location.reload(), 500);
-    } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || `Could not apply ${restLabel.toLowerCase()}`);
     } finally {
       setSavingLocalAction(false);
     }
@@ -176,15 +147,6 @@ export default function CleanSheetCompactStatus({
           <span>Speed</span>
           <strong>{speed ? `${speed}ft` : '—'}</strong>
         </div>
-      </div>
-
-      <div className="clean-sheet-rest-actions" aria-label="Rest actions">
-        <button type="button" onClick={() => handleRest('short')} disabled={actionsDisabled}>
-          <Moon size={15} /> Short Rest
-        </button>
-        <button type="button" onClick={() => handleRest('long')} disabled={actionsDisabled}>
-          <Sun size={15} /> Long Rest
-        </button>
       </div>
     </section>
   );
