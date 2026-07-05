@@ -55,4 +55,16 @@ describe('Fighter builder options', () => {
       'Choose 3 Weapon Mastery options.',
     ]);
   });
+
+  test('rejects duplicate 2024 Fighter weapon mastery choices', () => {
+    const result = validateFighterBuilderSelections({
+      level: 1,
+      edition: '2024',
+      fightingStyle: 'Blind Fighting',
+      weaponMasteries: ['Cleave', 'cleave', 'Topple'],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Choose unique Weapon Mastery options.');
+  });
 });

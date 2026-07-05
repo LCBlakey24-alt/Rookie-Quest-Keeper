@@ -38,6 +38,12 @@ function normaliseSelection(value = '') {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
+function normaliseSelectionList(values = []) {
+  return (Array.isArray(values) ? values : [])
+    .map(normaliseSelection)
+    .filter(Boolean);
+}
+
 function buildChoiceSummary(choice) {
   if (!choice) return null;
   const base = {
@@ -126,8 +132,14 @@ export function validateFighterBuilderSelections({ level = 1, edition = '2014', 
     errors.push('Choose a Fighter subclass.');
   }
 
-  if (options.weaponMasteryChoices > 0 && weaponMasteries.length !== options.weaponMasteryChoices) {
+  const normalizedMasteries = normaliseSelectionList(weaponMasteries);
+
+  if (options.weaponMasteryChoices > 0 && normalizedMasteries.length !== options.weaponMasteryChoices) {
     errors.push(`Choose ${options.weaponMasteryChoices} Weapon Mastery option${options.weaponMasteryChoices === 1 ? '' : 's'}.`);
+  }
+
+  if (options.weaponMasteryChoices > 0 && new Set(normalizedMasteries).size !== normalizedMasteries.length) {
+    errors.push('Choose unique Weapon Mastery options.');
   }
 
   if (options.weaponMasteryChoices > 0 && weaponMasteries.some(mastery => !isValidFighterWeaponMastery(mastery, edition))) {
