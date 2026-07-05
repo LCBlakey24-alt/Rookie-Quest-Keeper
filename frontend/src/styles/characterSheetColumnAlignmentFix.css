@@ -1,0 +1,141 @@
+/* Final clean sheet column alignment.
+   Keeps the hero, HP card, buttons, and tab panels on the same visual width. */
+
+#root .character-page-v2 {
+  --rq-sheet-mobile-left-rail: 58px;
+  --rq-sheet-mobile-edge-gap: 14px;
+  --rq-sheet-section-pad: 20px;
+}
+
+#root .character-page-v2 .clean-sheet-header,
+#root .character-page-v2 .clean-sheet-header-actions,
+#root .character-page-v2 .clean-sheet-compact-status,
+#root .character-page-v2 .clean-sheet-content {
+  width: 100% !important;
+  max-width: 980px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+#root .character-page-v2 .clean-sheet-content {
+  padding: 0 !important;
+  display: grid !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  justify-items: stretch !important;
+}
+
+#root .character-page-v2 .clean-sheet-content > *,
+#root .character-page-v2 .clean-sheet-grid,
+#root .character-page-v2 .clean-sheet-grid > *,
+#root .character-page-v2 .clean-sheet-panel,
+#root .character-page-v2 .clean-sheet-card,
+#root .character-page-v2 .clean-sheet-section,
+#root .character-page-v2 .clean-sheet-wide {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#root .character-page-v2 .clean-sheet-header,
+#root .character-page-v2 .clean-sheet-compact-status,
+#root .character-page-v2 .clean-sheet-panel,
+#root .character-page-v2 .clean-sheet-card,
+#root .character-page-v2 .clean-sheet-section {
+  padding: var(--rq-sheet-section-pad) !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity {
+  padding: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1,
+#root .character-page-v2 .clean-sheet-identity p {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1::after,
+#root .character-page-v2 .clean-sheet-panel h2::after,
+#root .character-page-v2 .clean-sheet-panel h3::after,
+#root .character-page-v2 .clean-sheet-card h2::after,
+#root .character-page-v2 .clean-sheet-card h3::after,
+#root .character-page-v2 .clean-sheet-section h2::after,
+#root .character-page-v2 .clean-sheet-section h3::after,
+#root .character-page-v2 .clean-sheet-section-heading-row h2::after,
+#root .character-page-v2 .clean-sheet-panel-heading h2::after,
+#root .character-page-v2 .clean-sheet-spellcasting-heading h2::after,
+#root .character-page-v2 .clean-sheet-spell-section-heading h2::after,
+#root .character-page-v2 .clean-sheet-inventory-header h2::after {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+#root .character-page-v2 .clean-sheet-section-heading-row > span,
+#root .character-page-v2 .clean-sheet-panel-heading > span,
+#root .character-page-v2 .clean-sheet-spellcasting-heading > span,
+#root .character-page-v2 .clean-sheet-spell-section-heading > span,
+#root .character-page-v2 .clean-sheet-inventory-header > span {
+  border-radius: 4px !important;
+  min-height: 18px !important;
+  padding: 2px 6px !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2.clean-sheet-page,
+  #root .clean-sheet-page.character-page-v2 {
+    padding-left: calc(var(--rq-sheet-mobile-left-rail) + var(--rq-sheet-mobile-edge-gap)) !important;
+    padding-right: var(--rq-sheet-mobile-edge-gap) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header,
+  #root .character-page-v2 .clean-sheet-header-actions,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-content {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section {
+    padding: 18px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header-actions button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2.clean-sheet-page,
+  #root .clean-sheet-page.character-page-v2 {
+    padding-left: 68px !important;
+    padding-right: 10px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header,
+  #root .character-page-v2 .clean-sheet-compact-status,
+  #root .character-page-v2 .clean-sheet-panel,
+  #root .character-page-v2 .clean-sheet-card,
+  #root .character-page-v2 .clean-sheet-section {
+    padding: 14px !important;
+  }
+}
