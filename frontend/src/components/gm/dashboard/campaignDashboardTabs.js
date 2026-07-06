@@ -26,12 +26,12 @@ export const tabGroups = [
     { id: 'inventory', icon: Backpack, label: 'Inventory & Rewards' },
   ] },
   { id: 'library', label: 'Library', icon: Backpack, tabs: [
-    { id: 'tia-karta-pack', icon: Sparkles, label: 'Tia Karta Pack' },
+    { id: 'playtest-packs', icon: Sparkles, label: 'Tia Karta Pack' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
     { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
     { id: 'world-builder', icon: Globe, label: 'World Builder' },
     { id: 'tools', icon: ScrollText, label: 'Optional Tools' },
-    { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
+    { id: 'rules-packs', icon: FileJson, label: 'Rules Packs' },
   ] },
 ];
 
