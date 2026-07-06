@@ -110,6 +110,7 @@ const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaign
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
+const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
 const PrototypeHub = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeHub'));
 const PrototypeMobileLab = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeMobileLab'));
 const TiaKartaGmPrototype = lazyWithChunkRetry(() => import('@/components/prototype/TiaKartaGmPrototype'));
@@ -140,7 +141,7 @@ function ThemeRouter() {
     const path = location.pathname;
     if (path === '/' || path.startsWith('/auth')) {
       setTheme(THEMES.LANDING);
-    } else if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
+    } else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
       setTheme(THEMES.GM);
     } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
       setTheme(THEMES.PLAYER);
@@ -189,6 +190,7 @@ function AppRoutes() {
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
         <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
