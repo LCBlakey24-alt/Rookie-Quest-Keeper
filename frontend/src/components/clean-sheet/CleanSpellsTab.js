@@ -9,6 +9,11 @@ import {
   getMulticlassSpellSlots,
   getSpellsForClass,
 } from "@/data/spellDatabase";
+import {
+  getAllowedSlotLevelsForSpell,
+  getAvailableCastSlotLevels,
+  spendSpellSlot,
+} from "@/data/spellCastingRules";
 import "./CleanSheetSpellsMobileOverrides.css";
 
 const ABILITY_LABELS = {
@@ -137,21 +142,6 @@ function normaliseSlotKeys(slots = {}) {
       Number(count) || 0,
     ]),
   );
-}
-
-function getAllowedSlotLevelsForSpell(spell = {}) {
-  const baseLevel = Number(spell.level || spell.spell_level || 1);
-  const explicitLevels = spell.allowed_slot_levels || spell.allowedSlotLevels || spell.cast_slot_levels || spell.castSlotLevels || spell.upcast_levels || spell.upcastLevels;
-  const levels = Array.isArray(explicitLevels)
-    ? explicitLevels.map(Number).filter((level) => Number.isFinite(level) && level >= baseLevel)
-    : [baseLevel];
-  return Array.from(new Set(levels.length ? levels : [baseLevel])).sort((a, b) => a - b);
-}
-
-function getAvailableCastSlotLevels(spell = {}, slots = {}, remaining = {}) {
-  return getAllowedSlotLevelsForSpell(spell)
-    .filter((level) => Number(remaining[level] ?? remaining[String(level)] ?? slots[level] ?? slots[String(level)] ?? 0) > 0)
-    .sort((a, b) => a - b);
 }
 
 function flattenClassSpellGroups(className, groups = {}, maxSpellLevel = 0) {
@@ -619,7 +609,11 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
   }, [character, classLevels]);
 
-  const availableSlotLevelsForSpell = (spell) => getAvailableCastSlotLevels(spell, effectiveSlots, effectiveRemaining);
+  const availableSlotLevelsForSpell = (spell) => getAvailableCastSlotLevels({
+    spell,
+    slots: effectiveSlots,
+    remaining: effectiveRemaining,
+  });
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
@@ -724,10 +718,10 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       return;
     }
 
-    const nextRemaining = {
-      ...(effectiveRemaining || {}),
-      [slotLevel]: Math.max(0, slotRemaining - 1),
-    };
+    const nextRemaining = spendSpellSlot({
+      remaining: { ...(effectiveSlots || {}), ...(effectiveRemaining || {}) },
+      slotLevel,
+    });
     const ok = await handleSlotChange(nextRemaining);
     if (ok !== false)
       toast.success(`${spell.name} cast`, {
