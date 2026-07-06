@@ -22,6 +22,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [savingId, setSavingId] = useState('');
+  const [openEntries, setOpenEntries] = useState({});
 
   const entries = useMemo(() => getTiaKartaEntriesForDestination(destination), [destination]);
   const filteredEntries = useMemo(() => {
@@ -75,7 +76,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
   return (
     <>
       <TiaKartaSessionTwoPackPanel campaignId={campaignId} destination={destination} />
-      <section style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
+      <section className="tia-karta-lore-panel" style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
         <div style={headerStyle}>
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}><Sparkles size={13} /> Tia Karta campaign material</p>
@@ -99,28 +100,37 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
         </label>
 
         <div style={gridStyle}>
-          {shownEntries.map(entry => (
-            <article key={entry.id} style={entryStyle}>
-              <div style={entryTopStyle}>
-                <BookOpen size={16} />
-                <div style={{ minWidth: 0 }}>
-                  <strong style={entryTitleStyle}>{entry.title}</strong>
-                  <span style={categoryStyle}>{entry.category}</span>
+          {shownEntries.map(entry => {
+            const isOpen = Boolean(openEntries[entry.id]);
+            return (
+              <article key={entry.id} className="tia-lore-card" data-open={isOpen ? 'true' : 'false'} style={entryStyle}>
+                <button type="button" className="tia-lore-card-toggle" onClick={() => setOpenEntries(prev => ({ ...prev, [entry.id]: !prev[entry.id] }))} aria-expanded={isOpen ? 'true' : 'false'}>
+                  <span style={entryTopStyle}>
+                    <BookOpen size={16} />
+                    <span style={{ minWidth: 0 }}>
+                      <strong style={entryTitleStyle}>{entry.title}</strong>
+                      <span style={categoryStyle}>{entry.category}</span>
+                    </span>
+                  </span>
+                  <span className="tia-lore-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
+                </button>
+                <div className="tia-lore-card-details">
+                  <p style={textStyle}>{entry.playerSummary}</p>
+                  {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
+                  {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
+                  {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
+                  {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
+                  {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
+                  <div style={actionsStyle}>
+                    <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
+                    <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
+                  </div>
                 </div>
-              </div>
-              <p style={textStyle}>{entry.playerSummary}</p>
-              {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
-              {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
-              {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
-              {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
-              {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
-              <div style={actionsStyle}>
-                <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
+        <style>{mobileLoreCss}</style>
       </section>
       {destination === 'npcs' && <TiaKartaNpcRosterPanel campaignId={campaignId} />}
     </>
@@ -156,9 +166,9 @@ const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '9
 const searchInputStyle = { flex: 1, border: 0, outline: 0, background: 'transparent', color: rq.text, minWidth: 120 };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 };
 const entryStyle = { display: 'grid', gap: 9, background: rq.panel, border: `1px solid ${rq.border}`, padding: 12, minWidth: 0 };
-const entryTopStyle = { display: 'flex', gap: 8, alignItems: 'flex-start' };
-const entryTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25 };
-const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3 };
+const entryTopStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', minWidth: 0 };
+const entryTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25, textAlign: 'left' };
+const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3, textAlign: 'left' };
 const textStyle = { color: rq.secondary, lineHeight: 1.45, fontSize: 13, margin: 0 };
 const secretStyle = { color: '#FDE68A', lineHeight: 1.45, fontSize: 13, margin: 0 };
 const metaStyle = { color: rq.muted, lineHeight: 1.4, fontSize: 12, margin: 0 };
@@ -166,3 +176,64 @@ const tbdStyle = { color: '#FCA5A5', lineHeight: 1.4, fontSize: 12, margin: 0 };
 const actionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.accent, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.border}`, background: rq.card, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
+
+const mobileLoreCss = `
+  .tia-lore-card-toggle {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: default;
+    font: inherit;
+  }
+  .tia-lore-mobile-open { display: none; color: ${rq.text}; }
+  .tia-lore-card-details { display: grid; gap: 9px; }
+
+  @media (max-width: 760px) {
+    .tia-karta-lore-panel {
+      padding: 10px !important;
+      gap: 10px !important;
+    }
+    .tia-karta-lore-panel > div:first-child p:not(:first-child) {
+      display: none !important;
+    }
+    .tia-lore-card {
+      padding: 0 !important;
+      gap: 0 !important;
+    }
+    .tia-lore-card-toggle {
+      min-height: 72px;
+      padding: 12px !important;
+      cursor: pointer;
+      align-items: center;
+    }
+    .tia-lore-mobile-open {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      background: ${rq.card};
+      border: 1px solid ${rq.border};
+    }
+    .tia-lore-card-details {
+      display: none;
+      gap: 9px;
+      padding: 0 12px 12px;
+      border-top: 1px solid ${rq.border};
+    }
+    .tia-lore-card[data-open="true"] .tia-lore-card-details {
+      display: grid;
+    }
+    .tia-lore-card[data-open="true"] {
+      outline: 1px solid ${rq.accent};
+    }
+  }
+`;
