@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Copy, Save, ScrollText, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, Save, ScrollText, Search, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
@@ -21,6 +21,7 @@ const rq = {
 export default function TiaKartaSessionTwoPackPanel({ campaignId, destination }) {
   const [query, setQuery] = useState('');
   const [savingKey, setSavingKey] = useState('');
+  const [openCards, setOpenCards] = useState({});
   const sections = useMemo(() => [
     ...getTiaKartaLucianGreySectionsForDestination(destination),
     ...getTiaKartaNextSessionSectionsForDestination(destination),
@@ -48,6 +49,8 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
   }, [query, sections]);
 
   if (!sections.length) return null;
+
+  const toggleCard = (key) => setOpenCards(prev => ({ ...prev, [key]: !prev[key] }));
 
   const copyCard = async (section, card) => {
     try {
@@ -79,7 +82,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
   };
 
   return (
-    <section style={panelStyle} data-testid={`tia-karta-session-two-pack-${destination}`}>
+    <section className="tia-karta-update-panel" style={panelStyle} data-testid={`tia-karta-session-two-pack-${destination}`}>
       <div style={headerStyle}>
         <div style={{ minWidth: 0 }}>
           <p style={eyebrowStyle}><Sparkles size={13} /> Current Tia-Karta update pack</p>
@@ -101,7 +104,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
 
       <div style={sectionsStyle}>
         {filteredSections.map(section => (
-          <section key={section.id} style={sectionStyle}>
+          <section key={section.id} className="tia-update-section" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
               <p style={sectionEyebrowStyle}>{section.eyebrow}</p>
               <h4 style={sectionTitleStyle}><ScrollText size={17} /> {section.title}</h4>
@@ -110,20 +113,26 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
             <div style={cardsGridStyle}>
               {section.cards.map(card => {
                 const key = `${section.id}-${card.title}`;
+                const isOpen = Boolean(openCards[key]);
                 return (
-                  <article key={key} style={cardStyle}>
-                    <div>
-                      <strong style={cardTitleStyle}>{card.title}</strong>
-                      <span style={categoryStyle}>{card.category}</span>
-                    </div>
-                    {card.playerSummary && <p style={bodyStyle}>{card.playerSummary}</p>}
-                    {card.gmNotes && <p style={gmStyle}><strong>GM note:</strong> {card.gmNotes}</p>}
-                    {!!card.bullets?.length && <List title="Key points" items={card.bullets} />}
-                    {!!card.mechanics?.length && <List title="Mechanics" items={card.mechanics} />}
-                    {card.tbd && <p style={tbdStyle}><strong>TBD:</strong> {card.tbd}</p>}
-                    <div style={actionsStyle}>
-                      <button type="button" onClick={() => copyCard(section, card)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                      <button type="button" onClick={() => saveCard(section, card)} disabled={savingKey === key} style={primaryButtonStyle}><Save size={14} /> {savingKey === key ? 'Saving...' : 'Save'}</button>
+                  <article key={key} className="tia-update-card" data-open={isOpen ? 'true' : 'false'} style={cardStyle}>
+                    <button type="button" className="tia-update-card-toggle" onClick={() => toggleCard(key)} aria-expanded={isOpen ? 'true' : 'false'}>
+                      <span>
+                        <strong style={cardTitleStyle}>{card.title}</strong>
+                        <span style={categoryStyle}>{card.category}</span>
+                      </span>
+                      <span className="tia-update-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
+                    </button>
+                    <div className="tia-update-card-details">
+                      {card.playerSummary && <p style={bodyStyle}>{card.playerSummary}</p>}
+                      {card.gmNotes && <p style={gmStyle}><strong>GM note:</strong> {card.gmNotes}</p>}
+                      {!!card.bullets?.length && <List title="Key points" items={card.bullets} />}
+                      {!!card.mechanics?.length && <List title="Mechanics" items={card.mechanics} />}
+                      {card.tbd && <p style={tbdStyle}><strong>TBD:</strong> {card.tbd}</p>}
+                      <div style={actionsStyle}>
+                        <button type="button" onClick={() => copyCard(section, card)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
+                        <button type="button" onClick={() => saveCard(section, card)} disabled={savingKey === key} style={primaryButtonStyle}><Save size={14} /> {savingKey === key ? 'Saving...' : 'Save'}</button>
+                      </div>
                     </div>
                   </article>
                 );
@@ -132,6 +141,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
           </section>
         ))}
       </div>
+      <style>{mobileTileCss}</style>
     </section>
   );
 }
@@ -187,8 +197,8 @@ const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 19, fontWeight:
 const sectionSummaryStyle = { margin: 0, color: rq.secondary, fontSize: 13, lineHeight: 1.45 };
 const cardsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 10 };
 const cardStyle = { display: 'grid', gap: 9, background: rq.card, border: `1px solid ${rq.border}`, padding: 12, minWidth: 0 };
-const cardTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25 };
-const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3 };
+const cardTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25, textAlign: 'left' };
+const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3, textAlign: 'left' };
 const bodyStyle = { color: rq.secondary, lineHeight: 1.45, fontSize: 13, margin: 0 };
 const gmStyle = { color: '#FDE68A', lineHeight: 1.45, fontSize: 13, margin: 0 };
 const tbdStyle = { color: '#FCA5A5', lineHeight: 1.4, fontSize: 12, margin: 0 };
@@ -198,3 +208,75 @@ const listStyle = { margin: '0 0 0 18px', padding: 0, color: rq.secondary, fontS
 const actionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.accent, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.border}`, background: rq.panel, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
+
+const mobileTileCss = `
+  .tia-update-card-toggle {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: default;
+    font: inherit;
+  }
+  .tia-update-mobile-open { display: none; color: ${rq.text}; }
+  .tia-update-card-details { display: grid; gap: 9px; }
+
+  @media (max-width: 760px) {
+    .tia-karta-update-panel {
+      padding: 10px !important;
+      gap: 10px !important;
+    }
+    .tia-karta-update-panel > div:first-child p:not(:first-child) {
+      display: none !important;
+    }
+    .tia-update-section {
+      gap: 8px !important;
+    }
+    .tia-update-section > div:first-child p:last-child {
+      display: none !important;
+    }
+    .tia-update-section h4 {
+      font-size: 17px !important;
+      line-height: 1.15 !important;
+    }
+    .tia-update-card {
+      padding: 0 !important;
+      gap: 0 !important;
+      background: ${rq.card} !important;
+    }
+    .tia-update-card-toggle {
+      min-height: 74px;
+      padding: 12px !important;
+      cursor: pointer;
+      align-items: center;
+    }
+    .tia-update-mobile-open {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      background: ${rq.panel};
+      border: 1px solid ${rq.border};
+    }
+    .tia-update-card-details {
+      display: none;
+      gap: 9px;
+      padding: 0 12px 12px;
+      border-top: 1px solid ${rq.border};
+    }
+    .tia-update-card[data-open="true"] .tia-update-card-details {
+      display: grid;
+    }
+    .tia-update-card[data-open="true"] {
+      outline: 1px solid ${rq.accent};
+    }
+  }
+`;
