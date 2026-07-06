@@ -176,6 +176,11 @@ function savedSpellNameSet(...groups) {
   );
 }
 
+function withoutSpell(spells = [], spellName = "") {
+  const key = normalizeName(spellName);
+  return toArray(spells).filter((spell) => normalizeName(normaliseSpell(spell).name) !== key);
+}
+
 function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
   const [savingLevel, setSavingLevel] = useState("");
   const keys = Array.from(
@@ -255,7 +260,19 @@ function SpellSlots({ slots = {}, remaining = {}, onChangeSlots }) {
   );
 }
 
-function SpellCard({ spell, prepared, cantrip, onCast, onConcentrate }) {
+function SpellCard({
+  spell,
+  prepared,
+  cantrip,
+  castable,
+  canPrepare,
+  canUnprepare,
+  castBlockedText,
+  onCast,
+  onConcentrate,
+  onPrepare,
+  onUnprepare,
+}) {
   const [expanded, setExpanded] = useState(false);
   const hasDescription = Boolean(spell.description);
   const concentrationLikely = /concentration/i.test(spell.description || "");
@@ -269,6 +286,7 @@ function SpellCard({ spell, prepared, cantrip, onCast, onConcentrate }) {
           {spellLevelLabel(spell.level)}
         </span>
         {prepared && <span className="clean-sheet-spell-state">Prepared</span>}
+        {!castable && !cantrip && <span className="clean-sheet-spell-state">Not prepared</span>}
       </div>
       <strong>{spell.name}</strong>
       {spell.school && <em>{spell.school}</em>}
@@ -279,11 +297,24 @@ function SpellCard({ spell, prepared, cantrip, onCast, onConcentrate }) {
             : `${spell.description.slice(0, 130)}${spell.description.length > 130 ? "…" : ""}`}
         </p>
       )}
+      {!castable && castBlockedText && (
+        <p className="clean-sheet-muted">{castBlockedText}</p>
+      )}
       <div className="clean-sheet-spell-actions">
-        <button type="button" onClick={() => onCast(spell)}>
+        <button type="button" onClick={() => onCast(spell)} disabled={!castable}>
           {cantrip ? "Use Cantrip" : "Cast"}
         </button>
-        {concentrationLikely && (
+        {canPrepare && (
+          <button type="button" onClick={() => onPrepare(spell)}>
+            Prepare
+          </button>
+        )}
+        {canUnprepare && (
+          <button type="button" onClick={() => onUnprepare(spell)}>
+            Unprepare
+          </button>
+        )}
+        {concentrationLikely && castable && (
           <button type="button" onClick={() => onConcentrate(spell)}>
             Concentrate
           </button>
@@ -359,11 +390,30 @@ function SpellGroup({
   spells,
   preparedNames,
   emptyText,
+  groupMode,
   onCast,
   onConcentrate,
+  onPrepare,
+  onUnprepare,
 }) {
   const grouped = groupByLevel(spells);
   const levels = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+
+  const getCardRules = (spell) => {
+    const cantrip = Number(spell.level || 0) === 0;
+    const prepared = preparedNames.has(normalizeName(spell.name));
+    const spellbookOnly = groupMode === "spellbook" && !prepared;
+    const castable = cantrip || groupMode === "known" || groupMode === "prepared" || !spellbookOnly;
+
+    return {
+      cantrip,
+      prepared,
+      castable,
+      canPrepare: spellbookOnly,
+      canUnprepare: groupMode === "prepared" && !cantrip,
+      castBlockedText: spellbookOnly ? "This spell is in your spellbook, but it must be prepared before you can cast it." : "",
+    };
+  };
 
   return (
     <section className="clean-sheet-panel clean-sheet-wide clean-spell-board">
@@ -381,16 +431,25 @@ function SpellGroup({
           >
             <h3>{spellLevelLabel(level)}</h3>
             <div className="clean-sheet-spell-grid">
-              {grouped[level].map((spell) => (
-                <SpellCard
-                  key={`${title}-${spell.name}`}
-                  spell={spell}
-                  cantrip={Number(spell.level || 0) === 0}
-                  prepared={preparedNames.has(normalizeName(spell.name))}
-                  onCast={onCast}
-                  onConcentrate={onConcentrate}
-                />
-              ))}
+              {grouped[level].map((spell) => {
+                const rules = getCardRules(spell);
+                return (
+                  <SpellCard
+                    key={`${title}-${spell.name}`}
+                    spell={spell}
+                    cantrip={rules.cantrip}
+                    prepared={rules.prepared}
+                    castable={rules.castable}
+                    canPrepare={rules.canPrepare}
+                    canUnprepare={rules.canUnprepare}
+                    castBlockedText={rules.castBlockedText}
+                    onCast={onCast}
+                    onConcentrate={onConcentrate}
+                    onPrepare={onPrepare}
+                    onUnprepare={onUnprepare}
+                  />
+                );
+              })}
             </div>
           </div>
         ))
@@ -466,12 +525,18 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return warnings;
   }, [snapshot.warnings, spellcastingRows.length, effectiveSlots, hasPactMagic, savedSlots, character]);
 
+  const primaryClass = canonicalSpellClass(character?.character_class || character?.class_name || "");
+  const isWizard = primaryClass === "Wizard";
+  const isPreparedCaster = primaryCaster?.castingType === "Prepared" || isWizard;
+
   const cantrips = uniqueSpells(
     character?.cantrips_known || character?.cantrips,
     0,
   );
   const known = uniqueSpells(
-    character?.spells_known || character?.known_spells || character?.spellbook,
+    isWizard
+      ? character?.spellbook
+      : character?.spells_known || character?.known_spells || character?.spellbook,
     null,
   );
   const prepared = uniqueSpells(
@@ -482,9 +547,6 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     prepared.map((spell) => normalizeName(spell.name)),
   );
   const savedNames = savedSpellNameSet(cantrips, known, prepared);
-  const primaryClass = canonicalSpellClass(character?.character_class || character?.class_name || "");
-  const isPreparedCaster = primaryCaster?.castingType === "Prepared";
-  const isWizard = primaryClass === "Wizard";
   const knownWithoutPrepared = known.filter(
     (spell) => !preparedNames.has(normalizeName(spell.name)),
   );
@@ -493,6 +555,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   const secondaryEmpty = isWizard
     ? "No spellbook entries found."
     : "No known spells found.";
+  const secondaryMode = isPreparedCaster ? "spellbook" : "known";
   const lowerSearch = spellSearch.trim().toLowerCase();
   const filterSpells = (spells) =>
     !lowerSearch
@@ -566,6 +629,37 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return ok;
   };
 
+  const prepareSpell = async (spell) => {
+    if (!onCharacterUpdate) return false;
+    const normalised = normaliseSpell(spell, spell.level);
+    if (Number(normalised.level || 0) <= 0) return false;
+    if (preparedNames.has(normalizeName(normalised.name))) {
+      toast.info(`${normalised.name} is already prepared.`);
+      return false;
+    }
+
+    const ok = await onCharacterUpdate(
+      { spells_prepared: [...prepared, normalised] },
+      { error: `Could not prepare ${normalised.name}` },
+    );
+    if (ok !== false) toast.success(`${normalised.name} prepared`);
+    return ok;
+  };
+
+  const unprepareSpell = async (spell) => {
+    if (!onCharacterUpdate) return false;
+    const normalised = normaliseSpell(spell, spell.level);
+    const nextPrepared = withoutSpell(prepared, normalised.name);
+    if (nextPrepared.length === prepared.length) return false;
+
+    const ok = await onCharacterUpdate(
+      { spells_prepared: nextPrepared },
+      { error: `Could not unprepare ${normalised.name}` },
+    );
+    if (ok !== false) toast.success(`${normalised.name} unprepared`);
+    return ok;
+  };
+
   const castSpell = async (spell) => {
     const level = Number(spell.level || 0);
     if (level <= 0) {
@@ -620,7 +714,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast spells, spend slots, search saved spells, and add spells from your class list.
+              Cast prepared or known spells, spend slots, manage spellbook prep, and add spells from your class list.
             </p>
           </div>
           <span>{spellcastingRows.length ? "Caster" : "No caster data"}</span>
@@ -652,7 +746,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
             </strong>
           </div>
           <div>
-            <span>Known/Prepared</span>
+            <span>{isWizard ? "Book/Prepared" : "Known/Prepared"}</span>
             <strong>
               {known.length}/{prepared.length}
             </strong>
@@ -767,27 +861,36 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         title="Cantrips"
         spells={filterSpells(cantrips)}
         preparedNames={preparedNames}
+        groupMode="known"
         emptyText="No cantrips found on this character. Add one from the class spell library above."
         onCast={castSpell}
         onConcentrate={concentrateOn}
+        onPrepare={prepareSpell}
+        onUnprepare={unprepareSpell}
       />
       {isPreparedCaster && (
         <SpellGroup
           title="Prepared Spells"
           spells={filterSpells(prepared)}
           preparedNames={preparedNames}
-          emptyText="No prepared spells found. Add one from the class spell library above."
+          groupMode="prepared"
+          emptyText="No prepared spells found. Prepare one from your spellbook or add one from the class spell library above."
           onCast={castSpell}
           onConcentrate={concentrateOn}
+          onPrepare={prepareSpell}
+          onUnprepare={unprepareSpell}
         />
       )}
       <SpellGroup
         title={secondaryTitle}
         spells={filterSpells(secondaryLeveled)}
         preparedNames={preparedNames}
+        groupMode={secondaryMode}
         emptyText={`${secondaryEmpty} Add one from the class spell library above.`}
         onCast={castSpell}
         onConcentrate={concentrateOn}
+        onPrepare={prepareSpell}
+        onUnprepare={unprepareSpell}
       />
 
       {!cantrips.length && !known.length && !prepared.length && (
