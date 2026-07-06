@@ -75,27 +75,55 @@ import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
-const AuthPage = React.lazy(() => import('@/components/AuthPage'));
-const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
-const MyCharactersPage = React.lazy(() => import('@/components/MyCharactersPage'));
-const MyCampaignsPage = React.lazy(() => import('@/components/MyCampaignsPage'));
-const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
-const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
-const PlayerDisplayPage = React.lazy(() => import('@/components/gm/PlayerDisplayPage'));
-const PrototypeHub = React.lazy(() => import('@/components/prototype/PrototypeHub'));
-const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/PrototypeMobileLab'));
-const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
-const ClassProgressionLab = React.lazy(() => import('@/components/prototype/ClassProgressionLab'));
-const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
-const CombatPage = React.lazy(() => import('@/components/CombatPage'));
-const AdminPage = React.lazy(() => import('@/components/AdminPage'));
-const LandingPage = React.lazy(() => import('@/components/LandingPage'));
-const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
-const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
-const UploadsDashboard = React.lazy(() => import('@/components/UploadsDashboard'));
+const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
+
+function isChunkLoadError(error) {
+  const message = String(error?.message || error || '');
+  return /Loading chunk \d+ failed|ChunkLoadError|Failed to fetch dynamically imported module|Importing a module script failed/i.test(message);
+}
+
+function lazyWithChunkRetry(importer) {
+  return React.lazy(async () => {
+    try {
+      const mod = await importer();
+      try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
+      return mod;
+    } catch (error) {
+      if (isChunkLoadError(error)) {
+        try {
+          const alreadyTried = sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
+          if (!alreadyTried) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+            window.location.reload();
+          }
+        } catch {}
+      }
+      throw error;
+    }
+  });
+}
+
+const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
+const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
+const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
+const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
+const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
+const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
+const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
+const PrototypeHub = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeHub'));
+const PrototypeMobileLab = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeMobileLab'));
+const TiaKartaGmPrototype = lazyWithChunkRetry(() => import('@/components/prototype/TiaKartaGmPrototype'));
+const ClassProgressionLab = lazyWithChunkRetry(() => import('@/components/prototype/ClassProgressionLab'));
+const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
+const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
+const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
+const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
+const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
+const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
+const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 // V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
-const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
-const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
+const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/FullCharacterCreatorV2'));
+const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
 
