@@ -1,4 +1,4 @@
-import { Backpack, Book, CalendarDays, Church, Clock, Compass, FileJson, FileText, Globe, Mail, Map, Monitor, ScrollText, Sparkles, Swords, Upload, UserCircle, Users } from 'lucide-react';
+import { Backpack, Book, CalendarDays, Church, Clock, Compass, FileText, Globe, Mail, Map, Monitor, ScrollText, Sparkles, Swords, Upload, UserCircle, Users } from 'lucide-react';
 
 export const tabGroups = [
   { id: 'command', label: 'Command', icon: Monitor, tabs: [
@@ -31,7 +31,6 @@ export const tabGroups = [
     { id: 'campaign-rules', icon: Book, label: 'Campaign Setup' },
     { id: 'world-builder', icon: Globe, label: 'World Builder' },
     { id: 'tools', icon: ScrollText, label: 'Optional Tools' },
-    { id: 'rules-packs', icon: FileJson, label: 'Rules Packs' },
   ] },
 ];
 
