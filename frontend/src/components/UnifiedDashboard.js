@@ -12,39 +12,49 @@ import {
 
 const dashboardUpdates = [
   {
-    label: 'Improved',
-    title: 'Rules data cleanup',
-    text: 'Spells, feats, race/species handling, and 2014/2024 class rules are being centralised so builders and sheets stay consistent.',
+    label: 'Creator',
+    title: 'Full Character Creator is becoming the main route',
+    text: 'The create flow has been tightened into a guided Level 1 builder: setup, race/species, class, background, abilities, equipment, and review. The aim is simple: build a character, save it, open the sheet, and play.',
+  },
+  {
+    label: 'Rules',
+    title: '2014 and 2024 rules are being split properly',
+    text: 'The builder now treats the two rulesets with more care, including race/species wording, origin-style choices, starting equipment, and starting gold behaviour instead of blending everything into one messy cauldron.',
+  },
+  {
+    label: 'Codex',
+    title: 'Big rules-data pass landed behind the scenes',
+    text: 'A major Codex-assisted cleanup added stronger spell and feat registries, smarter class resources, and better character snapshots so the app has a sturdier rules backbone for future class and level-up work.',
   },
   {
     label: 'Fighter',
-    title: 'Fighter completion pass',
-    text: 'Fighter Weapon Mastery validation and action-card unlock timing have been tightened while subclasses are reviewed one at a time.',
+    title: 'Fighter now has its first real class choice',
+    text: 'Fighters now choose a Fighting Style during creation, see subclass timing clearly, and carry that choice onto the sheet as a saved class feature alongside their level 1 features and proficiencies.',
   },
   {
-    label: 'Classes',
-    title: 'Builder validation pass',
-    text: 'Wizard spellbooks, Warlock invocations, Ranger resources, Rogue reminders, and Fighter choices now have stricter readiness checks.',
+    label: 'Spells',
+    title: 'Spellcasting is moving from list to table tool',
+    text: 'The spell sheet now respects prepared spells, Wizard spellbooks, cantrips, spell slots, concentration, and exact slot spending. Unprepared spellbook spells stay visible, but they cannot be cast until prepared.',
   },
   {
-    label: 'Beta',
-    title: 'Public launch preparation',
-    text: 'The app is being cleaned up for user accounts, character creation, class support, campaign permissions, and smoother mobile use.',
+    label: 'Mobile',
+    title: 'Smoother mobile and deploy recovery work',
+    text: 'Mobile and tablet polish continues across the sheet and creator. The app also now retries stale route chunks after a deployment, so a freshly updated site is less likely to strand players on an old cached screen.',
   },
 ];
 
 const dashboardInfo = [
   {
-    title: 'Use the left rail',
-    text: 'Dashboard, My Characters, My Campaigns, My Homebrew, My Uploads, Settings, and Feedback live in the main rail.',
+    title: 'Public beta direction',
+    text: 'The current focus is reliable character creation, usable sheets, clean mobile/tablet play, and rules data that can grow one class at a time.',
   },
   {
-    title: 'Users and admin access',
-    text: 'Normal accounts are Users. Admin tools are only shown to admin accounts and remain locked away from everyone else.',
+    title: 'Campaign and homebrew groundwork',
+    text: 'Campaign sharing, homebrew visibility, uploads, and GM-controlled rules are being prepared so tables can eventually bring their own worlds and house rules into the app.',
   },
   {
-    title: 'Campaign direction',
-    text: 'Campaigns will use join codes, linked characters, and GM-controlled character statuses as the next major feature pass.',
+    title: 'What to test next',
+    text: 'Create a character, open the sheet, check class features, try the spell tab on a caster, and send feedback if anything blocks actual table play.',
   },
 ];
 
