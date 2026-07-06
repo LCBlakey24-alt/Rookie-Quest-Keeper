@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, Menu, Monitor, RefreshCw, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Backpack, CalendarDays, ChevronDown, ChevronRight, Clock, Compass, FileText, Mail, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
