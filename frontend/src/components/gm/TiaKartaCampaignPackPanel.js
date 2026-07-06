@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
 import TiaKartaNpcRosterPanel from '@/components/gm/TiaKartaNpcRosterPanel';
+import TiaKartaSessionTwoPackPanel from '@/components/gm/TiaKartaSessionTwoPackPanel';
 import { getTiaKartaEntriesForDestination, tiaKartaDashboardDestinations } from '@/data/tiaKartaCampaignPack';
 
 const rq = {
@@ -73,6 +74,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
 
   return (
     <>
+      <TiaKartaSessionTwoPackPanel campaignId={campaignId} destination={destination} />
       <section style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
         <div style={headerStyle}>
           <div style={{ minWidth: 0 }}>
