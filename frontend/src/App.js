@@ -129,7 +129,6 @@ const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanC
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
 
 function PrototypeRoute({ children }) {
-  // Prototype/lab routes are intentionally hidden from normal users unless enabled for dev/admin review.
   return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
 }
 
@@ -139,15 +138,10 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path === '/' || path.startsWith('/auth')) {
-      setTheme(THEMES.LANDING);
-    } else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
-      setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
-      setTheme(THEMES.PLAYER);
-    } else {
-      setTheme(THEMES.PLAYER);
-    }
+    if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
+    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
+    else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) setTheme(THEMES.PLAYER);
+    else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
 
   return null;
@@ -171,9 +165,7 @@ function AppRoutes() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    apiClient.get('/auth/me').catch(() => {
-      handleLogout();
-    });
+    apiClient.get('/auth/me').catch(() => handleLogout());
   }, [isAuthenticated, handleLogout]);
 
   return (
@@ -192,6 +184,7 @@ function AppRoutes() {
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
         <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
         <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
