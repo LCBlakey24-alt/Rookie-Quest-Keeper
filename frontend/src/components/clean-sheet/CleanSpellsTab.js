@@ -139,12 +139,17 @@ function normaliseSlotKeys(slots = {}) {
   );
 }
 
-function getAvailableCastSlotLevels(slots = {}, remaining = {}, spellLevel = 1) {
-  return Array.from(
-    new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]),
-  )
-    .map(Number)
-    .filter((level) => level >= Number(spellLevel || 1))
+function getAllowedSlotLevelsForSpell(spell = {}) {
+  const baseLevel = Number(spell.level || spell.spell_level || 1);
+  const explicitLevels = spell.allowed_slot_levels || spell.allowedSlotLevels || spell.cast_slot_levels || spell.castSlotLevels || spell.upcast_levels || spell.upcastLevels;
+  const levels = Array.isArray(explicitLevels)
+    ? explicitLevels.map(Number).filter((level) => Number.isFinite(level) && level >= baseLevel)
+    : [baseLevel];
+  return Array.from(new Set(levels.length ? levels : [baseLevel])).sort((a, b) => a - b);
+}
+
+function getAvailableCastSlotLevels(spell = {}, slots = {}, remaining = {}) {
+  return getAllowedSlotLevelsForSpell(spell)
     .filter((level) => Number(remaining[level] ?? remaining[String(level)] ?? slots[level] ?? slots[String(level)] ?? 0) > 0)
     .sort((a, b) => a - b);
 }
@@ -316,7 +321,7 @@ function SpellCard({
         <p className="clean-sheet-muted">{castBlockedText}</p>
       )}
       {castable && levelled && !hasAvailableSlot && (
-        <p className="clean-sheet-muted">No available spell slots for this spell right now.</p>
+        <p className="clean-sheet-muted">No available valid spell slots for this spell right now.</p>
       )}
       <div className="clean-sheet-spell-actions">
         <button type="button" onClick={handleCastClick} disabled={!canPressCast}>
@@ -614,7 +619,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
   }, [character, classLevels]);
 
-  const availableSlotLevelsForSpell = (spell) => getAvailableCastSlotLevels(effectiveSlots, effectiveRemaining, Number(spell.level || 1));
+  const availableSlotLevelsForSpell = (spell) => getAvailableCastSlotLevels(spell, effectiveSlots, effectiveRemaining);
 
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
@@ -693,6 +698,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
   };
 
   const castSpell = async (spell, chosenSlotLevel = null) => {
+    const allowedSlotLevels = getAllowedSlotLevelsForSpell(spell);
     const level = Number(spell.level || 0);
     if (level <= 0) {
       toast.success(`${spell.name} used`, {
@@ -702,9 +708,9 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     }
 
     const slotLevel = Number(chosenSlotLevel || 0);
-    if (!slotLevel || slotLevel < level) {
+    if (!slotLevel || !allowedSlotLevels.includes(slotLevel)) {
       toast.error("Choose a valid spell slot level", {
-        description: `${spell.name} needs a level ${level}+ slot.`,
+        description: `${spell.name} currently allows: ${allowedSlotLevels.map((item) => `L${item}`).join(', ')}.`,
       });
       return;
     }
@@ -713,7 +719,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     const slotRemaining = Number(effectiveRemaining[slotLevel] ?? effectiveRemaining[String(slotLevel)] ?? slotTotal);
     if (slotRemaining <= 0) {
       toast.error(`No level ${slotLevel} spell slots left`, {
-        description: "Choose another available slot level or restore slots after a rest.",
+        description: "Choose another valid slot level or restore slots after a rest.",
       });
       return;
     }
@@ -745,7 +751,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast prepared or known spells, choose the slot level, manage spellbook prep, and add spells from your class list.
+              Cast prepared or known spells, choose a valid slot level, manage spellbook prep, and add spells from your class list.
             </p>
           </div>
           <span>{spellcastingRows.length ? "Caster" : "No caster data"}</span>
