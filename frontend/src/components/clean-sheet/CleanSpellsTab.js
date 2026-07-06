@@ -139,17 +139,14 @@ function normaliseSlotKeys(slots = {}) {
   );
 }
 
-function lowestUsableSlot(slots = {}, remaining = {}, spellLevel = 1) {
-  const keys = Array.from(
+function getAvailableCastSlotLevels(slots = {}, remaining = {}, spellLevel = 1) {
+  return Array.from(
     new Set([...Object.keys(slots || {}), ...Object.keys(remaining || {})]),
   )
     .map(Number)
     .filter((level) => level >= Number(spellLevel || 1))
+    .filter((level) => Number(remaining[level] ?? remaining[String(level)] ?? slots[level] ?? slots[String(level)] ?? 0) > 0)
     .sort((a, b) => a - b);
-  return (
-    keys.find((level) => Number(remaining[level] ?? slots[level] ?? 0) > 0) ||
-    null
-  );
 }
 
 function flattenClassSpellGroups(className, groups = {}, maxSpellLevel = 0) {
@@ -267,6 +264,7 @@ function SpellCard({
   castable,
   canPrepare,
   canUnprepare,
+  availableSlotLevels = [],
   castBlockedText,
   onCast,
   onConcentrate,
@@ -274,8 +272,25 @@ function SpellCard({
   onUnprepare,
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [choosingSlot, setChoosingSlot] = useState(false);
   const hasDescription = Boolean(spell.description);
   const concentrationLikely = /concentration/i.test(spell.description || "");
+  const levelled = Number(spell.level || 0) > 0;
+  const hasAvailableSlot = !levelled || availableSlotLevels.length > 0;
+  const canPressCast = castable && hasAvailableSlot;
+
+  const handleCastClick = () => {
+    if (!levelled) {
+      onCast(spell, 0);
+      return;
+    }
+    setChoosingSlot((prev) => !prev);
+  };
+
+  const castAtLevel = (slotLevel) => {
+    setChoosingSlot(false);
+    onCast(spell, slotLevel);
+  };
 
   return (
     <article
@@ -300,9 +315,12 @@ function SpellCard({
       {!castable && castBlockedText && (
         <p className="clean-sheet-muted">{castBlockedText}</p>
       )}
+      {castable && levelled && !hasAvailableSlot && (
+        <p className="clean-sheet-muted">No available spell slots for this spell right now.</p>
+      )}
       <div className="clean-sheet-spell-actions">
-        <button type="button" onClick={() => onCast(spell)} disabled={!castable}>
-          {cantrip ? "Use Cantrip" : "Cast"}
+        <button type="button" onClick={handleCastClick} disabled={!canPressCast}>
+          {cantrip ? "Use Cantrip" : choosingSlot ? "Choose Slot" : "Cast"}
         </button>
         {canPrepare && (
           <button type="button" onClick={() => onPrepare(spell)}>
@@ -325,6 +343,15 @@ function SpellCard({
           </button>
         )}
       </div>
+      {choosingSlot && castable && levelled && (
+        <div className="clean-sheet-spell-actions" aria-label={`Choose slot level for ${spell.name}`}>
+          {availableSlotLevels.map((slotLevel) => (
+            <button key={`${spell.name}-slot-${slotLevel}`} type="button" onClick={() => castAtLevel(slotLevel)}>
+              Cast at L{slotLevel}
+            </button>
+          ))}
+        </div>
+      )}
     </article>
   );
 }
@@ -391,6 +418,7 @@ function SpellGroup({
   preparedNames,
   emptyText,
   groupMode,
+  getAvailableSlots,
   onCast,
   onConcentrate,
   onPrepare,
@@ -412,6 +440,7 @@ function SpellGroup({
       canPrepare: spellbookOnly,
       canUnprepare: groupMode === "prepared" && !cantrip,
       castBlockedText: spellbookOnly ? "This spell is in your spellbook, but it must be prepared before you can cast it." : "",
+      availableSlotLevels: getAvailableSlots ? getAvailableSlots(spell) : [],
     };
   };
 
@@ -442,6 +471,7 @@ function SpellGroup({
                     castable={rules.castable}
                     canPrepare={rules.canPrepare}
                     canUnprepare={rules.canUnprepare}
+                    availableSlotLevels={rules.availableSlotLevels}
                     castBlockedText={rules.castBlockedText}
                     onCast={onCast}
                     onConcentrate={onConcentrate}
@@ -584,6 +614,8 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       .sort((a, b) => Number(a.level || 0) - Number(b.level || 0) || a.name.localeCompare(b.name));
   }, [character, classLevels]);
 
+  const availableSlotLevelsForSpell = (spell) => getAvailableCastSlotLevels(effectiveSlots, effectiveRemaining, Number(spell.level || 1));
+
   const handleSlotChange = async (nextRemaining) => {
     if (!onCharacterUpdate) return false;
     const normalisedRemaining = Object.fromEntries(
@@ -660,7 +692,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
     return ok;
   };
 
-  const castSpell = async (spell) => {
+  const castSpell = async (spell, chosenSlotLevel = null) => {
     const level = Number(spell.level || 0);
     if (level <= 0) {
       toast.success(`${spell.name} used`, {
@@ -669,27 +701,26 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
       return;
     }
 
-    const slotLevel = lowestUsableSlot(
-      effectiveSlots,
-      effectiveRemaining,
-      level,
-    );
-    if (!slotLevel) {
-      toast.error(`No level ${level}+ spell slots left`, {
-        description:
-          "Restore slots after a rest or spend manually if your table rules differ.",
+    const slotLevel = Number(chosenSlotLevel || 0);
+    if (!slotLevel || slotLevel < level) {
+      toast.error("Choose a valid spell slot level", {
+        description: `${spell.name} needs a level ${level}+ slot.`,
+      });
+      return;
+    }
+
+    const slotTotal = Number(effectiveSlots[slotLevel] ?? effectiveSlots[String(slotLevel)] ?? 0);
+    const slotRemaining = Number(effectiveRemaining[slotLevel] ?? effectiveRemaining[String(slotLevel)] ?? slotTotal);
+    if (slotRemaining <= 0) {
+      toast.error(`No level ${slotLevel} spell slots left`, {
+        description: "Choose another available slot level or restore slots after a rest.",
       });
       return;
     }
 
     const nextRemaining = {
       ...(effectiveRemaining || {}),
-      [slotLevel]: Math.max(
-        0,
-        Number(
-          effectiveRemaining[slotLevel] ?? effectiveSlots[slotLevel] ?? 0,
-        ) - 1,
-      ),
+      [slotLevel]: Math.max(0, slotRemaining - 1),
     };
     const ok = await handleSlotChange(nextRemaining);
     if (ok !== false)
@@ -714,7 +745,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           <div>
             <h2>Spellcasting</h2>
             <p>
-              Cast prepared or known spells, spend slots, manage spellbook prep, and add spells from your class list.
+              Cast prepared or known spells, choose the slot level, manage spellbook prep, and add spells from your class list.
             </p>
           </div>
           <span>{spellcastingRows.length ? "Caster" : "No caster data"}</span>
@@ -862,6 +893,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         spells={filterSpells(cantrips)}
         preparedNames={preparedNames}
         groupMode="known"
+        getAvailableSlots={availableSlotLevelsForSpell}
         emptyText="No cantrips found on this character. Add one from the class spell library above."
         onCast={castSpell}
         onConcentrate={concentrateOn}
@@ -874,6 +906,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
           spells={filterSpells(prepared)}
           preparedNames={preparedNames}
           groupMode="prepared"
+          getAvailableSlots={availableSlotLevelsForSpell}
           emptyText="No prepared spells found. Prepare one from your spellbook or add one from the class spell library above."
           onCast={castSpell}
           onConcentrate={concentrateOn}
@@ -886,6 +919,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate }) {
         spells={filterSpells(secondaryLeveled)}
         preparedNames={preparedNames}
         groupMode={secondaryMode}
+        getAvailableSlots={availableSlotLevelsForSpell}
         emptyText={`${secondaryEmpty} Add one from the class spell library above.`}
         onCast={castSpell}
         onConcentrate={concentrateOn}
