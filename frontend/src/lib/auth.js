@@ -18,13 +18,17 @@ export function getAuthToken() {
   return null;
 }
 
-export function setAuthToken(token) {
-  if (!token) return;
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
+export function clearAuthToken() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USERNAME_KEY);
   for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
 }
 
-export function clearAuthToken() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+export function setAuthToken(token) {
+  if (!token) {
+    clearAuthToken();
+    return;
+  }
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
   for (const key of LEGACY_TOKEN_KEYS) localStorage.removeItem(key);
 }
