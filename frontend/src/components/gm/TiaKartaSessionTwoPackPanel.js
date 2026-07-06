@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
 import { getTiaKartaUpdateSectionsForDestination, tiaKartaSessionTwoPack } from '@/data/tiaKartaSessionTwoPack';
 import { getTiaKartaNextSessionSectionsForDestination, tiaKartaSessionThreePack } from '@/data/tiaKartaSessionThreePack';
+import { getTiaKartaLucianGreySectionsForDestination, tiaKartaLucianGreyPack } from '@/data/tiaKartaLucianGreyPack';
 
 const rq = {
   card: 'var(--rq-bg-elevated, #323232)',
@@ -21,6 +22,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
   const [query, setQuery] = useState('');
   const [savingKey, setSavingKey] = useState('');
   const sections = useMemo(() => [
+    ...getTiaKartaLucianGreySectionsForDestination(destination),
     ...getTiaKartaNextSessionSectionsForDestination(destination),
     ...getTiaKartaUpdateSectionsForDestination(destination),
   ], [destination]);
@@ -82,7 +84,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
         <div style={{ minWidth: 0 }}>
           <p style={eyebrowStyle}><Sparkles size={13} /> Current Tia-Karta update pack</p>
           <h3 style={titleStyle}>{tiaKartaSessionThreePack.currentChapter}</h3>
-          <p style={helperStyle}>{tiaKartaSessionThreePack.sourceNote} Older recap cards from {tiaKartaSessionTwoPack.currentChapter} remain underneath for reference.</p>
+          <p style={helperStyle}>{tiaKartaSessionThreePack.sourceNote} Lucian Grey’s War Room reveal now sits first where relevant; older recap cards from {tiaKartaSessionTwoPack.currentChapter} remain underneath for reference.</p>
         </div>
         <span style={pillStyle}>{filteredSections.reduce((total, section) => total + section.cards.length, 0)} cards</span>
       </div>
@@ -92,7 +94,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
         <input
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Search next session prep, current secrets, rules, items..."
+          placeholder="Search next session prep, Lucian Grey, current secrets, rules, items..."
           style={searchInputStyle}
         />
       </label>
@@ -143,10 +145,14 @@ function List({ title, items }) {
   );
 }
 
+function getPackForSection(section) {
+  if (section.id.includes('lucian')) return tiaKartaLucianGreyPack;
+  if (section.id.includes('next-session') || section.id.includes('palace') || section.id.includes('chair') || section.id.includes('library') || section.id.includes('war-room') || section.id.includes('council')) return tiaKartaSessionThreePack;
+  return tiaKartaSessionTwoPack;
+}
+
 function formatCard(section, card) {
-  const pack = section.id.includes('next-session') || section.id.includes('palace') || section.id.includes('chair') || section.id.includes('library') || section.id.includes('war-room') || section.id.includes('council')
-    ? tiaKartaSessionThreePack
-    : tiaKartaSessionTwoPack;
+  const pack = getPackForSection(section);
   return [
     pack.campaignName,
     pack.currentArc,
