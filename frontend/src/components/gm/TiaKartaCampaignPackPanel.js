@@ -3,6 +3,7 @@ import { BookOpen, ChevronDown, ChevronRight, Copy, Save, Search, Sparkles } fro
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
+import TiaKartaNpcRosterPanel from '@/components/gm/TiaKartaNpcRosterPanel';
 import { getTiaKartaEntriesForDestination, tiaKartaDashboardDestinations } from '@/data/tiaKartaCampaignPack';
 
 const rq = {
@@ -37,7 +38,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
     ].join(' ').toLowerCase().includes(term));
   }, [entries, query]);
 
-  if (!entries.length) return null;
+  if (!entries.length && destination !== 'npcs') return null;
 
   const copyEntry = async (entry) => {
     try {
@@ -71,53 +72,56 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
   const destinationLabel = tiaKartaDashboardDestinations[destination] || destination;
 
   return (
-    <section style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
-      <div style={headerStyle}>
-        <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}><Sparkles size={13} /> Tia Karta campaign material</p>
-          <h3 style={titleStyle}>{destinationLabel}</h3>
-          <p style={helperStyle}>Coded-in campaign notes that belong in this existing GM tab. Save any entry to Secrets & Handouts when you want a persistent draft.</p>
+    <>
+      <section style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
+        <div style={headerStyle}>
+          <div style={{ minWidth: 0 }}>
+            <p style={eyebrowStyle}><Sparkles size={13} /> Tia Karta campaign material</p>
+            <h3 style={titleStyle}>{destinationLabel}</h3>
+            <p style={helperStyle}>Coded-in campaign notes that belong in this existing GM tab. Save any entry to Secrets & Handouts when you want a persistent draft.</p>
+          </div>
+          <button type="button" onClick={() => setExpanded(prev => !prev)} style={toggleStyle}>
+            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            {expanded ? 'Show less' : `Show all ${filteredEntries.length}`}
+          </button>
         </div>
-        <button type="button" onClick={() => setExpanded(prev => !prev)} style={toggleStyle}>
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          {expanded ? 'Show less' : `Show all ${filteredEntries.length}`}
-        </button>
-      </div>
 
-      <label style={searchStyle}>
-        <Search size={14} />
-        <input
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          placeholder="Search this tab’s Tia Karta notes..."
-          style={searchInputStyle}
-        />
-      </label>
+        <label style={searchStyle}>
+          <Search size={14} />
+          <input
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Search this tab’s Tia Karta notes..."
+            style={searchInputStyle}
+          />
+        </label>
 
-      <div style={gridStyle}>
-        {shownEntries.map(entry => (
-          <article key={entry.id} style={entryStyle}>
-            <div style={entryTopStyle}>
-              <BookOpen size={16} />
-              <div style={{ minWidth: 0 }}>
-                <strong style={entryTitleStyle}>{entry.title}</strong>
-                <span style={categoryStyle}>{entry.category}</span>
+        <div style={gridStyle}>
+          {shownEntries.map(entry => (
+            <article key={entry.id} style={entryStyle}>
+              <div style={entryTopStyle}>
+                <BookOpen size={16} />
+                <div style={{ minWidth: 0 }}>
+                  <strong style={entryTitleStyle}>{entry.title}</strong>
+                  <span style={categoryStyle}>{entry.category}</span>
+                </div>
               </div>
-            </div>
-            <p style={textStyle}>{entry.playerSummary}</p>
-            {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
-            {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
-            {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
-            {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
-            {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
-            <div style={actionsStyle}>
-              <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-              <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
+              <p style={textStyle}>{entry.playerSummary}</p>
+              {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
+              {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
+              {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
+              {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
+              {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
+              <div style={actionsStyle}>
+                <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
+                <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+      {destination === 'npcs' && <TiaKartaNpcRosterPanel campaignId={campaignId} />}
+    </>
   );
 }
 
