@@ -1,3 +1,6 @@
+import { BACKEND_URL } from '@/lib/api';
+import { getAuthToken } from '@/lib/auth';
+
 const channelName = (campaignId) => `rqk-live-display-${campaignId}`;
 const storageKey = (campaignId) => `rqk.liveDisplay.${campaignId}`;
 const localEventName = (campaignId) => `rqk-live-display-local-${campaignId}`;
@@ -7,6 +10,14 @@ async function getApiClient() {
   if (!apiClientPromise) apiClientPromise = import('./apiClient');
   const module = await apiClientPromise;
   return module.default;
+}
+
+function websocketUrl(campaignId) {
+  if (!campaignId || typeof window === 'undefined') return '';
+  const token = getAuthToken();
+  if (!token) return '';
+  const base = String(BACKEND_URL || window.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
+  return `${base}/ws/campaign/${encodeURIComponent(campaignId)}?token=${encodeURIComponent(token)}`;
 }
 
 export function createDisplayState(mode = 'blank', payload = {}) {
@@ -132,26 +143,86 @@ export function subscribeDisplayState(campaignId, onState) {
   return () => handlers.forEach(cleanup => cleanup());
 }
 
-export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 2000 } = {}) {
+export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 1000 } = {}) {
   let cancelled = false;
   let lastRemoteUpdatedAt = '';
+  let socket = null;
+  let reconnectTimer = null;
+  let pingTimer = null;
+
+  const applyRemoteState = (state) => {
+    if (cancelled || !state?.updated_at || state.updated_at === lastRemoteUpdatedAt) return;
+    lastRemoteUpdatedAt = state.updated_at;
+    saveDisplayState(campaignId, state);
+    onState(state);
+  };
 
   const readRemoteState = async () => {
     try {
       const state = await loadRemoteDisplayState(campaignId);
-      if (cancelled || !state?.updated_at || state.updated_at === lastRemoteUpdatedAt) return;
-      lastRemoteUpdatedAt = state.updated_at;
-      onState(state);
+      applyRemoteState(state);
     } catch {
       // Same-browser local display sync remains available when remote sync fails.
     }
   };
 
+  const clearSocketTimers = () => {
+    if (pingTimer) window.clearInterval(pingTimer);
+    pingTimer = null;
+  };
+
+  const connectSocket = () => {
+    if (cancelled || typeof WebSocket === 'undefined') return;
+    const url = websocketUrl(campaignId);
+    if (!url) return;
+
+    try {
+      socket = new WebSocket(url);
+      socket.onopen = () => {
+        clearSocketTimers();
+        pingTimer = window.setInterval(() => {
+          try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
+        }, 25000);
+      };
+      socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message?.type === 'player_display_update' && message.data) {
+            applyRemoteState(message.data);
+          }
+        } catch {
+          // Ignore non-display websocket messages.
+        }
+      };
+      socket.onerror = () => {
+        try { socket?.close(); } catch { /* ignore */ }
+      };
+      socket.onclose = () => {
+        clearSocketTimers();
+        if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+      };
+    } catch {
+      if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+    }
+  };
+
   readRemoteState();
+  connectSocket();
   const interval = window.setInterval(readRemoteState, intervalMs);
+
+  const onWake = () => readRemoteState();
+  window.addEventListener('focus', onWake);
+  window.addEventListener('online', onWake);
+  document.addEventListener('visibilitychange', onWake);
 
   return () => {
     cancelled = true;
     window.clearInterval(interval);
+    if (reconnectTimer) window.clearTimeout(reconnectTimer);
+    clearSocketTimers();
+    try { socket?.close(); } catch { /* ignore */ }
+    window.removeEventListener('focus', onWake);
+    window.removeEventListener('online', onWake);
+    document.removeEventListener('visibilitychange', onWake);
   };
 }
