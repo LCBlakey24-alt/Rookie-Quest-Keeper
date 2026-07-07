@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
@@ -61,16 +61,11 @@ export default function AppShell({ children }) {
     };
   }, []);
 
-  const navItems = useMemo(
-    () => isAdmin ? [...mainNavItems, adminNavItem] : mainNavItems,
-    [isAdmin],
-  );
-
   return (
     <div className="rqk-app-shell">
       <aside className="rqk-app-rail" aria-label="App navigation">
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
-          {navItems.map((item) => (
+          {mainNavItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} />
           ))}
         </nav>
@@ -79,6 +74,8 @@ export default function AppShell({ children }) {
           <MessageSquare size={20} aria-hidden="true" />
           <span>Feedback</span>
         </button>
+
+        {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} />}
       </aside>
 
       <div className="rqk-app-shell-content">
