@@ -13,6 +13,7 @@ from routes.npcs import router as npcs_router
 from routes.combat import router as combat_router
 from routes.players import router as players_router
 from routes.maps import router as maps_router
+from routes.tables import router as tables_router
 from routes.ai import router as ai_router
 from routes.inventory import router as inventory_router
 from routes.user_content import router as user_content_router
@@ -46,6 +47,7 @@ all_routers = [
     combat_router,
     players_router,
     maps_router,
+    tables_router,
     ai_router,  # Text-based Rook AI helpers stay enabled.
     inventory_router,
     user_content_router,
