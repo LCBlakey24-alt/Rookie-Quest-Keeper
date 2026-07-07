@@ -5,6 +5,15 @@ import FullCharacterCreatorV2 from '@/components/FullCharacterCreatorV2';
 import { BACKGROUNDS, CLASSES, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
+import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
+import {
+  ABILITY_OPTIONS,
+  applyStartingLevelChoicesToPayload,
+  buildStartingLevelChoicePlan,
+  defaultAsiSelection,
+  getFeatName,
+  getFeatOptions,
+} from '@/data/startingLevelChoiceEngine';
 import apiClient from '@/lib/apiClient';
 import usePlayerRulesOptions, { buildMergedCharacterRules } from '@/hooks/usePlayerRulesOptions';
 import './FullCharacterCreatorV2.css';
@@ -13,6 +22,7 @@ import './FullCharacterCreatorFlow.css';
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 const LEVEL_KEY = 'rqk.full_character_creator_v2.starting_level';
 const SUBCLASS_KEY = 'rqk.full_character_creator_v2.starting_subclass';
+const CHOICES_KEY = 'rqk.full_character_creator_v2.level_choices';
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 
@@ -47,6 +57,14 @@ function applyMergedRules(merged) {
 function readBuilderDraft() {
   try {
     return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
+}
+
+function readChoiceSelections() {
+  try {
+    return JSON.parse(sessionStorage.getItem(CHOICES_KEY) || '{}') || {};
   } catch {
     return {};
   }
@@ -112,7 +130,7 @@ function averageHitPoints(level, hitDie, constitutionScore) {
   return first + Math.max(0, level - 1) * later;
 }
 
-function withStartingLevel(payload, { targetLevel, selectedSubclass, options }) {
+function withStartingLevel(payload, { targetLevel, selectedSubclass, options, levelChoiceSelections, featOptions }) {
   if (!payload || typeof payload !== 'object') return payload;
   const className = payload.character_class;
   const classData = CLASSES[className] || {};
@@ -131,17 +149,19 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options }) 
     features.push(feature);
   });
 
-  const enhanced = {
+  let enhanced = {
     ...payload,
     level,
     subclass: subclassName,
     proficiency_bonus: getProficiencyBonus(level),
     hit_dice: `${level}d${hitDie}`,
     hit_dice_remaining: level,
-    max_hit_points: averageHitPoints(level, hitDie, payload.constitution),
-    current_hit_points: averageHitPoints(level, hitDie, payload.constitution),
     class_features: features,
   };
+
+  enhanced = applyStartingLevelChoicesToPayload(enhanced, levelChoiceSelections, featOptions);
+  enhanced.max_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
+  enhanced.current_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
 
   const spellcasting = SPELLCASTING_CLASSES[className];
   if (spellcasting) {
@@ -154,12 +174,54 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options }) 
   return enhanced;
 }
 
+function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
+  const current = defaultAsiSelection(selection);
+  const firstFeat = getFeatName(featOptions[0]) || '';
+  const update = (patch) => onChange({ ...current, ...patch });
+
+  return (
+    <div className="full-creator-form-grid" key={choice.id}>
+      <label>
+        <span>{choice.label}</span>
+        <select value={current.mode} onChange={(event) => update({ mode: event.target.value, featName: event.target.value === 'feat' ? current.featName || firstFeat : current.featName })}>
+          <option value="asi">Ability score increase</option>
+          <option value="feat">Feat</option>
+        </select>
+      </label>
+      {current.mode === 'feat' ? (
+        <label>
+          <span>Feat</span>
+          <select value={current.featName || firstFeat} onChange={(event) => update({ featName: event.target.value })}>
+            {featOptions.map((feat) => <option key={getFeatName(feat)} value={getFeatName(feat)}>{getFeatName(feat)}</option>)}
+          </select>
+        </label>
+      ) : (
+        <>
+          <label>
+            <span>+1 / +2 ability</span>
+            <select value={current.abilityOne} onChange={(event) => update({ abilityOne: event.target.value })}>
+              {ABILITY_OPTIONS.map(([ability, label]) => <option key={ability} value={ability}>{label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Second +1</span>
+            <select value={current.abilityTwo} onChange={(event) => update({ abilityTwo: event.target.value })}>
+              {ABILITY_OPTIONS.map(([ability, label]) => <option key={ability} value={ability}>{label}</option>)}
+            </select>
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function CharacterRulesBridge(props) {
   const campaignId = useCampaignIdFromQuery();
   const { options, loading, error, hasCustomContent, counts } = usePlayerRulesOptions({ campaignId });
   const [builderDraft, setBuilderDraft] = useState(readBuilderDraft);
   const [targetLevel, setTargetLevel] = useState(() => clampLevel(sessionStorage.getItem(LEVEL_KEY) || 1));
   const [selectedSubclass, setSelectedSubclass] = useState(() => sessionStorage.getItem(SUBCLASS_KEY) || '');
+  const [levelChoiceSelections, setLevelChoiceSelections] = useState(readChoiceSelections);
 
   const mergedRules = useMemo(() => buildMergedCharacterRules({
     races: RACES,
@@ -191,12 +253,19 @@ export default function CharacterRulesBridge(props) {
     else sessionStorage.removeItem(SUBCLASS_KEY);
   }, [selectedSubclass]);
 
+  useEffect(() => {
+    sessionStorage.setItem(CHOICES_KEY, JSON.stringify(levelChoiceSelections || {}));
+  }, [levelChoiceSelections]);
+
   const currentClassName = builderDraft.characterClass || 'Fighter';
   const currentEdition = builderDraft.edition || '2014';
   const currentClassData = CLASSES[currentClassName] || {};
   const subclasses = arr(currentClassData.subclasses).map(displayName).filter(Boolean);
   const subclassLevel = subclassUnlockLevel(currentClassName, currentEdition, currentClassData);
   const needsSubclass = targetLevel >= subclassLevel && subclasses.length > 0;
+  const choicePlan = useMemo(() => buildStartingLevelChoicePlan({ className: currentClassName, startingLevel: targetLevel, edition: currentEdition }), [currentClassName, currentEdition, targetLevel]);
+  const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition, category: currentEdition === '2024' && targetLevel >= 19 ? 'epic' : 'general' }), [currentEdition, targetLevel]);
+  const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
 
   useEffect(() => {
     if (!needsSubclass) return;
@@ -205,11 +274,22 @@ export default function CharacterRulesBridge(props) {
     }
   }, [needsSubclass, selectedSubclass, subclasses.join('|')]);
 
+  useEffect(() => {
+    const validIds = new Set(choicePlan.asiChoices.map((choice) => choice.id));
+    setLevelChoiceSelections((prev) => Object.fromEntries(Object.entries(prev || {}).filter(([key]) => validIds.has(key))));
+  }, [choicePlan.asiChoices.map((choice) => choice.id).join('|')]);
+
+  const updateLevelChoice = useCallback((choiceId, selection) => {
+    setLevelChoiceSelections((prev) => ({ ...prev, [choiceId]: defaultAsiSelection(selection) }));
+  }, []);
+
   const enhancePayload = useCallback((payload) => withStartingLevel(payload, {
     targetLevel,
     selectedSubclass: needsSubclass ? selectedSubclass : payload?.subclass,
     options,
-  }), [targetLevel, needsSubclass, selectedSubclass, options]);
+    levelChoiceSelections,
+    featOptions,
+  }), [targetLevel, needsSubclass, selectedSubclass, options, levelChoiceSelections, featOptions]);
 
   useEffect(() => {
     const originalPost = apiClient.post.bind(apiClient);
@@ -242,7 +322,7 @@ export default function CharacterRulesBridge(props) {
           <span>Starting level supervisor</span>
           <strong>Level {targetLevel}</strong>
         </div>
-        <p>Build normally below. When you save, this pass upgrades the saved sheet to your chosen level with scaled HP, hit dice, proficiency bonus, spell slots, and available class features.</p>
+        <p>Build normally below. When you save, this pass upgrades the saved sheet to your chosen level with scaled HP, hit dice, proficiency bonus, spell slots, class features, ASIs, and selected feats.</p>
         <div className="full-creator-form-grid">
           <label>
             <span>Starting level</span>
@@ -259,7 +339,31 @@ export default function CharacterRulesBridge(props) {
             </label>
           )}
         </div>
-        {targetLevel > 1 && <small>Higher-level spell choices and ASI/feat picks still need the dedicated level-up pass after this foundation.</small>}
+
+        {choicePlan.asiChoices.length > 0 && (
+          <div className="full-creator-auto-box">
+            <strong>ASI / feat choices</strong>
+            <span>These choices are applied to the saved sheet immediately.</span>
+          </div>
+        )}
+        {choicePlan.asiChoices.map((choice) => (
+          <AsiChoiceRow
+            key={choice.id}
+            choice={choice}
+            selection={levelChoiceSelections[choice.id]}
+            featOptions={featOptions}
+            onChange={(selection) => updateLevelChoice(choice.id, selection)}
+          />
+        ))}
+
+        {(choicePlan.spellChoices.length > 0 || choicePlan.manualHooks.length > 0) && (
+          <div className="full-creator-auto-box">
+            <strong>Needs detailed level-up pass</strong>
+            <span>
+              {[...choicePlan.spellChoices.map((choice) => choice.label), ...choicePlan.manualHooks.map((choice) => choice.label)].join(' • ')}
+            </span>
+          </div>
+        )}
       </section>
 
       {hasCustomContent && (
