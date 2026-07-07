@@ -211,7 +211,6 @@ function deriveImport(source, sourceFileName = '') {
 function buildPayload(character) {
   const level = Math.max(1, Math.min(30, numberOr(character.level, 1)));
   const hitDie = String(character.hit_die || 'd8').replace(/^d?/i, 'd');
-  const hitDieSides = numberOr(hitDie, 8);
   const inventory = listFrom(character.equipment_text).map((name) => ({ name, equipped: false, source: 'import' }));
   const sourceNote = character.source_file_name
     ? `\n\nImported from player upload: ${character.source_file_name}. ${character.source_warning || ''}`.trim()
