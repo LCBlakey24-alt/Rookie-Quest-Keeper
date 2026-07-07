@@ -1,9 +1,13 @@
 import {
   HOMEBREW_VISIBILITY,
+  buildHomebrewFeatureEntries,
+  buildHomebrewSelectionReference,
   canShareHomebrewContent,
   createSharedHomebrewCopy,
+  extractHomebrewCollection,
   filterHomebrewContent,
   getHomebrewSubclassOptions,
+  mergeOfficialAndHomebrewOptions,
   normalizeHomebrewContent,
 } from './homebrewContent';
 
@@ -57,8 +61,67 @@ describe('homebrew content helpers', () => {
         custom: true,
         supportedAutomation: true,
         visibility: 'private',
+        source: 'Homebrew',
       }),
     ]);
+  });
+
+  test('extracts typed collections from the homebrew API response shape', () => {
+    const response = {
+      homebrew: {
+        subclass: [monkSubclass],
+        feat: [{ id: 'feat-1', content_type: 'feat', name: 'Table Luck', owner_user_id: 'user-1' }],
+      },
+    };
+
+    expect(extractHomebrewCollection(response, 'subclass')).toEqual([
+      expect.objectContaining({ id: 'monk-shadow-path', contentType: 'subclass' }),
+    ]);
+    expect(extractHomebrewCollection(response).map(item => item.id)).toEqual(['monk-shadow-path', 'feat-1']);
+  });
+
+  test('merges homebrew options after official options without duplicating names', () => {
+    const options = mergeOfficialAndHomebrewOptions(['Champion', 'Shadow Path'], [
+      { value: 'Shadow Path', label: 'Shadow Path', homebrew: true },
+      { value: 'Way of Bees', label: 'Way of Bees', homebrew: true },
+    ]);
+
+    expect(options).toEqual([
+      { value: 'Champion', label: 'Champion', source: 'Official' },
+      { value: 'Shadow Path', label: 'Shadow Path', source: 'Official' },
+      expect.objectContaining({ value: 'Way of Bees', label: 'Way of Bees (Homebrew)', source: 'Homebrew' }),
+    ]);
+  });
+
+  test('maps homebrew features into character-sheet-ready feature entries', () => {
+    const entries = buildHomebrewFeatureEntries({
+      ...monkSubclass,
+      features: [
+        { level: 1, name: 'Shadow Gift', description: 'You gain a pool of shadow dice.' },
+        { level: 6, name: 'Late Shadow', description: 'Too high for this character.' },
+      ],
+    }, { characterLevel: 3 });
+
+    expect(entries).toEqual([
+      expect.objectContaining({
+        name: 'Shadow Gift',
+        source: 'homebrew',
+        homebrew: true,
+        homebrewContentId: 'monk-shadow-path',
+        homebrewContentName: 'Shadow Path',
+      }),
+    ]);
+  });
+
+  test('builds compact selection references for saved characters', () => {
+    expect(buildHomebrewSelectionReference(monkSubclass)).toEqual(expect.objectContaining({
+      id: 'monk-shadow-path',
+      name: 'Shadow Path',
+      contentType: 'subclass',
+      source: 'Homebrew Workshop',
+      ruleset: '2024',
+      visibility: 'private',
+    }));
   });
 
   test('creates accepted shared copies with provenance chain', () => {
