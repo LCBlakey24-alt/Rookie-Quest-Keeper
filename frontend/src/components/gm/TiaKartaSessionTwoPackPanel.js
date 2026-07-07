@@ -141,7 +141,7 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
           </section>
         ))}
       </div>
-      <style>{mobileTileCss}</style>
+      <style>{tileCss}</style>
     </section>
   );
 }
@@ -196,7 +196,7 @@ const sectionEyebrowStyle = { margin: 0, color: rq.muted, fontSize: 11, textTran
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 19, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 7 };
 const sectionSummaryStyle = { margin: 0, color: rq.secondary, fontSize: 13, lineHeight: 1.45 };
 const cardsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 10 };
-const cardStyle = { display: 'grid', gap: 9, background: rq.card, border: `1px solid ${rq.border}`, padding: 12, minWidth: 0 };
+const cardStyle = { display: 'grid', gap: 0, background: rq.card, border: `1px solid ${rq.border}`, padding: 0, minWidth: 0 };
 const cardTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25, textAlign: 'left' };
 const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3, textAlign: 'left' };
 const bodyStyle = { color: rq.secondary, lineHeight: 1.45, fontSize: 13, margin: 0 };
@@ -209,74 +209,50 @@ const actionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }
 const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.accent, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.border}`, background: rq.panel, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 
-const mobileTileCss = `
+const tileCss = `
   .tia-update-card-toggle {
     border: 0;
     background: transparent;
     color: inherit;
-    padding: 0;
+    padding: 12px;
     margin: 0;
     width: 100%;
+    min-height: 74px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 10px;
-    cursor: default;
+    cursor: pointer;
     font: inherit;
   }
-  .tia-update-mobile-open { display: none; color: ${rq.text}; }
-  .tia-update-card-details { display: grid; gap: 9px; }
-
+  .tia-update-mobile-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    background: ${rq.panel};
+    border: 1px solid ${rq.border};
+    color: ${rq.text};
+  }
+  .tia-update-card-details {
+    display: none;
+    gap: 9px;
+    padding: 0 12px 12px;
+    border-top: 1px solid ${rq.border};
+  }
+  .tia-update-card[data-open="true"] .tia-update-card-details {
+    display: grid;
+  }
+  .tia-update-card[data-open="true"] {
+    outline: 1px solid ${rq.accent};
+  }
   @media (max-width: 760px) {
-    .tia-karta-update-panel {
-      padding: 10px !important;
-      gap: 10px !important;
-    }
-    .tia-karta-update-panel > div:first-child p:not(:first-child) {
-      display: none !important;
-    }
-    .tia-update-section {
-      gap: 8px !important;
-    }
-    .tia-update-section > div:first-child p:last-child {
-      display: none !important;
-    }
-    .tia-update-section h4 {
-      font-size: 17px !important;
-      line-height: 1.15 !important;
-    }
-    .tia-update-card {
-      padding: 0 !important;
-      gap: 0 !important;
-      background: ${rq.card} !important;
-    }
-    .tia-update-card-toggle {
-      min-height: 74px;
-      padding: 12px !important;
-      cursor: pointer;
-      align-items: center;
-    }
-    .tia-update-mobile-open {
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      flex: 0 0 auto;
-      background: ${rq.panel};
-      border: 1px solid ${rq.border};
-    }
-    .tia-update-card-details {
-      display: none;
-      gap: 9px;
-      padding: 0 12px 12px;
-      border-top: 1px solid ${rq.border};
-    }
-    .tia-update-card[data-open="true"] .tia-update-card-details {
-      display: grid;
-    }
-    .tia-update-card[data-open="true"] {
-      outline: 1px solid ${rq.accent};
-    }
+    .tia-karta-update-panel { padding: 10px !important; gap: 10px !important; }
+    .tia-karta-update-panel > div:first-child p:not(:first-child) { display: none !important; }
+    .tia-update-section { gap: 8px !important; }
+    .tia-update-section > div:first-child p:last-child { display: none !important; }
+    .tia-update-section h4 { font-size: 17px !important; line-height: 1.15 !important; }
   }
 `;
