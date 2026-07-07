@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Copy, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronRight, Copy, FileUp, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
 import './MyCharactersPage.css';
@@ -193,7 +193,7 @@ export default function MyCharactersPage() {
     <main className="library-page characters-library-page">
       <section className="library-page-hero characters-library-hero">
         <h1>My Characters</h1>
-        <p>Manage your heroes, level them up, and jump back into play.</p>
+        <p>Manage your heroes, level them up, upload existing sheets, and jump back into play.</p>
       </section>
 
       <section className="library-page-action-row" aria-label="Character library actions">
@@ -201,6 +201,10 @@ export default function MyCharactersPage() {
           <Link to="/characters/create/full" className="library-page-button library-page-button-primary">
             <Plus size={16} />
             Create Character
+          </Link>
+          <Link to="/characters/import" className="library-page-button-secondary">
+            <FileUp size={16} />
+            Import / Free-build
           </Link>
         </div>
         <div className="library-page-action-secondary">
@@ -223,6 +227,7 @@ export default function MyCharactersPage() {
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
             <Link to="/characters/create/full" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/import" className="library-page-button-secondary">Import or Free-build</Link>
           </div>
         </section>
       ) : (
@@ -247,7 +252,7 @@ export default function MyCharactersPage() {
                     Open Sheet <ChevronRight size={16} />
                   </Link>
                   <div className="character-card-secondary-actions">
-                    <Link to={`/characters/${id}?edit=true`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
+                    <Link to={`/characters/${id}/edit`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
                     <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicatingId === id} className="library-page-button-secondary"><Copy size={15} /> {duplicatingId === id ? 'Duplicating...' : 'Duplicate'}</button>
                     <button type="button" onClick={() => deleteCharacter(character)} disabled={deletingId === id} className="library-page-button-secondary library-page-button-danger"><Trash2 size={15} /> {deletingId === id ? 'Deleting...' : 'Delete'}</button>
                   </div>
