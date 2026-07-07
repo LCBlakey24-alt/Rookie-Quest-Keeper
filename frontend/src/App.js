@@ -180,7 +180,7 @@ function AppRoutes() {
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
