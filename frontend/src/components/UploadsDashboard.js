@@ -1,4 +1,5 @@
-import { FileText, FileUp, Image, Map, UploadCloud } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileText, FileUp, Image, Map, UploadCloud, Wand2 } from 'lucide-react';
 
 const uploadOptions = [
   {
@@ -21,7 +22,7 @@ const uploadOptions = [
 const acceptedFiles = [
   'Images: PNG, JPG, WEBP',
   'Documents: PDF, DOCX, TXT, MD',
-  'Character sheets: PDF or image uploads',
+  'Character sheets: JSON, TXT, MD, PDF, or image uploads',
   'Homebrew imports: class, species, item, spell, monster, NPC, or rule notes',
 ];
 
@@ -41,13 +42,19 @@ export default function UploadsDashboard() {
       <section className="uploads-dashboard-dropzone" aria-label="Upload files">
         <UploadCloud size={34} aria-hidden="true" />
         <div>
-          <h2>Drop files here</h2>
-          <p>Drag-and-drop upload will live here. For now this page is the cleaned upload hub and file flow plan.</p>
+          <h2>Send files into the right player tool</h2>
+          <p>Character sheets now have a player-side import/free-build route. Homebrew notes still go through the Homebrew Workshop parser and editor.</p>
         </div>
-        <button type="button" disabled>
-          <FileUp size={16} />
-          Upload coming soon
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link to="/characters/import" className="library-page-button library-page-button-primary">
+            <FileUp size={16} />
+            Import Character
+          </Link>
+          <Link to="/homebrew" className="library-page-button-secondary">
+            <Wand2 size={16} />
+            Homebrew Workshop
+          </Link>
+        </div>
       </section>
 
       <section className="uploads-dashboard-grid" aria-label="Upload areas">
