@@ -1,12 +1,8 @@
-import { Link } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
-
 export default function UnifiedDashboardHeader({
   username,
   refreshing,
   onRefresh,
   onLogout,
-  isAdmin = false,
 }) {
   return (
     <header className="unified-dashboard-board unified-dashboard-header">
@@ -21,12 +17,6 @@ export default function UnifiedDashboardHeader({
       </div>
 
       <div className="dashboard-header-buttons">
-        {isAdmin && (
-          <Link to="/admin" className="unified-dashboard-button dashboard-admin-button">
-            <ShieldCheck size={16} aria-hidden="true" />
-            <span>Admin</span>
-          </Link>
-        )}
         <DashboardButton onClick={onRefresh} disabled={refreshing}>
           {refreshing ? 'Refreshing...' : 'Refresh'}
         </DashboardButton>
