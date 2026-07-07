@@ -123,8 +123,7 @@ const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSet
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
 const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-// V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
-const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/FullCharacterCreatorV2'));
+const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
