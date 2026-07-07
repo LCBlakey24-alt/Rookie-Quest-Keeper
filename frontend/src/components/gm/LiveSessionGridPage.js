@@ -9,7 +9,6 @@ import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
 import LootGenerator from '@/components/LootGenerator';
-import RandomTables from '@/components/RandomTables';
 import PartyLocationTracker from '@/components/PartyLocationTracker';
 import CombatTab from '@/components/gm/CombatTab';
 import NpcsTab from '@/components/gm/NpcsTab';
@@ -27,6 +26,7 @@ import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
 import LivePlayerDisplayControls from '@/components/gm/LivePlayerDisplayControls';
 import EndSessionReviewModal from '@/components/gm/EndSessionReviewModal';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
+import LiveRollTablesPanel from '@/components/gm/LiveRollTablesPanel';
 import MapsTab from '@/components/tabs/MapsTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 
@@ -156,6 +156,11 @@ export default function LiveSessionGridPage() {
     }
   };
 
+  const addLiveResultToNotes = (text) => {
+    setSessionNotes(prev => [{ id: Date.now().toString(), content: text, created_at: new Date().toISOString() }, ...prev]);
+    toast.success('Added to live notes', { description: 'Open Notes to edit or save it into the campaign log.' });
+  };
+
   const launchCombat = (scenario) => navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
 
   const quickStartCombat = () => {
@@ -234,7 +239,7 @@ export default function LiveSessionGridPage() {
       case 'location': return <PartyLocationTracker campaignId={campaignId} />;
       case 'environment': return <EnvironmentControl campaignId={campaignId} campaign={campaign} onEnvironmentChange={(environment) => setCampaign(prev => prev ? { ...prev, campaign_environment: environment } : prev)} />;
       case 'reference-hub': return <UnifiedReferenceCenter onRollDamage={rollQuickDice} isCompact={false} />;
-      case 'tables': return <RandomTables onSaveAsNote={(text) => setSessionNotes(prev => [{ id: Date.now().toString(), content: text, created_at: new Date().toISOString() }, ...prev])} />;
+      case 'tables': return <LiveRollTablesPanel campaignId={campaignId} onSaveAsNote={addLiveResultToNotes} />;
       case 'loot': return <LootGenerator />;
       case 'story': return <StoryArcTracker theme={theme} campaignId={campaignId} />;
       case 'planner': return <AISessionPlanner theme={theme} campaignId={campaignId} />;
@@ -256,7 +261,7 @@ export default function LiveSessionGridPage() {
             <div style={{ minWidth: 0 }}>
               <p style={eyebrowStyle}>Live Play Mode</p>
               <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
-              <p style={subtitleStyle}>Focused GM screen with left-side tools and quick references.</p>
+              <p style={subtitleStyle}>Use saved campaign info, combat, tables, notes, and the player TV display without leaving the table.</p>
               {calendar && <p style={calendarStyle}>{calendar.custom_months?.[calendar.current_month - 1]?.name || 'Month'} {calendar.current_day}, Year {calendar.current_year}</p>}
             </div>
           </div>
