@@ -74,7 +74,7 @@ export default function MyCampaignsPage() {
     setRefreshing(true);
     try {
       await loadCampaigns();
-      toast.success('Campaigns refreshed');
+      toast.success('GM campaigns refreshed');
     } finally {
       setRefreshing(false);
     }
@@ -165,8 +165,8 @@ export default function MyCampaignsPage() {
       <main className="library-page library-page-loading">
         <section className="loading-screen" role="status" aria-live="polite">
           <div className="loading-spinner" aria-hidden="true" />
-          <p className="loading-title">Opening My Campaigns...</p>
-          <p className="loading-tip">Loading the campaigns you have made or run.</p>
+          <p className="loading-title">Opening My GM...</p>
+          <p className="loading-tip">Loading the campaigns you run.</p>
         </section>
       </main>
     );
@@ -176,9 +176,9 @@ export default function MyCampaignsPage() {
     <main className="library-page">
       <section className="library-page-hero">
         <div>
-          <p className="library-page-eyebrow">My Campaigns</p>
-          <h1>Your running campaigns.</h1>
-          <p>Campaign spaces you have created or currently run as a GM.</p>
+          <p className="library-page-eyebrow">My GM</p>
+          <h1>Your GM table.</h1>
+          <p>Open a campaign to build your world, NPCs, locations, combat, notes, and player join code.</p>
         </div>
         <button type="button" onClick={() => setShowCreateCampaign(true)}>
           <Plus size={16} />
@@ -186,7 +186,7 @@ export default function MyCampaignsPage() {
         </button>
       </section>
 
-      <section className="library-page-toolbar" aria-label="Campaign library tools">
+      <section className="library-page-toolbar" aria-label="GM campaign tools">
         <p className="library-page-count">
           {sortedCampaigns.length} campaign{sortedCampaigns.length === 1 ? '' : 's'} saved
         </p>
@@ -199,13 +199,13 @@ export default function MyCampaignsPage() {
       {sortedCampaigns.length === 0 ? (
         <section className="library-page-empty">
           <h2>No campaigns yet</h2>
-          <p>Create a campaign here to set the basics, choose the feel, generate a join code, and open the full GM builder.</p>
+          <p>Create a campaign, then use the GM workspace for My World, NPCs, combat, locations, notes, and players.</p>
           <div className="library-page-actions">
             <button type="button" onClick={() => setShowCreateCampaign(true)}>Create Campaign</button>
           </div>
         </section>
       ) : (
-        <section className="library-page-grid" aria-label="Saved campaigns">
+        <section className="library-page-grid" aria-label="Saved GM campaigns">
           {sortedCampaigns.map((campaign, index) => {
             const id = recordId(campaign);
             const deleting = deletingId === id;
@@ -219,7 +219,7 @@ export default function MyCampaignsPage() {
                 </div>
                 <div className="library-page-actions">
                   <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id}>
-                    Open Campaign <ChevronRight size={16} />
+                    Open GM Workspace <ChevronRight size={16} />
                   </button>
                   <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button">
                     <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
