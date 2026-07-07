@@ -120,7 +120,6 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         refreshing={refreshing}
         onRefresh={refreshEverything}
         onLogout={onLogout}
-        isAdmin={isAdmin}
       />
 
       <UnifiedDashboardStatusBar
