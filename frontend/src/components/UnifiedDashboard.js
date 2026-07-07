@@ -61,6 +61,7 @@ const dashboardInfo = [
 export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
+  const [siteUpdates, setSiteUpdates] = useState([]);
 
   const {
     characters,
@@ -74,6 +75,16 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
 
   const safeCharacters = safeArray(characters);
   const safeCampaigns = safeArray(campaigns);
+  const updatesToShow = siteUpdates.length > 0 ? siteUpdates : dashboardUpdates;
+
+  const loadSiteUpdates = async () => {
+    try {
+      const res = await apiClient.get('/site-updates', { params: { limit: 6 } });
+      setSiteUpdates(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setSiteUpdates([]);
+    }
+  };
 
   const checkBackend = async () => {
     setBackendStatus('Checking');
@@ -91,10 +102,11 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
 
   useEffect(() => {
     checkBackend();
+    loadSiteUpdates();
   }, []);
 
   const refreshEverything = async () => {
-    await Promise.allSettled([loadDashboard(), checkBackend()]);
+    await Promise.allSettled([loadDashboard(), checkBackend(), loadSiteUpdates()]);
   };
 
   if (loading) {
@@ -137,8 +149,8 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </div>
 
         <div className="dashboard-updates-grid">
-          {dashboardUpdates.map((update) => (
-            <DashboardUpdateCard key={`${update.label}-${update.title}`} {...update} />
+          {updatesToShow.map((update) => (
+            <DashboardUpdateCard key={update.id || `${update.label}-${update.title}`} {...update} />
           ))}
         </div>
       </section>
@@ -162,10 +174,10 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   );
 }
 
-function DashboardUpdateCard({ label, title, text }) {
+function DashboardUpdateCard({ label, title, text, is_pinned }) {
   return (
     <article className="dashboard-update-card">
-      <span className="dashboard-update-label">{label}</span>
+      <span className="dashboard-update-label">{is_pinned ? `Pinned • ${label}` : label}</span>
       <h3>{title}</h3>
       <p>{text}</p>
     </article>
