@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Maximize2, Monitor, Table2, Users } from 'lucide-react';
+import { Dice6, Maximize2, Monitor, Table2, Users } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 
@@ -69,6 +69,7 @@ function DisplayContent({ state, target }) {
   const mode = state?.mode || 'blank';
   const payload = state?.payload || {};
   if (mode === 'title') return <TitleDisplay payload={payload} target={target} />;
+  if (mode === 'table-result') return <TableResultDisplay payload={payload} target={target} />;
   if (mode === 'image') return <ImageDisplay payload={payload} target={target} />;
   if (mode === 'npc-grid') return <NPCGridDisplay payload={payload} target={target} />;
   if (mode === 'combat') return <CombatDisplay payload={payload} target={target} />;
@@ -77,11 +78,15 @@ function DisplayContent({ state, target }) {
 }
 
 function BlankDisplay({ payload, target }) {
-  return <section style={blankStyle(target)}><Monitor size={isTable(target) ? 36 : 54} /><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Open the GM remote and send a scene, map, handout, NPC grid, or combat view.'}</p></section>;
+  return <section style={blankStyle(target)}><Monitor size={isTable(target) ? 36 : 54} /><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Open the GM remote and send a scene, map, handout, table result, NPC grid, or combat view.'}</p></section>;
 }
 
 function TitleDisplay({ payload, target }) {
   return <section style={titleDisplayStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</section>;
+}
+
+function TableResultDisplay({ payload, target }) {
+  return <section style={tableResultShellStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} style={{ color: theme.red }} /><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p><h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1><strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong><p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p></section>;
 }
 
 function ImageDisplay({ payload, target }) {
@@ -155,6 +160,10 @@ const titleDisplayStyle = (target) => ({ display: 'grid', placeItems: 'center', 
 const eyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 'clamp(10px, 1vw, 14px)' : 'clamp(12px, 1.4vw, 17px)', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.16em' });
 const sceneTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, color: theme.text, fontSize: isTable(target) ? 'clamp(34px, 6vw, 86px)' : 'clamp(56px, 9vw, 130px)', lineHeight: 0.95, letterSpacing: '0.03em' });
 const sceneSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 1.8vw, 24px)' : 'clamp(20px, 2.5vw, 36px)', maxWidth: 1100, lineHeight: 1.35 });
+const tableResultShellStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 10 : 18, textAlign: 'center', padding: isTable(target) ? '3vw' : '7vw' });
+const tableResultTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(34px, 5vw, 78px)' : 'clamp(54px, 8vw, 118px)', lineHeight: 0.95 });
+const tableRollNumberStyle = (target) => ({ display: 'inline-grid', placeItems: 'center', minWidth: isTable(target) ? 130 : 190, minHeight: isTable(target) ? 72 : 108, background: theme.red, color: theme.text, padding: isTable(target) ? '8px 18px' : '12px 28px', fontSize: isTable(target) ? 'clamp(26px, 4vw, 62px)' : 'clamp(42px, 6vw, 86px)', fontWeight: 950 });
+const tableResultTextStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 'clamp(17px, 2.6vw, 36px)' : 'clamp(28px, 4vw, 58px)', lineHeight: 1.2, maxWidth: 1120, fontWeight: 850 });
 const imageShellStyle = (target) => ({ display: 'grid', gridTemplateRows: isTable(target) ? 'minmax(0, 1fr) auto' : 'auto minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, minHeight: 0, padding: isTable(target) ? 6 : 18 });
 const imageTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(20px, 2.6vw, 42px)' : 'clamp(30px, 4vw, 64px)', textAlign: 'center', display: isTable(target) ? 'none' : 'block' });
 const mainImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: isTable(target) ? 'contain' : 'contain', minHeight: 0, background: '#000' });
