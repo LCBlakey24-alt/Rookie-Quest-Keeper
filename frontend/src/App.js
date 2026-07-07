@@ -122,6 +122,7 @@ const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'))
 const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
+const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
 // V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely, with homebrew choices layered in.
 const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/HomebrewAwareFullCharacterCreator'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
@@ -180,7 +181,7 @@ function AppRoutes() {
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
@@ -199,6 +200,8 @@ function AppRoutes() {
         <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
         <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
