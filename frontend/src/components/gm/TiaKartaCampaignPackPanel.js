@@ -130,7 +130,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
             );
           })}
         </div>
-        <style>{mobileLoreCss}</style>
+        <style>{tileLoreCss}</style>
       </section>
       {destination === 'npcs' && <TiaKartaNpcRosterPanel campaignId={campaignId} />}
     </>
@@ -165,7 +165,7 @@ const toggleStyle = { minHeight: 36, border: `1px solid ${rq.border}`, backgroun
 const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: rq.panel, border: `1px solid ${rq.border}` };
 const searchInputStyle = { flex: 1, border: 0, outline: 0, background: 'transparent', color: rq.text, minWidth: 120 };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 };
-const entryStyle = { display: 'grid', gap: 9, background: rq.panel, border: `1px solid ${rq.border}`, padding: 12, minWidth: 0 };
+const entryStyle = { display: 'grid', gap: 0, background: rq.panel, border: `1px solid ${rq.border}`, padding: 0, minWidth: 0 };
 const entryTopStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', minWidth: 0 };
 const entryTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25, textAlign: 'left' };
 const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3, textAlign: 'left' };
@@ -177,63 +177,47 @@ const actionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }
 const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.accent, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.border}`, background: rq.card, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
 
-const mobileLoreCss = `
+const tileLoreCss = `
   .tia-lore-card-toggle {
     border: 0;
     background: transparent;
     color: inherit;
-    padding: 0;
+    padding: 12px;
     margin: 0;
     width: 100%;
+    min-height: 72px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 10px;
-    cursor: default;
+    cursor: pointer;
     font: inherit;
   }
-  .tia-lore-mobile-open { display: none; color: ${rq.text}; }
-  .tia-lore-card-details { display: grid; gap: 9px; }
-
+  .tia-lore-mobile-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    background: ${rq.card};
+    border: 1px solid ${rq.border};
+    color: ${rq.text};
+  }
+  .tia-lore-card-details {
+    display: none;
+    gap: 9px;
+    padding: 0 12px 12px;
+    border-top: 1px solid ${rq.border};
+  }
+  .tia-lore-card[data-open="true"] .tia-lore-card-details {
+    display: grid;
+  }
+  .tia-lore-card[data-open="true"] {
+    outline: 1px solid ${rq.accent};
+  }
   @media (max-width: 760px) {
-    .tia-karta-lore-panel {
-      padding: 10px !important;
-      gap: 10px !important;
-    }
-    .tia-karta-lore-panel > div:first-child p:not(:first-child) {
-      display: none !important;
-    }
-    .tia-lore-card {
-      padding: 0 !important;
-      gap: 0 !important;
-    }
-    .tia-lore-card-toggle {
-      min-height: 72px;
-      padding: 12px !important;
-      cursor: pointer;
-      align-items: center;
-    }
-    .tia-lore-mobile-open {
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      flex: 0 0 auto;
-      background: ${rq.card};
-      border: 1px solid ${rq.border};
-    }
-    .tia-lore-card-details {
-      display: none;
-      gap: 9px;
-      padding: 0 12px 12px;
-      border-top: 1px solid ${rq.border};
-    }
-    .tia-lore-card[data-open="true"] .tia-lore-card-details {
-      display: grid;
-    }
-    .tia-lore-card[data-open="true"] {
-      outline: 1px solid ${rq.accent};
-    }
+    .tia-karta-lore-panel { padding: 10px !important; gap: 10px !important; }
+    .tia-karta-lore-panel > div:first-child p:not(:first-child) { display: none !important; }
   }
 `;
