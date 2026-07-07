@@ -8,7 +8,7 @@ import '@/styles/railFeedbackButtons.css';
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'] },
   { label: 'My Characters', to: '/characters', icon: UsersRound, matches: ['/characters'] },
-  { label: 'My Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
+  { label: 'My GM', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
   { label: 'My Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'] },
   { label: 'My Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'] },
 ];
