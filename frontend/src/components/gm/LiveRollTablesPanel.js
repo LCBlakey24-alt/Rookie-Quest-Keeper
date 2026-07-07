@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, Copy, Dice6, Plus, Send, Trash2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import apiClient from '@/lib/apiClient';
 import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -17,102 +18,111 @@ const theme = {
   muted: 'rgba(255,255,255,0.58)',
 };
 
+const CATEGORY_OPTIONS = [
+  ['general', 'General'],
+  ['travel', 'Travel'],
+  ['fate', 'Fate'],
+  ['encounter', 'Encounter'],
+  ['weapons', 'Weapons'],
+  ['potions', 'Potions'],
+  ['prices', 'Costs & Shops'],
+  ['npc', 'NPCs'],
+  ['lore', 'Lore'],
+  ['rules', 'Rules Reference'],
+];
+
 const DEFAULT_TABLES = [
   {
     id: 'travel-d20',
     name: 'Travel Results',
+    category: 'travel',
     description: 'Roll when the party travels and you need a quick prompt for how the journey goes.',
     die: 'd20',
     entries: [
-      ['1', 'A hard complication: danger, delay, injury, lost supplies, or a hostile encounter.'],
-      ['2', 'The route is worse than expected. Travel takes longer and the party is tired or exposed.'],
-      ['3', 'Bad weather, broken ground, or poor visibility makes the journey miserable.'],
-      ['4', 'The party spots signs of a threat before it spots them. They can avoid it or prepare.'],
-      ['5', 'A minor obstacle blocks the path: fallen tree, broken bridge, flooded road, or locked gate.'],
-      ['6', 'They meet nervous travellers with a warning, rumour, or request.'],
-      ['7', 'The journey is slow but safe. Add a small mood detail from the landscape.'],
-      ['8', 'A useful landmark confirms they are going the right way.'],
-      ['9', 'They find signs of recent activity: tracks, campfire, dropped item, blood, or strange markings.'],
-      ['10', 'Quiet travel. Ask one character what they are thinking about on the road.'],
-      ['11', 'A calm moment: good food, clear skies, a pretty view, or a rare chance to talk.'],
-      ['12', 'They make better time than expected. Give them a small advantage before arrival.'],
-      ['13', 'A helpful stranger, guide, animal, or local points them toward something useful.'],
-      ['14', 'They discover a small optional scene: shrine, ruin, hidden path, camp, or old battlefield.'],
-      ['15', 'A clue about the next location appears before they arrive.'],
-      ['16', 'They find useful supplies, safe shelter, or a shortcut.'],
-      ['17', 'A friendly encounter offers trade, information, healing, or transport.'],
-      ['18', 'They arrive early or from an unexpected angle. Reward clever planning or good navigation.'],
-      ['19', 'A strong positive twist: rare clue, ally, valuable find, or major shortcut.'],
-      ['20', 'Best possible travel beat: safe arrival plus a reward, secret, advantage, or cinematic moment.'],
+      { range: '1', text: 'A hard complication: danger, delay, injury, lost supplies, or a hostile encounter.' },
+      { range: '2', text: 'The route is worse than expected. Travel takes longer and the party is tired or exposed.' },
+      { range: '3', text: 'Bad weather, broken ground, or poor visibility makes the journey miserable.' },
+      { range: '4', text: 'The party spots signs of a threat before it spots them. They can avoid it or prepare.' },
+      { range: '5', text: 'A minor obstacle blocks the path: fallen tree, broken bridge, flooded road, or locked gate.' },
+      { range: '6', text: 'They meet nervous travellers with a warning, rumour, or request.' },
+      { range: '7', text: 'The journey is slow but safe. Add a small mood detail from the landscape.' },
+      { range: '8', text: 'A useful landmark confirms they are going the right way.' },
+      { range: '9', text: 'They find signs of recent activity: tracks, campfire, dropped item, blood, or strange markings.' },
+      { range: '10', text: 'Quiet travel. Ask one character what they are thinking about on the road.' },
+      { range: '11', text: 'A calm moment: good food, clear skies, a pretty view, or a rare chance to talk.' },
+      { range: '12', text: 'They make better time than expected. Give them a small advantage before arrival.' },
+      { range: '13', text: 'A helpful stranger, guide, animal, or local points them toward something useful.' },
+      { range: '14', text: 'They discover a small optional scene: shrine, ruin, hidden path, camp, or old battlefield.' },
+      { range: '15', text: 'A clue about the next location appears before they arrive.' },
+      { range: '16', text: 'They find useful supplies, safe shelter, or a shortcut.' },
+      { range: '17', text: 'A friendly encounter offers trade, information, healing, or transport.' },
+      { range: '18', text: 'They arrive early or from an unexpected angle. Reward clever planning or good navigation.' },
+      { range: '19', text: 'A strong positive twist: rare clue, ally, valuable find, or major shortcut.' },
+      { range: '20', text: 'Best possible travel beat: safe arrival plus a reward, secret, advantage, or cinematic moment.' },
     ],
   },
   {
-    id: 'fey-quirks-d20',
-    name: 'Quirks of Fey',
-    description: 'Roll when fey magic, strange bargains, or odd woodland behaviour needs flavour.',
+    id: 'fate-quirks-d20',
+    name: 'Quirks of Fate',
+    category: 'fate',
+    description: 'Roll when fate bends, luck twists, omens appear, or destiny needs a strange little push.',
     die: 'd20',
     entries: [
-      ['1', 'A creature cannot tell a lie, but answers every question sideways.'],
-      ['2', 'A bargain is offered, but the price is a memory, name, shadow, or favourite song.'],
-      ['3', 'Flowers bloom where someone steps, then whisper what they overheard.'],
-      ['4', 'A door, arch, tree, or puddle leads somewhere it absolutely should not.'],
-      ['5', 'A tiny court demands formal manners before giving any help.'],
-      ['6', 'Someone becomes convinced an ordinary object is deeply important.'],
-      ['7', 'Time slips. A few minutes feel like hours, or hours pass like minutes.'],
-      ['8', 'A local animal speaks with unsettling politeness and asks for a favour.'],
-      ['9', 'Music drifts through the air; following it reveals a clue or trap.'],
-      ['10', 'A fey offers a gift that is useful now but awkward later.'],
-      ['11', 'One person’s reflection moves independently and gestures toward something hidden.'],
-      ['12', 'Names have power here. Speaking a full name draws attention.'],
-      ['13', 'A path rearranges itself unless the party follows a strange rule.'],
-      ['14', 'A harmless prank reveals a useful secret by accident.'],
-      ['15', 'A promise made aloud becomes magically important.'],
-      ['16', 'A fey noble watches from nearby and is entertained by boldness.'],
-      ['17', 'The area reacts to emotion: anger sharpens thorns, kindness opens flowers.'],
-      ['18', 'A lost item returns, but it brings a message, curse, or clue with it.'],
-      ['19', 'A fey shortcut appears for someone who gives a sincere compliment.'],
-      ['20', 'A powerful fey moment: boon, prophecy, impossible invitation, or dramatic reveal.'],
+      { range: '1', text: 'A bad omen appears: broken mirror, black feather, blood-red moon, cracked symbol, or cold wind.' },
+      { range: '2', text: 'Someone repeats a phrase the party heard earlier, but they should not know it.' },
+      { range: '3', text: 'A small object falls, breaks, or rolls toward the next clue.' },
+      { range: '4', text: 'A stranger mistakes one character for someone from a prophecy, debt, or old story.' },
+      { range: '5', text: 'The same symbol appears in three places within a few minutes.' },
+      { range: '6', text: 'A lucky near-miss saves someone from harm but creates a new problem.' },
+      { range: '7', text: 'A dream, memory, or déjà vu gives one character a warning.' },
+      { range: '8', text: 'An ordinary choice suddenly feels heavy, as if something is watching.' },
+      { range: '9', text: 'An NPC says exactly the wrong thing at exactly the right time.' },
+      { range: '10', text: 'Nothing dramatic happens, but the silence feels meaningful.' },
+      { range: '11', text: 'A small coincidence helps the party notice a hidden detail.' },
+      { range: '12', text: 'A failed plan leaves behind one useful advantage.' },
+      { range: '13', text: 'A lost item, name, or memory briefly resurfaces.' },
+      { range: '14', text: 'Someone gets a chance to undo a tiny mistake, but not without cost.' },
+      { range: '15', text: 'A clue arrives through chance: spilled ink, shuffled cards, birds taking flight, or dice landing oddly.' },
+      { range: '16', text: 'A future danger reveals its shape through an omen.' },
+      { range: '17', text: 'An ally appears earlier than expected, or an enemy arrives too late.' },
+      { range: '18', text: 'A character’s bond, flaw, or past becomes immediately relevant.' },
+      { range: '19', text: 'A strong twist of luck gives the party a useful opening.' },
+      { range: '20', text: 'Fate intervenes clearly: prophecy beat, impossible coincidence, divine nudge, or major reveal.' },
     ],
   },
   {
     id: 'random-encounter-d20',
     name: 'Random Encounter',
+    category: 'encounter',
     description: 'Roll when you need something to happen now without derailing the session.',
     die: 'd20',
     entries: [
-      ['1', 'Hard combat encounter. The danger is immediate and already moving.'],
-      ['2', 'Ambush signs. The party can spot the danger if they pay attention.'],
-      ['3', 'A wounded creature or NPC is fleeing something worse.'],
-      ['4', 'A patrol, guards, scouts, or hunters block the way.'],
-      ['5', 'A territorial beast warns the party before attacking.'],
-      ['6', 'A suspicious stranger wants to trade information.'],
-      ['7', 'Environmental hazard: unstable ground, fire, flood, fog, magical surge, or falling debris.'],
-      ['8', 'A lost traveller, child, animal, or messenger needs help.'],
-      ['9', 'The party finds evidence of a nearby threat.'],
-      ['10', 'A social encounter: merchant, pilgrim, rival, performer, guide, or noble.'],
-      ['11', 'Strange tracks, symbols, lights, sounds, or dreams point toward hidden lore.'],
-      ['12', 'A choice appears: safe slow path or risky fast path.'],
-      ['13', 'A useful discovery: supplies, shelter, map scrap, old cache, or healing herbs.'],
-      ['14', 'A faction agent, spy, cultist, courier, or informant crosses paths with the party.'],
-      ['15', 'A roleplay scene tied to one character’s fear, flaw, bond, or backstory.'],
-      ['16', 'A puzzle-like obstacle that rewards creativity over combat.'],
-      ['17', 'A friendly NPC offers help, but wants something small in return.'],
-      ['18', 'A rare sight or omen gives a clue about the wider campaign.'],
-      ['19', 'A strong opportunity: shortcut, treasure lead, ally, or tactical advantage.'],
-      ['20', 'Major twist encounter: recurring villain, powerful ally, prophecy beat, or campaign clue.'],
+      { range: '1', text: 'Hard combat encounter. The danger is immediate and already moving.' },
+      { range: '2', text: 'Ambush signs. The party can spot the danger if they pay attention.' },
+      { range: '3', text: 'A wounded creature or NPC is fleeing something worse.' },
+      { range: '4', text: 'A patrol, guards, scouts, or hunters block the way.' },
+      { range: '5', text: 'A territorial beast warns the party before attacking.' },
+      { range: '6', text: 'A suspicious stranger wants to trade information.' },
+      { range: '7', text: 'Environmental hazard: unstable ground, fire, flood, fog, magical surge, or falling debris.' },
+      { range: '8', text: 'A lost traveller, child, animal, or messenger needs help.' },
+      { range: '9', text: 'The party finds evidence of a nearby threat.' },
+      { range: '10', text: 'A social encounter: merchant, pilgrim, rival, performer, guide, or noble.' },
+      { range: '11', text: 'Strange tracks, symbols, lights, sounds, or dreams point toward hidden lore.' },
+      { range: '12', text: 'A choice appears: safe slow path or risky fast path.' },
+      { range: '13', text: 'A useful discovery: supplies, shelter, map scrap, old cache, or healing herbs.' },
+      { range: '14', text: 'A faction agent, spy, cultist, courier, or informant crosses paths with the party.' },
+      { range: '15', text: 'A roleplay scene tied to one character’s fear, flaw, bond, or backstory.' },
+      { range: '16', text: 'A puzzle-like obstacle that rewards creativity over combat.' },
+      { range: '17', text: 'A friendly NPC offers help, but wants something small in return.' },
+      { range: '18', text: 'A rare sight or omen gives a clue about the wider campaign.' },
+      { range: '19', text: 'A strong opportunity: shortcut, treasure lead, ally, or tactical advantage.' },
+      { range: '20', text: 'Major twist encounter: recurring villain, powerful ally, prophecy beat, or campaign clue.' },
     ],
   },
 ];
 
-function storageKey(campaignId) {
+function localStorageKey(campaignId) {
   return `rqk.liveRollTables.${campaignId || 'default'}`;
-}
-
-function normaliseEntries(entries) {
-  return entries
-    .map(([range, text], index) => ({ range: String(range || index + 1), text: String(text || '').trim() }))
-    .filter(entry => entry.text)
-    .sort((a, b) => rangeMin(a.range) - rangeMin(b.range));
 }
 
 function rangeMin(range) {
@@ -131,6 +141,17 @@ function rollMatches(range, roll) {
   return roll >= min && roll <= max;
 }
 
+function normaliseEntries(entries) {
+  return (entries || [])
+    .map((entry, index) => {
+      const range = Array.isArray(entry) ? entry[0] : entry?.range ?? entry?.roll ?? index + 1;
+      const text = Array.isArray(entry) ? entry[1] : entry?.text ?? entry?.result ?? entry?.description ?? '';
+      return { range: String(range || index + 1).replace(/\s/g, ''), text: String(text || '').trim() };
+    })
+    .filter(entry => entry.text)
+    .sort((a, b) => rangeMin(a.range) - rangeMin(b.range));
+}
+
 function parseTableLines(rawText) {
   return rawText
     .split('\n')
@@ -138,24 +159,24 @@ function parseTableLines(rawText) {
       const trimmed = line.trim();
       if (!trimmed) return null;
       const explicit = trimmed.match(/^(\d+(?:\s*-\s*\d+)?)\s*[:.)-]\s*(.+)$/);
-      if (explicit) return [explicit[1].replace(/\s/g, ''), explicit[2].trim()];
-      return [String(index + 1), trimmed];
+      if (explicit) return { range: explicit[1].replace(/\s/g, ''), text: explicit[2].trim() };
+      return { range: String(index + 1), text: trimmed };
     })
     .filter(Boolean)
-    .slice(0, 100);
+    .slice(0, 200);
 }
 
-function loadCustomTables(campaignId) {
+function loadLocalCustomTables(campaignId) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(storageKey(campaignId)) || '[]');
-    return Array.isArray(parsed) ? parsed.filter(table => table?.id && table?.name && Array.isArray(table.entries)) : [];
+    const parsed = JSON.parse(localStorage.getItem(localStorageKey(campaignId)) || '[]');
+    return Array.isArray(parsed) ? parsed.filter(table => table?.id && table?.name && Array.isArray(table.entries)).map(table => ({ ...table, localOnly: true })) : [];
   } catch {
     return [];
   }
 }
 
-function saveCustomTables(campaignId, tables) {
-  try { localStorage.setItem(storageKey(campaignId), JSON.stringify(tables)); } catch { /* ignore */ }
+function saveLocalCustomTables(campaignId, tables) {
+  try { localStorage.setItem(localStorageKey(campaignId), JSON.stringify(tables)); } catch { /* ignore */ }
 }
 
 function copyText(text) {
@@ -164,19 +185,56 @@ function copyText(text) {
     .catch(() => toast.info(text));
 }
 
-export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
-  const [customTables, setCustomTables] = useState(() => loadCustomTables(campaignId));
+function categoryLabel(category) {
+  return CATEGORY_OPTIONS.find(([value]) => value === category)?.[1] || 'General';
+}
+
+function entriesToText(entries) {
+  return normaliseEntries(entries).map(entry => `${entry.range}: ${entry.text}`).join('\n');
+}
+
+export default function LiveRollTablesPanel({
+  campaignId,
+  onSaveAsNote,
+  allowDisplay = true,
+  allowAddNote = true,
+  heading = 'Tables',
+  subheading = 'Use travel, fate, random encounters, rules references, equipment costs, weapons, potions, or your own campaign tables.',
+}) {
+  const [campaignTables, setCampaignTables] = useState([]);
+  const [loadingTables, setLoadingTables] = useState(false);
+  const [apiReady, setApiReady] = useState(true);
   const [activeTableId, setActiveTableId] = useState('travel-d20');
   const [lastRoll, setLastRoll] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [savingTable, setSavingTable] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newCategory, setNewCategory] = useState('general');
   const [newDescription, setNewDescription] = useState('');
   const [newLines, setNewLines] = useState('1: Something goes badly wrong\n2: A difficult complication appears\n3: The party finds a clue\n4: The party gets a small advantage');
 
+  const fetchTables = async () => {
+    if (!campaignId) return;
+    setLoadingTables(true);
+    try {
+      const response = await apiClient.get(`/campaigns/${campaignId}/tables`);
+      setCampaignTables(Array.isArray(response.data) ? response.data : []);
+      setApiReady(true);
+    } catch (error) {
+      setCampaignTables(loadLocalCustomTables(campaignId));
+      setApiReady(false);
+      toast.error(error?.response?.data?.detail || 'Could not load campaign tables');
+    } finally {
+      setLoadingTables(false);
+    }
+  };
+
+  useEffect(() => { fetchTables(); }, [campaignId]);
+
   const tables = useMemo(() => [
-    ...DEFAULT_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true })),
-    ...customTables.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: false })),
-  ], [customTables]);
+    ...DEFAULT_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'starter' })),
+    ...campaignTables.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: false, source: table.source || (table.localOnly ? 'local' : 'campaign') })),
+  ], [campaignTables]);
 
   const activeTable = tables.find(table => table.id === activeTableId) || tables[0];
 
@@ -199,7 +257,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
     setLastRoll(result);
   };
 
-  const saveTable = () => {
+  const saveTable = async () => {
     const name = newName.trim();
     const entries = parseTableLines(newLines);
     if (!name) {
@@ -210,30 +268,63 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
       toast.error('Add at least two table results');
       return;
     }
-    const nextTable = {
-      id: `custom-${Date.now()}`,
+    const sides = Math.max(20, ...entries.map(entry => rangeMax(entry.range)));
+    const payload = {
       name,
-      description: newDescription.trim() || 'Custom live table',
-      die: `d${Math.max(20, ...entries.map(([range]) => rangeMax(range)))}`,
+      category: newCategory,
+      description: newDescription.trim() || 'Custom campaign table',
+      die: `d${sides}`,
       entries,
+      source: 'campaign',
     };
-    const nextTables = [nextTable, ...customTables];
-    setCustomTables(nextTables);
-    saveCustomTables(campaignId, nextTables);
-    setActiveTableId(nextTable.id);
-    setNewName('');
-    setNewDescription('');
-    setNewLines('');
-    setShowCreate(false);
-    toast.success('Table added to Live Play Mode');
+
+    setSavingTable(true);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/tables`, payload);
+      const saved = response.data;
+      setCampaignTables(prev => [saved, ...prev.filter(table => table.id !== saved.id)]);
+      setActiveTableId(saved.id);
+      setApiReady(true);
+      toast.success('Table saved to campaign');
+    } catch (error) {
+      const fallback = { ...payload, id: `local-${Date.now()}`, entries, localOnly: true };
+      const nextTables = [fallback, ...campaignTables];
+      setCampaignTables(nextTables);
+      saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
+      setActiveTableId(fallback.id);
+      setApiReady(false);
+      toast.error(error?.response?.data?.detail || 'Saved locally only — campaign API was not available');
+    } finally {
+      setSavingTable(false);
+      setNewName('');
+      setNewCategory('general');
+      setNewDescription('');
+      setNewLines('');
+      setShowCreate(false);
+    }
   };
 
-  const deleteCustomTable = (tableId) => {
-    const nextTables = customTables.filter(table => table.id !== tableId);
-    setCustomTables(nextTables);
-    saveCustomTables(campaignId, nextTables);
-    if (activeTableId === tableId) setActiveTableId('travel-d20');
-    toast.success('Custom table removed from this browser');
+  const duplicateStarterToCampaign = async (table) => {
+    setNewName(table.name);
+    setNewCategory(table.category || 'general');
+    setNewDescription(table.description || '');
+    setNewLines(entriesToText(table.entries));
+    setShowCreate(true);
+  };
+
+  const deleteCustomTable = async (tableId) => {
+    const target = campaignTables.find(table => table.id === tableId);
+    if (!target) return;
+    try {
+      if (!target.localOnly) await apiClient.delete(`/campaigns/${campaignId}/tables/${tableId}`);
+      const nextTables = campaignTables.filter(table => table.id !== tableId);
+      setCampaignTables(nextTables);
+      saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
+      if (activeTableId === tableId) setActiveTableId('travel-d20');
+      toast.success('Table removed');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not delete table');
+    }
   };
 
   const resultText = lastRoll ? `${lastRoll.tableName}: ${lastRoll.die} rolled ${lastRoll.roll} — ${lastRoll.text}` : '';
@@ -255,24 +346,36 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
     <section style={shellStyle} data-testid="live-roll-tables-panel">
       <header style={headerStyle}>
         <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}>Live tables</p>
-          <h3 style={titleStyle}>Roll tables you can actually use mid-session</h3>
-          <p style={subtitleStyle}>Use travel, fey quirks, random encounters, or add your own d20 table. Nothing here deletes or changes your campaign lore.</p>
+          <p style={eyebrowStyle}>Campaign reference</p>
+          <h3 style={titleStyle}>{heading}</h3>
+          <p style={subtitleStyle}>{subheading}</p>
         </div>
-        <button type="button" onClick={() => setShowCreate(prev => !prev)} style={secondaryButtonStyle}><Plus size={15} /> {showCreate ? 'Close' : 'Add Table'}</button>
+        <div style={buttonRowStyle}>
+          <button type="button" onClick={fetchTables} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</button>
+          <button type="button" onClick={() => setShowCreate(prev => !prev)} style={secondaryButtonStyle}><Plus size={15} /> {showCreate ? 'Close' : 'Add Table'}</button>
+        </div>
       </header>
+
+      <div style={statusStyle(apiReady)}>
+        <strong>{apiReady ? 'Campaign saved' : 'Local fallback'}</strong>
+        <span>{apiReady ? 'New tables are saved to this campaign and available from Live Play Mode.' : 'Tables are available in this browser, but the campaign table API did not respond.'}</span>
+      </div>
 
       {showCreate && (
         <section style={createBoxStyle}>
-          <label style={fieldStyle}><span style={labelStyle}>Table name</span><input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="Quirks of Fey, Travel Results, City Trouble..." style={inputStyle} /></label>
-          <label style={fieldStyle}><span style={labelStyle}>Short use note</span><input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="When should you roll this?" style={inputStyle} /></label>
+          <div style={formGridStyle}>
+            <label style={fieldStyle}><span style={labelStyle}>Table name</span><input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="Quirks of Fate, Basic Weapons, Potion Prices..." style={inputStyle} /></label>
+            <label style={fieldStyle}><span style={labelStyle}>Category</span><select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} style={inputStyle}>{CATEGORY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          </div>
+          <label style={fieldStyle}><span style={labelStyle}>Short use note</span><input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="When should you use this table?" style={inputStyle} /></label>
           <label style={fieldStyle}><span style={labelStyle}>Results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\n5-15: Normal result\n16-20: Good result" style={textareaStyle} /></label>
-          <div style={buttonRowStyle}><button type="button" onClick={saveTable} style={primaryButtonStyle}>Save Table</button></div>
+          <div style={buttonRowStyle}><button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : 'Save Table'}</button></div>
         </section>
       )}
 
       <div style={layoutStyle}>
-        <aside style={tableListStyle} aria-label="Available live tables">
+        <aside style={tableListStyle} aria-label="Available campaign tables">
+          {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
           {tables.map(table => {
             const active = table.id === activeTable.id;
             return (
@@ -280,7 +383,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
                 <BookOpen size={15} />
                 <span style={{ minWidth: 0 }}>
                   <strong>{table.name}</strong>
-                  <small>{table.description}</small>
+                  <small>{categoryLabel(table.category)} · {table.locked ? 'Starter table' : table.localOnly ? 'Local only' : 'Campaign table'}</small>
                 </span>
               </button>
             );
@@ -290,11 +393,14 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
         <main style={rollerStyle}>
           <div style={activeHeaderStyle}>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>{activeTable.die || 'd20'} table</p>
+              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeTable.die || 'd20'}</p>
               <h4 style={activeTitleStyle}>{activeTable.name}</h4>
               <p style={subtitleStyle}>{activeTable.description}</p>
             </div>
-            {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
+            <div style={buttonRowStyle}>
+              {activeTable.locked && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
+              {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
+            </div>
           </div>
 
           <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button>
@@ -306,8 +412,8 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote }) {
               <p style={resultTextStyle}>{lastRoll.text}</p>
               <div style={buttonRowStyle}>
                 <button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                <button type="button" onClick={() => onSaveAsNote?.(resultText)} style={secondaryButtonStyle}>Add to Notes</button>
-                <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>
+                {allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}
+                {allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}
               </div>
             </section>
           ) : (
@@ -326,6 +432,7 @@ const headerStyle = { display: 'flex', justifyContent: 'space-between', alignIte
 const eyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
 const titleStyle = { margin: '3px 0 4px', color: theme.text, fontSize: 22, lineHeight: 1.08, fontWeight: 950 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.45 };
+const statusStyle = (ready) => ({ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: ready ? 'rgba(22, 101, 52, 0.16)' : 'rgba(180, 83, 9, 0.16)', border: `1px solid ${ready ? 'rgba(74, 222, 128, 0.35)' : 'rgba(251, 191, 36, 0.35)'}`, color: theme.soft, padding: '8px 10px', fontSize: 12 });
 const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(220px, 0.35fr) minmax(0, 1fr)', gap: 10 };
 const tableListStyle = { display: 'grid', gap: 7, alignSelf: 'start' };
 const tableButtonStyle = (active) => ({ minHeight: 66, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left', border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.18)' : theme.card, color: theme.text, padding: 10, cursor: 'pointer', fontFamily: fontStack });
@@ -339,6 +446,7 @@ const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 5
 const resultTextStyle = { margin: 0, color: theme.text, fontSize: 17, lineHeight: 1.45, fontWeight: 850 };
 const emptyResultStyle = { minHeight: 150, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
 const createBoxStyle = { display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
+const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
 const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 9px', outline: 'none', fontFamily: fontStack };
@@ -347,13 +455,14 @@ const buttonRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 
 const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 32, border: 0, background: '#661111', color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const mutedTextStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 
 if (typeof document !== 'undefined' && !document.getElementById('live-roll-tables-panel-css')) {
   const style = document.createElement('style');
   style.id = 'live-roll-tables-panel-css';
   style.textContent = `
     @media (max-width: 860px) {
-      [data-testid="live-roll-tables-panel"] > div {
+      [data-testid="live-roll-tables-panel"] > div:last-child {
         grid-template-columns: 1fr !important;
       }
     }
