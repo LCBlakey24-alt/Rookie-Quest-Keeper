@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { BookOpen, Dice6 } from 'lucide-react';
+import { BookOpen, Dice6, ScrollText } from 'lucide-react';
 import QuickReferenceTab from './QuickReferenceTab';
 import RandomGeneratorTables from '../RandomGeneratorTables';
+import LiveRollTablesPanel from '@/components/gm/LiveRollTablesPanel';
 
 // Theme
 const theme = {
@@ -14,12 +15,13 @@ const theme = {
   border: 'rgba(255, 255, 255, 0.1)'
 };
 
-// Consolidated Tools Tab - Quick Reference + Random Generators in one view
+// Consolidated Tools Tab - campaign tables, rules reference, and random generators in one view
 function ToolsConsolidatedTab({ campaignId }) {
-  const [activeSubTab, setActiveSubTab] = useState('reference');
+  const [activeSubTab, setActiveSubTab] = useState('tables');
 
   const subTabs = [
-    { id: 'reference', label: 'Quick Reference', icon: BookOpen, description: 'Rules & tables' },
+    { id: 'tables', label: 'Tables', icon: ScrollText, description: 'Campaign roll & reference tables' },
+    { id: 'reference', label: 'Quick Reference', icon: BookOpen, description: 'Rules & lookup tables' },
     { id: 'generators', label: 'Random Generators', icon: Dice6, description: 'Names, loot, etc.' }
   ];
 
@@ -31,7 +33,8 @@ function ToolsConsolidatedTab({ campaignId }) {
         gap: '8px',
         padding: '16px',
         borderBottom: `1px solid ${theme.border}`,
-        background: theme.panel
+        background: theme.panel,
+        flexWrap: 'wrap'
       }}>
         {subTabs.map(tab => {
           const Icon = tab.icon;
@@ -65,7 +68,16 @@ function ToolsConsolidatedTab({ campaignId }) {
       </div>
 
       {/* Sub-tab Content */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: activeSubTab === 'tables' ? 16 : 0 }}>
+        {activeSubTab === 'tables' && (
+          <LiveRollTablesPanel
+            campaignId={campaignId}
+            allowDisplay={false}
+            allowAddNote={false}
+            heading="Tables"
+            subheading="Build campaign tables here, then use them in Live Play Mode. Add weapons, finesse weapons, potions, shop costs, travel, fate, encounters, rumours, or anything else you want as a quick reference."
+          />
+        )}
         {activeSubTab === 'reference' && <QuickReferenceTab campaignId={campaignId} />}
         {activeSubTab === 'generators' && <RandomGeneratorTables campaignId={campaignId} />}
       </div>
