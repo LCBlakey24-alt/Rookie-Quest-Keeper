@@ -25,10 +25,10 @@ export const tabGroups = [
     { id: 'handouts', icon: Mail, label: 'Handouts & Secrets' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
   ] },
-  { id: 'setup', label: 'Setup', icon: Book, tabs: [
+  { id: 'setup', label: 'Setup & References', icon: Book, tabs: [
+    { id: 'tools', icon: ScrollText, label: 'Tables & References' },
     { id: 'campaign-rules', icon: Book, label: 'Campaign Settings' },
     { id: 'world-builder', icon: Globe, label: 'World Builder' },
-    { id: 'tools', icon: ScrollText, label: 'Extra Tools' },
     { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
   ] },
 ];
