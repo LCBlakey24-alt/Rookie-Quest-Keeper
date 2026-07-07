@@ -38,6 +38,10 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function firstText(...values) {
+  return values.find(value => String(value || '').trim().length > 0) || '';
+}
+
 export function normalizeHomebrewContent(content = {}) {
   const contentType = normalizeContentType(content.contentType || content.content_type || content.type);
   const name = String(content.name || '').trim();
@@ -116,6 +120,8 @@ export function getHomebrewContentOptions(contents = [], { contentType, baseClas
     ownerUserId: content.ownerUserId,
     originContentId: content.originContentId || content.origin_content_id || null,
     contentType: content.contentType,
+    source: 'Homebrew',
+    raw: content,
   }));
 }
 
@@ -127,6 +133,81 @@ export function getHomebrewSubclassOptions(contents = [], { baseClass, ruleset, 
     ownerUserId,
     campaignId,
   });
+}
+
+export function extractHomebrewCollection(responseOrData = {}, contentType = '') {
+  const data = responseOrData?.data || responseOrData;
+  const homebrew = data?.homebrew || data || {};
+  const typeKey = contentType ? normalizeContentType(contentType) : '';
+
+  if (Array.isArray(homebrew)) return homebrew.map(normalizeHomebrewContent);
+  if (typeKey && Array.isArray(homebrew[typeKey])) return homebrew[typeKey].map(normalizeHomebrewContent);
+
+  return Object.values(homebrew)
+    .flatMap(value => asArray(value))
+    .map(normalizeHomebrewContent);
+}
+
+export function mergeOfficialAndHomebrewOptions(officialOptions = [], homebrewOptions = []) {
+  const seen = new Set();
+  const official = asArray(officialOptions).map(option => {
+    const value = typeof option === 'string' ? option : option?.value || option?.name || option?.label || '';
+    const label = typeof option === 'string' ? option : option?.label || option?.name || option?.value || value;
+    seen.add(normalizeKey(value || label));
+    return typeof option === 'string'
+      ? { value, label, source: 'Official' }
+      : { ...option, value, label, source: option?.source || 'Official' };
+  });
+
+  const custom = asArray(homebrewOptions)
+    .filter(option => {
+      const key = normalizeKey(option?.value || option?.label || option?.name);
+      return key && !seen.has(key);
+    })
+    .map(option => ({
+      ...option,
+      label: option.homebrew ? `${option.label || option.value} (Homebrew)` : option.label || option.value,
+      source: option.source || 'Homebrew',
+    }));
+
+  return [...official, ...custom];
+}
+
+export function buildHomebrewFeatureEntries(content = {}, { characterLevel = 1, fallbackType = 'passive' } = {}) {
+  const normalized = normalizeHomebrewContent(content);
+  const level = Number(characterLevel || 1);
+
+  return asArray(normalized.features)
+    .map((feature, index) => {
+      const featureLevel = Number(feature?.level || feature?.subclass_level || normalized.subclass_level || normalized.level || 1);
+      return {
+        ...feature,
+        name: firstText(feature?.name, feature?.title, `${normalized.name} Feature ${index + 1}`),
+        description: firstText(feature?.description, feature?.text, feature?.rules, normalized.description, 'Homebrew feature saved from the Homebrew Workshop.'),
+        level: featureLevel,
+        type: feature?.type || feature?.action_type || fallbackType,
+        source: 'homebrew',
+        homebrew: true,
+        homebrewContentId: normalized.id,
+        homebrewContentName: normalized.name,
+        homebrewContentType: normalized.contentType,
+        visibility: normalized.visibility,
+      };
+    })
+    .filter(feature => !feature.level || feature.level <= level);
+}
+
+export function buildHomebrewSelectionReference(content = {}) {
+  const normalized = normalizeHomebrewContent(content);
+  return {
+    id: normalized.id,
+    name: normalized.name,
+    contentType: normalized.contentType,
+    source: 'Homebrew Workshop',
+    ruleset: normalized.ruleset,
+    visibility: normalized.visibility,
+    ownerUserId: normalized.ownerUserId,
+  };
 }
 
 export function canShareHomebrewContent(content = {}, shareTarget = 'private') {
