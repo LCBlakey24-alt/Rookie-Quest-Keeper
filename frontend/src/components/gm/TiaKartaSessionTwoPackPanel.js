@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Copy, Save, ScrollText, Search, Sparkles } f
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
+import TiaKartaFridaySessionRunner from '@/components/gm/TiaKartaFridaySessionRunner';
 import { getTiaKartaUpdateSectionsForDestination, tiaKartaSessionTwoPack } from '@/data/tiaKartaSessionTwoPack';
 import { getTiaKartaNextSessionSectionsForDestination, tiaKartaSessionThreePack } from '@/data/tiaKartaSessionThreePack';
 import { getTiaKartaLucianGreySectionsForDestination, tiaKartaLucianGreyPack } from '@/data/tiaKartaLucianGreyPack';
@@ -82,67 +83,70 @@ export default function TiaKartaSessionTwoPackPanel({ campaignId, destination })
   };
 
   return (
-    <section className="tia-karta-update-panel" style={panelStyle} data-testid={`tia-karta-session-two-pack-${destination}`}>
-      <div style={headerStyle}>
-        <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}><Sparkles size={13} /> Current Tia-Karta update pack</p>
-          <h3 style={titleStyle}>{tiaKartaSessionThreePack.currentChapter}</h3>
-          <p style={helperStyle}>{tiaKartaSessionThreePack.sourceNote} Lucian Grey’s War Room reveal now sits first where relevant; older recap cards from {tiaKartaSessionTwoPack.currentChapter} remain underneath for reference.</p>
+    <>
+      {destination === 'sessionNotes' && <TiaKartaFridaySessionRunner campaignId={campaignId} />}
+      <section className="tia-karta-update-panel" style={panelStyle} data-testid={`tia-karta-session-two-pack-${destination}`}>
+        <div style={headerStyle}>
+          <div style={{ minWidth: 0 }}>
+            <p style={eyebrowStyle}><Sparkles size={13} /> Current Tia-Karta update pack</p>
+            <h3 style={titleStyle}>{tiaKartaSessionThreePack.currentChapter}</h3>
+            <p style={helperStyle}>{tiaKartaSessionThreePack.sourceNote} Lucian Grey’s War Room reveal now sits first where relevant; older recap cards from {tiaKartaSessionTwoPack.currentChapter} remain underneath for reference.</p>
+          </div>
+          <span style={pillStyle}>{filteredSections.reduce((total, section) => total + section.cards.length, 0)} cards</span>
         </div>
-        <span style={pillStyle}>{filteredSections.reduce((total, section) => total + section.cards.length, 0)} cards</span>
-      </div>
 
-      <label style={searchStyle}>
-        <Search size={14} />
-        <input
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          placeholder="Search next session prep, Lucian Grey, current secrets, rules, items..."
-          style={searchInputStyle}
-        />
-      </label>
+        <label style={searchStyle}>
+          <Search size={14} />
+          <input
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Search next session prep, Lucian Grey, current secrets, rules, items..."
+            style={searchInputStyle}
+          />
+        </label>
 
-      <div style={sectionsStyle}>
-        {filteredSections.map(section => (
-          <section key={section.id} className="tia-update-section" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <p style={sectionEyebrowStyle}>{section.eyebrow}</p>
-              <h4 style={sectionTitleStyle}><ScrollText size={17} /> {section.title}</h4>
-              <p style={sectionSummaryStyle}>{section.summary}</p>
-            </div>
-            <div style={cardsGridStyle}>
-              {section.cards.map(card => {
-                const key = `${section.id}-${card.title}`;
-                const isOpen = Boolean(openCards[key]);
-                return (
-                  <article key={key} className="tia-update-card" data-open={isOpen ? 'true' : 'false'} style={cardStyle}>
-                    <button type="button" className="tia-update-card-toggle" onClick={() => toggleCard(key)} aria-expanded={isOpen ? 'true' : 'false'}>
-                      <span>
-                        <strong style={cardTitleStyle}>{card.title}</strong>
-                        <span style={categoryStyle}>{card.category}</span>
-                      </span>
-                      <span className="tia-update-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
-                    </button>
-                    <div className="tia-update-card-details">
-                      {card.playerSummary && <p style={bodyStyle}>{card.playerSummary}</p>}
-                      {card.gmNotes && <p style={gmStyle}><strong>GM note:</strong> {card.gmNotes}</p>}
-                      {!!card.bullets?.length && <List title="Key points" items={card.bullets} />}
-                      {!!card.mechanics?.length && <List title="Mechanics" items={card.mechanics} />}
-                      {card.tbd && <p style={tbdStyle}><strong>TBD:</strong> {card.tbd}</p>}
-                      <div style={actionsStyle}>
-                        <button type="button" onClick={() => copyCard(section, card)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                        <button type="button" onClick={() => saveCard(section, card)} disabled={savingKey === key} style={primaryButtonStyle}><Save size={14} /> {savingKey === key ? 'Saving...' : 'Save'}</button>
+        <div style={sectionsStyle}>
+          {filteredSections.map(section => (
+            <section key={section.id} className="tia-update-section" style={sectionStyle}>
+              <div style={sectionHeaderStyle}>
+                <p style={sectionEyebrowStyle}>{section.eyebrow}</p>
+                <h4 style={sectionTitleStyle}><ScrollText size={17} /> {section.title}</h4>
+                <p style={sectionSummaryStyle}>{section.summary}</p>
+              </div>
+              <div style={cardsGridStyle}>
+                {section.cards.map(card => {
+                  const key = `${section.id}-${card.title}`;
+                  const isOpen = Boolean(openCards[key]);
+                  return (
+                    <article key={key} className="tia-update-card" data-open={isOpen ? 'true' : 'false'} style={cardStyle}>
+                      <button type="button" className="tia-update-card-toggle" onClick={() => toggleCard(key)} aria-expanded={isOpen ? 'true' : 'false'}>
+                        <span>
+                          <strong style={cardTitleStyle}>{card.title}</strong>
+                          <span style={categoryStyle}>{card.category}</span>
+                        </span>
+                        <span className="tia-update-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
+                      </button>
+                      <div className="tia-update-card-details">
+                        {card.playerSummary && <p style={bodyStyle}>{card.playerSummary}</p>}
+                        {card.gmNotes && <p style={gmStyle}><strong>GM note:</strong> {card.gmNotes}</p>}
+                        {!!card.bullets?.length && <List title="Key points" items={card.bullets} />}
+                        {!!card.mechanics?.length && <List title="Mechanics" items={card.mechanics} />}
+                        {card.tbd && <p style={tbdStyle}><strong>TBD:</strong> {card.tbd}</p>}
+                        <div style={actionsStyle}>
+                          <button type="button" onClick={() => copyCard(section, card)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
+                          <button type="button" onClick={() => saveCard(section, card)} disabled={savingKey === key} style={primaryButtonStyle}><Save size={14} /> {savingKey === key ? 'Saving...' : 'Save'}</button>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
-      <style>{tileCss}</style>
-    </section>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+        <style>{tileCss}</style>
+      </section>
+    </>
   );
 }
 
