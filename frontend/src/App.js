@@ -122,6 +122,7 @@ const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'))
 const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
 const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
 const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
+const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
 // V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
 const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/FullCharacterCreatorV2'));
 const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
@@ -199,6 +200,8 @@ function AppRoutes() {
         <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
         <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
