@@ -38,6 +38,9 @@ export default function CharacterRulesBridge(props) {
 
   applyMergedRules(mergedRules);
 
+  const visibleUploadedCount = ['races', 'classes', 'subclasses', 'backgrounds']
+    .reduce((sum, key) => sum + Number(counts?.[key] || 0), 0);
+
   if (loading) {
     return (
       <main className="full-creator-page">
@@ -52,9 +55,9 @@ export default function CharacterRulesBridge(props) {
         <section className="full-creator-progress-card" aria-label="Uploaded character options loaded">
           <div className="full-creator-progress-heading">
             <span>Uploaded options active</span>
-            <strong>{Object.values(counts || {}).reduce((sum, value) => sum + Number(value || 0), 0)} loaded</strong>
+            <strong>{visibleUploadedCount} builder option{visibleUploadedCount === 1 ? '' : 's'} loaded</strong>
           </div>
-          <p>Your saved races, classes, subclasses, backgrounds, and feats are merged into this builder. Pick them from the normal dropdowns.</p>
+          <p>Your saved races, classes, subclasses, and backgrounds are merged into this builder. Pick them from the normal dropdowns.</p>
         </section>
       )}
       {error && (
