@@ -15,6 +15,7 @@ from routes.maps import router as maps_router
 from routes.ai import router as ai_router
 from routes.inventory import router as inventory_router
 from routes.user_content import router as user_content_router
+from routes.player_rules import router as player_rules_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -46,6 +47,8 @@ all_routers = [
     ai_router,  # Text-based Rook AI helpers stay enabled.
     inventory_router,
     user_content_router,
+    # Player rules feeds sit beside user content so builders can consume uploaded options.
+    player_rules_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,
