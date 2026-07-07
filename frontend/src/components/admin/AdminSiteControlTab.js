@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { Activity, Megaphone, RefreshCw, Save, ShieldAlert, ToggleLeft } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const defaultSettings = {
@@ -17,15 +18,33 @@ const defaultSettings = {
 };
 
 const controls = [
-  ['signup_enabled', 'New signups'],
-  ['rook_text_enabled', 'Rook text helper'],
-  ['feedback_enabled', 'Feedback submissions'],
-  ['reviews_enabled', 'Reviews'],
-  ['uploads_enabled', 'Uploads'],
-  ['campaign_creation_enabled', 'Campaign creation'],
-  ['character_creation_enabled', 'Character creation'],
-  ['beta_tools_enabled', 'Beta tools'],
+  ['signup_enabled', 'New signups', 'Allow new users to create accounts.'],
+  ['rook_text_enabled', 'Rook text helper', 'Keep the helper text visible across the app.'],
+  ['feedback_enabled', 'Feedback submissions', 'Let users send feedback from the app.'],
+  ['reviews_enabled', 'Reviews', 'Allow review capture and public review controls.'],
+  ['uploads_enabled', 'Uploads', 'Allow campaign and account file uploads.'],
+  ['campaign_creation_enabled', 'Campaign creation', 'Allow users to create new campaigns.'],
+  ['character_creation_enabled', 'Character creation', 'Allow users to build new characters.'],
+  ['beta_tools_enabled', 'Beta tools', 'Show beta and playtest tools where connected.'],
 ];
+
+const rq = {
+  panel: 'var(--rq-bg-panel, #242424)',
+  card: 'var(--rq-bg-panel-alt, #1F1F1F)',
+  input: 'var(--rq-bg-input, #1F1F1F)',
+  border: 'var(--rq-accent-border, rgba(193,18,31,0.35))',
+  borderDefault: 'var(--rq-border-default, #3A3A3A)',
+  accent: 'var(--rq-accent-primary, #C1121F)',
+  accentHover: 'var(--rq-accent-hover, #D62839)',
+  accentSoft: 'var(--rq-accent-soft, rgba(193,18,31,0.12))',
+  text: 'var(--rq-text-primary, #FFFFFF)',
+  textSecondary: 'var(--rq-text-secondary, #D6D6D6)',
+  muted: 'var(--rq-text-muted, #A0A0A0)',
+  inverse: 'var(--rq-text-inverse, #120912)',
+  warning: '#F59E0B',
+  radius: 'var(--rq-radius-md, 10px)',
+  radiusSm: 'var(--rq-radius-sm, 8px)',
+};
 
 export default function AdminSiteControlTab() {
   const [loading, setLoading] = useState(true);
@@ -74,25 +93,43 @@ export default function AdminSiteControlTab() {
     }
   };
 
-  if (loading) return <div style={{ color: '#A0A0A0' }}>Loading site controls...</div>;
+  const enabledCount = useMemo(() => controls.filter(([key]) => settings[key] !== false).length, [settings]);
+
+  if (loading) return <div style={emptyStyle}>Loading site controls...</div>;
 
   return (
-    <div style={{ background: '#242424', border: '1px solid rgba(193,18,31,0.35)', padding: 'clamp(12px, 3.5vw, 24px)', borderRadius: 6 }}>
-      <h2 style={{ color: '#FFFFFF', marginTop: 0 }}>Site Control</h2>
-      <p style={{ color: '#A0A0A0' }}>Global owner controls, feature switches, and health overview.</p>
+    <div style={wrapStyle} data-testid="admin-site-control-tab">
+      <header style={headerStyle}>
+        <div style={{ minWidth: 0 }}>
+          <p style={eyebrowStyle}>Owner controls</p>
+          <h2 style={titleStyle}><ShieldAlert size={22} /> Site Control</h2>
+          <p style={subtitleStyle}>Control announcements, maintenance mode, beta switches, and the public-facing behaviour of Rookie Quest Keeper.</p>
+        </div>
+        <div style={headerActionsStyle}>
+          <button type="button" onClick={load} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</button>
+          <button type="button" onClick={save} disabled={saving} style={saveButtonStyle}><Save size={15} /> {saving ? 'Saving...' : 'Save settings'}</button>
+        </div>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
+      <section style={metricGridStyle} aria-label="Site overview">
         <Metric label="Users" value={overview.users_count || 0} />
         <Metric label="Campaigns" value={overview.campaigns_count || 0} />
         <Metric label="Characters" value={overview.characters_count || 0} />
         <Metric label="Reviews" value={overview.reviews_count || 0} />
         <Metric label="Feedback" value={overview.feedback_count || 0} />
-        <Metric label="New Feedback" value={overview.new_feedback_count || 0} />
-      </div>
+        <Metric label="New Feedback" value={overview.new_feedback_count || 0} tone={(overview.new_feedback_count || 0) > 0 ? 'hot' : 'normal'} />
+      </section>
 
-      <Section title="Announcement">
+      <section style={statusStripStyle}>
+        <StatusTile icon={Activity} label="Site mode" value={settings.maintenance_mode ? 'Maintenance' : 'Open'} tone={settings.maintenance_mode ? 'warning' : 'normal'} />
+        <StatusTile icon={Megaphone} label="Announcement" value={settings.announcement_enabled ? 'Visible' : 'Hidden'} tone={settings.announcement_enabled ? 'hot' : 'normal'} />
+        <StatusTile icon={ToggleLeft} label="Feature switches" value={`${enabledCount}/${controls.length} on`} />
+      </section>
+
+      <Section title="Announcement" icon={Megaphone}>
         <ControlRow
           label="Enable announcement banner"
+          description="Shows a short banner message to users. Keep it practical: outages, new beta tools, or important testing notes."
           checked={!!settings.announcement_enabled}
           onChange={value => setField('announcement_enabled', value)}
         />
@@ -100,63 +137,86 @@ export default function AdminSiteControlTab() {
           value={settings.announcement_text || ''}
           onChange={e => setField('announcement_text', e.target.value)}
           maxLength={240}
-          placeholder="Announcement text (max 240 chars)"
+          placeholder="Announcement text (max 240 characters)"
           style={textareaStyle}
         />
+        <p style={helperStyle}>{(settings.announcement_text || '').length}/240 characters</p>
         {settings.announcement_enabled && settings.announcement_text ? (
           <div style={bannerPreview}>{settings.announcement_text}</div>
         ) : null}
       </Section>
 
-      <Section title="Maintenance">
+      <Section title="Maintenance" icon={ShieldAlert}>
         <ControlRow
           label="Maintenance mode"
+          description="Blocks non-admin users while you patch or test the site. Leave off unless something is genuinely broken."
           checked={!!settings.maintenance_mode}
           onChange={value => setField('maintenance_mode', value)}
         />
         {settings.maintenance_mode ? <p style={warningStyle}>Maintenance mode is on. Non-admin users are blocked from the app.</p> : null}
       </Section>
 
-      <Section title="Feature switches">
-        <p style={{ color: '#A0A0A0', fontSize: 12, marginTop: 0 }}>
-          Feedback and reviews are enforced now. The other switches are stored and ready to connect to their features next.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-          {controls.map(([key, label]) => (
-            <ControlRow key={key} label={label} checked={settings[key] !== false} onChange={value => setField(key, value)} />
+      <Section title="Feature switches" icon={ToggleLeft}>
+        <p style={subtitleStyle}>Feedback and reviews are already enforced. The other switches are stored and ready to wire into their matching features as those screens mature.</p>
+        <div style={controlGridStyle}>
+          {controls.map(([key, label, description]) => (
+            <ControlRow key={key} label={label} description={description} checked={settings[key] !== false} onChange={value => setField(key, value)} compact />
           ))}
         </div>
       </Section>
-
-      <button type="button" onClick={save} disabled={saving} style={saveButtonStyle}>
-        {saving ? 'Saving...' : 'Save Site Settings'}
-      </button>
     </div>
   );
 }
 
-function Section({ title, children }) {
-  return <section style={sectionStyle}><h3 style={sectionTitleStyle}>{title}</h3>{children}</section>;
+function Section({ title, icon: Icon, children }) {
+  return <section style={sectionStyle}><h3 style={sectionTitleStyle}><Icon size={17} />{title}</h3>{children}</section>;
 }
 
-function ControlRow({ label, checked, onChange }) {
+function ControlRow({ label, description, checked, onChange, compact = false }) {
   return (
-    <label style={controlRowStyle}>
-      <span style={{ color: '#FFFFFF', fontWeight: 800 }}>{label}</span>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+    <label style={{ ...controlRowStyle, minHeight: compact ? 92 : 78 }}>
+      <span style={{ display: 'grid', gap: 4, minWidth: 0 }}>
+        <span style={{ color: rq.text, fontWeight: 900 }}>{label}</span>
+        <span style={{ color: rq.muted, fontSize: 12, lineHeight: 1.45 }}>{description}</span>
+      </span>
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={checkboxStyle} />
     </label>
   );
 }
 
-function Metric({ label, value }) {
-  return <div style={metricStyle}><div style={{ fontSize: 20, fontWeight: 800 }}>{value}</div><div style={{ fontSize: 11, color: '#A0A0A0' }}>{label}</div></div>;
+function Metric({ label, value, tone = 'normal' }) {
+  return <div style={{ ...metricStyle, borderColor: tone === 'hot' ? rq.accent : rq.borderDefault, background: tone === 'hot' ? rq.accentSoft : rq.card }}><div style={{ fontSize: 24, fontWeight: 900 }}>{value}</div><div style={{ fontSize: 11, color: rq.muted, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 900 }}>{label}</div></div>;
 }
 
-const metricStyle = { background: '#1F1F1F', border: '1px solid #3A3A3A', padding: 10, textAlign: 'center', color: '#FFFFFF', borderRadius: 4 };
-const sectionStyle = { background: '#1F1F1F', border: '1px solid rgba(193,18,31,0.35)', padding: 12, borderRadius: 4, marginBottom: 12 };
-const sectionTitleStyle = { color: '#D62839', margin: '0 0 10px', fontSize: 15, fontWeight: 900 };
-const controlRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#242424', border: '1px solid #3A3A3A', padding: 10, borderRadius: 4, marginBottom: 8 };
-const textareaStyle = { width: '100%', minHeight: 90, marginTop: 8, background: '#242424', color: '#FFFFFF', border: '1px solid #3A3A3A', padding: 10, borderRadius: 4 };
-const bannerPreview = { marginTop: 8, background: '#C1121F', color: '#FFFFFF', padding: 8, textAlign: 'center', fontWeight: 800, borderRadius: 4 };
-const warningStyle = { color: '#F59E0B', fontWeight: 800, margin: '8px 0 0' };
-const saveButtonStyle = { padding: '10px 16px', background: '#C1121F', color: '#FFFFFF', border: '1px solid #D62839', fontWeight: 800, borderRadius: 4 };
+function StatusTile({ icon: Icon, label, value, tone = 'normal' }) {
+  return (
+    <div style={{ ...statusTileStyle, borderColor: tone === 'warning' ? rq.warning : tone === 'hot' ? rq.accent : rq.borderDefault }}>
+      <Icon size={17} color={tone === 'warning' ? rq.warning : rq.accent} />
+      <span style={{ color: rq.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 900 }}>{label}</span>
+      <strong style={{ color: rq.text, fontSize: 15 }}>{value}</strong>
+    </div>
+  );
+}
+
+const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, padding: 'clamp(14px, 3.5vw, 24px)', borderRadius: rq.radius, display: 'grid', gap: 16 };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' };
+const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
+const eyebrowStyle = { color: rq.accentHover, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' };
+const titleStyle = { color: rq.text, margin: 0, fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 950, display: 'flex', alignItems: 'center', gap: 10 };
+const subtitleStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.5, margin: '6px 0 0' };
+const metricGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: 8 };
+const metricStyle = { border: `1px solid ${rq.borderDefault}`, padding: 12, textAlign: 'center', color: rq.text, borderRadius: rq.radiusSm, minWidth: 0 };
+const statusStripStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 8 };
+const statusTileStyle = { display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', alignItems: 'center', gap: '4px 9px', background: rq.card, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 12 };
+const sectionStyle = { background: rq.card, border: `1px solid ${rq.border}`, padding: 'clamp(12px, 3vw, 16px)', borderRadius: rq.radiusSm, display: 'grid', gap: 12 };
+const sectionTitleStyle = { color: rq.accentHover, margin: 0, fontSize: 16, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 8 };
+const controlGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 8 };
+const controlRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: rq.panel, border: `1px solid ${rq.borderDefault}`, padding: 12, borderRadius: rq.radiusSm };
+const checkboxStyle = { width: 22, height: 22, accentColor: rq.accent, flex: '0 0 auto' };
+const textareaStyle = { width: '100%', minHeight: 96, background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, padding: 12, borderRadius: rq.radiusSm, resize: 'vertical', outline: 'none' };
+const helperStyle = { color: rq.muted, fontSize: 11, textAlign: 'right', margin: '-6px 0 0' };
+const bannerPreview = { background: rq.accent, color: '#FFFFFF', padding: 10, textAlign: 'center', fontWeight: 900, borderRadius: rq.radiusSm };
+const warningStyle = { color: rq.warning, fontWeight: 900, margin: 0, background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', padding: 10, borderRadius: rq.radiusSm };
+const saveButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: rq.accent, color: rq.inverse, border: 'none', fontWeight: 950, borderRadius: rq.radiusSm, cursor: 'pointer' };
+const secondaryButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: rq.card, color: rq.text, border: `1px solid ${rq.borderDefault}`, fontWeight: 900, borderRadius: rq.radiusSm, cursor: 'pointer' };
+const emptyStyle = { color: rq.muted, textAlign: 'center', padding: 36, background: rq.card, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm };
