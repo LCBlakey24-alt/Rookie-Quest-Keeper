@@ -57,6 +57,9 @@ const WEAPON_MASTERY_PROPERTIES_2024 = [
   ['Vex', 'On a damaging hit, you have Advantage on your next attack roll against that creature before the end of your next turn.'],
 ];
 
+const WEAPON_COLUMNS_2014 = ['Weapon', 'Cost', 'Damage', 'Damage Type', 'Weight', 'Properties', 'Use'];
+const WEAPON_COLUMNS_2024 = ['Weapon', 'Cost', 'Damage', 'Damage Type', 'Weight', 'Properties', 'Mastery', 'Use'];
+
 function cloneEntry(entry) {
   return {
     ...entry,
@@ -137,6 +140,7 @@ function updateWeaponTablesForEdition(table, edition) {
   if (edition === '2014') {
     return {
       ...table,
+      columns: WEAPON_COLUMNS_2014,
       description: `${table.description} 2014 note: this table uses the older no-mastery weapon reference style.`,
     };
   }
@@ -186,6 +190,7 @@ function updateWeaponTablesForEdition(table, edition) {
 
   return {
     ...table,
+    columns: WEAPON_COLUMNS_2024,
     description: `${table.description} 2024 note: this table includes the 2024 Mastery property for each standard weapon. A character still needs a feature such as Weapon Mastery to use it.`,
     entries,
   };
@@ -231,6 +236,70 @@ function applyEditionOverrides(table, edition) {
   return next;
 }
 
+function cellsToText(cells, columns) {
+  return columns.slice(1).map(column => `${column}: ${cells[column] || '—'}`).join(' | ');
+}
+
+function normaliseWeaponCells(entry, edition) {
+  const cells = { ...(entry.cells || {}) };
+  const weaponName = cells.Weapon || entry.range;
+  cells.Weapon = weaponName;
+  if (edition === '2024' && !cells.Mastery) {
+    const mastery = WEAPON_MASTERY_2024[weaponKey(weaponName)]?.mastery;
+    if (mastery) cells.Mastery = mastery;
+  }
+  return cells;
+}
+
+function buildWeaponShortcutTable(tables, edition, { idSuffix, name, description, filter }) {
+  const columns = edition === '2024' ? WEAPON_COLUMNS_2024 : WEAPON_COLUMNS_2014;
+  const entries = tables
+    .filter(table => /^(Simple|Martial)\s+(Melee|Ranged)\s+Weapons$/i.test(baseTableName(table)))
+    .flatMap(table => table.entries.map(entry => normaliseWeaponCells(entry, edition)))
+    .filter(cells => !filter || filter(cells))
+    .sort((a, b) => String(a.Weapon || '').localeCompare(String(b.Weapon || '')))
+    .map(cells => ({
+      range: cells.Weapon,
+      text: cellsToText(cells, columns),
+      cells,
+    }));
+
+  return {
+    id: `gm-ref-${edition}-${idSuffix}`,
+    name: `${edition} — ${name}`,
+    category: 'weapons',
+    description: `${EDITION_LABELS[edition]}: ${description}`,
+    die: 'reference',
+    rollable: false,
+    locked: true,
+    source: `gm-reference-pack-${edition}`,
+    edition,
+    editionLabel: EDITION_LABELS[edition],
+    columns,
+    entries,
+  };
+}
+
+function buildWeaponShortcutTables(tables, edition) {
+  return [
+    buildWeaponShortcutTable(tables, edition, {
+      idSuffix: 'all-weapons-quick-lookup',
+      name: 'All Weapons Quick Lookup',
+      description: edition === '2024'
+        ? 'Every standard weapon in one searchable table, including 2024 mastery values.'
+        : 'Every standard weapon in one searchable table using the 2014 no-mastery weapon format.',
+    }),
+    buildWeaponShortcutTable(tables, edition, {
+      idSuffix: 'finesse-weapons',
+      name: 'Finesse Weapons',
+      description: edition === '2024'
+        ? 'Only weapons with the Finesse property, including 2024 mastery values for quick Rogue/Monk/DEX-build checks.'
+        : 'Only weapons with the Finesse property for quick Rogue/Monk/DEX-build checks.',
+      filter: cells => /finesse/i.test(String(cells.Properties || '')),
+    }),
+  ];
+}
+
 const MASTERY_PROPERTIES_TABLE_2024 = {
   id: 'gm-ref-2024-weapon-mastery-properties',
   name: '2024 — Weapon Mastery Properties',
@@ -251,12 +320,15 @@ const MASTERY_PROPERTIES_TABLE_2024 = {
 };
 
 export const GM_REFERENCE_PACK_TABLES_2014 = BASE_GM_REFERENCE_PACK_TABLES.map(table => applyEditionOverrides(table, '2014'));
+export const GM_REFERENCE_PACK_TABLES_2024_BASE = BASE_GM_REFERENCE_PACK_TABLES.map(table => applyEditionOverrides(table, '2024'));
 export const GM_REFERENCE_PACK_TABLES_2024 = [
-  ...BASE_GM_REFERENCE_PACK_TABLES.map(table => applyEditionOverrides(table, '2024')),
+  ...GM_REFERENCE_PACK_TABLES_2024_BASE,
+  ...buildWeaponShortcutTables(GM_REFERENCE_PACK_TABLES_2024_BASE, '2024'),
   MASTERY_PROPERTIES_TABLE_2024,
 ];
 export const GM_REFERENCE_PACK_TABLES_BY_EDITION = [
   ...GM_REFERENCE_PACK_TABLES_2014,
+  ...buildWeaponShortcutTables(GM_REFERENCE_PACK_TABLES_2014, '2014'),
   ...GM_REFERENCE_PACK_TABLES_2024,
 ];
 
