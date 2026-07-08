@@ -183,6 +183,63 @@
   line-height: 1.5 !important;
 }
 
+/* Character creator loading states are nested inside the creator shell, so polish the shared block directly. */
+.full-creator-loading {
+  --rq-creator-loading-width: min(560px, calc(100vw - 32px));
+
+  width: var(--rq-creator-loading-width) !important;
+  min-height: 236px !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 14px !important;
+  margin: clamp(48px, 16vh, 128px) auto !important;
+  padding: clamp(24px, 5vw, 34px) !important;
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  text-align: center !important;
+  color: var(--rq-text, #f5e6c8) !important;
+  font-family: var(--rq-title-font, 'Cinzel', Georgia, serif) !important;
+  font-size: clamp(1.35rem, 4vw, 2rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1.12 !important;
+  border: 1px solid transparent !important;
+  border-left: 5px solid var(--rq-primary, #c08a3d) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(145deg, rgba(33, 21, 14, 0.96), rgba(58, 38, 25, 0.92)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c)) border-box !important;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.38),
+    0 0 40px rgba(192, 138, 61, 0.12) !important;
+}
+
+.full-creator-loading::before {
+  content: '' !important;
+  width: 60px !important;
+  height: 60px !important;
+  display: block !important;
+  margin: 0 auto !important;
+  border-radius: 50% !important;
+  background-image: conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c)) !important;
+  box-shadow: var(--rq-sunset-glow, 0 0 24px rgba(192, 138, 61, 0.14)) !important;
+  mask: radial-gradient(circle, transparent 42%, #000 44%) !important;
+  -webkit-mask: radial-gradient(circle, transparent 42%, #000 44%) !important;
+  animation: rqLoadingSpin 0.86s linear infinite !important;
+}
+
+.full-creator-loading::after {
+  content: '' !important;
+  display: block !important;
+  width: min(260px, 62vw) !important;
+  height: 2px !important;
+  margin: 2px auto 0 !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c)) !important;
+}
+
 @keyframes rqLoadingBoardPulse {
   0%, 100% {
     transform: translateY(0);
@@ -210,6 +267,18 @@
     --rq-loading-card-pad: 20px 18px;
     --rq-loading-text-width: calc(100vw - 58px);
     --rq-loading-radius: 16px;
+  }
+
+  .full-creator-loading {
+    min-height: 218px !important;
+    margin: 36px auto !important;
+    padding: 22px 18px !important;
+    border-radius: 16px !important;
+  }
+
+  .full-creator-loading::before {
+    width: 52px !important;
+    height: 52px !important;
   }
 }
 
@@ -244,7 +313,8 @@
 @media (prefers-reduced-motion: reduce) {
   .loading-screen .loading-spinner,
   .loading-screen .loading-spinner::before,
-  .clean-sheet-loading::after {
+  .clean-sheet-loading::after,
+  .full-creator-loading::before {
     animation: none !important;
   }
 }
