@@ -178,6 +178,21 @@ export default function DiceRollFlicker({
     };
   }, [visible, dice, finalTotal]);
 
+  useEffect(() => {
+    if (!visible || typeof window === 'undefined') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setFading(true);
+        window.setTimeout(() => onCloseRef.current?.(), 90);
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        setShowTotal(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [visible]);
+
   if (!visible || typeof document === 'undefined') return null;
 
   const outcomeClass = showTotal && finalCrit ? 'is-critical' : showTotal && finalFumble ? 'is-fumble' : showTotal ? 'is-complete' : 'is-rolling';
@@ -210,6 +225,7 @@ export default function DiceRollFlicker({
         isCrit={finalCrit}
         isFumble={finalFumble}
         diceCount={dice.length}
+        onRevealNow={() => setShowTotal(true)}
         onClose={closeNow}
       />
     </div>,
