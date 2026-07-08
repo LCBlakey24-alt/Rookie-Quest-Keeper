@@ -176,7 +176,7 @@ function normaliseEntries(entries) {
       const text = Array.isArray(entry) ? entry[1] : entry?.text ?? entry?.result ?? entry?.description ?? '';
       return { ...entry, range: String(range || index + 1).trim(), text: String(text || '').trim() };
     })
-    .filter(entry => entry.text)
+    .filter(entry => entry.text || entry.cells)
     .sort((a, b) => rangeMin(a.range) - rangeMin(b.range));
 }
 
@@ -238,15 +238,21 @@ function parseBulkTables(rawText) {
       const headerIndex = bodyLines.findIndex(line => line.includes('|'));
       let description = '';
       let entries = [];
+      let columns = [];
       if (headerIndex >= 0) {
         description = bodyLines.slice(0, headerIndex).join(' ');
-        const columns = bodyLines[headerIndex].split('|').map(part => part.trim()).filter(Boolean);
+        columns = bodyLines[headerIndex].split('|').map(part => part.trim()).filter(Boolean);
         entries = bodyLines.slice(headerIndex + 1).map(line => {
           const row = line.split('|').map(part => part.trim());
           if (!row[0]) return null;
+          const cells = columns.reduce((acc, column, index) => {
+            acc[column] = row[index] || '—';
+            return acc;
+          }, {});
           return {
             range: row[0],
             text: columns.slice(1).map((column, index) => `${column}: ${row[index + 1] || '—'}`).join(' | '),
+            cells,
           };
         }).filter(Boolean);
       } else {
@@ -261,6 +267,7 @@ function parseBulkTables(rawText) {
         category: category || 'general',
         description: description || 'Imported campaign table',
         die: allNumeric ? `d${sides}` : 'reference',
+        columns,
         entries,
         source: 'campaign',
         is_player_safe: false,
@@ -315,6 +322,48 @@ function entriesToText(entries) {
 
 function cleanCopyName(name) {
   return String(name || '').replace(/^\d{4}\s+—\s+/, '').trim();
+}
+
+function columnsForTable(table, entries) {
+  const explicit = Array.isArray(table?.columns) ? table.columns.filter(Boolean) : [];
+  if (explicit.length) return explicit;
+  const fromCells = entries.find(entry => entry?.cells && Object.keys(entry.cells).length)?.cells;
+  return fromCells ? Object.keys(fromCells) : [];
+}
+
+function StructuredEntries({ table, entries, activeIsRollable }) {
+  const columns = columnsForTable(table, entries);
+  const canRenderColumns = columns.length > 1 && entries.some(entry => entry?.cells);
+  if (!canRenderColumns) {
+    return (
+      <div style={entriesListStyle}>
+        {entries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}
+      </div>
+    );
+  }
+  return (
+    <div style={structuredTableWrapStyle}>
+      <table style={structuredTableStyle}>
+        <thead>
+          <tr>
+            {columns.map(column => <th key={column} style={tableHeaderCellStyle}>{column}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((entry, index) => (
+            <tr key={`${entry.range}-${index}`}>
+              {columns.map((column, columnIndex) => (
+                <td key={column} style={columnIndex === 0 ? tableFirstCellStyle : tableCellStyle}>
+                  {entry.cells?.[column] ?? (columnIndex === 0 ? entry.range : '—')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {activeIsRollable && <p style={mutedTextStyle}>Rollable table: first column is used as the roll range.</p>}
+    </div>
+  );
 }
 
 export default function LiveRollTablesPanel({
@@ -447,6 +496,7 @@ export default function LiveRollTablesPanel({
       category: newCategory,
       description: newDescription.trim() || 'Custom campaign table',
       die: allNumeric ? `d${sides}` : 'reference',
+      columns: [],
       entries,
       source: 'campaign',
       is_player_safe: false,
@@ -673,9 +723,7 @@ export default function LiveRollTablesPanel({
 
           <section style={entriesStyle}>
             <div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div>
-            <div style={entriesListStyle}>
-              {activeEntries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}
-            </div>
+            <StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} />
           </section>
         </main>
       </div>
@@ -723,6 +771,11 @@ const entriesStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1
 const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const entriesListStyle = { display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' };
 const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.22fr) minmax(0, 1fr)', gap: 8, background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
+const structuredTableWrapStyle = { overflowX: 'auto', maxHeight: 420, border: `1px solid ${theme.line}`, background: theme.card };
+const structuredTableStyle = { width: '100%', borderCollapse: 'collapse', minWidth: 620, fontSize: 12, color: theme.soft };
+const tableHeaderCellStyle = { position: 'sticky', top: 0, zIndex: 1, textAlign: 'left', background: theme.bg, color: theme.text, padding: '8px 9px', borderBottom: `1px solid ${theme.lineStrong}`, whiteSpace: 'nowrap', fontWeight: 950 };
+const tableCellStyle = { padding: '8px 9px', borderBottom: `1px solid ${theme.line}`, verticalAlign: 'top', lineHeight: 1.35 };
+const tableFirstCellStyle = { ...tableCellStyle, color: theme.text, fontWeight: 900, whiteSpace: 'nowrap' };
 
 if (typeof document !== 'undefined' && !document.getElementById('live-roll-tables-panel-css')) {
   const style = document.createElement('style');
