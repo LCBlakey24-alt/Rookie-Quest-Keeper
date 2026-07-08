@@ -1,0 +1,250 @@
+/* Final logged-in home hub polish.
+   This layer intentionally sits late in App.js so Dashboard, Characters, Campaigns,
+   Homebrew, Feedback, Uploads, and Admin share one professional product language. */
+
+#root .library-page,
+#root .unified-dashboard-page,
+#root [data-testid="homebrew-workshop"] {
+  background:
+    radial-gradient(circle at 82% 2%, rgba(235, 63, 233, 0.15), transparent 34%),
+    radial-gradient(circle at 16% 100%, rgba(255, 149, 66, 0.15), transparent 40%),
+    linear-gradient(180deg, #070713 0%, #10071e 54%, #19082d 100%) !important;
+}
+
+#root .library-page-hero,
+#root .unified-dashboard-header,
+#root .dashboard-command-panel,
+#root .dashboard-updates-panel,
+#root .dashboard-system-panel,
+#root .library-page-toolbar,
+#root .library-page-empty,
+#root .library-page-stat-card,
+#root .campaign-library-card,
+#root .character-library-card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#root .library-page-hero::before,
+#root .unified-dashboard-header::before,
+#root .dashboard-command-panel::before,
+#root .campaign-library-card::before,
+#root .character-library-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 0 auto 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 239, 0.34), transparent) !important;
+  pointer-events: none !important;
+}
+
+#root .library-page-hero,
+#root .campaigns-library-hero {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 16px !important;
+}
+
+#root .library-page-hero .library-page-button-primary,
+#root .campaign-create-hero-button {
+  width: auto !important;
+  min-width: 170px !important;
+  min-height: 46px !important;
+}
+
+#root .library-page-eyebrow {
+  display: block !important;
+  margin: 0 0 8px !important;
+  color: rgba(255, 248, 239, 0.72) !important;
+  font-size: 0.7rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+#root .library-page-stat-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .library-page-stat-card {
+  min-height: 104px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 4px !important;
+  padding: 14px !important;
+  border: 2px solid transparent !important;
+  border-radius: 22px !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(28,12,45,0.93)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.18), 0 0 22px rgba(235,63,233,0.08) !important;
+}
+
+#root .library-page-stat-card span,
+#root .library-page-stat-card small {
+  color: rgba(255, 248, 239, 0.68) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.11em !important;
+  text-transform: uppercase !important;
+}
+
+#root .library-page-stat-card strong {
+  min-width: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.4rem, 5vw, 2.25rem) !important;
+  line-height: 1.02 !important;
+  overflow-wrap: anywhere !important;
+}
+
+#root .library-page-toolbar > div {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+#root .library-page-toolbar-note {
+  margin: 0 !important;
+  color: rgba(255, 248, 239, 0.62) !important;
+  line-height: 1.35 !important;
+}
+
+#root .campaigns-card-grid,
+#root .library-page-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 315px), 1fr)) !important;
+  gap: 12px !important;
+}
+
+#root .campaign-library-card {
+  min-height: 245px !important;
+  justify-content: space-between !important;
+  padding: 16px !important;
+}
+
+#root .campaign-card-main {
+  display: grid !important;
+  gap: 9px !important;
+  min-width: 0 !important;
+}
+
+#root .campaign-card-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+#root .library-page-card-meta,
+#root .library-page-card-note,
+#root .campaign-card-status {
+  display: block !important;
+}
+
+#root .library-page-card-meta,
+#root .campaign-card-status {
+  width: fit-content !important;
+  margin: 0 !important;
+  padding: 5px 8px !important;
+  border: 1px solid rgba(255,248,239,0.15) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.76) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .library-page-card-note {
+  color: rgba(255,248,239,0.62) !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+#root .campaign-card-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+}
+
+#root .campaign-card-actions button:first-child {
+  min-height: 44px !important;
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+}
+
+#root .campaign-card-actions .library-page-danger-button {
+  min-height: 44px !important;
+}
+
+#root .characters-library-page .library-page-toolbar,
+#root .campaigns-library-page .library-page-toolbar {
+  border-radius: 22px !important;
+}
+
+#root .characters-library-page .character-library-card,
+#root .campaigns-library-page .campaign-library-card {
+  transition: transform 180ms ease, filter 180ms ease !important;
+}
+
+#root .characters-library-page .character-library-card:hover,
+#root .campaigns-library-page .campaign-library-card:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.04) !important;
+}
+
+#root .global-feedback-button,
+#root .feedback-floating-button,
+#root [data-testid="global-feedback-button"] {
+  border-radius: 999px !important;
+  font-weight: 950 !important;
+}
+
+#root [role="dialog"] input,
+#root [role="dialog"] textarea,
+#root [role="dialog"] select,
+#root .modal input,
+#root .modal textarea,
+#root .modal select {
+  background: rgba(7, 7, 19, 0.78) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  border-color: rgba(255,248,239,0.16) !important;
+}
+
+#root [data-testid="homebrew-workshop"] h2,
+#root [data-testid="homebrew-workshop"] strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root [data-testid="homebrew-workshop"] section[style] {
+  min-width: 0 !important;
+}
+
+@media (max-width: 760px) {
+  #root .library-page-hero,
+  #root .campaigns-library-hero {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  #root .library-page-hero .library-page-button-primary,
+  #root .campaign-create-hero-button,
+  #root .campaign-card-actions,
+  #root .campaign-card-actions button {
+    width: 100% !important;
+  }
+
+  #root .campaign-card-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .library-page-stat-card {
+    min-height: 92px !important;
+    border-radius: 18px !important;
+  }
+}
