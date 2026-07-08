@@ -68,6 +68,19 @@ const FEATURE_CARDS = [
 ];
 
 const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
+const URL_MODES = new Set(['login', 'register', 'forgot']);
+
+const NEXT_STEPS = {
+  login: ['Open dashboard', 'Pick a character', 'Join the table'],
+  register: ['Create account', 'Build first character', 'Start a campaign'],
+  forgot: ['Request reset link', 'Check your inbox', 'Return to login'],
+  reset: ['Set new password', 'Sign back in', 'Continue the quest'],
+};
+
+function getInitialMode(initialToken, queryMode) {
+  if (initialToken) return 'reset';
+  return URL_MODES.has(queryMode) ? queryMode : 'login';
+}
 
 function getPasswordChecks(password) {
   return [
@@ -92,7 +105,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const initialToken = searchParams.get('token');
   const queryMode = searchParams.get('mode');
-  const initialMode = initialToken ? 'reset' : queryMode === 'register' ? 'register' : 'login';
+  const initialMode = getInitialMode(initialToken, queryMode);
 
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -111,12 +124,21 @@ export default function AuthPage({ onLogin = () => {} }) {
       return;
     }
 
-    if (queryMode === 'register') {
-      setMode('register');
-    } else if (queryMode === 'login' || !queryMode) {
-      setMode('login');
-    }
+    setMode(URL_MODES.has(queryMode) ? queryMode : 'login');
   }, [initialToken, queryMode]);
+
+  const goToMode = (nextMode, { replace = false } = {}) => {
+    setMode(nextMode);
+
+    if (nextMode === 'login') {
+      navigate('/auth', { replace });
+      return;
+    }
+
+    if (URL_MODES.has(nextMode)) {
+      navigate(`/auth?mode=${nextMode}`, { replace });
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -146,8 +168,9 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    const username = registerData.username.trim();
 
-    if (!registerData.username || !registerData.password || !registerData.confirmPassword) {
+    if (!username || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -164,7 +187,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
     setLoading(true);
     try {
-      const payload = { username: registerData.username.trim(), password: registerData.password };
+      const payload = { username, password: registerData.password };
       if (registerData.email.trim()) payload.email = registerData.email.trim();
 
       const response = await apiClient.post('/auth/register', payload);
@@ -188,9 +211,9 @@ export default function AuthPage({ onLogin = () => {} }) {
 
     setLoading(true);
     try {
-      await apiClient.post('/auth/forgot-password', { email: forgotEmail });
+      await apiClient.post('/auth/forgot-password', { email: forgotEmail.trim() });
       toast.success('Password reset email sent!');
-      setMode('login');
+      goToMode('login', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
@@ -215,8 +238,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     try {
       await apiClient.post('/auth/reset-password', resetData);
       toast.success('Password reset successful!');
-      setMode('login');
-      navigate('/auth');
+      goToMode('login', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Password reset failed'));
     } finally {
@@ -225,6 +247,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   };
 
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
+  const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
   const registerPasswordChecks = getPasswordChecks(registerData.password);
   const registerPasswordStrength = getPasswordStrength(registerPasswordChecks, registerData.password);
@@ -299,7 +322,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   role="tab"
                   aria-selected={mode === 'login'}
                   className={mode === 'login' ? 'is-active' : ''}
-                  onClick={() => setMode('login')}
+                  onClick={() => goToMode('login')}
                   disabled={loading}
                 >
                   Sign in
@@ -309,7 +332,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   role="tab"
                   aria-selected={mode === 'register'}
                   className={mode === 'register' ? 'is-active' : ''}
-                  onClick={() => setMode('register')}
+                  onClick={() => goToMode('register')}
                   disabled={loading}
                 >
                   Create account
@@ -331,6 +354,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={(value) => setLoginData({ ...loginData, username: value })}
                   autoComplete="username"
                   testId="login-username"
+                  required
                 />
 
                 <AuthInput
@@ -343,6 +367,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={(value) => setLoginData({ ...loginData, password: value })}
                   autoComplete="current-password"
                   testId="login-password"
+                  required
                   rightAction={
                     <IconButton
                       label={showLoginPassword ? 'Hide password' : 'Show password'}
@@ -353,7 +378,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 />
 
                 <div className="rqk-auth-form-options">
-                  <button type="button" onClick={() => setMode('forgot')} className="rqk-auth-link-button">
+                  <button type="button" onClick={() => goToMode('forgot')} className="rqk-auth-link-button">
                     Forgot password?
                   </button>
                 </div>
@@ -362,7 +387,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   {loading ? 'Opening dashboard...' : 'Open dashboard'}
                 </PrimaryButton>
 
-                <AuthSwitch text="New here?" actionText="Create an account" onClick={() => setMode('register')} disabled={loading} />
+                <AuthSwitch text="New here?" actionText="Create an account" onClick={() => goToMode('register')} disabled={loading} />
               </form>
             )}
 
@@ -378,6 +403,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={(value) => setRegisterData({ ...registerData, username: value })}
                   autoComplete="username"
                   hint="Use a table name or nickname rather than a real name."
+                  required
                 />
 
                 <AuthInput
@@ -401,6 +427,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.password}
                   onChange={(value) => setRegisterData({ ...registerData, password: value })}
                   autoComplete="new-password"
+                  minLength={8}
+                  required
                   rightAction={
                     <IconButton
                       label={showRegisterPassword ? 'Hide password' : 'Show password'}
@@ -421,6 +449,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.confirmPassword}
                   onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
                   autoComplete="new-password"
+                  minLength={8}
+                  required
                 />
 
                 <PasswordMatchNotice status={confirmStatus} />
@@ -429,7 +459,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   {loading ? 'Creating account...' : 'Create account'}
                 </PrimaryButton>
 
-                <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => setMode('login')} disabled={loading} />
+                <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => goToMode('login')} disabled={loading} />
               </form>
             )}
 
@@ -444,13 +474,15 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={forgotEmail}
                   onChange={setForgotEmail}
                   autoComplete="email"
+                  inputMode="email"
+                  required
                 />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Sending link...' : 'Send reset link'}
                 </PrimaryButton>
 
-                <SecondaryButton type="button" onClick={() => setMode('login')} disabled={loading}>
+                <SecondaryButton type="button" onClick={() => goToMode('login')} disabled={loading}>
                   <ArrowLeft size={16} /> <span>Back to login</span>
                 </SecondaryButton>
               </form>
@@ -467,6 +499,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={resetData.new_password}
                   onChange={(value) => setResetData({ ...resetData, new_password: value })}
                   autoComplete="new-password"
+                  minLength={8}
+                  required
                   rightAction={
                     <IconButton
                       label={showResetPassword ? 'Hide password' : 'Show password'}
@@ -484,6 +518,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               </form>
             )}
 
+            <AuthNextSteps steps={nextSteps} />
             <TrustBadges />
           </section>
         </div>
@@ -503,12 +538,12 @@ function AuthNotice({ children }) {
   );
 }
 
-function AuthInput({ id, icon: Icon, label, type, placeholder, value, onChange, autoComplete, hint, testId, rightAction }) {
+function AuthInput({ id, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, testId, rightAction, required = false, minLength }) {
   const hintId = hint ? `${id}-hint` : undefined;
 
   return (
     <div className="rqk-auth-input-group">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>
       <div className="rqk-auth-input-shell">
         <Icon size={18} className="rqk-auth-input-icon" aria-hidden="true" />
         <input
@@ -519,8 +554,11 @@ function AuthInput({ id, icon: Icon, label, type, placeholder, value, onChange, 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
+          inputMode={inputMode}
           aria-describedby={hintId}
           data-testid={testId}
+          required={required}
+          minLength={minLength}
         />
         {rightAction}
       </div>
@@ -603,6 +641,17 @@ function PasswordMatchNotice({ status }) {
       <span aria-hidden="true" />
       {status.message}
     </p>
+  );
+}
+
+function AuthNextSteps({ steps }) {
+  return (
+    <div className="rqk-auth-next-steps" aria-label="What happens next">
+      <span>What happens next</span>
+      <ol>
+        {steps.map(step => <li key={step}>{step}</li>)}
+      </ol>
+    </div>
   );
 }
 
