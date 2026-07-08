@@ -15,6 +15,7 @@ CONTENT_COLLECTIONS = {
     "subclasses": "user_subclasses",
     "backgrounds": "user_backgrounds",
     "feats": "user_feats",
+    "spells": "user_spells",
 }
 
 
