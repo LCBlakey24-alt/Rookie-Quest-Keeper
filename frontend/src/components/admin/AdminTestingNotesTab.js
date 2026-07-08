@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Bug, ClipboardList, Download, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { Bug, ClipboardList, Download, Filter, RefreshCw, Save, Search, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -19,12 +19,15 @@ const rq = {
 };
 
 const statuses = ['new', 'reviewing', 'planned', 'done', 'dismissed'];
+const statusFilters = ['all', ...statuses];
 const priorities = ['low', 'normal', 'high', 'urgent'];
 
 export default function AdminTestingNotesTab() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [query, setQuery] = useState('');
   const [form, setForm] = useState({ title: '', area: 'testing', priority: 'high', message: '' });
 
   const logAudit = async (entry) => {
@@ -38,10 +41,35 @@ export default function AdminTestingNotesTab() {
     String(item.title || '').toLowerCase().includes('[test]')
   )), [items]);
 
+  const filteredTestingItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const normalisedItems = testingItems.map(item => ({ ...item, status: item.status || 'new', priority: item.priority || 'normal' }));
+    if (!q) return normalisedItems;
+    return normalisedItems.filter(item => [
+      item.title,
+      item.message,
+      item.username,
+      item.area,
+      item.category,
+      item.page_path,
+      item.admin_notes,
+      item.status,
+      item.priority,
+    ].some(value => String(value || '').toLowerCase().includes(q)));
+  }, [testingItems, query]);
+
+  const counts = useMemo(() => ({
+    total: testingItems.length,
+    showing: filteredTestingItems.length,
+    new: testingItems.filter(item => (item.status || 'new') === 'new').length,
+    active: testingItems.filter(item => ['reviewing', 'planned'].includes(item.status)).length,
+    done: testingItems.filter(item => item.status === 'done').length,
+  }), [testingItems, filteredTestingItems]);
+
   const load = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/admin/feedback', { params: { status_filter: 'all', kind: 'testing' } });
+      const res = await apiClient.get('/admin/feedback', { params: { status_filter: statusFilter, kind: 'testing' } });
       setItems(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to load testing notes');
@@ -50,7 +78,7 @@ export default function AdminTestingNotesTab() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [statusFilter]);
 
   const createIssue = async (event) => {
     event.preventDefault();
@@ -166,6 +194,27 @@ export default function AdminTestingNotesTab() {
         </div>
       </div>
 
+      <div style={metricsStyle}>
+        <Metric label="Showing" value={counts.showing} />
+        <Metric label="Total" value={counts.total} />
+        <Metric label="New" value={counts.new} />
+        <Metric label="Active" value={counts.active} />
+        <Metric label="Done" value={counts.done} />
+      </div>
+
+      <div style={toolbarStyle}>
+        <div style={searchWrapStyle}>
+          <Search size={14} style={searchIconStyle} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search testing notes, area, status, notes..." style={searchInputStyle} />
+        </div>
+        <div style={filterWrapStyle}>
+          <Filter size={14} color={rq.muted} />
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={inputStyle}>
+            {statusFilters.map(status => <option key={status} value={status}>{status === 'all' ? 'All statuses' : status}</option>)}
+          </select>
+        </div>
+      </div>
+
       <form onSubmit={createIssue} style={formStyle}>
         <h3 style={formTitleStyle}><Bug size={16} /> Log a test issue</h3>
         <div style={gridStyle}>
@@ -196,9 +245,9 @@ export default function AdminTestingNotesTab() {
         </div>
       </form>
 
-      {loading ? <div style={emptyStyle}>Loading testing notes...</div> : testingItems.length === 0 ? <div style={emptyStyle}>No testing notes yet. Log the first Punch test issue above.</div> : (
+      {loading ? <div style={emptyStyle}>Loading testing notes...</div> : filteredTestingItems.length === 0 ? <div style={emptyStyle}>No testing notes found for this filter. Log a new test issue above.</div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {testingItems.map(item => (
+          {filteredTestingItems.map(item => (
             <article key={item.id} style={itemStyle}>
               <div style={itemTopStyle}>
                 <div>
@@ -229,6 +278,10 @@ export default function AdminTestingNotesTab() {
   );
 }
 
+function Metric({ label, value }) {
+  return <div style={metricStyle}><div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div><div style={{ fontSize: 11, color: rq.muted, textTransform: 'uppercase' }}>{label}</div></div>;
+}
+
 function Badge({ label }) { return <span style={badgeStyle}>{label}</span>; }
 
 const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 'clamp(14px, 3vw, 24px)' };
@@ -236,6 +289,13 @@ const headerStyle = { display: 'flex', justifyContent: 'space-between', alignIte
 const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 10, margin: 0 };
 const subtitleStyle = { color: rq.muted, fontSize: 13, margin: '6px 0 0' };
 const buttonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '9px 12px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
+const metricsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginBottom: 16 };
+const metricStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, color: rq.text, textAlign: 'center', padding: 12, borderRadius: rq.radiusSm };
+const toolbarStyle = { display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 };
+const searchWrapStyle = { position: 'relative', flex: '1 1 260px' };
+const searchIconStyle = { position: 'absolute', left: 12, top: 12, color: rq.muted };
+const searchInputStyle = { width: '100%', background: rq.input, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px 10px 34px', outline: 'none' };
+const filterWrapStyle = { display: 'flex', alignItems: 'center', gap: 8, flex: '0 1 220px' };
 const formStyle = { background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 16, marginBottom: 18 };
 const formTitleStyle = { color: rq.accentHover, fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 12 };
