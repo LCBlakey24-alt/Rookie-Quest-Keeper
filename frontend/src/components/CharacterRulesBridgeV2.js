@@ -31,6 +31,7 @@ const CHOICES_KEY = 'rqk.full_character_creator_v2.level_choices';
 const DETAIL_CHOICES_KEY = 'rqk.full_character_creator_v2.detail_choices';
 const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
+const ABILITY_KEYS = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const many = (value) => Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
@@ -67,6 +68,21 @@ function readBuilderDraft() {
   } catch {
     return {};
   }
+}
+
+function draftAbilityScore(draft = {}, ability) {
+  const raw = draft?.[ability] ?? draft?.abilityScores?.[ability] ?? draft?.abilities?.[ability] ?? draft?.scores?.[ability];
+  const value = typeof raw === 'object' && raw !== null ? raw.score : raw;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 10;
+}
+
+function draftAbilitySnapshot(draft = {}) {
+  return Object.fromEntries(ABILITY_KEYS.map((ability) => [ability, draftAbilityScore(draft, ability)]));
+}
+
+function draftAbilitySignature(draft = {}) {
+  return ABILITY_KEYS.map((ability) => draftAbilityScore(draft, ability)).join('|');
 }
 
 function applyMergedRules(merged) {
@@ -420,21 +436,29 @@ export default function CharacterRulesBridgeV2(props) {
   const currentEdition = builderDraft.edition || '2014';
   const currentClassData = CLASSES[currentClassName] || {};
   const subclasses = arr(currentClassData.subclasses).map(displayName).filter(Boolean);
+  const subclassSignature = subclasses.join('|');
   const subclassLevel = subclassUnlockLevel(currentClassName, currentEdition, currentClassData);
   const needsSubclass = targetLevel >= subclassLevel && subclasses.length > 0;
-  const choicePlan = useMemo(() => buildStartingLevelChoicePlan({ className: currentClassName, startingLevel: targetLevel, edition: currentEdition }), [currentClassName, currentEdition, targetLevel, options?.spells?.length]);
-  const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition, category: currentEdition === '2024' && targetLevel >= 19 ? 'epic' : 'general' }), [currentEdition, targetLevel, options?.feats?.length]);
+  const abilitySignature = draftAbilitySignature(builderDraft);
+  const choicePlan = useMemo(() => buildStartingLevelChoicePlan({
+    className: currentClassName,
+    startingLevel: targetLevel,
+    edition: currentEdition,
+    abilities: draftAbilitySnapshot(builderDraft),
+  }), [currentClassName, currentEdition, targetLevel, abilitySignature, options?.spells?.length]);
+  const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition }), [currentEdition, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
+  const asiChoiceSignature = choicePlan.asiChoices.map((choice) => choice.id).join('|');
 
   useEffect(() => {
     if (!needsSubclass) return;
     if (!selectedSubclass || !subclasses.includes(selectedSubclass)) setSelectedSubclass(subclasses[0] || '');
-  }, [needsSubclass, selectedSubclass, subclasses.join('|')]);
+  }, [needsSubclass, selectedSubclass, subclassSignature]);
 
   useEffect(() => {
     const validIds = new Set(choicePlan.asiChoices.map((choice) => choice.id));
     setLevelChoiceSelections((prev) => Object.fromEntries(Object.entries(prev || {}).filter(([key]) => validIds.has(key))));
-  }, [choicePlan.asiChoices.map((choice) => choice.id).join('|')]);
+  }, [asiChoiceSignature]);
 
   const updateLevelChoice = useCallback((choiceId, selection) => {
     setLevelChoiceSelections((prev) => ({ ...prev, [choiceId]: defaultAsiSelection(selection) }));
