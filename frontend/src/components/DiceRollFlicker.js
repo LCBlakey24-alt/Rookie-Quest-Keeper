@@ -27,6 +27,7 @@ const palette = {
 };
 
 const CINEMATIC_REVEAL_DELAY = 2300;
+const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
 const formatModifier = (modifier) => {
@@ -67,6 +68,11 @@ function getCharacterIdFromPath() {
   return match?.[1] || '';
 }
 
+function getPrefersReducedMotion() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 async function getCharacterForRoll(characterId) {
   if (!characterId) return null;
   if (characterCache.has(characterId)) return characterCache.get(characterId);
@@ -104,8 +110,18 @@ export default function DiceRollFlicker({
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
   const [showTotal, setShowTotal] = useState(false);
   const [fading, setFading] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener?.('change', updatePreference);
+    return () => mediaQuery.removeEventListener?.('change', updatePreference);
+  }, []);
 
   const keptDice = useMemo(() => {
     const kept = dice.filter(die => !die.dropped);
@@ -167,16 +183,23 @@ export default function DiceRollFlicker({
     setShowTotal(false);
     setFading(false);
 
-    const revealTimer = window.setTimeout(() => setShowTotal(true), CINEMATIC_REVEAL_DELAY);
-    const fadeTimer = window.setTimeout(() => setFading(true), CINEMATIC_REVEAL_DELAY + HOLD_AFTER_REVEAL - 360);
-    const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, CINEMATIC_REVEAL_DELAY + HOLD_AFTER_REVEAL);
+    const revealDelay = prefersReducedMotion ? REDUCED_MOTION_REVEAL_DELAY : CINEMATIC_REVEAL_DELAY;
+    const revealTimer = window.setTimeout(() => setShowTotal(true), revealDelay);
+
+    return () => window.clearTimeout(revealTimer);
+  }, [visible, dice, finalTotal, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!visible || !showTotal || typeof window === 'undefined') return undefined;
+
+    const fadeTimer = window.setTimeout(() => setFading(true), HOLD_AFTER_REVEAL - 360);
+    const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, HOLD_AFTER_REVEAL);
 
     return () => {
-      window.clearTimeout(revealTimer);
       window.clearTimeout(fadeTimer);
       window.clearTimeout(closeTimer);
     };
-  }, [visible, dice, finalTotal]);
+  }, [visible, showTotal, finalTotal]);
 
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
