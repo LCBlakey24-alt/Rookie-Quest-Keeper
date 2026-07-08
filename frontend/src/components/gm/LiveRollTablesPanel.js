@@ -190,6 +190,10 @@ function makeTextFromCells(columns, cells) {
   return columns.slice(1).map(column => `${column}: ${cells[column] || '—'}`).join(' | ');
 }
 
+function entrySearchText(entry) {
+  return `${entry.range || ''} ${entry.text || ''} ${Object.entries(entry.cells || {}).flatMap(([key, value]) => [key, value]).join(' ')}`.toLowerCase();
+}
+
 function parseSimpleRows(rawText) {
   return rawText
     .split('\n')
@@ -424,6 +428,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   const [copyingTableId, setCopyingTableId] = useState(null);
   const [editingTableId, setEditingTableId] = useState(null);
   const [tableSearch, setTableSearch] = useState('');
+  const [rowSearch, setRowSearch] = useState('');
   const [editionFilter, setEditionFilter] = useState('all');
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('general');
@@ -448,6 +453,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   };
 
   useEffect(() => { fetchTables(); }, [campaignId]);
+  useEffect(() => { setRowSearch(''); }, [activeTableId]);
 
   const tables = useMemo(() => [
     ...CORE_STARTER_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'starter' })),
@@ -463,6 +469,11 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
   const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
   const activeEntries = normaliseEntries(activeTable?.entries || []);
   const activeIsRollable = isRollableTable(activeTable);
+  const filteredActiveEntries = useMemo(() => {
+    const needle = rowSearch.trim().toLowerCase();
+    if (!needle) return activeEntries;
+    return activeEntries.filter(entry => entrySearchText(entry).includes(needle));
+  }, [activeEntries, rowSearch]);
   const bulkPreviewCount = parseBulkTables(bulkText).length;
 
   const resetTableForm = () => {
@@ -701,7 +712,14 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
           {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
 
-          <section style={entriesStyle}><div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div><StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} allowDisplay={allowDisplay} onCopyRow={copyRowToClipboard} onSendRow={sendRowToDisplay} /></section>
+          <section style={entriesStyle}>
+            <div style={entriesHeaderStyle}>
+              <strong>{filteredActiveEntries.length} of {activeEntries.length} rows</strong>
+              <label style={rowSearchBoxStyle}><Search size={13} /><input value={rowSearch} onChange={(event) => setRowSearch(event.target.value)} placeholder="Search rows: rapier, vex, healing..." style={rowSearchInputStyle} /></label>
+            </div>
+            <StructuredEntries table={activeTable} entries={filteredActiveEntries} activeIsRollable={activeIsRollable} allowDisplay={allowDisplay} onCopyRow={copyRowToClipboard} onSendRow={sendRowToDisplay} />
+            {rowSearch && filteredActiveEntries.length === 0 && <p style={mutedTextStyle}>No rows match “{rowSearch}”.</p>}
+          </section>
         </main>
       </div>
     </section>
@@ -739,13 +757,15 @@ const filterRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const filterChipStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.22)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 11, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
 const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 38, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 9px' };
 const searchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack };
+const rowSearchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 34, minWidth: 'min(100%, 320px)', background: theme.card, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 8px', textTransform: 'none', letterSpacing: 0 };
+const rowSearchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack, fontSize: 12 };
 const buttonRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 32, border: 0, background: '#661111', color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const mutedTextStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 const entriesStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.line}`, padding: 10 };
-const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', flexWrap: 'wrap' };
 const entriesListStyle = { display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' };
 const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.18fr) minmax(0, 1fr) auto', gap: 8, alignItems: 'start', background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const structuredTableWrapStyle = { overflowX: 'auto', maxHeight: 420, border: `1px solid ${theme.line}`, background: theme.card };
