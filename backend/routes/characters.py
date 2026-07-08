@@ -1,5 +1,5 @@
 """Character routes: core CRUD, level up, journal, and campaign linking."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from config import db, HIT_DICE, get_subclass_unlock_level
 from utils.auth import get_current_user, verify_campaign_membership
 from models import (
@@ -30,7 +30,7 @@ _FULL_CASTER_SLOTS = {
     12: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1}, 13: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1},
     14: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1}, 15: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1},
     16: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1}, 17: {1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1},
-    18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1, 9: 1},
+    18: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1}, 19: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 1, 8: 1},
     20: {1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1},
 }
 
@@ -38,6 +38,17 @@ _FULL_CASTERS = {'bard', 'cleric', 'druid', 'sorcerer', 'wizard'}
 _HALF_CASTERS = {'paladin', 'ranger'}
 _WARLOCK = {'warlock'}
 _SPELLCASTERS = _FULL_CASTERS | _HALF_CASTERS | _WARLOCK
+
+_PASSTHROUGH_CHARACTER_FIELDS = {
+    'resources',
+    'homebrew_resources',
+    'homebrew_actions',
+    'passive_effects',
+    'homebrew_scaling',
+    'homebrew_upgrades',
+    'homebrew_automation_notes',
+    'homebrew_content_refs',
+}
 
 _MULTICLASS_REQUIREMENTS = {
     'barbarian': {'strength': 13},
@@ -133,6 +144,20 @@ def normalize_spell_list(spell_list):
     return [spell if isinstance(spell, dict) else {"name": str(spell), "level": 0} for spell in spell_list]
 
 
+def passthrough_character_fields(payload: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    return {key: payload[key] for key in _PASSTHROUGH_CHARACTER_FIELDS if key in payload}
+
+
+async def request_json_payload(request: Request) -> Dict[str, Any]:
+    try:
+        payload = await request.json()
+        return payload if isinstance(payload, dict) else {}
+    except Exception:
+        return {}
+
+
 def initial_class_levels(character: Dict[str, Any]) -> Dict[str, int]:
     stored = character.get('class_levels') or {}
     if stored:
@@ -146,7 +171,6 @@ def hit_dice_string_for(class_levels: Dict[str, int]) -> str:
         die = hit_die_for(class_name)
         dice_counts[die] = dice_counts.get(die, 0) + int(level or 0)
     return ' + '.join(f"{count}d{die}" for die, count in sorted(dice_counts.items(), reverse=True) if count > 0) or '1d8'
-
 
 
 def compute_multiclass_spell_slots(classes: list[dict]) -> Dict[str, int]:
@@ -167,6 +191,7 @@ def compute_multiclass_spell_slots(classes: list[dict]) -> Dict[str, int]:
         elif key in {'fighter', 'rogue'} and entry.get('subclass') in {'Eldritch Knight', 'Arcane Trickster'}:
             caster_level += level // 3
     return {str(k): int(v) for k, v in _FULL_CASTER_SLOTS.get(min(max(caster_level, 0), 20), {}).items()}
+
 
 def spell_slots_for_class_levels(primary_class: str, total_level: int, class_levels: Dict[str, int]) -> Dict[str, int]:
     primary_key = class_key(primary_class)
@@ -218,8 +243,9 @@ async def get_user_characters(username: str = Depends(get_current_user)):
 
 
 @router.post("/characters", response_model=dict)
-async def create_character(character: PlayerCharacterCreate, username: str = Depends(get_current_user)):
+async def create_character(request: Request, character: PlayerCharacterCreate, username: str = Depends(get_current_user)):
     """Create a new player character."""
+    raw_payload = await request_json_payload(request)
     edition = getattr(character, 'edition', '2014')
     ruleset_id = normalize_ruleset_id(edition, getattr(character, 'ruleset_id', ''))
 
@@ -273,12 +299,14 @@ async def create_character(character: PlayerCharacterCreate, username: str = Dep
         ruleset_id=ruleset_id,
     )
 
-    await db.player_characters.insert_one(new_character.model_dump())
+    saved_character = new_character.model_dump()
+    saved_character.update(passthrough_character_fields(raw_payload))
+    await db.player_characters.insert_one(saved_character)
     return {
         "success": True,
         "message": f"{new_character.name} created successfully!",
         "character_id": new_character.id,
-        "character": new_character.model_dump(),
+        "character": saved_character,
     }
 
 
@@ -288,9 +316,10 @@ async def get_character(character_id: str, username: str = Depends(get_current_u
     return await get_owned_character(character_id, username)
 
 
-async def apply_character_update(character_id: str, character_update: PlayerCharacterUpdate, username: str):
+async def apply_character_update(character_id: str, character_update: PlayerCharacterUpdate, username: str, raw_payload: Optional[Dict[str, Any]] = None):
     existing = await get_owned_character(character_id, username)
     update_data = {key: value for key, value in character_update.model_dump().items() if value is not None}
+    update_data.update(passthrough_character_fields(raw_payload))
     if not update_data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
 
@@ -326,15 +355,15 @@ async def apply_character_update(character_id: str, character_update: PlayerChar
 
 
 @router.put("/characters/{character_id}")
-async def update_character(character_id: str, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
+async def update_character(character_id: str, request: Request, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
     """Update a character."""
-    return await apply_character_update(character_id, character_update, username)
+    return await apply_character_update(character_id, character_update, username, await request_json_payload(request))
 
 
 @router.patch("/characters/{character_id}")
-async def patch_character(character_id: str, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
+async def patch_character(character_id: str, request: Request, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
     """Partially update a character."""
-    return await apply_character_update(character_id, character_update, username)
+    return await apply_character_update(character_id, character_update, username, await request_json_payload(request))
 
 
 @router.delete("/characters/{character_id}")
