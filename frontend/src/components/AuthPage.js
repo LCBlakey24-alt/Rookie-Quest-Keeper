@@ -67,6 +67,25 @@ const FEATURE_CARDS = [
   },
 ];
 
+const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
+
+function getPasswordChecks(password) {
+  return [
+    { label: '8+ characters', passed: password.length >= 8 },
+    { label: 'Includes a letter', passed: /[a-z]/i.test(password) },
+    { label: 'Includes a number', passed: /\d/.test(password) },
+  ];
+}
+
+function getPasswordStrength(checks, password) {
+  const score = checks.filter(check => check.passed).length;
+
+  if (!password) return { score: 0, tone: 'empty', label: 'Add a password' };
+  if (score <= 1) return { score, tone: 'low', label: 'Needs work' };
+  if (score === 2) return { score, tone: 'medium', label: 'Nearly there' };
+  return { score, tone: 'high', label: 'Table-ready' };
+}
+
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -207,6 +226,11 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
+  const registerPasswordChecks = getPasswordChecks(registerData.password);
+  const registerPasswordStrength = getPasswordStrength(registerPasswordChecks, registerData.password);
+  const resetPasswordChecks = getPasswordChecks(resetData.new_password);
+  const resetPasswordStrength = getPasswordStrength(resetPasswordChecks, resetData.new_password);
+  const confirmStatus = getConfirmPasswordStatus(registerData.password, registerData.confirmPassword);
 
   return (
     <main className={`rqk-auth-page rqk-auth-page--${mode}`} data-testid="auth-page">
@@ -250,6 +274,14 @@ export default function AuthPage({ onLogin = () => {} }) {
                   </span>
                 </div>
               ))}
+            </div>
+
+            <div className="rqk-auth-preview-card" aria-hidden="true">
+              <div>
+                <span className="rqk-auth-preview-dot" />
+                <strong>Next stop</strong>
+              </div>
+              <p>Dashboard → Characters → Campaign tools</p>
             </div>
           </aside>
 
@@ -369,7 +401,6 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.password}
                   onChange={(value) => setRegisterData({ ...registerData, password: value })}
                   autoComplete="new-password"
-                  hint="At least 8 characters."
                   rightAction={
                     <IconButton
                       label={showRegisterPassword ? 'Hide password' : 'Show password'}
@@ -378,6 +409,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                     />
                   }
                 />
+
+                <PasswordReadiness checks={registerPasswordChecks} strength={registerPasswordStrength} />
 
                 <AuthInput
                   id="register-confirm-password"
@@ -389,6 +422,8 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
                   autoComplete="new-password"
                 />
+
+                <PasswordMatchNotice status={confirmStatus} />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Creating account...' : 'Create account'}
@@ -432,7 +467,6 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={resetData.new_password}
                   onChange={(value) => setResetData({ ...resetData, new_password: value })}
                   autoComplete="new-password"
-                  hint="Use at least 8 characters."
                   rightAction={
                     <IconButton
                       label={showResetPassword ? 'Hide password' : 'Show password'}
@@ -442,11 +476,15 @@ export default function AuthPage({ onLogin = () => {} }) {
                   }
                 />
 
+                <PasswordReadiness checks={resetPasswordChecks} strength={resetPasswordStrength} />
+
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Resetting password...' : 'Reset password'}
                 </PrimaryButton>
               </form>
             )}
+
+            <TrustBadges />
           </section>
         </div>
 
@@ -523,6 +561,57 @@ function AuthSwitch({ text, actionText, onClick, disabled }) {
       <button type="button" onClick={onClick} disabled={disabled} className="rqk-auth-switch-button">
         {actionText}
       </button>
+    </div>
+  );
+}
+
+function PasswordReadiness({ checks, strength }) {
+  const filledSegments = Math.max(1, strength.score);
+
+  return (
+    <div className={`rqk-auth-password-readiness is-${strength.tone}`} aria-live="polite">
+      <div className="rqk-auth-password-readiness__top">
+        <span>Password strength</span>
+        <strong>{strength.label}</strong>
+      </div>
+      <div className="rqk-auth-strength-meter" aria-hidden="true">
+        {[0, 1, 2].map(index => (
+          <span key={index} className={index < filledSegments && strength.tone !== 'empty' ? 'is-filled' : ''} />
+        ))}
+      </div>
+      <ul>
+        {checks.map(check => (
+          <li key={check.label} className={check.passed ? 'is-passed' : ''}>
+            <span aria-hidden="true" />
+            {check.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function getConfirmPasswordStatus(password, confirmPassword) {
+  if (!confirmPassword) return { tone: 'empty', message: 'Confirm your password to catch typos before creating the account.' };
+  if (password === confirmPassword) return { tone: 'good', message: 'Passwords match.' };
+  return { tone: 'bad', message: 'Passwords do not match yet.' };
+}
+
+function PasswordMatchNotice({ status }) {
+  return (
+    <p className={`rqk-auth-match-notice is-${status.tone}`} aria-live="polite">
+      <span aria-hidden="true" />
+      {status.message}
+    </p>
+  );
+}
+
+function TrustBadges() {
+  return (
+    <div className="rqk-auth-trust-row" aria-label="Account safeguards">
+      {TRUST_BADGES.map(badge => (
+        <span key={badge}>{badge}</span>
+      ))}
     </div>
   );
 }
