@@ -262,70 +262,58 @@ export default function CleanCharacterSheet() {
     setSavingTempHp(false);
   };
 
-  const makeRoll = (label, modifier) => {
-    const totalModifier = (Number(modifier) || 0) + getRollBonus();
-    const result = rollD20(totalModifier, rollMode);
-    const entry = {
-      id: `${Date.now()}-${Math.random()}`,
-      label,
-      ...result,
-      baseModifier: Number(modifier) || 0,
-      customModifier: getRollBonus(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setRollBurst(entry);
-    setRollHistory(prev => [entry, ...prev].slice(0, 12));
-  };
-
-  const updateCharacterLocal = (updates) => setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
-
   const toggleInspiration = async () => {
-    if (savingQuickState) return;
-    setSavingQuickState(true);
     await patchCharacter(
       { inspiration: !hasInspiration, has_inspiration: !hasInspiration },
-      { success: !hasInspiration ? 'Inspiration gained' : 'Inspiration removed', error: 'Could not save inspiration' }
+      { success: !hasInspiration ? 'Inspiration marked' : 'Inspiration spent', error: 'Could not update inspiration' }
     );
-    setSavingQuickState(false);
   };
 
-  const toggleCondition = async (condition) => {
-    if (savingQuickState) return;
-    const nextConditions = activeConditions.includes(condition)
-      ? activeConditions.filter(c => c !== condition)
-      : [...activeConditions, condition];
-    setSavingQuickState(true);
-    await patchCharacter({ conditions: nextConditions }, { error: 'Could not save condition' });
-    setSavingQuickState(false);
-  };
-
-  const setDeathSaveCount = async (type, index) => {
-    const current = type === 'success' ? deathSaveSuccesses : deathSaveFailures;
-    const next = current === index + 1 ? index : index + 1;
-    await patchCharacter(
-      type === 'success' ? { death_saves_successes: next } : { death_saves_failures: next },
-      { error: 'Could not save death save' }
-    );
+  const setDeathSaveCount = async (type, count) => {
+    const safe = clampDeathCount(count);
+    const field = type === 'success' ? 'death_saves_successes' : 'death_saves_failures';
+    await patchCharacter({ [field]: safe }, { error: 'Could not update death saves' });
   };
 
   const resetDeathSaves = async () => {
-    await patchCharacter({ death_saves_successes: 0, death_saves_failures: 0 }, { success: 'Death saves reset', error: 'Could not reset death saves' });
+    await patchCharacter({ death_saves_successes: 0, death_saves_failures: 0 }, { success: 'Death saves cleared', error: 'Could not clear death saves' });
   };
 
-  const rollDeathSave = async () => {
-    const roll = Math.floor(Math.random() * 20) + 1;
+  const toggleCondition = async (condition) => {
+    const current = toArray(character?.conditions);
+    const exists = current.includes(condition);
+    await patchCharacter(
+      { conditions: exists ? current.filter(item => item !== condition) : [...current, condition] },
+      { success: exists ? `${condition} removed` : `${condition} added`, error: 'Could not update condition' }
+    );
+  };
+
+  const updateCharacterLocal = (updates) => {
+    setCharacter(prev => (prev ? { ...prev, ...updates } : prev));
+  };
+
+  const makeRoll = (label, modifier = 0, metadata = {}) => {
+    const result = rollD20(Number(modifier || 0), { mode: rollMode, bonus: getRollBonus(), label });
     const entry = {
-      id: `${Date.now()}-death-save`,
-      label: 'Death Save',
-      d20: roll,
-      modifier: 0,
-      total: roll,
-      mode: 'normal',
-      allRolls: [roll],
+      id: `${Date.now()}-${Math.random()}`,
+      label,
+      d20: result.d20,
+      rolls: result.rolls,
+      allRolls: result.allRolls,
+      modifier: result.modifier,
+      total: result.total,
+      mode: result.mode,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      ...metadata,
     };
     setRollBurst(entry);
     setRollHistory(prev => [entry, ...prev].slice(0, 12));
+    return entry;
+  };
+
+  const rollDeathSave = async () => {
+    const entry = makeRoll('Death Save', 0, { mode: 'death-save' });
+    const roll = Number(entry.d20);
     if (roll === 20) {
       await patchCharacter({ current_hit_points: 1, death_saves_successes: 0, death_saves_failures: 0 }, { success: 'Natural 20! You regain 1 HP.', error: 'Could not save death save result' });
       return;
@@ -604,6 +592,7 @@ export default function CleanCharacterSheet() {
             rulesEdition={rulesEdition}
             speed={speed}
             onOpenInventory={() => setActiveTab('inventory')}
+            onCharacterUpdate={patchCharacter}
           />
         )}
         {activeTab === 'features' && (
@@ -618,6 +607,7 @@ export default function CleanCharacterSheet() {
             rulesEdition={rulesEdition}
             speed={speed}
             onOpenInventory={() => setActiveTab('inventory')}
+            onCharacterUpdate={patchCharacter}
           />
         )}
         {activeTab === 'species' && <CleanSheetSpeciesTab character={character} rulesEdition={rulesEdition} />}
