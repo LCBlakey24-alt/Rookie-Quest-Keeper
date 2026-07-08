@@ -115,6 +115,13 @@ pytest
 5. Confirm Superiority Dice appear in Class Resources.
 6. Spend and restore Superiority Dice and confirm die size, total, and remaining values are preserved after refresh.
 
+### Choice pruning
+
+1. Pick Battle Master maneuvers, then change subclass away from Battle Master.
+2. Confirm the maneuvers picker disappears or clears.
+3. Pick Sorcerer Metamagic, then change class away from Sorcerer.
+4. Confirm Metamagic and Sorcery Point payload data are not saved onto the new class.
+
 ## Manual smoke flow: uploaded/homebrew content
 
 1. Upload or create a homebrew race/species, class, subclass, feat, and spell.
@@ -130,6 +137,7 @@ pytest
 - Character creation still works with uploaded content unavailable or API failure.
 - Save interception does not affect non-character API calls.
 - Editing an existing character does not duplicate ASIs, feats, spells, invocations, or class choices.
+- Class-specific choices are pruned when class, level, or subclass changes.
 - Class and Features tabs both show the same selected choices and resource controls.
 - Spells tab can still manage slots after a long rest or short rest.
 - Mobile viewport: Starting Level Supervisor, class-specific choices, Spells tab, Class tab, and resource buttons remain usable at phone width.
