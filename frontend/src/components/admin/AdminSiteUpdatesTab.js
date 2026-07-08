@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Megaphone, Pencil, RefreshCw, Save, Star, X } from 'lucide-react';
+import { Archive, Eye, EyeOff, Megaphone, Pencil, RefreshCw, RotateCcw, Save, Star, Trash2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -26,12 +26,14 @@ const emptyForm = {
   text: '',
   is_published: true,
   is_pinned: false,
+  is_archived: false,
 };
 
 export default function AdminSiteUpdatesTab() {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   const logAudit = async (entry) => {
@@ -41,7 +43,7 @@ export default function AdminSiteUpdatesTab() {
   const loadUpdates = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/admin/site-updates');
+      const res = await apiClient.get('/admin/site-updates', { params: { include_archived: showArchived } });
       setUpdates(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to load site updates');
@@ -50,13 +52,15 @@ export default function AdminSiteUpdatesTab() {
     }
   };
 
-  useEffect(() => { loadUpdates(); }, []);
+  useEffect(() => { loadUpdates(); }, [showArchived]);
 
   const counts = useMemo(() => ({
     total: updates.length,
-    published: updates.filter(update => update.is_published).length,
-    drafts: updates.filter(update => !update.is_published).length,
-    pinned: updates.filter(update => update.is_pinned).length,
+    live: updates.filter(update => !update.is_archived).length,
+    published: updates.filter(update => update.is_published && !update.is_archived).length,
+    drafts: updates.filter(update => !update.is_published && !update.is_archived).length,
+    pinned: updates.filter(update => update.is_pinned && !update.is_archived).length,
+    archived: updates.filter(update => update.is_archived).length,
   }), [updates]);
 
   const updateForm = (patch) => setForm(prev => ({ ...prev, ...patch }));
@@ -71,6 +75,7 @@ export default function AdminSiteUpdatesTab() {
       text: update.text || '',
       is_published: Boolean(update.is_published),
       is_pinned: Boolean(update.is_pinned),
+      is_archived: Boolean(update.is_archived),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -81,8 +86,9 @@ export default function AdminSiteUpdatesTab() {
       label: form.label.trim() || 'Update',
       title: form.title.trim(),
       text: form.text.trim(),
-      is_published: Boolean(form.is_published),
-      is_pinned: Boolean(form.is_pinned),
+      is_published: Boolean(form.is_published) && !form.is_archived,
+      is_pinned: Boolean(form.is_pinned) && !form.is_archived,
+      is_archived: Boolean(form.is_archived),
     };
 
     if (!payload.title || !payload.text) {
@@ -105,7 +111,7 @@ export default function AdminSiteUpdatesTab() {
         area: 'site_updates',
         target_id: res.data.id || form.id,
         target_label: res.data.title || payload.title,
-        detail: `${payload.is_published ? 'Published' : 'Draft'} • ${payload.is_pinned ? 'Pinned' : 'Not pinned'}`,
+        detail: statusSummary(payload),
       });
       toast.success(form.id ? 'Site update saved' : 'Site update created');
       resetForm();
@@ -124,25 +130,54 @@ export default function AdminSiteUpdatesTab() {
         text: update.text || '',
         is_published: Boolean(update.is_published),
         is_pinned: Boolean(update.is_pinned),
+        is_archived: Boolean(update.is_archived),
         ...patch,
       };
+      if (payload.is_archived) {
+        payload.is_published = false;
+        payload.is_pinned = false;
+      }
       const res = await apiClient.put(`/admin/site-updates/${update.id}`, payload);
-      setUpdates(prev => prev.map(item => item.id === update.id ? res.data : item).sort(sortUpdates));
-      const action = patch.is_published !== undefined
-        ? (patch.is_published ? 'Site update published' : 'Site update moved to draft')
-        : patch.is_pinned !== undefined
-          ? (patch.is_pinned ? 'Site update pinned' : 'Site update unpinned')
-          : 'Site update changed';
+      setUpdates(prev => {
+        const next = prev.map(item => item.id === update.id ? res.data : item);
+        return showArchived ? next.sort(sortUpdates) : next.filter(item => !item.is_archived).sort(sortUpdates);
+      });
+      const action = patch.is_archived !== undefined
+        ? (patch.is_archived ? 'Site update archived' : 'Site update restored')
+        : patch.is_published !== undefined
+          ? (patch.is_published ? 'Site update published' : 'Site update moved to draft')
+          : patch.is_pinned !== undefined
+            ? (patch.is_pinned ? 'Site update pinned' : 'Site update unpinned')
+            : 'Site update changed';
       await logAudit({
         action,
         area: 'site_updates',
         target_id: update.id,
         target_label: update.title || payload.title,
-        detail: `${payload.is_published ? 'Published' : 'Draft'} • ${payload.is_pinned ? 'Pinned' : 'Not pinned'}`,
+        detail: statusSummary(payload),
       });
-      toast.success('Site update changed');
+      toast.success(action);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to update site update');
+    }
+  };
+
+  const deleteUpdate = async (update) => {
+    if (!window.confirm(`Permanently delete "${update.title}"? This cannot be undone.`)) return;
+    try {
+      await apiClient.delete(`/admin/site-updates/${update.id}`);
+      setUpdates(prev => prev.filter(item => item.id !== update.id));
+      await logAudit({
+        action: 'Site update deleted',
+        area: 'site_updates',
+        target_id: update.id,
+        target_label: update.title || 'Site update',
+        detail: update.text ? update.text.slice(0, 300) : '',
+      });
+      toast.success('Site update deleted');
+      if (form.id === update.id) resetForm();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Failed to delete site update');
     }
   };
 
@@ -151,16 +186,23 @@ export default function AdminSiteUpdatesTab() {
       <div style={headerStyle}>
         <div>
           <h2 style={titleStyle}><Megaphone size={20} /> Site Updates Manager</h2>
-          <p style={subtitleStyle}>Write updates here and publish them straight onto the main dashboard. Drafts stay admin-only.</p>
+          <p style={subtitleStyle}>Write updates here and publish them straight onto the main dashboard. Archive old updates instead of deleting unless you are sure.</p>
         </div>
-        <button type="button" onClick={loadUpdates} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setShowArchived(prev => !prev)} style={buttonStyle}>
+            {showArchived ? <EyeOff size={14} /> : <Archive size={14} />}
+            {showArchived ? 'Hide archived' : 'Show archived'}
+          </button>
+          <button type="button" onClick={loadUpdates} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+        </div>
       </div>
 
       <div style={metricsStyle}>
-        <Metric label="Total" value={counts.total} />
+        <Metric label="Visible" value={counts.live} />
         <Metric label="Published" value={counts.published} />
         <Metric label="Drafts" value={counts.drafts} />
         <Metric label="Pinned" value={counts.pinned} />
+        <Metric label="Archived" value={counts.archived} />
       </div>
 
       <form onSubmit={saveUpdate} style={editorStyle}>
@@ -188,8 +230,9 @@ export default function AdminSiteUpdatesTab() {
         </label>
 
         <div style={toggleRowStyle}>
-          <Toggle checked={form.is_published} onChange={() => updateForm({ is_published: !form.is_published })} icon={form.is_published ? Eye : EyeOff} label={form.is_published ? 'Published on dashboard' : 'Draft only'} />
-          <Toggle checked={form.is_pinned} onChange={() => updateForm({ is_pinned: !form.is_pinned })} icon={Star} label={form.is_pinned ? 'Pinned to top' : 'Not pinned'} />
+          <Toggle checked={form.is_published && !form.is_archived} disabled={form.is_archived} onChange={() => updateForm({ is_published: !form.is_published })} icon={form.is_published ? Eye : EyeOff} label={form.is_archived ? 'Archived updates cannot publish' : form.is_published ? 'Published on dashboard' : 'Draft only'} />
+          <Toggle checked={form.is_pinned && !form.is_archived} disabled={form.is_archived} onChange={() => updateForm({ is_pinned: !form.is_pinned })} icon={Star} label={form.is_archived ? 'Archived updates cannot pin' : form.is_pinned ? 'Pinned to top' : 'Not pinned'} />
+          <Toggle checked={form.is_archived} onChange={() => updateForm({ is_archived: !form.is_archived, is_published: false, is_pinned: false })} icon={Archive} label={form.is_archived ? 'Archived' : 'Not archived'} />
         </div>
 
         <div style={actionsStyle}>
@@ -201,15 +244,15 @@ export default function AdminSiteUpdatesTab() {
         {loading ? (
           <div style={emptyStyle}>Loading site updates...</div>
         ) : updates.length === 0 ? (
-          <div style={emptyStyle}>No site updates yet. Create the first one above.</div>
+          <div style={emptyStyle}>{showArchived ? 'No updates found.' : 'No visible updates yet. Create the first one above.'}</div>
         ) : updates.map(update => (
-          <article key={update.id} style={cardStyle}>
+          <article key={update.id} style={{ ...cardStyle, opacity: update.is_archived ? 0.72 : 1 }}>
             <div style={cardTopStyle}>
               <div style={{ minWidth: 0 }}>
                 <div style={badgeRowStyle}>
                   <Badge>{update.label || 'Update'}</Badge>
-                  <Badge tone={update.is_published ? 'live' : 'draft'}>{update.is_published ? 'Published' : 'Draft'}</Badge>
-                  {update.is_pinned && <Badge tone="pinned">Pinned</Badge>}
+                  <Badge tone={update.is_archived ? 'archive' : update.is_published ? 'live' : 'draft'}>{update.is_archived ? 'Archived' : update.is_published ? 'Published' : 'Draft'}</Badge>
+                  {update.is_pinned && !update.is_archived && <Badge tone="pinned">Pinned</Badge>}
                   <span style={dateStyle}>{formatDate(update.published_at || update.updated_at || update.created_at)}</span>
                 </div>
                 <h3 style={cardTitleStyle}>{update.title}</h3>
@@ -220,14 +263,27 @@ export default function AdminSiteUpdatesTab() {
             <p style={messageStyle}>{update.text}</p>
 
             <div style={cardActionsStyle}>
-              <button type="button" onClick={() => quickPatch(update, { is_published: !update.is_published })} style={smallButtonStyle}>
-                {update.is_published ? <EyeOff size={13} /> : <Eye size={13} />}
-                {update.is_published ? 'Make draft' : 'Publish'}
+              {!update.is_archived && (
+                <>
+                  <button type="button" onClick={() => quickPatch(update, { is_published: !update.is_published })} style={smallButtonStyle}>
+                    {update.is_published ? <EyeOff size={13} /> : <Eye size={13} />}
+                    {update.is_published ? 'Make draft' : 'Publish'}
+                  </button>
+                  <button type="button" onClick={() => quickPatch(update, { is_pinned: !update.is_pinned })} style={smallButtonStyle}>
+                    <Star size={13} />
+                    {update.is_pinned ? 'Unpin' : 'Pin'}
+                  </button>
+                </>
+              )}
+              <button type="button" onClick={() => quickPatch(update, { is_archived: !update.is_archived })} style={smallButtonStyle}>
+                {update.is_archived ? <RotateCcw size={13} /> : <Archive size={13} />}
+                {update.is_archived ? 'Restore' : 'Archive'}
               </button>
-              <button type="button" onClick={() => quickPatch(update, { is_pinned: !update.is_pinned })} style={smallButtonStyle}>
-                <Star size={13} />
-                {update.is_pinned ? 'Unpin' : 'Pin'}
-              </button>
+              {update.is_archived && (
+                <button type="button" onClick={() => deleteUpdate(update)} style={dangerButtonStyle}>
+                  <Trash2 size={13} /> Delete
+                </button>
+              )}
             </div>
           </article>
         ))}
@@ -237,24 +293,30 @@ export default function AdminSiteUpdatesTab() {
 }
 
 function sortUpdates(a, b) {
+  if (Boolean(a.is_archived) !== Boolean(b.is_archived)) return a.is_archived ? 1 : -1;
   if (Boolean(a.is_pinned) !== Boolean(b.is_pinned)) return a.is_pinned ? -1 : 1;
   return String(b.updated_at || b.published_at || '').localeCompare(String(a.updated_at || a.published_at || ''));
+}
+
+function statusSummary(update) {
+  if (update.is_archived) return 'Archived';
+  return `${update.is_published ? 'Published' : 'Draft'} • ${update.is_pinned ? 'Pinned' : 'Not pinned'}`;
 }
 
 function Metric({ label, value }) {
   return <div style={metricStyle}><div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div><div style={{ fontSize: 11, color: rq.muted, textTransform: 'uppercase' }}>{label}</div></div>;
 }
 
-function Toggle({ checked, onChange, icon: Icon, label }) {
+function Toggle({ checked, onChange, icon: Icon, label, disabled = false }) {
   return (
-    <button type="button" onClick={onChange} style={{ ...toggleStyle, borderColor: checked ? rq.accent : rq.borderDefault, color: checked ? rq.text : rq.muted, background: checked ? rq.accentSoft : rq.input }}>
+    <button type="button" disabled={disabled} onClick={onChange} style={{ ...toggleStyle, borderColor: checked ? rq.accent : rq.borderDefault, color: disabled ? rq.muted : checked ? rq.text : rq.muted, background: checked ? rq.accentSoft : rq.input, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1 }}>
       <Icon size={15} /> {label}
     </button>
   );
 }
 
 function Badge({ children, tone }) {
-  const color = tone === 'live' ? rq.success : tone === 'draft' ? rq.muted : tone === 'pinned' ? rq.accentHover : rq.textSecondary;
+  const color = tone === 'live' ? rq.success : tone === 'draft' ? rq.muted : tone === 'pinned' ? rq.accentHover : tone === 'archive' ? rq.muted : rq.textSecondary;
   return <span style={{ ...badgeStyle, color, borderColor: tone === 'pinned' ? rq.accent : rq.borderDefault }}>{children}</span>;
 }
 
@@ -279,7 +341,7 @@ const labelStyle = { color: rq.muted, fontSize: 12, fontWeight: 900, display: 'f
 const inputStyle = { width: '100%', background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px', outline: 'none' };
 const textareaStyle = { minHeight: 112, background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, resize: 'vertical', outline: 'none' };
 const toggleRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 };
-const toggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '9px 11px', fontWeight: 900, cursor: 'pointer' };
+const toggleStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '9px 11px', fontWeight: 900 };
 const actionsStyle = { display: 'flex', justifyContent: 'flex-end', marginTop: 14 };
 const saveButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accent, color: '#fff', border: 'none', padding: '10px 14px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
 const ghostButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', border: `1px solid ${rq.borderDefault}`, color: rq.muted, padding: '8px 10px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
@@ -295,3 +357,4 @@ const iconButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.bor
 const messageStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: '14px 0' };
 const cardActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' };
 const smallButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.text, padding: '8px 10px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
+const dangerButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: '8px 10px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
