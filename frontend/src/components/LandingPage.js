@@ -142,6 +142,33 @@ const finalStrip = [
   { icon: ShieldCheck, label: 'Table-safe flow' },
 ];
 
+const startingPaths = [
+  {
+    icon: Users,
+    eyebrow: 'New player',
+    title: 'Build a first character',
+    text: 'Start with the guided creator, then land on a sheet that explains what matters during play.',
+    actionLabel: 'Start Building',
+    action: 'register',
+  },
+  {
+    icon: Swords,
+    eyebrow: 'At the table',
+    title: 'Find the next action quickly',
+    text: 'Use clear sections for actions, bonus actions, reactions, spells, HP, rests, inventory, and notes.',
+    actionLabel: 'See Ready Tools',
+    action: 'ready',
+  },
+  {
+    icon: Crown,
+    eyebrow: 'Game master',
+    title: 'Prep without losing the thread',
+    text: 'Keep session planning, maps, NPCs, handouts, rewards, uploads, and campaign notes close together.',
+    actionLabel: 'View GM Flow',
+    action: 'flow',
+  },
+];
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [transitionTarget, setTransitionTarget] = useState(null);
@@ -175,9 +202,24 @@ export default function LandingPage() {
   const isTransitioning = Boolean(transitionTarget);
   const goLogin = () => navigateWithFill('/auth');
   const goRegister = () => navigateWithFill('/auth?mode=register');
+  const handleStartingPath = (action) => {
+    if (action === 'register') {
+      goRegister();
+      return;
+    }
+
+    if (action === 'flow') {
+      scrollToSection(flowSectionRef);
+      return;
+    }
+
+    scrollToSection(readySectionRef);
+  };
 
   return (
     <div data-testid="landing-page" className="landing-page landing-page-clean landing-page-final">
+      <a className="landing-skip-link" href="#landing-main">Skip to landing content</a>
+
       <nav className="landing-final-nav" aria-label="Rookie Quest Keeper navigation">
         <button type="button" className="landing-logo-button" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
           <BrandMiniLogo size={46} />
@@ -199,7 +241,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <main className="landing-final-main">
+      <main id="landing-main" className="landing-final-main">
         <section className="landing-final-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-copy">
             <div className="landing-final-logo-wrap" aria-hidden="true">
@@ -268,6 +310,31 @@ export default function LandingPage() {
               </article>
             );
           })}
+        </section>
+
+        <section className="landing-start-paths" aria-labelledby="landing-start-title">
+          <div className="landing-section-heading">
+            <p className="landing-kicker">Choose your path</p>
+            <h2 id="landing-start-title">A clear first step for every kind of table member.</h2>
+            <p>New players, regular players, and GMs should all understand where to go without reading the whole page first.</p>
+          </div>
+          <div className="landing-start-grid">
+            {startingPaths.map((path) => {
+              const Icon = path.icon;
+              return (
+                <article key={path.title} className="landing-start-card">
+                  <Icon size={24} aria-hidden="true" />
+                  <p className="landing-card-eyebrow">{path.eyebrow}</p>
+                  <h3>{path.title}</h3>
+                  <p>{path.text}</p>
+                  <button type="button" className="landing-card-action" onClick={() => handleStartingPath(path.action)} disabled={isTransitioning}>
+                    <span>{path.actionLabel}</span>
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                </article>
+              );
+            })}
+          </div>
         </section>
 
         <section id="ready-now" ref={readySectionRef} className="landing-marketing-block landing-marketing-split" aria-label="What you can do today">
