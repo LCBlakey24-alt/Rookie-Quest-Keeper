@@ -33,17 +33,54 @@ def entry_max(entry_range: str) -> int:
     return max(numbers) if numbers else 1
 
 
-def normalise_entries(entries: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-    cleaned: List[Dict[str, str]] = []
+def clean_columns(columns: Optional[List[Any]]) -> List[str]:
+    seen = set()
+    cleaned: List[str] = []
+    for column in columns or []:
+        value = str(column or "").strip()[:60]
+        if not value:
+            continue
+        key = value.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(value)
+    return cleaned[:12]
+
+
+def clean_cells(raw_cells: Any, allowed_columns: Optional[List[str]] = None) -> Dict[str, str]:
+    if not isinstance(raw_cells, dict):
+        return {}
+    allowed = {column.lower(): column for column in allowed_columns or []}
+    cells: Dict[str, str] = {}
+    for raw_key, raw_value in raw_cells.items():
+        key = str(raw_key or "").strip()[:60]
+        if not key:
+            continue
+        if allowed and key.lower() not in allowed:
+            continue
+        display_key = allowed.get(key.lower(), key)
+        cells[display_key] = str(raw_value or "").strip()[:500]
+    return cells
+
+
+def normalise_entries(entries: List[Dict[str, Any]], columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    cleaned: List[Dict[str, Any]] = []
     for index, entry in enumerate(entries, start=1):
         text = str(entry.get("text") or entry.get("result") or entry.get("description") or "").strip()
+        cells = clean_cells(entry.get("cells"), columns)
+        if not text and cells:
+            text = " | ".join(f"{key}: {value}" for key, value in cells.items() if value)
         if not text:
             continue
-        cleaned.append({
+        cleaned_entry: Dict[str, Any] = {
             "range": normalise_range(entry.get("range") or entry.get("roll"), index),
-            "text": text,
-        })
-    cleaned.sort(key=lambda item: entry_max(item["range"].split("-")[0]))
+            "text": text[:1000],
+        }
+        if cells:
+            cleaned_entry["cells"] = cells
+        cleaned.append(cleaned_entry)
+    cleaned.sort(key=lambda item: entry_max(str(item["range"]).split("-")[0]))
     return cleaned[:200]
 
 
@@ -52,6 +89,7 @@ class CampaignTableCreate(BaseModel):
     category: str = "general"
     description: str = ""
     die: str = "d20"
+    columns: List[str] = []
     entries: List[Dict[str, Any]] = []
     is_player_safe: bool = False
     source: str = "custom"
@@ -62,6 +100,7 @@ class CampaignTableUpdate(BaseModel):
     category: Optional[str] = None
     description: Optional[str] = None
     die: Optional[str] = None
+    columns: Optional[List[str]] = None
     entries: Optional[List[Dict[str, Any]]] = None
     is_player_safe: Optional[bool] = None
     source: Optional[str] = None
@@ -74,7 +113,8 @@ class CampaignTable(BaseModel):
     category: str = "general"
     description: str = ""
     die: str = "d20"
-    entries: List[Dict[str, str]] = []
+    columns: List[str] = []
+    entries: List[Dict[str, Any]] = []
     is_player_safe: bool = False
     source: str = "custom"
     created_by: str = ""
@@ -94,7 +134,8 @@ async def list_campaign_tables(campaign_id: str, username: str = Depends(get_cur
 async def create_campaign_table(campaign_id: str, table_data: CampaignTableCreate, username: str = Depends(get_current_user)):
     """Create a reusable campaign table without touching any existing campaign lore."""
     await verify_campaign_ownership(campaign_id, username)
-    entries = normalise_entries(table_data.entries)
+    columns = clean_columns(table_data.columns)
+    entries = normalise_entries(table_data.entries, columns)
     if len(entries) < 1:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Add at least one table result")
     sides = max(20, max(entry_max(entry["range"]) for entry in entries))
@@ -105,6 +146,7 @@ async def create_campaign_table(campaign_id: str, table_data: CampaignTableCreat
         category=(table_data.category or "general").strip().lower(),
         description=table_data.description.strip(),
         die=die,
+        columns=columns,
         entries=entries,
         is_player_safe=table_data.is_player_safe,
         source=(table_data.source or "custom").strip(),
@@ -118,6 +160,10 @@ async def create_campaign_table(campaign_id: str, table_data: CampaignTableCreat
 async def update_campaign_table(campaign_id: str, table_id: str, table_data: CampaignTableUpdate, username: str = Depends(get_current_user)):
     """Update one campaign table by id."""
     await verify_campaign_ownership(campaign_id, username)
+    existing = await db.campaign_tables.find_one({"id": table_id, "campaign_id": campaign_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Table not found")
+
     update_dict = {key: value for key, value in table_data.model_dump().items() if value is not None}
     if "name" in update_dict:
         update_dict["name"] = str(update_dict["name"]).strip()
@@ -125,8 +171,11 @@ async def update_campaign_table(campaign_id: str, table_id: str, table_data: Cam
         update_dict["category"] = str(update_dict["category"] or "general").strip().lower()
     if "description" in update_dict:
         update_dict["description"] = str(update_dict["description"] or "").strip()
+    if "columns" in update_dict:
+        update_dict["columns"] = clean_columns(update_dict["columns"])
+    active_columns = update_dict.get("columns", existing.get("columns", []))
     if "entries" in update_dict:
-        entries = normalise_entries(update_dict["entries"])
+        entries = normalise_entries(update_dict["entries"], active_columns)
         if len(entries) < 1:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Add at least one table result")
         update_dict["entries"] = entries
@@ -134,12 +183,10 @@ async def update_campaign_table(campaign_id: str, table_id: str, table_data: Cam
             update_dict["die"] = f"d{max(20, max(entry_max(entry['range']) for entry in entries))}"
     update_dict["updated_at"] = now_iso()
 
-    result = await db.campaign_tables.update_one(
+    await db.campaign_tables.update_one(
         {"id": table_id, "campaign_id": campaign_id},
         {"$set": update_dict},
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Table not found")
     table = await db.campaign_tables.find_one({"id": table_id, "campaign_id": campaign_id}, {"_id": 0})
     return table
 
