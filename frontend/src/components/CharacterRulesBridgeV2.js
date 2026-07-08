@@ -4,7 +4,13 @@ import { useLocation } from 'react-router-dom';
 import FullCharacterCreatorV2 from '@/components/FullCharacterCreatorV2';
 import { AsiChoiceRow, SpellChoiceSection, WarlockChoiceSection } from '@/components/StartingLevelDetailedChoices';
 import { BACKGROUNDS, CLASSES, RACES, getProficiencyBonus } from '@/data/characterRules5e';
-import { SPELLCASTING_CLASSES, getSpellSlotsForCaster } from '@/data/spellDatabase';
+import { FEATS } from '@/data/levelUpData';
+import {
+  SPELLCASTING_CLASSES,
+  SPELL_DATABASE,
+  getCanonicalSpellcastingClass,
+  getSpellSlotsForCaster,
+} from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import {
@@ -30,6 +36,7 @@ const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampLevel = (value) => Math.max(1, Math.min(20, Number.parseInt(value, 10) || 1));
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const normaliseKey = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const hitDieNumber = (value, fallback = 8) => {
   const match = String(value || '').match(/d?(6|8|10|12)/i);
   return match ? Number(match[1]) : Number(value || fallback) || fallback;
@@ -66,6 +73,80 @@ function applyMergedRules(merged) {
   Object.entries(merged.backgrounds || {}).forEach(([name, data]) => {
     BACKGROUNDS[name] = { ...(BACKGROUNDS[name] || {}), ...data };
   });
+}
+
+function textFromBenefits(feat = {}) {
+  if (feat.description) return feat.description;
+  return arr(feat.benefits).map((benefit) => typeof benefit === 'string' ? benefit : [benefit.name, benefit.description || benefit.rules_text].filter(Boolean).join(': ')).filter(Boolean).join(' ');
+}
+
+function normaliseRulesets(item = {}) {
+  const explicit = arr(item.rulesets || item.editions);
+  if (explicit.length) return explicit.map(String);
+  if (item.edition || item.ruleset || item.rules_edition) return [String(item.edition || item.ruleset || item.rules_edition).includes('2024') ? '2024' : '2014'];
+  return ['2014', '2024'];
+}
+
+function installUploadedFeats(feats = []) {
+  const seen = new Set(FEATS.map((feat) => normaliseKey(feat.name)));
+  arr(feats).forEach((feat) => {
+    const name = displayName(feat);
+    const key = normaliseKey(name);
+    if (!name || seen.has(key)) return;
+    seen.add(key);
+    const category = feat.category || feat.feat_category || (/origin/i.test(String(feat.prerequisite || feat.prereq || '')) ? 'origin' : 'general');
+    FEATS.push({
+      ...feat,
+      name,
+      description: textFromBenefits(feat) || 'Homebrew feat saved from the Homebrew Workshop.',
+      prereq: feat.prereq || feat.prerequisite || null,
+      editions: normaliseRulesets(feat),
+      category,
+      source: feat.source_label || feat.source || 'Homebrew Workshop',
+      homebrew: true,
+    });
+  });
+}
+
+function normaliseSpellClasses(spell = {}) {
+  const classes = arr(spell.classes || spell.class_list || spell.classList).map((name) => getCanonicalSpellcastingClass(name));
+  return classes.length ? classes : Object.keys(SPELLCASTING_CLASSES);
+}
+
+function spellEntryFromHomebrew(spell = {}) {
+  const damage = spell.damage && typeof spell.damage === 'object' ? spell.damage.dice : spell.damage;
+  const damageType = spell.damage && typeof spell.damage === 'object' ? spell.damage.type : spell.damageType || spell.damage_type;
+  return {
+    ...spell,
+    name: displayName(spell),
+    level: Number(spell.level ?? spell.spell_level ?? 0),
+    school: spell.school || '',
+    classes: normaliseSpellClasses(spell),
+    description: spell.description || spell.rules_text || '',
+    damage,
+    damageType,
+    source: spell.source_label || spell.source || 'Homebrew Workshop',
+    homebrew: true,
+  };
+}
+
+function installUploadedSpells(spells = []) {
+  arr(spells).forEach((rawSpell) => {
+    const spell = spellEntryFromHomebrew(rawSpell);
+    const name = spell.name;
+    if (!name) return;
+    const level = Math.max(0, Math.min(9, Number(spell.level || 0)));
+    const bucketKey = level === 0 ? 'cantrips' : level;
+    const bucket = SPELL_DATABASE[bucketKey] || [];
+    const duplicate = bucket.some((existing) => normaliseKey(existing.name) === normaliseKey(name));
+    if (duplicate) return;
+    SPELL_DATABASE[bucketKey] = [...bucket, { ...spell, level }];
+  });
+}
+
+function installUploadedBuilderRules(options = {}) {
+  installUploadedFeats(options.feats);
+  installUploadedSpells(options.spells);
 }
 
 function featureText(feature) {
@@ -109,6 +190,8 @@ function uploadedSubclassFeaturesUpTo(options, className, subclassName, level) {
       name: featureText(feature),
       description: featureDescription(feature, `${subclassName} feature gained at level ${feature?.level || 'this level'}.`),
       source: subclass.source_label || subclass.source || 'Uploaded subclass',
+      homebrew: true,
+      homebrewContentId: subclass.id,
     })).filter((feature) => feature.name);
   });
 }
@@ -170,6 +253,7 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
 export default function CharacterRulesBridgeV2(props) {
   const campaignId = useCampaignIdFromQuery();
   const { options, loading, error, hasCustomContent, counts } = usePlayerRulesOptions({ campaignId });
+  installUploadedBuilderRules(options || {});
   const [builderDraft, setBuilderDraft] = useState(readBuilderDraft);
   const [targetLevel, setTargetLevel] = useState(() => clampLevel(sessionStorage.getItem(LEVEL_KEY) || 1));
   const [selectedSubclass, setSelectedSubclass] = useState(() => sessionStorage.getItem(SUBCLASS_KEY) || '');
@@ -206,8 +290,8 @@ export default function CharacterRulesBridgeV2(props) {
   const subclasses = arr(currentClassData.subclasses).map(displayName).filter(Boolean);
   const subclassLevel = subclassUnlockLevel(currentClassName, currentEdition, currentClassData);
   const needsSubclass = targetLevel >= subclassLevel && subclasses.length > 0;
-  const choicePlan = useMemo(() => buildStartingLevelChoicePlan({ className: currentClassName, startingLevel: targetLevel, edition: currentEdition }), [currentClassName, currentEdition, targetLevel]);
-  const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition, category: currentEdition === '2024' && targetLevel >= 19 ? 'epic' : 'general' }), [currentEdition, targetLevel]);
+  const choicePlan = useMemo(() => buildStartingLevelChoicePlan({ className: currentClassName, startingLevel: targetLevel, edition: currentEdition }), [currentClassName, currentEdition, targetLevel, options?.spells?.length]);
+  const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition, category: currentEdition === '2024' && targetLevel >= 19 ? 'epic' : 'general' }), [currentEdition, targetLevel, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
 
   useEffect(() => {
@@ -254,7 +338,7 @@ export default function CharacterRulesBridgeV2(props) {
     };
   }, [enhancePayload]);
 
-  const visibleUploadedCount = ['races', 'classes', 'subclasses', 'backgrounds'].reduce((sum, key) => sum + Number(counts?.[key] || 0), 0);
+  const visibleUploadedCount = ['races', 'classes', 'subclasses', 'backgrounds', 'feats', 'spells'].reduce((sum, key) => sum + Number(counts?.[key] || 0), 0);
 
   if (loading) {
     return <main className="full-creator-page"><div className="full-creator-loading">Loading your character options…</div></main>;
@@ -285,7 +369,7 @@ export default function CharacterRulesBridgeV2(props) {
           )}
         </div>
 
-        {choicePlan.asiChoices.length > 0 && <div className="full-creator-auto-box"><strong>ASI / feat choices</strong><span>These choices are applied to the saved sheet immediately.</span></div>}
+        {choicePlan.asiChoices.length > 0 && <div className="full-creator-auto-box"><strong>ASI / feat choices</strong><span>These choices are applied to the saved sheet immediately, including saved Homebrew Workshop feats.</span></div>}
         {choicePlan.asiChoices.map((choice) => (
           <AsiChoiceRow key={choice.id} choice={choice} selection={levelChoiceSelections[choice.id]} featOptions={featOptions} onChange={(selection) => updateLevelChoice(choice.id, selection)} />
         ))}
@@ -304,7 +388,7 @@ export default function CharacterRulesBridgeV2(props) {
             <span>Uploaded options active</span>
             <strong>{visibleUploadedCount} builder option{visibleUploadedCount === 1 ? '' : 's'} loaded</strong>
           </div>
-          <p>Your saved races, classes, subclasses, and backgrounds are merged into this builder. Pick them from the normal dropdowns.</p>
+          <p>Your saved races, classes, subclasses, backgrounds, feats, and spells are merged into this builder. Pick them from the normal dropdowns and starting-level choices.</p>
         </section>
       )}
       {error && (
