@@ -6,7 +6,9 @@ const abilityMod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 const levelOf = (character) => Math.max(1, Number(character?.level || 1));
 const is2024Rules = (character) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024');
 const normalizeName = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+const slugName = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'homebrew_resource';
 const ruleLabel = (rule, character) => (typeof rule.label === 'function' ? rule.label(character) : rule.label);
+const asArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 
 const classLevelOf = (character, className) => {
   const key = normalizeName(className);
@@ -46,6 +48,19 @@ const proficiencyBonusOf = (character) => {
   if (level >= 9) return 4;
   if (level >= 5) return 3;
   return 2;
+};
+
+const abilityValueOf = (character, abilityName = '') => {
+  const key = normalizeName(abilityName);
+  const mapped = {
+    str: 'strength', strength: 'strength',
+    dex: 'dexterity', dexterity: 'dexterity',
+    con: 'constitution', constitution: 'constitution',
+    int: 'intelligence', intelligence: 'intelligence',
+    wis: 'wisdom', wisdom: 'wisdom',
+    cha: 'charisma', charisma: 'charisma',
+  }[key];
+  return mapped ? abilityMod(character?.[mapped]) : 0;
 };
 
 export const CLASS_RESOURCE_RULES = {
@@ -194,8 +209,65 @@ export function getClassResourceRules(character) {
   });
 }
 
+function restoreTypeFrom(value = '') {
+  const text = String(value || '').toLowerCase();
+  if (/short/.test(text)) return 'short-rest';
+  if (/long|dawn|day|daily/.test(text)) return 'long-rest';
+  return 'long-rest';
+}
+
+function formulaValue(value, character) {
+  if (Number.isFinite(Number(value))) return Number(value);
+  const text = String(value || '').toLowerCase();
+  if (!text) return 0;
+  if (/proficiency|prof\.?\s*bonus|\bpb\b/.test(text)) return proficiencyBonusOf(character);
+  if (/warlock/.test(text) && /level/.test(text)) return warlockLevelOf(character);
+  if (/fighter/.test(text) && /level/.test(text)) return fighterLevelOf(character);
+  if (/barbarian/.test(text) && /level/.test(text)) return barbarianLevelOf(character);
+  if (/bard/.test(text) && /level/.test(text)) return bardLevelOf(character);
+  if (/cleric/.test(text) && /level/.test(text)) return clericLevelOf(character);
+  if (/monk/.test(text) && /level/.test(text)) return monkLevelOf(character);
+  if (/paladin/.test(text) && /level/.test(text)) return paladinLevelOf(character);
+  if (/ranger/.test(text) && /level/.test(text)) return rangerLevelOf(character);
+  if (/sorcerer/.test(text) && /level/.test(text)) return sorcererLevelOf(character);
+  if (/character|class|total/.test(text) && /level/.test(text)) return levelOf(character);
+  const abilityMatch = text.match(/(str|strength|dex|dexterity|con|constitution|int|intelligence|wis|wisdom|cha|charisma)\s*(?:modifier|mod)?/);
+  if (abilityMatch) return Math.max(1, abilityValueOf(character, abilityMatch[1]));
+  const numberMatch = text.match(/\d+/);
+  return numberMatch ? Number(numberMatch[0]) : 0;
+}
+
+export function resolveHomebrewResourceMax(resource = {}, character = {}) {
+  const explicit = resource.max ?? resource.maximum ?? resource.uses ?? resource.value ?? resource.amount;
+  const formula = resource.formula || resource.max_formula || resource.maxFormula || resource.scaling || resource.description;
+  return Math.max(0, formulaValue(explicit ?? formula, character) || 0);
+}
+
+export function buildHomebrewResourceTrackers(character = {}) {
+  return asArray(character.homebrew_resources || character.custom_resources || character.feature_resources).reduce((resources, resource) => {
+    const label = resource.label || resource.name || resource.title || '';
+    if (!label) return resources;
+    const key = resource.key || slugName(label);
+    const max = resolveHomebrewResourceMax(resource, character);
+    if (max <= 0) return resources;
+    resources[key] = {
+      label,
+      current: max,
+      remaining: max,
+      max,
+      restore: restoreTypeFrom(resource.restore || resource.regain || resource.recharge || resource.refresh),
+      min_level: Math.max(1, Number(resource.min_level || resource.level || 1)),
+      source: resource.source || 'Homebrew',
+      formula: resource.formula || resource.max_formula || resource.maxFormula || '',
+      gm_adjustable: Boolean(resource.gm_adjustable || resource.gmAdjustable || resource.adjustable),
+      homebrew: true,
+    };
+    return resources;
+  }, {});
+}
+
 export function buildInitialClassResources(character) {
-  return getClassResourceRules(character).reduce((resources, rule) => {
+  const classResources = getClassResourceRules(character).reduce((resources, rule) => {
     resources[rule.key] = {
       label: ruleLabel(rule, character),
       current: rule.maxValue,
@@ -206,6 +278,11 @@ export function buildInitialClassResources(character) {
     };
     return resources;
   }, {});
+
+  return {
+    ...classResources,
+    ...buildHomebrewResourceTrackers(character),
+  };
 }
 
 export function restoreClassResources(character, restType = 'long-rest') {
@@ -225,5 +302,21 @@ export function restoreClassResources(character, restType = 'long-rest') {
       min_level: rule.minLevel || existing.min_level || 1,
     };
   });
+
+  Object.entries(buildHomebrewResourceTrackers(character)).forEach(([key, tracker]) => {
+    const existing = restored[key] || {};
+    const restore = existing.restore || tracker.restore || 'long-rest';
+    const shouldRestore = restType === 'long-rest' || restore === 'short-rest';
+    if (!shouldRestore) return;
+    restored[key] = {
+      ...existing,
+      ...tracker,
+      current: tracker.max,
+      remaining: tracker.max,
+      max: tracker.max,
+      restore,
+    };
+  });
+
   return restored;
 }
