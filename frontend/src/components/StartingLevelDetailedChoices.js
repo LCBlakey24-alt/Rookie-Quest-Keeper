@@ -60,16 +60,20 @@ export function AsiChoiceRow({ choice, selection, featOptions, onChange }) {
 }
 
 export function SpellChoiceSection({ plan, selection, onChange }) {
-  if (!plan?.hasKnownSpellPicker && !plan?.cantripTarget) return null;
+  if (!plan?.hasKnownSpellPicker && !plan?.hasPreparedSpellPicker && !plan?.cantripTarget) return null;
   const current = normaliseSpellSelection(selection, plan);
   const update = (patch) => onChange({ ...current, ...patch });
   const cantripTarget = Number(plan.cantripTarget || 0);
-  const spellTarget = Number(plan.knownTarget || 0);
+  const knownTarget = Number(plan.knownTarget || 0);
+  const preparedTarget = Number(plan.preparedTarget || 0);
 
   return (
     <section className="full-creator-auto-box" aria-label="Higher-level spell choices">
       <strong>Higher-level spells</strong>
-      <span>Choose up to the expected known spell totals for this starting level. Any duplicates from the main builder are skipped when saving.</span>
+      <span>
+        Choose the spell options for this starting level. Known spells are saved as known spells;
+        prepared spells are saved as the character’s prepared list.
+      </span>
 
       {cantripTarget > 0 && (
         <div>
@@ -89,12 +93,23 @@ export function SpellChoiceSection({ plan, selection, onChange }) {
         </div>
       )}
 
-      {spellTarget > 0 && (
+      {knownTarget > 0 && (
         <label className="full-creator-wide-label">
-          <span>Known spells {current.spells.length}/{spellTarget}</span>
-          <select multiple size={Math.min(10, Math.max(4, arr(plan.spellOptions).length))} value={current.spells} onChange={(event) => update({ spells: selectValues(event, spellTarget) })}>
+          <span>Known spells {current.spells.length}/{knownTarget}</span>
+          <select multiple size={Math.min(10, Math.max(4, arr(plan.spellOptions).length))} value={current.spells} onChange={(event) => update({ spells: selectValues(event, knownTarget) })}>
             {arr(plan.spellOptions).map((spell) => (
               <option key={`${spell.level}-${spell.name}`} value={spell.name}>Level {spell.level}: {spell.name}</option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {preparedTarget > 0 && (
+        <label className="full-creator-wide-label">
+          <span>Prepared spells {current.prepared.length}/{preparedTarget}</span>
+          <select multiple size={Math.min(12, Math.max(5, arr(plan.spellOptions).length))} value={current.prepared} onChange={(event) => update({ prepared: selectValues(event, preparedTarget) })}>
+            {arr(plan.spellOptions).map((spell) => (
+              <option key={`prepared-${spell.level}-${spell.name}`} value={spell.name}>Level {spell.level}: {spell.name}</option>
             ))}
           </select>
         </label>
