@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Activity, ArrowLeft, BookOpen, Check, ClipboardList, FlaskConical, Hammer, LayoutDashboard, Map, Megaphone, MessageSquare, PenTool, RefreshCw, Search, Settings, Shield, Star, Trash2, UploadCloud, User, Users, Wand2, X } from 'lucide-react';
+import { Activity, ArrowLeft, BookOpen, Check, ClipboardList, FlaskConical, Hammer, LayoutDashboard, Map, Megaphone, MessageSquare, PenTool, RefreshCw, Search, Settings, Shield, ShieldCheck, Star, Trash2, UploadCloud, User, Users, Wand2, X } from 'lucide-react';
 import RuleSystemManager from './RuleSystemManager';
 import TemplateEditor from './TemplateEditor';
 import AdminUsersTab from './admin/AdminUsersTab';
 import AdminSiteControlTab from './admin/AdminSiteControlTab';
 import AdminSiteUpdatesTab from './admin/AdminSiteUpdatesTab';
+import AdminAuditLogTab from './admin/AdminAuditLogTab';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
@@ -34,7 +35,7 @@ const theme = {
   dangerSoft: 'rgba(180, 71, 50, 0.15)',
 };
 
-const adminTabIds = ['testing', 'updates', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
+const adminTabIds = ['testing', 'updates', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
 
 function getInitialAdminTab() {
   if (typeof window === 'undefined') return 'testing';
@@ -127,6 +128,7 @@ function AdminPage() {
   const tabs = [
     { id: 'testing', label: 'Testing Notes', short: 'Testing', icon: ClipboardList, description: 'Log bugs, blockers, and fix plans while testing the site.' },
     { id: 'updates', label: 'Site Updates', short: 'Updates', icon: Megaphone, description: 'Write, draft, pin, and publish dashboard updates without touching code.' },
+    { id: 'audit', label: 'Audit Log', short: 'Audit Log', icon: ShieldCheck, description: 'Review important admin actions and keep receipts for live-site changes.' },
     { id: 'character-audit', label: 'Character Audit', short: 'Audit', icon: FlaskConical, description: 'Check builder and sheet rules readiness.' },
     { id: 'feedback', label: `Feedback (${overview.new_feedback_count || 0})`, short: 'Feedback', icon: MessageSquare, description: 'Review user feedback and mark what needs action.' },
     { id: 'reviews', label: `Reviews (${reviews.length})`, short: 'Reviews', icon: Star, description: 'Approve or hide public user reviews.' },
@@ -149,6 +151,7 @@ function AdminPage() {
   const buildFocusCards = [
     { title: 'Log a bug while testing', text: 'Use this instead of losing notes in ChatGPT or Codex threads.', icon: ClipboardList, tab: 'testing' },
     { title: 'Publish a site update', text: 'Write dashboard news from Admin instead of editing hardcoded cards.', icon: Megaphone, tab: 'updates' },
+    { title: 'Review admin actions', text: 'Check the receipts for feedback moves, update drafts, and live-site changes.', icon: ShieldCheck, tab: 'audit' },
     { title: 'Check rules readiness', text: 'Audit character data before a build goes near real users.', icon: Search, tab: 'character-audit' },
     { title: 'Triage user feedback', text: 'Turn feedback into planned, done, or dismissed work.', icon: MessageSquare, tab: 'feedback' },
     { title: 'Control the live site', text: 'Set announcements, maintenance mode, and beta feature gates.', icon: Settings, tab: 'site' },
@@ -182,7 +185,7 @@ function AdminPage() {
             <div style={{ minWidth: 0 }}>
               <p style={eyebrowStyle}>Owner workspace</p>
               <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin Mission Control</h1>
-              <p style={adminSubtitleStyle}>Manage testing notes, dashboard updates, feedback, reviews, users, rules, templates, and site switches without digging through Codex every time.</p>
+              <p style={adminSubtitleStyle}>Manage testing notes, dashboard updates, feedback, reviews, users, rules, templates, audit history, and site switches without digging through Codex every time.</p>
             </div>
           </div>
           <div style={heroActionsStyle}>
@@ -259,6 +262,7 @@ function AdminPage() {
         <section style={contentWrapStyle}>
           {activeTab === 'testing' && <AdminTestingNotesTab />}
           {activeTab === 'updates' && <AdminSiteUpdatesTab />}
+          {activeTab === 'audit' && <AdminAuditLogTab />}
           {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
           {activeTab === 'feedback' && <AdminFeedbackTab />}
           {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
