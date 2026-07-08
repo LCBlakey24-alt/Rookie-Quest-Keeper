@@ -267,6 +267,44 @@
   background: var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c)) !important;
 }
 
+/* Safety net for legacy embedded loaders that still ship inline styles. */
+[data-testid="custom-creature-manager"] > div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid]),
+.gm-dashboard-shell div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid]),
+.gm-dashboard-shell p[style*="text-align: center"][style*="padding: 20px"] {
+  min-height: 136px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 10px !important;
+  margin: 12px 0 !important;
+  padding: 22px !important;
+  border: 1px solid transparent !important;
+  border-left: 5px solid var(--rq-primary, #c08a3d) !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c)) border-box !important;
+  color: var(--rq-text, #f5e6c8) !important;
+  font-family: var(--rq-title-font, 'Cinzel', Georgia, serif) !important;
+  font-size: clamp(1rem, 2.4vw, 1.35rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.03em !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22), 0 0 28px rgba(192, 138, 61, 0.08) !important;
+}
+
+[data-testid="custom-creature-manager"] > div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid])::before,
+.gm-dashboard-shell div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid])::before,
+.gm-dashboard-shell p[style*="text-align: center"][style*="padding: 20px"]::before {
+  content: '' !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: block !important;
+  border-radius: 50% !important;
+  background-image: conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c)) !important;
+  mask: radial-gradient(circle, transparent 42%, #000 44%) !important;
+  -webkit-mask: radial-gradient(circle, transparent 42%, #000 44%) !important;
+  animation: rqLoadingSpin 0.86s linear infinite !important;
+}
+
 @keyframes rqLoadingBoardPulse {
   0%, 100% {
     transform: translateY(0);
@@ -341,7 +379,10 @@
   .loading-screen .loading-spinner,
   .loading-screen .loading-spinner::before,
   .clean-sheet-loading::after,
-  .full-creator-loading::before {
+  .full-creator-loading::before,
+  [data-testid="custom-creature-manager"] > div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid])::before,
+  .gm-dashboard-shell div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid])::before,
+  .gm-dashboard-shell p[style*="text-align: center"][style*="padding: 20px"]::before {
     animation: none !important;
   }
 }
