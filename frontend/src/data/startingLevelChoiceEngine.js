@@ -12,6 +12,29 @@ export const ABILITY_OPTIONS = [
   ['charisma', 'CHA'],
 ];
 
+export const SKILL_OPTIONS = [
+  'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History',
+  'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception',
+  'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival',
+];
+
+export const FIGHTING_STYLE_OPTIONS = [
+  'Archery', 'Blind Fighting', 'Defense', 'Dueling', 'Great Weapon Fighting',
+  'Interception', 'Protection', 'Thrown Weapon Fighting', 'Two-Weapon Fighting', 'Unarmed Fighting',
+];
+
+export const METAMAGIC_OPTIONS = [
+  'Careful Spell', 'Distant Spell', 'Empowered Spell', 'Extended Spell', 'Heightened Spell',
+  'Quickened Spell', 'Subtle Spell', 'Twinned Spell', 'Seeking Spell', 'Transmuted Spell',
+];
+
+export const MANEUVER_OPTIONS = [
+  'Commander’s Strike', 'Disarming Attack', 'Distracting Strike', 'Evasive Footwork',
+  'Feinting Attack', 'Goading Attack', 'Lunging Attack', 'Maneuvering Attack',
+  'Menacing Attack', 'Parry', 'Precision Attack', 'Pushing Attack', 'Rally',
+  'Riposte', 'Sweeping Attack', 'Trip Attack',
+];
+
 export const WARLOCK_INVOCATION_OPTIONS = [
   'Agonizing Blast',
   'Armor of Shadows',
@@ -74,6 +97,55 @@ function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
   return Math.max(1, baseLevel + abilityMod(abilityScore));
 }
 
+function fightingStyleTarget(className, level) {
+  if (className === 'Fighter' && level >= 1) return 1;
+  if (['Paladin', 'Ranger'].includes(className) && level >= 2) return 1;
+  return 0;
+}
+
+function expertiseTarget(className, level) {
+  if (className === 'Rogue') return level >= 6 ? 4 : level >= 1 ? 2 : 0;
+  if (className === 'Bard') return level >= 10 ? 4 : level >= 3 ? 2 : 0;
+  return 0;
+}
+
+function metamagicTarget(className, level) {
+  if (className !== 'Sorcerer' || level < 3) return 0;
+  if (level >= 17) return 4;
+  if (level >= 10) return 3;
+  return 2;
+}
+
+function maneuverTarget(className, level) {
+  if (className !== 'Fighter' || level < 3) return 0;
+  if (level >= 15) return 9;
+  if (level >= 10) return 7;
+  if (level >= 7) return 5;
+  return 3;
+}
+
+export function getClassSpecificChoicePlan({ className, level = 1 } = {}) {
+  const numericLevel = Math.max(1, Number(level || 1));
+  const fightingStyleCount = fightingStyleTarget(className, numericLevel);
+  const expertiseCount = expertiseTarget(className, numericLevel);
+  const metamagicCount = metamagicTarget(className, numericLevel);
+  const maneuverCount = maneuverTarget(className, numericLevel);
+
+  return {
+    className,
+    level: numericLevel,
+    fightingStyleCount,
+    expertiseCount,
+    metamagicCount,
+    maneuverCount,
+    fightingStyleOptions: FIGHTING_STYLE_OPTIONS,
+    expertiseOptions: SKILL_OPTIONS,
+    metamagicOptions: METAMAGIC_OPTIONS,
+    maneuverOptions: MANEUVER_OPTIONS,
+    hasChoices: fightingStyleCount > 0 || expertiseCount > 0 || metamagicCount > 0 || maneuverCount > 0,
+  };
+}
+
 export function getFeatName(feat) {
   return displayName(feat);
 }
@@ -123,6 +195,7 @@ export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}
     cantripOptions: arr(spellLists.cantrips).map((spell) => spellEntry(spell, 0)),
     spellOptions: leveledSpells,
     arcanumLevels: className === 'Warlock' ? getWarlockMysticArcanumLevels(level) : [],
+    classChoicePlan: getClassSpecificChoicePlan({ className, level }),
   };
 }
 
@@ -142,16 +215,6 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
   const warlockPlan = className === 'Warlock' ? getWarlockChoicePlan({ level, edition }) : null;
   const manualHooks = [];
 
-  if (['Sorcerer'].includes(className) && level >= 3) {
-    manualHooks.push({ type: 'class_choice', level: 3, label: 'Choose Metamagic options.' });
-  }
-  if (['Bard', 'Rogue'].includes(className) && level >= 3) {
-    manualHooks.push({ type: 'class_choice', level: 3, label: 'Choose Expertise or class options as needed.' });
-  }
-  if (['Fighter', 'Paladin', 'Ranger'].includes(className) && level >= 1) {
-    manualHooks.push({ type: 'class_choice', level: 1, label: 'Review fighting style or martial choices.' });
-  }
-
   return {
     level,
     baseChoices,
@@ -161,7 +224,7 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
     spellPlan,
     warlockPlan,
     manualHooks,
-    hasChoices: baseChoices.length > 0 || manualHooks.length > 0 || spellPlan.hasKnownSpellPicker || spellPlan.hasPreparedSpellPicker || Boolean(warlockPlan?.invocationsRequired),
+    hasChoices: baseChoices.length > 0 || manualHooks.length > 0 || spellPlan.hasKnownSpellPicker || spellPlan.hasPreparedSpellPicker || spellPlan.classChoicePlan.hasChoices || Boolean(warlockPlan?.invocationsRequired),
   };
 }
 
@@ -174,11 +237,21 @@ export function defaultAsiSelection(existing) {
   };
 }
 
+export function normaliseClassSpecificSelection(selection = {}, classPlan = {}) {
+  return {
+    fightingStyles: arr(selection.fightingStyles || selection.fighting_styles).slice(0, classPlan.fightingStyleCount || 0),
+    expertise: arr(selection.expertise).slice(0, classPlan.expertiseCount || 0),
+    metamagic: arr(selection.metamagic || selection.metamagic_options).slice(0, classPlan.metamagicCount || 0),
+    maneuvers: arr(selection.maneuvers || selection.battle_master_maneuvers).slice(0, classPlan.maneuverCount || 0),
+  };
+}
+
 export function normaliseSpellSelection(selection = {}, spellPlan = {}) {
   return {
     cantrips: arr(selection.cantrips).slice(0, spellPlan.cantripTarget || 0),
     spells: arr(selection.spells).slice(0, spellPlan.knownTarget || 0),
     prepared: arr(selection.prepared).slice(0, spellPlan.preparedTarget || 0),
+    classChoices: normaliseClassSpecificSelection(selection.classChoices, spellPlan.classChoicePlan),
     arcanum: selection.arcanum || {},
   };
 }
@@ -253,6 +326,24 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
     next.prepared_spells = prepared;
     next.spells_prepared = prepared;
     next.preparedSpells = prepared;
+  }
+
+  const classChoices = spellSelection.classChoices;
+  if (classChoices.fightingStyles.length) {
+    next.fighting_styles = classChoices.fightingStyles;
+    next.fighting_style = classChoices.fightingStyles[0];
+  }
+  if (classChoices.expertise.length) {
+    next.expertise = classChoices.expertise;
+    next.expertise_skills = classChoices.expertise;
+  }
+  if (classChoices.metamagic.length) {
+    next.metamagic_options = classChoices.metamagic;
+    next.metamagic = classChoices.metamagic;
+  }
+  if (classChoices.maneuvers.length) {
+    next.battle_master_maneuvers = classChoices.maneuvers;
+    next.maneuvers = classChoices.maneuvers;
   }
 
   const arcanumEntries = Object.entries(spellSelection.arcanum || {}).filter(([, name]) => name);
