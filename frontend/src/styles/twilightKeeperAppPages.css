@@ -27,8 +27,10 @@
 #root .rqk-app-rail-brand::after {
   content: "";
   display: block;
+  grid-column: 1 / -1;
+  width: 100%;
   height: 4px;
-  margin-top: 10px;
+  margin-top: 4px;
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
   opacity: 0.86;
@@ -50,7 +52,7 @@
 #root .my-campaigns-page,
 #root .library-page,
 #root .uploads-dashboard-page,
-#root .homebrew-workshop-page {
+#root [data-testid="homebrew-workshop"] {
   color: var(--rq-sunset-cream) !important;
 }
 
@@ -64,13 +66,19 @@
 #root .dashboard-overview,
 #root .dashboard-list-panel,
 #root .dashboard-empty-state,
+#root .library-page-toolbar,
+#root .library-page-empty,
 #root .library-page-card,
 #root .character-library-card,
 #root .campaign-library-card,
 #root .homebrew-workshop-card,
 #root .homebrew-section,
 #root .uploads-dashboard-card,
-#root .uploads-dashboard-next {
+#root .uploads-dashboard-next,
+#root .dashboard-command-card,
+#root [data-testid="homebrew-workshop"] > section > header,
+#root [data-testid="homebrew-workshop"] > section > section,
+#root [data-testid="homebrew-workshop"] aside {
   border: 2px solid transparent !important;
   border-radius: 24px !important;
   background:
@@ -86,7 +94,8 @@
 #root .characters-library-hero h1,
 #root .campaigns-library-hero h1,
 #root .homebrew-workshop-hero h1,
-#root .uploads-dashboard-hero h1 {
+#root .uploads-dashboard-hero h1,
+#root [data-testid="homebrew-workshop"] h1 {
   font-family: var(--rq-title-font) !important;
   color: var(--rq-sunset-cream) !important;
 }
@@ -102,8 +111,113 @@
 #root .library-page-card p,
 #root .character-library-card p,
 #root .campaign-library-card p,
-#root .uploads-dashboard-card p {
+#root .uploads-dashboard-card p,
+#root [data-testid="homebrew-workshop"] p,
+#root [data-testid="homebrew-workshop"] span,
+#root [data-testid="homebrew-workshop"] small {
   color: rgba(255,248,239,0.70) !important;
+}
+
+/* Dashboard command centre. */
+#root .dashboard-command-panel {
+  display: grid !important;
+  gap: 14px !important;
+  padding: clamp(14px, 2.2vw, 20px) !important;
+}
+
+#root .dashboard-command-heading {
+  max-width: 840px;
+}
+
+#root .dashboard-command-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)) !important;
+  gap: 10px !important;
+}
+
+#root .dashboard-command-card {
+  position: relative !important;
+  min-height: 188px !important;
+  display: grid !important;
+  align-content: start !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 9px !important;
+  padding: 14px !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: transform 180ms ease, filter 180ms ease, border-color 180ms ease !important;
+}
+
+#root .dashboard-command-card:hover,
+#root .dashboard-command-card:focus-visible {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.06) !important;
+  outline: none !important;
+}
+
+#root .dashboard-command-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: auto 12px 12px 12px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient) !important;
+  opacity: 0.78 !important;
+}
+
+#root .dashboard-command-label,
+#root .dashboard-command-card em {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: fit-content !important;
+  min-height: 26px !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(255,248,239,0.16) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.68rem !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-command-icon {
+  grid-row: span 2 !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 14px !important;
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-command-icon svg {
+  color: #ffffff !important;
+}
+
+#root .dashboard-command-card strong {
+  grid-column: 1 / -1 !important;
+  color: var(--rq-sunset-cream) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.25rem, 4.4vw, 1.8rem) !important;
+  line-height: 1.04 !important;
+}
+
+#root .dashboard-command-card > span:not(.dashboard-command-label):not(.dashboard-command-icon) {
+  grid-column: 1 / -1 !important;
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.45 !important;
+}
+
+#root .dashboard-command-card em {
+  grid-column: 1 / -1 !important;
+  margin-top: 4px !important;
 }
 
 /* Library/action buttons: keep the sunset for primary actions and calm dark for the rest. */
@@ -128,6 +242,63 @@
   background: rgba(13,6,23,0.82) !important;
   color: rgba(255,248,239,0.82) !important;
   border: 1px solid rgba(255,248,239,0.14) !important;
+}
+
+#root .library-page button,
+#root .library-page a[class*="button"],
+#root [data-testid="homebrew-workshop"] button,
+#root [data-testid="homebrew-workshop"] label[for="hb-file-input"],
+#root [data-testid="homebrew-workshop"] select {
+  border-radius: 14px !important;
+  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease !important;
+}
+
+#root .library-page button:hover,
+#root .library-page a[class*="button"]:hover,
+#root [data-testid="homebrew-workshop"] button:hover,
+#root [data-testid="homebrew-workshop"] label[for="hb-file-input"]:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* Homebrew inline-style rescue pass. */
+#root [data-testid="homebrew-workshop"] {
+  background:
+    radial-gradient(circle at 78% 0%, rgba(235,63,233,0.16), transparent 34%),
+    radial-gradient(circle at 18% 98%, rgba(255,149,66,0.16), transparent 40%),
+    linear-gradient(180deg, #070713, #120720 58%, #1b082f) !important;
+}
+
+#root [data-testid="homebrew-workshop"] input,
+#root [data-testid="homebrew-workshop"] textarea,
+#root [data-testid="homebrew-workshop"] select {
+  background: rgba(7,7,19,0.72) !important;
+  border: 1px solid rgba(255,248,239,0.16) !important;
+  border-radius: 14px !important;
+  color: var(--rq-sunset-cream) !important;
+}
+
+#root [data-testid="homebrew-workshop"] input:focus,
+#root [data-testid="homebrew-workshop"] textarea:focus,
+#root [data-testid="homebrew-workshop"] select:focus {
+  border-color: rgba(255,149,66,0.52) !important;
+  outline: none !important;
+}
+
+#root [data-testid="homebrew-workshop"] button,
+#root [data-testid="homebrew-workshop"] label[for="hb-file-input"] {
+  background:
+    linear-gradient(rgba(13,6,23,0.88), rgba(13,6,23,0.88)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  border: 1px solid transparent !important;
+  color: var(--rq-sunset-cream) !important;
+  box-shadow: none !important;
+}
+
+#root [data-testid="hb-save-btn"],
+#root [data-testid="hb-parse-text-btn"],
+#root [data-testid="hb-download-template-btn"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
 }
 
 /* Campaign dashboard / GM panels. */
@@ -264,15 +435,27 @@
   #root .library-page-card,
   #root .character-library-card,
   #root .campaign-library-card,
+  #root .dashboard-command-card,
   #root .campaign-dashboard-card,
   #root .campaign-dashboard-section,
   #root .admin-panel,
   #root .admin-card,
   #root .admin-section,
   #root .uploads-dashboard-card,
-  #root .homebrew-workshop-card {
+  #root .homebrew-workshop-card,
+  #root [data-testid="homebrew-workshop"] > section > header,
+  #root [data-testid="homebrew-workshop"] > section > section,
+  #root [data-testid="homebrew-workshop"] aside {
     border-radius: 18px !important;
     box-shadow: 0 10px 28px rgba(0,0,0,0.20), 0 0 18px rgba(235,63,233,0.07) !important;
+  }
+
+  #root .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .dashboard-command-card {
+    min-height: 160px !important;
   }
 
   #root .rqk-app-rail {
