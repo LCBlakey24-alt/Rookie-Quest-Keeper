@@ -110,10 +110,13 @@ function AdminPage() {
     visibleReviews: overview.approved_reviews_count ?? reviews.filter(review => review.is_approved).length,
     newFeedback: overview.new_feedback_count ?? 0,
     activeFeedback: overview.active_feedback_count ?? 0,
+    newTesting: overview.new_testing_notes_count ?? 0,
+    activeTesting: overview.active_testing_notes_count ?? 0,
     publishedUpdates: overview.published_site_updates_count ?? 0,
     draftUpdates: overview.draft_site_updates_count ?? 0,
     archivedUpdates: overview.archived_site_updates_count ?? 0,
     auditLogs: overview.audit_log_count ?? 0,
+    recentAudit: overview.recent_audit_count ?? 0,
   }), [reviews, users, overview]);
 
   const handleToggleReview = async (reviewId) => {
@@ -154,7 +157,7 @@ function AdminPage() {
   };
 
   const tabs = [
-    { id: 'testing', label: 'Testing Notes', short: 'Testing', icon: ClipboardList, description: 'Log bugs, blockers, and fix plans while testing the site.' },
+    { id: 'testing', label: `Testing Notes (${overview.new_testing_notes_count || 0})`, short: 'Testing', icon: ClipboardList, description: 'Log bugs, blockers, and fix plans while testing the site.' },
     { id: 'updates', label: 'Site Updates', short: 'Updates', icon: Megaphone, description: 'Write, draft, pin, and publish dashboard updates without touching code.' },
     { id: 'audit', label: 'Audit Log', short: 'Audit Log', icon: ShieldCheck, description: 'Review important admin actions and keep receipts for live-site changes.' },
     { id: 'character-audit', label: 'Character Audit', short: 'Audit', icon: FlaskConical, description: 'Check builder and sheet rules readiness.' },
@@ -232,7 +235,9 @@ function AdminPage() {
           <StatCard label="Archived Updates" value={stats.archivedUpdates} icon={Archive} />
           <StatCard label="New Feedback" value={stats.newFeedback} icon={MessageSquare} tone={stats.newFeedback > 0 ? 'hot' : 'normal'} />
           <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} tone={stats.activeFeedback > 0 ? 'hot' : 'normal'} />
-          <StatCard label="Audit Entries" value={stats.auditLogs} icon={ShieldCheck} />
+          <StatCard label="New Testing" value={stats.newTesting} icon={ClipboardList} tone={stats.newTesting > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Active Testing" value={stats.activeTesting} icon={FlaskConical} tone={stats.activeTesting > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Audit 24h" value={stats.recentAudit} icon={ShieldCheck} />
         </section>
 
         <AdminMissionBrief onOpenTab={setActiveTab} />
