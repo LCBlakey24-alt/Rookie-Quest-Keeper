@@ -1,8 +1,8 @@
 import CharacterRulesBridge from './CharacterRulesBridge';
-import CharacterRulesBridgeV3 from './CharacterRulesBridgeV3';
+import CharacterRulesBridgeV2 from './CharacterRulesBridgeV2';
 
 describe('active character rules bridge', () => {
-  test('default route bridge points at the V3 wrapper', () => {
-    expect(CharacterRulesBridge).toBe(CharacterRulesBridgeV3);
+  test('default route bridge points at the maintained V2 bridge', () => {
+    expect(CharacterRulesBridge).toBe(CharacterRulesBridgeV2);
   });
 });
