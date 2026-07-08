@@ -8,7 +8,7 @@ import '@/styles/railFeedbackButtons.css';
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'] },
   { label: 'My Characters', to: '/characters', icon: UsersRound, matches: ['/characters'] },
-  { label: 'My GM', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
+  { label: 'My Campaigns', to: '/campaigns', icon: BookOpen, matches: ['/campaigns', '/campaign'] },
   { label: 'My Homebrew', to: '/homebrew', icon: Wand2, matches: ['/homebrew'] },
   { label: 'My Uploads', to: '/uploads', icon: UploadCloud, matches: ['/uploads'] },
   { label: 'Settings', to: '/account', icon: Settings, matches: ['/account'] },
@@ -64,18 +64,30 @@ export default function AppShell({ children }) {
   return (
     <div className="rqk-app-shell">
       <aside className="rqk-app-rail" aria-label="App navigation">
+        <Link to="/home" className="rqk-app-rail-brand" aria-label="Rookie Quest Keeper dashboard">
+          <span className="rqk-app-rail-brand-mark" aria-hidden="true">RQK</span>
+          <span className="rqk-app-rail-brand-copy">
+            <strong>Rookie Quest</strong>
+            <small>Keeper Hub</small>
+          </span>
+        </Link>
+
         <nav className="rqk-app-rail-nav" aria-label="Main app sections">
+          <p className="rqk-app-rail-section-label">Workspace</p>
           {mainNavItems.map((item) => (
             <RailLink key={item.label} item={item} pathname={location.pathname} />
           ))}
         </nav>
 
-        <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback" onClick={openFeedback}>
-          <MessageSquare size={20} aria-hidden="true" />
-          <span>Feedback</span>
-        </button>
+        <div className="rqk-app-rail-bottom">
+          <p className="rqk-app-rail-section-label">Support</p>
+          <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback" onClick={openFeedback}>
+            <MessageSquare size={20} aria-hidden="true" />
+            <span>Feedback</span>
+          </button>
 
-        {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} />}
+          {isAdmin && <RailLink item={adminNavItem} pathname={location.pathname} />}
+        </div>
       </aside>
 
       <div className="rqk-app-shell-content">
