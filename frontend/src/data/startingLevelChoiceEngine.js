@@ -263,6 +263,24 @@ export function normaliseWarlockSelection(selection = {}, warlockPlan = {}) {
   };
 }
 
+export function pruneStartingLevelDetailSelections(detailSelections = {}, { spellPlan = {}, warlockPlan = null } = {}) {
+  const spellSelection = normaliseSpellSelection(detailSelections.spells, spellPlan);
+  const arcanumLevels = new Set(arr(spellPlan.arcanumLevels).map(String));
+  const arcanum = Object.fromEntries(
+    Object.entries(spellSelection.arcanum || {}).filter(([spellLevel, name]) => name && arcanumLevels.has(String(spellLevel))),
+  );
+  const warlockSelection = normaliseWarlockSelection(detailSelections.warlock, warlockPlan || {});
+
+  return {
+    ...detailSelections,
+    spells: { ...spellSelection, arcanum },
+    warlock: {
+      ...warlockSelection,
+      pactBoon: warlockPlan?.pactBoonRequired ? warlockSelection.pactBoon : '',
+    },
+  };
+}
+
 export function applyStartingLevelChoicesToPayload(payload, selections = {}, featOptions = [], detailSelections = {}) {
   if (!payload || typeof payload !== 'object') return payload;
   const next = { ...payload };
