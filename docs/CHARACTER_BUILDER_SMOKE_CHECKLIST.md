@@ -72,6 +72,15 @@ pytest
 6. Confirm the character no longer shows the Spells tab attention warning once spell choices exist.
 7. Change the caster's spellcasting ability score in the builder and confirm the prepared spell target updates.
 
+### Spell choice pruning
+
+1. Pick cantrips/spells for a spellcasting class, then change to a non-spellcasting class.
+2. Confirm the spell choice UI clears or hides invalid selections.
+3. Pick prepared spells, then lower the spellcasting ability score or starting level.
+4. Confirm prepared spell selections trim to the new target.
+5. Pick Mystic Arcanum at a Warlock level that supports it, then lower the level.
+6. Confirm invalid Mystic Arcanum picks are not saved.
+
 ## Manual smoke flow: Warlock
 
 1. Create a Warlock at level 3 or above.
@@ -80,6 +89,8 @@ pytest
 4. Confirm Pact Boon and Eldritch Invocations appear in Selected Class Choices.
 5. Confirm Pact Magic appears on the Spells tab.
 6. Cast a Warlock spell and confirm the pact slot count changes.
+7. Lower the Warlock below level 3 and confirm Pact Boon is cleared.
+8. Lower the Warlock to a level with fewer invocations and confirm invocation choices trim.
 
 ## Manual smoke flow: class-specific choices
 
@@ -137,7 +148,7 @@ pytest
 - Character creation still works with uploaded content unavailable or API failure.
 - Save interception does not affect non-character API calls.
 - Editing an existing character does not duplicate ASIs, feats, spells, invocations, or class choices.
-- Class-specific choices are pruned when class, level, or subclass changes.
+- Spell, Warlock, and class-specific choices are pruned when class, level, ability scores, or subclass changes.
 - Class and Features tabs both show the same selected choices and resource controls.
 - Spells tab can still manage slots after a long rest or short rest.
 - Mobile viewport: Starting Level Supervisor, class-specific choices, Spells tab, Class tab, and resource buttons remain usable at phone width.
