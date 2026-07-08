@@ -1,1 +1,1 @@
-export { default } from '@/components/CharacterRulesBridgeV2';
+export { default } from '@/components/CharacterRulesBridgeV3';
