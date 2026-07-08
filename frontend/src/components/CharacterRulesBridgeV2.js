@@ -33,6 +33,12 @@ const LEVELS = Array.from({ length: 20 }, (_, index) => index + 1);
 const SUBCLASS_LEVEL_2014 = { Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2, Fighter: 3, Monk: 3, Paladin: 3, Ranger: 3, Rogue: 3, Sorcerer: 1, Warlock: 1, Wizard: 2 };
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
+const many = (value) => Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
+const splitList = (value) => {
+  if (Array.isArray(value)) return value.flatMap(splitList).filter(Boolean);
+  if (typeof value === 'string') return value.split(/[,;/|]+|\band\b/gi).map(item => item.trim()).filter(Boolean);
+  return value ? [value] : [];
+};
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampLevel = (value) => Math.max(1, Math.min(20, Number.parseInt(value, 10) || 1));
 const mod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
@@ -81,10 +87,29 @@ function textFromBenefits(feat = {}) {
 }
 
 function normaliseRulesets(item = {}) {
-  const explicit = arr(item.rulesets || item.editions);
+  const explicit = splitList(item.rulesets || item.editions);
   if (explicit.length) return explicit.map(String);
   if (item.edition || item.ruleset || item.rules_edition) return [String(item.edition || item.ruleset || item.rules_edition).includes('2024') ? '2024' : '2014'];
   return ['2014', '2024'];
+}
+
+export function normaliseFeatCategory(feat = {}) {
+  const haystack = [
+    feat.category,
+    feat.feat_category,
+    feat.featCategory,
+    feat.type,
+    feat.feat_type,
+    feat.group,
+    feat.prerequisite,
+    feat.prereq,
+    feat.requirements,
+    splitList(feat.tags).join(' '),
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  if (feat.epic || feat.is_epic || /\bepic\b|\blevel\s*19\b|\b19th[-\s]?level\b/.test(haystack)) return 'epic';
+  if (feat.origin || feat.is_origin || /\borigin\b|\bbackground\b|\blevel\s*1\b|\b1st[-\s]?level\b|\bstarter\b/.test(haystack)) return 'origin';
+  return 'general';
 }
 
 function installUploadedFeats(feats = []) {
@@ -94,26 +119,38 @@ function installUploadedFeats(feats = []) {
     const key = normaliseKey(name);
     if (!name || seen.has(key)) return;
     seen.add(key);
-    const category = feat.category || feat.feat_category || (/origin/i.test(String(feat.prerequisite || feat.prereq || '')) ? 'origin' : 'general');
     FEATS.push({
       ...feat,
       name,
       description: textFromBenefits(feat) || 'Homebrew feat saved from the Homebrew Workshop.',
       prereq: feat.prereq || feat.prerequisite || null,
       editions: normaliseRulesets(feat),
-      category,
+      category: normaliseFeatCategory(feat),
       source: feat.source_label || feat.source || 'Homebrew Workshop',
       homebrew: true,
     });
   });
 }
 
-function normaliseSpellClasses(spell = {}) {
-  const classes = arr(spell.classes || spell.class_list || spell.classList).map((name) => getCanonicalSpellcastingClass(name));
-  return classes.length ? classes : Object.keys(SPELLCASTING_CLASSES);
+export function normaliseSpellClasses(spell = {}) {
+  const rawClasses = splitList(
+    spell.classes ||
+    spell.class_list ||
+    spell.classList ||
+    spell.class_names ||
+    spell.classNames ||
+    spell.available_classes ||
+    spell.availableClasses ||
+    spell.class ||
+    spell.spell_class,
+  );
+  const classes = rawClasses
+    .map((name) => getCanonicalSpellcastingClass(name))
+    .filter((name) => name && SPELLCASTING_CLASSES[name]);
+  return classes.length ? Array.from(new Set(classes)) : Object.keys(SPELLCASTING_CLASSES);
 }
 
-function spellEntryFromHomebrew(spell = {}) {
+export function spellEntryFromHomebrew(spell = {}) {
   const damage = spell.damage && typeof spell.damage === 'object' ? spell.damage.dice : spell.damage;
   const damageType = spell.damage && typeof spell.damage === 'object' ? spell.damage.type : spell.damageType || spell.damage_type;
   return {
@@ -183,12 +220,12 @@ function classFeaturesUpTo(className, classData, level, existingFeatures = []) {
 function collectFeatureMechanics(feature = {}, source = '') {
   if (!feature || typeof feature !== 'object') return emptyMechanics();
   return {
-    resources: arr(feature.resources || feature.resource).map(item => ({ ...item, source })),
-    actions: arr(feature.actions || feature.sheet_actions || feature.sheetActions).map(item => ({ ...item, source })),
-    passive_effects: arr(feature.passive_effects || feature.passiveEffects || feature.effects).map(item => ({ ...item, source })),
-    scaling: arr(feature.scaling).map(item => ({ ...item, source })),
-    upgrades: arr(feature.upgrades).map(item => ({ ...item, source })),
-    automation_notes: arr(feature.automation_notes ? [feature.automation_notes] : feature.automationNotes ? [feature.automationNotes] : []).map(note => ({ note: String(note), source })),
+    resources: many(feature.resources || feature.resource).map(item => ({ ...item, source })),
+    actions: many(feature.actions || feature.sheet_actions || feature.sheetActions).map(item => ({ ...item, source })),
+    passive_effects: many(feature.passive_effects || feature.passiveEffects || feature.effects).map(item => ({ ...item, source })),
+    scaling: many(feature.scaling).map(item => ({ ...item, source })),
+    upgrades: many(feature.upgrades).map(item => ({ ...item, source })),
+    automation_notes: many(feature.automation_notes || feature.automationNotes).map(note => ({ note: String(note), source })),
     refs: [],
   };
 }
@@ -214,12 +251,12 @@ function collectItemMechanics(item = {}, level = 20, type = 'homebrew') {
   const name = displayName(item);
   const source = item.source_label || item.source || name || 'Homebrew';
   const own = {
-    resources: arr(item.resources || item.resource).map(resource => ({ ...resource, source, source_type: type, content_id: item.id })),
-    actions: arr(item.actions || item.sheet_actions || item.sheetActions).map(action => ({ ...action, source, source_type: type, content_id: item.id })),
-    passive_effects: arr(item.passive_effects || item.passiveEffects || item.effects).map(effect => ({ ...effect, source, source_type: type, content_id: item.id })),
-    scaling: arr(item.scaling).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
-    upgrades: arr(item.upgrades).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
-    automation_notes: arr(item.automation_notes ? [item.automation_notes] : item.automationNotes ? [item.automationNotes] : []).map(note => ({ note: String(note), source, source_type: type, content_id: item.id })),
+    resources: many(item.resources || item.resource).map(resource => ({ ...resource, source, source_type: type, content_id: item.id })),
+    actions: many(item.actions || item.sheet_actions || item.sheetActions).map(action => ({ ...action, source, source_type: type, content_id: item.id })),
+    passive_effects: many(item.passive_effects || item.passiveEffects || item.effects).map(effect => ({ ...effect, source, source_type: type, content_id: item.id })),
+    scaling: many(item.scaling).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
+    upgrades: many(item.upgrades).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
+    automation_notes: many(item.automation_notes || item.automationNotes).map(note => ({ note: String(note), source, source_type: type, content_id: item.id })),
     refs: name ? [{ id: item.id, type, name, source }] : [],
   };
   const featureMechanics = arr(item.features)
@@ -271,7 +308,7 @@ function uploadedSubclassFeaturesUpTo(options, className, subclassName, level) {
   return arr(options?.subclasses).flatMap((subclass) => {
     const parent = subclass.parent_class || subclass.parentClass;
     const name = displayName(subclass);
-    if (parent !== className || name !== subclassName) return [];
+    if (normaliseKey(parent) !== normaliseKey(className) || normaliseKey(name) !== normaliseKey(subclassName)) return [];
     return arr(subclass.features).filter((feature) => Number(feature?.level || 1) <= level).map((feature) => ({
       ...feature,
       name: featureText(feature),
