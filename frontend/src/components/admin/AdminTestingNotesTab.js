@@ -41,7 +41,7 @@ export default function AdminTestingNotesTab() {
   const load = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/admin/feedback', { params: { status_filter: 'all' } });
+      const res = await apiClient.get('/admin/feedback', { params: { status_filter: 'all', kind: 'testing' } });
       setItems(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to load testing notes');
