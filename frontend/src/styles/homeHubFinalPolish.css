@@ -129,7 +129,8 @@
   min-width: 0 !important;
 }
 
-#root .campaign-card-meta-row {
+#root .campaign-card-meta-row,
+#root .character-card-meta-row {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -137,14 +138,20 @@
   flex-wrap: wrap !important;
 }
 
+#root .character-card-meta-row {
+  justify-content: flex-start !important;
+}
+
 #root .library-page-card-meta,
 #root .library-page-card-note,
-#root .campaign-card-status {
+#root .campaign-card-status,
+#root .character-card-status {
   display: block !important;
 }
 
 #root .library-page-card-meta,
-#root .campaign-card-status {
+#root .campaign-card-status,
+#root .character-card-status {
   width: fit-content !important;
   margin: 0 !important;
   padding: 5px 8px !important;
