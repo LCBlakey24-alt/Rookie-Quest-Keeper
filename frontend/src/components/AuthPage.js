@@ -70,6 +70,13 @@ const FEATURE_CARDS = [
 const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
 const URL_MODES = new Set(['login', 'register', 'forgot']);
 
+const PAGE_TITLES = {
+  login: 'Sign in',
+  register: 'Create account',
+  forgot: 'Reset password',
+  reset: 'Choose new password',
+};
+
 const NEXT_STEPS = {
   login: ['Open dashboard', 'Pick a character', 'Join the table'],
   register: ['Create account', 'Build first character', 'Start a campaign'],
@@ -127,6 +134,12 @@ export default function AuthPage({ onLogin = () => {} }) {
     setMode(URL_MODES.has(queryMode) ? queryMode : 'login');
   }, [initialToken, queryMode]);
 
+  useEffect(() => {
+    setShowLoginPassword(false);
+    setShowRegisterPassword(false);
+    setShowResetPassword(false);
+  }, [mode]);
+
   const goToMode = (nextMode, { replace = false } = {}) => {
     setMode(nextMode);
 
@@ -169,6 +182,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     const username = registerData.username.trim();
+    const recoveryEmail = registerData.email.trim();
 
     if (!username || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
@@ -188,7 +202,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     setLoading(true);
     try {
       const payload = { username, password: registerData.password };
-      if (registerData.email.trim()) payload.email = registerData.email.trim();
+      if (recoveryEmail) payload.email = recoveryEmail;
 
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
@@ -203,15 +217,16 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
+    const recoveryEmail = forgotEmail.trim();
 
-    if (!forgotEmail) {
+    if (!recoveryEmail) {
       toast.error('Please enter your email');
       return;
     }
 
     setLoading(true);
     try {
-      await apiClient.post('/auth/forgot-password', { email: forgotEmail.trim() });
+      await apiClient.post('/auth/forgot-password', { email: recoveryEmail });
       toast.success('Password reset email sent!');
       goToMode('login', { replace: true });
     } catch (error) {
@@ -254,6 +269,15 @@ export default function AuthPage({ onLogin = () => {} }) {
   const resetPasswordChecks = getPasswordChecks(resetData.new_password);
   const resetPasswordStrength = getPasswordStrength(resetPasswordChecks, resetData.new_password);
   const confirmStatus = getConfirmPasswordStatus(registerData.password, registerData.confirmPassword);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${PAGE_TITLES[mode] || PAGE_TITLES.login} | Rookie Quest Keeper`;
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [mode]);
 
   return (
     <main className={`rqk-auth-page rqk-auth-page--${mode}`} data-testid="auth-page">
@@ -346,6 +370,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form onSubmit={handleLogin} className="rqk-auth-form">
                 <AuthInput
                   id="login-identifier"
+                  name="username"
                   icon={User}
                   label="Username or email"
                   type="text"
@@ -359,6 +384,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
                 <AuthInput
                   id="login-password"
+                  name="password"
                   icon={Lock}
                   label="Password"
                   type={showLoginPassword ? 'text' : 'password'}
@@ -395,6 +421,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form onSubmit={handleRegister} className="rqk-auth-form">
                 <AuthInput
                   id="register-username"
+                  name="username"
                   icon={User}
                   label="Username"
                   type="text"
@@ -408,6 +435,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
                 <AuthInput
                   id="register-email"
+                  name="email"
                   icon={Mail}
                   label="Recovery email"
                   type="email"
@@ -415,11 +443,13 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.email}
                   onChange={(value) => setRegisterData({ ...registerData, email: value })}
                   autoComplete="email"
+                  inputMode="email"
                   hint="Optional, but useful if you need a password reset later."
                 />
 
                 <AuthInput
                   id="register-password"
+                  name="password"
                   icon={Lock}
                   label="Password"
                   type={showRegisterPassword ? 'text' : 'password'}
@@ -442,6 +472,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
                 <AuthInput
                   id="register-confirm-password"
+                  name="confirmPassword"
                   icon={Lock}
                   label="Confirm password"
                   type={showRegisterPassword ? 'text' : 'password'}
@@ -451,6 +482,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   autoComplete="new-password"
                   minLength={8}
                   required
+                  ariaInvalid={confirmStatus.tone === 'bad'}
                 />
 
                 <PasswordMatchNotice status={confirmStatus} />
@@ -467,6 +499,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form onSubmit={handleForgotPassword} className="rqk-auth-form">
                 <AuthInput
                   id="forgot-email"
+                  name="email"
                   icon={Mail}
                   label="Recovery email"
                   type="email"
@@ -492,6 +525,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form onSubmit={handleResetPassword} className="rqk-auth-form">
                 <AuthInput
                   id="reset-password"
+                  name="new_password"
                   icon={Lock}
                   label="New password"
                   type={showResetPassword ? 'text' : 'password'}
@@ -538,24 +572,28 @@ function AuthNotice({ children }) {
   );
 }
 
-function AuthInput({ id, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, testId, rightAction, required = false, minLength }) {
+function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, testId, rightAction, required = false, minLength, ariaInvalid = false }) {
   const hintId = hint ? `${id}-hint` : undefined;
 
   return (
     <div className="rqk-auth-input-group">
-      <label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>
+      <label htmlFor={id}>{label}{required && <span className="rqk-auth-required-mark" aria-hidden="true"> *</span>}</label>
       <div className="rqk-auth-input-shell">
         <Icon size={18} className="rqk-auth-input-icon" aria-hidden="true" />
         <input
           id={id}
+          name={name}
           className="rqk-auth-field"
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
+          autoCapitalize="none"
           inputMode={inputMode}
+          spellCheck="false"
           aria-describedby={hintId}
+          aria-invalid={ariaInvalid ? 'true' : undefined}
           data-testid={testId}
           required={required}
           minLength={minLength}
