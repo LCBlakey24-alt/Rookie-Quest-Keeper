@@ -18,10 +18,14 @@ def now_iso() -> str:
 
 
 def normalise_range(raw_range: Any, fallback_index: int) -> str:
-    value = str(raw_range or fallback_index).strip().replace(" ", "")
-    if re.match(r"^\d+(?:-\d+)?$", value):
+    """Keep roll ranges for dice tables and labels for reference tables."""
+    value = str(raw_range or "").strip().replace(" ", "")
+    if not value:
+        return str(fallback_index)
+    if re.match(r"^\d+(?:[–-]\d+)?$", value):
         return value
-    return str(fallback_index)
+    label = str(raw_range or "").strip()
+    return label[:120] if label else str(fallback_index)
 
 
 def entry_max(entry_range: str) -> int:
