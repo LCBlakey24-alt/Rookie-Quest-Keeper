@@ -24,9 +24,10 @@ export function rollDiceNotation(notation, options = {}) {
   if (isAdvRoll) {
     const r1 = rollDie(20, rng);
     const r2 = rollDie(20, rng);
-    const kept = rollType === 'advantage' ? Math.max(r1, r2) : Math.min(r1, r2);
-    rolls.push({ sides: 20, result: r1, dropped: r1 !== kept });
-    rolls.push({ sides: 20, result: r2, dropped: r2 !== kept });
+    const keepFirst = rollType === 'advantage' ? r1 >= r2 : r1 <= r2;
+    const kept = keepFirst ? r1 : r2;
+    rolls.push({ sides: 20, result: r1, dropped: !keepFirst });
+    rolls.push({ sides: 20, result: r2, dropped: keepFirst });
     total = kept;
   } else {
     for (const group of diceGroups) {
