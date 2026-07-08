@@ -95,6 +95,10 @@ function AdminPage() {
     }
   };
 
+  const logAudit = async (entry) => {
+    try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block moderation. */ }
+  };
+
   const stats = useMemo(() => ({
     totalUsers: overview.users_count ?? users.length,
     campaigns: overview.campaigns_count ?? 0,
@@ -105,8 +109,16 @@ function AdminPage() {
   }), [reviews, users, overview]);
 
   const handleToggleReview = async (reviewId) => {
+    const review = reviews.find(item => item.id === reviewId);
     try {
       const response = await apiClient.put(`/reviews/${reviewId}/approve`);
+      await logAudit({
+        action: response.data?.is_approved ? 'Review shown' : 'Review hidden',
+        area: 'reviews',
+        target_id: reviewId,
+        target_label: review?.username || 'User review',
+        detail: review?.comment ? review.comment.slice(0, 300) : '',
+      });
       toast.success(response.data.message);
       fetchData();
     } catch (error) {
@@ -115,9 +127,17 @@ function AdminPage() {
   };
 
   const handleDeleteReview = async (reviewId) => {
+    const review = reviews.find(item => item.id === reviewId);
     if (!window.confirm('Delete this review?')) return;
     try {
       await apiClient.delete(`/reviews/${reviewId}`);
+      await logAudit({
+        action: 'Review deleted',
+        area: 'reviews',
+        target_id: reviewId,
+        target_label: review?.username || 'User review',
+        detail: review?.comment ? review.comment.slice(0, 300) : '',
+      });
       toast.success('Review deleted');
       fetchData();
     } catch (error) {
