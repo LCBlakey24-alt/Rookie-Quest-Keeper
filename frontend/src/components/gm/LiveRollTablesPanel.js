@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2 } from 'lucide-react';
+import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { GM_REFERENCE_PACK_TABLES_BY_EDITION } from '@/data/gmReferenceTablesByEdition';
@@ -196,6 +196,80 @@ function parseTableLines(rawText) {
     .slice(0, 200);
 }
 
+function inferCategoryFromName(name) {
+  const lower = String(name || '').toLowerCase();
+  if (lower.includes('weapon') || lower.includes('ammunition')) return 'weapons';
+  if (lower.includes('armour') || lower.includes('armor')) return 'armour';
+  if (lower.includes('potion') || lower.includes('poison') || lower.includes('herb')) return 'potions';
+  if (lower.includes('cost') || lower.includes('value') || lower.includes('expense') || lower.includes('service') || lower.includes('food') || lower.includes('mount')) return 'prices';
+  if (lower.includes('travel') || lower.includes('watch') || lower.includes('rest')) return 'travel';
+  if (lower.includes('quirk') || lower.includes('fate') || lower.includes('opian')) return 'fate';
+  if (lower.includes('combat') || lower.includes('action') || lower.includes('reaction') || lower.includes('cover') || lower.includes('condition') || lower.includes('damage') || lower.includes('death')) return 'rules';
+  return 'general';
+}
+
+function parseBulkTables(rawText) {
+  const normalised = String(rawText || '').replace(/\r/g, '').trim();
+  if (!normalised) return [];
+  const sections = /^Table Name:/im.test(normalised)
+    ? normalised.split(/(?=^Table Name:)/gim)
+    : normalised.split(/\n\s*---+\s*\n/g);
+
+  return sections
+    .map(section => section.trim())
+    .filter(Boolean)
+    .map(section => {
+      const lines = section.split('\n').map(line => line.trim()).filter(Boolean);
+      if (!lines.length) return null;
+      const nameLine = lines.find(line => /^Table Name:/i.test(line));
+      const categoryLine = lines.find(line => /^Category:/i.test(line));
+      const name = nameLine
+        ? nameLine.replace(/^Table Name:\s*/i, '').trim()
+        : lines[0].replace(/#+/g, '').trim();
+      const category = categoryLine
+        ? categoryLine.replace(/^Category:\s*/i, '').trim().toLowerCase()
+        : inferCategoryFromName(name);
+      const bodyLines = lines.filter((line, index) => {
+        if (nameLine && /^Table Name:/i.test(line)) return false;
+        if (categoryLine && /^Category:/i.test(line)) return false;
+        if (!nameLine && index === 0) return false;
+        return true;
+      });
+      const headerIndex = bodyLines.findIndex(line => line.includes('|'));
+      let description = '';
+      let entries = [];
+      if (headerIndex >= 0) {
+        description = bodyLines.slice(0, headerIndex).join(' ');
+        const columns = bodyLines[headerIndex].split('|').map(part => part.trim()).filter(Boolean);
+        entries = bodyLines.slice(headerIndex + 1).map(line => {
+          const row = line.split('|').map(part => part.trim());
+          if (!row[0]) return null;
+          return {
+            range: row[0],
+            text: columns.slice(1).map((column, index) => `${column}: ${row[index + 1] || '—'}`).join(' | '),
+          };
+        }).filter(Boolean);
+      } else {
+        entries = parseTableLines(bodyLines.join('\n'));
+      }
+      entries = entries.slice(0, 200);
+      if (!name || entries.length < 1) return null;
+      const allNumeric = entries.every(entry => hasNumericRange(entry.range));
+      const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
+      return {
+        name,
+        category: category || 'general',
+        description: description || 'Imported campaign table',
+        die: allNumeric ? `d${sides}` : 'reference',
+        entries,
+        source: 'campaign',
+        is_player_safe: false,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 40);
+}
+
 function loadLocalCustomTables(campaignId) {
   try {
     const parsed = JSON.parse(localStorage.getItem(localStorageKey(campaignId)) || '[]');
@@ -239,6 +313,10 @@ function entriesToText(entries) {
   return normaliseEntries(entries).map(entry => `${entry.range}: ${entry.text}`).join('\n');
 }
 
+function cleanCopyName(name) {
+  return String(name || '').replace(/^\d{4}\s+—\s+/, '').trim();
+}
+
 export default function LiveRollTablesPanel({
   campaignId,
   onSaveAsNote,
@@ -253,13 +331,17 @@ export default function LiveRollTablesPanel({
   const [activeTableId, setActiveTableId] = useState('travel-d20');
   const [lastRoll, setLastRoll] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const [savingTable, setSavingTable] = useState(false);
+  const [importingTables, setImportingTables] = useState(false);
+  const [editingTableId, setEditingTableId] = useState(null);
   const [tableSearch, setTableSearch] = useState('');
   const [editionFilter, setEditionFilter] = useState('all');
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('general');
   const [newDescription, setNewDescription] = useState('');
   const [newLines, setNewLines] = useState('1: Something goes badly wrong\n2: A difficult complication appears\n3: The party finds a clue\n4: The party gets a small advantage');
+  const [bulkText, setBulkText] = useState('');
 
   const fetchTables = async () => {
     if (!campaignId) return;
@@ -297,6 +379,35 @@ export default function LiveRollTablesPanel({
   const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
   const activeEntries = normaliseEntries(activeTable?.entries || []);
   const activeIsRollable = isRollableTable(activeTable);
+  const bulkPreviewCount = parseBulkTables(bulkText).length;
+
+  const resetTableForm = () => {
+    setEditingTableId(null);
+    setNewName('');
+    setNewCategory('general');
+    setNewDescription('');
+    setNewLines('');
+    setShowCreate(false);
+  };
+
+  const startCreateTable = () => {
+    setEditingTableId(null);
+    setNewName('');
+    setNewCategory('general');
+    setNewDescription('');
+    setNewLines('1: Something goes badly wrong\n2: A difficult complication appears\n3: The party finds a clue\n4: The party gets a small advantage');
+    setShowCreate(true);
+  };
+
+  const startEditTable = (table) => {
+    if (!table || table.locked) return;
+    setEditingTableId(table.id);
+    setNewName(table.name || '');
+    setNewCategory(table.category || 'general');
+    setNewDescription(table.description || '');
+    setNewLines(entriesToText(table.entries));
+    setShowCreate(true);
+  };
 
   const rollTable = (table = activeTable) => {
     if (!isRollableTable(table)) return;
@@ -325,8 +436,8 @@ export default function LiveRollTablesPanel({
       toast.error('Give the table a name');
       return;
     }
-    if (entries.length < 2) {
-      toast.error('Add at least two table rows');
+    if (entries.length < 1) {
+      toast.error('Add at least one table row');
       return;
     }
     const allNumeric = entries.every(entry => hasNumericRange(entry.range));
@@ -343,32 +454,84 @@ export default function LiveRollTablesPanel({
 
     setSavingTable(true);
     try {
-      const response = await apiClient.post(`/campaigns/${campaignId}/tables`, payload);
-      const saved = response.data;
-      setCampaignTables(prev => [saved, ...prev.filter(table => table.id !== saved.id)]);
-      setActiveTableId(saved.id);
-      setApiReady(true);
-      toast.success('Table saved to campaign');
+      if (editingTableId) {
+        const target = campaignTables.find(table => table.id === editingTableId);
+        if (target?.localOnly) {
+          const updated = { ...target, ...payload, entries, updated_at: new Date().toISOString(), localOnly: true };
+          const nextTables = campaignTables.map(table => table.id === editingTableId ? updated : table);
+          setCampaignTables(nextTables);
+          saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
+          setActiveTableId(updated.id);
+          toast.success('Local table updated');
+        } else {
+          const response = await apiClient.put(`/campaigns/${campaignId}/tables/${editingTableId}`, payload);
+          const saved = response.data;
+          setCampaignTables(prev => prev.map(table => table.id === editingTableId ? saved : table));
+          setActiveTableId(saved.id);
+          setApiReady(true);
+          toast.success('Table updated');
+        }
+      } else {
+        const response = await apiClient.post(`/campaigns/${campaignId}/tables`, payload);
+        const saved = response.data;
+        setCampaignTables(prev => [saved, ...prev.filter(table => table.id !== saved.id)]);
+        setActiveTableId(saved.id);
+        setApiReady(true);
+        toast.success('Table saved to campaign');
+      }
+      resetTableForm();
     } catch (error) {
-      const fallback = { ...payload, id: `local-${Date.now()}`, entries, localOnly: true };
-      const nextTables = [fallback, ...campaignTables];
-      setCampaignTables(nextTables);
-      saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
-      setActiveTableId(fallback.id);
-      setApiReady(false);
-      toast.error(error?.response?.data?.detail || 'Saved locally only — campaign API was not available');
+      if (editingTableId) {
+        toast.error(error?.response?.data?.detail || 'Could not update table');
+      } else {
+        const fallback = { ...payload, id: `local-${Date.now()}`, entries, localOnly: true };
+        const nextTables = [fallback, ...campaignTables];
+        setCampaignTables(nextTables);
+        saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
+        setActiveTableId(fallback.id);
+        setApiReady(false);
+        toast.error(error?.response?.data?.detail || 'Saved locally only — campaign API was not available');
+        resetTableForm();
+      }
     } finally {
       setSavingTable(false);
-      setNewName('');
-      setNewCategory('general');
-      setNewDescription('');
-      setNewLines('');
-      setShowCreate(false);
+    }
+  };
+
+  const importBulkTables = async () => {
+    const parsedTables = parseBulkTables(bulkText);
+    if (!parsedTables.length) {
+      toast.error('No importable tables found');
+      return;
+    }
+    setImportingTables(true);
+    try {
+      const created = [];
+      for (const table of parsedTables) {
+        const response = await apiClient.post(`/campaigns/${campaignId}/tables`, table);
+        created.push(response.data);
+      }
+      setCampaignTables(prev => [...created, ...prev]);
+      setActiveTableId(created[0]?.id || activeTableId);
+      setBulkText('');
+      setShowBulkImport(false);
+      setApiReady(true);
+      toast.success(`Imported ${created.length} table${created.length === 1 ? '' : 's'}`);
+    } catch (error) {
+      const fallbackTables = parsedTables.map((table, index) => ({ ...table, id: `local-import-${Date.now()}-${index}`, localOnly: true }));
+      const nextTables = [...fallbackTables, ...campaignTables];
+      setCampaignTables(nextTables);
+      saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
+      setApiReady(false);
+      toast.error(error?.response?.data?.detail || 'Imported locally only — campaign API was not available');
+    } finally {
+      setImportingTables(false);
     }
   };
 
   const duplicateStarterToCampaign = (table) => {
-    setNewName(table.name.replace(/^\d{4}\s+—\s+/, ''));
+    setEditingTableId(null);
+    setNewName(cleanCopyName(table.name));
     setNewCategory(table.category || 'general');
     setNewDescription(table.description || '');
     setNewLines(entriesToText(table.entries));
@@ -384,6 +547,7 @@ export default function LiveRollTablesPanel({
       setCampaignTables(nextTables);
       saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
       if (activeTableId === tableId) setActiveTableId('travel-d20');
+      if (editingTableId === tableId) resetTableForm();
       toast.success('Table removed');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not delete table');
@@ -415,7 +579,8 @@ export default function LiveRollTablesPanel({
         </div>
         <div style={buttonRowStyle}>
           <button type="button" onClick={fetchTables} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</button>
-          <button type="button" onClick={() => setShowCreate(prev => !prev)} style={secondaryButtonStyle}><Plus size={15} /> {showCreate ? 'Close' : 'Add Table'}</button>
+          <button type="button" onClick={() => setShowBulkImport(prev => !prev)} style={secondaryButtonStyle}><Upload size={15} /> {showBulkImport ? 'Close Import' : 'Bulk Import'}</button>
+          <button type="button" onClick={() => showCreate ? resetTableForm() : startCreateTable()} style={secondaryButtonStyle}><Plus size={15} /> {showCreate ? 'Close' : 'Add Table'}</button>
         </div>
       </header>
 
@@ -424,15 +589,33 @@ export default function LiveRollTablesPanel({
         <span>{apiReady ? 'Custom tables save to this campaign. Built-in reference tables are separated into 2014 and 2024 sets.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span>
       </div>
 
+      {showBulkImport && (
+        <section style={createBoxStyle}>
+          <p style={subtitleStyle}>Paste several tables at once. Separate tables with <strong>---</strong>, or use <strong>Table Name:</strong> and <strong>Category:</strong> headings.</p>
+          <label style={fieldStyle}><span style={labelStyle}>Bulk table text</span><textarea value={bulkText} onChange={(event) => setBulkText(event.target.value)} placeholder={'Table Name: Basic Weapons\nCategory: Weapons\n\nWeapon| Cost| Damage| Use\nClub| 1 sp| 1d4 bludgeoning| Basic blunt weapon\n---\nTable Name: Travel Results\nCategory: Travel\n\n1: Bad weather slows travel\n2: Signs of nearby monsters'} style={bulkTextareaStyle} /></label>
+          <div style={buttonRowStyle}>
+            <button type="button" onClick={importBulkTables} disabled={importingTables} style={primaryButtonStyle}><Upload size={14} /> {importingTables ? 'Importing...' : `Import ${bulkPreviewCount || ''} Table${bulkPreviewCount === 1 ? '' : 's'}`}</button>
+            <span style={mutedTextStyle}>{bulkPreviewCount ? `${bulkPreviewCount} table${bulkPreviewCount === 1 ? '' : 's'} detected` : 'No tables detected yet'}</span>
+          </div>
+        </section>
+      )}
+
       {showCreate && (
         <section style={createBoxStyle}>
+          <div style={formTitleRowStyle}>
+            <strong>{editingTableId ? 'Edit campaign table' : 'Create campaign table'}</strong>
+            {editingTableId && <span>Editing saved campaign content only.</span>}
+          </div>
           <div style={formGridStyle}>
             <label style={fieldStyle}><span style={labelStyle}>Table name</span><input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="Quirks of Fate, Basic Weapons, Potion Prices..." style={inputStyle} /></label>
             <label style={fieldStyle}><span style={labelStyle}>Category</span><select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} style={inputStyle}>{CATEGORY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           </div>
           <label style={fieldStyle}><span style={labelStyle}>Short use note</span><input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="When should you use this table?" style={inputStyle} /></label>
           <label style={fieldStyle}><span style={labelStyle}>Rows or roll results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\nClub | 1 sp | 1d4 bludgeoning" style={textareaStyle} /></label>
-          <div style={buttonRowStyle}><button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : 'Save Table'}</button></div>
+          <div style={buttonRowStyle}>
+            <button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : editingTableId ? 'Update Table' : 'Save Table'}</button>
+            <button type="button" onClick={resetTableForm} style={secondaryButtonStyle}>Cancel</button>
+          </div>
         </section>
       )}
 
@@ -464,6 +647,7 @@ export default function LiveRollTablesPanel({
             </div>
             <div style={buttonRowStyle}>
               {activeTable.locked && activeTable.source !== 'starter' && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
+              {!activeTable.locked && <button type="button" onClick={() => startEditTable(activeTable)} style={secondaryButtonStyle}>Edit</button>}
               {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
             </div>
           </div>
@@ -519,11 +703,13 @@ const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 5
 const resultTextStyle = { margin: 0, color: theme.text, fontSize: 17, lineHeight: 1.45, fontWeight: 850 };
 const emptyResultStyle = { minHeight: 100, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
 const createBoxStyle = { display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
+const formTitleRowStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap', color: theme.soft, fontSize: 12 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
 const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 9px', outline: 'none', fontFamily: fontStack };
 const textareaStyle = { minHeight: 130, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: 9, outline: 'none', fontFamily: fontStack, resize: 'vertical' };
+const bulkTextareaStyle = { ...textareaStyle, minHeight: 210 };
 const filterRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const filterChipStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.22)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 11, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
 const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 38, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 9px' };
