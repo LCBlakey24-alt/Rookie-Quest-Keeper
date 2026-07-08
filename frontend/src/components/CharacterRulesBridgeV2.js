@@ -180,6 +180,92 @@ function classFeaturesUpTo(className, classData, level, existingFeatures = []) {
   return out;
 }
 
+function collectFeatureMechanics(feature = {}, source = '') {
+  if (!feature || typeof feature !== 'object') return emptyMechanics();
+  return {
+    resources: arr(feature.resources || feature.resource).map(item => ({ ...item, source })),
+    actions: arr(feature.actions || feature.sheet_actions || feature.sheetActions).map(item => ({ ...item, source })),
+    passive_effects: arr(feature.passive_effects || feature.passiveEffects || feature.effects).map(item => ({ ...item, source })),
+    scaling: arr(feature.scaling).map(item => ({ ...item, source })),
+    upgrades: arr(feature.upgrades).map(item => ({ ...item, source })),
+    automation_notes: arr(feature.automation_notes ? [feature.automation_notes] : feature.automationNotes ? [feature.automationNotes] : []).map(note => ({ note: String(note), source })),
+    refs: [],
+  };
+}
+
+function emptyMechanics() {
+  return { resources: [], actions: [], passive_effects: [], scaling: [], upgrades: [], automation_notes: [], refs: [] };
+}
+
+function mergeMechanics(...parts) {
+  return parts.reduce((out, part = {}) => ({
+    resources: [...out.resources, ...arr(part.resources)],
+    actions: [...out.actions, ...arr(part.actions)],
+    passive_effects: [...out.passive_effects, ...arr(part.passive_effects)],
+    scaling: [...out.scaling, ...arr(part.scaling)],
+    upgrades: [...out.upgrades, ...arr(part.upgrades)],
+    automation_notes: [...out.automation_notes, ...arr(part.automation_notes)],
+    refs: [...out.refs, ...arr(part.refs)],
+  }), emptyMechanics());
+}
+
+function collectItemMechanics(item = {}, level = 20, type = 'homebrew') {
+  if (!item || typeof item !== 'object') return emptyMechanics();
+  const name = displayName(item);
+  const source = item.source_label || item.source || name || 'Homebrew';
+  const own = {
+    resources: arr(item.resources || item.resource).map(resource => ({ ...resource, source, source_type: type, content_id: item.id })),
+    actions: arr(item.actions || item.sheet_actions || item.sheetActions).map(action => ({ ...action, source, source_type: type, content_id: item.id })),
+    passive_effects: arr(item.passive_effects || item.passiveEffects || item.effects).map(effect => ({ ...effect, source, source_type: type, content_id: item.id })),
+    scaling: arr(item.scaling).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
+    upgrades: arr(item.upgrades).map(entry => ({ ...entry, source, source_type: type, content_id: item.id })),
+    automation_notes: arr(item.automation_notes ? [item.automation_notes] : item.automationNotes ? [item.automationNotes] : []).map(note => ({ note: String(note), source, source_type: type, content_id: item.id })),
+    refs: name ? [{ id: item.id, type, name, source }] : [],
+  };
+  const featureMechanics = arr(item.features)
+    .filter(feature => Number(feature?.level || 1) <= level)
+    .map(feature => collectFeatureMechanics(feature, source));
+  return mergeMechanics(own, ...featureMechanics);
+}
+
+function namesFromEntries(...groups) {
+  const names = new Set();
+  groups.flatMap(group => arr(group)).forEach(item => {
+    const name = displayName(item);
+    if (name) names.add(normaliseKey(name));
+  });
+  return names;
+}
+
+function collectSelectedHomebrewMechanics({ options, enhanced, className, subclassName, level }) {
+  const selectedFeatNames = namesFromEntries(enhanced.feats);
+  const selectedSpellNames = namesFromEntries(
+    enhanced.cantrips_known,
+    enhanced.cantrips,
+    enhanced.spells_known,
+    enhanced.known_spells,
+    enhanced.spells_prepared,
+    enhanced.prepared_spells,
+    enhanced.spellbook,
+  );
+
+  const classMechanics = arr(options?.classes)
+    .filter(item => normaliseKey(displayName(item)) === normaliseKey(className))
+    .map(item => collectItemMechanics(item, level, 'class'));
+  const subclassMechanics = arr(options?.subclasses)
+    .filter(item => normaliseKey(item.parent_class || item.parentClass) === normaliseKey(className))
+    .filter(item => normaliseKey(displayName(item)) === normaliseKey(subclassName))
+    .map(item => collectItemMechanics(item, level, 'subclass'));
+  const featMechanics = arr(options?.feats)
+    .filter(item => selectedFeatNames.has(normaliseKey(displayName(item))))
+    .map(item => collectItemMechanics(item, level, 'feat'));
+  const spellMechanics = arr(options?.spells)
+    .filter(item => selectedSpellNames.has(normaliseKey(displayName(item))))
+    .map(item => collectItemMechanics(item, level, 'spell'));
+
+  return mergeMechanics(...classMechanics, ...subclassMechanics, ...featMechanics, ...spellMechanics);
+}
+
 function uploadedSubclassFeaturesUpTo(options, className, subclassName, level) {
   if (!subclassName) return [];
   return arr(options?.subclasses).flatMap((subclass) => {
@@ -187,6 +273,7 @@ function uploadedSubclassFeaturesUpTo(options, className, subclassName, level) {
     const name = displayName(subclass);
     if (parent !== className || name !== subclassName) return [];
     return arr(subclass.features).filter((feature) => Number(feature?.level || 1) <= level).map((feature) => ({
+      ...feature,
       name: featureText(feature),
       description: featureDescription(feature, `${subclassName} feature gained at level ${feature?.level || 'this level'}.`),
       source: subclass.source_label || subclass.source || 'Uploaded subclass',
@@ -237,6 +324,14 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   };
 
   enhanced = applyStartingLevelChoicesToPayload(enhanced, levelChoiceSelections, featOptions, detailSelections);
+  const mechanics = collectSelectedHomebrewMechanics({ options, enhanced, className, subclassName, level });
+  enhanced.homebrew_resources = mechanics.resources;
+  enhanced.homebrew_actions = mechanics.actions;
+  enhanced.passive_effects = [...arr(enhanced.passive_effects), ...mechanics.passive_effects];
+  enhanced.homebrew_scaling = mechanics.scaling;
+  enhanced.homebrew_upgrades = mechanics.upgrades;
+  enhanced.homebrew_automation_notes = mechanics.automation_notes;
+  enhanced.homebrew_content_refs = mechanics.refs;
   enhanced.max_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
   enhanced.current_hit_points = averageHitPoints(level, hitDie, enhanced.constitution);
 
@@ -351,7 +446,7 @@ export default function CharacterRulesBridgeV2(props) {
           <span>Starting level supervisor</span>
           <strong>Level {targetLevel}</strong>
         </div>
-        <p>Build normally below. When you save, this pass upgrades the saved sheet with level, HP, hit dice, proficiency, spell slots, class features, ASIs, feats, known spells, Pact Boon, and invocations.</p>
+        <p>Build normally below. When you save, this pass upgrades the saved sheet with level, HP, hit dice, proficiency, spell slots, class features, ASIs, feats, known spells, Pact Boon, invocations, and homebrew resource trackers.</p>
         <div className="full-creator-form-grid">
           <label>
             <span>Starting level</span>
