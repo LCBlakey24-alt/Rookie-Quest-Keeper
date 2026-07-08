@@ -64,7 +64,8 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js src/data/campaignCharacterBridge.test.js src/data/startingLevelChoiceEngine.test.js src/data/classSpecificChoiceEngine.test.js"
+    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js src/data/campaignCharacterBridge.test.js src/data/startingLevelChoiceEngine.test.js src/data/classSpecificChoiceEngine.test.js",
+    "test:homebrew": "craco test --watchAll=false --runTestsByPath src/data/classResourceRules.test.js src/components/CharacterRulesBridge.test.js src/components/CharacterRulesBridgeV2.test.js"
   },
   "browserslist": {
     "production": [
