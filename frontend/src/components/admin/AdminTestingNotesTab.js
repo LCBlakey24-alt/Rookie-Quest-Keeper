@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Bug, ClipboardList, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { Bug, ClipboardList, Download, RefreshCw, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -128,6 +128,31 @@ export default function AdminTestingNotesTab() {
     }
   };
 
+  const exportCsv = async () => {
+    try {
+      const res = await apiClient.get('/admin/export/feedback.csv', { params: { kind: 'testing' }, responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'rook-testing-notes.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      await logAudit({
+        action: 'Testing notes CSV exported',
+        area: 'testing_notes',
+        target_id: '',
+        target_label: 'Testing notes export',
+        detail: 'Downloaded rook-testing-notes.csv',
+      });
+      toast.success('Testing notes CSV downloaded');
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Failed to export testing notes');
+    }
+  };
+
   return (
     <div style={wrapStyle} data-testid="admin-testing-notes-tab">
       <div style={headerStyle}>
@@ -135,7 +160,10 @@ export default function AdminTestingNotesTab() {
           <h2 style={titleStyle}><ClipboardList size={20} /> Testing Notes</h2>
           <p style={subtitleStyle}>Log issues found while testing Punch, mobile sheets, campaign prep, and live combat.</p>
         </div>
-        <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+          <button type="button" onClick={exportCsv} style={buttonStyle}><Download size={14} /> Export CSV</button>
+        </div>
       </div>
 
       <form onSubmit={createIssue} style={formStyle}>
