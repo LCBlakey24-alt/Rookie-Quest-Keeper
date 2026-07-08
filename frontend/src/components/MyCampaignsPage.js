@@ -182,10 +182,14 @@ export default function MyCampaignsPage() {
   if (loading) {
     return (
       <main className="library-page library-page-loading">
-        <section className="loading-screen" role="status" aria-live="polite">
-          <div className="loading-spinner" aria-hidden="true" />
-          <p className="loading-title">Opening My Campaigns...</p>
-          <p className="loading-tip">Loading the tables you run.</p>
+        <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
+          <div className="loading-card">
+            <div className="loading-brand-mark" aria-hidden="true">GM</div>
+            <div className="loading-spinner" aria-hidden="true" />
+            <p className="loading-kicker">Campaign library</p>
+            <h1 className="loading-title">Opening My Campaigns…</h1>
+            <p className="loading-tip">Loading the tables you run, player links, and latest campaign prep.</p>
+          </div>
         </section>
       </main>
     );
@@ -218,9 +222,9 @@ export default function MyCampaignsPage() {
           </p>
           <p className="library-page-toolbar-note">Keep prep tidy, then open the GM workspace when it is time to run.</p>
         </div>
-        <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary">
-          <RefreshCw size={16} />
-          {refreshing ? 'Refreshing...' : 'Refresh'}
+        <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary library-page-loading-button" aria-busy={refreshing ? 'true' : 'false'}>
+          <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+          {refreshing ? 'Refreshing campaigns…' : 'Refresh'}
         </button>
       </section>
 
@@ -253,8 +257,8 @@ export default function MyCampaignsPage() {
                   <button type="button" onClick={() => id && navigate(`/campaign/${id}`)} disabled={!id}>
                     Open GM Workspace <ChevronRight size={16} />
                   </button>
-                  <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button">
-                    <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
+                  <button type="button" onClick={() => deleteCampaign(campaign)} disabled={!id || deleting} className="library-page-danger-button library-page-loading-button" aria-busy={deleting ? 'true' : 'false'}>
+                    {deleting ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Trash2 size={15} />} {deleting ? 'Deleting campaign…' : 'Delete'}
                   </button>
                 </div>
               </article>
