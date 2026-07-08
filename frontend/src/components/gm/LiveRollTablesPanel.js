@@ -10,7 +10,6 @@ const theme = {
   bg: '#242424',
   panel: '#2f2f2f',
   card: '#3a3a3a',
-  hover: '#444444',
   line: 'rgba(255,255,255,0.16)',
   lineStrong: 'rgba(255,255,255,0.26)',
   red: '#d00000',
@@ -162,13 +161,6 @@ function hasNumericRange(range) {
   return /^\d+(?:\s*[–-]\s*\d+)?$/.test(String(range || '').trim());
 }
 
-function isRollableTable(table) {
-  if (!table || table.rollable === false) return false;
-  if (!/^d\d+$/i.test(String(table.die || ''))) return false;
-  const entries = normaliseEntries(table.entries);
-  return entries.length > 0 && entries.every(entry => hasNumericRange(entry.range));
-}
-
 function normaliseEntries(entries) {
   return (entries || [])
     .map((entry, index) => {
@@ -180,20 +172,61 @@ function normaliseEntries(entries) {
     .sort((a, b) => rangeMin(a.range) - rangeMin(b.range));
 }
 
-function parseTableLines(rawText) {
+function columnsForTable(table, entries = []) {
+  const explicit = Array.isArray(table?.columns) ? table.columns.filter(Boolean) : [];
+  if (explicit.length) return explicit;
+  const firstCells = entries.find(entry => entry?.cells && Object.keys(entry.cells).length)?.cells;
+  return firstCells ? Object.keys(firstCells) : [];
+}
+
+function isRollableTable(table) {
+  if (!table || table.rollable === false) return false;
+  if (!/^d\d+$/i.test(String(table.die || ''))) return false;
+  const entries = normaliseEntries(table.entries);
+  return entries.length > 0 && entries.every(entry => hasNumericRange(entry.range));
+}
+
+function makeTextFromCells(columns, cells) {
+  return columns.slice(1).map(column => `${column}: ${cells[column] || '—'}`).join(' | ');
+}
+
+function parseSimpleRows(rawText) {
   return rawText
     .split('\n')
     .map((line, index) => {
       const trimmed = line.trim();
       if (!trimmed) return null;
-      const pipeParts = trimmed.split('|').map(part => part.trim()).filter(Boolean);
-      if (pipeParts.length > 1) return { range: pipeParts[0], text: pipeParts.slice(1).join(' | ') };
       const explicit = trimmed.match(/^(\d+(?:\s*[–-]\s*\d+)?)\s*[:.)-]\s*(.+)$/);
       if (explicit) return { range: explicit[1].replace(/\s/g, ''), text: explicit[2].trim() };
       return { range: String(index + 1), text: trimmed };
     })
     .filter(Boolean)
     .slice(0, 200);
+}
+
+function parseEditableTableText(rawText) {
+  const lines = String(rawText || '').split('\n').map(line => line.trim()).filter(Boolean);
+  const firstPipeLine = lines.findIndex(line => line.includes('|'));
+  if (firstPipeLine >= 0) {
+    const columns = lines[firstPipeLine].split('|').map(part => part.trim()).filter(Boolean);
+    const rows = lines.slice(firstPipeLine + 1).filter(line => line.includes('|'));
+    if (columns.length > 1 && rows.length) {
+      const entries = rows.map((line, index) => {
+        const row = line.split('|').map(part => part.trim());
+        const cells = columns.reduce((acc, column, colIndex) => {
+          acc[column] = row[colIndex] || '—';
+          return acc;
+        }, {});
+        return {
+          range: row[0] || String(index + 1),
+          text: makeTextFromCells(columns, cells),
+          cells,
+        };
+      }).slice(0, 200);
+      return { columns, entries };
+    }
+  }
+  return { columns: [], entries: parseSimpleRows(rawText) };
 }
 
 function inferCategoryFromName(name) {
@@ -215,66 +248,79 @@ function parseBulkTables(rawText) {
     ? normalised.split(/(?=^Table Name:)/gim)
     : normalised.split(/\n\s*---+\s*\n/g);
 
-  return sections
-    .map(section => section.trim())
-    .filter(Boolean)
-    .map(section => {
-      const lines = section.split('\n').map(line => line.trim()).filter(Boolean);
-      if (!lines.length) return null;
-      const nameLine = lines.find(line => /^Table Name:/i.test(line));
-      const categoryLine = lines.find(line => /^Category:/i.test(line));
-      const name = nameLine
-        ? nameLine.replace(/^Table Name:\s*/i, '').trim()
-        : lines[0].replace(/#+/g, '').trim();
-      const category = categoryLine
-        ? categoryLine.replace(/^Category:\s*/i, '').trim().toLowerCase()
-        : inferCategoryFromName(name);
-      const bodyLines = lines.filter((line, index) => {
-        if (nameLine && /^Table Name:/i.test(line)) return false;
-        if (categoryLine && /^Category:/i.test(line)) return false;
-        if (!nameLine && index === 0) return false;
-        return true;
-      });
-      const headerIndex = bodyLines.findIndex(line => line.includes('|'));
-      let description = '';
-      let entries = [];
-      let columns = [];
-      if (headerIndex >= 0) {
-        description = bodyLines.slice(0, headerIndex).join(' ');
-        columns = bodyLines[headerIndex].split('|').map(part => part.trim()).filter(Boolean);
-        entries = bodyLines.slice(headerIndex + 1).map(line => {
-          const row = line.split('|').map(part => part.trim());
-          if (!row[0]) return null;
-          const cells = columns.reduce((acc, column, index) => {
-            acc[column] = row[index] || '—';
-            return acc;
-          }, {});
-          return {
-            range: row[0],
-            text: columns.slice(1).map((column, index) => `${column}: ${row[index + 1] || '—'}`).join(' | '),
-            cells,
-          };
-        }).filter(Boolean);
-      } else {
-        entries = parseTableLines(bodyLines.join('\n'));
-      }
-      entries = entries.slice(0, 200);
-      if (!name || entries.length < 1) return null;
-      const allNumeric = entries.every(entry => hasNumericRange(entry.range));
-      const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
-      return {
-        name,
-        category: category || 'general',
-        description: description || 'Imported campaign table',
-        die: allNumeric ? `d${sides}` : 'reference',
-        columns,
-        entries,
-        source: 'campaign',
-        is_player_safe: false,
-      };
-    })
-    .filter(Boolean)
-    .slice(0, 40);
+  return sections.map(section => {
+    const lines = section.split('\n').map(line => line.trim()).filter(Boolean);
+    if (!lines.length) return null;
+    const nameLine = lines.find(line => /^Table Name:/i.test(line));
+    const categoryLine = lines.find(line => /^Category:/i.test(line));
+    const name = nameLine ? nameLine.replace(/^Table Name:\s*/i, '').trim() : lines[0].replace(/#+/g, '').trim();
+    const category = categoryLine ? categoryLine.replace(/^Category:\s*/i, '').trim().toLowerCase() : inferCategoryFromName(name);
+    const bodyLines = lines.filter((line, index) => {
+      if (nameLine && /^Table Name:/i.test(line)) return false;
+      if (categoryLine && /^Category:/i.test(line)) return false;
+      if (!nameLine && index === 0) return false;
+      return true;
+    });
+    const { columns, entries } = parseEditableTableText(bodyLines.join('\n'));
+    if (!name || entries.length < 1) return null;
+    const allNumeric = entries.every(entry => hasNumericRange(entry.range));
+    const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
+    return {
+      name,
+      category: category || 'general',
+      description: 'Imported campaign table',
+      die: allNumeric ? `d${sides}` : 'reference',
+      columns,
+      entries,
+      source: 'campaign',
+      is_player_safe: false,
+    };
+  }).filter(Boolean).slice(0, 40);
+}
+
+function entriesToEditableText(table) {
+  const entries = normaliseEntries(table?.entries || []);
+  const columns = columnsForTable(table, entries);
+  if (columns.length > 1 && entries.some(entry => entry.cells)) {
+    return [
+      columns.join(' | '),
+      ...entries.map(entry => columns.map((column, index) => entry.cells?.[column] ?? (index === 0 ? entry.range : '')).join(' | ')),
+    ].join('\n');
+  }
+  return entries.map(entry => `${entry.range}: ${entry.text}`).join('\n');
+}
+
+function tablePayloadFromForm({ name, category, description, lines }) {
+  const { columns, entries } = parseEditableTableText(lines);
+  const allNumeric = entries.length > 0 && entries.every(entry => hasNumericRange(entry.range));
+  const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
+  return {
+    name: name.trim(),
+    category,
+    description: description.trim() || 'Custom campaign table',
+    die: allNumeric ? `d${sides}` : 'reference',
+    columns,
+    entries,
+    source: 'campaign',
+    is_player_safe: false,
+  };
+}
+
+function tablePayloadFromExisting(table) {
+  const entries = normaliseEntries(table.entries);
+  const columns = columnsForTable(table, entries);
+  const allNumeric = entries.length > 0 && entries.every(entry => hasNumericRange(entry.range));
+  const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
+  return {
+    name: cleanCopyName(table.name),
+    category: table.category || 'general',
+    description: table.description || 'Copied campaign reference table',
+    die: allNumeric ? `d${sides}` : (table.die || 'reference'),
+    columns,
+    entries,
+    source: 'campaign',
+    is_player_safe: false,
+  };
 }
 
 function loadLocalCustomTables(campaignId) {
@@ -291,9 +337,7 @@ function saveLocalCustomTables(campaignId, tables) {
 }
 
 function copyText(text) {
-  navigator.clipboard?.writeText(text)
-    .then(() => toast.success('Copied'))
-    .catch(() => toast.info(text));
+  navigator.clipboard?.writeText(text).then(() => toast.success('Copied')).catch(() => toast.info(text));
 }
 
 function categoryLabel(category) {
@@ -302,7 +346,7 @@ function categoryLabel(category) {
 
 function sourceLabel(table) {
   if (table?.editionLabel) return table.editionLabel;
-  if (table?.source === 'gm-reference-pack' || String(table?.source || '').startsWith('gm-reference-pack')) return 'GM Reference Pack';
+  if (String(table?.source || '').startsWith('gm-reference-pack')) return 'GM Reference Pack';
   if (table?.locked) return 'Starter table';
   if (table?.localOnly) return 'Local only';
   return 'Campaign table';
@@ -316,48 +360,23 @@ function matchesEditionFilter(table, filter) {
   return true;
 }
 
-function entriesToText(entries) {
-  return normaliseEntries(entries).map(entry => `${entry.range}: ${entry.text}`).join('\n');
-}
-
 function cleanCopyName(name) {
   return String(name || '').replace(/^\d{4}\s+—\s+/, '').trim();
-}
-
-function columnsForTable(table, entries) {
-  const explicit = Array.isArray(table?.columns) ? table.columns.filter(Boolean) : [];
-  if (explicit.length) return explicit;
-  const fromCells = entries.find(entry => entry?.cells && Object.keys(entry.cells).length)?.cells;
-  return fromCells ? Object.keys(fromCells) : [];
 }
 
 function StructuredEntries({ table, entries, activeIsRollable }) {
   const columns = columnsForTable(table, entries);
   const canRenderColumns = columns.length > 1 && entries.some(entry => entry?.cells);
   if (!canRenderColumns) {
-    return (
-      <div style={entriesListStyle}>
-        {entries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}
-      </div>
-    );
+    return <div style={entriesListStyle}>{entries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}</div>;
   }
   return (
     <div style={structuredTableWrapStyle}>
       <table style={structuredTableStyle}>
-        <thead>
-          <tr>
-            {columns.map(column => <th key={column} style={tableHeaderCellStyle}>{column}</th>)}
-          </tr>
-        </thead>
+        <thead><tr>{columns.map(column => <th key={column} style={tableHeaderCellStyle}>{column}</th>)}</tr></thead>
         <tbody>
           {entries.map((entry, index) => (
-            <tr key={`${entry.range}-${index}`}>
-              {columns.map((column, columnIndex) => (
-                <td key={column} style={columnIndex === 0 ? tableFirstCellStyle : tableCellStyle}>
-                  {entry.cells?.[column] ?? (columnIndex === 0 ? entry.range : '—')}
-                </td>
-              ))}
-            </tr>
+            <tr key={`${entry.range}-${index}`}>{columns.map((column, columnIndex) => <td key={column} style={columnIndex === 0 ? tableFirstCellStyle : tableCellStyle}>{entry.cells?.[column] ?? (columnIndex === 0 ? entry.range : '—')}</td>)}</tr>
           ))}
         </tbody>
       </table>
@@ -366,14 +385,7 @@ function StructuredEntries({ table, entries, activeIsRollable }) {
   );
 }
 
-export default function LiveRollTablesPanel({
-  campaignId,
-  onSaveAsNote,
-  allowDisplay = true,
-  allowAddNote = true,
-  heading = 'Tables',
-  subheading = 'Use travel, fate, random encounters, rules references, equipment costs, weapons, potions, or your own campaign tables.',
-}) {
+export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDisplay = true, allowAddNote = true, heading = 'Tables', subheading = 'Use travel, fate, random encounters, rules references, equipment costs, weapons, potions, or your own campaign tables.' }) {
   const [campaignTables, setCampaignTables] = useState([]);
   const [loadingTables, setLoadingTables] = useState(false);
   const [apiReady, setApiReady] = useState(true);
@@ -383,6 +395,7 @@ export default function LiveRollTablesPanel({
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [savingTable, setSavingTable] = useState(false);
   const [importingTables, setImportingTables] = useState(false);
+  const [copyingTableId, setCopyingTableId] = useState(null);
   const [editingTableId, setEditingTableId] = useState(null);
   const [tableSearch, setTableSearch] = useState('');
   const [editionFilter, setEditionFilter] = useState('all');
@@ -418,11 +431,7 @@ export default function LiveRollTablesPanel({
 
   const filteredTables = useMemo(() => {
     const needle = tableSearch.trim().toLowerCase();
-    return tables.filter(table => {
-      if (!matchesEditionFilter(table, editionFilter)) return false;
-      if (!needle) return true;
-      return `${table.name} ${table.category} ${table.description} ${table.editionLabel || ''} ${table.source || ''}`.toLowerCase().includes(needle);
-    });
+    return tables.filter(table => matchesEditionFilter(table, editionFilter) && (!needle || `${table.name} ${table.category} ${table.description} ${table.editionLabel || ''} ${table.source || ''}`.toLowerCase().includes(needle)));
   }, [editionFilter, tableSearch, tables]);
 
   const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
@@ -454,7 +463,7 @@ export default function LiveRollTablesPanel({
     setNewName(table.name || '');
     setNewCategory(table.category || 'general');
     setNewDescription(table.description || '');
-    setNewLines(entriesToText(table.entries));
+    setNewLines(entriesToEditableText(table));
     setShowCreate(true);
   };
 
@@ -464,50 +473,21 @@ export default function LiveRollTablesPanel({
     const sides = Number(String(table.die || 'd20').replace(/\D/g, '')) || Math.max(20, ...entries.map(entry => rangeMax(entry.range)));
     const roll = Math.floor(Math.random() * sides) + 1;
     const entry = entries.find(item => rollMatches(item.range, roll)) || entries[entries.length - 1];
-    const result = {
-      id: Date.now(),
-      tableId: table.id,
-      tableName: table.name,
-      die: `d${sides}`,
-      roll,
-      range: entry.range,
-      text: entry.text,
-      createdAt: new Date().toISOString(),
-    };
     setActiveTableId(table.id);
-    setLastRoll(result);
+    setLastRoll({ id: Date.now(), tableId: table.id, tableName: table.name, die: `d${sides}`, roll, range: entry.range, text: entry.text, createdAt: new Date().toISOString() });
   };
 
   const saveTable = async () => {
     const name = newName.trim();
-    const entries = parseTableLines(newLines);
-    if (!name) {
-      toast.error('Give the table a name');
-      return;
-    }
-    if (entries.length < 1) {
-      toast.error('Add at least one table row');
-      return;
-    }
-    const allNumeric = entries.every(entry => hasNumericRange(entry.range));
-    const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
-    const payload = {
-      name,
-      category: newCategory,
-      description: newDescription.trim() || 'Custom campaign table',
-      die: allNumeric ? `d${sides}` : 'reference',
-      columns: [],
-      entries,
-      source: 'campaign',
-      is_player_safe: false,
-    };
-
+    const payload = tablePayloadFromForm({ name, category: newCategory, description: newDescription, lines: newLines });
+    if (!name) return toast.error('Give the table a name');
+    if (payload.entries.length < 1) return toast.error('Add at least one table row');
     setSavingTable(true);
     try {
       if (editingTableId) {
         const target = campaignTables.find(table => table.id === editingTableId);
         if (target?.localOnly) {
-          const updated = { ...target, ...payload, entries, updated_at: new Date().toISOString(), localOnly: true };
+          const updated = { ...target, ...payload, updated_at: new Date().toISOString(), localOnly: true };
           const nextTables = campaignTables.map(table => table.id === editingTableId ? updated : table);
           setCampaignTables(nextTables);
           saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
@@ -534,7 +514,7 @@ export default function LiveRollTablesPanel({
       if (editingTableId) {
         toast.error(error?.response?.data?.detail || 'Could not update table');
       } else {
-        const fallback = { ...payload, id: `local-${Date.now()}`, entries, localOnly: true };
+        const fallback = { ...payload, id: `local-${Date.now()}`, localOnly: true };
         const nextTables = [fallback, ...campaignTables];
         setCampaignTables(nextTables);
         saveLocalCustomTables(campaignId, nextTables.filter(table => table.localOnly));
@@ -550,10 +530,7 @@ export default function LiveRollTablesPanel({
 
   const importBulkTables = async () => {
     const parsedTables = parseBulkTables(bulkText);
-    if (!parsedTables.length) {
-      toast.error('No importable tables found');
-      return;
-    }
+    if (!parsedTables.length) return toast.error('No importable tables found');
     setImportingTables(true);
     try {
       const created = [];
@@ -579,13 +556,27 @@ export default function LiveRollTablesPanel({
     }
   };
 
-  const duplicateStarterToCampaign = (table) => {
-    setEditingTableId(null);
-    setNewName(cleanCopyName(table.name));
-    setNewCategory(table.category || 'general');
-    setNewDescription(table.description || '');
-    setNewLines(entriesToText(table.entries));
-    setShowCreate(true);
+  const saveCopyToCampaign = async (table) => {
+    const payload = tablePayloadFromExisting(table);
+    setCopyingTableId(table.id);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/tables`, payload);
+      const saved = response.data;
+      setCampaignTables(prev => [saved, ...prev.filter(item => item.id !== saved.id)]);
+      setActiveTableId(saved.id);
+      setApiReady(true);
+      toast.success('Structured copy saved to campaign');
+    } catch (error) {
+      const fallback = { ...payload, id: `local-copy-${Date.now()}`, localOnly: true };
+      const nextTables = [fallback, ...campaignTables];
+      setCampaignTables(nextTables);
+      saveLocalCustomTables(campaignId, nextTables.filter(item => item.localOnly));
+      setActiveTableId(fallback.id);
+      setApiReady(false);
+      toast.error(error?.response?.data?.detail || 'Copy saved locally only — campaign API was not available');
+    } finally {
+      setCopyingTableId(null);
+    }
   };
 
   const deleteCustomTable = async (tableId) => {
@@ -605,28 +596,16 @@ export default function LiveRollTablesPanel({
   };
 
   const resultText = lastRoll ? `${lastRoll.tableName}: ${lastRoll.die} rolled ${lastRoll.roll} — ${lastRoll.text}` : '';
-
   const sendResultToDisplay = () => {
     if (!lastRoll) return;
-    publishCampaignDisplayState(campaignId, createDisplayState('table-result', {
-      eyebrow: 'Table Roll',
-      title: lastRoll.tableName,
-      roll: lastRoll.roll,
-      die: lastRoll.die,
-      result: lastRoll.text,
-      display_target: 'standing-tv',
-    }));
+    publishCampaignDisplayState(campaignId, createDisplayState('table-result', { eyebrow: 'Table Roll', title: lastRoll.tableName, roll: lastRoll.roll, die: lastRoll.die, result: lastRoll.text, display_target: 'standing-tv' }));
     toast.success('Table result sent to player display');
   };
 
   return (
     <section style={shellStyle} data-testid="live-roll-tables-panel">
       <header style={headerStyle}>
-        <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}>Campaign reference</p>
-          <h3 style={titleStyle}>{heading}</h3>
-          <p style={subtitleStyle}>{subheading}</p>
-        </div>
+        <div style={{ minWidth: 0 }}><p style={eyebrowStyle}>Campaign reference</p><h3 style={titleStyle}>{heading}</h3><p style={subtitleStyle}>{subheading}</p></div>
         <div style={buttonRowStyle}>
           <button type="button" onClick={fetchTables} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</button>
           <button type="button" onClick={() => setShowBulkImport(prev => !prev)} style={secondaryButtonStyle}><Upload size={15} /> {showBulkImport ? 'Close Import' : 'Bulk Import'}</button>
@@ -634,38 +613,26 @@ export default function LiveRollTablesPanel({
         </div>
       </header>
 
-      <div style={statusStyle(apiReady)}>
-        <strong>{apiReady ? 'Campaign saved' : 'Local fallback'}</strong>
-        <span>{apiReady ? 'Custom tables save to this campaign. Built-in reference tables are separated into 2014 and 2024 sets.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span>
-      </div>
+      <div style={statusStyle(apiReady)}><strong>{apiReady ? 'Campaign saved' : 'Local fallback'}</strong><span>{apiReady ? 'Custom tables save to this campaign. Structured columns are preserved when you import, edit, or save a copy.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span></div>
 
       {showBulkImport && (
         <section style={createBoxStyle}>
           <p style={subtitleStyle}>Paste several tables at once. Separate tables with <strong>---</strong>, or use <strong>Table Name:</strong> and <strong>Category:</strong> headings.</p>
           <label style={fieldStyle}><span style={labelStyle}>Bulk table text</span><textarea value={bulkText} onChange={(event) => setBulkText(event.target.value)} placeholder={'Table Name: Basic Weapons\nCategory: Weapons\n\nWeapon| Cost| Damage| Use\nClub| 1 sp| 1d4 bludgeoning| Basic blunt weapon\n---\nTable Name: Travel Results\nCategory: Travel\n\n1: Bad weather slows travel\n2: Signs of nearby monsters'} style={bulkTextareaStyle} /></label>
-          <div style={buttonRowStyle}>
-            <button type="button" onClick={importBulkTables} disabled={importingTables} style={primaryButtonStyle}><Upload size={14} /> {importingTables ? 'Importing...' : `Import ${bulkPreviewCount || ''} Table${bulkPreviewCount === 1 ? '' : 's'}`}</button>
-            <span style={mutedTextStyle}>{bulkPreviewCount ? `${bulkPreviewCount} table${bulkPreviewCount === 1 ? '' : 's'} detected` : 'No tables detected yet'}</span>
-          </div>
+          <div style={buttonRowStyle}><button type="button" onClick={importBulkTables} disabled={importingTables} style={primaryButtonStyle}><Upload size={14} /> {importingTables ? 'Importing...' : `Import ${bulkPreviewCount || ''} Table${bulkPreviewCount === 1 ? '' : 's'}`}</button><span style={mutedTextStyle}>{bulkPreviewCount ? `${bulkPreviewCount} table${bulkPreviewCount === 1 ? '' : 's'} detected` : 'No tables detected yet'}</span></div>
         </section>
       )}
 
       {showCreate && (
         <section style={createBoxStyle}>
-          <div style={formTitleRowStyle}>
-            <strong>{editingTableId ? 'Edit campaign table' : 'Create campaign table'}</strong>
-            {editingTableId && <span>Editing saved campaign content only.</span>}
-          </div>
+          <div style={formTitleRowStyle}><strong>{editingTableId ? 'Edit campaign table' : 'Create campaign table'}</strong>{editingTableId && <span>Structured columns are preserved if you keep the pipe header row.</span>}</div>
           <div style={formGridStyle}>
             <label style={fieldStyle}><span style={labelStyle}>Table name</span><input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="Quirks of Fate, Basic Weapons, Potion Prices..." style={inputStyle} /></label>
             <label style={fieldStyle}><span style={labelStyle}>Category</span><select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} style={inputStyle}>{CATEGORY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           </div>
           <label style={fieldStyle}><span style={labelStyle}>Short use note</span><input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="When should you use this table?" style={inputStyle} /></label>
-          <label style={fieldStyle}><span style={labelStyle}>Rows or roll results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\nClub | 1 sp | 1d4 bludgeoning" style={textareaStyle} /></label>
-          <div style={buttonRowStyle}>
-            <button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : editingTableId ? 'Update Table' : 'Save Table'}</button>
-            <button type="button" onClick={resetTableForm} style={secondaryButtonStyle}>Cancel</button>
-          </div>
+          <label style={fieldStyle}><span style={labelStyle}>Rows or roll results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\nWeapon | Cost | Damage | Use\nClub | 1 sp | 1d4 bludgeoning | Basic blunt weapon" style={textareaStyle} /></label>
+          <div style={buttonRowStyle}><button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : editingTableId ? 'Update Table' : 'Save Table'}</button><button type="button" onClick={resetTableForm} style={secondaryButtonStyle}>Cancel</button></div>
         </section>
       )}
 
@@ -676,27 +643,15 @@ export default function LiveRollTablesPanel({
           {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
           {filteredTables.map(table => {
             const active = table.id === activeTable.id;
-            return (
-              <button key={table.id} type="button" onClick={() => setActiveTableId(table.id)} style={tableButtonStyle(active)}>
-                <BookOpen size={15} />
-                <span style={{ minWidth: 0 }}>
-                  <strong>{table.name}</strong>
-                  <small>{categoryLabel(table.category)} · {sourceLabel(table)}</small>
-                </span>
-              </button>
-            );
+            return <button key={table.id} type="button" onClick={() => setActiveTableId(table.id)} style={tableButtonStyle(active)}><BookOpen size={15} /><span style={{ minWidth: 0 }}><strong>{table.name}</strong><small>{categoryLabel(table.category)} · {sourceLabel(table)}</small></span></button>;
           })}
         </aside>
 
         <main style={rollerStyle}>
           <div style={activeHeaderStyle}>
-            <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeIsRollable ? activeTable.die : 'Reference table'}{activeTable.editionLabel ? ` · ${activeTable.editionLabel}` : ''}</p>
-              <h4 style={activeTitleStyle}>{activeTable.name}</h4>
-              <p style={subtitleStyle}>{activeTable.description}</p>
-            </div>
+            <div style={{ minWidth: 0 }}><p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeIsRollable ? activeTable.die : 'Reference table'}{activeTable.editionLabel ? ` · ${activeTable.editionLabel}` : ''}</p><h4 style={activeTitleStyle}>{activeTable.name}</h4><p style={subtitleStyle}>{activeTable.description}</p></div>
             <div style={buttonRowStyle}>
-              {activeTable.locked && activeTable.source !== 'starter' && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
+              {activeTable.locked && activeTable.source !== 'starter' && <button type="button" onClick={() => saveCopyToCampaign(activeTable)} disabled={copyingTableId === activeTable.id} style={secondaryButtonStyle}><Save size={14} /> {copyingTableId === activeTable.id ? 'Saving...' : 'Save Copy'}</button>}
               {!activeTable.locked && <button type="button" onClick={() => startEditTable(activeTable)} style={secondaryButtonStyle}>Edit</button>}
               {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
             </div>
@@ -704,27 +659,9 @@ export default function LiveRollTablesPanel({
 
           {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play.</div>}
 
-          {lastRoll && lastRoll.tableId === activeTable.id ? (
-            <section style={resultStyle}>
-              <p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p>
-              <strong style={rollNumberStyle}>{lastRoll.roll}</strong>
-              <p style={resultTextStyle}>{lastRoll.text}</p>
-              <div style={buttonRowStyle}>
-                <button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                {allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}
-                {allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}
-              </div>
-            </section>
-          ) : activeIsRollable ? (
-            <section style={emptyResultStyle}>
-              <p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p>
-            </section>
-          ) : null}
+          {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
 
-          <section style={entriesStyle}>
-            <div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div>
-            <StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} />
-          </section>
+          <section style={entriesStyle}><div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div><StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} /></section>
         </main>
       </div>
     </section>
