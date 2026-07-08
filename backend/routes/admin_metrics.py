@@ -24,10 +24,10 @@ testing_note_query = {
 }
 
 user_feedback_query = {
-    '$and': [
-        {'category': {'$ne': 'testing'}},
-        {'area': {'$nin': ['testing', 'mobile-testing']}},
-        {'title': {'$not': {'$regex': r'\[test\]', '$options': 'i'}}},
+    '$nor': [
+        {'category': 'testing'},
+        {'area': {'$in': ['testing', 'mobile-testing']}},
+        {'title': {'$regex': r'\[test\]', '$options': 'i'}},
     ]
 }
 
