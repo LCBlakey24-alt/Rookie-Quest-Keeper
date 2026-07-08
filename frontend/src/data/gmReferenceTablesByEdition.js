@@ -64,6 +64,10 @@ function cloneEntry(entry) {
   };
 }
 
+function baseTableName(table) {
+  return String(table?.name || '').replace(/^\d{4}\s+—\s+/, '');
+}
+
 function weaponKey(value) {
   return String(value || '').toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ').trim();
 }
@@ -81,7 +85,7 @@ function withUseText(entry, useText) {
 }
 
 function updateCommonPotionsForEdition(table, edition) {
-  if (table.name !== 'Common Potions') return table;
+  if (baseTableName(table) !== 'Common Potions') return table;
   return {
     ...table,
     description: edition === '2024'
@@ -100,7 +104,7 @@ function updateCommonPotionsForEdition(table, edition) {
 }
 
 function updateBonusActionsForEdition(table, edition) {
-  if (table.name !== 'Bonus Actions') return table;
+  if (baseTableName(table) !== 'Bonus Actions') return table;
   return {
     ...table,
     entries: table.entries.map(entry => {
@@ -126,7 +130,7 @@ function format2024WeaponText(weapon) {
 }
 
 function updateWeaponTablesForEdition(table, edition) {
-  const baseName = table.name.replace(/^\d{4}\s+—\s+/, '');
+  const baseName = baseTableName(table);
   const isWeaponTable = /weapon/i.test(baseName) && !/property|bonus/i.test(baseName);
   if (!isWeaponTable) return table;
 
@@ -188,7 +192,7 @@ function updateWeaponTablesForEdition(table, edition) {
 }
 
 function updateCastSpellActionForEdition(table, edition) {
-  if (table.name !== 'Basic Actions In Combat') return table;
+  if (baseTableName(table) !== 'Basic Actions In Combat') return table;
   return {
     ...table,
     entries: table.entries.map(entry => {
