@@ -323,6 +323,10 @@ function tablePayloadFromExisting(table) {
   };
 }
 
+function rowCopyText(table, entry) {
+  return `${table.name} — ${entry.range}: ${entry.text}`;
+}
+
 function loadLocalCustomTables(campaignId) {
   try {
     const parsed = JSON.parse(localStorage.getItem(localStorageKey(campaignId)) || '[]');
@@ -364,19 +368,41 @@ function cleanCopyName(name) {
   return String(name || '').replace(/^\d{4}\s+—\s+/, '').trim();
 }
 
-function StructuredEntries({ table, entries, activeIsRollable }) {
+function RowActions({ onCopy, onSend, allowDisplay }) {
+  return (
+    <span style={rowActionStyle}>
+      <button type="button" onClick={onCopy} style={rowActionButtonStyle}><Copy size={12} /> Copy</button>
+      {allowDisplay && <button type="button" onClick={onSend} style={rowActionButtonStyle}><Send size={12} /> TV</button>}
+    </span>
+  );
+}
+
+function StructuredEntries({ table, entries, activeIsRollable, allowDisplay, onCopyRow, onSendRow }) {
   const columns = columnsForTable(table, entries);
   const canRenderColumns = columns.length > 1 && entries.some(entry => entry?.cells);
   if (!canRenderColumns) {
-    return <div style={entriesListStyle}>{entries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}</div>;
+    return (
+      <div style={entriesListStyle}>
+        {entries.map((entry, index) => (
+          <article key={`${entry.range}-${index}`} style={entryRowStyle}>
+            <strong>{entry.range}</strong>
+            <span>{entry.text}</span>
+            <RowActions allowDisplay={allowDisplay} onCopy={() => onCopyRow(entry)} onSend={() => onSendRow(entry)} />
+          </article>
+        ))}
+      </div>
+    );
   }
   return (
     <div style={structuredTableWrapStyle}>
       <table style={structuredTableStyle}>
-        <thead><tr>{columns.map(column => <th key={column} style={tableHeaderCellStyle}>{column}</th>)}</tr></thead>
+        <thead><tr>{columns.map(column => <th key={column} style={tableHeaderCellStyle}>{column}</th>)}<th style={tableHeaderCellStyle}>Actions</th></tr></thead>
         <tbody>
           {entries.map((entry, index) => (
-            <tr key={`${entry.range}-${index}`}>{columns.map((column, columnIndex) => <td key={column} style={columnIndex === 0 ? tableFirstCellStyle : tableCellStyle}>{entry.cells?.[column] ?? (columnIndex === 0 ? entry.range : '—')}</td>)}</tr>
+            <tr key={`${entry.range}-${index}`}>
+              {columns.map((column, columnIndex) => <td key={column} style={columnIndex === 0 ? tableFirstCellStyle : tableCellStyle}>{entry.cells?.[column] ?? (columnIndex === 0 ? entry.range : '—')}</td>)}
+              <td style={tableCellStyle}><RowActions allowDisplay={allowDisplay} onCopy={() => onCopyRow(entry)} onSend={() => onSendRow(entry)} /></td>
+            </tr>
           ))}
         </tbody>
       </table>
@@ -579,6 +605,20 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
     }
   };
 
+  const copyRowToClipboard = (entry) => copyText(rowCopyText(activeTable, entry));
+
+  const sendRowToDisplay = (entry) => {
+    publishCampaignDisplayState(campaignId, createDisplayState('table-result', {
+      eyebrow: activeIsRollable ? 'Table Result' : 'Reference Lookup',
+      title: activeTable.name,
+      die: activeIsRollable ? activeTable.die : 'Lookup',
+      roll: entry.range,
+      result: entry.text,
+      display_target: 'standing-tv',
+    }));
+    toast.success(activeIsRollable ? 'Table row sent to player display' : 'Reference lookup sent to player display');
+  };
+
   const deleteCustomTable = async (tableId) => {
     const target = campaignTables.find(table => table.id === tableId);
     if (!target) return;
@@ -657,11 +697,11 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
             </div>
           </div>
 
-          {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play.</div>}
+          {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play. Use Copy or TV on a row to share one lookup cleanly.</div>}
 
           {lastRoll && lastRoll.tableId === activeTable.id ? <section style={resultStyle}><p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p><strong style={rollNumberStyle}>{lastRoll.roll}</strong><p style={resultTextStyle}>{lastRoll.text}</p><div style={buttonRowStyle}><button type="button" onClick={() => copyText(resultText)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>{allowAddNote && onSaveAsNote && <button type="button" onClick={() => onSaveAsNote(resultText)} style={secondaryButtonStyle}>Add to Notes</button>}{allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}</div></section> : activeIsRollable ? <section style={emptyResultStyle}><p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p></section> : null}
 
-          <section style={entriesStyle}><div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div><StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} /></section>
+          <section style={entriesStyle}><div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div><StructuredEntries table={activeTable} entries={activeEntries} activeIsRollable={activeIsRollable} allowDisplay={allowDisplay} onCopyRow={copyRowToClipboard} onSendRow={sendRowToDisplay} /></section>
         </main>
       </div>
     </section>
@@ -707,12 +747,14 @@ const mutedTextStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 const entriesStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.line}`, padding: 10 };
 const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const entriesListStyle = { display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' };
-const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.22fr) minmax(0, 1fr)', gap: 8, background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
+const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.18fr) minmax(0, 1fr) auto', gap: 8, alignItems: 'start', background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const structuredTableWrapStyle = { overflowX: 'auto', maxHeight: 420, border: `1px solid ${theme.line}`, background: theme.card };
-const structuredTableStyle = { width: '100%', borderCollapse: 'collapse', minWidth: 620, fontSize: 12, color: theme.soft };
+const structuredTableStyle = { width: '100%', borderCollapse: 'collapse', minWidth: 720, fontSize: 12, color: theme.soft };
 const tableHeaderCellStyle = { position: 'sticky', top: 0, zIndex: 1, textAlign: 'left', background: theme.bg, color: theme.text, padding: '8px 9px', borderBottom: `1px solid ${theme.lineStrong}`, whiteSpace: 'nowrap', fontWeight: 950 };
 const tableCellStyle = { padding: '8px 9px', borderBottom: `1px solid ${theme.line}`, verticalAlign: 'top', lineHeight: 1.35 };
 const tableFirstCellStyle = { ...tableCellStyle, color: theme.text, fontWeight: 900, whiteSpace: 'nowrap' };
+const rowActionStyle = { display: 'inline-flex', gap: 5, justifyContent: 'flex-end', flexWrap: 'wrap' };
+const rowActionButtonStyle = { minHeight: 26, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.text, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 
 if (typeof document !== 'undefined' && !document.getElementById('live-roll-tables-panel-css')) {
   const style = document.createElement('style');
