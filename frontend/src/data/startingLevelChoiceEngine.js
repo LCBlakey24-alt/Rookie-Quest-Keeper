@@ -309,7 +309,9 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
   });
 
   const spellPlan = detailSelections.spellPlan || {};
-  const spellSelection = normaliseSpellSelection(detailSelections.spells, spellPlan);
+  const warlockPlan = detailSelections.warlockPlan || null;
+  const prunedDetailSelections = pruneStartingLevelDetailSelections(detailSelections, { spellPlan, warlockPlan });
+  const spellSelection = prunedDetailSelections.spells;
   if (spellSelection.cantrips.length) {
     const existing = arr(next.cantrips_known || next.cantrips).map((spell) => spellEntry(spell, 0));
     const names = new Set(existing.map((spell) => spell.name));
@@ -372,8 +374,7 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
     });
   }
 
-  const warlockPlan = detailSelections.warlockPlan || {};
-  const warlockSelection = normaliseWarlockSelection(detailSelections.warlock, warlockPlan);
+  const warlockSelection = prunedDetailSelections.warlock;
   if (warlockSelection.pactBoon) {
     next.pact_boon = warlockSelection.pactBoon;
     next.pactBoon = warlockSelection.pactBoon;
