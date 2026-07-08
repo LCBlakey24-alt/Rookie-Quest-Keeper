@@ -194,6 +194,11 @@ function entrySearchText(entry) {
   return `${entry.range || ''} ${entry.text || ''} ${Object.entries(entry.cells || {}).flatMap(([key, value]) => [key, value]).join(' ')}`.toLowerCase();
 }
 
+function tableSearchText(table) {
+  const entries = normaliseEntries(table?.entries || []);
+  return `${table?.name || ''} ${table?.category || ''} ${table?.description || ''} ${table?.editionLabel || ''} ${table?.source || ''} ${entries.map(entrySearchText).join(' ')}`.toLowerCase();
+}
+
 function parseSimpleRows(rawText) {
   return rawText
     .split('\n')
@@ -463,7 +468,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
 
   const filteredTables = useMemo(() => {
     const needle = tableSearch.trim().toLowerCase();
-    return tables.filter(table => matchesEditionFilter(table, editionFilter) && (!needle || `${table.name} ${table.category} ${table.description} ${table.editionLabel || ''} ${table.source || ''}`.toLowerCase().includes(needle)));
+    return tables.filter(table => matchesEditionFilter(table, editionFilter) && (!needle || tableSearchText(table).includes(needle)));
   }, [editionFilter, tableSearch, tables]);
 
   const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
@@ -690,7 +695,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
       <div style={layoutStyle}>
         <aside style={tableListStyle} aria-label="Available campaign tables">
           <div style={filterRowStyle}>{EDITION_FILTERS.map(([value, label]) => <button key={value} type="button" onClick={() => setEditionFilter(value)} style={filterChipStyle(editionFilter === value)}>{label}</button>)}</div>
-          <label style={searchBoxStyle}><Search size={14} /><input value={tableSearch} onChange={(event) => setTableSearch(event.target.value)} placeholder="Search tables, weapons, potions..." style={searchInputStyle} /></label>
+          <label style={searchBoxStyle}><Search size={14} /><input value={tableSearch} onChange={(event) => setTableSearch(event.target.value)} placeholder="Search tables, rows, weapons, potions..." style={searchInputStyle} /></label>
           {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
           {filteredTables.map(table => {
             const active = table.id === activeTable.id;
