@@ -1,5 +1,6 @@
 """Route module - import all routers for inclusion in the main app."""
 from routes.auth import router as auth_router
+from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
 from routes.site_updates import router as site_updates_router
 from routes.admin_audit import router as admin_audit_router
@@ -34,6 +35,9 @@ from routes.roll_events import router as roll_events_router
 
 all_routers = [
     auth_router,
+    # Register focused admin feedback reads before the legacy admin router so
+    # separated feedback/testing list and export endpoints take precedence.
+    admin_feedback_router,
     admin_router,
     site_updates_router,
     admin_audit_router,
