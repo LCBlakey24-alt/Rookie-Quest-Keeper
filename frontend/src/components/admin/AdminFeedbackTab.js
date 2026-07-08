@@ -52,7 +52,7 @@ export default function AdminFeedbackTab() {
     try {
       setLoading(true);
       const res = await apiClient.get('/admin/feedback', {
-        params: { status_filter: statusFilter === 'all' ? 'all' : statusFilter },
+        params: { status_filter: statusFilter === 'all' ? 'all' : statusFilter, kind: 'feedback' },
       });
       setItems(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
@@ -208,7 +208,7 @@ export default function AdminFeedbackTab() {
 
   const exportCsv = async () => {
     try {
-      const res = await apiClient.get('/admin/export/feedback.csv', { responseType: 'blob' });
+      const res = await apiClient.get('/admin/export/feedback.csv', { params: { kind: 'feedback' }, responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -218,7 +218,7 @@ export default function AdminFeedbackTab() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      await logAudit({ action: 'Feedback CSV exported', area: 'feedback', target_id: '', target_label: 'Feedback export', detail: 'Downloaded rook-feedback.csv' });
+      await logAudit({ action: 'Feedback CSV exported', area: 'feedback', target_id: '', target_label: 'Feedback export', detail: 'Downloaded user feedback CSV only' });
       toast.success('Feedback CSV downloaded');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to export feedback');
