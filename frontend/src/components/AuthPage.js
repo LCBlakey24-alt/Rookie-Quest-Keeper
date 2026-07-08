@@ -84,9 +84,38 @@ const NEXT_STEPS = {
   reset: ['Set new password', 'Sign back in', 'Continue the quest'],
 };
 
+const MODE_ASSURANCE = {
+  login: {
+    label: 'Keeper note',
+    title: 'Made for quick table access',
+    text: 'The auth screen stays lightweight so players can get from sign in to sheets, campaigns, and GM tools without extra noise.',
+  },
+  register: {
+    label: 'Signup tip',
+    title: 'Nickname-first is the cleanest route',
+    text: 'Rookie Quest Keeper works best when younger players use a table name or nickname, with recovery email kept optional.',
+  },
+  forgot: {
+    label: 'Recovery note',
+    title: 'Use the linked recovery email',
+    text: 'Reset instructions are requested through the account recovery flow, then the page safely returns you to sign in.',
+  },
+  reset: {
+    label: 'Password note',
+    title: 'Create a fresh table key',
+    text: 'Once the new password is saved, you will come back through sign in before reopening your dashboard.',
+  },
+};
+
 function getInitialMode(initialToken, queryMode) {
   if (initialToken) return 'reset';
   return URL_MODES.has(queryMode) ? queryMode : 'login';
+}
+
+function getAuthModePath(nextMode) {
+  if (nextMode === 'login') return '/auth';
+  if (URL_MODES.has(nextMode)) return `/auth?mode=${nextMode}`;
+  return '/auth';
 }
 
 function getPasswordChecks(password) {
@@ -141,15 +170,11 @@ export default function AuthPage({ onLogin = () => {} }) {
   }, [mode]);
 
   const goToMode = (nextMode, { replace = false } = {}) => {
-    setMode(nextMode);
+    const safeMode = nextMode === 'reset' ? 'reset' : URL_MODES.has(nextMode) ? nextMode : 'login';
+    setMode(safeMode);
 
-    if (nextMode === 'login') {
-      navigate('/auth', { replace });
-      return;
-    }
-
-    if (URL_MODES.has(nextMode)) {
-      navigate(`/auth?mode=${nextMode}`, { replace });
+    if (safeMode !== 'reset') {
+      navigate(getAuthModePath(safeMode), { replace });
     }
   };
 
@@ -262,6 +287,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   };
 
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
+  const assurance = MODE_ASSURANCE[mode] || MODE_ASSURANCE.login;
   const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
   const registerPasswordChecks = getPasswordChecks(registerData.password);
@@ -365,6 +391,7 @@ export default function AuthPage({ onLogin = () => {} }) {
             )}
 
             <AuthNotice>{copy.notice}</AuthNotice>
+            <AuthAssurancePanel {...assurance} />
 
             {mode === 'login' && (
               <form onSubmit={handleLogin} className="rqk-auth-form">
@@ -569,6 +596,16 @@ function AuthNotice({ children }) {
       <ShieldCheck size={16} aria-hidden="true" />
       <span>{children}</span>
     </div>
+  );
+}
+
+function AuthAssurancePanel({ label, title, text }) {
+  return (
+    <aside className="rqk-auth-assurance" aria-label={label}>
+      <span>{label}</span>
+      <strong>{title}</strong>
+      <p>{text}</p>
+    </aside>
   );
 }
 
