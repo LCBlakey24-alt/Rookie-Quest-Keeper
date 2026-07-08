@@ -104,8 +104,10 @@ export default function DiceRollFlicker({
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
   const revealedRef = useRef([]);
-  const finalTotal = Number(total) || Number(animationValue) || 0;
-  const naturalFocus = Number.isFinite(Number(animationValue)) && Number(animationValue) !== finalTotal ? Number(animationValue) : null;
+  const numericTotal = Number(total);
+  const numericAnimationValue = Number(animationValue);
+  const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
+  const naturalFocus = Number.isFinite(numericAnimationValue) && numericAnimationValue !== finalTotal ? numericAnimationValue : null;
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
   const [displayValues, setDisplayValues] = useState(() => dice.map((die) => randomFace(die.sides)));
   const [revealed, setRevealed] = useState(() => dice.map(() => false));
