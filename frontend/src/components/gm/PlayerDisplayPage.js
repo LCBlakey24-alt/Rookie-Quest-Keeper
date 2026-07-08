@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dice6, Maximize2, Monitor, ShieldCheck, Sparkles, Table2, Users } from 'lucide-react';
+import { Dice6, HeartPulse, Maximize2, Monitor, Shield, ShieldCheck, Sparkles, Table2, Users, Zap } from 'lucide-react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
+import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -17,18 +19,9 @@ const theme = {
   lineStrong: 'var(--rq-line-strong, rgba(255,255,255,0.28))',
 };
 
-function normaliseTarget(target) {
-  return target === 'virtual-table' ? 'virtual-table' : 'standing-tv';
-}
-
-function displayTargetFor(state, urlTarget) {
-  return normaliseTarget(state?.payload?.display_target || urlTarget);
-}
-
-function isTable(target) {
-  return target === 'virtual-table';
-}
-
+function normaliseTarget(target) { return target === 'virtual-table' ? 'virtual-table' : 'standing-tv'; }
+function displayTargetFor(state, urlTarget) { return normaliseTarget(state?.payload?.display_target || urlTarget); }
+function isTable(target) { return target === 'virtual-table'; }
 function modeLabel(mode) {
   if (mode === 'title') return 'Scene title';
   if (mode === 'table-result') return 'Roll table';
@@ -39,30 +32,64 @@ function modeLabel(mode) {
   return 'Ready screen';
 }
 
+function pickImage(value = {}) {
+  const character = value.character || value.raw?.character || value.raw || value;
+  return character.image_url || character.avatar_url || character.portrait_url || character.character_image || character.character_portrait || character.token_url || value.image_url || value.avatar_url || value.portrait_url || '';
+}
+
+function normalisePartyMember(value = {}) {
+  const base = normalizeCampaignCharacter(value);
+  const raw = base.raw || value;
+  return {
+    ...base,
+    id: base.id || raw.id || raw.player_id || raw.user_id || base.name,
+    imageUrl: pickImage(raw) || pickImage(base),
+    ac: base.armorClass || raw.ac || raw.armor_class || 0,
+    hp: base.currentHp ?? raw.hp ?? raw.current_hp ?? raw.current_hit_points ?? base.maxHp ?? 0,
+    maxHp: base.maxHp || raw.max_hp || raw.max_hit_points || raw.hp || 0,
+    speed: base.speed || raw.speed || 30,
+    initiative: base.initiative ?? raw.initiative ?? raw.initiative_bonus ?? 0,
+    passivePerception: base.passivePerception || raw.passive_perception || raw.passivePerception || 10,
+  };
+}
+
 export default function PlayerDisplayPage() {
   const { campaignId } = useParams();
   const [searchParams] = useSearchParams();
   const urlTarget = normaliseTarget(searchParams.get('target'));
   const [state, setState] = useState(() => loadDisplayState(campaignId));
+  const [party, setParty] = useState([]);
   const goFullscreen = useCallback(async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {} }, []);
 
   useEffect(() => {
     setState(loadDisplayState(campaignId));
     const unsubscribeLocal = subscribeDisplayState(campaignId, setState);
     const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState);
-    return () => {
-      unsubscribeLocal();
-      unsubscribeRemote();
-    };
+    return () => { unsubscribeLocal(); unsubscribeRemote(); };
   }, [campaignId]);
 
   useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key?.toLowerCase() === 'f') goFullscreen();
-    };
+    const onKeyDown = (event) => { if (event.key?.toLowerCase() === 'f') goFullscreen(); };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [goFullscreen]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchParty = async () => {
+      if (!campaignId) return;
+      try {
+        const response = await apiClient.get(`/campaigns/${campaignId}/players`);
+        const rows = Array.isArray(response.data) ? response.data : [];
+        if (!cancelled) setParty(rows.map(normalisePartyMember).filter(member => member?.name));
+      } catch {
+        if (!cancelled) setParty([]);
+      }
+    };
+    fetchParty();
+    const timer = window.setInterval(fetchParty, 30000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [campaignId]);
 
   const updatedLabel = useMemo(() => {
     if (!state?.updated_at) return '';
@@ -73,6 +100,10 @@ export default function PlayerDisplayPage() {
   const target = displayTargetFor(state, urlTarget);
   const mode = state?.mode || 'blank';
   const payload = state?.payload || {};
+  const partyMembers = useMemo(() => {
+    const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
+    return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
+  }, [payload.party, party]);
 
   return (
     <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
@@ -84,7 +115,10 @@ export default function PlayerDisplayPage() {
           <span style={statusPillStyle(target)}><ShieldCheck size={13} /> Player-safe</span>
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
         </header>
-        <DisplayContent state={state} target={target} />
+        <div style={displayGridStyle(target, partyMembers.length)}>
+          {!isTable(target) && partyMembers.length > 0 && <PartySidebar members={partyMembers} />}
+          <DisplayContent state={state} target={target} hasPartySidebar={!isTable(target) && partyMembers.length > 0} />
+        </div>
         <PlayerBanner banner={payload.banner} target={target} />
       </div>
       <footer style={footerStyle(target)}>
@@ -95,18 +129,60 @@ export default function PlayerDisplayPage() {
   );
 }
 
-function DisplayContent({ state, target }) {
+function DisplayContent({ state, target, hasPartySidebar = false }) {
   const mode = state?.mode || 'blank';
   const payload = state?.payload || {};
   const key = `${mode}-${state?.updated_at || 'empty'}-${target}`;
-  if (mode === 'title') return <TitleDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'title') return <TitleDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'table-result') return <TableResultDisplay key={key} payload={payload} target={target} />;
-  if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'npc-grid') return <NPCGridDisplay key={key} payload={payload} target={target} />;
-  if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} />;
+  if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
   return <BlankDisplay key={key} payload={payload} target={target} />;
 }
+
+function PartySidebar({ members }) {
+  return (
+    <aside style={partySidebarStyle} data-testid="standing-tv-party-sidebar">
+      <div style={partyHeaderStyle}>
+        <p style={partyEyebrowStyle}>Party Status</p>
+        <strong>{members.length} Player{members.length === 1 ? '' : 's'}</strong>
+      </div>
+      <div style={partyListStyle}>
+        {members.map(member => <PartyCard key={member.id || member.name} member={member} />)}
+      </div>
+    </aside>
+  );
+}
+
+function PartyCard({ member }) {
+  const hpPercent = member.maxHp ? Math.max(0, Math.min(100, Math.round((Number(member.hp || 0) / Number(member.maxHp || 1)) * 100))) : 0;
+  const initLabel = Number(member.initiative || 0) >= 0 ? `+${Number(member.initiative || 0)}` : `${member.initiative}`;
+  return (
+    <article style={partyCardStyle}>
+      <div style={portraitStyle}>
+        {member.imageUrl ? <img src={member.imageUrl} alt={member.name} style={portraitImageStyle} /> : <span>{String(member.name || '?').slice(0, 1).toUpperCase()}</span>}
+      </div>
+      <div style={partyInfoStyle}>
+        <div style={partyNameRowStyle}>
+          <strong>{member.name || 'Unknown Hero'}</strong>
+          <span>Lv {member.level || 1}</span>
+        </div>
+        <p style={partySubStyle}>{member.className || 'Adventurer'}{member.race ? ` · ${member.race}` : ''}</p>
+        <div style={hpBarShellStyle}><span style={hpBarFillStyle(hpPercent)} /></div>
+        <div style={miniStatsGridStyle}>
+          <StatPill icon={<HeartPulse size={12} />} label="HP" value={`${member.hp || 0}/${member.maxHp || 0}`} />
+          <StatPill icon={<Shield size={12} />} label="AC" value={member.ac || '-'} />
+          <StatPill icon={<Zap size={12} />} label="INIT" value={initLabel} />
+          <StatPill icon={<Sparkles size={12} />} label="SPD" value={`${member.speed || 30}ft`} />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function StatPill({ icon, label, value }) { return <span style={statPillStyle}>{icon}<em>{label}</em><strong>{value}</strong></span>; }
 
 function PlayerBanner({ banner, target }) {
   if (!banner?.text && !banner?.title) return null;
@@ -123,125 +199,36 @@ function PlayerBanner({ banner, target }) {
 }
 
 function BlankDisplay({ payload, target }) {
-  return (
-    <section style={blankStyle(target)}>
-      <div style={sigilStyle(target)}><Monitor size={isTable(target) ? 34 : 54} /></div>
-      <p style={eyebrowStyle(target)}>{isTable(target) ? 'Virtual table ready' : 'Player screen ready'}</p>
-      <h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1>
-      <p style={blankTextStyle(target)}>{payload?.subtitle || 'Scenes, maps, handouts, NPCs, combat reveals, and table results will appear here.'}</p>
-      <div style={readyGridStyle(target)}>
-        <span>Clean player view</span>
-        <span>No GM notes</span>
-        <span>Live synced</span>
-      </div>
-    </section>
-  );
+  return <section style={blankStyle(target)}><div style={sigilStyle(target)}><Monitor size={isTable(target) ? 34 : 54} /></div><p style={eyebrowStyle(target)}>{isTable(target) ? 'Virtual table ready' : 'Player screen ready'}</p><h1 style={blankTitleStyle(target)}>{payload?.title || 'Waiting for the GM'}</h1><p style={blankTextStyle(target)}>{payload?.subtitle || 'Scenes, maps, handouts, NPCs, combat reveals, and table results will appear here.'}</p><div style={readyGridStyle(target)}><span>Clean player view</span><span>No GM notes</span><span>Live synced</span></div></section>;
 }
 
-function TitleDisplay({ payload, target }) {
-  return (
-    <section style={titleDisplayStyle(target)}>
-      <div style={titlePlateStyle(target)}>
-        <p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p>
-        <h1 style={sceneTitleStyle(target)}>{payload.title || 'Untitled Scene'}</h1>
-        {payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}
-      </div>
-    </section>
-  );
+function TitleDisplay({ payload, target, hasPartySidebar }) {
+  return <section style={titleDisplayStyle(target, hasPartySidebar)}><div style={titlePlateStyle(target)}><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Scene'}</p><h1 style={sceneTitleStyle(target, hasPartySidebar)}>{payload.title || 'Untitled Scene'}</h1>{payload.subtitle && <p style={sceneSubtitleStyle(target)}>{payload.subtitle}</p>}</div></section>;
 }
 
 function TableResultDisplay({ payload, target }) {
-  return (
-    <section style={tableResultShellStyle(target)}>
-      <div style={diceSealStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} /></div>
-      <p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p>
-      <h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1>
-      <strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong>
-      <p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p>
-    </section>
-  );
+  return <section style={tableResultShellStyle(target)}><div style={diceSealStyle(target)}><Dice6 size={isTable(target) ? 32 : 54} /></div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'Table Roll'}</p><h1 style={tableResultTitleStyle(target)}>{payload.title || 'Roll Table'}</h1><strong style={tableRollNumberStyle(target)}>{payload.die || 'd20'} → {payload.roll || '?'}</strong><p style={tableResultTextStyle(target)}>{payload.result || 'No result sent yet.'}</p></section>;
 }
 
-function ImageDisplay({ payload, target }) {
-  return (
-    <section style={imageShellStyle(target)}>
-      <div style={imageStageStyle(target)}>
-        {payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle(target)}>No image selected</div>}
-      </div>
-      {(payload.title || payload.caption) && (
-        <div style={imageCaptionPanelStyle(target)}>
-          {payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}
-          {payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}
-        </div>
-      )}
-    </section>
-  );
+function ImageDisplay({ payload, target, hasPartySidebar }) {
+  return <section style={imageShellStyle(target, hasPartySidebar)}><div style={imageStageStyle(target)}>{payload.image_url ? <img src={payload.image_url} alt={payload.title || 'Player display image'} style={mainImageStyle(target)} /> : <div style={missingImageStyle(target)}>No image selected</div>}</div>{(payload.title || payload.caption) && <div style={imageCaptionPanelStyle(target)}>{payload.title && <h1 style={imageTitleStyle(target)}>{payload.title}</h1>}{payload.caption && <p style={captionStyle(target)}>{payload.caption}</p>}</div>}</section>;
 }
 
 function NPCGridDisplay({ payload, target }) {
   const npcs = Array.isArray(payload.npcs) ? payload.npcs : [];
-  return (
-    <section style={npcShellStyle(target)}>
-      <div style={displayHeaderStyle(target)}>
-        <Users size={isTable(target) ? 18 : 24} />
-        <div>
-          <p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p>
-          <h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1>
-        </div>
-      </div>
-      <div style={npcGridStyle(target)}>
-        {npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} />)}
-        {npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}
-      </div>
-    </section>
-  );
+  return <section style={npcShellStyle(target)}><div style={displayHeaderStyle(target)}><Users size={isTable(target) ? 18 : 24} /><div><p style={eyebrowStyle(target)}>{payload.eyebrow || 'People in the scene'}</p><h1 style={displayTitleStyle(target)}>{payload.title || 'Who you can see'}</h1></div></div><div style={npcGridStyle(target)}>{npcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} />)}{npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}</div></section>;
 }
 
 function NPCCard({ npc, target }) {
-  return (
-    <article style={npcCardStyle(target)}>
-      {npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}
-      <div style={npcInfoStyle(target)}>
-        <h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>
-        {npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}
-        {npc.description && !isTable(target) && <p style={npcDescriptionStyle}>{npc.description}</p>}
-      </div>
-    </article>
-  );
+  return <article style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>;
 }
 
-function CombatDisplay({ payload, target }) {
+function CombatDisplay({ payload, target, hasPartySidebar }) {
   const tokens = Array.isArray(payload.tokens) ? payload.tokens : [];
   const positionedTokens = tokens.filter(token => Number(token.x) || Number(token.y));
   const unpositionedTokens = tokens.filter(token => !Number(token.x) && !Number(token.y));
-  if (isTable(target)) {
-    return (
-      <section style={tableCombatShellStyle}>
-        <div style={tableMapStyle}>
-          {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-          <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
-          {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
-          <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}</div>
-        </div>
-      </section>
-    );
-  }
-  return (
-    <section style={combatShellStyle}>
-      <div style={combatMapStyle}>
-        {payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}
-        <div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>
-        {unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
-      </div>
-      <aside style={combatSideStyle}>
-        <p style={eyebrowStyle(target)}>Encounter</p>
-        <h1 style={combatTitleStyle}>{payload.title || 'Combat'}</h1>
-        {payload.caption && <p style={combatCaptionStyle}>{payload.caption}</p>}
-        <p style={combatHelpStyle}>Visible creatures only. HP, AC, notes, hidden enemies, and private GM details stay off this display.</p>
-        <div style={tokenListStyle}>{tokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} target={target} />)}{tokens.length === 0 && <p style={blankTextStyle(target)}>No visible tokens sent yet.</p>}</div>
-      </aside>
-    </section>
-  );
+  if (isTable(target)) return <section style={tableCombatShellStyle}><div style={tableMapStyle}>{payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}<div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>{unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}<div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}</div></div></section>;
+  return <section style={combatShellStyle(hasPartySidebar)}><div style={combatMapStyle}>{payload.map_url ? <img src={payload.map_url} alt={payload.title || 'Battle map'} style={combatMapImageStyle(target)} /> : <div style={missingImageStyle(target)}>Battle map waiting</div>}<div style={tokenOverlayStyle}>{positionedTokens.map(token => <MapToken key={token.id || token.name} token={token} target={target} />)}</div>{unpositionedTokens.length > 0 && <div style={combatTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}</div><aside style={combatSideStyle(hasPartySidebar)}><p style={eyebrowStyle(target)}>Encounter</p><h1 style={combatTitleStyle(hasPartySidebar)}>{payload.title || 'Combat'}</h1>{payload.caption && <p style={combatCaptionStyle}>{payload.caption}</p>}<p style={combatHelpStyle}>Visible creatures only. HP, AC, notes, hidden enemies, and private GM details stay off this display.</p><div style={tokenListStyle}>{tokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} target={target} />)}{tokens.length === 0 && <p style={blankTextStyle(target)}>No visible tokens sent yet.</p>}</div></aside></section>;
 }
 
 function EndSessionStatsDisplay({ payload, target }) {
@@ -249,22 +236,9 @@ function EndSessionStatsDisplay({ payload, target }) {
   const allTime = payload.allTime || {};
   const awards = Array.isArray(session.awards) ? session.awards : [];
   const actors = Array.isArray(session.actors) ? session.actors.slice(0, isTable(target) ? 4 : 6) : [];
-  const pages = [
-    { id: 'intro', eyebrow: 'End of Session', title: payload.campaignName || 'Session Recap', subtitle: 'Player dice recap incoming...' },
-    { id: 'crit', eyebrow: 'Critical Glory', title: `${session.nat20s || 0}`, subtitle: `Nat 20${session.nat20s === 1 ? '' : 's'} from player rolls tonight` },
-    { id: 'fumble', eyebrow: 'Dice Betrayal', title: `${session.nat1s || 0}`, subtitle: `Nat 1${session.nat1s === 1 ? '' : 's'} from player rolls tonight` },
-    { id: 'awards', eyebrow: 'Table Awards', title: 'Tonight\'s Titles', awards },
-    { id: 'board', eyebrow: 'Roller Board', title: 'Player Roll Leaders', actors },
-    { id: 'alltime', eyebrow: 'Campaign Totals', title: `${allTime.totalRolls || 0}`, subtitle: `${allTime.nat20s || 0} all-time Nat 20s · ${allTime.nat1s || 0} all-time Nat 1s` },
-  ];
+  const pages = [{ id: 'intro', eyebrow: 'End of Session', title: payload.campaignName || 'Session Recap', subtitle: 'Player dice recap incoming...' }, { id: 'crit', eyebrow: 'Critical Glory', title: `${session.nat20s || 0}`, subtitle: `Nat 20${session.nat20s === 1 ? '' : 's'} from player rolls tonight` }, { id: 'fumble', eyebrow: 'Dice Betrayal', title: `${session.nat1s || 0}`, subtitle: `Nat 1${session.nat1s === 1 ? '' : 's'} from player rolls tonight` }, { id: 'awards', eyebrow: 'Table Awards', title: 'Tonight\'s Titles', awards }, { id: 'board', eyebrow: 'Roller Board', title: 'Player Roll Leaders', actors }, { id: 'alltime', eyebrow: 'Campaign Totals', title: `${allTime.totalRolls || 0}`, subtitle: `${allTime.nat20s || 0} all-time Nat 20s · ${allTime.nat1s || 0} all-time Nat 1s` }];
   const [pageIndex, setPageIndex] = useState(0);
-
-  useEffect(() => {
-    setPageIndex(0);
-    const timer = window.setInterval(() => setPageIndex(prev => (prev + 1) % pages.length), isTable(target) ? 6500 : 5200);
-    return () => window.clearInterval(timer);
-  }, [payload.generated_at, target, pages.length]);
-
+  useEffect(() => { setPageIndex(0); const timer = window.setInterval(() => setPageIndex(prev => (prev + 1) % pages.length), isTable(target) ? 6500 : 5200); return () => window.clearInterval(timer); }, [payload.generated_at, target, pages.length]);
   const page = pages[pageIndex];
   return <section style={statsShowStyle(target)}><div key={`${payload.generated_at}-${page.id}-${pageIndex}-${target}`} style={statsSlideStyle(target)}><p style={eyebrowStyle(target)}>{page.eyebrow}</p>{renderStatsPage(page, session, allTime, target)}<div style={progressDotsStyle}>{pages.map((item, index) => <span key={item.id} style={progressDotStyle(index === pageIndex)} />)}</div></div></section>;
 }
@@ -283,13 +257,28 @@ function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Num
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ minHeight: '100dvh', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
-const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(14px, 2vw, 26px)', background: isTable(target) ? 'radial-gradient(circle at 50% 50%, rgba(208,0,0,0.13), transparent 42%), #050505' : 'radial-gradient(circle at 18% 12%, rgba(208,0,0,0.2), transparent 30%), radial-gradient(circle at 82% 78%, rgba(208,0,0,0.12), transparent 36%), linear-gradient(135deg, #050505 0%, #111 48%, #050505 100%)', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
+const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(12px, 1.8vw, 24px)', background: isTable(target) ? 'radial-gradient(circle at 50% 50%, rgba(208,0,0,0.13), transparent 42%), #050505' : 'radial-gradient(circle at 18% 12%, rgba(208,0,0,0.2), transparent 30%), radial-gradient(circle at 82% 78%, rgba(208,0,0,0.12), transparent 36%), linear-gradient(135deg, #050505 0%, #111 48%, #050505 100%)', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
+const displayGridStyle = (target, partyCount) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: !isTable(target) && partyCount ? 'minmax(230px, 300px) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: !isTable(target) && partyCount ? 12 : 0, paddingTop: !isTable(target) && partyCount ? 12 : 0 });
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
 const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
 const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.red, color: theme.text, border: `1px solid ${theme.red}` };
 const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
+const partySidebarStyle = { minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 10, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, boxShadow: '0 28px 90px rgba(0,0,0,0.38)', overflow: 'hidden', animation: 'rqkPartyReveal 620ms ease both' };
+const partyHeaderStyle = { display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 8, color: theme.text, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const partyEyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 950, letterSpacing: '0.14em' };
+const partyListStyle = { minHeight: 0, overflowY: 'auto', display: 'grid', alignContent: 'start', gap: 8, paddingRight: 2 };
+const partyCardStyle = { display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', gap: 9, padding: 8, background: 'linear-gradient(135deg, rgba(58,58,58,0.94), rgba(36,36,36,0.92))', border: `1px solid ${theme.line}`, borderLeft: `5px solid ${theme.red}`, boxShadow: '0 12px 34px rgba(0,0,0,0.24)' };
+const portraitStyle = { width: 58, height: 58, display: 'grid', placeItems: 'center', overflow: 'hidden', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: 30, border: `1px solid ${theme.lineStrong}` };
+const portraitImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
+const partyInfoStyle = { minWidth: 0, display: 'grid', gap: 4 };
+const partyNameRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 6, color: theme.text, fontSize: 13, fontWeight: 950 };
+const partySubStyle = { margin: 0, color: theme.soft, fontSize: 10, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const hpBarShellStyle = { height: 5, background: 'rgba(255,255,255,0.1)', border: `1px solid ${theme.line}`, overflow: 'hidden' };
+const hpBarFillStyle = (percent) => ({ display: 'block', width: `${percent}%`, height: '100%', background: theme.red, boxShadow: '0 0 18px rgba(208,0,0,0.5)' });
+const miniStatsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4 };
+const statPillStyle = { minHeight: 24, display: 'grid', gridTemplateColumns: '12px auto minmax(0, 1fr)', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.36)', border: `1px solid ${theme.line}`, color: theme.text, padding: '2px 4px', fontSize: 9, fontWeight: 950, textTransform: 'uppercase' };
 const bannerOverlayStyle = (target, tone) => ({ position: 'absolute', left: isTable(target) ? 12 : '50%', right: isTable(target) ? 12 : 'auto', bottom: isTable(target) ? 12 : 34, transform: isTable(target) ? 'none' : 'translateX(-50%)', zIndex: 12, width: isTable(target) ? 'auto' : 'min(1040px, calc(100% - 80px))', display: 'grid', gridTemplateColumns: `${isTable(target) ? 34 : 48}px minmax(0, 1fr)`, gap: isTable(target) ? 8 : 12, alignItems: 'center', padding: isTable(target) ? '8px 10px' : '13px 16px', background: tone === 'danger' ? 'rgba(12,0,0,0.92)' : 'rgba(0,0,0,0.82)', border: `1px solid ${tone === 'danger' ? theme.red : theme.lineStrong}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, boxShadow: '0 28px 110px rgba(0,0,0,0.66)', backdropFilter: 'blur(14px)', animation: 'rqkBannerPop 520ms ease both', pointerEvents: 'none' });
 const bannerIconStyle = (target) => ({ width: isTable(target) ? 34 : 48, height: isTable(target) ? 34 : 48, display: 'grid', placeItems: 'center', background: theme.red, color: theme.text });
 const bannerEyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 9 : 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.14em' });
@@ -300,20 +289,20 @@ const sigilStyle = (target) => ({ width: isTable(target) ? 68 : 106, height: isT
 const blankTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(28px, 5vw, 64px)' : 'clamp(42px, 8vw, 96px)', letterSpacing: '0.03em', color: theme.text, fontWeight: 900 });
 const blankTextStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(13px, 1.4vw, 18px)' : 'clamp(16px, 2vw, 24px)', lineHeight: 1.35, maxWidth: 980 });
 const readyGridStyle = (target) => ({ display: 'flex', gap: isTable(target) ? 6 : 10, flexWrap: 'wrap', justifyContent: 'center', color: theme.text, fontSize: isTable(target) ? 10 : 12, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' });
-const titleDisplayStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center', padding: isTable(target) ? '3vw' : '7vw', animation: 'rqkDisplayReveal 700ms ease both' });
+const titleDisplayStyle = (target, hasPartySidebar) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center', padding: isTable(target) ? '3vw' : hasPartySidebar ? '3vw' : '7vw', animation: 'rqkDisplayReveal 700ms ease both', minHeight: 0 });
 const titlePlateStyle = (target) => ({ width: 'min(1260px, 100%)', display: 'grid', justifyItems: 'center', gap: isTable(target) ? 9 : 16, padding: isTable(target) ? 'clamp(18px, 3vw, 42px)' : 'clamp(30px, 6vw, 86px)', background: 'rgba(0,0,0,0.42)', border: `1px solid ${theme.line}`, borderTop: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, boxShadow: '0 28px 120px rgba(0,0,0,0.55)' });
 const eyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 'clamp(10px, 1vw, 14px)' : 'clamp(12px, 1.4vw, 17px)', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.16em' });
-const sceneTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, color: theme.text, fontSize: isTable(target) ? 'clamp(34px, 6vw, 86px)' : 'clamp(56px, 9vw, 130px)', lineHeight: 0.95, letterSpacing: '0.03em', textWrap: 'balance' });
-const sceneSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 1.8vw, 24px)' : 'clamp(20px, 2.5vw, 36px)', maxWidth: 1100, lineHeight: 1.35 });
+const sceneTitleStyle = (target, hasPartySidebar) => ({ margin: 0, fontFamily: titleFont, color: theme.text, fontSize: isTable(target) ? 'clamp(34px, 6vw, 86px)' : hasPartySidebar ? 'clamp(44px, 6.6vw, 106px)' : 'clamp(56px, 9vw, 130px)', lineHeight: 0.95, letterSpacing: '0.03em', textWrap: 'balance' });
+const sceneSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 1.8vw, 24px)' : 'clamp(18px, 2.2vw, 32px)', maxWidth: 1100, lineHeight: 1.35 });
 const tableResultShellStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 10 : 18, textAlign: 'center', padding: isTable(target) ? '3vw' : '7vw', animation: 'rqkDisplayReveal 650ms ease both' });
 const diceSealStyle = (target) => ({ display: 'grid', placeItems: 'center', width: isTable(target) ? 68 : 104, height: isTable(target) ? 68 : 104, color: theme.text, background: theme.red, border: `1px solid ${theme.lineStrong}`, boxShadow: '0 22px 70px rgba(208,0,0,0.28)' });
 const tableResultTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(34px, 5vw, 78px)' : 'clamp(54px, 8vw, 118px)', lineHeight: 0.95 });
 const tableRollNumberStyle = (target) => ({ display: 'inline-grid', placeItems: 'center', minWidth: isTable(target) ? 130 : 190, minHeight: isTable(target) ? 72 : 108, background: theme.red, color: theme.text, padding: isTable(target) ? '8px 18px' : '12px 28px', fontSize: isTable(target) ? 'clamp(26px, 4vw, 62px)' : 'clamp(42px, 6vw, 86px)', fontWeight: 950, boxShadow: '0 24px 90px rgba(208,0,0,0.24)' });
 const tableResultTextStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 'clamp(17px, 2.6vw, 36px)' : 'clamp(28px, 4vw, 58px)', lineHeight: 1.2, maxWidth: 1120, fontWeight: 850, textWrap: 'balance' });
-const imageShellStyle = (target) => ({ minHeight: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, padding: isTable(target) ? 0 : 10, animation: 'rqkDisplayReveal 600ms ease both' });
+const imageShellStyle = (target, hasPartySidebar) => ({ minHeight: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: isTable(target) ? 6 : 12, padding: isTable(target) ? 0 : hasPartySidebar ? 0 : 10, animation: 'rqkDisplayReveal 600ms ease both' });
 const imageStageStyle = (target) => ({ minHeight: 0, display: 'grid', placeItems: 'center', background: '#000', border: `1px solid ${theme.line}`, boxShadow: isTable(target) ? 'none' : '0 30px 100px rgba(0,0,0,0.55)', overflow: 'hidden' });
 const imageTitleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(20px, 2.6vw, 42px)' : 'clamp(30px, 4vw, 64px)', textAlign: 'center' });
-const mainImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: 'contain', minHeight: 0, background: '#000' });
+const mainImageStyle = () => ({ width: '100%', height: '100%', objectFit: 'contain', minHeight: 0, background: '#000' });
 const missingImageStyle = (target) => ({ display: 'grid', placeItems: 'center', minHeight: isTable(target) ? 180 : 280, width: '100%', height: '100%', background: theme.panel, border: `1px dashed ${theme.line}`, color: theme.muted, fontSize: isTable(target) ? 16 : 22 });
 const imageCaptionPanelStyle = (target) => ({ display: 'grid', gap: 4, justifyItems: 'center', padding: isTable(target) ? '5px 8px' : '10px 16px', background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}` });
 const captionStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(12px, 1.2vw, 16px)' : 'clamp(15px, 1.8vw, 22px)', textAlign: 'center', lineHeight: 1.35 });
@@ -328,7 +317,7 @@ const npcInfoStyle = (target) => ({ padding: isTable(target) ? 8 : 14, display: 
 const npcNameStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 15 : 24 });
 const npcSubStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 11 : 15 });
 const npcDescriptionStyle = { margin: '5px 0 0', color: theme.muted, fontSize: 13, lineHeight: 1.35, maxHeight: 56, overflow: 'hidden' };
-const combatShellStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 420px)', gap: 0, minHeight: 0, height: '100%', animation: 'rqkDisplayReveal 600ms ease both' };
+const combatShellStyle = (hasPartySidebar) => ({ display: 'grid', gridTemplateColumns: hasPartySidebar ? 'minmax(0, 1fr) minmax(240px, 330px)' : 'minmax(0, 1fr) minmax(300px, 420px)', gap: 0, minHeight: 0, height: '100%', animation: 'rqkDisplayReveal 600ms ease both' });
 const combatMapStyle = { minHeight: 0, background: '#000', display: 'grid', placeItems: 'center', borderRight: `1px solid ${theme.line}`, position: 'relative', overflow: 'hidden' };
 const tableCombatShellStyle = { minHeight: 0, height: '100%', background: '#000', padding: 0, overflow: 'hidden', animation: 'rqkDisplayReveal 600ms ease both' };
 const tableMapStyle = { width: '100%', height: '100%', minHeight: 0, display: 'grid', placeItems: 'center', position: 'relative', overflow: 'hidden', background: '#000' };
@@ -339,8 +328,8 @@ const tokenImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
 const combatTokenShelfStyle = { position: 'absolute', left: 14, right: 14, bottom: 14, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', padding: 10, background: 'rgba(0,0,0,0.68)', border: `1px solid ${theme.line}` };
 const tableTokenShelfStyle = { position: 'absolute', left: 8, right: 8, bottom: 8, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', padding: 7, background: 'rgba(0,0,0,0.58)', border: `1px solid ${theme.line}` };
 const tableMapLabelStyle = { position: 'absolute', top: 8, left: 8, display: 'grid', gap: 2, maxWidth: 'min(520px, 70%)', background: 'rgba(0,0,0,0.62)', borderLeft: `5px solid ${theme.red}`, padding: '7px 10px', color: theme.text, fontSize: 13 };
-const combatSideStyle = { background: 'rgba(36,36,36,0.96)', padding: 18, display: 'grid', alignContent: 'start', gap: 12, overflow: 'hidden' };
-const combatTitleStyle = { margin: 0, color: theme.text, fontFamily: titleFont, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 0.95 };
+const combatSideStyle = (hasPartySidebar) => ({ background: 'rgba(36,36,36,0.96)', padding: hasPartySidebar ? 14 : 18, display: 'grid', alignContent: 'start', gap: 10, overflow: 'hidden' });
+const combatTitleStyle = (hasPartySidebar) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: hasPartySidebar ? 'clamp(28px, 3.2vw, 48px)' : 'clamp(32px, 4vw, 58px)', lineHeight: 0.95 });
 const combatCaptionStyle = { margin: 0, color: theme.soft, fontSize: 15, lineHeight: 1.35 };
 const combatHelpStyle = { margin: 0, color: theme.soft, lineHeight: 1.45, fontSize: 13 };
 const tokenListStyle = { display: 'grid', gap: 8, marginTop: 8, overflowY: 'auto', maxHeight: '54vh' };
@@ -370,9 +359,12 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkStatsReveal { from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(5px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
     @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    @keyframes rqkPartyReveal { from { opacity: 0; transform: translateX(-20px); filter: blur(5px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }
     [data-testid="player-display-page"]::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px rgba(0,0,0,0.78); z-index: 2; }
-    @media (max-width: 900px) { [data-testid="player-display-page"] section { max-width: 100%; } }
+    [data-testid="standing-tv-party-sidebar"]::-webkit-scrollbar, [data-testid="standing-tv-party-sidebar"] *::-webkit-scrollbar { width: 8px; }
+    [data-testid="standing-tv-party-sidebar"]::-webkit-scrollbar-thumb, [data-testid="standing-tv-party-sidebar"] *::-webkit-scrollbar-thumb { background: rgba(208,0,0,0.55); }
+    @media (max-width: 980px) { [data-testid="player-display-page"] [data-testid="standing-tv-party-sidebar"] { display: none !important; } }
   `;
   document.head.appendChild(style);
 }
