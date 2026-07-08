@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Copy, Eye, Image as ImageIcon, Layers, Monitor, Projector, RefreshCw, Send, ShieldCheck, Skull, Sparkles, Table2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
+import { createDisplayState, loadDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -47,6 +47,14 @@ const MESSAGE_PRESETS = [
   { id: 'long-rest', label: 'Long Rest', eyebrow: 'Rest', title: 'Long Rest Complete', subtitle: 'Abilities, spells, and hit points recover as normal.' },
 ];
 
+const BANNER_PRESETS = [
+  { id: 'clue', label: 'Clue Found', eyebrow: 'Clue', text: 'A clue has been discovered.' },
+  { id: 'danger', label: 'Danger', eyebrow: 'Danger', text: 'Something dangerous is close.', tone: 'danger' },
+  { id: 'weather', label: 'Weather Shift', eyebrow: 'Environment', text: 'The weather begins to turn.' },
+  { id: 'timer', label: 'Clock Ticks', eyebrow: 'Time Pressure', text: 'The clock is ticking.' },
+  { id: 'inspiration', label: 'Inspiration', eyebrow: 'Inspiration', text: 'Heroic inspiration awarded.' },
+];
+
 function imageFrom(item) {
   return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || '';
 }
@@ -87,6 +95,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [sceneTitle, setSceneTitle] = useState(campaignName || 'Scene');
   const [sceneSubtitle, setSceneSubtitle] = useState('');
   const [quickAnnouncement, setQuickAnnouncement] = useState('');
+  const [bannerMessage, setBannerMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
@@ -123,6 +132,17 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     publishCampaignDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
     const label = DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label;
     toast.success('Sent to player display', { description: label });
+  };
+
+  const publishBannerOverlay = (banner) => {
+    const current = loadDisplayState(campaignId) || createDisplayState('blank', {});
+    const mode = current?.mode || 'blank';
+    const payload = { ...(current?.payload || {}) };
+    const safeTarget = normaliseTarget(displayTarget || payload.display_target);
+    if (banner) payload.banner = { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, eyebrow: 'Announcement', ...banner };
+    else delete payload.banner;
+    publishCampaignDisplayState(campaignId, createDisplayState(mode, { ...payload, display_target: safeTarget }));
+    toast.success(banner ? 'Banner sent over current display' : 'Banner cleared', { description: DISPLAY_TARGETS.find(target => target.id === safeTarget)?.label || currentTarget.label });
   };
 
   const sendDisplayTarget = (targetId = displayTarget) => {
@@ -254,6 +274,20 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     });
   };
 
+  const sendBanner = () => {
+    const text = bannerMessage.trim();
+    if (!text) {
+      toast.error('Type a banner message first');
+      return;
+    }
+    publishBannerOverlay({ eyebrow: 'Table Update', text, subtitle: sceneSubtitle });
+  };
+
+  const sendBannerPreset = (preset) => {
+    setBannerMessage(preset.text);
+    publishBannerOverlay({ eyebrow: preset.eyebrow, text: preset.text, tone: preset.tone });
+  };
+
   const toggleNpc = (npcId) => {
     const safeId = String(npcId);
     setSelectedNpcIds(prev => prev.includes(safeId) ? prev.filter(id => id !== safeId) : [...prev, safeId]);
@@ -291,6 +325,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <button type="button" onClick={() => openPlayerDisplay('virtual-table')} style={primaryButtonStyle}><Table2 size={14} /> Open Table</button>
           <button type="button" onClick={() => copyDisplayLink(displayTarget)} style={secondaryButtonStyle}><Copy size={14} /> Copy Link</button>
           <button type="button" onClick={() => sendFlowPreset(FLOW_PRESETS[0])} style={dangerButtonStyle}><X size={14} /> Blackout</button>
+          <button type="button" onClick={() => publishBannerOverlay(null)} style={secondaryButtonStyle}><X size={14} /> Clear Banner</button>
           <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>
         </div>
       </header>
@@ -348,16 +383,34 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           </div>
         </section>
 
+        <section style={bannerPanelStyle}>
+          <div style={quickSendHeaderStyle}>
+            <div>
+              <strong>Overlay banner</strong>
+              <p>Flash a message over the current player screen without replacing the map, combat, or scene.</p>
+            </div>
+            <span style={safeBadgeStyle}><Sparkles size={13} /> Preserves current screen</span>
+          </div>
+          <div style={messageInputRowStyle}>
+            <input value={bannerMessage} onChange={(event) => setBannerMessage(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendBanner(); }} placeholder="Type a banner to overlay on the current screen..." style={inputStyle} />
+            <button type="button" onClick={sendBanner} style={primaryButtonStyle}><Sparkles size={14} /> Send Banner</button>
+            <button type="button" onClick={() => publishBannerOverlay(null)} style={secondaryButtonStyle}><X size={14} /> Clear</button>
+          </div>
+          <div style={presetGridStyle}>
+            {BANNER_PRESETS.map(preset => <button key={preset.id} type="button" onClick={() => sendBannerPreset(preset)} style={preset.tone === 'danger' ? dangerPresetButtonStyle : presetButtonStyle}>{preset.label}</button>)}
+          </div>
+        </section>
+
         <section style={messagePanelStyle}>
           <div style={quickSendHeaderStyle}>
             <div>
               <strong>Broadcast announcement</strong>
-              <p>Send a short player-facing title card without digging into notes.</p>
+              <p>Send a full player-facing title card without digging into notes.</p>
             </div>
-            <span style={safeBadgeStyle}><Send size={13} /> Quick broadcast</span>
+            <span style={safeBadgeStyle}><Send size={13} /> Full-screen broadcast</span>
           </div>
           <div style={messageInputRowStyle}>
-            <input value={quickAnnouncement} onChange={(event) => setQuickAnnouncement(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendAnnouncement(); }} placeholder="Type a player-facing message..." style={inputStyle} />
+            <input value={quickAnnouncement} onChange={(event) => setQuickAnnouncement(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendAnnouncement(); }} placeholder="Type a player-facing title card..." style={inputStyle} />
             <button type="button" onClick={sendAnnouncement} style={primaryButtonStyle}><Send size={14} /> Broadcast</button>
           </div>
           <div style={presetGridStyle}>
@@ -441,12 +494,13 @@ const previewMetaStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop:
 const quickSendPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
 const flowPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.16), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
 const messagePanelStyle = { background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(36,36,36,0.96))', border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
+const bannerPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.12), rgba(0,0,0,0.2), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
 const quickSendHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', color: theme.text };
 const safeBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: 26, padding: '0 8px', color: theme.text, background: theme.bg, border: `1px solid ${theme.line}`, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const presetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7 };
 const presetButtonStyle = { minHeight: 38, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const dangerPresetButtonStyle = { minHeight: 38, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
-const messageInputRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 7 };
+const messageInputRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', gap: 7 };
 const advancedStyle = { display: 'grid', gap: 10 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
