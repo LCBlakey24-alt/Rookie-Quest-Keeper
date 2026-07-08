@@ -18,6 +18,7 @@ class SiteUpdatePayload(BaseModel):
     text: str = Field(..., min_length=10, max_length=1200)
     is_published: bool = False
     is_pinned: bool = False
+    is_archived: bool = False
 
 
 async def verify_admin(username: str):
@@ -35,6 +36,7 @@ def safe_site_update(doc: Optional[dict]) -> dict:
     safe.setdefault('text', '')
     safe.setdefault('is_published', False)
     safe.setdefault('is_pinned', False)
+    safe.setdefault('is_archived', False)
     safe.setdefault('created_at', '')
     safe.setdefault('updated_at', '')
     safe.setdefault('published_at', None)
@@ -54,18 +56,23 @@ def build_site_update_patch(payload: SiteUpdatePayload, username: str, now: str,
         raise HTTPException(status_code=400, detail="Site update text is required")
 
     existing = existing or {}
+    is_archived = bool(payload.is_archived)
+    is_published = bool(payload.is_published) and not is_archived
+    is_pinned = bool(payload.is_pinned) and not is_archived
+
     published_at = existing.get('published_at')
-    if payload.is_published and not published_at:
+    if is_published and not published_at:
         published_at = now
-    if not payload.is_published:
+    if not is_published:
         published_at = None
 
     return {
         'label': label[:60],
         'title': title[:140],
         'text': text[:1200],
-        'is_published': payload.is_published,
-        'is_pinned': payload.is_pinned,
+        'is_published': is_published,
+        'is_pinned': is_pinned,
+        'is_archived': is_archived,
         'published_at': published_at,
         'updated_by': username,
         'updated_at': now,
@@ -76,16 +83,17 @@ def build_site_update_patch(payload: SiteUpdatePayload, username: str, now: str,
 async def get_public_site_updates(limit: int = 6):
     safe_limit = max(1, min(limit, 12))
     updates = await db.site_updates.find(
-        {'is_published': True},
+        {'is_published': True, 'is_archived': {'$ne': True}},
         {'_id': 0}
     ).sort([('is_pinned', -1), ('published_at', -1), ('updated_at', -1)]).to_list(safe_limit)
     return [safe_site_update(update) for update in updates]
 
 
 @router.get("/admin/site-updates")
-async def get_admin_site_updates(username: str = Depends(get_current_user)):
+async def get_admin_site_updates(include_archived: bool = False, username: str = Depends(get_current_user)):
     await verify_admin(username)
-    updates = await db.site_updates.find({}, {'_id': 0}).sort([('is_pinned', -1), ('updated_at', -1)]).to_list(200)
+    query = {} if include_archived else {'is_archived': {'$ne': True}}
+    updates = await db.site_updates.find(query, {'_id': 0}).sort([('is_archived', 1), ('is_pinned', -1), ('updated_at', -1)]).to_list(200)
     return [safe_site_update(update) for update in updates]
 
 
@@ -118,3 +126,12 @@ async def update_admin_site_update(update_id: str, payload: SiteUpdatePayload, u
 
     doc = await db.site_updates.find_one({'id': update_id}, {'_id': 0})
     return safe_site_update(doc)
+
+
+@router.delete("/admin/site-updates/{update_id}")
+async def delete_admin_site_update(update_id: str, username: str = Depends(get_current_user)):
+    await verify_admin(username)
+    result = await db.site_updates.delete_one({'id': update_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Site update not found")
+    return {"message": "Site update deleted"}
