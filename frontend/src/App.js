@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import '@/App.css';
 // Style layering: base app/design styles first, route-specific legacy themes next,
 // board/layout safety layers after that, then the current Twilight Keeper brand layer last.
-import '@/styles/brandedLoading.css';
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -60,6 +59,7 @@ import '@/styles/characterSheetSavingThrowsCompact.css';
 import '@/styles/characterSheetSkillsCompact.css';
 import '@/styles/characterSheetStatsFinalMobileTweaks.css';
 import '@/styles/characterSheetStatsTabFinalPolish.css';
+import '@/styles/brandedLoading.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
