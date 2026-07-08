@@ -1,6 +1,8 @@
 import React from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, Zap } from 'lucide-react';
 import './CinematicDiceOverlay.css';
+
+const PARTICLES = Array.from({ length: 14 }, (_, index) => index + 1);
 
 function getOutcomeLabel(isCrit, isFumble, isRevealed) {
   if (!isRevealed) return 'Rolling dice';
@@ -25,6 +27,7 @@ export default function CinematicDiceOverlay({
   isCrit = false,
   isFumble = false,
   diceCount = 1,
+  onRevealNow,
   onClose,
 }) {
   const outcomeClass = isCrit ? 'is-critical' : isFumble ? 'is-fumble' : '';
@@ -40,6 +43,14 @@ export default function CinematicDiceOverlay({
         <div className="rq-cinematic-roll__wall rq-cinematic-roll__wall--top" />
         <div className="rq-cinematic-roll__trail rq-cinematic-roll__trail--one" />
         <div className="rq-cinematic-roll__trail rq-cinematic-roll__trail--two" />
+
+        <div className="rq-cinematic-roll__impact rq-cinematic-roll__impact--one" />
+        <div className="rq-cinematic-roll__impact rq-cinematic-roll__impact--two" />
+        <div className="rq-cinematic-roll__impact rq-cinematic-roll__impact--three" />
+
+        <div className="rq-cinematic-roll__particles" aria-hidden="true">
+          {PARTICLES.map(index => <span key={index} className={`rq-cinematic-roll__particle rq-cinematic-roll__particle--${index}`} />)}
+        </div>
 
         <div className="rq-cinematic-roll__die-wrap">
           <div className="rq-cinematic-roll__shadow" />
@@ -63,6 +74,14 @@ export default function CinematicDiceOverlay({
         <div className="rq-cinematic-roll__status"><Sparkles size={15} /> {getOutcomeLabel(isCrit, isFumble, isRevealed)}</div>
         <h3 title={label || 'Dice roll'}>{label || 'Dice roll'}</h3>
         <p title={rollDetail}>{isRevealed ? rollDetail : `A sunset d20 is bouncing through the roll tray${diceCount > 1 ? ` for ${diceCount} dice` : ''}.`}</p>
+        <div className="rq-cinematic-roll__actions">
+          {!isRevealed && (
+            <button type="button" onClick={onRevealNow} className="rq-cinematic-roll__reveal-now">
+              <Zap size={13} /> Reveal now
+            </button>
+          )}
+          <span>Esc closes · Enter reveals</span>
+        </div>
         <div className="rq-cinematic-roll__total">
           <span>{isRevealed ? 'Total' : 'Rolling'}</span>
           <strong>{isRevealed ? displayTotal : '—'}</strong>
