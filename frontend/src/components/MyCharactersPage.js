@@ -38,6 +38,20 @@ function characterLevel(character) {
   return `Level ${character?.level || 1}`;
 }
 
+function characterRules(character) {
+  const raw = character?.ruleset_id || character?.edition || character?.rules_edition || '';
+  if (String(raw).includes('2024')) return '2024 rules';
+  if (String(raw).includes('2014')) return '2014 rules';
+  return 'Playable sheet';
+}
+
+function formatDate(value) {
+  if (!value) return 'Not updated yet';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently updated';
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function duplicatePayload(source) {
   return {
     name: `Copy of ${characterTitle(source)}`,
@@ -112,6 +126,10 @@ export default function MyCharactersPage() {
   const sortedCharacters = useMemo(() => [...characters].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
   )), [characters]);
+
+  const highestLevel = useMemo(() => sortedCharacters.reduce((highest, character) => (
+    Math.max(highest, Number(character?.level || 1))
+  ), 0), [sortedCharacters]);
 
   const loadCharacters = async () => {
     try {
@@ -192,8 +210,11 @@ export default function MyCharactersPage() {
   return (
     <main className="library-page characters-library-page">
       <section className="library-page-hero characters-library-hero">
-        <h1>My Characters</h1>
-        <p>Manage your heroes, level them up, upload existing sheets, and jump back into play.</p>
+        <div>
+          <p className="library-page-eyebrow">Player vault</p>
+          <h1>My Characters</h1>
+          <p>Manage your heroes, level them up, upload existing sheets, duplicate builds, and jump back into play without hunting through menus.</p>
+        </div>
       </section>
 
       <section className="library-page-action-row" aria-label="Character library actions">
@@ -215,10 +236,19 @@ export default function MyCharactersPage() {
         </div>
       </section>
 
+      <section className="library-page-stat-grid" aria-label="Character library overview">
+        <LibraryStat label="Characters" value={sortedCharacters.length} note="Saved heroes" />
+        <LibraryStat label="Highest level" value={highestLevel ? `Level ${highestLevel}` : '—'} note="Top saved sheet" />
+        <LibraryStat label="Latest update" value={formatDate(sortedCharacters[0]?.updated_at || sortedCharacters[0]?.created_at)} note="Most recent sheet" />
+      </section>
+
       <section className="library-page-toolbar" aria-label="Character library status">
-        <p className="library-page-count">
-          {sortedCharacters.length} character{sortedCharacters.length === 1 ? '' : 's'} saved
-        </p>
+        <div>
+          <p className="library-page-count">
+            {sortedCharacters.length} character{sortedCharacters.length === 1 ? '' : 's'} saved
+          </p>
+          <p className="library-page-toolbar-note">Open the sheet for play, or edit the build when a rules pass needs testing.</p>
+        </div>
       </section>
 
       {sortedCharacters.length === 0 ? (
@@ -238,6 +268,10 @@ export default function MyCharactersPage() {
             return (
               <article key={id || characterTitle(character)} className="library-card character-library-card">
                 <div className="character-card-main">
+                  <div className="character-card-meta-row">
+                    <span className="character-card-status">{characterRules(character)}</span>
+                    <span className="character-card-status">{formatDate(character?.updated_at || character?.created_at)}</span>
+                  </div>
                   <div className="character-card-identity-row">
                     <h2>{characterTitle(character)}</h2>
                     <span className="character-card-level-badge">{characterLevel(character)}</span>
@@ -263,5 +297,15 @@ export default function MyCharactersPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function LibraryStat({ label, value, note }) {
+  return (
+    <article className="library-page-stat-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{note}</small>
+    </article>
   );
 }
