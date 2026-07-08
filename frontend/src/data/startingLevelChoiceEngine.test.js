@@ -4,6 +4,7 @@ import {
   getSpellChoicePlan,
   normaliseSpellSelection,
   normaliseWarlockSelection,
+  pruneStartingLevelDetailSelections,
 } from './startingLevelChoiceEngine';
 
 const basePayload = (overrides = {}) => ({
@@ -63,6 +64,41 @@ describe('starting level choice engine', () => {
       pactBoon: 'Pact of the Tome',
       invocations: ['Agonizing Blast', 'Devil’s Sight'],
     });
+  });
+
+  test('prunes spell and Warlock detail selections when plan limits change', () => {
+    const pruned = pruneStartingLevelDetailSelections({
+      spells: {
+        cantrips: ['Fire Bolt', 'Mage Hand'],
+        spells: ['Hex', 'Armor of Agathys', 'Invisibility'],
+        prepared: ['Shield', 'Magic Missile'],
+        arcanum: { 6: 'Eyebite', 7: 'Forcecage' },
+      },
+      warlock: {
+        pactBoon: 'Pact of the Tome',
+        invocations: ['Agonizing Blast', 'Devil’s Sight', 'Mask of Many Faces'],
+      },
+      classSpecific: { metamagic: ['Quickened Spell'] },
+    }, {
+      spellPlan: {
+        cantripTarget: 1,
+        knownTarget: 2,
+        preparedTarget: 1,
+        arcanumLevels: [6],
+      },
+      warlockPlan: {
+        pactBoonRequired: false,
+        invocationCount: 1,
+      },
+    });
+
+    expect(pruned.spells.cantrips).toEqual(['Fire Bolt']);
+    expect(pruned.spells.spells).toEqual(['Hex', 'Armor of Agathys']);
+    expect(pruned.spells.prepared).toEqual(['Shield']);
+    expect(pruned.spells.arcanum).toEqual({ 6: 'Eyebite' });
+    expect(pruned.warlock.pactBoon).toBe('');
+    expect(pruned.warlock.invocations).toEqual(['Agonizing Blast']);
+    expect(pruned.classSpecific).toEqual({ metamagic: ['Quickened Spell'] });
   });
 
   test('applies ASI choices, feats, prepared spells, Pact Boon, and invocations to payload', () => {
