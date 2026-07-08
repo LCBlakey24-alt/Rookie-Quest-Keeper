@@ -103,6 +103,13 @@ cd frontend
 yarn build
 ```
 
+For builder, Homebrew Workshop, custom resources, uploaded spells/feats, or character-sheet resource changes, run the focused frontend pack:
+
+```bash
+cd frontend
+yarn test:homebrew
+```
+
 ```bash
 cd backend
 # Fast default run (integration tests are opt-in)
@@ -122,6 +129,7 @@ Manual smoke test:
 6. Start combat and end combat, confirming player HP persists.
 7. Test mobile character sheet layout at phone width.
 8. Check admin pages if logged in as an admin username.
+9. Upload or create one Homebrew Workshop subclass with a custom resource, build a character using it, then confirm the resource appears and can be spent/restored on the sheet.
 
 ## Current development priorities
 
