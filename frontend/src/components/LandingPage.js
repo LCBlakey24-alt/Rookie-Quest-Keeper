@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Backpack,
@@ -21,104 +21,125 @@ const BUTTON_FILL_DELAY_MS = 560;
 const featureGroups = [
   {
     icon: Users,
-    title: 'Player Mode',
-    items: ['Build characters quickly', 'Use a clear play sheet', 'Track HP, actions, spells, gear, notes, and level-ups'],
+    eyebrow: 'Player Mode',
+    title: 'A sheet built for play',
+    text: 'Stats, HP, actions, spells, inventory, notes, rests, and level-ups stay separated into clear table-ready sections.',
   },
   {
     icon: Swords,
-    title: 'Table Mode',
-    items: ['Roll dice fast', 'Keep combat moving', 'Find the next useful tool without digging'],
+    eyebrow: 'Table Mode',
+    title: 'Less hunting, more rolling',
+    text: 'Quick combat tools and action-first layout choices help players find useful options while the game is moving.',
   },
   {
     icon: Crown,
-    title: 'GM Mode',
-    items: ['Plan campaigns', 'Run live sessions', 'Reveal handouts, rewards, maps, notes, and secrets'],
+    eyebrow: 'GM Mode',
+    title: 'Prep and run in one hub',
+    text: 'Campaign notes, handouts, maps, NPCs, rewards, uploads, live-session tools, and table context can live together.',
   },
+];
+
+const proofPoints = [
+  'Mobile-first sheets',
+  'Actions-first play',
+  'GM-ready campaigns',
+  'Built for rookies and regulars',
+];
+
+const previewItems = [
+  {
+    icon: HeartPulse,
+    label: 'Player sheet',
+    value: 'HP, AC, conditions, rests, and turn choices',
+  },
+  {
+    icon: BookOpen,
+    label: 'Character tools',
+    value: 'Full creator, guided choices, spells, gear, and notes',
+  },
+  {
+    icon: Crown,
+    label: 'GM workspace',
+    value: 'Campaign prep, NPCs, maps, secrets, uploads, and handouts',
+  },
+  {
+    icon: MessageSquare,
+    label: 'Live table flow',
+    value: 'Player display, quick references, session notes, and feedback',
+  },
+];
+
+const readyNow = [
+  'Create characters through Full Creator, Basic Creator, or Rook Character Matchmaker.',
+  'Open a mobile-friendly sheet with stats, HP, actions, spells, inventory, notes, and features.',
+  'Create campaign spaces for players, notes, maps, NPCs, gods, encounters, handouts, and uploads.',
+  'Use live-session tools for combat flow, party status, dice, handouts, references, and table display.',
 ];
 
 const playBenefits = [
   {
     icon: ListChecks,
-    title: 'Know what you can do',
-    text: 'Actions, bonus actions, reactions, HP, conditions, resources, and key combat choices are organised around the player turn.',
+    title: 'Clear turn choices',
+    text: 'Players can see actions, bonus actions, reactions, resources, and key combat options without digging through the whole sheet.',
   },
   {
     icon: HeartPulse,
-    title: 'Built for phones at the table',
-    text: 'Compact tabs and quick status tools mean players do not have to scroll forever to find HP, AC, speed, skills, or actions.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Spells without the mess',
-    text: 'Keep spell management separate from spell use, so known and prepared spells can be organised without burying combat choices.',
+    title: 'Fast table checks',
+    text: 'HP, temp HP, AC, speed, rests, conditions, passives, and quick rolls stay close to the moments players actually need them.',
   },
   {
     icon: Sparkles,
-    title: 'Level-up support',
-    text: 'Level-up choices, character progress, and saved decisions can live beside the sheet instead of being lost in notes or old messages.',
+    title: 'Cleaner progression',
+    text: 'Level-up choices and character growth can sit beside the sheet instead of being buried in notes, screenshots, or old chats.',
+  },
+  {
+    icon: Library,
+    title: 'Less app-hopping',
+    text: 'Player and GM tools are being shaped into one ecosystem, so the table spends less time switching tabs and more time playing.',
   },
 ];
 
-const todayList = [
-  'Create a character through Full Creator, Basic Creator, or Rook Character Matchmaker.',
-  'Open a mobile-friendly sheet with HP, AC, speed, actions, spells, inventory, notes, and features.',
-  'Create a campaign workspace with players, notes, maps, NPCs, gods, encounters, handouts, and uploads.',
-  'Launch Live Play Mode for combat, party status, session notes, player display, quick dice, handouts, and references.',
-];
-
-const playerList = [
-  'See ability scores, saving throws, and skills in one focused Stats tab.',
-  'Use an Actions tab for combat choices instead of hunting through the whole sheet.',
-  'Track HP, temp HP, AC, speed, conditions, rests, and dice rolls quickly.',
-  'Manage spells, inventory, features, and notes without mixing everything together.',
-];
-
-const gmList = [
-  'Keep campaigns, prep, notes, homebrew, handouts, maps, and table tools in one workspace.',
-  'Support newer players without needing to explain the same rules every round.',
-  'Use Live Play Mode to run combat, share secrets, track notes, and control player-facing displays.',
-  'Bring campaign uploads, private playtest packs, NPCs, rewards, and worldbuilding into the same table hub.',
+const workflowSteps = [
+  {
+    number: '01',
+    title: 'Build',
+    text: 'Start with guided character creation and keep decisions connected to the finished sheet.',
+  },
+  {
+    number: '02',
+    title: 'Play',
+    text: 'Use a sheet organised around what the player needs during the session, not just a wall of stored numbers.',
+  },
+  {
+    number: '03',
+    title: 'Run',
+    text: 'Give GMs a campaign workspace for prep, notes, maps, NPCs, handouts, rewards, and table-facing tools.',
+  },
+  {
+    number: '04',
+    title: 'Grow',
+    text: 'Let feedback, homebrew, uploads, and live play needs shape the table hub as the campaign gets deeper.',
+  },
 ];
 
 const playerSide = [
-  'A play-focused character sheet that keeps stats, actions, spells, inventory, features, and notes separated into clear sections.',
-  'Quick access to HP, temp HP, AC, speed, conditions, rests, dice rolls, actions, bonus actions, and reactions.',
-  'Spell and inventory management that helps players organise what they know, what they have prepared, and what they are carrying.',
-  'A structure that helps newer players understand their options without forcing experienced players through a childish interface.',
+  'Use focused tabs for stats, actions, spells, inventory, features, and notes.',
+  'Track HP, temp HP, AC, speed, conditions, rests, dice rolls, actions, bonus actions, and reactions quickly.',
+  'Manage spells and inventory without mixing preparation, combat choices, and notes together.',
+  'Help newer players understand their options without making experienced players feel boxed in.',
 ];
 
 const gmSide = [
-  'Campaign spaces for prep, session notes, handouts, player invites, maps, NPCs, gods, encounters, uploads, and live-session control.',
-  'A GM flow built around Intake → Plan → Prep Tonight → Run Session → Record Changes.',
-  'Location and world tools for tracking places, maps, campaign movement, factions, and story consequences.',
-  'Homebrew and private playtest support for custom items, rules, and campaign-specific content that can link into player sheets.',
+  'Keep prep, session notes, handouts, maps, NPCs, gods, encounters, uploads, and table tools together.',
+  'Run campaigns around a clearer Intake → Plan → Prep Tonight → Run Session → Record Changes flow.',
+  'Track places, maps, factions, campaign movement, rewards, and story consequences from the same workspace.',
+  'Build toward private clues, player-specific secrets, homebrew, and table content that can move cleanly between screens.',
 ];
 
-const tableFlowRoadmap = [
-  {
-    title: 'Send items in a few clicks',
-    text: 'GMs can build towards choosing or creating an item and sending it straight to a player sheet without leaving the flow of the session.',
-  },
-  {
-    title: 'Secrets shared cleanly',
-    text: 'Private clues, whispers, hidden notes, and player-specific information become screen-ready moments instead of scattered side messages.',
-  },
-  {
-    title: 'Homebrew that spreads through the table',
-    text: 'Custom rulesets, items, equipment, and campaign content can grow into shared campaign material every connected sheet can use.',
-  },
-  {
-    title: 'Campaign movement and locations',
-    text: 'The GM side supports location tracking, maps, travel context, world information, and session prep without splitting the campaign across files.',
-  },
-];
-
-const differencePoints = [
-  'Not just a database for character stats — it is designed around using the sheet during play.',
-  'Beginner-friendly without feeling childish; useful for rookies, regular players, and GMs.',
-  'Mobile-first layout choices, because most players check sheets on phones at the table.',
-  'Player and GM tools are being built into the same ecosystem, so the whole table can benefit.',
-  'Feedback is built in, meaning the site can grow around actual table problems rather than guesswork.',
+const finalStrip = [
+  { icon: BookOpen, label: 'Readable sheets' },
+  { icon: Backpack, label: 'Organised gear' },
+  { icon: ShieldCheck, label: 'Table-safe flow' },
 ];
 
 export default function LandingPage() {
@@ -133,6 +154,12 @@ export default function LandingPage() {
       navigate(target);
     }, BUTTON_FILL_DELAY_MS);
   }, [navigate]);
+
+  useEffect(() => () => {
+    if (navigationTimeoutRef.current) {
+      window.clearTimeout(navigationTimeoutRef.current);
+    }
+  }, []);
 
   const buttonClass = (baseClass, target) => `${baseClass}${transitionTarget === target ? ' is-transitioning' : ''}`;
   const isTransitioning = Boolean(transitionTarget);
@@ -157,34 +184,60 @@ export default function LandingPage() {
       </nav>
 
       <main className="landing-final-main">
-        <section className="landing-final-hero">
-          <div className="landing-final-logo-wrap">
-            <BrandMainLogo height={150} />
+        <section className="landing-final-hero" aria-labelledby="landing-hero-title">
+          <div className="landing-hero-copy">
+            <div className="landing-final-logo-wrap" aria-hidden="true">
+              <BrandMainLogo height={132} />
+            </div>
+
+            <p className="landing-kicker">Player Mode • GM Mode • Live table support</p>
+            <h1 id="landing-hero-title">Bring the whole D&amp;D table into one clean quest hub.</h1>
+            <p className="landing-final-intro">
+              Rookie Quest Keeper keeps character creation, play sheets, turn actions, spells, inventory, level-ups, GM prep, handouts, maps, homebrew, and live-session tools in one tidy tabletop workspace.
+            </p>
+
+            <div className="landing-hero-actions" aria-label="Landing page actions">
+              <button data-testid="landing-cta-btn" type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
+                <span>Build Your First Character</span> <ChevronRight size={18} aria-hidden="true" />
+              </button>
+              <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/prototype-gm')} onClick={goDemo} disabled={isTransitioning} aria-busy={transitionTarget === '/prototype-gm'}>
+                <span>Preview GM Tools</span>
+              </button>
+            </div>
+
+            <div className="landing-proof-strip" aria-label="Rookie Quest Keeper focus areas">
+              {proofPoints.map(point => <span key={point}>{point}</span>)}
+            </div>
           </div>
 
-          <p className="landing-kicker">Player Mode • GM Mode • Live table support</p>
-          <h1>One table hub for building, playing, and running campaigns.</h1>
-          <p className="landing-final-intro">
-            Rookie Quest Keeper brings character sheets, turn actions, spells, inventory, level-ups, GM prep, live-session tools, handouts, maps, and homebrew into one clean tabletop workspace.
-          </p>
-
-          <div className="landing-hero-actions">
-            <button data-testid="landing-cta-btn" type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
-              <span>Build Your First Character</span> <ChevronRight size={18} />
-            </button>
-            <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/prototype-gm')} onClick={goDemo} disabled={isTransitioning} aria-busy={transitionTarget === '/prototype-gm'}>
-              <span>Explore Tia-Karta Demo</span>
-            </button>
-            <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/auth')} onClick={goLogin} disabled={isTransitioning} aria-busy={transitionTarget === '/auth'}>
-              <span>I already have an account</span>
-            </button>
-          </div>
-
-          <div className="landing-proof-strip" aria-label="Rookie Quest Keeper focus areas">
-            <span>Mobile-first sheets</span>
-            <span>Actions-first play</span>
-            <span>GM-ready campaigns</span>
-          </div>
+          <aside className="landing-preview-panel" aria-label="Rookie Quest Keeper product preview">
+            <div className="landing-preview-topbar">
+              <div className="landing-preview-dots" aria-hidden="true"><span /><span /><span /></div>
+              <strong>Rookie Quest Keeper</strong>
+              <span>Table hub</span>
+            </div>
+            <div className="landing-preview-body">
+              <div className="landing-preview-spotlight">
+                <span>Current build focus</span>
+                <h2>Build. Play. Run.</h2>
+                <p>A cleaner landing page should explain the product in seconds, then give players and GMs a clear next step.</p>
+              </div>
+              <div className="landing-preview-list">
+                {previewItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.label} className="landing-preview-row">
+                      <Icon size={20} aria-hidden="true" />
+                      <div>
+                        <strong>{item.label}</strong>
+                        <span>{item.value}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
         </section>
 
         <section className="landing-final-features" aria-label="Rookie Quest Keeper overview">
@@ -192,10 +245,10 @@ export default function LandingPage() {
             const Icon = group.icon;
             return (
               <article key={group.title} className="landing-final-feature">
-                <h2><Icon size={22} /> {group.title}</h2>
-                <ul>
-                  {group.items.map(item => <li key={item}>{item}</li>)}
-                </ul>
+                <Icon size={24} aria-hidden="true" />
+                <p className="landing-card-eyebrow">{group.eyebrow}</p>
+                <h2>{group.title}</h2>
+                <p>{group.text}</p>
               </article>
             );
           })}
@@ -205,27 +258,11 @@ export default function LandingPage() {
           <div>
             <p className="landing-kicker">Ready now</p>
             <h2>Start with a character, then grow into a full table workspace.</h2>
+            <p>It is being built around the moment players ask, “What can I do now?” and the moment GMs need to keep the session moving.</p>
           </div>
-          <div>
-            <ul>
-              {todayList.map(item => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
-        </section>
-
-        <section className="landing-marketing-block landing-marketing-split" aria-label="Why Rookie Quest Keeper exists">
-          <div>
-            <p className="landing-kicker">The problem</p>
-            <h2>Most digital sheets store information. That is not enough at the table.</h2>
-          </div>
-          <div>
-            <p>
-              Players do not just need a list of numbers. They need to know what they can do, where their important choices are, what changed after a rest, which spells are ready, and how to level up without derailing the session.
-            </p>
-            <p>
-              Rookie Quest Keeper is shaped around those real table moments: “What can I do?”, “Where is that feature?”, “How much HP do I have?”, and “What do I need next?”
-            </p>
-          </div>
+          <ul className="landing-check-list">
+            {readyNow.map(item => <li key={item}>{item}</li>)}
+          </ul>
         </section>
 
         <section className="landing-benefit-grid" aria-label="Built for actual play">
@@ -233,7 +270,7 @@ export default function LandingPage() {
             const Icon = benefit.icon;
             return (
               <article key={benefit.title} className="landing-benefit-card">
-                <Icon size={24} />
+                <Icon size={24} aria-hidden="true" />
                 <h2>{benefit.title}</h2>
                 <p>{benefit.text}</p>
               </article>
@@ -241,34 +278,16 @@ export default function LandingPage() {
           })}
         </section>
 
-        <section className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
-          <article>
-            <p className="landing-kicker">Player side</p>
-            <h2><Users size={22} /> Players get clarity</h2>
-            <ul>
-              {playerSide.map(item => <li key={item}>{item}</li>)}
-            </ul>
-          </article>
-          <article>
-            <p className="landing-kicker">GM side</p>
-            <h2><Crown size={22} /> GMs keep control</h2>
-            <ul>
-              {gmSide.map(item => <li key={item}>{item}</li>)}
-            </ul>
-          </article>
-        </section>
-
-        <section className="landing-roadmap" aria-label="Live table flow roadmap">
+        <section className="landing-roadmap" aria-label="How Rookie Quest Keeper supports the table">
           <div className="landing-roadmap-heading">
-            <p className="landing-kicker">Built toward live table flow</p>
-            <h2>The GM should not have to stop the game to hand something to a player.</h2>
-            <p>
-              Rookie Quest Keeper connects GM and player tools so items, secrets, homebrew, rules, and campaign information can move between screens smoothly.
-            </p>
+            <p className="landing-kicker">Table flow</p>
+            <h2>From first build to live session, every screen should have a job.</h2>
+            <p>That means fewer decorative boxes, clearer hierarchy, stronger mobile behaviour, and copy that says exactly why the app exists.</p>
           </div>
           <div className="landing-roadmap-grid">
-            {tableFlowRoadmap.map(point => (
+            {workflowSteps.map(point => (
               <article key={point.title}>
+                <span>{point.number}</span>
                 <h3>{point.title}</h3>
                 <p>{point.text}</p>
               </article>
@@ -276,54 +295,46 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing-two-columns" aria-label="Current player and game master benefits">
+        <section className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
           <article>
-            <h2><Users size={22} /> What players use it for</h2>
+            <p className="landing-kicker">Player side</p>
+            <h2><Users size={22} aria-hidden="true" /> Players get clarity</h2>
             <ul>
-              {playerList.map(item => <li key={item}>{item}</li>)}
+              {playerSide.map(item => <li key={item}>{item}</li>)}
             </ul>
           </article>
           <article>
-            <h2><Crown size={22} /> What GMs use it for</h2>
+            <p className="landing-kicker">GM side</p>
+            <h2><Crown size={22} aria-hidden="true" /> GMs keep control</h2>
             <ul>
-              {gmList.map(item => <li key={item}>{item}</li>)}
+              {gmSide.map(item => <li key={item}>{item}</li>)}
             </ul>
           </article>
-        </section>
-
-        <section className="landing-marketing-block" aria-label="What makes Rookie Quest Keeper different">
-          <p className="landing-kicker">Why it is different</p>
-          <h2>Designed around table flow, not spreadsheet energy.</h2>
-          <div className="landing-difference-list">
-            {differencePoints.map(point => <p key={point}>{point}</p>)}
-          </div>
         </section>
 
         <section className="landing-final-strip" aria-label="Design approach">
-          <div>
-            <BookOpen size={22} />
-            <span>Mobile-first sheets</span>
-          </div>
-          <div>
-            <Backpack size={22} />
-            <span>Inventory and spells</span>
-          </div>
-          <div>
-            <MessageSquare size={22} />
-            <span>Feedback built in</span>
-          </div>
+          {finalStrip.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label}>
+                <Icon size={22} aria-hidden="true" />
+                <span>{item.label}</span>
+              </div>
+            );
+          })}
         </section>
 
         <section className="landing-final-cta" aria-label="Start using Rookie Quest Keeper">
-          <ShieldCheck size={28} />
-          <h2>Start simple. Build deeper when your table needs it.</h2>
-          <p>Create a character, open the sheet, or explore the Tia-Karta demo to see how a campaign can live inside Rookie Quest Keeper.</p>
+          <ShieldCheck size={30} aria-hidden="true" />
+          <p className="landing-kicker">Start simple</p>
+          <h2>Build the character first. Bring the whole table in when you are ready.</h2>
+          <p>Create an account, open the sheet, and start shaping the campaign workspace around real table problems.</p>
           <div className="landing-hero-actions">
             <button type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
-              <span>Create Your Account</span> <ChevronRight size={18} />
+              <span>Create Your Account</span> <ChevronRight size={18} aria-hidden="true" />
             </button>
-            <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/prototype-gm')} onClick={goDemo} disabled={isTransitioning} aria-busy={transitionTarget === '/prototype-gm'}>
-              <span>View Tia-Karta Demo</span>
+            <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/auth')} onClick={goLogin} disabled={isTransitioning} aria-busy={transitionTarget === '/auth'}>
+              <span>I already have an account</span>
             </button>
           </div>
         </section>
