@@ -17,7 +17,7 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-const areas = ['all', 'feedback', 'site_updates', 'reviews', 'site_control', 'admin'];
+const areas = ['all', 'testing_notes', 'feedback', 'site_updates', 'reviews', 'site_control', 'admin'];
 
 export default function AdminAuditLogTab() {
   const [entries, setEntries] = useState([]);
@@ -55,6 +55,7 @@ export default function AdminAuditLogTab() {
   const counts = useMemo(() => ({
     showing: filtered.length,
     total: entries.length,
+    testing: entries.filter(entry => entry.area === 'testing_notes').length,
     feedback: entries.filter(entry => entry.area === 'feedback').length,
     updates: entries.filter(entry => entry.area === 'site_updates').length,
   }), [entries, filtered]);
@@ -72,6 +73,7 @@ export default function AdminAuditLogTab() {
       <div style={metricsStyle}>
         <Metric label="Showing" value={counts.showing} />
         <Metric label="Loaded" value={counts.total} />
+        <Metric label="Testing" value={counts.testing} />
         <Metric label="Feedback" value={counts.feedback} />
         <Metric label="Updates" value={counts.updates} />
       </div>
