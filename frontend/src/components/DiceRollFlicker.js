@@ -76,9 +76,9 @@ function getPanelValue(baseValue, sides, panelIndex) {
 function getFinalRotation(die, index) {
   const seed = Number(die.result || 1) + Number(die.sides || 20) + index * 7;
   return {
-    '--rq-die-final-x': `${720 + (seed % 5) * 90}deg`,
-    '--rq-die-final-y': `${540 + (seed % 7) * 90}deg`,
-    '--rq-die-final-z': `${-10 + (seed % 5) * 5}deg`,
+    '--rq-die-final-x': `${-18 + (seed % 7)}deg`,
+    '--rq-die-final-y': `${16 + (seed % 9)}deg`,
+    '--rq-die-final-z': `${-6 + (seed % 5) * 3}deg`,
     '--rq-die-roll-delay': `${Math.min(index * 42, 260)}ms`,
   };
 }
