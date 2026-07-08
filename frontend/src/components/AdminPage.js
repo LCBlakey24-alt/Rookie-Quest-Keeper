@@ -188,7 +188,7 @@ function AdminPage() {
     { title: 'Control the live site', text: 'Set announcements, maintenance mode, and beta feature gates.', icon: Settings, tab: 'site' },
   ];
 
-  if (loading) return <div style={loadingStyle}><div className="loading-spinner"></div></div>;
+  if (loading) return <AdminLoadingScreen />;
 
   if (accessDenied) {
     return (
@@ -315,7 +315,20 @@ function AdminPage() {
   );
 }
 
-const loadingStyle = { minHeight: '100vh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+function AdminLoadingScreen() {
+  return (
+    <main className="loading-screen admin-loading-screen" role="status" aria-live="polite" aria-busy="true">
+      <section className="loading-card" aria-label="Admin Mission Control is loading">
+        <div className="loading-brand-mark" aria-hidden="true">ADMIN</div>
+        <div className="loading-spinner" aria-hidden="true" />
+        <p className="loading-kicker">Owner workspace</p>
+        <h1 className="loading-title">Checking admin access…</h1>
+        <p className="loading-tip">Verifying permissions, feedback queues, testing notes, reviews, users, and site controls.</p>
+      </section>
+    </main>
+  );
+}
+
 const pageStyle = { minHeight: '100vh', background: theme.bg.black, padding: 'clamp(12px, 3vw, 24px)', overflowX: 'hidden' };
 const containerStyle = { width: '100%', maxWidth: 1440, margin: '0 auto', minWidth: 0, display: 'grid', gap: 16 };
 const heroStyle = { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: 'clamp(16px, 3vw, 24px)', background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 14, flexWrap: 'wrap' };
