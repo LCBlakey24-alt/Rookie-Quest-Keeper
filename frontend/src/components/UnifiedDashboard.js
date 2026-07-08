@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, MessageSquare, ShieldCheck, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
@@ -58,6 +60,10 @@ const dashboardInfo = [
   },
 ];
 
+function openFeedback() {
+  window.dispatchEvent(new Event('rook-feedback-open'));
+}
+
 export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
@@ -76,6 +82,64 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const safeCharacters = safeArray(characters);
   const safeCampaigns = safeArray(campaigns);
   const updatesToShow = siteUpdates.length > 0 ? siteUpdates : dashboardUpdates;
+  const dashboardActions = useMemo(() => [
+    {
+      label: 'Build',
+      title: 'Create character',
+      text: 'Start the guided creator and get a playable sheet ready for the table.',
+      to: '/characters/create/full',
+      icon: UsersRound,
+      stat: `${safeCharacters.length} saved`,
+    },
+    {
+      label: 'Play',
+      title: 'My Characters',
+      text: 'Open, edit, duplicate, or clean up the heroes already in your vault.',
+      to: '/characters',
+      icon: UsersRound,
+      stat: `${safeCharacters.length} hero${safeCharacters.length === 1 ? '' : 'es'}`,
+    },
+    {
+      label: 'Run',
+      title: 'My Campaigns',
+      text: 'Jump into GM prep, player links, campaign rules, notes, and live play tools.',
+      to: '/campaigns',
+      icon: BookOpen,
+      stat: `${safeCampaigns.length} table${safeCampaigns.length === 1 ? '' : 's'}`,
+    },
+    {
+      label: 'Create',
+      title: 'Homebrew Workshop',
+      text: 'Build items, monsters, NPCs, subclasses, custom rules, and upload artwork.',
+      to: '/homebrew',
+      icon: Wand2,
+      stat: 'Rook assisted',
+    },
+    {
+      label: 'Assets',
+      title: 'Uploads',
+      text: 'Keep table images, maps, handouts, portraits, and future play assets together.',
+      to: '/uploads',
+      icon: UploadCloud,
+      stat: 'Library',
+    },
+    {
+      label: 'Help shape it',
+      title: 'Send feedback',
+      text: 'Report blockers, rough edges, and ideas while you are actually using the app.',
+      onClick: openFeedback,
+      icon: MessageSquare,
+      stat: 'Fast note',
+    },
+    ...(isAdmin ? [{
+      label: 'Owner',
+      title: 'Admin Mission Control',
+      text: 'Triage feedback, publish updates, audit data, and manage live-site controls.',
+      to: '/admin',
+      icon: ShieldCheck,
+      stat: 'Admin',
+    }] : []),
+  ], [isAdmin, safeCampaigns.length, safeCharacters.length]);
 
   const loadSiteUpdates = async () => {
     try {
@@ -141,6 +205,19 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         backendStatus={backendStatus}
       />
 
+      <section className="unified-dashboard-board dashboard-command-panel" aria-labelledby="dashboard-command-title">
+        <div className="dashboard-section-heading dashboard-command-heading">
+          <p className="dashboard-eyebrow">Command centre</p>
+          <h2 id="dashboard-command-title">Choose where the session starts.</h2>
+          <p className="dashboard-muted">Fast routes into the parts of Rookie Quest Keeper that matter most during prep, play, and testing.</p>
+        </div>
+        <div className="dashboard-command-grid">
+          {dashboardActions.map((action) => (
+            <DashboardCommandCard key={action.title} {...action} />
+          ))}
+        </div>
+      </section>
+
       <section className="unified-dashboard-board dashboard-updates-panel" aria-labelledby="dashboard-updates-title">
         <div className="dashboard-section-heading">
           <p className="dashboard-eyebrow">Latest information</p>
@@ -172,6 +249,24 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       </section>
     </main>
   );
+}
+
+function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClick }) {
+  const content = (
+    <>
+      <span className="dashboard-command-label">{label}</span>
+      <span className="dashboard-command-icon" aria-hidden="true"><Icon size={20} /></span>
+      <strong>{title}</strong>
+      <span>{text}</span>
+      <em>{stat}</em>
+    </>
+  );
+
+  if (to) {
+    return <Link to={to} className="dashboard-command-card">{content}</Link>;
+  }
+
+  return <button type="button" onClick={onClick} className="dashboard-command-card">{content}</button>;
 }
 
 function DashboardUpdateCard({ label, title, text, is_pinned }) {
