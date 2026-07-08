@@ -1,0 +1,162 @@
+#root .landing-page-final .landing-status-panel {
+  width: min(1080px, 100%);
+  margin-inline: auto;
+  border: 1px solid var(--landing-line);
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+#root .landing-page-final .landing-status-heading {
+  background:
+    linear-gradient(90deg, rgba(208, 0, 0, 0.12), transparent 48%),
+    rgba(0, 0, 0, 0.12) !important;
+}
+
+#root .landing-page-final .landing-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#root .landing-page-final .landing-status-card {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: clamp(18px, 2.2vw, 26px);
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left;
+}
+
+#root .landing-page-final .landing-status-card + .landing-status-card {
+  border-left: 1px solid var(--landing-line) !important;
+}
+
+#root .landing-page-final .landing-status-card > span {
+  width: max-content;
+  display: inline-flex;
+  padding: 4px 8px;
+  background: var(--landing-red) !important;
+  color: var(--landing-text) !important;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#root .landing-page-final .landing-status-card h3 {
+  margin: 0;
+  color: var(--landing-text) !important;
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 950;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
+}
+
+#root .landing-page-final .landing-status-card p {
+  margin: 0;
+  color: var(--landing-muted) !important;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+#root .landing-page-final .landing-product-footer {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 18px;
+  border: 1px solid var(--landing-line);
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: var(--landing-muted) !important;
+}
+
+#root .landing-page-final .landing-footer-brand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+#root .landing-page-final .landing-footer-brand strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--landing-text) !important;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+#root .landing-page-final .landing-footer-brand p,
+#root .landing-page-final .landing-footer-note {
+  margin: 0;
+  color: var(--landing-faint) !important;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+#root .landing-page-final .landing-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#root .landing-page-final .landing-footer-actions button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--landing-line) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--landing-text) !important;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#root .landing-page-final .landing-footer-actions button:hover,
+#root .landing-page-final .landing-footer-actions button:focus-visible {
+  border-color: var(--landing-red-bright) !important;
+  background: var(--landing-red) !important;
+  outline: 0;
+}
+
+#root .landing-page-final .landing-footer-note {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px solid var(--landing-line);
+  text-align: left;
+}
+
+@media (max-width: 860px) {
+  #root .landing-page-final .landing-status-grid,
+  #root .landing-page-final .landing-product-footer {
+    grid-template-columns: 1fr;
+  }
+
+  #root .landing-page-final .landing-status-card + .landing-status-card {
+    border-left: 0 !important;
+    border-top: 1px solid var(--landing-line) !important;
+  }
+
+  #root .landing-page-final .landing-footer-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .landing-page-final .landing-product-footer {
+    padding: 16px;
+  }
+
+  #root .landing-page-final .landing-footer-brand {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  #root .landing-page-final .landing-footer-actions button {
+    width: 100%;
+  }
+}
