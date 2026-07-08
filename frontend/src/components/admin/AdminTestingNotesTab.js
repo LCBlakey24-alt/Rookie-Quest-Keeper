@@ -113,7 +113,7 @@ export default function AdminTestingNotesTab() {
 
   const updateLocal = (id, patch) => setItems(prev => prev.map(item => item.id === id ? { ...item, ...patch } : item));
 
-  const saveItem = async (item) => {
+  const saveItem = async (item, successMessage = 'Testing note saved') => {
     try {
       setSavingId(item.id);
       const res = await apiClient.put(`/admin/feedback/${item.id}`, {
@@ -123,18 +123,22 @@ export default function AdminTestingNotesTab() {
       });
       updateLocal(item.id, res.data);
       await logAudit({
-        action: 'Testing note updated',
+        action: successMessage.startsWith('Moved to') ? 'Testing note status changed' : 'Testing note updated',
         area: 'testing_notes',
         target_id: item.id,
         target_label: item.title || 'Testing note',
         detail: `Status: ${item.status || 'new'} • Priority: ${item.priority || 'normal'}`,
       });
-      toast.success('Testing note saved');
+      toast.success(successMessage);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to save testing note');
     } finally {
       setSavingId('');
     }
+  };
+
+  const quickStatus = async (item, status) => {
+    await saveItem({ ...item, status }, `Moved to ${labelForStatus(status)}`);
   };
 
   const deleteItem = async (id) => {
@@ -210,7 +214,7 @@ export default function AdminTestingNotesTab() {
         <div style={filterWrapStyle}>
           <Filter size={14} color={rq.muted} />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={inputStyle}>
-            {statusFilters.map(status => <option key={status} value={status}>{status === 'all' ? 'All statuses' : status}</option>)}
+            {statusFilters.map(status => <option key={status} value={status}>{status === 'all' ? 'All statuses' : labelForStatus(status)}</option>)}
           </select>
         </div>
       </div>
@@ -247,31 +251,42 @@ export default function AdminTestingNotesTab() {
 
       {loading ? <div style={emptyStyle}>Loading testing notes...</div> : filteredTestingItems.length === 0 ? <div style={emptyStyle}>No testing notes found for this filter. Log a new test issue above.</div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filteredTestingItems.map(item => (
-            <article key={item.id} style={itemStyle}>
-              <div style={itemTopStyle}>
-                <div>
-                  <div style={badgeRowStyle}><Badge label={item.status || 'new'} /><Badge label={item.priority || 'normal'} /><Badge label={item.area || 'testing'} /></div>
-                  <h3 style={itemTitleStyle}>{item.title}</h3>
-                  <p style={metaStyle}>From {item.username || 'Unknown'} {item.created_at ? `• ${new Date(item.created_at).toLocaleString()}` : ''}</p>
+          {filteredTestingItems.map(item => {
+            const status = item.status || 'new';
+            const nextStatuses = statuses.filter(option => option !== status);
+            return (
+              <article key={item.id} style={itemStyle}>
+                <div style={itemTopStyle}>
+                  <div>
+                    <div style={badgeRowStyle}><Badge label={labelForStatus(status)} /><Badge label={item.priority || 'normal'} /><Badge label={item.area || 'testing'} /></div>
+                    <h3 style={itemTitleStyle}>{item.title}</h3>
+                    <p style={metaStyle}>From {item.username || 'Unknown'} {item.created_at ? `• ${new Date(item.created_at).toLocaleString()}` : ''}</p>
+                  </div>
+                  <button type="button" onClick={() => deleteItem(item.id)} style={dangerButtonStyle}><Trash2 size={14} /></button>
                 </div>
-                <button type="button" onClick={() => deleteItem(item.id)} style={dangerButtonStyle}><Trash2 size={14} /></button>
-              </div>
-              <p style={messageStyle}>{item.message}</p>
-              <div style={gridStyle}>
-                <label style={labelStyle}>Status
-                  <select value={item.status || 'new'} onChange={e => updateLocal(item.id, { status: e.target.value })} style={inputStyle}>{statuses.map(status => <option key={status} value={status}>{status}</option>)}</select>
+                <p style={messageStyle}>{item.message}</p>
+                <div style={quickMoveStyle}>
+                  {nextStatuses.slice(0, 5).map(option => (
+                    <button key={option} type="button" onClick={() => quickStatus(item, option)} style={miniButtonStyle} disabled={savingId === item.id}>
+                      {labelForStatus(option)}
+                    </button>
+                  ))}
+                </div>
+                <div style={gridStyle}>
+                  <label style={labelStyle}>Status
+                    <select value={status} onChange={e => updateLocal(item.id, { status: e.target.value })} style={inputStyle}>{statuses.map(option => <option key={option} value={option}>{labelForStatus(option)}</option>)}</select>
+                  </label>
+                  <label style={labelStyle}>Priority
+                    <select value={item.priority || 'normal'} onChange={e => updateLocal(item.id, { priority: e.target.value })} style={inputStyle}>{priorities.map(priority => <option key={priority} value={priority}>{priority}</option>)}</select>
+                  </label>
+                </div>
+                <label style={labelStyle}>Fix notes / plan
+                  <textarea value={item.admin_notes || ''} onChange={e => updateLocal(item.id, { admin_notes: e.target.value })} style={textareaStyle} placeholder="Write fix plan or notes for the next build pass..." />
                 </label>
-                <label style={labelStyle}>Priority
-                  <select value={item.priority || 'normal'} onChange={e => updateLocal(item.id, { priority: e.target.value })} style={inputStyle}>{priorities.map(priority => <option key={priority} value={priority}>{priority}</option>)}</select>
-                </label>
-              </div>
-              <label style={labelStyle}>Fix notes / plan
-                <textarea value={item.admin_notes || ''} onChange={e => updateLocal(item.id, { admin_notes: e.target.value })} style={textareaStyle} placeholder="Write fix plan or notes for the next build pass..." />
-              </label>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button type="button" disabled={savingId === item.id} onClick={() => saveItem(item)} style={saveButtonStyle}><Save size={14} /> {savingId === item.id ? 'Saving...' : 'Save'}</button></div>
-            </article>
-          ))}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button type="button" disabled={savingId === item.id} onClick={() => saveItem(item)} style={saveButtonStyle}><Save size={14} /> {savingId === item.id ? 'Saving...' : 'Save'}</button></div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>
@@ -283,6 +298,10 @@ function Metric({ label, value }) {
 }
 
 function Badge({ label }) { return <span style={badgeStyle}>{label}</span>; }
+
+function labelForStatus(value) {
+  return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+}
 
 const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 'clamp(14px, 3vw, 24px)' };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 18 };
@@ -312,3 +331,5 @@ const itemTitleStyle = { color: rq.text, fontSize: 16, fontWeight: 900, margin: 
 const metaStyle = { color: rq.muted, fontSize: 12, margin: 0 };
 const dangerButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.accentHover, padding: 8, borderRadius: rq.radiusSm, cursor: 'pointer' };
 const messageStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: '14px 0' };
+const quickMoveStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 };
+const miniButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, padding: '6px 8px', borderRadius: rq.radiusSm, fontSize: 11, fontWeight: 900, cursor: 'pointer' };
