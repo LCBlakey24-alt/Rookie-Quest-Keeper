@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Send, Trash2 } from 'lucide-react';
+import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
+import { GM_REFERENCE_PACK_TABLES } from '@/data/gmReferenceTables';
 import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -24,6 +25,7 @@ const CATEGORY_OPTIONS = [
   ['fate', 'Fate'],
   ['encounter', 'Encounter'],
   ['weapons', 'Weapons'],
+  ['armour', 'Armour'],
   ['potions', 'Potions'],
   ['prices', 'Costs & Shops'],
   ['npc', 'NPCs'],
@@ -31,13 +33,14 @@ const CATEGORY_OPTIONS = [
   ['rules', 'Rules Reference'],
 ];
 
-const DEFAULT_TABLES = [
+const CORE_STARTER_TABLES = [
   {
     id: 'travel-d20',
     name: 'Travel Results',
     category: 'travel',
     description: 'Roll when the party travels and you need a quick prompt for how the journey goes.',
     die: 'd20',
+    rollable: true,
     entries: [
       { range: '1', text: 'A hard complication: danger, delay, injury, lost supplies, or a hostile encounter.' },
       { range: '2', text: 'The route is worse than expected. Travel takes longer and the party is tired or exposed.' },
@@ -63,10 +66,11 @@ const DEFAULT_TABLES = [
   },
   {
     id: 'fate-quirks-d20',
-    name: 'Quirks of Fate',
+    name: 'Quirks of Fate — Quick d20',
     category: 'fate',
-    description: 'Roll when fate bends, luck twists, omens appear, or destiny needs a strange little push.',
+    description: 'A faster d20 Fate table for a quick Opian-style nudge. The full d100 table is also included in the reference pack.',
     die: 'd20',
+    rollable: true,
     entries: [
       { range: '1', text: 'A bad omen appears: broken mirror, black feather, blood-red moon, cracked symbol, or cold wind.' },
       { range: '2', text: 'Someone repeats a phrase the party heard earlier, but they should not know it.' },
@@ -96,6 +100,7 @@ const DEFAULT_TABLES = [
     category: 'encounter',
     description: 'Roll when you need something to happen now without derailing the session.',
     die: 'd20',
+    rollable: true,
     entries: [
       { range: '1', text: 'Hard combat encounter. The danger is immediate and already moving.' },
       { range: '2', text: 'Ambush signs. The party can spot the danger if they pay attention.' },
@@ -125,13 +130,17 @@ function localStorageKey(campaignId) {
   return `rqk.liveRollTables.${campaignId || 'default'}`;
 }
 
+function normaliseDash(value) {
+  return String(value || '').replace(/–/g, '-');
+}
+
 function rangeMin(range) {
-  const match = String(range).match(/\d+/);
+  const match = normaliseDash(range).match(/\d+/);
   return match ? Number(match[0]) : 1;
 }
 
 function rangeMax(range) {
-  const numbers = String(range).match(/\d+/g)?.map(Number) || [rangeMin(range)];
+  const numbers = normaliseDash(range).match(/\d+/g)?.map(Number) || [rangeMin(range)];
   return Math.max(...numbers);
 }
 
@@ -141,12 +150,23 @@ function rollMatches(range, roll) {
   return roll >= min && roll <= max;
 }
 
+function hasNumericRange(range) {
+  return /^\d+(?:\s*[–-]\s*\d+)?$/.test(String(range || '').trim());
+}
+
+function isRollableTable(table) {
+  if (!table || table.rollable === false) return false;
+  if (!/^d\d+$/i.test(String(table.die || ''))) return false;
+  const entries = normaliseEntries(table.entries);
+  return entries.length > 0 && entries.every(entry => hasNumericRange(entry.range));
+}
+
 function normaliseEntries(entries) {
   return (entries || [])
     .map((entry, index) => {
       const range = Array.isArray(entry) ? entry[0] : entry?.range ?? entry?.roll ?? index + 1;
       const text = Array.isArray(entry) ? entry[1] : entry?.text ?? entry?.result ?? entry?.description ?? '';
-      return { range: String(range || index + 1).replace(/\s/g, ''), text: String(text || '').trim() };
+      return { ...entry, range: String(range || index + 1).trim(), text: String(text || '').trim() };
     })
     .filter(entry => entry.text)
     .sort((a, b) => rangeMin(a.range) - rangeMin(b.range));
@@ -158,7 +178,9 @@ function parseTableLines(rawText) {
     .map((line, index) => {
       const trimmed = line.trim();
       if (!trimmed) return null;
-      const explicit = trimmed.match(/^(\d+(?:\s*-\s*\d+)?)\s*[:.)-]\s*(.+)$/);
+      const pipeParts = trimmed.split('|').map(part => part.trim()).filter(Boolean);
+      if (pipeParts.length > 1) return { range: pipeParts[0], text: pipeParts.slice(1).join(' | ') };
+      const explicit = trimmed.match(/^(\d+(?:\s*[–-]\s*\d+)?)\s*[:.)-]\s*(.+)$/);
       if (explicit) return { range: explicit[1].replace(/\s/g, ''), text: explicit[2].trim() };
       return { range: String(index + 1), text: trimmed };
     })
@@ -189,6 +211,13 @@ function categoryLabel(category) {
   return CATEGORY_OPTIONS.find(([value]) => value === category)?.[1] || 'General';
 }
 
+function sourceLabel(table) {
+  if (table?.source === 'gm-reference-pack') return 'GM Reference Pack';
+  if (table?.locked) return 'Starter table';
+  if (table?.localOnly) return 'Local only';
+  return 'Campaign table';
+}
+
 function entriesToText(entries) {
   return normaliseEntries(entries).map(entry => `${entry.range}: ${entry.text}`).join('\n');
 }
@@ -208,6 +237,7 @@ export default function LiveRollTablesPanel({
   const [lastRoll, setLastRoll] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [savingTable, setSavingTable] = useState(false);
+  const [tableSearch, setTableSearch] = useState('');
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('general');
   const [newDescription, setNewDescription] = useState('');
@@ -232,17 +262,27 @@ export default function LiveRollTablesPanel({
   useEffect(() => { fetchTables(); }, [campaignId]);
 
   const tables = useMemo(() => [
-    ...DEFAULT_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'starter' })),
+    ...CORE_STARTER_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'starter' })),
+    ...GM_REFERENCE_PACK_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'gm-reference-pack' })),
     ...campaignTables.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: false, source: table.source || (table.localOnly ? 'local' : 'campaign') })),
   ], [campaignTables]);
 
+  const filteredTables = useMemo(() => {
+    const needle = tableSearch.trim().toLowerCase();
+    if (!needle) return tables;
+    return tables.filter(table => `${table.name} ${table.category} ${table.description}`.toLowerCase().includes(needle));
+  }, [tableSearch, tables]);
+
   const activeTable = tables.find(table => table.id === activeTableId) || tables[0];
+  const activeEntries = normaliseEntries(activeTable?.entries || []);
+  const activeIsRollable = isRollableTable(activeTable);
 
   const rollTable = (table = activeTable) => {
-    if (!table?.entries?.length) return;
-    const sides = Math.max(20, ...table.entries.map(entry => rangeMax(entry.range)));
+    if (!isRollableTable(table)) return;
+    const entries = normaliseEntries(table.entries);
+    const sides = Number(String(table.die || 'd20').replace(/\D/g, '')) || Math.max(20, ...entries.map(entry => rangeMax(entry.range)));
     const roll = Math.floor(Math.random() * sides) + 1;
-    const entry = table.entries.find(item => rollMatches(item.range, roll)) || table.entries[table.entries.length - 1];
+    const entry = entries.find(item => rollMatches(item.range, roll)) || entries[entries.length - 1];
     const result = {
       id: Date.now(),
       tableId: table.id,
@@ -265,17 +305,19 @@ export default function LiveRollTablesPanel({
       return;
     }
     if (entries.length < 2) {
-      toast.error('Add at least two table results');
+      toast.error('Add at least two table rows');
       return;
     }
-    const sides = Math.max(20, ...entries.map(entry => rangeMax(entry.range)));
+    const allNumeric = entries.every(entry => hasNumericRange(entry.range));
+    const sides = allNumeric ? Math.max(20, ...entries.map(entry => rangeMax(entry.range))) : 0;
     const payload = {
       name,
       category: newCategory,
       description: newDescription.trim() || 'Custom campaign table',
-      die: `d${sides}`,
+      die: allNumeric ? `d${sides}` : 'reference',
       entries,
       source: 'campaign',
+      is_player_safe: false,
     };
 
     setSavingTable(true);
@@ -304,7 +346,7 @@ export default function LiveRollTablesPanel({
     }
   };
 
-  const duplicateStarterToCampaign = async (table) => {
+  const duplicateStarterToCampaign = (table) => {
     setNewName(table.name);
     setNewCategory(table.category || 'general');
     setNewDescription(table.description || '');
@@ -358,7 +400,7 @@ export default function LiveRollTablesPanel({
 
       <div style={statusStyle(apiReady)}>
         <strong>{apiReady ? 'Campaign saved' : 'Local fallback'}</strong>
-        <span>{apiReady ? 'New tables are saved to this campaign and available from Live Play Mode.' : 'Tables are available in this browser, but the campaign table API did not respond.'}</span>
+        <span>{apiReady ? 'Custom tables save to this campaign. Built-in GM reference tables are always available.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span>
       </div>
 
       {showCreate && (
@@ -368,22 +410,23 @@ export default function LiveRollTablesPanel({
             <label style={fieldStyle}><span style={labelStyle}>Category</span><select value={newCategory} onChange={(event) => setNewCategory(event.target.value)} style={inputStyle}>{CATEGORY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           </div>
           <label style={fieldStyle}><span style={labelStyle}>Short use note</span><input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="When should you use this table?" style={inputStyle} /></label>
-          <label style={fieldStyle}><span style={labelStyle}>Results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\n5-15: Normal result\n16-20: Good result" style={textareaStyle} /></label>
+          <label style={fieldStyle}><span style={labelStyle}>Rows or roll results</span><textarea value={newLines} onChange={(event) => setNewLines(event.target.value)} placeholder="1: Bad result\n2-4: Complication\nClub | 1 sp | 1d4 bludgeoning" style={textareaStyle} /></label>
           <div style={buttonRowStyle}><button type="button" onClick={saveTable} disabled={savingTable} style={primaryButtonStyle}><Save size={14} /> {savingTable ? 'Saving...' : 'Save Table'}</button></div>
         </section>
       )}
 
       <div style={layoutStyle}>
         <aside style={tableListStyle} aria-label="Available campaign tables">
+          <label style={searchBoxStyle}><Search size={14} /><input value={tableSearch} onChange={(event) => setTableSearch(event.target.value)} placeholder="Search tables, weapons, potions..." style={searchInputStyle} /></label>
           {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
-          {tables.map(table => {
+          {filteredTables.map(table => {
             const active = table.id === activeTable.id;
             return (
               <button key={table.id} type="button" onClick={() => setActiveTableId(table.id)} style={tableButtonStyle(active)}>
                 <BookOpen size={15} />
                 <span style={{ minWidth: 0 }}>
                   <strong>{table.name}</strong>
-                  <small>{categoryLabel(table.category)} · {table.locked ? 'Starter table' : table.localOnly ? 'Local only' : 'Campaign table'}</small>
+                  <small>{categoryLabel(table.category)} · {sourceLabel(table)}</small>
                 </span>
               </button>
             );
@@ -393,19 +436,19 @@ export default function LiveRollTablesPanel({
         <main style={rollerStyle}>
           <div style={activeHeaderStyle}>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeTable.die || 'd20'}</p>
+              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeIsRollable ? activeTable.die : 'Reference table'}</p>
               <h4 style={activeTitleStyle}>{activeTable.name}</h4>
               <p style={subtitleStyle}>{activeTable.description}</p>
             </div>
             <div style={buttonRowStyle}>
-              {activeTable.locked && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
+              {activeTable.locked && activeTable.source !== 'gm-reference-pack' && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
               {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
             </div>
           </div>
 
-          <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button>
+          {activeIsRollable ? <button type="button" onClick={() => rollTable(activeTable)} style={rollButtonStyle}><Dice6 size={22} /> Roll {activeTable.die || 'd20'}</button> : <div style={referenceOnlyStyle}>Reference only — use this table for quick lookup during prep or live play.</div>}
 
-          {lastRoll ? (
+          {lastRoll && lastRoll.tableId === activeTable.id ? (
             <section style={resultStyle}>
               <p style={resultMetaStyle}>{lastRoll.tableName} · {lastRoll.die} result</p>
               <strong style={rollNumberStyle}>{lastRoll.roll}</strong>
@@ -416,11 +459,18 @@ export default function LiveRollTablesPanel({
                 {allowDisplay && <button type="button" onClick={sendResultToDisplay} style={primaryButtonStyle}><Send size={14} /> Send to TV</button>}
               </div>
             </section>
-          ) : (
+          ) : activeIsRollable ? (
             <section style={emptyResultStyle}>
-              <p>Pick a table and roll. Results stay private until you copy, save, or send them to the player display.</p>
+              <p>Roll this table when you need a live result. It stays private until you copy, save, or send it to the player display.</p>
             </section>
-          )}
+          ) : null}
+
+          <section style={entriesStyle}>
+            <div style={entriesHeaderStyle}><strong>{activeEntries.length} rows</strong><span>{activeIsRollable ? 'Roll results' : 'Quick reference'}</span></div>
+            <div style={entriesListStyle}>
+              {activeEntries.map((entry, index) => <article key={`${entry.range}-${index}`} style={entryRowStyle}><strong>{entry.range}</strong><span>{entry.text}</span></article>)}
+            </div>
+          </section>
         </main>
       </div>
     </section>
@@ -433,29 +483,36 @@ const eyebrowStyle = { margin: 0, color: theme.red, fontSize: 10, fontWeight: 95
 const titleStyle = { margin: '3px 0 4px', color: theme.text, fontSize: 22, lineHeight: 1.08, fontWeight: 950 };
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.45 };
 const statusStyle = (ready) => ({ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: ready ? 'rgba(22, 101, 52, 0.16)' : 'rgba(180, 83, 9, 0.16)', border: `1px solid ${ready ? 'rgba(74, 222, 128, 0.35)' : 'rgba(251, 191, 36, 0.35)'}`, color: theme.soft, padding: '8px 10px', fontSize: 12 });
-const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(220px, 0.35fr) minmax(0, 1fr)', gap: 10 };
-const tableListStyle = { display: 'grid', gap: 7, alignSelf: 'start' };
+const layoutStyle = { display: 'grid', gridTemplateColumns: 'minmax(240px, 0.36fr) minmax(0, 1fr)', gap: 10 };
+const tableListStyle = { display: 'grid', gap: 7, alignSelf: 'start', maxHeight: '72vh', overflowY: 'auto', paddingRight: 4 };
 const tableButtonStyle = (active) => ({ minHeight: 66, display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left', border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.18)' : theme.card, color: theme.text, padding: 10, cursor: 'pointer', fontFamily: fontStack });
 const rollerStyle = { display: 'grid', gap: 10, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, minWidth: 0 };
 const activeHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' };
 const activeTitleStyle = { margin: '2px 0 5px', color: theme.text, fontSize: 20, fontWeight: 950 };
 const rollButtonStyle = { minHeight: 74, border: 0, background: theme.red, color: theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: 18, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const referenceOnlyStyle = { minHeight: 46, display: 'flex', alignItems: 'center', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.soft, padding: '0 12px', fontSize: 13, fontWeight: 800 };
 const resultStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.lineStrong}`, padding: 14 };
 const resultMetaStyle = { margin: 0, color: theme.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 58, height: 58, background: theme.red, color: theme.text, fontSize: 30, fontWeight: 950 };
 const resultTextStyle = { margin: 0, color: theme.text, fontSize: 17, lineHeight: 1.45, fontWeight: 850 };
-const emptyResultStyle = { minHeight: 150, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
+const emptyResultStyle = { minHeight: 100, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
 const createBoxStyle = { display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
 const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 9px', outline: 'none', fontFamily: fontStack };
 const textareaStyle = { minHeight: 130, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: 9, outline: 'none', fontFamily: fontStack, resize: 'vertical' };
+const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 38, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 9px' };
+const searchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack };
 const buttonRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: 0, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const dangerButtonStyle = { minHeight: 32, border: 0, background: '#661111', color: theme.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const mutedTextStyle = { margin: 0, color: theme.muted, fontSize: 12 };
+const entriesStyle = { display: 'grid', gap: 8, background: theme.bg, border: `1px solid ${theme.line}`, padding: 10 };
+const entriesHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', color: theme.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const entriesListStyle = { display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' };
+const entryRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 0.22fr) minmax(0, 1fr)', gap: 8, background: theme.card, borderLeft: `4px solid ${theme.red}`, padding: '7px 9px', color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 
 if (typeof document !== 'undefined' && !document.getElementById('live-roll-tables-panel-css')) {
   const style = document.createElement('style');
