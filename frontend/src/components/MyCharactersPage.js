@@ -198,10 +198,14 @@ export default function MyCharactersPage() {
   if (loading) {
     return (
       <main className="library-page library-page-loading">
-        <section className="loading-screen" role="status" aria-live="polite">
-          <div className="loading-spinner" aria-hidden="true" />
-          <p className="loading-title">Opening My Characters...</p>
-          <p className="loading-tip">Loading your created characters.</p>
+        <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
+          <div className="loading-card">
+            <div className="loading-brand-mark" aria-hidden="true">PC</div>
+            <div className="loading-spinner" aria-hidden="true" />
+            <p className="loading-kicker">Character vault</p>
+            <h1 className="loading-title">Opening My Characters…</h1>
+            <p className="loading-tip">Loading your saved heroes, playable sheets, and latest edits.</p>
+          </div>
         </section>
       </main>
     );
@@ -229,9 +233,9 @@ export default function MyCharactersPage() {
           </Link>
         </div>
         <div className="library-page-action-secondary">
-          <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary">
-            <RefreshCw size={16} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+          <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary library-page-loading-button" aria-busy={refreshing ? 'true' : 'false'}>
+            <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+            {refreshing ? 'Refreshing characters…' : 'Refresh'}
           </button>
         </div>
       </section>
@@ -265,6 +269,8 @@ export default function MyCharactersPage() {
           {sortedCharacters.map((character) => {
             const id = recordId(character);
             const subclass = characterSubclass(character);
+            const duplicating = duplicatingId === id;
+            const deleting = deletingId === id;
             return (
               <article key={id || characterTitle(character)} className="library-card character-library-card">
                 <div className="character-card-main">
@@ -287,8 +293,8 @@ export default function MyCharactersPage() {
                   </Link>
                   <div className="character-card-secondary-actions">
                     <Link to={`/characters/${id}/edit`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
-                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicatingId === id} className="library-page-button-secondary"><Copy size={15} /> {duplicatingId === id ? 'Duplicating...' : 'Duplicate'}</button>
-                    <button type="button" onClick={() => deleteCharacter(character)} disabled={deletingId === id} className="library-page-button-secondary library-page-button-danger"><Trash2 size={15} /> {deletingId === id ? 'Deleting...' : 'Delete'}</button>
+                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicating} className="library-page-button-secondary library-page-loading-button" aria-busy={duplicating ? 'true' : 'false'}>{duplicating ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Copy size={15} />} {duplicating ? 'Duplicating…' : 'Duplicate'}</button>
+                    <button type="button" onClick={() => deleteCharacter(character)} disabled={deleting} className="library-page-button-secondary library-page-button-danger library-page-loading-button" aria-busy={deleting ? 'true' : 'false'}>{deleting ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Trash2 size={15} />} {deleting ? 'Deleting…' : 'Delete'}</button>
                   </div>
                 </div>
               </article>
