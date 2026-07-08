@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
+import CinematicDiceOverlay from '@/components/CinematicDiceOverlay';
 import './DiceRollFlicker.css';
 
 const characterCache = new Map();
@@ -26,11 +26,8 @@ const palette = {
   },
 };
 
-const FLICKER_INTERVAL = 46;
-const BASE_ROLL_DURATION = 960;
-const REVEAL_GAP = 135;
-const HOLD_AFTER_TOTAL = 2800;
-const CUBE_FACE_LABELS = ['front', 'right', 'top', 'left', 'bottom', 'back'];
+const CINEMATIC_REVEAL_DELAY = 2300;
+const HOLD_AFTER_REVEAL = 3100;
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -62,32 +59,6 @@ function normalizeDice(rolls, fallbackTotal) {
 
   const result = Math.max(1, Number(fallbackTotal) || 1);
   return [{ id: 'fallback', sides: Math.max(20, result), result, dropped: false, exploded: false, originalIndex: 0 }];
-}
-
-function randomFace(sides) {
-  return Math.floor(Math.random() * sides) + 1;
-}
-
-function getPanelValue(baseValue, sides, panelIndex) {
-  if (panelIndex === 0) return baseValue;
-  return ((Number(baseValue) + panelIndex * 3 - 1) % sides) + 1;
-}
-
-function getFinalRotation(die, index) {
-  const seed = Number(die.result || 1) + Number(die.sides || 20) + index * 7;
-  return {
-    '--rq-die-final-x': `${-18 + (seed % 7)}deg`,
-    '--rq-die-final-y': `${16 + (seed % 9)}deg`,
-    '--rq-die-final-z': `${-6 + (seed % 5) * 3}deg`,
-    '--rq-die-roll-delay': `${Math.min(index * 42, 260)}ms`,
-  };
-}
-
-function getDieShapeClass(sides) {
-  if (sides === 6) return 'is-cube-die';
-  if (sides === 20) return 'is-hero-d20';
-  if (sides >= 10) return 'is-poly-die';
-  return 'is-small-poly-die';
 }
 
 function getCharacterIdFromPath() {
@@ -126,14 +97,11 @@ export default function DiceRollFlicker({
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
-  const revealedRef = useRef([]);
   const numericTotal = Number(total);
   const numericAnimationValue = Number(animationValue);
   const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
   const naturalFocus = Number.isFinite(numericAnimationValue) && numericAnimationValue !== finalTotal ? numericAnimationValue : null;
   const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
-  const [displayValues, setDisplayValues] = useState(() => dice.map((die) => randomFace(die.sides)));
-  const [revealed, setRevealed] = useState(() => dice.map(() => false));
   const [showTotal, setShowTotal] = useState(false);
   const [fading, setFading] = useState(false);
 
@@ -158,6 +126,7 @@ export default function DiceRollFlicker({
   const natural1 = useMemo(() => keptDice.some(die => die.sides === 20 && die.result === 1), [keptDice]);
   const finalCrit = Boolean(isCrit || natural20);
   const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
+  const cinematicResult = naturalFocus ?? finalTotal;
 
   useEffect(() => {
     if (!visible || theme !== 'player') return undefined;
@@ -195,48 +164,23 @@ export default function DiceRollFlicker({
   useEffect(() => {
     if (!visible || typeof window === 'undefined') return undefined;
 
-    const timers = [];
-    const initialRevealState = dice.map(() => false);
-    const rollDuration = Math.min(1700, BASE_ROLL_DURATION + dice.length * 85);
-    const revealGap = dice.length > 5 ? 82 : REVEAL_GAP;
-    const finalRevealTime = rollDuration + revealGap * Math.max(0, dice.length - 1);
-    const totalRevealTime = finalRevealTime + 210;
-
-    revealedRef.current = initialRevealState;
-    setDisplayValues(dice.map((die) => randomFace(die.sides)));
-    setRevealed(initialRevealState);
     setShowTotal(false);
     setFading(false);
 
-    const flickerId = window.setInterval(() => {
-      const currentRevealed = revealedRef.current;
-      setDisplayValues((current) => current.map((value, index) => (
-        currentRevealed[index] ? value : randomFace(dice[index]?.sides || 20)
-      )));
-    }, FLICKER_INTERVAL);
-
-    dice.forEach((die, dieIndex) => {
-      timers.push(window.setTimeout(() => {
-        revealedRef.current = revealedRef.current.map((item, index) => index === dieIndex ? true : item);
-        setRevealed(revealedRef.current);
-        setDisplayValues((prev) => prev.map((value, index) => index === dieIndex ? die.result : value));
-      }, rollDuration + revealGap * dieIndex));
-    });
-
-    timers.push(window.setTimeout(() => setShowTotal(true), totalRevealTime));
-    timers.push(window.setTimeout(() => setFading(true), totalRevealTime + HOLD_AFTER_TOTAL - 360));
-    timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, totalRevealTime + HOLD_AFTER_TOTAL));
+    const revealTimer = window.setTimeout(() => setShowTotal(true), CINEMATIC_REVEAL_DELAY);
+    const fadeTimer = window.setTimeout(() => setFading(true), CINEMATIC_REVEAL_DELAY + HOLD_AFTER_REVEAL - 360);
+    const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, CINEMATIC_REVEAL_DELAY + HOLD_AFTER_REVEAL);
 
     return () => {
-      window.clearInterval(flickerId);
-      timers.forEach(id => window.clearTimeout(id));
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(closeTimer);
     };
-  }, [visible, dice]);
+  }, [visible, dice, finalTotal]);
 
   if (!visible || typeof document === 'undefined') return null;
 
   const outcomeClass = showTotal && finalCrit ? 'is-critical' : showTotal && finalFumble ? 'is-fumble' : showTotal ? 'is-complete' : 'is-rolling';
-  const status = showTotal ? (finalCrit ? 'Critical success' : finalFumble ? 'Critical fail' : 'Roll complete') : 'Rolling 3D dice';
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
   const closeNow = () => {
     setFading(true);
@@ -245,7 +189,7 @@ export default function DiceRollFlicker({
 
   return createPortal(
     <div
-      className={`rq-dice-flicker ${colors.className} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
+      className={`rq-dice-flicker rq-dice-flicker--cinematic ${colors.className} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
       role="status"
       aria-live="polite"
       style={{
@@ -256,58 +200,18 @@ export default function DiceRollFlicker({
         '--rq-roll-danger': colors.danger,
       }}
     >
-      <div className="rq-dice-flicker__card">
-        <div className="rq-dice-flicker__glow" />
-        <div className="rq-dice-flicker__dice" aria-label="Dice results">
-          {dice.map((die, index) => {
-            const isRevealed = Boolean(revealed[index]);
-            const faceValue = displayValues[index] ?? die.result;
-            const isNat1 = !die.dropped && die.sides === 20 && die.result === 1;
-            const isNat20 = !die.dropped && die.sides === 20 && die.result === 20;
-            const dieClass = [
-              'rq-die',
-              getDieShapeClass(die.sides),
-              isRevealed ? 'is-revealed' : 'is-tumbling',
-              die.dropped ? 'is-dropped' : '',
-              die.exploded ? 'is-exploded' : '',
-              isNat20 ? 'is-natural-20' : '',
-              isNat1 ? 'is-natural-1' : '',
-            ].filter(Boolean).join(' ');
-            return (
-              <div key={die.id} className={dieClass} style={getFinalRotation(die, index)}>
-                <div className="rq-die__stage" aria-label={`d${die.sides} result ${isRevealed ? die.result : faceValue}`}>
-                  <div className="rq-die__shadow" />
-                  <div className="rq-die__face">
-                    {CUBE_FACE_LABELS.map((faceName, faceIndex) => (
-                      <span key={faceName} className={`rq-die__panel rq-die__panel--${faceName}`}>
-                        {getPanelValue(faceValue, die.sides, faceIndex)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <small>{die.exploded ? 'EX' : die.dropped ? 'DROP' : `d${die.sides}`}</small>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="rq-dice-flicker__summary">
-          <div className="rq-dice-flicker__status"><Sparkles size={14} /> {status}</div>
-          <div className="rq-dice-flicker__title" title={label || 'Dice roll'}>{label || 'Dice roll'}</div>
-          <div className="rq-dice-flicker__detail" title={rollDetail}>{showTotal ? rollDetail : `${dice.length} ${dice.length === 1 ? 'die' : 'dice'} tumbling`}</div>
-        </div>
-
-        <div className="rq-dice-flicker__total" aria-label={`Total ${finalTotal}`}>
-          <span>{showTotal ? 'Total' : 'Rolling'}</span>
-          <strong>{showTotal ? finalTotal : '—'}</strong>
-          {showTotal && <em>{formulaText}</em>}
-          {showTotal && naturalFocus !== null && <small>Natural d20: {naturalFocus}</small>}
-        </div>
-
-        <button type="button" className="rq-dice-flicker__close" onClick={closeNow} aria-label="Dismiss roll result">
-          <X size={15} />
-        </button>
-      </div>
+      <CinematicDiceOverlay
+        result={cinematicResult}
+        total={finalTotal}
+        label={label}
+        rollDetail={rollDetail}
+        formulaText={formulaText}
+        isRevealed={showTotal}
+        isCrit={finalCrit}
+        isFumble={finalFumble}
+        diceCount={dice.length}
+        onClose={closeNow}
+      />
     </div>,
     document.body
   );
