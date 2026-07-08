@@ -31,6 +31,14 @@ const SCENE_PRESETS = [
   { id: 'combat', label: 'Combat View', mode: 'combat', icon: Skull, payload: {} },
 ];
 
+const FLOW_PRESETS = [
+  { id: 'blackout', label: 'Panic Blackout', icon: X, mode: 'blank', title: 'Screen Hidden', subtitle: 'The GM has hidden the player display.' },
+  { id: 'initiative', label: 'Roll Initiative', icon: Skull, mode: 'title', eyebrow: 'Combat', title: 'Roll Initiative', subtitle: 'Combat begins.' },
+  { id: 'spotlight', label: 'Spotlight Reveal', icon: Sparkles, mode: 'title', eyebrow: 'Spotlight', title: '', subtitle: '' },
+  { id: 'travel', label: 'Travel Montage', icon: Projector, mode: 'title', eyebrow: 'Journey', title: 'On the Road', subtitle: 'The party pushes onward.' },
+  { id: 'safe-break', label: 'Table Break', icon: Monitor, mode: 'blank', title: 'Short Break', subtitle: 'The adventure will continue shortly.' },
+];
+
 function imageFrom(item) {
   return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || '';
 }
@@ -205,6 +213,16 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     }
   };
 
+  const sendFlowPreset = (preset) => {
+    const title = preset.id === 'spotlight' ? (sceneTitle || campaignName || 'Spotlight') : preset.title;
+    const subtitle = preset.id === 'spotlight' ? sceneSubtitle : preset.subtitle;
+    publish(preset.mode, {
+      eyebrow: preset.eyebrow,
+      title,
+      subtitle,
+    });
+  };
+
   const toggleNpc = (npcId) => {
     const safeId = String(npcId);
     setSelectedNpcIds(prev => prev.includes(safeId) ? prev.filter(id => id !== safeId) : [...prev, safeId]);
@@ -241,6 +259,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           <button type="button" onClick={() => openPlayerDisplay('standing-tv')} style={primaryButtonStyle}><Projector size={14} /> Open TV</button>
           <button type="button" onClick={() => openPlayerDisplay('virtual-table')} style={primaryButtonStyle}><Table2 size={14} /> Open Table</button>
           <button type="button" onClick={() => copyDisplayLink(displayTarget)} style={secondaryButtonStyle}><Copy size={14} /> Copy Link</button>
+          <button type="button" onClick={() => sendFlowPreset(FLOW_PRESETS[0])} style={dangerButtonStyle}><X size={14} /> Blackout</button>
           <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>
         </div>
       </header>
@@ -280,6 +299,22 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
               <span><Skull size={12} /> {visibleCombatantEntries.length} visible</span>
             </div>
           </aside>
+        </section>
+
+        <section style={flowPanelStyle}>
+          <div style={quickSendHeaderStyle}>
+            <div>
+              <strong>Table flow shortcuts</strong>
+              <p>Fast buttons for moments where the screen needs to react before you type.</p>
+            </div>
+            <span style={safeBadgeStyle}><Sparkles size={13} /> Live pacing</span>
+          </div>
+          <div style={presetGridStyle}>
+            {FLOW_PRESETS.map(preset => {
+              const Icon = preset.icon;
+              return <button key={preset.id} type="button" onClick={() => sendFlowPreset(preset)} style={preset.id === 'blackout' ? dangerPresetButtonStyle : presetButtonStyle}><Icon size={15} /> {preset.label}</button>;
+            })}
+          </div>
         </section>
 
         <section style={quickSendPanelStyle}>
@@ -345,6 +380,7 @@ const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 
 const actionsStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' };
 const primaryButtonStyle = { minHeight: 34, border: 0, background: theme.red, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${theme.line}`, background: theme.bg, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
+const dangerButtonStyle = { minHeight: 34, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const statusStripStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderTop: `1px solid ${theme.line}`, borderBottom: `1px solid ${theme.line}`, background: theme.panel, color: theme.soft, fontSize: 11, lineHeight: 1.35 };
 const bodyStyle = { display: 'grid', gap: 10, padding: 12 };
 const commandDeckStyle = { display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(240px, 0.42fr)', gap: 10, alignItems: 'stretch' };
@@ -355,10 +391,12 @@ const previewTitleStyle = { color: theme.text, fontSize: 18, fontWeight: 950, ov
 const previewTextStyle = { color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const previewMetaStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, color: theme.text, fontSize: 11, fontWeight: 900 };
 const quickSendPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
+const flowPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.16), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
 const quickSendHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', color: theme.text };
 const safeBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: 26, padding: '0 8px', color: theme.text, background: theme.bg, border: `1px solid ${theme.line}`, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const presetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7 };
 const presetButtonStyle = { minHeight: 38, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const dangerPresetButtonStyle = { minHeight: 38, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const advancedStyle = { display: 'grid', gap: 10 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
