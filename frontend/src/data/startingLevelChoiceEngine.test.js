@@ -114,7 +114,7 @@ describe('starting level choice engine', () => {
       {
         spellPlan: clericPlan,
         spells: { prepared: [preparedSpell.name] },
-        warlockPlan: { invocationCount: 2 },
+        warlockPlan: { pactBoonRequired: true, invocationCount: 2 },
         warlock: { pactBoon: 'Pact of the Tome', invocations: ['Agonizing Blast', 'Devil’s Sight'] },
       },
     );
@@ -126,5 +126,24 @@ describe('starting level choice engine', () => {
     expect(enhanced.spells_prepared.map((spell) => spell.name)).toEqual([preparedSpell.name]);
     expect(enhanced.pact_boon).toBe('Pact of the Tome');
     expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast', 'Devil’s Sight']);
+  });
+
+  test('does not save invalid stale Pact Boon or Mystic Arcanum choices', () => {
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({ character_class: 'Warlock', charisma: 16 }),
+      {},
+      [],
+      {
+        spellPlan: { cantripTarget: 0, knownTarget: 0, preparedTarget: 0, arcanumLevels: [] },
+        spells: { arcanum: { 6: 'Eyebite' } },
+        warlockPlan: { pactBoonRequired: false, invocationCount: 1 },
+        warlock: { pactBoon: 'Pact of the Tome', invocations: ['Agonizing Blast', 'Devil’s Sight'] },
+      },
+    );
+
+    expect(enhanced.pact_boon).toBeUndefined();
+    expect(enhanced.pactBoon).toBeUndefined();
+    expect(enhanced.mystic_arcanum).toBeUndefined();
+    expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast']);
   });
 });
