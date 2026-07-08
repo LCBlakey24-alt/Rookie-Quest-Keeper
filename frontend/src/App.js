@@ -68,6 +68,7 @@ import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import AppShell from '@/components/app/AppShell';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
+import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
@@ -204,6 +205,7 @@ function AppRoutes() {
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
+      {isAuthenticated && <FloatingDiceRoller />}
       {isAuthenticated && <GlobalFeedbackButton />}
     </>
   );
