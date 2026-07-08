@@ -150,6 +150,12 @@ def passthrough_character_fields(payload: Optional[Dict[str, Any]]) -> Dict[str,
     return {key: payload[key] for key in _PASSTHROUGH_CHARACTER_FIELDS if key in payload}
 
 
+def model_update_payload(payload: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    return {key: value for key, value in payload.items() if key not in _PASSTHROUGH_CHARACTER_FIELDS}
+
+
 async def request_json_payload(request: Request) -> Dict[str, Any]:
     try:
         payload = await request.json()
@@ -261,7 +267,7 @@ async def create_character(request: Request, character: PlayerCharacterCreate, u
     con_mod = ability_modifier(character.constitution)
     max_hp = character.max_hit_points if character.max_hit_points is not None else max(1, hit_die + con_mod)
     ac = character.armor_class if character.armor_class is not None else 10 + ability_modifier(character.dexterity)
-    proficiency_bonus = character.proficiency_bonus or proficiency_for(character.level)
+    proficiency_bonus = getattr(character, 'proficiency_bonus', None) or proficiency_for(character.level)
     spellcasting_ability = character.spellcasting_ability or spellcasting_ability_for(character.character_class)
     spell_slots = character.spell_slots or calculate_spell_slots(character.character_class, character.level)
 
@@ -355,15 +361,19 @@ async def apply_character_update(character_id: str, character_update: PlayerChar
 
 
 @router.put("/characters/{character_id}")
-async def update_character(character_id: str, request: Request, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
+async def update_character(character_id: str, request: Request, username: str = Depends(get_current_user)):
     """Update a character."""
-    return await apply_character_update(character_id, character_update, username, await request_json_payload(request))
+    raw_payload = await request_json_payload(request)
+    character_update = PlayerCharacterUpdate.model_validate(model_update_payload(raw_payload))
+    return await apply_character_update(character_id, character_update, username, raw_payload)
 
 
 @router.patch("/characters/{character_id}")
-async def patch_character(character_id: str, request: Request, character_update: PlayerCharacterUpdate, username: str = Depends(get_current_user)):
+async def patch_character(character_id: str, request: Request, username: str = Depends(get_current_user)):
     """Partially update a character."""
-    return await apply_character_update(character_id, character_update, username, await request_json_payload(request))
+    raw_payload = await request_json_payload(request)
+    character_update = PlayerCharacterUpdate.model_validate(model_update_payload(raw_payload))
+    return await apply_character_update(character_id, character_update, username, raw_payload)
 
 
 @router.delete("/characters/{character_id}")
