@@ -15,6 +15,7 @@ import {
   Users
 } from 'lucide-react';
 import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
+import '@/styles/landingProductionTrust.css';
 
 const BUTTON_FILL_DELAY_MS = 560;
 
@@ -166,6 +167,24 @@ const startingPaths = [
     text: 'Keep session planning, maps, NPCs, handouts, rewards, uploads, and campaign notes close together.',
     actionLabel: 'View GM Flow',
     action: 'flow',
+  },
+];
+
+const productStatus = [
+  {
+    label: 'Character building',
+    status: 'Ready to start',
+    detail: 'Multiple creator routes help brand-new players and experienced players get to a usable sheet quickly.',
+  },
+  {
+    label: 'Live play sheet',
+    status: 'Table focused',
+    detail: 'The sheet is being shaped around fast HP, actions, spells, rests, inventory, and notes during real sessions.',
+  },
+  {
+    label: 'GM workspace',
+    status: 'Campaign ready',
+    detail: 'Prep, NPCs, maps, handouts, uploads, and session flow tools are being brought into one GM-side hub.',
   },
 ];
 
@@ -407,6 +426,23 @@ export default function LandingPage() {
           })}
         </section>
 
+        <section className="landing-status-panel" aria-labelledby="landing-status-title">
+          <div className="landing-section-heading landing-status-heading">
+            <p className="landing-kicker">Current focus</p>
+            <h2 id="landing-status-title">Built around the screens the table actually needs.</h2>
+            <p>The landing page now sets honest expectations: start with character tools, use the sheet during play, and grow into GM support as the campaign gets bigger.</p>
+          </div>
+          <div className="landing-status-grid">
+            {productStatus.map((item) => (
+              <article key={item.label} className="landing-status-card">
+                <span>{item.status}</span>
+                <h3>{item.label}</h3>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="landing-final-cta" aria-label="Start using Rookie Quest Keeper">
           <ShieldCheck size={30} aria-hidden="true" />
           <p className="landing-kicker">Start simple</p>
@@ -423,9 +459,20 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="landing-final-footer">
-        <BrandMiniLogo size={36} />
-        <p>&copy; {new Date().getFullYear()} Rookie Quest Keeper</p>
+      <footer className="landing-final-footer landing-product-footer">
+        <div className="landing-footer-brand">
+          <BrandMiniLogo size={40} />
+          <div>
+            <strong>Rookie Quest Keeper</strong>
+            <p>Independent tabletop companion for 5e-style campaigns, character sheets, live play, and GM prep.</p>
+          </div>
+        </div>
+        <div className="landing-footer-actions" aria-label="Footer navigation">
+          <button type="button" onClick={() => scrollToSection(readySectionRef)}>Ready now</button>
+          <button type="button" onClick={() => scrollToSection(flowSectionRef)}>Table flow</button>
+          <button type="button" onClick={goRegister}>Create account</button>
+        </div>
+        <p className="landing-footer-note">&copy; {new Date().getFullYear()} Rookie Quest Keeper. Built for home tables, new players, and campaign runners.</p>
       </footer>
     </div>
   );
