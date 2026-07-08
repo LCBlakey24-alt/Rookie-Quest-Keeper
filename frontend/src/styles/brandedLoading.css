@@ -183,6 +183,33 @@
   line-height: 1.5 !important;
 }
 
+/* Older loading screens sometimes render only a spinner. Give those pages readable context. */
+.loading-screen:has(> .loading-spinner:only-child)::after {
+  content: 'Loading campaign workspace…';
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: min(420px, calc(100vw - 72px));
+  margin: 0 auto;
+  padding: 0;
+  color: var(--rq-text, #f5e6c8);
+  font-family: var(--rq-title-font, 'Cinzel', Georgia, serif);
+  font-size: clamp(1.45rem, 4.6vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.08;
+  text-align: center;
+  text-shadow: none;
+}
+
+.loading-screen:has(> .loading-spinner:only-child)::after {
+  background: none;
+}
+
+.loading-screen:has(> .loading-spinner:only-child) > .loading-spinner {
+  margin-bottom: 4px;
+}
+
 /* Character creator loading states are nested inside the creator shell, so polish the shared block directly. */
 .full-creator-loading {
   --rq-creator-loading-width: min(560px, calc(100vw - 32px));
