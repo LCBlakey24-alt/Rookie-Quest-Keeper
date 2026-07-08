@@ -1,6 +1,7 @@
 #root .landing-page-final .landing-status-panel,
 #root .landing-page-final .landing-faq-panel,
-#root .landing-page-final .landing-principles-panel {
+#root .landing-page-final .landing-principles-panel,
+#root .landing-page-final .landing-table-shift-panel {
   width: min(1080px, 100%);
   margin-inline: auto;
   border: 1px solid var(--landing-line);
@@ -9,7 +10,8 @@
 
 #root .landing-page-final .landing-status-heading,
 #root .landing-page-final .landing-faq-heading,
-#root .landing-page-final .landing-principles-heading {
+#root .landing-page-final .landing-principles-heading,
+#root .landing-page-final .landing-table-shift-heading {
   background:
     linear-gradient(90deg, rgba(208, 0, 0, 0.12), transparent 48%),
     rgba(0, 0, 0, 0.12) !important;
@@ -77,6 +79,66 @@
   color: var(--landing-muted) !important;
   font-size: 14px;
   line-height: 1.55;
+}
+
+#root .landing-page-final .landing-table-shift-list {
+  display: grid;
+}
+
+#root .landing-page-final .landing-table-shift-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.34fr) minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(12px, 2vw, 22px);
+  padding: clamp(16px, 2.3vw, 24px);
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left;
+}
+
+#root .landing-page-final .landing-table-shift-row + .landing-table-shift-row {
+  border-top: 1px solid var(--landing-line) !important;
+}
+
+#root .landing-page-final .landing-table-shift-label {
+  width: max-content;
+  max-width: 100%;
+  display: inline-flex;
+  padding: 5px 8px;
+  background: var(--landing-red) !important;
+  color: var(--landing-text) !important;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#root .landing-page-final .landing-table-shift-row > svg {
+  color: var(--landing-red-bright) !important;
+}
+
+#root .landing-page-final .landing-table-shift-row div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+#root .landing-page-final .landing-table-shift-row p {
+  margin: 0;
+  color: var(--landing-faint) !important;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+#root .landing-page-final .landing-table-shift-row h3 {
+  margin: 0;
+  color: var(--landing-text) !important;
+  font-size: clamp(15px, 1.8vw, 19px);
+  font-weight: 900;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
 }
 
 #root .landing-page-final .landing-faq-list {
@@ -234,6 +296,15 @@
   #root .landing-page-final .landing-principle-card:nth-child(n + 3) {
     border-top: 1px solid var(--landing-line) !important;
   }
+
+  #root .landing-page-final .landing-table-shift-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  #root .landing-page-final .landing-table-shift-row > svg {
+    transform: rotate(90deg);
+  }
 }
 
 @media (max-width: 860px) {
@@ -280,5 +351,9 @@
   #root .landing-page-final .landing-faq-item summary {
     align-items: flex-start;
     min-height: 0;
+  }
+
+  #root .landing-page-final .landing-table-shift-label {
+    width: 100%;
   }
 }
