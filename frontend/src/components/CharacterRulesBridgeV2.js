@@ -24,8 +24,7 @@ import {
   buildStartingLevelChoicePlan,
   defaultAsiSelection,
   getFeatOptions,
-  normaliseSpellSelection,
-  normaliseWarlockSelection,
+  pruneStartingLevelDetailSelections,
 } from '@/data/startingLevelChoiceEngine';
 import apiClient from '@/lib/apiClient';
 import usePlayerRulesOptions, { buildMergedCharacterRules } from '@/hooks/usePlayerRulesOptions';
@@ -95,23 +94,6 @@ function draftAbilitySignature(draft = {}) {
 
 function sameJson(left, right) {
   return JSON.stringify(left || {}) === JSON.stringify(right || {});
-}
-
-function pruneSpellSelectionForPlan(selection = {}, spellPlan = {}) {
-  const normalised = normaliseSpellSelection(selection, spellPlan);
-  const arcanumLevels = new Set(arr(spellPlan.arcanumLevels).map(String));
-  const arcanum = Object.fromEntries(
-    Object.entries(normalised.arcanum || {}).filter(([spellLevel, name]) => name && arcanumLevels.has(String(spellLevel))),
-  );
-  return { ...normalised, arcanum };
-}
-
-function pruneWarlockSelectionForPlan(selection = {}, warlockPlan = null) {
-  const normalised = normaliseWarlockSelection(selection, warlockPlan || {});
-  return {
-    ...normalised,
-    pactBoon: warlockPlan?.pactBoonRequired ? normalised.pactBoon : '',
-  };
 }
 
 function applyMergedRules(merged) {
@@ -519,12 +501,9 @@ export default function CharacterRulesBridgeV2(props) {
 
   useEffect(() => {
     setDetailSelections((prev) => {
-      const currentSpells = prev?.spells || {};
-      const currentWarlock = prev?.warlock || {};
-      const spells = pruneSpellSelectionForPlan(currentSpells, choicePlan.spellPlan);
-      const warlock = pruneWarlockSelectionForPlan(currentWarlock, choicePlan.warlockPlan);
-      if (sameJson(currentSpells, spells) && sameJson(currentWarlock, warlock)) return prev;
-      return { ...prev, spells, warlock };
+      const pruned = pruneStartingLevelDetailSelections(prev, { spellPlan: choicePlan.spellPlan, warlockPlan: choicePlan.warlockPlan });
+      if (sameJson(prev?.spells, pruned.spells) && sameJson(prev?.warlock, pruned.warlock)) return prev;
+      return { ...prev, spells: pruned.spells, warlock: pruned.warlock };
     });
   }, [spellChoiceSignature, warlockChoiceSignature, choicePlan.spellPlan, choicePlan.warlockPlan]);
 
