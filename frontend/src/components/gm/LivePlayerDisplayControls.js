@@ -39,6 +39,14 @@ const FLOW_PRESETS = [
   { id: 'safe-break', label: 'Table Break', icon: Monitor, mode: 'blank', title: 'Short Break', subtitle: 'The adventure will continue shortly.' },
 ];
 
+const MESSAGE_PRESETS = [
+  { id: 'session-start', label: 'Session Starts', eyebrow: 'Tonight', title: 'Session Begins', subtitle: 'Settle in. The adventure continues.' },
+  { id: 'quest-updated', label: 'Quest Updated', eyebrow: 'Quest Updated', title: 'New information discovered', subtitle: 'The party has a new lead.' },
+  { id: 'you-hear', label: 'You Hear...', eyebrow: 'You hear...', title: 'Something moves nearby', subtitle: 'Listen carefully.' },
+  { id: 'you-see', label: 'You See...', eyebrow: 'You see...', title: 'A detail catches your eye', subtitle: 'The scene changes.' },
+  { id: 'long-rest', label: 'Long Rest', eyebrow: 'Rest', title: 'Long Rest Complete', subtitle: 'Abilities, spells, and hit points recover as normal.' },
+];
+
 function imageFrom(item) {
   return item?.image_url || item?.map_url || item?.url || item?.attachment_url || item?.avatar_url || item?.portrait_url || item?.token_url || '';
 }
@@ -78,6 +86,7 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
   const [scenarios, setScenarios] = useState([]);
   const [sceneTitle, setSceneTitle] = useState(campaignName || 'Scene');
   const [sceneSubtitle, setSceneSubtitle] = useState('');
+  const [quickAnnouncement, setQuickAnnouncement] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [selectedNpcIds, setSelectedNpcIds] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
@@ -223,6 +232,28 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     });
   };
 
+  const sendAnnouncement = () => {
+    const text = quickAnnouncement.trim();
+    if (!text) {
+      toast.error('Type a player-facing announcement first');
+      return;
+    }
+    publish('title', {
+      eyebrow: 'Announcement',
+      title: text,
+      subtitle: sceneSubtitle,
+    });
+  };
+
+  const sendMessagePreset = (preset) => {
+    setQuickAnnouncement(preset.title);
+    publish('title', {
+      eyebrow: preset.eyebrow,
+      title: preset.title,
+      subtitle: preset.subtitle,
+    });
+  };
+
   const toggleNpc = (npcId) => {
     const safeId = String(npcId);
     setSelectedNpcIds(prev => prev.includes(safeId) ? prev.filter(id => id !== safeId) : [...prev, safeId]);
@@ -317,6 +348,23 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           </div>
         </section>
 
+        <section style={messagePanelStyle}>
+          <div style={quickSendHeaderStyle}>
+            <div>
+              <strong>Broadcast announcement</strong>
+              <p>Send a short player-facing title card without digging into notes.</p>
+            </div>
+            <span style={safeBadgeStyle}><Send size={13} /> Quick broadcast</span>
+          </div>
+          <div style={messageInputRowStyle}>
+            <input value={quickAnnouncement} onChange={(event) => setQuickAnnouncement(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendAnnouncement(); }} placeholder="Type a player-facing message..." style={inputStyle} />
+            <button type="button" onClick={sendAnnouncement} style={primaryButtonStyle}><Send size={14} /> Broadcast</button>
+          </div>
+          <div style={presetGridStyle}>
+            {MESSAGE_PRESETS.map(preset => <button key={preset.id} type="button" onClick={() => sendMessagePreset(preset)} style={presetButtonStyle}>{preset.label}</button>)}
+          </div>
+        </section>
+
         <section style={quickSendPanelStyle}>
           <div style={quickSendHeaderStyle}>
             <div>
@@ -392,11 +440,13 @@ const previewTextStyle = { color: theme.soft, fontSize: 12, lineHeight: 1.35 };
 const previewMetaStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, color: theme.text, fontSize: 11, fontWeight: 900 };
 const quickSendPanelStyle = { background: theme.panel, border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
 const flowPanelStyle = { background: 'linear-gradient(135deg, rgba(208,0,0,0.16), rgba(36,36,36,0.96))', border: `1px solid ${theme.lineStrong}`, borderLeft: `6px solid ${theme.red}`, padding: 10, display: 'grid', gap: 9 };
+const messagePanelStyle = { background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(36,36,36,0.96))', border: `1px solid ${theme.line}`, padding: 10, display: 'grid', gap: 9 };
 const quickSendHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', color: theme.text };
 const safeBadgeStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: 26, padding: '0 8px', color: theme.text, background: theme.bg, border: `1px solid ${theme.line}`, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const presetGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7 };
 const presetButtonStyle = { minHeight: 38, border: `1px solid ${theme.line}`, background: theme.card, color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const dangerPresetButtonStyle = { minHeight: 38, border: `1px solid ${theme.red}`, background: '#090909', color: theme.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
+const messageInputRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 7 };
 const advancedStyle = { display: 'grid', gap: 10 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
 const fieldStyle = { display: 'grid', gap: 5 };
@@ -423,6 +473,7 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     [data-testid="live-player-display-controls"] em { grid-column: 1 / -1; color: rgba(255,255,255,0.72); font-style: normal; font-size: 12px; line-height: 1.35; }
     [data-testid="live-player-display-controls"] p { margin: 2px 0 0; color: rgba(255,255,255,0.68); font-size: 12px; }
     @media (max-width: 980px) { [data-testid="live-player-display-controls"] [data-testid="player-display-target-selector"] { grid-template-columns: 1fr !important; } }
+    @media (max-width: 640px) { [data-testid="live-player-display-controls"] input + button { width: 100%; justify-content: center; } }
   `;
   document.head.appendChild(style);
 }
