@@ -18,26 +18,24 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 8px)',
 };
 
-function isTestingNote(item) {
-  const title = String(item?.title || '').toLowerCase();
-  return item?.category === 'testing' || ['testing', 'mobile-testing'].includes(item?.area) || title.includes('[test]');
-}
-
 export default function AdminMissionBrief({ onOpenTab }) {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState([]);
+  const [testingNotes, setTestingNotes] = useState([]);
   const [updates, setUpdates] = useState([]);
   const [audit, setAudit] = useState([]);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [feedbackRes, updatesRes, auditRes] = await Promise.all([
-        apiClient.get('/admin/feedback', { params: { status_filter: 'new' } }).catch(() => ({ data: [] })),
+      const [feedbackRes, testingRes, updatesRes, auditRes] = await Promise.all([
+        apiClient.get('/admin/feedback', { params: { status_filter: 'new', kind: 'feedback' } }).catch(() => ({ data: [] })),
+        apiClient.get('/admin/feedback', { params: { status_filter: 'new', kind: 'testing' } }).catch(() => ({ data: [] })),
         apiClient.get('/admin/site-updates', { params: { include_archived: true } }).catch(() => ({ data: [] })),
         apiClient.get('/admin/audit-log', { params: { limit: 5 } }).catch(() => ({ data: [] })),
       ]);
       setFeedback(Array.isArray(feedbackRes.data) ? feedbackRes.data : []);
+      setTestingNotes(Array.isArray(testingRes.data) ? testingRes.data : []);
       setUpdates(Array.isArray(updatesRes.data) ? updatesRes.data : []);
       setAudit(Array.isArray(auditRes.data) ? auditRes.data : []);
     } finally {
@@ -53,12 +51,10 @@ export default function AdminMissionBrief({ onOpenTab }) {
     archived: updates.filter(update => update.is_archived).length,
   }), [updates]);
 
-  const testingNotes = feedback.filter(isTestingNote);
-  const userFeedback = feedback.filter(item => !isTestingNote(item));
-  const topFeedback = userFeedback.slice(0, 3);
+  const topFeedback = feedback.slice(0, 3);
   const topTesting = testingNotes.slice(0, 3);
   const draftUpdates = updates.filter(update => !update.is_published && !update.is_archived).slice(0, 3);
-  const hasAttention = userFeedback.length > 0 || testingNotes.length > 0 || updateCounts.drafts > 0 || updateCounts.archived > 0;
+  const hasAttention = feedback.length > 0 || testingNotes.length > 0 || updateCounts.drafts > 0 || updateCounts.archived > 0;
 
   return (
     <section style={wrapStyle} aria-label="Admin mission brief" data-testid="admin-mission-brief">
@@ -78,7 +74,7 @@ export default function AdminMissionBrief({ onOpenTab }) {
           <article style={cardStyle}>
             <div style={cardHeaderStyle}>
               <span style={cardTitleStyle}><MessageSquare size={16} /> Feedback queue</span>
-              <strong style={countStyle}>{userFeedback.length}</strong>
+              <strong style={countStyle}>{feedback.length}</strong>
             </div>
             {topFeedback.length === 0 ? (
               <p style={quietStyle}>No new user feedback waiting. Suspiciously peaceful.</p>
