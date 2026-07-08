@@ -70,6 +70,7 @@ pytest
 4. Confirm prepared spells appear in the Prepared Spells section.
 5. Cast and unprepare/reprepare spells where available.
 6. Confirm the character no longer shows the Spells tab attention warning once spell choices exist.
+7. Change the caster's spellcasting ability score in the builder and confirm the prepared spell target updates.
 
 ## Manual smoke flow: Warlock
 
@@ -136,6 +137,6 @@ pytest
 ## Known caveats to verify manually
 
 - The builder currently uses bridge-layer payload enhancement; future work should move this into a first-class creator payload pipeline.
-- Prepared spell counts depend on available ability scores at creation time; verify prepared casters at low and high ability scores.
+- Prepared spell counts now read draft ability scores, but should still be smoke tested at low and high spellcasting scores.
 - Battle Master detection currently depends on the saved subclass name containing `Battle Master`.
 - Some homebrew resources are displayed read-only unless they use supported saved resource fields.
