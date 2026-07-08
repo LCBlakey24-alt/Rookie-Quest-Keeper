@@ -117,11 +117,18 @@ export function parseHitDie(hitDice = '1d8') {
 export function rollD20(modifier = 0, rollMode = 'normal') {
   const first = Math.floor(Math.random() * 20) + 1;
   if (rollMode !== 'advantage' && rollMode !== 'disadvantage') {
-    return { d20: first, modifier, total: first + modifier, mode: 'normal', allRolls: [first] };
+    const rolls = [{ sides: 20, result: first }];
+    return { d20: first, modifier, total: first + modifier, mode: 'normal', allRolls: [first], rolls, visibleRolls: rolls };
   }
+
   const second = Math.floor(Math.random() * 20) + 1;
-  const kept = rollMode === 'advantage' ? Math.max(first, second) : Math.min(first, second);
-  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second] };
+  const keepFirst = rollMode === 'advantage' ? first >= second : first <= second;
+  const kept = keepFirst ? first : second;
+  const rolls = [
+    { sides: 20, result: first, dropped: !keepFirst },
+    { sides: 20, result: second, dropped: keepFirst },
+  ];
+  return { d20: kept, modifier, total: kept + modifier, mode: rollMode, allRolls: [first, second], rolls, visibleRolls: rolls.filter(roll => !roll.dropped) };
 }
 
 export function rollHitDie(sides = 8, modifier = 0) {
