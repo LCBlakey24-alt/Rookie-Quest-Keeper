@@ -233,7 +233,7 @@ export default function AdminFeedbackTab() {
           <p style={subtitleStyle}>Triage user suggestions, bugs, confusing areas, and turn useful feedback into public dashboard updates. Testing notes live in their own tab.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+          <button type="button" onClick={load} disabled={loading} style={{ ...buttonStyle, opacity: loading ? 0.72 : 1, cursor: loading ? 'progress' : 'pointer' }} aria-busy={loading ? 'true' : 'false'}><RefreshCw size={14} style={loading ? feedbackSpinStyle : undefined} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
           <button type="button" onClick={exportCsv} style={buttonStyle}><Download size={14} /> Export CSV</button>
         </div>
       </div>
@@ -260,7 +260,7 @@ export default function AdminFeedbackTab() {
       </div>
 
       {loading ? (
-        <div style={emptyStyle}>Loading feedback...</div>
+        <AdminFeedbackLoading />
       ) : filtered.length === 0 ? (
         <div style={emptyStyle}>No user feedback found. Testing notes are kept under the Testing tab.</div>
       ) : (
@@ -295,6 +295,7 @@ export default function AdminFeedbackTab() {
           ))}
         </div>
       )}
+      <style>{feedbackLoadingCss}</style>
     </div>
   );
 }
@@ -303,9 +304,11 @@ function FeedbackCard({ item, savingId, onPatch, onSave, onMove, onDelete, onCre
   const status = item.status || 'new';
   const priority = item.priority || 'normal';
   const nextStatuses = boardColumns.filter(column => column.id !== status);
+  const creatingDraft = savingId === `site-update-${item.id}`;
+  const savingFeedback = savingId === item.id;
 
   return (
-    <article style={itemStyle}>
+    <article style={itemStyle} aria-busy={(creatingDraft || savingFeedback) ? 'true' : 'false'}>
       <div style={itemTopStyle}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={badgeRowStyle}>
@@ -347,14 +350,24 @@ function FeedbackCard({ item, savingId, onPatch, onSave, onMove, onDelete, onCre
       </label>
 
       <div style={cardActionsStyle}>
-        <button type="button" disabled={savingId === `site-update-${item.id}`} onClick={() => onCreateSiteUpdate(item)} style={secondaryButtonStyle}>
-          <Megaphone size={14} /> {savingId === `site-update-${item.id}` ? 'Creating...' : 'Create Site Update'}
+        <button type="button" disabled={creatingDraft} onClick={() => onCreateSiteUpdate(item)} style={{ ...secondaryButtonStyle, cursor: creatingDraft ? 'progress' : 'pointer', opacity: creatingDraft ? 0.72 : 1 }}>
+          {creatingDraft ? <RefreshCw size={14} style={feedbackSpinStyle} /> : <Megaphone size={14} />} {creatingDraft ? 'Creating update…' : 'Create Site Update'}
         </button>
-        <button type="button" disabled={savingId === item.id} onClick={() => onSave(item)} style={saveButtonStyle}>
-          <Save size={14} /> {savingId === item.id ? 'Saving...' : 'Save'}
+        <button type="button" disabled={savingFeedback} onClick={() => onSave(item)} style={{ ...saveButtonStyle, cursor: savingFeedback ? 'progress' : 'pointer', opacity: savingFeedback ? 0.82 : 1 }}>
+          {savingFeedback ? <RefreshCw size={14} style={feedbackSpinStyle} /> : <Save size={14} />} {savingFeedback ? 'Saving feedback…' : 'Save'}
         </button>
       </div>
     </article>
+  );
+}
+
+function AdminFeedbackLoading() {
+  return (
+    <div style={feedbackLoadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={feedbackLoadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading feedback board…</strong>
+      <span style={feedbackLoadingTextStyle}>Checking new submissions, planned work, dismissed items, and done tasks.</span>
+    </div>
   );
 }
 
@@ -416,3 +429,14 @@ const textareaStyle = { minHeight: 82, background: rq.input, color: rq.text, bor
 const cardActionsStyle = { display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap', marginTop: 12 };
 const saveButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accent, color: '#fff', border: 'none', padding: '9px 12px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
 const secondaryButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, padding: '9px 12px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
+const feedbackSpinStyle = { animation: 'rqAdminFeedbackSpin 0.9s linear infinite' };
+const feedbackLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const feedbackLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminFeedbackSpin 0.9s linear infinite' };
+const feedbackLoadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 420 };
+const feedbackLoadingCss = `
+  @keyframes rqAdminFeedbackSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-feedback-tab"] svg,
+    [data-testid="admin-feedback-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
