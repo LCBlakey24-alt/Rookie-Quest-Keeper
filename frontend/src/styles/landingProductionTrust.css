@@ -1,11 +1,13 @@
-#root .landing-page-final .landing-status-panel {
+#root .landing-page-final .landing-status-panel,
+#root .landing-page-final .landing-faq-panel {
   width: min(1080px, 100%);
   margin-inline: auto;
   border: 1px solid var(--landing-line);
   background: rgba(0, 0, 0, 0.08) !important;
 }
 
-#root .landing-page-final .landing-status-heading {
+#root .landing-page-final .landing-status-heading,
+#root .landing-page-final .landing-faq-heading {
   background:
     linear-gradient(90deg, rgba(208, 0, 0, 0.12), transparent 48%),
     rgba(0, 0, 0, 0.12) !important;
@@ -56,6 +58,77 @@
   color: var(--landing-muted) !important;
   font-size: 14px;
   line-height: 1.55;
+}
+
+#root .landing-page-final .landing-faq-list {
+  display: grid;
+}
+
+#root .landing-page-final .landing-faq-item {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+#root .landing-page-final .landing-faq-item + .landing-faq-item {
+  border-top: 1px solid var(--landing-line) !important;
+}
+
+#root .landing-page-final .landing-faq-item summary {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px clamp(18px, 2.2vw, 26px);
+  color: var(--landing-text) !important;
+  font-size: 15px;
+  font-weight: 950;
+  cursor: pointer;
+  list-style: none;
+}
+
+#root .landing-page-final .landing-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+#root .landing-page-final .landing-faq-item summary::after {
+  content: '+';
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--landing-line);
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--landing-red-bright) !important;
+  font-size: 18px;
+  line-height: 1;
+}
+
+#root .landing-page-final .landing-faq-item[open] summary::after {
+  content: '–';
+  border-color: var(--landing-red-bright) !important;
+  background: var(--landing-red) !important;
+  color: var(--landing-text) !important;
+}
+
+#root .landing-page-final .landing-faq-item summary:hover,
+#root .landing-page-final .landing-faq-item summary:focus-visible {
+  background: rgba(255, 255, 255, 0.04) !important;
+  outline: 0;
+}
+
+#root .landing-page-final .landing-faq-item summary:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--landing-red-bright);
+}
+
+#root .landing-page-final .landing-faq-item p {
+  margin: 0;
+  padding: 0 clamp(18px, 2.2vw, 26px) 18px;
+  color: var(--landing-muted) !important;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 #root .landing-page-final .landing-product-footer {
@@ -158,5 +231,10 @@
 
   #root .landing-page-final .landing-footer-actions button {
     width: 100%;
+  }
+
+  #root .landing-page-final .landing-faq-item summary {
+    align-items: flex-start;
+    min-height: 0;
   }
 }
