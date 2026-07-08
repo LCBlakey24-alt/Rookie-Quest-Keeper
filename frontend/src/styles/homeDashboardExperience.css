@@ -1,0 +1,241 @@
+/* Logged-in home/dashboard experience polish.
+   This layer keeps the current sunset/twilight theme but makes the dashboard feel more like a finished command centre. */
+
+#root .unified-dashboard-page--noticeboard {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+}
+
+#root .dashboard-live-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr) !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+  align-items: stretch !important;
+}
+
+#root .dashboard-activity-panel,
+#root .dashboard-readiness-panel,
+#root .dashboard-updates-panel,
+#root .dashboard-system-panel {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#root .dashboard-activity-panel::before,
+#root .dashboard-readiness-panel::before,
+#root .dashboard-updates-panel::before,
+#root .dashboard-system-panel::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .dashboard-panel-heading-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin-bottom: 12px !important;
+}
+
+#root .dashboard-panel-heading-row h2 {
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.55rem, 3vw, 2.35rem) !important;
+  line-height: 1 !important;
+}
+
+#root .dashboard-panel-heading-row > svg {
+  flex: 0 0 auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-activity-list {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-activity-item {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 62px !important;
+  padding: 10px !important;
+  border: 1px solid rgba(255,248,239,0.11) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.36) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  text-decoration: none !important;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease !important;
+}
+
+#root .dashboard-activity-item:hover,
+#root .dashboard-activity-item:focus-visible {
+  transform: translateY(-1px) !important;
+  border-color: rgba(255,149,66,0.5) !important;
+  background: rgba(255,248,239,0.07) !important;
+  outline: none !important;
+}
+
+#root .dashboard-activity-icon {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-activity-copy {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+}
+
+#root .dashboard-activity-copy strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-weight: 950 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .dashboard-activity-copy span,
+#root .dashboard-activity-item time {
+  color: rgba(255,248,239,0.66) !important;
+  font-size: 0.82rem !important;
+}
+
+#root .dashboard-activity-item time {
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+#root .dashboard-empty-compact {
+  min-height: 180px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 10px !important;
+  padding: 18px !important;
+  border: 1px dashed rgba(255,248,239,0.18) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.28) !important;
+  text-align: center !important;
+}
+
+#root .dashboard-empty-compact svg {
+  color: rgba(255,149,66,0.9) !important;
+}
+
+#root .dashboard-empty-compact p {
+  max-width: 420px !important;
+  margin: 0 !important;
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.5 !important;
+}
+
+#root .dashboard-readiness-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-readiness-card {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 10px !important;
+  min-height: 118px !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255,248,239,0.11) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.34) !important;
+}
+
+#root .dashboard-readiness-icon {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.88) !important;
+}
+
+#root .dashboard-readiness-card--good {
+  border-color: rgba(255,149,66,0.32) !important;
+}
+
+#root .dashboard-readiness-card--warn {
+  border-color: rgba(255,79,129,0.52) !important;
+}
+
+#root .dashboard-readiness-card div {
+  display: grid !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+#root .dashboard-readiness-card span:not(.dashboard-readiness-icon) {
+  color: rgba(255,248,239,0.64) !important;
+  font-size: 0.72rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-readiness-card strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.25rem, 3vw, 1.85rem) !important;
+  line-height: 1 !important;
+}
+
+#root .dashboard-readiness-card p {
+  margin: 0 !important;
+  color: rgba(255,248,239,0.68) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.42 !important;
+}
+
+#root .dashboard-system-panel--quiet {
+  min-height: 76px !important;
+}
+
+@media (max-width: 1080px) {
+  #root .dashboard-live-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #root .dashboard-panel-heading-row {
+    align-items: center !important;
+  }
+
+  #root .dashboard-readiness-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .dashboard-activity-item {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  #root .dashboard-activity-item time {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+}
