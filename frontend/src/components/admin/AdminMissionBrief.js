@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Archive, ClipboardList, Megaphone, MessageSquare, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { Archive, ClipboardList, FlaskConical, Megaphone, MessageSquare, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -17,6 +17,11 @@ const rq = {
   radius: 'var(--rq-radius-md, 14px)',
   radiusSm: 'var(--rq-radius-sm, 8px)',
 };
+
+function isTestingNote(item) {
+  const title = String(item?.title || '').toLowerCase();
+  return item?.category === 'testing' || ['testing', 'mobile-testing'].includes(item?.area) || title.includes('[test]');
+}
 
 export default function AdminMissionBrief({ onOpenTab }) {
   const [loading, setLoading] = useState(true);
@@ -48,9 +53,12 @@ export default function AdminMissionBrief({ onOpenTab }) {
     archived: updates.filter(update => update.is_archived).length,
   }), [updates]);
 
-  const topFeedback = feedback.slice(0, 3);
+  const testingNotes = feedback.filter(isTestingNote);
+  const userFeedback = feedback.filter(item => !isTestingNote(item));
+  const topFeedback = userFeedback.slice(0, 3);
+  const topTesting = testingNotes.slice(0, 3);
   const draftUpdates = updates.filter(update => !update.is_published && !update.is_archived).slice(0, 3);
-  const hasAttention = feedback.length > 0 || updateCounts.drafts > 0 || updateCounts.archived > 0;
+  const hasAttention = userFeedback.length > 0 || testingNotes.length > 0 || updateCounts.drafts > 0 || updateCounts.archived > 0;
 
   return (
     <section style={wrapStyle} aria-label="Admin mission brief" data-testid="admin-mission-brief">
@@ -58,7 +66,7 @@ export default function AdminMissionBrief({ onOpenTab }) {
         <div style={{ minWidth: 0 }}>
           <p style={eyebrowStyle}>Mission brief</p>
           <h2 style={titleStyle}><Sparkles size={20} /> What needs your attention?</h2>
-          <p style={subtitleStyle}>Fresh feedback, draft updates, archive clean-up, and recent admin actions in one quick scan.</p>
+          <p style={subtitleStyle}>Fresh feedback, testing notes, draft updates, archive clean-up, and recent admin actions in one quick scan.</p>
         </div>
         <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh brief</button>
       </div>
@@ -70,16 +78,31 @@ export default function AdminMissionBrief({ onOpenTab }) {
           <article style={cardStyle}>
             <div style={cardHeaderStyle}>
               <span style={cardTitleStyle}><MessageSquare size={16} /> Feedback queue</span>
-              <strong style={countStyle}>{feedback.length}</strong>
+              <strong style={countStyle}>{userFeedback.length}</strong>
             </div>
             {topFeedback.length === 0 ? (
-              <p style={quietStyle}>No new feedback waiting. Suspiciously peaceful.</p>
+              <p style={quietStyle}>No new user feedback waiting. Suspiciously peaceful.</p>
             ) : (
               <div style={listStyle}>
                 {topFeedback.map(item => <BriefLine key={item.id} label={item.title || 'Untitled feedback'} meta={item.username || item.area || 'New feedback'} />)}
               </div>
             )}
             <button type="button" onClick={() => onOpenTab?.('feedback')} style={miniButtonStyle}>Open feedback</button>
+          </article>
+
+          <article style={cardStyle}>
+            <div style={cardHeaderStyle}>
+              <span style={cardTitleStyle}><FlaskConical size={16} /> Testing queue</span>
+              <strong style={countStyle}>{testingNotes.length}</strong>
+            </div>
+            {topTesting.length === 0 ? (
+              <p style={quietStyle}>No new testing notes waiting. That is probably either excellent or cursed.</p>
+            ) : (
+              <div style={listStyle}>
+                {topTesting.map(item => <BriefLine key={item.id} label={item.title || 'Untitled test note'} meta={item.area || item.priority || 'Testing note'} />)}
+              </div>
+            )}
+            <button type="button" onClick={() => onOpenTab?.('testing')} style={miniButtonStyle}>Open testing</button>
           </article>
 
           <article style={cardStyle}>
@@ -148,7 +171,7 @@ const eyebrowStyle = { color: rq.accentHover, fontSize: 11, fontWeight: 950, let
 const titleStyle = { color: rq.text, fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 950, display: 'flex', alignItems: 'center', gap: 8, margin: 0 };
 const subtitleStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.5, margin: '6px 0 0' };
 const buttonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '9px 12px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 12 };
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: 12 };
 const cardStyle = { background: rq.card, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 14, display: 'grid', gap: 10, alignContent: 'start' };
 const cardHeaderStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 };
 const cardTitleStyle = { color: rq.text, display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 950 };
