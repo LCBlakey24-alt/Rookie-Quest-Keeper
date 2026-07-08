@@ -212,6 +212,24 @@ const productPrinciples = [
   },
 ];
 
+const tableUpgrades = [
+  {
+    label: 'Player turns',
+    messy: '“What can I actually do right now?” gets buried in a full character sheet.',
+    clean: 'Actions, bonus actions, reactions, spells, HP, rests, and notes are grouped around live play.',
+  },
+  {
+    label: 'GM prep',
+    messy: 'Session notes, maps, NPCs, rewards, and secrets drift across documents, chats, and folders.',
+    clean: 'Campaign prep is framed as one workspace with table-facing tools ready when the session starts.',
+  },
+  {
+    label: 'Campaign growth',
+    messy: 'Level-ups, homebrew, inventory changes, and story consequences become hard to track over time.',
+    clean: 'Character growth and campaign changes have a clearer place to live as the adventure gets deeper.',
+  },
+];
+
 const faqItems = [
   {
     question: 'Is Rookie Quest Keeper official 5e content?',
@@ -450,6 +468,30 @@ export default function LandingPage() {
                 </article>
               );
             })}
+          </div>
+        </section>
+
+        <section className="landing-table-shift-panel" aria-labelledby="landing-table-shift-title">
+          <div className="landing-section-heading landing-table-shift-heading">
+            <p className="landing-kicker">From table chaos to table flow</p>
+            <h2 id="landing-table-shift-title">The clearest pitch is the before-and-after.</h2>
+            <p>Rookie Quest Keeper should feel valuable before someone even signs up: it takes common tabletop friction and gives it a cleaner home.</p>
+          </div>
+          <div className="landing-table-shift-list">
+            {tableUpgrades.map((item) => (
+              <article key={item.label} className="landing-table-shift-row">
+                <span className="landing-table-shift-label">{item.label}</span>
+                <div>
+                  <p>Messy table</p>
+                  <h3>{item.messy}</h3>
+                </div>
+                <ChevronRight size={22} aria-hidden="true" />
+                <div>
+                  <p>Rookie Quest Keeper</p>
+                  <h3>{item.clean}</h3>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
