@@ -208,7 +208,7 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
       {isAuthenticated && <FloatingDiceRoller />}
-      {isAuthenticated && <GlobalFeedbackButton />}
+      {isAuthenticated && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
     </>
   );
 }
