@@ -39,6 +39,10 @@ export default function AdminFeedbackTab() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [query, setQuery] = useState('');
 
+  const logAudit = async (entry) => {
+    try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block feedback triage. */ }
+  };
+
   const load = async () => {
     try {
       setLoading(true);
@@ -109,6 +113,13 @@ export default function AdminFeedbackTab() {
         admin_notes: item.admin_notes || '',
       });
       updateLocal(item.id, res.data);
+      await logAudit({
+        action: successMessage.startsWith('Moved to') ? 'Feedback status changed' : 'Feedback updated',
+        area: 'feedback',
+        target_id: item.id,
+        target_label: item.title || 'Feedback item',
+        detail: `Status: ${item.status || 'new'} • Priority: ${item.priority || 'normal'}`,
+      });
       toast.success(successMessage);
       return res.data;
     } catch (err) {
@@ -125,9 +136,17 @@ export default function AdminFeedbackTab() {
 
   const deleteItem = async (id) => {
     if (!window.confirm('Delete this feedback item?')) return;
+    const target = items.find(item => item.id === id);
     try {
       await apiClient.delete(`/admin/feedback/${id}`);
       setItems(prev => prev.filter(item => item.id !== id));
+      await logAudit({
+        action: 'Feedback deleted',
+        area: 'feedback',
+        target_id: id,
+        target_label: target?.title || 'Feedback item',
+        detail: target?.message ? target.message.slice(0, 300) : '',
+      });
       toast.success('Feedback deleted');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to delete feedback');
@@ -165,6 +184,13 @@ export default function AdminFeedbackTab() {
         admin_notes: adminNotes,
       });
       updateLocal(item.id, res.data);
+      await logAudit({
+        action: 'Draft site update created from feedback',
+        area: 'feedback',
+        target_id: item.id,
+        target_label: item.title || 'Feedback item',
+        detail: `Created draft Site Update and moved feedback to ${labelForStatus(nextStatus)}.`,
+      });
       toast.success('Draft site update created');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to create site update draft');
@@ -185,6 +211,7 @@ export default function AdminFeedbackTab() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      await logAudit({ action: 'Feedback CSV exported', area: 'feedback', target_id: '', target_label: 'Feedback export', detail: 'Downloaded rook-feedback.csv' });
       toast.success('Feedback CSV downloaded');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to export feedback');
