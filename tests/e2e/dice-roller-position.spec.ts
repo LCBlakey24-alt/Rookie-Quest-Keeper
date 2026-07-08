@@ -2,9 +2,10 @@ import { test, expect } from '@playwright/test';
 import { waitForAppReady, dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
 
 /**
- * Tests for Dice Roller Position Fix:
+ * Tests for Dice Roller Position + Cinematic Overlay:
  * - Dice Roller button should be positioned at bottom-LEFT corner
  * - Dice Roller panel should open at bottom-LEFT
+ * - Cinematic dice overlay should appear and reveal results reliably
  */
 
 async function registerTestUser(page: any) {
@@ -26,15 +27,22 @@ async function registerTestUser(page: any) {
   await page.waitForTimeout(3000);
 }
 
+async function openDiceRoller(page: any) {
+  await page.goto('/home', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2000);
+  await page.getByTestId('dice-roller-toggle').click();
+  await page.waitForTimeout(500);
+}
+
 test.describe('Dice Roller Position Fix', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
     await registerTestUser(page);
+    await removeBlockingBadges(page);
   });
 
   test('Dice Roller button is positioned at bottom-LEFT corner', async ({ page }) => {
-    // Navigate to a page where dice roller is visible
-    await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
+    await page.goto('/home', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
     
     // Verify dice roller toggle button is visible
@@ -57,12 +65,7 @@ test.describe('Dice Roller Position Fix', () => {
   });
 
   test('Dice Roller panel opens at bottom-LEFT', async ({ page }) => {
-    await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    
-    // Click to open dice roller
-    await page.getByTestId('dice-roller-toggle').click();
-    await page.waitForTimeout(500);
+    await openDiceRoller(page);
     
     // Verify panel is visible
     const panel = page.getByTestId('dice-roller-panel');
@@ -83,12 +86,7 @@ test.describe('Dice Roller Position Fix', () => {
   });
 
   test('Dice Roller functionality works correctly', async ({ page }) => {
-    await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    
-    // Open dice roller
-    await page.getByTestId('dice-roller-toggle').click();
-    await page.waitForTimeout(500);
+    await openDiceRoller(page);
     
     // Verify panel header
     await expect(page.getByText('DICE ROLLER')).toBeVisible();
@@ -115,13 +113,38 @@ test.describe('Dice Roller Position Fix', () => {
     await expect(page.getByText('1d20')).toBeVisible();
   });
 
+  test('Cinematic dice overlay appears and can reveal early', async ({ page }) => {
+    await openDiceRoller(page);
+
+    await page.getByTestId('roll-d20-btn').click();
+
+    const overlay = page.getByTestId('cinematic-dice-overlay');
+    await expect(overlay).toBeVisible();
+    await expect(page.getByTestId('cinematic-d20')).toBeVisible();
+    await expect(page.getByTestId('cinematic-dice-status')).toContainText('Rolling dice');
+
+    await page.getByTestId('cinematic-dice-reveal-now').click();
+
+    await expect(page.getByTestId('cinematic-dice-status')).toContainText(/Roll complete|Critical success|Critical fail/);
+    await expect(page.getByTestId('cinematic-dice-total')).not.toContainText('—');
+    await expect(page.getByTestId('cinematic-dice-number')).not.toContainText('—');
+  });
+
+  test('Cinematic dice overlay supports keyboard reveal and close', async ({ page }) => {
+    await openDiceRoller(page);
+
+    await page.getByTestId('roll-d20-btn').click();
+    await expect(page.getByTestId('cinematic-dice-overlay')).toBeVisible();
+
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('cinematic-dice-total')).not.toContainText('—');
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('cinematic-dice-overlay')).not.toBeVisible();
+  });
+
   test('Dice Roller can be closed', async ({ page }) => {
-    await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    
-    // Open dice roller
-    await page.getByTestId('dice-roller-toggle').click();
-    await page.waitForTimeout(500);
+    await openDiceRoller(page);
     
     // Verify panel is visible
     const panel = page.getByTestId('dice-roller-panel');
@@ -139,12 +162,7 @@ test.describe('Dice Roller Position Fix', () => {
   });
 
   test('Custom dice roll input works', async ({ page }) => {
-    await page.goto('/characters/new', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    
-    // Open dice roller
-    await page.getByTestId('dice-roller-toggle').click();
-    await page.waitForTimeout(500);
+    await openDiceRoller(page);
     
     // Enter custom roll
     const customInput = page.getByTestId('custom-dice-input');
