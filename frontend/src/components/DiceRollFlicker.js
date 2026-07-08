@@ -30,6 +30,7 @@ const FLICKER_INTERVAL = 46;
 const BASE_ROLL_DURATION = 960;
 const REVEAL_GAP = 135;
 const HOLD_AFTER_TOTAL = 2800;
+const CUBE_FACE_LABELS = ['front', 'right', 'top', 'left', 'bottom', 'back'];
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -65,6 +66,28 @@ function normalizeDice(rolls, fallbackTotal) {
 
 function randomFace(sides) {
   return Math.floor(Math.random() * sides) + 1;
+}
+
+function getPanelValue(baseValue, sides, panelIndex) {
+  if (panelIndex === 0) return baseValue;
+  return ((Number(baseValue) + panelIndex * 3 - 1) % sides) + 1;
+}
+
+function getFinalRotation(die, index) {
+  const seed = Number(die.result || 1) + Number(die.sides || 20) + index * 7;
+  return {
+    '--rq-die-final-x': `${720 + (seed % 5) * 90}deg`,
+    '--rq-die-final-y': `${540 + (seed % 7) * 90}deg`,
+    '--rq-die-final-z': `${-10 + (seed % 5) * 5}deg`,
+    '--rq-die-roll-delay': `${Math.min(index * 42, 260)}ms`,
+  };
+}
+
+function getDieShapeClass(sides) {
+  if (sides === 6) return 'is-cube-die';
+  if (sides === 20) return 'is-hero-d20';
+  if (sides >= 10) return 'is-poly-die';
+  return 'is-small-poly-die';
 }
 
 function getCharacterIdFromPath() {
@@ -213,7 +236,7 @@ export default function DiceRollFlicker({
   if (!visible || typeof document === 'undefined') return null;
 
   const outcomeClass = showTotal && finalCrit ? 'is-critical' : showTotal && finalFumble ? 'is-fumble' : showTotal ? 'is-complete' : 'is-rolling';
-  const status = showTotal ? (finalCrit ? 'Critical success' : finalFumble ? 'Critical fail' : 'Roll complete') : 'Rolling dice';
+  const status = showTotal ? (finalCrit ? 'Critical success' : finalFumble ? 'Critical fail' : 'Roll complete') : 'Rolling 3D dice';
   const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
   const closeNow = () => {
     setFading(true);
@@ -238,10 +261,12 @@ export default function DiceRollFlicker({
         <div className="rq-dice-flicker__dice" aria-label="Dice results">
           {dice.map((die, index) => {
             const isRevealed = Boolean(revealed[index]);
+            const faceValue = displayValues[index] ?? die.result;
             const isNat1 = !die.dropped && die.sides === 20 && die.result === 1;
             const isNat20 = !die.dropped && die.sides === 20 && die.result === 20;
             const dieClass = [
               'rq-die',
+              getDieShapeClass(die.sides),
               isRevealed ? 'is-revealed' : 'is-tumbling',
               die.dropped ? 'is-dropped' : '',
               die.exploded ? 'is-exploded' : '',
@@ -249,9 +274,16 @@ export default function DiceRollFlicker({
               isNat1 ? 'is-natural-1' : '',
             ].filter(Boolean).join(' ');
             return (
-              <div key={die.id} className={dieClass}>
-                <div className="rq-die__face">
-                  <span>{displayValues[index] ?? die.result}</span>
+              <div key={die.id} className={dieClass} style={getFinalRotation(die, index)}>
+                <div className="rq-die__stage" aria-label={`d${die.sides} result ${isRevealed ? die.result : faceValue}`}>
+                  <div className="rq-die__shadow" />
+                  <div className="rq-die__face">
+                    {CUBE_FACE_LABELS.map((faceName, faceIndex) => (
+                      <span key={faceName} className={`rq-die__panel rq-die__panel--${faceName}`}>
+                        {getPanelValue(faceValue, die.sides, faceIndex)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <small>{die.exploded ? 'EX' : die.dropped ? 'DROP' : `d${die.sides}`}</small>
               </div>
@@ -262,7 +294,7 @@ export default function DiceRollFlicker({
         <div className="rq-dice-flicker__summary">
           <div className="rq-dice-flicker__status"><Sparkles size={14} /> {status}</div>
           <div className="rq-dice-flicker__title" title={label || 'Dice roll'}>{label || 'Dice roll'}</div>
-          <div className="rq-dice-flicker__detail" title={rollDetail}>{showTotal ? rollDetail : `${dice.length} ${dice.length === 1 ? 'die' : 'dice'} in motion`}</div>
+          <div className="rq-dice-flicker__detail" title={rollDetail}>{showTotal ? rollDetail : `${dice.length} ${dice.length === 1 ? 'die' : 'dice'} tumbling`}</div>
         </div>
 
         <div className="rq-dice-flicker__total" aria-label={`Total ${finalTotal}`}>
