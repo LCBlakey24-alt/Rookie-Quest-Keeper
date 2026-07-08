@@ -35,6 +35,20 @@
   box-shadow: 0 0 0 5px rgba(224, 177, 92, 0.12), 0 0 18px rgba(224, 177, 92, 0.34);
 }
 
+.rqk-auth-required-mark {
+  color: var(--rq-accent-hover, #e0b15c);
+  text-shadow: 0 0 10px rgba(224, 177, 92, 0.18);
+}
+
+.rqk-auth-input-shell:has(.rqk-auth-field[aria-invalid="true"]) {
+  border-color: rgba(255, 143, 112, 0.64);
+  box-shadow: 0 0 0 3px rgba(255, 143, 112, 0.1), inset 0 0 0 1px rgba(255, 143, 112, 0.12);
+}
+
+#root .rqk-auth-page .rqk-auth-field[aria-invalid="true"] {
+  caret-color: #ffb199 !important;
+}
+
 .rqk-auth-password-readiness {
   display: grid;
   gap: 9px;
