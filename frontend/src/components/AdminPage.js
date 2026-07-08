@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Activity, ArrowLeft, BookOpen, Check, ClipboardList, FlaskConical, Hammer, LayoutDashboard, Map, Megaphone, MessageSquare, PenTool, RefreshCw, Search, Settings, Shield, ShieldCheck, Star, Trash2, UploadCloud, User, Users, Wand2, X } from 'lucide-react';
+import { Activity, Archive, ArrowLeft, BookOpen, Check, ClipboardList, FlaskConical, Hammer, LayoutDashboard, Map, Megaphone, MessageSquare, PenTool, RefreshCw, Search, Settings, Shield, ShieldCheck, Star, Trash2, UploadCloud, User, Users, Wand2, X } from 'lucide-react';
 import RuleSystemManager from './RuleSystemManager';
 import TemplateEditor from './TemplateEditor';
 import AdminUsersTab from './admin/AdminUsersTab';
@@ -83,7 +83,9 @@ function AdminPage() {
       const [reviewsRes, usersRes, overviewRes] = await Promise.all([
         apiClient.get('/reviews/all').catch(() => ({ data: [] })),
         apiClient.get('/admin/users').catch(() => ({ data: [] })),
-        apiClient.get('/admin/overview').catch(() => ({ data: {} })),
+        apiClient.get('/admin/mission-overview')
+          .catch(() => apiClient.get('/admin/overview'))
+          .catch(() => ({ data: {} })),
       ]);
       setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : []);
       setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
@@ -106,6 +108,11 @@ function AdminPage() {
     totalReviews: overview.reviews_count ?? reviews.length,
     visibleReviews: overview.approved_reviews_count ?? reviews.filter(review => review.is_approved).length,
     newFeedback: overview.new_feedback_count ?? 0,
+    activeFeedback: overview.active_feedback_count ?? 0,
+    publishedUpdates: overview.published_site_updates_count ?? 0,
+    draftUpdates: overview.draft_site_updates_count ?? 0,
+    archivedUpdates: overview.archived_site_updates_count ?? 0,
+    auditLogs: overview.audit_log_count ?? 0,
   }), [reviews, users, overview]);
 
   const handleToggleReview = async (reviewId) => {
@@ -219,8 +226,12 @@ function AdminPage() {
           <StatCard label="Campaigns" value={stats.campaigns} icon={Map} />
           <StatCard label="Characters" value={stats.characters} icon={PenTool} />
           <StatCard label="Reviews" value={stats.totalReviews} icon={Star} />
-          <StatCard label="Visible Reviews" value={stats.visibleReviews} icon={Check} />
+          <StatCard label="Published Updates" value={stats.publishedUpdates} icon={Megaphone} />
+          <StatCard label="Draft Updates" value={stats.draftUpdates} icon={ClipboardList} tone={stats.draftUpdates > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Archived Updates" value={stats.archivedUpdates} icon={Archive} />
           <StatCard label="New Feedback" value={stats.newFeedback} icon={MessageSquare} tone={stats.newFeedback > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} tone={stats.activeFeedback > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Audit Entries" value={stats.auditLogs} icon={ShieldCheck} />
         </section>
 
         <section style={missionGridStyle} aria-label="Admin shortcuts and build focus">
@@ -308,7 +319,7 @@ const secondaryActionStyle = { background: theme.bg.card, color: theme.text.whit
 const adminTitleStyle = { fontSize: 'clamp(26px, 6vw, 44px)', color: theme.text.white, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 12, margin: 0, flexWrap: 'wrap', lineHeight: 1.04 };
 const adminSubtitleStyle = { color: theme.text.muted, marginTop: 6, fontSize: 14, lineHeight: 1.5 };
 const eyebrowStyle = { color: theme.gold, fontSize: 11, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' };
-const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 12 };
+const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(135px, 100%), 1fr))', gap: 12 };
 const missionGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))', gap: 12 };
 const missionPanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 14, padding: 'clamp(14px, 3vw, 20px)', minWidth: 0 };
 const sectionHeadingStyle = { marginBottom: 12 };
