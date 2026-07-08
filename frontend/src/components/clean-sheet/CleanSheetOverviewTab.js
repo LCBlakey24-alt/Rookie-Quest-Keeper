@@ -7,6 +7,7 @@ import './CleanSheetOverviewCompact.css';
 import './CleanSheetOverviewSpacing.css';
 import './CleanSheetStatsMobileOverrides.css';
 import './CleanSheetFinalHammer.css';
+import './CleanSheetDicePolish.css';
 
 const SKILL_FILTERS = [
   ['all', 'All'],
