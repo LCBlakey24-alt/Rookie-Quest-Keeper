@@ -1,10 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff, BookOpen, Sparkles } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
 import './AuthPage.css';
+
+const AUTH_COPY = {
+  login: {
+    eyebrow: 'Player gateway',
+    title: 'Welcome back, adventurer',
+    subtitle: 'Open your dashboard, character sheets, campaigns, and tabletop tools from one polished command post.',
+    notice: (
+      <>
+        Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
+      </>
+    ),
+  },
+  register: {
+    eyebrow: 'Begin the quest',
+    title: 'Create your keeper account',
+    subtitle: 'Save characters, prep campaigns, and build a cleaner first-session experience for every rookie at the table.',
+    notice: (
+      <>
+        Kid-friendly signup: use a nickname instead of a real name. Recovery email is optional, but handy if you forget your password.
+      </>
+    ),
+  },
+  forgot: {
+    eyebrow: 'Account recovery',
+    title: 'Reset your password',
+    subtitle: 'Enter your recovery email and we will send a reset link so you can get back to the table.',
+    notice: (
+      <>
+        Only the recovery email linked to your account can receive a password reset.
+      </>
+    ),
+  },
+  reset: {
+    eyebrow: 'Secure the vault',
+    title: 'Choose a new password',
+    subtitle: 'Set a fresh password with at least 8 characters, then sign back in to continue your adventure.',
+    notice: (
+      <>
+        Pick something memorable, but not obvious. Passwords need at least 8 characters.
+      </>
+    ),
+  },
+};
+
+const FEATURE_CARDS = [
+  {
+    icon: ShieldCheck,
+    title: 'Kid-aware by design',
+    text: 'Nickname-first accounts and optional recovery email keep signup lightweight.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Campaign-ready',
+    text: 'Jump from login into sheets, campaigns, uploads, and GM tools without clutter.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Built for the table',
+    text: 'A focused, theme-matched gateway that feels like the rest of Rookie Quest Keeper.',
+  },
+];
 
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
@@ -66,6 +127,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
     if (!registerData.username || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
       return;
@@ -85,6 +147,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     try {
       const payload = { username: registerData.username.trim(), password: registerData.password };
       if (registerData.email.trim()) payload.email = registerData.email.trim();
+
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
       onLogin(response.data.token, response.data.username || payload.username);
@@ -98,6 +161,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
+
     if (!forgotEmail) {
       toast.error('Please enter your email');
       return;
@@ -117,6 +181,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+
     if (!resetData.token || !resetData.new_password) {
       toast.error('Please fill in all fields');
       return;
@@ -140,360 +205,324 @@ export default function AuthPage({ onLogin = () => {} }) {
     }
   };
 
-  const authCopy = {
-    login: { title: 'Welcome back', subtitle: 'Sign in to open your dashboard, sheets, campaigns, and player tools.' },
-    register: { title: 'Create account', subtitle: 'Make an account, then build your first character or join a campaign.' },
-    forgot: { title: 'Reset password', subtitle: 'Enter your recovery email and we will send a reset link.' },
-    reset: { title: 'New password', subtitle: 'Choose a new password for your account.' },
-  };
+  const copy = AUTH_COPY[mode] || AUTH_COPY.login;
+  const showCredentialToggle = mode === 'login' || mode === 'register';
 
   return (
-    <div className="rqk-auth-page" style={pageStyle}>
-      <div className="rqk-auth-content" style={contentStyle}>
-        <button type="button" onClick={() => navigate('/')} className="rqk-auth-mark" style={logoWrapStyle} data-no-fill-animation="true" aria-label="Back to Rookie Quest Keeper home">
-          <span aria-hidden="true">RQK</span>
+    <main className={`rqk-auth-page rqk-auth-page--${mode}`} data-testid="auth-page">
+      <div className="rqk-auth-ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <div className="rqk-auth-shell">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="rqk-auth-brand"
+          data-no-fill-animation="true"
+          aria-label="Back to Rookie Quest Keeper home"
+        >
+          <span className="rqk-auth-brand__sigil" aria-hidden="true">RQK</span>
+          <span className="rqk-auth-brand__text">
+            <strong>Rookie Quest Keeper</strong>
+            <small>Character tools • Campaign prep</small>
+          </span>
         </button>
 
-        <div className="rqk-auth-panel" style={panelStyle}>
-          <div className="rqk-auth-heading" style={headingStyle}>
-            <p style={eyebrowStyle}>Rookie Quest Keeper</p>
-            <h1 style={titleStyle}>{authCopy[mode]?.title}</h1>
-            <p style={subtitleStyle}>{authCopy[mode]?.subtitle}</p>
-          </div>
+        <div className="rqk-auth-layout">
+          <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
+            <p className="rqk-auth-kicker">Character-first campaign tools</p>
+            <h2>Keep the table moving before the first initiative roll.</h2>
+            <p>
+              A cleaner gateway for players, young adventurers, and GMs who want sheets,
+              campaign prep, uploads, and table tools to feel organised from the start.
+            </p>
 
-          {mode === 'register' && (
-            <div className="rqk-auth-note" style={nextStepNoteStyle}>
-              <ShieldCheck size={15} />
-              <span>After signup, start with <strong>Build Your First Character</strong>. Use a nickname instead of a real name.</span>
+            <div className="rqk-auth-feature-grid">
+              {FEATURE_CARDS.map(({ icon: Icon, title, text }) => (
+                <div className="rqk-auth-feature-card" key={title}>
+                  <span className="rqk-auth-feature-icon" aria-hidden="true"><Icon size={18} /></span>
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{text}</small>
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
+          </aside>
 
-          {mode === 'login' && (
-            <div className="rqk-auth-note" style={accountChangeNoticeStyle}>
-              <ShieldCheck size={15} />
-              <span>Use your username or recovery email. New player? Tap <strong>Create an account</strong> below.</span>
+          <section className="rqk-auth-card" aria-labelledby="rqk-auth-title">
+            <div className="rqk-auth-heading">
+              <p>{copy.eyebrow}</p>
+              <h1 id="rqk-auth-title">{copy.title}</h1>
+              <span>{copy.subtitle}</span>
             </div>
-          )}
 
-          {mode === 'login' && (
-            <form onSubmit={handleLogin} className="rqk-auth-form">
-              <AuthInput
-                icon={User}
-                type="text"
-                placeholder="Username or email"
-                value={loginData.username}
-                onChange={(value) => setLoginData({ ...loginData, username: value })}
-                testId="login-username"
-              />
-              <AuthInput
-                icon={Lock}
-                type={showLoginPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={loginData.password}
-                onChange={(value) => setLoginData({ ...loginData, password: value })}
-                testId="login-password"
-                rightAction={
-                  <IconButton
-                    label={showLoginPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowLoginPassword(prev => !prev)}
-                    icon={showLoginPassword ? EyeOff : Eye}
-                  />
-                }
-              />
+            {showCredentialToggle && (
+              <div className="rqk-auth-mode-toggle" role="tablist" aria-label="Choose sign in or create account">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === 'login'}
+                  className={mode === 'login' ? 'is-active' : ''}
+                  onClick={() => setMode('login')}
+                  disabled={loading}
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === 'register'}
+                  className={mode === 'register' ? 'is-active' : ''}
+                  onClick={() => setMode('register')}
+                  disabled={loading}
+                >
+                  Create account
+                </button>
+              </div>
+            )}
 
-              <button type="button" onClick={() => setMode('forgot')} className="rqk-auth-link-button" style={linkButtonStyle}>
-                <span>Forgot password?</span>
-              </button>
+            <AuthNotice>{copy.notice}</AuthNotice>
 
-              <PrimaryButton type="submit" disabled={loading} testId="login-btn">
-                {loading ? 'Opening dashboard...' : 'Open Dashboard'}
-              </PrimaryButton>
+            {mode === 'login' && (
+              <form onSubmit={handleLogin} className="rqk-auth-form">
+                <AuthInput
+                  id="login-identifier"
+                  icon={User}
+                  label="Username or email"
+                  type="text"
+                  placeholder="Username or recovery email"
+                  value={loginData.username}
+                  onChange={(value) => setLoginData({ ...loginData, username: value })}
+                  autoComplete="username"
+                  testId="login-username"
+                />
 
-              <AuthSwitch text="New here?" actionText="Create an account" onClick={() => setMode('register')} />
-            </form>
-          )}
+                <AuthInput
+                  id="login-password"
+                  icon={Lock}
+                  label="Password"
+                  type={showLoginPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={loginData.password}
+                  onChange={(value) => setLoginData({ ...loginData, password: value })}
+                  autoComplete="current-password"
+                  testId="login-password"
+                  rightAction={
+                    <IconButton
+                      label={showLoginPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowLoginPassword(prev => !prev)}
+                      icon={showLoginPassword ? EyeOff : Eye}
+                    />
+                  }
+                />
 
-          {mode === 'register' && (
-            <form onSubmit={handleRegister} className="rqk-auth-form">
-              <AuthInput
-                icon={User}
-                type="text"
-                placeholder="Username"
-                value={registerData.username}
-                onChange={(value) => setRegisterData({ ...registerData, username: value })}
-              />
-              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Kid-friendly signup: no email needed. Use a nickname, not a real name.</p>
-              <AuthInput
-                icon={Mail}
-                type="email"
-                placeholder="Recovery email (optional)"
-                value={registerData.email}
-                onChange={(value) => setRegisterData({ ...registerData, email: value })}
-              />
-              <AuthInput
-                icon={Lock}
-                type={showRegisterPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={registerData.password}
-                onChange={(value) => setRegisterData({ ...registerData, password: value })}
-                rightAction={
-                  <IconButton
-                    label={showRegisterPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowRegisterPassword(prev => !prev)}
-                    icon={showRegisterPassword ? EyeOff : Eye}
-                  />
-                }
-              />
-              <AuthInput
-                icon={Lock}
-                type={showRegisterPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                value={registerData.confirmPassword}
-                onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
-              />
-              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Passwords need at least 8 characters. Recovery email helps if you forget it later.</p>
+                <div className="rqk-auth-form-options">
+                  <button type="button" onClick={() => setMode('forgot')} className="rqk-auth-link-button">
+                    Forgot password?
+                  </button>
+                </div>
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create Account'}
-              </PrimaryButton>
+                <PrimaryButton type="submit" disabled={loading} loading={loading} testId="login-btn">
+                  {loading ? 'Opening dashboard...' : 'Open dashboard'}
+                </PrimaryButton>
 
-              <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => setMode('login')} />
-            </form>
-          )}
+                <AuthSwitch text="New here?" actionText="Create an account" onClick={() => setMode('register')} disabled={loading} />
+              </form>
+            )}
 
-          {mode === 'forgot' && (
-            <form onSubmit={handleForgotPassword} className="rqk-auth-form">
-              <AuthInput
-                icon={Mail}
-                type="email"
-                placeholder="Email address"
-                value={forgotEmail}
-                onChange={setForgotEmail}
-              />
+            {mode === 'register' && (
+              <form onSubmit={handleRegister} className="rqk-auth-form">
+                <AuthInput
+                  id="register-username"
+                  icon={User}
+                  label="Username"
+                  type="text"
+                  placeholder="Choose a nickname"
+                  value={registerData.username}
+                  onChange={(value) => setRegisterData({ ...registerData, username: value })}
+                  autoComplete="username"
+                  hint="Use a table name or nickname rather than a real name."
+                />
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
-              </PrimaryButton>
+                <AuthInput
+                  id="register-email"
+                  icon={Mail}
+                  label="Recovery email"
+                  type="email"
+                  placeholder="Optional recovery email"
+                  value={registerData.email}
+                  onChange={(value) => setRegisterData({ ...registerData, email: value })}
+                  autoComplete="email"
+                  hint="Optional, but useful if you need a password reset later."
+                />
 
-              <SecondaryButton type="button" onClick={() => setMode('login')}>
-                <ArrowLeft size={16} /> <span>Back to login</span>
-              </SecondaryButton>
-            </form>
-          )}
+                <AuthInput
+                  id="register-password"
+                  icon={Lock}
+                  label="Password"
+                  type={showRegisterPassword ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  value={registerData.password}
+                  onChange={(value) => setRegisterData({ ...registerData, password: value })}
+                  autoComplete="new-password"
+                  hint="At least 8 characters."
+                  rightAction={
+                    <IconButton
+                      label={showRegisterPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowRegisterPassword(prev => !prev)}
+                      icon={showRegisterPassword ? EyeOff : Eye}
+                    />
+                  }
+                />
 
-          {mode === 'reset' && (
-            <form onSubmit={handleResetPassword} className="rqk-auth-form">
-              <AuthInput
-                icon={Lock}
-                type={showResetPassword ? 'text' : 'password'}
-                placeholder="New password"
-                value={resetData.new_password}
-                onChange={(value) => setResetData({ ...resetData, new_password: value })}
-                rightAction={
-                  <IconButton
-                    label={showResetPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowResetPassword(prev => !prev)}
-                    icon={showResetPassword ? EyeOff : Eye}
-                  />
-                }
-              />
-              <p className="rqk-auth-small-note" style={kidSafeNoteStyle}><ShieldCheck size={14} /> Use at least 8 characters.</p>
+                <AuthInput
+                  id="register-confirm-password"
+                  icon={Lock}
+                  label="Confirm password"
+                  type={showRegisterPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={registerData.confirmPassword}
+                  onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
+                  autoComplete="new-password"
+                />
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Resetting...' : 'Reset Password'}
-              </PrimaryButton>
-            </form>
-          )}
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Creating account...' : 'Create account'}
+                </PrimaryButton>
+
+                <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => setMode('login')} disabled={loading} />
+              </form>
+            )}
+
+            {mode === 'forgot' && (
+              <form onSubmit={handleForgotPassword} className="rqk-auth-form">
+                <AuthInput
+                  id="forgot-email"
+                  icon={Mail}
+                  label="Recovery email"
+                  type="email"
+                  placeholder="Enter your recovery email"
+                  value={forgotEmail}
+                  onChange={setForgotEmail}
+                  autoComplete="email"
+                />
+
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Sending link...' : 'Send reset link'}
+                </PrimaryButton>
+
+                <SecondaryButton type="button" onClick={() => setMode('login')} disabled={loading}>
+                  <ArrowLeft size={16} /> <span>Back to login</span>
+                </SecondaryButton>
+              </form>
+            )}
+
+            {mode === 'reset' && (
+              <form onSubmit={handleResetPassword} className="rqk-auth-form">
+                <AuthInput
+                  id="reset-password"
+                  icon={Lock}
+                  label="New password"
+                  type={showResetPassword ? 'text' : 'password'}
+                  placeholder="Enter a new password"
+                  value={resetData.new_password}
+                  onChange={(value) => setResetData({ ...resetData, new_password: value })}
+                  autoComplete="new-password"
+                  hint="Use at least 8 characters."
+                  rightAction={
+                    <IconButton
+                      label={showResetPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowResetPassword(prev => !prev)}
+                      icon={showResetPassword ? EyeOff : Eye}
+                    />
+                  }
+                />
+
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Resetting password...' : 'Reset password'}
+                </PrimaryButton>
+              </form>
+            )}
+          </section>
         </div>
 
-        <p className="rqk-auth-footer" style={footerStyle}>© {new Date().getFullYear()} Rookie Quest Keeper</p>
+        <p className="rqk-auth-footer">© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
+    </main>
+  );
+}
+
+function AuthNotice({ children }) {
+  return (
+    <div className="rqk-auth-note">
+      <ShieldCheck size={16} aria-hidden="true" />
+      <span>{children}</span>
     </div>
   );
 }
 
-function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId, rightAction }) {
+function AuthInput({ id, icon: Icon, label, type, placeholder, value, onChange, autoComplete, hint, testId, rightAction }) {
+  const hintId = hint ? `${id}-hint` : undefined;
+
   return (
-    <div className="rqk-auth-input" style={inputWrapStyle}>
-      <Icon size={18} className="rqk-auth-input-icon" style={inputIconStyle} />
-      <input
-        className="rqk-auth-field"
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        data-testid={testId}
-        style={inputStyle}
-      />
-      {rightAction}
+    <div className="rqk-auth-input-group">
+      <label htmlFor={id}>{label}</label>
+      <div className="rqk-auth-input-shell">
+        <Icon size={18} className="rqk-auth-input-icon" aria-hidden="true" />
+        <input
+          id={id}
+          className="rqk-auth-field"
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          aria-describedby={hintId}
+          data-testid={testId}
+        />
+        {rightAction}
+      </div>
+      {hint && <p id={hintId} className="rqk-auth-field-hint">{hint}</p>}
     </div>
   );
 }
 
 function IconButton({ icon: Icon, label, onClick }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} className="rqk-auth-icon-button" style={iconButtonStyle}>
+    <button type="button" onClick={onClick} aria-label={label} title={label} className="rqk-auth-icon-button">
       <Icon size={17} />
     </button>
   );
 }
 
-function PrimaryButton({ children, disabled, type = 'button', testId }) {
-  return <button type={type} disabled={disabled} data-testid={testId} className="rqk-auth-primary" style={primaryButtonStyle}><span>{children}</span></button>;
-}
-
-function SecondaryButton({ children, onClick, type = 'button' }) {
-  return <button type={type} onClick={onClick} className="rqk-auth-secondary" style={secondaryButtonStyle}>{children}</button>;
-}
-
-function AuthSwitch({ text, actionText, onClick }) {
+function PrimaryButton({ children, disabled, loading, type = 'button', testId }) {
   return (
-    <div className="rqk-auth-switch" style={switchStyle}>
-      <span>{text}</span>
-      <button type="button" onClick={onClick} className="rqk-auth-switch-button" style={switchButtonStyle}><span>{actionText}</span></button>
-    </div>
+    <button type={type} disabled={disabled} data-testid={testId} className="rqk-auth-primary" aria-busy={loading ? 'true' : undefined}>
+      {loading && <span className="rqk-auth-button-spinner" aria-hidden="true" />}
+      <span>{children}</span>
+    </button>
   );
 }
 
-const pageStyle = {
-  minHeight: '100dvh',
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'center',
-  padding: '18px 14px 24px',
-  background: 'linear-gradient(180deg, #07040d 0%, #10051d 100%)',
-  position: 'relative',
-  overflowX: 'hidden',
-  overflowY: 'auto',
-  color: 'var(--rq-text, #ffffff)',
-};
+function SecondaryButton({ children, onClick, disabled, type = 'button' }) {
+  return (
+    <button type={type} onClick={onClick} disabled={disabled} className="rqk-auth-secondary">
+      {children}
+    </button>
+  );
+}
 
-const contentStyle = {
-  position: 'relative',
-  zIndex: 1,
-  width: 'min(100%, 410px)',
-  display: 'grid',
-  gap: 12,
-  justifyItems: 'center',
-};
-
-const logoWrapStyle = {
-  cursor: 'pointer',
-  width: 38,
-  height: 38,
-  display: 'inline-grid',
-  placeItems: 'center',
-  border: '1px solid transparent',
-  borderRadius: 8,
-  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
-  padding: 0,
-  margin: '0 0 2px',
-  color: '#ffffff',
-};
-
-const panelStyle = {
-  width: '100%',
-  padding: 16,
-  borderRadius: 12,
-  background: 'linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
-  border: '1px solid transparent',
-  boxShadow: 'none',
-};
-
-const headingStyle = { textAlign: 'center', marginBottom: 14 };
-const eyebrowStyle = { margin: '0 0 6px', color: 'rgba(255,255,255,0.78)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.13em', fontWeight: 950 };
-const titleStyle = { margin: 0, color: '#ffffff', fontFamily: "var(--rq-heading-font, 'Cinzel'), Georgia, serif", fontSize: 34, fontWeight: 950, lineHeight: 1.02, letterSpacing: '0.01em' };
-const subtitleStyle = { margin: '8px auto 0', maxWidth: 360, color: 'rgba(255,255,255,0.82)', fontSize: 15, lineHeight: 1.38 };
-
-const inputWrapStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 9,
-  marginBottom: 9,
-  padding: '0 9px',
-  minHeight: 48,
-  borderRadius: 10,
-  border: '1px solid transparent',
-  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, rgba(115,87,255,0.92), rgba(216,77,241,0.9), rgba(255,79,129,0.86), rgba(255,149,66,0.78)) border-box',
-};
-
-const inputIconStyle = { color: '#ff4fdd', flexShrink: 0 };
-const inputStyle = { width: '100%', minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: '#ffffff', fontSize: 15 };
-const iconButtonStyle = { border: '1px solid transparent', background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box', borderRadius: 8, color: '#ffffff', cursor: 'pointer', minHeight: 34, width: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-
-const primaryButtonStyle = {
-  width: '100%',
-  minHeight: 46,
-  borderRadius: 10,
-  border: 0,
-  background: 'linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%)',
-  color: '#ffffff',
-  fontWeight: 950,
-  fontSize: 15,
-  cursor: 'pointer',
-  marginTop: 6,
-  boxShadow: 'none',
-};
-
-const secondaryButtonStyle = {
-  width: '100%',
-  minHeight: 42,
-  marginTop: 8,
-  borderRadius: 10,
-  border: '1px solid transparent',
-  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
-  color: '#ffffff',
-  fontWeight: 850,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  boxShadow: 'none',
-};
-
-const linkButtonStyle = {
-  border: '1px solid transparent',
-  background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box',
-  color: '#ffffff',
-  cursor: 'pointer',
-  fontSize: 12,
-  margin: '0 0 8px',
-  padding: '8px 10px',
-  borderRadius: 9,
-  textAlign: 'left',
-  fontWeight: 900,
-};
-
-const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 13, color: 'rgba(255,255,255,0.82)', fontSize: 14 };
-const switchButtonStyle = { border: '1px solid transparent', background: 'linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box', color: '#ffffff', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 9 };
-const footerStyle = { margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: 12 };
-
-const nextStepNoteStyle = {
-  display: 'flex',
-  gap: 8,
-  alignItems: 'flex-start',
-  padding: '10px 11px',
-  borderRadius: 10,
-  background: 'rgba(18, 5, 28, 0.82)',
-  border: '1px solid rgba(216,77,241,0.24)',
-  color: 'rgba(255,255,255,0.82)',
-  fontSize: 12,
-  lineHeight: 1.35,
-  marginBottom: 10,
-};
-
-const accountChangeNoticeStyle = {
-  ...nextStepNoteStyle,
-  color: 'rgba(255,255,255,0.82)',
-};
-
-const kidSafeNoteStyle = {
-  display: 'flex',
-  gap: 7,
-  alignItems: 'flex-start',
-  color: 'rgba(255,255,255,0.76)',
-  fontSize: 12,
-  lineHeight: 1.3,
-  margin: '-2px 0 9px',
-};
+function AuthSwitch({ text, actionText, onClick, disabled }) {
+  return (
+    <div className="rqk-auth-switch">
+      <span>{text}</span>
+      <button type="button" onClick={onClick} disabled={disabled} className="rqk-auth-switch-button">
+        {actionText}
+      </button>
+    </div>
+  );
+}
