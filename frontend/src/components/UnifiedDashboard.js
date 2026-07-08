@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, MessageSquare, ShieldCheck, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
+import { Activity, AlertTriangle, BookOpen, CheckCircle2, Clock3, MessageSquare, ShieldCheck, Sparkles, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
@@ -64,6 +64,33 @@ function openFeedback() {
   window.dispatchEvent(new Event('rook-feedback-open'));
 }
 
+function recordId(record) {
+  return record?.id || record?._id || record?.character_id || record?.campaign_id || record?.characterId || record?.campaignId || '';
+}
+
+function characterTitle(character) {
+  return character?.name || character?.character_name || 'Unnamed Character';
+}
+
+function campaignTitle(campaign) {
+  return campaign?.name || campaign?.campaign_name || 'Untitled Campaign';
+}
+
+function homebrewTitle(item) {
+  return item?.name || item?.title || 'Untitled Homebrew';
+}
+
+function formatHomebrewType(type = '') {
+  return String(type || 'homebrew').replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatDate(value) {
+  if (!value) return 'No date yet';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently';
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
@@ -72,15 +99,22 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const {
     characters,
     campaigns,
+    homebrewItems,
+    adminOverview,
+    siteSettings,
     loading,
     slowLoad,
     refreshing,
     isAdmin,
+    recentCharacters,
+    recentCampaigns,
+    recentHomebrew,
     loadDashboard,
   } = useDashboardData();
 
   const safeCharacters = safeArray(characters);
   const safeCampaigns = safeArray(campaigns);
+  const safeHomebrew = safeArray(homebrewItems);
   const updatesToShow = siteUpdates.length > 0 ? siteUpdates : dashboardUpdates;
   const dashboardActions = useMemo(() => [
     {
@@ -113,7 +147,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       text: 'Build items, monsters, NPCs, subclasses, custom rules, and upload artwork.',
       to: '/homebrew',
       icon: Wand2,
-      stat: 'Rook assisted',
+      stat: `${safeHomebrew.length} saved`,
     },
     {
       label: 'Assets',
@@ -129,7 +163,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       text: 'Report blockers, rough edges, and ideas while you are actually using the app.',
       onClick: openFeedback,
       icon: MessageSquare,
-      stat: 'Fast note',
+      stat: siteSettings.feedback_enabled === false ? 'Disabled' : 'Fast note',
     },
     ...(isAdmin ? [{
       label: 'Owner',
@@ -137,9 +171,75 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       text: 'Triage feedback, publish updates, audit data, and manage live-site controls.',
       to: '/admin',
       icon: ShieldCheck,
-      stat: 'Admin',
+      stat: `${adminOverview.new_feedback_count || 0} new`,
     }] : []),
-  ], [isAdmin, safeCampaigns.length, safeCharacters.length]);
+  ], [adminOverview.new_feedback_count, isAdmin, safeCampaigns.length, safeCharacters.length, safeHomebrew.length, siteSettings.feedback_enabled]);
+
+  const recentActivity = useMemo(() => {
+    const characterActivity = safeArray(recentCharacters).map((character) => ({
+      kind: 'Character',
+      title: characterTitle(character),
+      text: `${character?.race || character?.species || 'Hero'} • Level ${character?.level || 1}`,
+      date: character?.updated_at || character?.created_at,
+      to: recordId(character) ? `/characters/${recordId(character)}` : '/characters',
+      icon: UsersRound,
+    }));
+
+    const campaignActivity = safeArray(recentCampaigns).map((campaign) => ({
+      kind: 'Campaign',
+      title: campaignTitle(campaign),
+      text: campaign?.world_name || campaign?.description || 'GM workspace ready for prep',
+      date: campaign?.updated_at || campaign?.created_at,
+      to: recordId(campaign) ? `/campaign/${recordId(campaign)}` : '/campaigns',
+      icon: BookOpen,
+    }));
+
+    const homebrewActivity = safeArray(recentHomebrew).map((item) => ({
+      kind: formatHomebrewType(item.content_type),
+      title: homebrewTitle(item),
+      text: item?.summary || item?.description || item?.role || item?.category || 'Saved in Homebrew Workshop',
+      date: item?.updated_at || item?.created_at,
+      to: '/homebrew',
+      icon: Wand2,
+    }));
+
+    return [...characterActivity, ...campaignActivity, ...homebrewActivity]
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+      .slice(0, 6);
+  }, [recentCampaigns, recentCharacters, recentHomebrew]);
+
+  const readinessCards = useMemo(() => [
+    {
+      label: 'Character creator',
+      value: siteSettings.character_creation_enabled === false ? 'Paused' : 'Ready',
+      text: siteSettings.character_creation_enabled === false ? 'Creation is currently disabled in site controls.' : 'Players can build and test new sheets.',
+      tone: siteSettings.character_creation_enabled === false ? 'warn' : 'good',
+      icon: siteSettings.character_creation_enabled === false ? AlertTriangle : CheckCircle2,
+    },
+    {
+      label: 'Campaign creation',
+      value: siteSettings.campaign_creation_enabled === false ? 'Paused' : 'Ready',
+      text: siteSettings.campaign_creation_enabled === false ? 'New campaign setup is currently disabled.' : `${safeCampaigns.length} campaign${safeCampaigns.length === 1 ? '' : 's'} available for GM prep.`,
+      tone: siteSettings.campaign_creation_enabled === false ? 'warn' : 'good',
+      icon: siteSettings.campaign_creation_enabled === false ? AlertTriangle : BookOpen,
+    },
+    {
+      label: 'Homebrew library',
+      value: safeHomebrew.length,
+      text: safeHomebrew.length > 0 ? 'Saved creations are ready to review, edit, or wire into sheets.' : 'No saved homebrew yet — workshop is ready when needed.',
+      tone: safeHomebrew.length > 0 ? 'good' : 'neutral',
+      icon: Wand2,
+    },
+    {
+      label: isAdmin ? 'Feedback queue' : 'Feedback',
+      value: isAdmin ? (adminOverview.new_feedback_count || 0) : (siteSettings.feedback_enabled === false ? 'Paused' : 'Open'),
+      text: isAdmin
+        ? `${adminOverview.active_feedback_count || 0} active item${Number(adminOverview.active_feedback_count || 0) === 1 ? '' : 's'} in progress.`
+        : (siteSettings.feedback_enabled === false ? 'Feedback submissions are currently disabled.' : 'Users can send page-specific feedback from the floating button.'),
+      tone: isAdmin && Number(adminOverview.new_feedback_count || 0) > 0 ? 'warn' : 'good',
+      icon: MessageSquare,
+    },
+  ], [adminOverview.active_feedback_count, adminOverview.new_feedback_count, isAdmin, safeCampaigns.length, safeHomebrew.length, siteSettings.campaign_creation_enabled, siteSettings.character_creation_enabled, siteSettings.feedback_enabled]);
 
   const loadSiteUpdates = async () => {
     try {
@@ -218,6 +318,45 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </div>
       </section>
 
+      <section className="dashboard-live-grid" aria-label="Recent activity and readiness">
+        <section className="unified-dashboard-board dashboard-activity-panel" aria-labelledby="dashboard-activity-title">
+          <div className="dashboard-panel-heading-row">
+            <div>
+              <p className="dashboard-eyebrow">Live workspace</p>
+              <h2 id="dashboard-activity-title">Recent activity</h2>
+            </div>
+            <Activity size={20} aria-hidden="true" />
+          </div>
+          {recentActivity.length === 0 ? (
+            <div className="dashboard-empty-compact">
+              <Clock3 size={18} aria-hidden="true" />
+              <p>No recent activity yet. Create a character, campaign, or homebrew item and it will appear here.</p>
+            </div>
+          ) : (
+            <div className="dashboard-activity-list">
+              {recentActivity.map((item) => (
+                <DashboardActivityItem key={`${item.kind}-${item.title}-${item.date || ''}`} {...item} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="unified-dashboard-board dashboard-readiness-panel" aria-labelledby="dashboard-readiness-title">
+          <div className="dashboard-panel-heading-row">
+            <div>
+              <p className="dashboard-eyebrow">Readiness</p>
+              <h2 id="dashboard-readiness-title">Hub checks</h2>
+            </div>
+            <Sparkles size={20} aria-hidden="true" />
+          </div>
+          <div className="dashboard-readiness-grid">
+            {readinessCards.map((card) => (
+              <DashboardReadinessCard key={card.label} {...card} />
+            ))}
+          </div>
+        </section>
+      </section>
+
       <section className="unified-dashboard-board dashboard-updates-panel" aria-labelledby="dashboard-updates-title">
         <div className="dashboard-section-heading">
           <p className="dashboard-eyebrow">Latest information</p>
@@ -267,6 +406,32 @@ function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClic
   }
 
   return <button type="button" onClick={onClick} className="dashboard-command-card">{content}</button>;
+}
+
+function DashboardActivityItem({ kind, title, text, date, to, icon: Icon }) {
+  return (
+    <Link to={to} className="dashboard-activity-item">
+      <span className="dashboard-activity-icon" aria-hidden="true"><Icon size={16} /></span>
+      <span className="dashboard-activity-copy">
+        <strong>{title}</strong>
+        <span>{kind} • {text}</span>
+      </span>
+      <time>{formatDate(date)}</time>
+    </Link>
+  );
+}
+
+function DashboardReadinessCard({ label, value, text, tone, icon: Icon }) {
+  return (
+    <article className={`dashboard-readiness-card dashboard-readiness-card--${tone}`}>
+      <span className="dashboard-readiness-icon" aria-hidden="true"><Icon size={17} /></span>
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <p>{text}</p>
+      </div>
+    </article>
+  );
 }
 
 function DashboardUpdateCard({ label, title, text, is_pinned }) {
