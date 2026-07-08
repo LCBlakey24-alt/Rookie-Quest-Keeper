@@ -110,7 +110,7 @@ export default function LiveSessionGridPage() {
     const result = rollDiceNotation(notation, { rollType, exploding: explodingDiceEnabled });
     if (!result.rolls.length) return;
     const displayLabel = label || notation;
-    setDiceRolls(result.visibleRolls);
+    setDiceRolls(result.rolls);
     setDiceLabel(displayLabel);
     setDiceModifier(result.modifier);
     setDiceTotal(result.total);
@@ -276,7 +276,7 @@ export default function LiveSessionGridPage() {
         <LiveStoryFocusPanel campaignId={campaignId} />
         <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
 
-        <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} onComplete={() => setShowDiceFlicker(false)} />
+        <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} theme="gm" onComplete={() => setShowDiceFlicker(false)} />
       </main>
       {showEndSessionReview && <EndSessionReviewModal campaignId={campaignId} campaignName={campaign?.name || 'Campaign'} onClose={() => setShowEndSessionReview(false)} />}
     </>
