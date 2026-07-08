@@ -15,6 +15,7 @@ on:
       - 'backend/routes/characters.py'
       - 'backend/routes/homebrew.py'
       - 'backend/tests/test_character_homebrew_payloads.py'
+      - 'backend/tests/test_homebrew_route_normalisation.py'
       - 'backend/tests/test_epic_level_spell_slots.py'
       - '.github/workflows/homebrew-regression.yml'
   pull_request:
@@ -30,6 +31,7 @@ on:
       - 'backend/routes/characters.py'
       - 'backend/routes/homebrew.py'
       - 'backend/tests/test_character_homebrew_payloads.py'
+      - 'backend/tests/test_homebrew_route_normalisation.py'
       - 'backend/tests/test_epic_level_spell_slots.py'
       - '.github/workflows/homebrew-regression.yml'
 
@@ -87,4 +89,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run focused backend tests
-        run: pytest tests/test_character_homebrew_payloads.py tests/test_epic_level_spell_slots.py
+        run: pytest tests/test_character_homebrew_payloads.py tests/test_homebrew_route_normalisation.py tests/test_epic_level_spell_slots.py
