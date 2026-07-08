@@ -39,6 +39,7 @@ import '@/styles/twilightKeeperTheme.css';
 import '@/styles/twilightKeeperPolish.css';
 import '@/styles/twilightKeeperScreens.css';
 import '@/styles/twilightKeeperAppPages.css';
+import '@/styles/homeHubFinalPolish.css';
 import '@/styles/twilightKeeperCharacterSheet.css';
 import '@/styles/twilightKeeperCreator.css';
 import '@/styles/sunsetRebrandFixes.css';
