@@ -146,6 +146,9 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [transitionTarget, setTransitionTarget] = useState(null);
   const navigationTimeoutRef = useRef(null);
+  const readySectionRef = useRef(null);
+  const flowSectionRef = useRef(null);
+  const audienceSectionRef = useRef(null);
 
   const navigateWithFill = useCallback((target) => {
     if (navigationTimeoutRef.current) return;
@@ -161,11 +164,17 @@ export default function LandingPage() {
     }
   }, []);
 
+  const scrollToSection = useCallback((sectionRef) => {
+    const target = sectionRef.current;
+    if (!target) return;
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+  }, []);
+
   const buttonClass = (baseClass, target) => `${baseClass}${transitionTarget === target ? ' is-transitioning' : ''}`;
   const isTransitioning = Boolean(transitionTarget);
   const goLogin = () => navigateWithFill('/auth');
   const goRegister = () => navigateWithFill('/auth?mode=register');
-  const goDemo = () => navigateWithFill('/prototype-gm');
 
   return (
     <div data-testid="landing-page" className="landing-page landing-page-clean landing-page-final">
@@ -173,6 +182,13 @@ export default function LandingPage() {
         <button type="button" className="landing-logo-button" onClick={() => navigate('/')} aria-label="Rookie Quest Keeper home">
           <BrandMiniLogo size={46} />
         </button>
+
+        <div className="landing-nav-links" aria-label="Landing page sections">
+          <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(readySectionRef)}>Ready now</button>
+          <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(flowSectionRef)}>Table flow</button>
+          <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(audienceSectionRef)}>Players &amp; GMs</button>
+        </div>
+
         <div className="landing-nav-actions">
           <button data-testid="landing-signin-btn" type="button" className={buttonClass('landing-button landing-button-ghost', '/auth')} onClick={goLogin} disabled={isTransitioning} aria-busy={transitionTarget === '/auth'}>
             <span>Sign In</span>
@@ -191,7 +207,7 @@ export default function LandingPage() {
             </div>
 
             <p className="landing-kicker">Player Mode • GM Mode • Live table support</p>
-            <h1 id="landing-hero-title">Bring the whole D&amp;D table into one clean quest hub.</h1>
+            <h1 id="landing-hero-title">Bring the whole 5e table into one clean quest hub.</h1>
             <p className="landing-final-intro">
               Rookie Quest Keeper keeps character creation, play sheets, turn actions, spells, inventory, level-ups, GM prep, handouts, maps, homebrew, and live-session tools in one tidy tabletop workspace.
             </p>
@@ -200,8 +216,8 @@ export default function LandingPage() {
               <button data-testid="landing-cta-btn" type="button" className={buttonClass('landing-button landing-button-primary landing-button-large', '/auth?mode=register')} onClick={goRegister} disabled={isTransitioning} aria-busy={transitionTarget === '/auth?mode=register'}>
                 <span>Build Your First Character</span> <ChevronRight size={18} aria-hidden="true" />
               </button>
-              <button type="button" className={buttonClass('landing-button landing-button-ghost landing-button-large', '/prototype-gm')} onClick={goDemo} disabled={isTransitioning} aria-busy={transitionTarget === '/prototype-gm'}>
-                <span>Preview GM Tools</span>
+              <button type="button" className="landing-button landing-button-ghost landing-button-large" onClick={() => scrollToSection(readySectionRef)} disabled={isTransitioning}>
+                <span>See What Is Ready</span>
               </button>
             </div>
 
@@ -218,9 +234,9 @@ export default function LandingPage() {
             </div>
             <div className="landing-preview-body">
               <div className="landing-preview-spotlight">
-                <span>Current build focus</span>
+                <span>Table command centre</span>
                 <h2>Build. Play. Run.</h2>
-                <p>A cleaner landing page should explain the product in seconds, then give players and GMs a clear next step.</p>
+                <p>Create a character, keep the sheet readable at the table, and give GMs a workspace that grows with the campaign.</p>
               </div>
               <div className="landing-preview-list">
                 {previewItems.map((item) => {
@@ -254,11 +270,11 @@ export default function LandingPage() {
           })}
         </section>
 
-        <section className="landing-marketing-block landing-marketing-split" aria-label="What you can do today">
+        <section id="ready-now" ref={readySectionRef} className="landing-marketing-block landing-marketing-split" aria-label="What you can do today">
           <div>
             <p className="landing-kicker">Ready now</p>
             <h2>Start with a character, then grow into a full table workspace.</h2>
-            <p>It is being built around the moment players ask, “What can I do now?” and the moment GMs need to keep the session moving.</p>
+            <p>It is built around the moment players ask, “What can I do now?” and the moment GMs need to keep the session moving.</p>
           </div>
           <ul className="landing-check-list">
             {readyNow.map(item => <li key={item}>{item}</li>)}
@@ -278,11 +294,11 @@ export default function LandingPage() {
           })}
         </section>
 
-        <section className="landing-roadmap" aria-label="How Rookie Quest Keeper supports the table">
+        <section id="table-flow" ref={flowSectionRef} className="landing-roadmap" aria-label="How Rookie Quest Keeper supports the table">
           <div className="landing-roadmap-heading">
             <p className="landing-kicker">Table flow</p>
             <h2>From first build to live session, every screen should have a job.</h2>
-            <p>That means fewer decorative boxes, clearer hierarchy, stronger mobile behaviour, and copy that says exactly why the app exists.</p>
+            <p>Every part of Rookie Quest Keeper is shaped around practical table moments: build characters, understand turns, run sessions, record changes, and keep campaigns organised.</p>
           </div>
           <div className="landing-roadmap-grid">
             {workflowSteps.map(point => (
@@ -295,7 +311,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
+        <section id="players-and-gms" ref={audienceSectionRef} className="landing-two-columns landing-audience-columns" aria-label="Player and game master benefits">
           <article>
             <p className="landing-kicker">Player side</p>
             <h2><Users size={22} aria-hidden="true" /> Players get clarity</h2>
