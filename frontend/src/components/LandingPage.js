@@ -18,6 +18,7 @@ import { BrandMainLogo, BrandMiniLogo } from '@/components/ui/BrandLogo';
 import '@/styles/landingProductionTrust.css';
 
 const BUTTON_FILL_DELAY_MS = 560;
+const LANDING_META_DESCRIPTION = 'Build 5e-style characters, use cleaner live play sheets, and keep campaign prep, GM notes, handouts, maps, and table tools together in Rookie Quest Keeper.';
 
 const featureGroups = [
   {
@@ -188,6 +189,29 @@ const productStatus = [
   },
 ];
 
+const faqItems = [
+  {
+    question: 'Is Rookie Quest Keeper official 5e content?',
+    answer: 'No. Rookie Quest Keeper is an independent tabletop companion for 5e-style campaigns. It is designed to organise play, characters, and GM prep without presenting itself as an official rules source.',
+  },
+  {
+    question: 'Where should a brand-new player start?',
+    answer: 'Start by creating an account and building a first character. The goal is to get players to a readable sheet quickly, then reveal deeper tools as they become useful.',
+  },
+  {
+    question: 'Can experienced players still use it?',
+    answer: 'Yes. The layout is being built to keep fast table information close at hand while still supporting spells, features, inventory, notes, and progression for more detailed characters.',
+  },
+  {
+    question: 'What is GM Mode for?',
+    answer: 'GM Mode is for campaign prep and session control: notes, NPCs, maps, handouts, uploads, rewards, encounters, live table flow, and the things that help a session stay moving.',
+  },
+  {
+    question: 'Does it replace books or table judgement?',
+    answer: 'No. It is a play aid and organisation hub. Groups should still use their own rules, books, rulings, homebrew, and table agreements.',
+  },
+];
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [transitionTarget, setTransitionTarget] = useState(null);
@@ -203,6 +227,34 @@ export default function LandingPage() {
       navigate(target);
     }, BUTTON_FILL_DELAY_MS);
   }, [navigate]);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const previousDescription = metaDescription?.getAttribute('content') ?? null;
+    const createdMeta = !metaDescription;
+    const activeMetaDescription = metaDescription ?? document.createElement('meta');
+
+    document.title = 'Rookie Quest Keeper | 5e Character Sheets & GM Tools';
+    activeMetaDescription.setAttribute('name', 'description');
+    activeMetaDescription.setAttribute('content', LANDING_META_DESCRIPTION);
+
+    if (createdMeta) {
+      document.head.appendChild(activeMetaDescription);
+    }
+
+    return () => {
+      document.title = previousTitle;
+      if (createdMeta) {
+        activeMetaDescription.remove();
+        return;
+      }
+
+      if (previousDescription !== null) {
+        activeMetaDescription.setAttribute('content', previousDescription);
+      }
+    };
+  }, []);
 
   useEffect(() => () => {
     if (navigationTimeoutRef.current) {
@@ -439,6 +491,22 @@ export default function LandingPage() {
                 <h3>{item.label}</h3>
                 <p>{item.detail}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="landing-faq-panel" aria-labelledby="landing-faq-title">
+          <div className="landing-section-heading landing-faq-heading">
+            <p className="landing-kicker">Quick answers</p>
+            <h2 id="landing-faq-title">The important stuff before you create an account.</h2>
+            <p>Clear expectations help the app feel safer, more honest, and more professional for first-time visitors.</p>
+          </div>
+          <div className="landing-faq-list">
+            {faqItems.map((item) => (
+              <details key={item.question} className="landing-faq-item">
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
             ))}
           </div>
         </section>
