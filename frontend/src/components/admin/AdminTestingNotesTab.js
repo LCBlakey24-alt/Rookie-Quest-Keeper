@@ -27,6 +27,10 @@ export default function AdminTestingNotesTab() {
   const [savingId, setSavingId] = useState('');
   const [form, setForm] = useState({ title: '', area: 'testing', priority: 'high', message: '' });
 
+  const logAudit = async (entry) => {
+    try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block testing notes. */ }
+  };
+
   const testingItems = useMemo(() => items.filter(item => (
     item.category === 'testing' ||
     item.area === 'testing' ||
@@ -55,15 +59,23 @@ export default function AdminTestingNotesTab() {
       return;
     }
     try {
-      const res = await apiClient.post('/feedback', {
+      const payload = {
         category: 'testing',
         area: form.area || 'testing',
         title: form.title.trim(),
         message: form.message.trim(),
         page_path: window.location.pathname,
         priority: form.priority || 'high',
-      });
+      };
+      const res = await apiClient.post('/feedback', payload);
       setItems(prev => [res.data, ...prev]);
+      await logAudit({
+        action: 'Testing note created',
+        area: 'testing_notes',
+        target_id: res.data?.id || '',
+        target_label: payload.title,
+        detail: `${payload.area} • ${payload.priority}`,
+      });
       setForm({ title: '', area: 'testing', priority: 'high', message: '' });
       toast.success('Testing issue logged');
     } catch (err) {
@@ -82,6 +94,13 @@ export default function AdminTestingNotesTab() {
         admin_notes: item.admin_notes || '',
       });
       updateLocal(item.id, res.data);
+      await logAudit({
+        action: 'Testing note updated',
+        area: 'testing_notes',
+        target_id: item.id,
+        target_label: item.title || 'Testing note',
+        detail: `Status: ${item.status || 'new'} • Priority: ${item.priority || 'normal'}`,
+      });
       toast.success('Testing note saved');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to save testing note');
@@ -92,9 +111,17 @@ export default function AdminTestingNotesTab() {
 
   const deleteItem = async (id) => {
     if (!window.confirm('Delete this testing note?')) return;
+    const target = items.find(item => item.id === id);
     try {
       await apiClient.delete(`/admin/feedback/${id}`);
       setItems(prev => prev.filter(item => item.id !== id));
+      await logAudit({
+        action: 'Testing note deleted',
+        area: 'testing_notes',
+        target_id: id,
+        target_label: target?.title || 'Testing note',
+        detail: target?.message ? target.message.slice(0, 300) : '',
+      });
       toast.success('Testing note deleted');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to delete testing note');
