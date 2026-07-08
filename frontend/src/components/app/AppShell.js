@@ -4,6 +4,7 @@ import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, User
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
+import '@/styles/homeDashboardExperience.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'] },
