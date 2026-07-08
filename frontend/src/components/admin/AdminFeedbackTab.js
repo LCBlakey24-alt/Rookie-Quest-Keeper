@@ -32,6 +32,11 @@ const boardColumns = [
 const statuses = ['all', ...boardColumns.map(column => column.id)];
 const priorities = ['low', 'normal', 'high', 'urgent'];
 
+function isTestingNote(item) {
+  const title = String(item?.title || '').toLowerCase();
+  return item?.category === 'testing' || ['testing', 'mobile-testing'].includes(item?.area) || title.includes('[test]');
+}
+
 export default function AdminFeedbackTab() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,9 +64,11 @@ export default function AdminFeedbackTab() {
 
   useEffect(() => { load(); }, [statusFilter]);
 
+  const feedbackItems = useMemo(() => items.filter(item => !isTestingNote(item)), [items]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const normalisedItems = items.map(item => ({ ...item, status: item.status || 'new', priority: item.priority || 'normal' }));
+    const normalisedItems = feedbackItems.map(item => ({ ...item, status: item.status || 'new', priority: item.priority || 'normal' }));
     if (!q) return normalisedItems;
     return normalisedItems.filter(item => [
       item.title,
@@ -74,7 +81,7 @@ export default function AdminFeedbackTab() {
       item.status,
       item.priority,
     ].some(value => String(value || '').toLowerCase().includes(q)));
-  }, [items, query]);
+  }, [feedbackItems, query]);
 
   const visibleColumns = useMemo(() => (
     statusFilter === 'all'
@@ -92,13 +99,13 @@ export default function AdminFeedbackTab() {
   }, [filtered]);
 
   const counts = useMemo(() => ({
-    total: items.length,
+    total: feedbackItems.length,
     showing: filtered.length,
-    new: items.filter(item => (item.status || 'new') === 'new').length,
-    planned: items.filter(item => item.status === 'planned').length,
-    active: items.filter(item => ['reviewing', 'planned', 'in_progress'].includes(item.status)).length,
-    done: items.filter(item => item.status === 'done').length,
-  }), [items, filtered]);
+    new: feedbackItems.filter(item => (item.status || 'new') === 'new').length,
+    planned: feedbackItems.filter(item => item.status === 'planned').length,
+    active: feedbackItems.filter(item => ['reviewing', 'planned', 'in_progress'].includes(item.status)).length,
+    done: feedbackItems.filter(item => item.status === 'done').length,
+  }), [feedbackItems, filtered]);
 
   const updateLocal = (id, patch) => {
     setItems(prev => prev.map(item => item.id === id ? { ...item, ...patch } : item));
@@ -223,7 +230,7 @@ export default function AdminFeedbackTab() {
       <div style={headerStyle}>
         <div>
           <h2 style={titleStyle}><MessageSquare size={20} /> Feedback Task Board</h2>
-          <p style={subtitleStyle}>Triage user suggestions, bugs, confusing areas, and turn useful feedback into public dashboard updates.</p>
+          <p style={subtitleStyle}>Triage user suggestions, bugs, confusing areas, and turn useful feedback into public dashboard updates. Testing notes live in their own tab.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
@@ -255,7 +262,7 @@ export default function AdminFeedbackTab() {
       {loading ? (
         <div style={emptyStyle}>Loading feedback...</div>
       ) : filtered.length === 0 ? (
-        <div style={emptyStyle}>No feedback found.</div>
+        <div style={emptyStyle}>No user feedback found. Testing notes are kept under the Testing tab.</div>
       ) : (
         <div style={boardStyle}>
           {visibleColumns.map(column => (
