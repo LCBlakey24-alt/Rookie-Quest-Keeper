@@ -72,6 +72,7 @@ export default function PlayerDisplayPage() {
 
   const target = displayTargetFor(state, urlTarget);
   const mode = state?.mode || 'blank';
+  const payload = state?.payload || {};
 
   return (
     <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
@@ -84,6 +85,7 @@ export default function PlayerDisplayPage() {
           <span style={modeChipStyle}>{modeLabel(mode)}</span>
         </header>
         <DisplayContent state={state} target={target} />
+        <PlayerBanner banner={payload.banner} target={target} />
       </div>
       <footer style={footerStyle(target)}>
         <span>{isTable(target) ? <Table2 size={13} /> : <Monitor size={13} />} {isTable(target) ? 'Map-first table display' : 'Cinematic player display'}</span>
@@ -104,6 +106,20 @@ function DisplayContent({ state, target }) {
   if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
   return <BlankDisplay key={key} payload={payload} target={target} />;
+}
+
+function PlayerBanner({ banner, target }) {
+  if (!banner?.text && !banner?.title) return null;
+  return (
+    <aside key={banner.id || banner.text || banner.title} style={bannerOverlayStyle(target, banner.tone)}>
+      <div style={bannerIconStyle(target)}><Sparkles size={isTable(target) ? 16 : 22} /></div>
+      <div style={{ minWidth: 0 }}>
+        <p style={bannerEyebrowStyle(target)}>{banner.eyebrow || 'Announcement'}</p>
+        <strong style={bannerTextStyle(target)}>{banner.text || banner.title}</strong>
+        {banner.subtitle && <span style={bannerSubTextStyle(target)}>{banner.subtitle}</span>}
+      </div>
+    </aside>
+  );
 }
 
 function BlankDisplay({ payload, target }) {
@@ -267,13 +283,18 @@ function MapToken({ token, target }) { const left = Math.max(2, Math.min(94, Num
 function VisibleCreatureCard({ token, compact = false, target }) { return <article style={compact ? tokenShelfCardStyle(target) : visibleCreatureCardStyle}>{token.image_url ? <img src={token.image_url} alt={token.name} style={creatureImageStyle(compact, target)} /> : <div style={creatureInitialStyle(compact, target)}>{String(token.name || '?').slice(0, 1).toUpperCase()}</div>}<div style={{ minWidth: 0 }}><strong>{token.name || 'Visible Enemy'}</strong>{!compact && <span>Visible to players</span>}</div></article>; }
 
 const pageStyle = (target) => ({ minHeight: '100dvh', background: `${theme.bg}`, color: theme.text, fontFamily: fontStack, display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', position: 'relative', overflow: 'hidden' });
-const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(14px, 2vw, 26px)', background: isTable(target) ? 'radial-gradient(circle at 50% 50%, rgba(208,0,0,0.13), transparent 42%), #050505' : 'radial-gradient(circle at 18% 12%, rgba(208,0,0,0.2), transparent 30%), radial-gradient(circle at 82% 78%, rgba(208,0,0,0.12), transparent 36%), linear-gradient(135deg, #050505 0%, #111 48%, #050505 100%)', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)' });
+const chromeFrameStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', padding: isTable(target) ? 8 : 'clamp(14px, 2vw, 26px)', background: isTable(target) ? 'radial-gradient(circle at 50% 50%, rgba(208,0,0,0.13), transparent 42%), #050505' : 'radial-gradient(circle at 18% 12%, rgba(208,0,0,0.2), transparent 30%), radial-gradient(circle at 82% 78%, rgba(208,0,0,0.12), transparent 36%), linear-gradient(135deg, #050505 0%, #111 48%, #050505 100%)', boxShadow: 'inset 0 0 120px rgba(0,0,0,0.9)', position: 'relative', overflow: 'hidden' });
 const fullscreenButtonStyle = { position: 'fixed', top: 12, right: 12, zIndex: 20, minHeight: 36, border: `1px solid ${theme.lineStrong}`, background: 'rgba(18,18,18,0.72)', backdropFilter: 'blur(12px)', color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900, fontFamily: fontStack, cursor: 'pointer' };
 const displayStatusBarStyle = (target) => ({ minHeight: isTable(target) ? 34 : 42, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: isTable(target) ? '4px 6px' : '7px 10px', background: 'rgba(0,0,0,0.5)', border: `1px solid ${theme.line}`, borderLeft: `${isTable(target) ? 4 : 6}px solid ${theme.red}`, color: theme.soft, fontSize: isTable(target) ? 10 : 12, letterSpacing: '0.03em', textTransform: 'uppercase', fontWeight: 950, zIndex: 3 });
 const brandMarkStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text, marginRight: 'auto' };
 const statusPillStyle = (target) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, minHeight: isTable(target) ? 22 : 26, padding: isTable(target) ? '0 6px' : '0 8px', background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.line}`, color: theme.soft });
 const modeChipStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 26, padding: '0 9px', background: theme.red, color: theme.text, border: `1px solid ${theme.red}` };
 const footerStyle = (target) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: isTable(target) ? '5px 9px' : '8px 12px', color: theme.muted, fontSize: isTable(target) ? 10 : 11, borderTop: `1px solid ${theme.line}`, background: '#050505' });
+const bannerOverlayStyle = (target, tone) => ({ position: 'absolute', left: isTable(target) ? 12 : '50%', right: isTable(target) ? 12 : 'auto', bottom: isTable(target) ? 12 : 34, transform: isTable(target) ? 'none' : 'translateX(-50%)', zIndex: 12, width: isTable(target) ? 'auto' : 'min(1040px, calc(100% - 80px))', display: 'grid', gridTemplateColumns: `${isTable(target) ? 34 : 48}px minmax(0, 1fr)`, gap: isTable(target) ? 8 : 12, alignItems: 'center', padding: isTable(target) ? '8px 10px' : '13px 16px', background: tone === 'danger' ? 'rgba(12,0,0,0.92)' : 'rgba(0,0,0,0.82)', border: `1px solid ${tone === 'danger' ? theme.red : theme.lineStrong}`, borderLeft: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, boxShadow: '0 28px 110px rgba(0,0,0,0.66)', backdropFilter: 'blur(14px)', animation: 'rqkBannerPop 520ms ease both', pointerEvents: 'none' });
+const bannerIconStyle = (target) => ({ width: isTable(target) ? 34 : 48, height: isTable(target) ? 34 : 48, display: 'grid', placeItems: 'center', background: theme.red, color: theme.text });
+const bannerEyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 9 : 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.14em' });
+const bannerTextStyle = (target) => ({ display: 'block', color: theme.text, fontSize: isTable(target) ? 'clamp(16px, 2.1vw, 28px)' : 'clamp(24px, 3vw, 46px)', lineHeight: 1.05, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isTable(target) ? 'nowrap' : 'normal' });
+const bannerSubTextStyle = (target) => ({ display: 'block', marginTop: 3, color: theme.soft, fontSize: isTable(target) ? 11 : 15, lineHeight: 1.25 });
 const blankStyle = (target) => ({ display: 'grid', placeItems: 'center', alignContent: 'center', gap: isTable(target) ? 8 : 14, textAlign: 'center', padding: isTable(target) ? 18 : 32, minHeight: 0, animation: 'rqkDisplayReveal 700ms ease both' });
 const sigilStyle = (target) => ({ width: isTable(target) ? 68 : 106, height: isTable(target) ? 68 : 106, display: 'grid', placeItems: 'center', color: theme.text, background: `linear-gradient(135deg, ${theme.red}, rgba(208,0,0,0.26))`, border: `1px solid ${theme.lineStrong}`, boxShadow: '0 22px 80px rgba(208,0,0,0.26)', animation: 'rqkDisplayPulse 2800ms ease-in-out infinite' });
 const blankTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(28px, 5vw, 64px)' : 'clamp(42px, 8vw, 96px)', letterSpacing: '0.03em', color: theme.text, fontWeight: 900 });
@@ -348,6 +369,7 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkDisplayReveal { from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(5px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkStatsReveal { from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(5px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
+    @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }
     [data-testid="player-display-page"]::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px rgba(0,0,0,0.78); z-index: 2; }
     @media (max-width: 900px) { [data-testid="player-display-page"] section { max-width: 100%; } }
