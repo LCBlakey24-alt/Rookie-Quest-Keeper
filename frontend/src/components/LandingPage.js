@@ -189,6 +189,29 @@ const productStatus = [
   },
 ];
 
+const productPrinciples = [
+  {
+    icon: ShieldCheck,
+    title: 'Honest by default',
+    text: 'The page avoids pretending to be an official rules source and explains what the app is actually for: organisation, play support, and table flow.',
+  },
+  {
+    icon: HeartPulse,
+    title: 'Useful during pressure',
+    text: 'The product story keeps returning to the same table problem: when play is moving, players need the right action fast.',
+  },
+  {
+    icon: Crown,
+    title: 'GM control without clutter',
+    text: 'Campaign prep, live notes, handouts, maps, rewards, NPCs, and uploads are framed as one workspace, not scattered admin pages.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Premium, not noisy',
+    text: 'The landing page keeps the dark square-card theme, strong red accents, and clean hierarchy instead of chasing generic fantasy decoration.',
+  },
+];
+
 const faqItems = [
   {
     question: 'Is Rookie Quest Keeper official 5e content?',
@@ -219,6 +242,7 @@ export default function LandingPage() {
   const readySectionRef = useRef(null);
   const flowSectionRef = useRef(null);
   const audienceSectionRef = useRef(null);
+  const faqSectionRef = useRef(null);
 
   const navigateWithFill = useCallback((target) => {
     if (navigationTimeoutRef.current) return;
@@ -300,6 +324,7 @@ export default function LandingPage() {
           <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(readySectionRef)}>Ready now</button>
           <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(flowSectionRef)}>Table flow</button>
           <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(audienceSectionRef)}>Players &amp; GMs</button>
+          <button type="button" className="landing-anchor-button" onClick={() => scrollToSection(faqSectionRef)}>FAQ</button>
         </div>
 
         <div className="landing-nav-actions">
@@ -408,6 +433,26 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="landing-principles-panel" aria-labelledby="landing-principles-title">
+          <div className="landing-section-heading landing-principles-heading">
+            <p className="landing-kicker">Why it feels different</p>
+            <h2 id="landing-principles-title">Designed like a table tool, not just another character database.</h2>
+            <p>The landing page should sell the actual product promise: less digging, clearer choices, honest scope, and a workspace that still feels like Rookie Quest Keeper.</p>
+          </div>
+          <div className="landing-principles-grid">
+            {productPrinciples.map((principle) => {
+              const Icon = principle.icon;
+              return (
+                <article key={principle.title} className="landing-principle-card">
+                  <Icon size={24} aria-hidden="true" />
+                  <h3>{principle.title}</h3>
+                  <p>{principle.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
         <section id="ready-now" ref={readySectionRef} className="landing-marketing-block landing-marketing-split" aria-label="What you can do today">
           <div>
             <p className="landing-kicker">Ready now</p>
@@ -495,7 +540,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing-faq-panel" aria-labelledby="landing-faq-title">
+        <section id="faq" ref={faqSectionRef} className="landing-faq-panel" aria-labelledby="landing-faq-title">
           <div className="landing-section-heading landing-faq-heading">
             <p className="landing-kicker">Quick answers</p>
             <h2 id="landing-faq-title">The important stuff before you create an account.</h2>
@@ -538,6 +583,7 @@ export default function LandingPage() {
         <div className="landing-footer-actions" aria-label="Footer navigation">
           <button type="button" onClick={() => scrollToSection(readySectionRef)}>Ready now</button>
           <button type="button" onClick={() => scrollToSection(flowSectionRef)}>Table flow</button>
+          <button type="button" onClick={() => scrollToSection(faqSectionRef)}>FAQ</button>
           <button type="button" onClick={goRegister}>Create account</button>
         </div>
         <p className="landing-footer-note">&copy; {new Date().getFullYear()} Rookie Quest Keeper. Built for home tables, new players, and campaign runners.</p>
