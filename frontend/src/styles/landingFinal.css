@@ -33,6 +33,28 @@
   box-sizing: border-box;
 }
 
+.landing-skip-link {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 1000;
+  padding: 10px 14px;
+  border: 1px solid var(--landing-line-strong);
+  background: var(--landing-bg-deep) !important;
+  color: var(--landing-text) !important;
+  font-size: 13px;
+  font-weight: 950;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 160ms ease;
+}
+
+.landing-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--landing-red-bright);
+  outline-offset: 2px;
+}
+
 #root .landing-page-final .landing-final-main,
 #root .landing-page-final .landing-final-nav,
 #root .landing-page-final .landing-final-footer {
@@ -444,12 +466,14 @@
 .landing-roadmap,
 .landing-final-strip,
 .landing-marketing-block,
+.landing-start-paths,
 .landing-final-cta {
   width: min(1080px, 100%);
   margin-inline: auto;
 }
 
-.landing-final-features {
+.landing-final-features,
+.landing-start-paths {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--landing-line);
@@ -459,7 +483,8 @@
 .landing-final-feature,
 .landing-benefit-card,
 .landing-roadmap article,
-.landing-two-columns article {
+.landing-two-columns article,
+.landing-start-card {
   background: transparent !important;
   background-image: none !important;
   border: 0 !important;
@@ -472,7 +497,8 @@
 .landing-final-feature + .landing-final-feature,
 .landing-benefit-card + .landing-benefit-card,
 .landing-roadmap article + article,
-.landing-two-columns article + article {
+.landing-two-columns article + article,
+.landing-start-card + .landing-start-card {
   border-left: 1px solid var(--landing-line) !important;
 }
 
@@ -481,14 +507,71 @@
 .landing-two-columns svg,
 .landing-final-strip svg,
 .landing-final-cta svg,
-.landing-logo-button svg {
+.landing-logo-button svg,
+.landing-start-card svg {
   color: var(--landing-red-bright) !important;
 }
 
-.landing-final-feature {
+.landing-final-feature,
+.landing-start-card {
   display: grid;
   align-content: start;
   gap: 10px;
+}
+
+.landing-start-paths {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.landing-section-heading {
+  display: grid;
+  gap: 10px;
+  padding: clamp(20px, 3vw, 30px);
+  border-bottom: 1px solid var(--landing-line);
+  background:
+    linear-gradient(90deg, rgba(208, 0, 0, 0.12), transparent 48%),
+    rgba(0, 0, 0, 0.08) !important;
+  text-align: left;
+}
+
+.landing-section-heading h2,
+.landing-section-heading p {
+  max-width: 760px;
+}
+
+.landing-start-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.landing-card-action {
+  width: max-content;
+  min-height: 40px;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--landing-line) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--landing-text) !important;
+  font-size: 13px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.landing-card-action:hover:not(:disabled),
+.landing-card-action:focus-visible:not(:disabled) {
+  border-color: var(--landing-red-bright) !important;
+  background: var(--landing-red) !important;
+  outline: 0;
+}
+
+.landing-card-action:disabled {
+  cursor: wait;
+  opacity: 0.64;
 }
 
 .landing-page-final .landing-final-feature h2,
@@ -496,6 +579,7 @@
 .landing-page-final .landing-roadmap h2,
 .landing-page-final .landing-two-columns h2,
 .landing-page-final .landing-marketing-block h2,
+.landing-page-final .landing-section-heading h2,
 .landing-page-final .landing-final-cta h2 {
   margin: 0;
   font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
@@ -507,16 +591,21 @@
 
 .landing-page-final .landing-final-feature h2,
 .landing-page-final .landing-benefit-card h2,
-.landing-page-final .landing-two-columns h2 {
+.landing-page-final .landing-two-columns h2,
+.landing-page-final .landing-start-card h3 {
   font-size: clamp(18px, 2vw, 23px);
 }
 
-.landing-page-final .landing-roadmap h3 {
+.landing-page-final .landing-roadmap h3,
+.landing-page-final .landing-start-card h3 {
   margin: 0;
   color: var(--landing-text) !important;
-  font-size: 18px;
   font-weight: 950;
   line-height: 1.15;
+}
+
+.landing-page-final .landing-roadmap h3 {
+  font-size: 18px;
 }
 
 .landing-final-feature p,
@@ -525,7 +614,9 @@
 .landing-marketing-block p,
 .landing-final-cta p,
 .landing-two-columns li,
-.landing-check-list li {
+.landing-check-list li,
+.landing-section-heading p,
+.landing-start-card p {
   color: var(--landing-muted) !important;
   font-size: 14px;
   line-height: 1.55;
@@ -800,7 +891,8 @@
     width: 100%;
   }
 
-  .landing-hero-actions .landing-button {
+  .landing-hero-actions .landing-button,
+  .landing-card-action {
     width: 100%;
   }
 
@@ -822,10 +914,12 @@
   .landing-preview-row,
   .landing-marketing-block,
   .landing-roadmap-heading,
+  .landing-section-heading,
   .landing-final-feature,
   .landing-benefit-card,
   .landing-roadmap article,
-  .landing-two-columns article {
+  .landing-two-columns article,
+  .landing-start-card {
     padding: 16px;
   }
 
@@ -834,7 +928,8 @@
   .landing-roadmap-grid,
   .landing-two-columns,
   .landing-final-strip,
-  .landing-marketing-split {
+  .landing-marketing-split,
+  .landing-start-grid {
     grid-template-columns: 1fr;
   }
 
@@ -842,7 +937,8 @@
   .landing-benefit-card + .landing-benefit-card,
   .landing-roadmap article + article,
   .landing-two-columns article + article,
-  .landing-final-strip div + div {
+  .landing-final-strip div + div,
+  .landing-start-card + .landing-start-card {
     border-left: 0 !important;
     border-top: 1px solid var(--landing-line) !important;
   }
@@ -884,6 +980,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .landing-skip-link,
   #root .landing-page-final .landing-button,
   #root .landing-page-final .landing-button::before,
   #root .landing-page-final .landing-anchor-button {
