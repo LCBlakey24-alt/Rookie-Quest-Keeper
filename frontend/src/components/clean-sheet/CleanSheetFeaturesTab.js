@@ -6,6 +6,7 @@ import { featureTypeLabel, fmt } from './cleanSheetUtils';
 const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
 const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) : [];
+const titleFromKey = (value = '') => String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 
 function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
   const seen = new Set();
@@ -50,8 +51,30 @@ function selectedClassChoiceGroups(character = {}) {
   ].filter(([, items]) => toArray(items).length);
 }
 
+function trackedResourceCards(character = {}) {
+  const resourceMap = character.resources || {};
+  if (!resourceMap || typeof resourceMap !== 'object' || Array.isArray(resourceMap)) return [];
+
+  return Object.entries(resourceMap).flatMap(([key, value]) => {
+    const raw = value && typeof value === 'object' ? value : { current: value, remaining: value, max: value };
+    const max = Number(raw.max ?? raw.maximum ?? raw.total ?? raw.uses ?? raw.value ?? 0);
+    if (!max) return [];
+    return [{
+      key,
+      label: raw.label || raw.name || titleFromKey(key),
+      className: raw.className || raw.class_name || raw.source || (raw.homebrew ? 'Homebrew' : 'Class'),
+      current: Number(raw.current ?? raw.remaining ?? max),
+      max,
+      restore: raw.restore || raw.recovery || raw.refresh || 'long-rest',
+      fieldKey: key,
+      raw,
+      resourceMap,
+    }];
+  });
+}
+
 function savedResourceCards(character = {}) {
-  const cards = [];
+  const cards = [...trackedResourceCards(character)];
   const sorceryMax = Number(character.sorcery_points || 0);
   if (sorceryMax > 0) {
     cards.push({
@@ -96,11 +119,32 @@ function savedResourceCards(character = {}) {
   return cards;
 }
 
+function sheetActionCards(character = {}) {
+  return toArray(character.homebrew_actions || character.sheet_actions || character.custom_actions).map((action, index) => ({
+    key: action.id || action.key || `${action.name || action.title || 'action'}-${index}`,
+    name: action.name || action.title || `Homebrew Action ${index + 1}`,
+    type: action.action_type || action.type || action.timing || 'Action',
+    cost: action.cost || action.resource_cost || action.uses || '',
+    source: action.source || 'Homebrew',
+    description: action.description || action.rules_text || action.text || '',
+  }));
+}
+
+function passiveEffectCards(character = {}) {
+  return toArray(character.passive_effects || character.passiveEffects || character.custom_effects).map((effect, index) => ({
+    key: effect.id || effect.key || `${effect.name || effect.title || 'effect'}-${index}`,
+    name: effect.name || effect.title || `Passive Effect ${index + 1}`,
+    source: effect.source || 'Homebrew',
+    description: effect.description || effect.rules_text || effect.text || '',
+    modifier: effect.modifier || effect.bonus || effect.value || '',
+  }));
+}
+
 function ResourceCard({ resource, onChange }) {
   const [saving, setSaving] = useState(false);
   const current = Math.max(0, Math.min(Number(resource.max || 0), Number(resource.current || 0)));
   const max = Number(resource.max || 0);
-  const canPatch = Boolean(onChange && (resource.field || resource.nestedField));
+  const canPatch = Boolean(onChange && (resource.field || resource.nestedField || resource.fieldKey));
 
   const update = async (delta) => {
     if (!canPatch || saving) return;
@@ -111,6 +155,18 @@ function ResourceCard({ resource, onChange }) {
       await onChange({ [resource.field]: nextValue }, { error: `Could not update ${resource.label}` });
     } else if (resource.nestedField) {
       await onChange({ [resource.nestedField]: { ...(resource.raw || {}), remaining: nextValue } }, { error: `Could not update ${resource.label}` });
+    } else if (resource.fieldKey) {
+      await onChange({
+        resources: {
+          ...(resource.resourceMap || {}),
+          [resource.fieldKey]: {
+            ...(resource.raw || {}),
+            current: nextValue,
+            remaining: nextValue,
+            max,
+          },
+        },
+      }, { error: `Could not update ${resource.label}` });
     }
     setSaving(false);
   };
@@ -153,7 +209,7 @@ export default function CleanSheetFeaturesTab({
     [canonicalFeatures, actionEconomyGroups],
   );
   const resources = useMemo(() => {
-    const merged = [...(snapshot.resources || []), ...savedResourceCards(character)];
+    const merged = [...savedResourceCards(character), ...(snapshot.resources || [])];
     const seen = new Set();
     return merged.filter((resource) => {
       const key = `${resource.key || resource.label}-${resource.className || ''}`;
@@ -163,6 +219,8 @@ export default function CleanSheetFeaturesTab({
     });
   }, [snapshot.resources, character]);
   const classChoices = useMemo(() => selectedClassChoiceGroups(character), [character]);
+  const homebrewActions = useMemo(() => sheetActionCards(character), [character]);
+  const passiveEffects = useMemo(() => passiveEffectCards(character), [character]);
   const warnings = snapshot.warnings || [];
 
   return (
@@ -196,6 +254,51 @@ export default function CleanSheetFeaturesTab({
           ))}
         </div>
       </section>
+
+      {!!homebrewActions.length && (
+        <section className="clean-sheet-panel clean-sheet-wide" data-testid="homebrew-action-summary">
+          <div className="clean-sheet-panel-heading">
+            <div>
+              <h2>Homebrew Actions</h2>
+              <p>Actions added by uploaded classes, subclasses, feats, spells, or custom rules.</p>
+            </div>
+            <span>{homebrewActions.length}</span>
+          </div>
+          <div className="clean-sheet-readiness-grid">
+            {homebrewActions.map(action => (
+              <div key={action.key}>
+                <span>{action.type}</span>
+                <strong>{action.name}</strong>
+                {action.cost && <em>{action.cost}</em>}
+                {action.source && <em>{action.source}</em>}
+                {action.description && <p>{action.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!!passiveEffects.length && (
+        <section className="clean-sheet-panel clean-sheet-wide" data-testid="homebrew-passive-summary">
+          <div className="clean-sheet-panel-heading">
+            <div>
+              <h2>Homebrew Passive Effects</h2>
+              <p>Always-on bonuses and notes collected from saved homebrew content.</p>
+            </div>
+            <span>{passiveEffects.length}</span>
+          </div>
+          <div className="clean-sheet-readiness-grid">
+            {passiveEffects.map(effect => (
+              <div key={effect.key}>
+                <span>{effect.source}</span>
+                <strong>{effect.name}</strong>
+                {effect.modifier && <em>{effect.modifier}</em>}
+                {effect.description && <p>{effect.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {!!classChoices.length && (
         <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-specific-choice-summary">
