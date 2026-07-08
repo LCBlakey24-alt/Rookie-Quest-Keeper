@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Copy, Dice6, Plus, RefreshCw, Save, Search, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import { GM_REFERENCE_PACK_TABLES } from '@/data/gmReferenceTables';
+import { GM_REFERENCE_PACK_TABLES_BY_EDITION } from '@/data/gmReferenceTablesByEdition';
 import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -31,6 +31,14 @@ const CATEGORY_OPTIONS = [
   ['npc', 'NPCs'],
   ['lore', 'Lore'],
   ['rules', 'Rules Reference'],
+];
+
+const EDITION_FILTERS = [
+  ['all', 'All'],
+  ['2014', '2014'],
+  ['2024', '2024'],
+  ['campaign', 'Campaign'],
+  ['starter', 'Starter'],
 ];
 
 const CORE_STARTER_TABLES = [
@@ -212,10 +220,19 @@ function categoryLabel(category) {
 }
 
 function sourceLabel(table) {
-  if (table?.source === 'gm-reference-pack') return 'GM Reference Pack';
+  if (table?.editionLabel) return table.editionLabel;
+  if (table?.source === 'gm-reference-pack' || String(table?.source || '').startsWith('gm-reference-pack')) return 'GM Reference Pack';
   if (table?.locked) return 'Starter table';
   if (table?.localOnly) return 'Local only';
   return 'Campaign table';
+}
+
+function matchesEditionFilter(table, filter) {
+  if (filter === 'all') return true;
+  if (filter === '2014' || filter === '2024') return table?.edition === filter;
+  if (filter === 'campaign') return !table?.locked;
+  if (filter === 'starter') return table?.source === 'starter';
+  return true;
 }
 
 function entriesToText(entries) {
@@ -238,6 +255,7 @@ export default function LiveRollTablesPanel({
   const [showCreate, setShowCreate] = useState(false);
   const [savingTable, setSavingTable] = useState(false);
   const [tableSearch, setTableSearch] = useState('');
+  const [editionFilter, setEditionFilter] = useState('all');
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('general');
   const [newDescription, setNewDescription] = useState('');
@@ -263,17 +281,20 @@ export default function LiveRollTablesPanel({
 
   const tables = useMemo(() => [
     ...CORE_STARTER_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'starter' })),
-    ...GM_REFERENCE_PACK_TABLES.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true, source: 'gm-reference-pack' })),
+    ...GM_REFERENCE_PACK_TABLES_BY_EDITION.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: true })),
     ...campaignTables.map(table => ({ ...table, entries: normaliseEntries(table.entries), locked: false, source: table.source || (table.localOnly ? 'local' : 'campaign') })),
   ], [campaignTables]);
 
   const filteredTables = useMemo(() => {
     const needle = tableSearch.trim().toLowerCase();
-    if (!needle) return tables;
-    return tables.filter(table => `${table.name} ${table.category} ${table.description}`.toLowerCase().includes(needle));
-  }, [tableSearch, tables]);
+    return tables.filter(table => {
+      if (!matchesEditionFilter(table, editionFilter)) return false;
+      if (!needle) return true;
+      return `${table.name} ${table.category} ${table.description} ${table.editionLabel || ''} ${table.source || ''}`.toLowerCase().includes(needle);
+    });
+  }, [editionFilter, tableSearch, tables]);
 
-  const activeTable = tables.find(table => table.id === activeTableId) || tables[0];
+  const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
   const activeEntries = normaliseEntries(activeTable?.entries || []);
   const activeIsRollable = isRollableTable(activeTable);
 
@@ -347,7 +368,7 @@ export default function LiveRollTablesPanel({
   };
 
   const duplicateStarterToCampaign = (table) => {
-    setNewName(table.name);
+    setNewName(table.name.replace(/^\d{4}\s+—\s+/, ''));
     setNewCategory(table.category || 'general');
     setNewDescription(table.description || '');
     setNewLines(entriesToText(table.entries));
@@ -400,7 +421,7 @@ export default function LiveRollTablesPanel({
 
       <div style={statusStyle(apiReady)}>
         <strong>{apiReady ? 'Campaign saved' : 'Local fallback'}</strong>
-        <span>{apiReady ? 'Custom tables save to this campaign. Built-in GM reference tables are always available.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span>
+        <span>{apiReady ? 'Custom tables save to this campaign. Built-in reference tables are separated into 2014 and 2024 sets.' : 'Custom tables are available in this browser, but the campaign table API did not respond.'}</span>
       </div>
 
       {showCreate && (
@@ -417,6 +438,7 @@ export default function LiveRollTablesPanel({
 
       <div style={layoutStyle}>
         <aside style={tableListStyle} aria-label="Available campaign tables">
+          <div style={filterRowStyle}>{EDITION_FILTERS.map(([value, label]) => <button key={value} type="button" onClick={() => setEditionFilter(value)} style={filterChipStyle(editionFilter === value)}>{label}</button>)}</div>
           <label style={searchBoxStyle}><Search size={14} /><input value={tableSearch} onChange={(event) => setTableSearch(event.target.value)} placeholder="Search tables, weapons, potions..." style={searchInputStyle} /></label>
           {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
           {filteredTables.map(table => {
@@ -436,12 +458,12 @@ export default function LiveRollTablesPanel({
         <main style={rollerStyle}>
           <div style={activeHeaderStyle}>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeIsRollable ? activeTable.die : 'Reference table'}</p>
+              <p style={eyebrowStyle}>{categoryLabel(activeTable.category)} · {activeIsRollable ? activeTable.die : 'Reference table'}{activeTable.editionLabel ? ` · ${activeTable.editionLabel}` : ''}</p>
               <h4 style={activeTitleStyle}>{activeTable.name}</h4>
               <p style={subtitleStyle}>{activeTable.description}</p>
             </div>
             <div style={buttonRowStyle}>
-              {activeTable.locked && activeTable.source !== 'gm-reference-pack' && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
+              {activeTable.locked && activeTable.source !== 'starter' && <button type="button" onClick={() => duplicateStarterToCampaign(activeTable)} style={secondaryButtonStyle}><Save size={14} /> Save Copy</button>}
               {!activeTable.locked && <button type="button" onClick={() => deleteCustomTable(activeTable.id)} style={dangerButtonStyle}><Trash2 size={14} /> Delete</button>}
             </div>
           </div>
@@ -502,6 +524,8 @@ const fieldStyle = { display: 'grid', gap: 5 };
 const labelStyle = { color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 9px', outline: 'none', fontFamily: fontStack };
 const textareaStyle = { minHeight: 130, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: 9, outline: 'none', fontFamily: fontStack, resize: 'vertical' };
+const filterRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
+const filterChipStyle = (active) => ({ minHeight: 30, border: `1px solid ${active ? theme.red : theme.line}`, background: active ? 'rgba(208,0,0,0.22)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 11, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack });
 const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 7, minHeight: 38, background: theme.bg, border: `1px solid ${theme.line}`, color: theme.muted, padding: '0 9px' };
 const searchInputStyle = { flex: 1, minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: theme.text, fontFamily: fontStack };
 const buttonRowStyle = { display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' };
