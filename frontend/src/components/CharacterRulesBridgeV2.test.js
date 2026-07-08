@@ -11,6 +11,15 @@ describe('uploaded builder option normalization', () => {
     });
   });
 
+  test('splits mixed uploaded spell class separators from notes and templates', () => {
+    expect(normaliseSpellClasses({ classes: 'Wizard; Warlock | Cleric and Bard' })).toEqual([
+      'Wizard',
+      'Warlock',
+      'Cleric',
+      'Bard',
+    ]);
+  });
+
   test('keeps unknown class spell lists permissive as a safe fallback', () => {
     expect(normaliseSpellClasses({ classes: 'Mystic' }).length).toBeGreaterThan(2);
   });
