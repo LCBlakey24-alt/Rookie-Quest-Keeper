@@ -173,11 +173,7 @@ export default function MobilePlayerCampaignView() {
     : pageStyle;
 
   if (loading) {
-    return (
-      <main style={pageStyle}>
-        <div style={{ ...panelStyle, textAlign: 'center', color: theme.muted }}>Loading...</div>
-      </main>
-    );
+    return <MobileLoadingState title={isDashboardMode ? 'Loading mobile dashboard…' : 'Opening player campaign…'} />;
   }
 
   if (isDashboardMode) {
@@ -378,6 +374,20 @@ export default function MobilePlayerCampaignView() {
   );
 }
 
+function MobileLoadingState({ title }) {
+  return (
+    <main data-testid="mobile-player-loading" style={pageStyle}>
+      <section role="status" aria-live="polite" aria-busy="true" style={mobileLoadingCardStyle}>
+        <span style={mobileLoadingMarkStyle}>RQK</span>
+        <span style={mobileLoadingSpinnerStyle} aria-hidden="true" />
+        <h1 style={mobileLoadingTitleStyle}>{title}</h1>
+        <p style={mobileLoadingTextStyle}>Gathering your characters, campaigns, party notes, and mobile table tools.</p>
+      </section>
+      <style>{mobileLoadingCss}</style>
+    </main>
+  );
+}
+
 function SummaryTile({ icon: Icon, label, value }) {
   return (
     <div style={summaryTileStyle}>
@@ -434,3 +444,29 @@ const mobileSummaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(3
 const summaryTileStyle = { background: theme.panel, border: `1px solid ${theme.border}`, padding: 10, display: 'grid', gap: 4, alignContent: 'start', minHeight: 78 };
 const mobileActionGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };
 const emptyBoxStyle = { border: `1px dashed ${theme.border}`, background: 'rgba(255,255,255,0.03)', padding: 12, color: theme.muted, display: 'grid', gap: 5, fontSize: 12, lineHeight: 1.4 };
+const mobileLoadingCardStyle = {
+  width: 'min(560px, calc(100vw - 32px))',
+  minHeight: 254,
+  margin: 'auto',
+  padding: '26px 22px',
+  display: 'grid',
+  justifyItems: 'center',
+  alignContent: 'center',
+  gap: 12,
+  textAlign: 'center',
+  border: '1px solid transparent',
+  borderLeft: '5px solid var(--rq-primary, #c08a3d)',
+  borderRadius: 18,
+  background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.96), rgba(58, 38, 25, 0.92)) padding-box, var(--rq-sunset-gradient, linear-gradient(135deg, #a45a32, #c08a3d, #e0b15c)) border-box',
+  boxShadow: '0 22px 70px rgba(0, 0, 0, 0.38), 0 0 40px rgba(192, 138, 61, 0.12)',
+};
+const mobileLoadingMarkStyle = { minHeight: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px', border: '1px solid rgba(255,248,239,0.24)', borderRadius: 999, color: 'var(--rq-primary-hover, #e0b15c)', fontSize: 11, fontWeight: 950, letterSpacing: '0.16em' };
+const mobileLoadingSpinnerStyle = { width: 54, height: 54, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqMobileLoadingSpin 0.86s linear infinite' };
+const mobileLoadingTitleStyle = { margin: 0, color: 'var(--rq-text, #f5e6c8)', fontFamily: 'var(--rq-title-font, Cinzel, Georgia, serif)', fontSize: 'clamp(1.45rem, 6vw, 2.05rem)', lineHeight: 1.08, letterSpacing: '0.03em' };
+const mobileLoadingTextStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,248,239,0.72))', fontSize: 13, lineHeight: 1.5, maxWidth: 380 };
+const mobileLoadingCss = `
+  @keyframes rqMobileLoadingSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="mobile-player-loading"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
