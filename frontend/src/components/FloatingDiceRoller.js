@@ -27,7 +27,8 @@ export default function FloatingDiceRoller() {
   const [rollFlicker, setRollFlicker] = useState(null);
 
   const latestTotal = history[0]?.total;
-  const toggleLabel = useMemo(() => latestTotal ? `Dice roller. Last roll ${latestTotal}` : 'Open dice roller', [latestTotal]);
+  const hasLatestTotal = Number.isFinite(Number(latestTotal));
+  const toggleLabel = useMemo(() => hasLatestTotal ? `Dice roller. Last roll ${latestTotal}` : 'Open dice roller', [hasLatestTotal, latestTotal]);
 
   const performRoll = (notation, label = notation, options = {}) => {
     const formula = cleanFormula(notation);
