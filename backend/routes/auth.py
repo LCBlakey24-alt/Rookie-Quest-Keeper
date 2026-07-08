@@ -74,6 +74,7 @@ async def cleanup_user_account(username: str) -> dict:
         'user_subclasses',
         'user_backgrounds',
         'user_feats',
+        'user_spells',
         'user_magic_items',
         'homebrew_items',
         'character_templates',
@@ -260,19 +261,16 @@ async def forgot_password(request: ForgotPasswordRequest):
                     <a href="{reset_link}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
                         Reset Password
                     </a>
-                    <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
-                    <p style="color: #666; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
-                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-                    <p style="color: #999; font-size: 12px;">Rookie Quest Keeper - Your Ultimate GM Companion</p>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; color: #666;">{reset_link}</p>
+                    <p><strong>This link will expire in 1 hour.</strong></p>
+                    <p>If you didn't request this, you can safely ignore this email.</p>
                 </div>
                 """
             })
-            logger.info(f"Password reset email sent to {request.email}")
         except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-            # Still return success to prevent enumeration
-    else:
-        logger.warning(f"Resend not configured. Reset token: {reset_token}")
+            logger.error(f"Failed to send password reset email: {e}")
+            # Don't reveal email sending failures
     
     return {"message": "If an account exists with this email, a reset link has been sent"}
 
@@ -282,84 +280,70 @@ async def reset_password(request: ResetPasswordRequest):
     reset_record = await db.password_resets.find_one({'token': request.token})
     
     if not reset_record:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
     
-    # Check expiration
-    expires_at = datetime.fromisoformat(reset_record['expires_at'].replace('Z', '+00:00'))
+    # Check if token expired
+    expires_at = datetime.fromisoformat(reset_record['expires_at'])
     if datetime.now(timezone.utc) > expires_at:
         await db.password_resets.delete_one({'token': request.token})
-        raise HTTPException(status_code=400, detail="Reset token has expired")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired")
     
     # Update password
+    password_hash = hash_password(request.new_password)
     await db.users.update_one(
         {'email': reset_record['email']},
-        {'$set': {'password_hash': hash_password(request.new_password)}}
+        {'$set': {'password_hash': password_hash}}
     )
     
-    # Delete used token
+    # Delete reset token
     await db.password_resets.delete_one({'token': request.token})
     
-    return {"message": "Password reset successfully"}
+    return {"message": "Password reset successful"}
 
-# ==================== ACCOUNT MANAGEMENT ====================
-
-@router.post("/account/change-password")
-async def change_password(request: ChangePasswordRequest, username: str = Depends(get_current_user)):
-    """Change password for logged-in user"""
-    user = await db.users.find_one({'username': username})
+@router.post("/auth/change-password")
+async def change_password(request: ChangePasswordRequest, current_username: str = Depends(get_current_user)):
+    """Change password for authenticated user"""
+    user = await db.users.find_one({'username': current_username})
+    if not user or not verify_password(request.current_password, user['password_hash']):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
     
-    if not verify_password(request.current_password, user['password_hash']):
-        raise HTTPException(status_code=400, detail="Current password is incorrect")
-    
+    # Update password
+    new_hash = hash_password(request.new_password)
     await db.users.update_one(
-        {'username': username},
-        {'$set': {'password_hash': hash_password(request.new_password)}}
+        {'username': current_username},
+        {'$set': {'password_hash': new_hash}}
     )
     
     return {"message": "Password changed successfully"}
 
-@router.put("/account/update")
-async def update_account(request: UpdateAccountRequest, username: str = Depends(get_current_user)):
-    """Update username or email"""
-    updates = {}
-    
-    if request.username and request.username != username:
-        new_username = normalize_username_for_auth(request.username)
-        # Check if new username is taken
-        existing = await db.users.find_one({'username': new_username})
-        if existing:
-            raise HTTPException(status_code=400, detail="Username already taken")
-        updates['username'] = new_username
-        
-        # Also update username in campaigns
-        await db.campaigns.update_many(
-            {'dm_user_id': username},
-            {'$set': {'dm_user_id': new_username}}
-        )
-        # Update in characters
-        await db.player_characters.update_many(
-            {'user_id': username},
-            {'$set': {'user_id': new_username}}
-        )
-    
-    if request.email is not None:
-        normalized_email = request.email.lower() if request.email else None
-        if normalized_email:
-            existing = await db.users.find_one({'email': normalized_email, 'username': {'$ne': username}})
-            if existing:
-                raise HTTPException(status_code=400, detail="Email already registered")
-            updates['email'] = normalized_email
-        else:
-            updates['email'] = None
-    
-    if updates:
-        await db.users.update_one({'username': username}, {'$set': updates})
-    
-    user = await db.users.find_one({'username': updates.get('username', username)}, {'_id': 0, 'password_hash': 0})
-    return user
+@router.get("/auth/me")
+async def get_me(current_username: str = Depends(get_current_user)):
+    """Get current user info"""
+    user = await db.users.find_one({'username': current_username}, {'password_hash': 0, '_id': 0})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return {"username": user['username'], "email": user.get('email'), "created_at": user.get('created_at')}
 
-@router.delete("/account")
-async def delete_account(username: str = Depends(get_current_user)):
-    """Delete current user account and associated data."""
-    result = await cleanup_user_account(username)
+@router.patch("/auth/me")
+async def update_me(request: UpdateAccountRequest, current_username: str = Depends(get_current_user)):
+    """Update current user's account details."""
+    updates = {}
+    if request.email is not None:
+        email = request.email.lower().strip() if request.email else None
+        if email:
+            existing = await db.users.find_one({'email': email, 'username': {'$ne': current_username}})
+            if existing:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        updates['email'] = email
+
+    if not updates:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No valid updates provided")
+
+    await db.users.update_one({'username': current_username}, {'$set': updates})
+    return {"message": "Account updated successfully", **updates}
+
+@router.delete("/auth/me")
+async def delete_me(current_username: str = Depends(get_current_user)):
+    """Delete the authenticated user's account and owned content."""
+    result = await cleanup_user_account(current_username)
     return {"message": "Account deleted", **result}
