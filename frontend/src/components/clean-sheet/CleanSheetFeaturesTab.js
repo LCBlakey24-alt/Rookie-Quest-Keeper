@@ -1,7 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { deriveCharacterSnapshot } from '@/data/deriveCharacterSnapshot';
 import { featureTypeLabel, fmt } from './cleanSheetUtils';
+
+const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const firstArray = (...values) => values.find(value => toArray(value).length) || [];
+const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) : [];
 
 function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
   const seen = new Set();
@@ -35,6 +39,97 @@ function groupFeatures(features = []) {
   return groups;
 }
 
+function selectedClassChoiceGroups(character = {}) {
+  return [
+    ['Fighting Style', firstArray(character.fighting_styles, oneOrArray(character.fighting_style))],
+    ['Expertise', firstArray(character.expertise_choices, character.expertise)],
+    ['Metamagic', firstArray(character.metamagic_options, character.metamagic)],
+    ['Maneuvers', firstArray(character.combat_maneuvers, character.maneuvers)],
+    ['Pact Boon', firstArray(oneOrArray(character.pact_boon), oneOrArray(character.pactBoon))],
+    ['Eldritch Invocations', firstArray(character.eldritch_invocations, character.invocations)],
+  ].filter(([, items]) => toArray(items).length);
+}
+
+function savedResourceCards(character = {}) {
+  const cards = [];
+  const sorceryMax = Number(character.sorcery_points || 0);
+  if (sorceryMax > 0) {
+    cards.push({
+      key: 'sorcery_points',
+      label: 'Sorcery Points',
+      className: 'Sorcerer',
+      current: Number(character.sorcery_points_remaining ?? sorceryMax),
+      max: sorceryMax,
+      restore: 'long-rest',
+      field: 'sorcery_points_remaining',
+    });
+  }
+
+  const superiority = character.superiority_dice || {};
+  const superiorityMax = Number(superiority.total || 0);
+  if (superiorityMax > 0) {
+    cards.push({
+      key: 'superiority_dice',
+      label: `Superiority Dice ${superiority.die || ''}`.trim(),
+      className: 'Battle Master',
+      current: Number(superiority.remaining ?? superiorityMax),
+      max: superiorityMax,
+      restore: 'short-rest',
+      nestedField: 'superiority_dice',
+      nestedCurrentKey: 'remaining',
+    });
+  }
+
+  toArray(character.homebrew_resources).forEach((resource, index) => {
+    const max = Number(resource.max || resource.maximum || resource.total || resource.uses || 0);
+    if (!max) return;
+    cards.push({
+      key: resource.key || resource.name || `homebrew-resource-${index}`,
+      label: resource.label || resource.name || `Homebrew Resource ${index + 1}`,
+      className: resource.className || resource.source || 'Homebrew',
+      current: Number(resource.current ?? resource.remaining ?? max),
+      max,
+      restore: resource.restore || resource.recovery || 'long-rest',
+    });
+  });
+
+  return cards;
+}
+
+function ResourceCard({ resource, onChange }) {
+  const [saving, setSaving] = useState(false);
+  const current = Math.max(0, Math.min(Number(resource.max || 0), Number(resource.current || 0)));
+  const max = Number(resource.max || 0);
+  const canPatch = Boolean(onChange && (resource.field || resource.nestedField));
+
+  const update = async (delta) => {
+    if (!canPatch || saving) return;
+    const nextValue = Math.max(0, Math.min(max, current + delta));
+    if (nextValue === current) return;
+    setSaving(true);
+    if (resource.field) {
+      await onChange({ [resource.field]: nextValue }, { error: `Could not update ${resource.label}` });
+    } else if (resource.nestedField) {
+      await onChange({ [resource.nestedField]: { ...(resource.raw || {}), remaining: nextValue } }, { error: `Could not update ${resource.label}` });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div>
+      <span>{resource.className || 'Class'}</span>
+      <strong>{resource.label}</strong>
+      <em>{current}/{max} • restores on {String(resource.restore || 'long-rest').replace('-', ' ')}</em>
+      {canPatch && (
+        <div className="clean-sheet-slot-actions">
+          <button type="button" disabled={saving || current <= 0} onClick={() => update(-1)}>Spend</button>
+          <button type="button" disabled={saving || current >= max} onClick={() => update(1)}>Restore</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CleanSheetFeaturesTab({
   ac,
   actionEconomyGroups,
@@ -46,6 +141,7 @@ export default function CleanSheetFeaturesTab({
   rulesEdition,
   speed,
   onOpenInventory,
+  onCharacterUpdate,
 }) {
   const snapshot = useMemo(() => deriveCharacterSnapshot(character), [character]);
   const canonicalFeatures = useMemo(
@@ -56,7 +152,17 @@ export default function CleanSheetFeaturesTab({
     () => groupFeatures(canonicalFeatures.length ? canonicalFeatures : Object.values(actionEconomyGroups || {}).flat()),
     [canonicalFeatures, actionEconomyGroups],
   );
-  const resources = snapshot.resources || [];
+  const resources = useMemo(() => {
+    const merged = [...(snapshot.resources || []), ...savedResourceCards(character)];
+    const seen = new Set();
+    return merged.filter((resource) => {
+      const key = `${resource.key || resource.label}-${resource.className || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [snapshot.resources, character]);
+  const classChoices = useMemo(() => selectedClassChoiceGroups(character), [character]);
   const warnings = snapshot.warnings || [];
 
   return (
@@ -91,6 +197,26 @@ export default function CleanSheetFeaturesTab({
         </div>
       </section>
 
+      {!!classChoices.length && (
+        <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-specific-choice-summary">
+          <div className="clean-sheet-panel-heading">
+            <div>
+              <h2>Selected Class Choices</h2>
+              <p>Choices made during creation or starting-level setup.</p>
+            </div>
+            <span>{classChoices.length} group{classChoices.length === 1 ? '' : 's'}</span>
+          </div>
+          <div className="clean-sheet-proficiency-lists">
+            {classChoices.map(([label, items]) => (
+              <div key={label}>
+                <h3>{label}</h3>
+                <p>{toArray(items).join(', ')}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {!!resources.length && (
         <section className="clean-sheet-panel clean-sheet-wide" data-testid="class-resource-summary">
           <div className="clean-sheet-panel-heading">
@@ -102,11 +228,11 @@ export default function CleanSheetFeaturesTab({
           </div>
           <div className="clean-sheet-readiness-grid">
             {resources.map(resource => (
-              <div key={`${resource.className || 'class'}-${resource.key}`}>
-                <span>{resource.className || 'Class'}</span>
-                <strong>{resource.label}</strong>
-                <em>{resource.current}/{resource.max} • restores on {String(resource.restore || 'long-rest').replace('-', ' ')}</em>
-              </div>
+              <ResourceCard
+                key={`${resource.className || 'class'}-${resource.key || resource.label}`}
+                resource={resource}
+                onChange={onCharacterUpdate}
+              />
             ))}
           </div>
         </section>
