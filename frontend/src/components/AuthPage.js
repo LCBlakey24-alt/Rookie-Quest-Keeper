@@ -107,6 +107,18 @@ const MODE_ASSURANCE = {
   },
 };
 
+const AUTH_PANEL_IDS = {
+  login: 'rqk-auth-panel-login',
+  register: 'rqk-auth-panel-register',
+  forgot: 'rqk-auth-panel-forgot',
+  reset: 'rqk-auth-panel-reset',
+};
+
+const AUTH_TAB_IDS = {
+  login: 'rqk-auth-tab-login',
+  register: 'rqk-auth-tab-register',
+};
+
 function getInitialMode(initialToken, queryMode) {
   if (initialToken) return 'reset';
   return URL_MODES.has(queryMode) ? queryMode : 'login';
@@ -368,9 +380,12 @@ export default function AuthPage({ onLogin = () => {} }) {
             {showCredentialToggle && (
               <div className="rqk-auth-mode-toggle" role="tablist" aria-label="Choose sign in or create account">
                 <button
+                  id={AUTH_TAB_IDS.login}
                   type="button"
                   role="tab"
                   aria-selected={mode === 'login'}
+                  aria-controls={AUTH_PANEL_IDS.login}
+                  tabIndex={mode === 'login' ? 0 : -1}
                   className={mode === 'login' ? 'is-active' : ''}
                   onClick={() => goToMode('login')}
                   disabled={loading}
@@ -378,9 +393,12 @@ export default function AuthPage({ onLogin = () => {} }) {
                   Sign in
                 </button>
                 <button
+                  id={AUTH_TAB_IDS.register}
                   type="button"
                   role="tab"
                   aria-selected={mode === 'register'}
+                  aria-controls={AUTH_PANEL_IDS.register}
+                  tabIndex={mode === 'register' ? 0 : -1}
                   className={mode === 'register' ? 'is-active' : ''}
                   onClick={() => goToMode('register')}
                   disabled={loading}
@@ -394,7 +412,13 @@ export default function AuthPage({ onLogin = () => {} }) {
             <AuthAssurancePanel {...assurance} />
 
             {mode === 'login' && (
-              <form onSubmit={handleLogin} className="rqk-auth-form">
+              <form
+                id={AUTH_PANEL_IDS.login}
+                role="tabpanel"
+                aria-labelledby={AUTH_TAB_IDS.login}
+                onSubmit={handleLogin}
+                className="rqk-auth-form"
+              >
                 <AuthInput
                   id="login-identifier"
                   name="username"
@@ -445,7 +469,13 @@ export default function AuthPage({ onLogin = () => {} }) {
             )}
 
             {mode === 'register' && (
-              <form onSubmit={handleRegister} className="rqk-auth-form">
+              <form
+                id={AUTH_PANEL_IDS.register}
+                role="tabpanel"
+                aria-labelledby={AUTH_TAB_IDS.register}
+                onSubmit={handleRegister}
+                className="rqk-auth-form"
+              >
                 <AuthInput
                   id="register-username"
                   name="username"
@@ -484,6 +514,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.password}
                   onChange={(value) => setRegisterData({ ...registerData, password: value })}
                   autoComplete="new-password"
+                  describedBy="register-password-readiness"
                   minLength={8}
                   required
                   rightAction={
@@ -495,7 +526,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   }
                 />
 
-                <PasswordReadiness checks={registerPasswordChecks} strength={registerPasswordStrength} />
+                <PasswordReadiness id="register-password-readiness" checks={registerPasswordChecks} strength={registerPasswordStrength} />
 
                 <AuthInput
                   id="register-confirm-password"
@@ -507,12 +538,13 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.confirmPassword}
                   onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
                   autoComplete="new-password"
+                  describedBy="register-password-match"
                   minLength={8}
                   required
                   ariaInvalid={confirmStatus.tone === 'bad'}
                 />
 
-                <PasswordMatchNotice status={confirmStatus} />
+                <PasswordMatchNotice id="register-password-match" status={confirmStatus} />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Creating account...' : 'Create account'}
@@ -523,7 +555,12 @@ export default function AuthPage({ onLogin = () => {} }) {
             )}
 
             {mode === 'forgot' && (
-              <form onSubmit={handleForgotPassword} className="rqk-auth-form">
+              <form
+                id={AUTH_PANEL_IDS.forgot}
+                aria-labelledby="rqk-auth-title"
+                onSubmit={handleForgotPassword}
+                className="rqk-auth-form"
+              >
                 <AuthInput
                   id="forgot-email"
                   name="email"
@@ -549,7 +586,12 @@ export default function AuthPage({ onLogin = () => {} }) {
             )}
 
             {mode === 'reset' && (
-              <form onSubmit={handleResetPassword} className="rqk-auth-form">
+              <form
+                id={AUTH_PANEL_IDS.reset}
+                aria-labelledby="rqk-auth-title"
+                onSubmit={handleResetPassword}
+                className="rqk-auth-form"
+              >
                 <AuthInput
                   id="reset-password"
                   name="new_password"
@@ -560,6 +602,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={resetData.new_password}
                   onChange={(value) => setResetData({ ...resetData, new_password: value })}
                   autoComplete="new-password"
+                  describedBy="reset-password-readiness"
                   minLength={8}
                   required
                   rightAction={
@@ -571,7 +614,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                   }
                 />
 
-                <PasswordReadiness checks={resetPasswordChecks} strength={resetPasswordStrength} />
+                <PasswordReadiness id="reset-password-readiness" checks={resetPasswordChecks} strength={resetPasswordStrength} />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Resetting password...' : 'Reset password'}
@@ -609,8 +652,9 @@ function AuthAssurancePanel({ label, title, text }) {
   );
 }
 
-function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, testId, rightAction, required = false, minLength, ariaInvalid = false }) {
+function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, describedBy, testId, rightAction, required = false, minLength, ariaInvalid = false }) {
   const hintId = hint ? `${id}-hint` : undefined;
+  const describedByIds = [hintId, describedBy].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className="rqk-auth-input-group">
@@ -629,7 +673,7 @@ function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onCh
           autoCapitalize="none"
           inputMode={inputMode}
           spellCheck="false"
-          aria-describedby={hintId}
+          aria-describedby={describedByIds}
           aria-invalid={ariaInvalid ? 'true' : undefined}
           data-testid={testId}
           required={required}
@@ -678,11 +722,11 @@ function AuthSwitch({ text, actionText, onClick, disabled }) {
   );
 }
 
-function PasswordReadiness({ checks, strength }) {
+function PasswordReadiness({ id, checks, strength }) {
   const filledSegments = Math.max(1, strength.score);
 
   return (
-    <div className={`rqk-auth-password-readiness is-${strength.tone}`} aria-live="polite">
+    <div id={id} className={`rqk-auth-password-readiness is-${strength.tone}`} aria-live="polite">
       <div className="rqk-auth-password-readiness__top">
         <span>Password strength</span>
         <strong>{strength.label}</strong>
@@ -710,9 +754,9 @@ function getConfirmPasswordStatus(password, confirmPassword) {
   return { tone: 'bad', message: 'Passwords do not match yet.' };
 }
 
-function PasswordMatchNotice({ status }) {
+function PasswordMatchNotice({ id, status }) {
   return (
-    <p className={`rqk-auth-match-notice is-${status.tone}`} aria-live="polite">
+    <p id={id} className={`rqk-auth-match-notice is-${status.tone}`} aria-live="polite">
       <span aria-hidden="true" />
       {status.message}
     </p>
