@@ -28,6 +28,20 @@ const controls = [
   ['beta_tools_enabled', 'Beta tools', 'Show beta and playtest tools where connected.'],
 ];
 
+const auditLabels = {
+  announcement_enabled: 'Announcement banner',
+  announcement_text: 'Announcement text',
+  maintenance_mode: 'Maintenance mode',
+  signup_enabled: 'New signups',
+  rook_text_enabled: 'Rook text helper',
+  feedback_enabled: 'Feedback submissions',
+  reviews_enabled: 'Reviews',
+  uploads_enabled: 'Uploads',
+  campaign_creation_enabled: 'Campaign creation',
+  character_creation_enabled: 'Character creation',
+  beta_tools_enabled: 'Beta tools',
+};
+
 const rq = {
   panel: 'var(--rq-bg-panel, #242424)',
   card: 'var(--rq-bg-panel-alt, #1F1F1F)',
@@ -50,6 +64,7 @@ export default function AdminSiteControlTab() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
+  const [lastSavedSettings, setLastSavedSettings] = useState(defaultSettings);
   const [overview, setOverview] = useState({
     users_count: 0,
     campaigns_count: 0,
@@ -60,6 +75,10 @@ export default function AdminSiteControlTab() {
     new_feedback_count: 0,
   });
 
+  const logAudit = async (entry) => {
+    try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block site control saves. */ }
+  };
+
   const load = async () => {
     try {
       setLoading(true);
@@ -67,7 +86,9 @@ export default function AdminSiteControlTab() {
         apiClient.get('/admin/site-settings'),
         apiClient.get('/admin/overview'),
       ]);
-      setSettings(prev => ({ ...prev, ...(settingsRes.data || {}) }));
+      const nextSettings = { ...defaultSettings, ...(settingsRes.data || {}) };
+      setSettings(nextSettings);
+      setLastSavedSettings(nextSettings);
       setOverview(prev => ({ ...prev, ...(overviewRes.data || {}) }));
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Failed to load site controls');
@@ -81,10 +102,20 @@ export default function AdminSiteControlTab() {
   const setField = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
 
   const save = async () => {
+    const changes = describeChanges(lastSavedSettings, settings);
     try {
       setSaving(true);
       await apiClient.put('/admin/site-settings', settings);
-      toast.success('Site settings updated');
+      if (changes.length > 0) {
+        await logAudit({
+          action: 'Site settings changed',
+          area: 'site_control',
+          target_id: 'global',
+          target_label: 'Site Control',
+          detail: changes.join('\n'),
+        });
+      }
+      toast.success(changes.length > 0 ? 'Site settings updated' : 'Site settings saved');
       load();
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Failed to save site settings');
@@ -166,6 +197,23 @@ export default function AdminSiteControlTab() {
       </Section>
     </div>
   );
+}
+
+function describeChanges(before, after) {
+  return Object.keys(auditLabels).reduce((changes, key) => {
+    const oldValue = before?.[key];
+    const newValue = after?.[key];
+    if (String(oldValue ?? '') === String(newValue ?? '')) return changes;
+    const label = auditLabels[key] || key;
+    if (typeof newValue === 'boolean' || typeof oldValue === 'boolean') {
+      changes.push(`${label}: ${oldValue ? 'on' : 'off'} → ${newValue ? 'on' : 'off'}`);
+    } else {
+      const oldText = String(oldValue || '').slice(0, 80) || 'empty';
+      const newText = String(newValue || '').slice(0, 80) || 'empty';
+      changes.push(`${label}: "${oldText}" → "${newText}"`);
+    }
+    return changes;
+  }, []);
 }
 
 function Section({ title, icon: Icon, children }) {
