@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Megaphone, Pencil, Plus, RefreshCw, Save, Star, X } from 'lucide-react';
+import { Eye, EyeOff, Megaphone, Pencil, RefreshCw, Save, Star, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -33,6 +33,10 @@ export default function AdminSiteUpdatesTab() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+
+  const logAudit = async (entry) => {
+    try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block the editor. */ }
+  };
 
   const loadUpdates = async () => {
     try {
@@ -96,6 +100,13 @@ export default function AdminSiteUpdatesTab() {
         const next = prev.filter(update => update.id !== res.data.id);
         return [res.data, ...next].sort(sortUpdates);
       });
+      await logAudit({
+        action: form.id ? 'Site update edited' : 'Site update created',
+        area: 'site_updates',
+        target_id: res.data.id || form.id,
+        target_label: res.data.title || payload.title,
+        detail: `${payload.is_published ? 'Published' : 'Draft'} • ${payload.is_pinned ? 'Pinned' : 'Not pinned'}`,
+      });
       toast.success(form.id ? 'Site update saved' : 'Site update created');
       resetForm();
     } catch (err) {
@@ -117,6 +128,18 @@ export default function AdminSiteUpdatesTab() {
       };
       const res = await apiClient.put(`/admin/site-updates/${update.id}`, payload);
       setUpdates(prev => prev.map(item => item.id === update.id ? res.data : item).sort(sortUpdates));
+      const action = patch.is_published !== undefined
+        ? (patch.is_published ? 'Site update published' : 'Site update moved to draft')
+        : patch.is_pinned !== undefined
+          ? (patch.is_pinned ? 'Site update pinned' : 'Site update unpinned')
+          : 'Site update changed';
+      await logAudit({
+        action,
+        area: 'site_updates',
+        target_id: update.id,
+        target_label: update.title || payload.title,
+        detail: `${payload.is_published ? 'Published' : 'Draft'} • ${payload.is_pinned ? 'Pinned' : 'Not pinned'}`,
+      });
       toast.success('Site update changed');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to update site update');
