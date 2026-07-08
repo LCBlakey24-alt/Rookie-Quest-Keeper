@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import FullCharacterCreatorV2 from '@/components/FullCharacterCreatorV2';
+import StartingLevelClassSpecificChoices from '@/components/StartingLevelClassSpecificChoices';
 import { AsiChoiceRow, SpellChoiceSection, WarlockChoiceSection } from '@/components/StartingLevelDetailedChoices';
 import { BACKGROUNDS, CLASSES, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { FEATS } from '@/data/levelUpData';
@@ -12,6 +13,11 @@ import {
   getSpellSlotsForCaster,
 } from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
+import {
+  applyClassSpecificChoicesToPayload,
+  buildClassSpecificChoicePlan,
+  normaliseClassSpecificSelection,
+} from '@/data/classSpecificChoiceEngine';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import {
   applyStartingLevelChoicesToPayload,
@@ -377,6 +383,7 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   };
 
   enhanced = applyStartingLevelChoicesToPayload(enhanced, levelChoiceSelections, featOptions, detailSelections);
+  enhanced = applyClassSpecificChoicesToPayload(enhanced, detailSelections?.classSpecific, detailSelections?.classSpecificPlan);
   const mechanics = collectSelectedHomebrewMechanics({ options, enhanced, className, subclassName, level });
   enhanced.homebrew_resources = mechanics.resources;
   enhanced.homebrew_actions = mechanics.actions;
@@ -406,7 +413,7 @@ export default function CharacterRulesBridgeV2(props) {
   const [targetLevel, setTargetLevel] = useState(() => clampLevel(sessionStorage.getItem(LEVEL_KEY) || 1));
   const [selectedSubclass, setSelectedSubclass] = useState(() => sessionStorage.getItem(SUBCLASS_KEY) || '');
   const [levelChoiceSelections, setLevelChoiceSelections] = useState(() => readJson(CHOICES_KEY, {}));
-  const [detailSelections, setDetailSelections] = useState(() => readJson(DETAIL_CHOICES_KEY, { spells: {}, warlock: {} }));
+  const [detailSelections, setDetailSelections] = useState(() => readJson(DETAIL_CHOICES_KEY, { spells: {}, warlock: {}, classSpecific: {} }));
 
   const mergedRules = useMemo(() => buildMergedCharacterRules({ races: RACES, classes: CLASSES, backgrounds: BACKGROUNDS }, options), [options]);
   applyMergedRules(mergedRules);
@@ -446,6 +453,11 @@ export default function CharacterRulesBridgeV2(props) {
     edition: currentEdition,
     abilities: draftAbilitySnapshot(builderDraft),
   }), [currentClassName, currentEdition, targetLevel, abilitySignature, options?.spells?.length]);
+  const classSpecificPlan = useMemo(() => buildClassSpecificChoicePlan({
+    className: currentClassName,
+    level: targetLevel,
+    subclassName: needsSubclass ? selectedSubclass : '',
+  }), [currentClassName, targetLevel, needsSubclass, selectedSubclass]);
   const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition }), [currentEdition, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
   const asiChoiceSignature = choicePlan.asiChoices.map((choice) => choice.id).join('|');
@@ -468,11 +480,17 @@ export default function CharacterRulesBridgeV2(props) {
     setDetailSelections((prev) => ({ ...prev, [key]: selection }));
   }, []);
 
+  const updateClassSpecificSelection = useCallback((selection) => {
+    const normalised = normaliseClassSpecificSelection(selection, classSpecificPlan);
+    setDetailSelections((prev) => ({ ...prev, classSpecific: normalised }));
+  }, [classSpecificPlan]);
+
   const enhancedDetailSelections = useMemo(() => ({
     ...detailSelections,
     spellPlan: choicePlan.spellPlan,
     warlockPlan: choicePlan.warlockPlan,
-  }), [detailSelections, choicePlan.spellPlan, choicePlan.warlockPlan]);
+    classSpecificPlan,
+  }), [detailSelections, choicePlan.spellPlan, choicePlan.warlockPlan, classSpecificPlan]);
 
   const enhancePayload = useCallback((payload) => withStartingLevel(payload, {
     targetLevel,
@@ -507,7 +525,7 @@ export default function CharacterRulesBridgeV2(props) {
           <span>Starting level supervisor</span>
           <strong>Level {targetLevel}</strong>
         </div>
-        <p>Build normally below. When you save, this pass upgrades the saved sheet with level, HP, hit dice, proficiency, spell slots, class features, ASIs, feats, known spells, Pact Boon, invocations, and homebrew resource trackers.</p>
+        <p>Build normally below. When you save, this pass upgrades the saved sheet with level, HP, hit dice, proficiency, spell slots, class features, ASIs, feats, known spells, Pact Boon, invocations, class-specific choices, and homebrew resource trackers.</p>
         <div className="full-creator-form-grid">
           <label>
             <span>Starting level</span>
@@ -532,6 +550,7 @@ export default function CharacterRulesBridgeV2(props) {
 
         <SpellChoiceSection plan={choicePlan.spellPlan} selection={detailSelections.spells} onChange={(selection) => updateDetailSelection('spells', selection)} />
         <WarlockChoiceSection plan={choicePlan.warlockPlan} selection={detailSelections.warlock} onChange={(selection) => updateDetailSelection('warlock', selection)} />
+        <StartingLevelClassSpecificChoices plan={classSpecificPlan} selection={detailSelections.classSpecific} onChange={updateClassSpecificSelection} />
 
         {choicePlan.manualHooks.length > 0 && (
           <div className="full-creator-auto-box"><strong>Still needs detailed pass</strong><span>{choicePlan.manualHooks.map((choice) => choice.label).join(' • ')}</span></div>
