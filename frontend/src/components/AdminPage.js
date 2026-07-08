@@ -9,6 +9,7 @@ import AdminUsersTab from './admin/AdminUsersTab';
 import AdminSiteControlTab from './admin/AdminSiteControlTab';
 import AdminSiteUpdatesTab from './admin/AdminSiteUpdatesTab';
 import AdminAuditLogTab from './admin/AdminAuditLogTab';
+import AdminMissionBrief from './admin/AdminMissionBrief';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
@@ -233,6 +234,8 @@ function AdminPage() {
           <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} tone={stats.activeFeedback > 0 ? 'hot' : 'normal'} />
           <StatCard label="Audit Entries" value={stats.auditLogs} icon={ShieldCheck} />
         </section>
+
+        <AdminMissionBrief onOpenTab={setActiveTab} />
 
         <section style={missionGridStyle} aria-label="Admin shortcuts and build focus">
           <div style={missionPanelStyle}>
