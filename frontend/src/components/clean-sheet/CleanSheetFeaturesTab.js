@@ -76,7 +76,7 @@ function savedResourceCards(character = {}) {
       max: superiorityMax,
       restore: 'short-rest',
       nestedField: 'superiority_dice',
-      nestedCurrentKey: 'remaining',
+      raw: superiority,
     });
   }
 
