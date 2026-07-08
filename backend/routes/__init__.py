@@ -3,6 +3,7 @@ from routes.auth import router as auth_router
 from routes.admin import router as admin_router
 from routes.site_updates import router as site_updates_router
 from routes.admin_audit import router as admin_audit_router
+from routes.admin_metrics import router as admin_metrics_router
 from routes.campaign_invites import router as campaign_invites_router
 from routes.campaign_display import router as campaign_display_router
 from routes.campaign_setup import router as campaign_setup_router
@@ -36,6 +37,7 @@ all_routers = [
     admin_router,
     site_updates_router,
     admin_audit_router,
+    admin_metrics_router,
     campaign_invites_router,
     campaign_display_router,
     # Register the setup router before the legacy campaigns router so the
