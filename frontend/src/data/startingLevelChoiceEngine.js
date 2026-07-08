@@ -1,5 +1,5 @@
 import { getAsiLevels, getChoicesForStartingLevel } from './classLevelRules';
-import { CANTRIPS_KNOWN, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from './spellDatabase';
+import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getMaxSpellLevel, getSpellsForClass } from './spellDatabase';
 import { getWarlockBuilderOptions } from './warlockBuilderOptions';
 import { getWarlockMysticArcanumLevels } from './warlockProgression';
 
@@ -43,6 +43,7 @@ export const WARLOCK_INVOCATION_OPTIONS = [
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampScore = (value) => Math.max(3, Math.min(20, Number(value || 10)));
+const abilityMod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 
 function targetFromTable(table = {}, level = 1) {
   const numericLevel = Math.max(1, Number(level || 1));
@@ -50,10 +51,6 @@ function targetFromTable(table = {}, level = 1) {
     .map(([entryLevel, count]) => [Number(entryLevel), Number(count)])
     .filter(([entryLevel]) => entryLevel <= numericLevel)
     .sort((a, b) => b[0] - a[0])?.[0]?.[1] || 0;
-}
-
-function spellName(spell) {
-  return displayName(spell);
 }
 
 function spellEntry(spell, fallbackLevel = 1) {
@@ -66,6 +63,15 @@ function spellEntry(spell, fallbackLevel = 1) {
     };
   }
   return { name: String(spell || ''), level: fallbackLevel, description: '' };
+}
+
+function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
+  const classInfo = SPELLCASTING_CLASSES[className];
+  if (!classInfo || classInfo.type !== 'prepared') return 0;
+  const numericLevel = Math.max(1, Number(level || 1));
+  const abilityScore = Number(abilities?.[classInfo.ability] || abilities?.abilityScores?.[classInfo.ability] || 10);
+  const baseLevel = classInfo.halfCaster ? Math.max(1, Math.floor(numericLevel / 2)) : numericLevel;
+  return Math.max(1, baseLevel + abilityMod(abilityScore));
 }
 
 export function getFeatName(feat) {
@@ -90,11 +96,13 @@ export function getFeatOptions({ edition = '2014', level = 1, registryFeats = []
     .sort((a, b) => getFeatName(a).localeCompare(getFeatName(b)));
 }
 
-export function getSpellChoicePlan({ className, level = 1 } = {}) {
+export function getSpellChoicePlan({ className, level = 1, abilities = {} } = {}) {
   const maxSpellLevel = getMaxSpellLevel(className, level);
   const spellLists = getSpellsForClass(className) || {};
+  const classInfo = SPELLCASTING_CLASSES[className] || null;
   const cantripTarget = targetFromTable(CANTRIPS_KNOWN[className] || {}, level);
   const knownTarget = targetFromTable(SPELLS_KNOWN[className] || {}, level);
+  const preparedTarget = preparedSpellTarget({ className, level, abilities });
   const leveledSpells = [];
 
   for (let spellLevel = 1; spellLevel <= maxSpellLevel; spellLevel += 1) {
@@ -105,9 +113,13 @@ export function getSpellChoicePlan({ className, level = 1 } = {}) {
     className,
     level: Math.max(1, Number(level || 1)),
     maxSpellLevel,
+    spellcastingType: classInfo?.type || null,
+    spellcastingAbility: classInfo?.ability || null,
     cantripTarget,
     knownTarget,
+    preparedTarget,
     hasKnownSpellPicker: knownTarget > 0,
+    hasPreparedSpellPicker: preparedTarget > 0,
     cantripOptions: arr(spellLists.cantrips).map((spell) => spellEntry(spell, 0)),
     spellOptions: leveledSpells,
     arcanumLevels: className === 'Warlock' ? getWarlockMysticArcanumLevels(level) : [],
@@ -122,11 +134,11 @@ export function getWarlockChoicePlan({ level = 1, edition = '2014' } = {}) {
   };
 }
 
-export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edition = '2014' } = {}) {
+export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edition = '2014', abilities = {} } = {}) {
   const level = Math.max(1, Math.min(20, Number(startingLevel || 1)));
   const baseChoices = getChoicesForStartingLevel({ className, startingLevel: level, edition });
   const asiLevels = getAsiLevels(className).filter((asiLevel) => asiLevel <= level);
-  const spellPlan = getSpellChoicePlan({ className, level });
+  const spellPlan = getSpellChoicePlan({ className, level, abilities });
   const warlockPlan = className === 'Warlock' ? getWarlockChoicePlan({ level, edition }) : null;
   const manualHooks = [];
 
@@ -139,9 +151,6 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
   if (['Fighter', 'Paladin', 'Ranger'].includes(className) && level >= 1) {
     manualHooks.push({ type: 'class_choice', level: 1, label: 'Review fighting style or martial choices.' });
   }
-  if (!spellPlan.hasKnownSpellPicker && spellPlan.maxSpellLevel > 0) {
-    manualHooks.push({ type: 'spell_preparation', level: 1, label: 'Prepared spell choices need the dedicated spell preparation pass.' });
-  }
 
   return {
     level,
@@ -152,7 +161,7 @@ export function buildStartingLevelChoicePlan({ className, startingLevel = 1, edi
     spellPlan,
     warlockPlan,
     manualHooks,
-    hasChoices: baseChoices.length > 0 || manualHooks.length > 0 || spellPlan.hasKnownSpellPicker || Boolean(warlockPlan?.invocationsRequired),
+    hasChoices: baseChoices.length > 0 || manualHooks.length > 0 || spellPlan.hasKnownSpellPicker || spellPlan.hasPreparedSpellPicker || Boolean(warlockPlan?.invocationsRequired),
   };
 }
 
@@ -169,6 +178,7 @@ export function normaliseSpellSelection(selection = {}, spellPlan = {}) {
   return {
     cantrips: arr(selection.cantrips).slice(0, spellPlan.cantripTarget || 0),
     spells: arr(selection.spells).slice(0, spellPlan.knownTarget || 0),
+    prepared: arr(selection.prepared).slice(0, spellPlan.preparedTarget || 0),
     arcanum: selection.arcanum || {},
   };
 }
@@ -233,6 +243,16 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
     });
     next.spells_known = existing;
     next.known_spells = existing;
+  }
+
+  if (spellSelection.prepared.length) {
+    const prepared = spellSelection.prepared.map((name) => {
+      const spell = spellPlan.spellOptions?.find((item) => item.name === name) || { name, level: 1 };
+      return spellEntry(spell, spell.level || 1);
+    });
+    next.prepared_spells = prepared;
+    next.spells_prepared = prepared;
+    next.preparedSpells = prepared;
   }
 
   const arcanumEntries = Object.entries(spellSelection.arcanum || {}).filter(([, name]) => name);
