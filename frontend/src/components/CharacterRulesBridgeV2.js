@@ -91,6 +91,10 @@ function draftAbilitySignature(draft = {}) {
   return ABILITY_KEYS.map((ability) => draftAbilityScore(draft, ability)).join('|');
 }
 
+function sameJson(left, right) {
+  return JSON.stringify(left || {}) === JSON.stringify(right || {});
+}
+
 function applyMergedRules(merged) {
   Object.entries(merged.races || {}).forEach(([name, data]) => {
     RACES[name] = { ...(RACES[name] || {}), ...data };
@@ -461,6 +465,15 @@ export default function CharacterRulesBridgeV2(props) {
   const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition }), [currentEdition, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
   const asiChoiceSignature = choicePlan.asiChoices.map((choice) => choice.id).join('|');
+  const classSpecificChoiceSignature = [
+    currentClassName,
+    targetLevel,
+    needsSubclass ? selectedSubclass : '',
+    classSpecificPlan.fightingStyleTarget,
+    classSpecificPlan.expertiseTarget,
+    classSpecificPlan.metamagicTarget,
+    classSpecificPlan.maneuverTarget,
+  ].join('|');
 
   useEffect(() => {
     if (!needsSubclass) return;
@@ -471,6 +484,14 @@ export default function CharacterRulesBridgeV2(props) {
     const validIds = new Set(choicePlan.asiChoices.map((choice) => choice.id));
     setLevelChoiceSelections((prev) => Object.fromEntries(Object.entries(prev || {}).filter(([key]) => validIds.has(key))));
   }, [asiChoiceSignature]);
+
+  useEffect(() => {
+    setDetailSelections((prev) => {
+      const current = prev?.classSpecific || {};
+      const normalised = normaliseClassSpecificSelection(current, classSpecificPlan);
+      return sameJson(current, normalised) ? prev : { ...prev, classSpecific: normalised };
+    });
+  }, [classSpecificChoiceSignature, classSpecificPlan]);
 
   const updateLevelChoice = useCallback((choiceId, selection) => {
     setLevelChoiceSelections((prev) => ({ ...prev, [choiceId]: defaultAsiSelection(selection) }));
