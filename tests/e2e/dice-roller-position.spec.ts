@@ -93,9 +93,12 @@ test.describe('Global cinematic dice roller', () => {
 
     const overlay = page.getByTestId('cinematic-dice-overlay');
     await expect(overlay).toBeVisible();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
     await expect(page.getByTestId('cinematic-d20')).toBeVisible();
     await expect(page.getByTestId('cinematic-dice-status')).toContainText('Rolling dice');
     await expect(page.getByTestId('cinematic-dice-reveal-now')).toBeVisible();
+    await expect(page.getByTestId('cinematic-dice-reveal-now')).toBeFocused();
 
     await page.getByTestId('cinematic-dice-reveal-now').click();
 
