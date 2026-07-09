@@ -8,6 +8,7 @@ Use this guide when asking Codex or another coding agent to verify the sunset-gr
 - The active design guideline files should point at the sunset-gradient direction rather than coffee, velvet, espresso, leather, parchment, brown-tabletop, or rustic wording.
 - The signed-in rail is the main selected/unselected pattern: quiet unselected links, sunset-gradient selected icon fill, a thin selected marker, and a short gradient label underline when labels are visible.
 - The first cleanup pass has converted the main theme bridges and high-specificity app-page polish files. Visual QA should now focus on screenshots rather than more blind CSS rewriting.
+- `frontend/src/App.js` has been checked against the current route/lazy-load structure so the Rook assistant import and route layout are preserved while the final responsive sunset guardrail import remains last.
 
 ## What still needs review
 
