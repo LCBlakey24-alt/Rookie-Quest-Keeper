@@ -15,6 +15,7 @@ ROOK is intended to become the always-available helper inside Rookie Quest Keepe
 - `frontend/src/components/RookFormFillPanel.js` powers review-first AI drafting for forms that should not immediately auto-save content.
 - `frontend/src/components/tabs/NPCsTab.js` now uses `RookFormFillPanel` inside the add/edit NPC dialogs, while keeping the existing fast auto-save ROOK generator in the side panel.
 - `frontend/src/components/tabs/LocationsTab.js` now uses `RookFormFillPanel` inside both location and place-of-interest dialogs, while keeping the existing instant Rook location/place generator in the side panel.
+- `frontend/src/components/tabs/GodsTab.js` now uses `RookFormFillPanel` inside the Powers & Factions add/edit dialog for gods, patrons, guilds, governments, noble houses, orders, cults, and other influence groups.
 - `frontend/src/components/tabs/HandoutsTab.js` uses `RookFormFillPanel` for lore, clue, secret, letter, and handout drafts.
 - `backend/utils/rook_brain.py` provides a dependency-free backend prompt fragment for shared ROOK identity, behaviour rules, player-safe rules, JSON-only rules, and original quick banks.
 - `frontend/src/data/rookAssistantKnowledge.test.js` covers route mode detection, campaign ID extraction, starter prompts, micro suggestion chips, and context construction.
@@ -89,7 +90,7 @@ This keeps ROOK useful even when campaign context is thin while avoiding protect
 
 1. Wire `backend/utils/rook_brain.py` into `/rook/chat`, `/rook/generate`, and `/rook/form-fill` so all backend Rook calls share one source of truth.
 2. Add a campaign knowledge index that summarises NPCs, locations, gods, player characters, notes, homebrew, and unresolved threads for ROOK.
-3. Add Rook panels inside key forms: gods, custom creatures, homebrew feats, homebrew classes, and session notes.
+3. Add Rook panels inside key forms: custom creatures, homebrew feats, homebrew classes, and session notes.
 4. Add import actions where safe: "Send this to NPC form", "Turn this into a location", "Create a session checklist", "Save as campaign note".
 5. Add admin-facing telemetry for which Rook starters are used most, which fail, and where users ask for help most often.
 6. Add component-level render tests for the floating assistant and `/rook/chat` payload shape.
