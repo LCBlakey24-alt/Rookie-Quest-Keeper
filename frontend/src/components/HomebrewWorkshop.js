@@ -83,6 +83,7 @@ function normaliseDraft(type, value = {}) {
   return draft;
 }
 function formatType(type) { return typeMeta(type).label; }
+function formatLibraryChip(value = '') { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()); }
 
 function findMissing(type, draft) {
   const checks = {
@@ -487,7 +488,12 @@ export default function HomebrewWorkshop() {
 
 function LibraryCard({ item, onEdit, onDelete }) {
   const img = item.image_url || item.image || item.portrait_url || item.avatar_url || '';
-  return <article style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong><p>{item.summary || item.description || item.role || item.creature_type || item.category || item.school || item.prerequisite || 'No description yet.'}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
+  const chips = [item.category, item.school, item.rarity, item.role || item.combat_role, item.creature_type]
+    .filter(Boolean)
+    .map(formatLibraryChip)
+    .slice(0, 3);
+  const summary = item.summary || item.description || item.prerequisite || item.feature_description || item.rule_text || 'No description yet.';
+  return <article style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong>{chips.length > 0 && <div style={libraryBadgeRowStyle}>{chips.map(chip => <span key={chip} style={libraryBadgeStyle}>{chip}</span>)}</div>}<p>{summary}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
 }
 
 const pageStyle = { minHeight: '100dvh', background: rq.bg, color: rq.text, fontFamily: fontStack, padding: 'clamp(12px, 2vw, 24px)' };
@@ -527,5 +533,7 @@ const emptyStyle = { color: rq.muted, margin: 0 };
 const libraryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 };
 const libraryCardStyle = { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 10, background: rq.card, border: `1px solid ${rq.line}`, padding: 10, minWidth: 0 };
 const libraryImageStyle = { width: 74, height: 74, objectFit: 'cover', border: `1px solid ${rq.line}` };
+const libraryBadgeRowStyle = { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 };
+const libraryBadgeStyle = { border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '2px 6px', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase' };
 const cardActionsStyle = { gridColumn: '1 / -1', display: 'flex', gap: 8, justifyContent: 'flex-end' };
 const smallButtonStyle = { ...secondaryButtonStyle, minHeight: 30, padding: '0 9px', fontSize: 12 };
