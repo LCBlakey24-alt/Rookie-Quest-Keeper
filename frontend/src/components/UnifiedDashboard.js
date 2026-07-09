@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, AlertTriangle, BookOpen, CheckCircle2, Clock3, MessageSquare, ShieldCheck, Sparkles, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
+import useLayoutSettings from '@/components/dashboard/useLayoutSettings';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
 import '@/styles/unifiedDashboardPolish.css';
@@ -95,6 +96,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
   const [siteUpdates, setSiteUpdates] = useState([]);
+  const { modules, layoutStyle, layoutClassName } = useLayoutSettings();
 
   const {
     characters,
@@ -157,14 +159,14 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       icon: UploadCloud,
       stat: 'Library',
     },
-    {
+    ...(modules.feedback_prompt === false ? [] : [{
       label: 'Help shape it',
       title: 'Send feedback',
       text: 'Report blockers, rough edges, and ideas while you are actually using the app.',
       onClick: openFeedback,
       icon: MessageSquare,
       stat: siteSettings.feedback_enabled === false ? 'Disabled' : 'Fast note',
-    },
+    }]),
     ...(isAdmin ? [{
       label: 'Owner',
       title: 'Admin Mission Control',
@@ -173,7 +175,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
       icon: ShieldCheck,
       stat: `${adminOverview.new_feedback_count || 0} new`,
     }] : []),
-  ], [adminOverview.new_feedback_count, isAdmin, safeCampaigns.length, safeCharacters.length, safeHomebrew.length, siteSettings.feedback_enabled]);
+  ], [adminOverview.new_feedback_count, isAdmin, modules.feedback_prompt, safeCampaigns.length, safeCharacters.length, safeHomebrew.length, siteSettings.feedback_enabled]);
 
   const recentActivity = useMemo(() => {
     const characterActivity = safeArray(recentCharacters).map((character) => ({
@@ -290,13 +292,15 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   }
 
   return (
-    <main className="unified-dashboard-page unified-dashboard-page--noticeboard">
-      <UnifiedDashboardHeader
-        username={username}
-        refreshing={refreshing}
-        onRefresh={refreshEverything}
-        onLogout={onLogout}
-      />
+    <main className={`unified-dashboard-page unified-dashboard-page--noticeboard ${layoutClassName}`} style={layoutStyle}>
+      {modules.dashboard_hero !== false ? (
+        <UnifiedDashboardHeader
+          username={username}
+          refreshing={refreshing}
+          onRefresh={refreshEverything}
+          onLogout={onLogout}
+        />
+      ) : null}
 
       <UnifiedDashboardStatusBar
         characterCount={safeCharacters.length}
@@ -305,18 +309,20 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         backendStatus={backendStatus}
       />
 
-      <section className="unified-dashboard-board dashboard-command-panel" aria-labelledby="dashboard-command-title">
-        <div className="dashboard-section-heading dashboard-command-heading">
-          <p className="dashboard-eyebrow">Command centre</p>
-          <h2 id="dashboard-command-title">Choose where the session starts.</h2>
-          <p className="dashboard-muted">Fast routes into the parts of Rookie Quest Keeper that matter most during prep, play, and testing.</p>
-        </div>
-        <div className="dashboard-command-grid">
-          {dashboardActions.map((action) => (
-            <DashboardCommandCard key={action.title} {...action} />
-          ))}
-        </div>
-      </section>
+      {modules.quick_actions !== false ? (
+        <section className="unified-dashboard-board dashboard-command-panel" aria-labelledby="dashboard-command-title">
+          <div className="dashboard-section-heading dashboard-command-heading">
+            <p className="dashboard-eyebrow">Command centre</p>
+            <h2 id="dashboard-command-title">Choose where the session starts.</h2>
+            <p className="dashboard-muted">Fast routes into the parts of Rookie Quest Keeper that matter most during prep, play, and testing.</p>
+          </div>
+          <div className="dashboard-command-grid">
+            {dashboardActions.map((action) => (
+              <DashboardCommandCard key={action.title} {...action} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="dashboard-live-grid" aria-label="Recent activity and readiness">
         <section className="unified-dashboard-board dashboard-activity-panel" aria-labelledby="dashboard-activity-title">
@@ -357,35 +363,41 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </section>
       </section>
 
-      <section className="unified-dashboard-board dashboard-updates-panel" aria-labelledby="dashboard-updates-title">
-        <div className="dashboard-section-heading">
-          <p className="dashboard-eyebrow">Latest information</p>
-          <h2 id="dashboard-updates-title">Site Updates</h2>
-          <p className="dashboard-muted">Short notes about what has changed, what is being prepared, and anything users should know.</p>
-        </div>
+      {modules.site_updates !== false ? (
+        <section className="unified-dashboard-board dashboard-updates-panel" aria-labelledby="dashboard-updates-title">
+          <div className="dashboard-section-heading">
+            <p className="dashboard-eyebrow">Latest information</p>
+            <h2 id="dashboard-updates-title">Site Updates</h2>
+            <p className="dashboard-muted">Short notes about what has changed, what is being prepared, and anything users should know.</p>
+          </div>
 
-        <div className="dashboard-updates-grid">
-          {updatesToShow.map((update) => (
-            <DashboardUpdateCard key={update.id || `${update.label}-${update.title}`} {...update} />
+          <div className="dashboard-updates-grid">
+            {updatesToShow.map((update) => (
+              <DashboardUpdateCard key={update.id || `${update.label}-${update.title}`} {...update} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {modules.reviews !== false ? (
+        <section className="dashboard-info-grid" aria-label="Dashboard information">
+          {dashboardInfo.map((item) => (
+            <DashboardInfoCard key={item.title} {...item} />
           ))}
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <section className="dashboard-info-grid" aria-label="Dashboard information">
-        {dashboardInfo.map((item) => (
-          <DashboardInfoCard key={item.title} {...item} />
-        ))}
-      </section>
-
-      <section className="unified-dashboard-board dashboard-system-panel dashboard-system-panel--quiet">
-        <div>
-          <p className="dashboard-eyebrow">System status</p>
-          <p className="dashboard-muted">{statusMessage(backendStatus, backendCheckedAt)}</p>
-        </div>
-        <button type="button" onClick={checkBackend} className="dashboard-link-button dashboard-home-refresh">
-          <span>Check backend</span>
-        </button>
-      </section>
+      {modules.admin_notice !== false ? (
+        <section className="unified-dashboard-board dashboard-system-panel dashboard-system-panel--quiet">
+          <div>
+            <p className="dashboard-eyebrow">System status</p>
+            <p className="dashboard-muted">{statusMessage(backendStatus, backendCheckedAt)}</p>
+          </div>
+          <button type="button" onClick={checkBackend} className="dashboard-link-button dashboard-home-refresh">
+            <span>Check backend</span>
+          </button>
+        </section>
+      ) : null}
     </main>
   );
 }
