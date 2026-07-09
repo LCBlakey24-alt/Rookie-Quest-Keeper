@@ -77,6 +77,21 @@
   filter: saturate(0.78) brightness(0.9);
 }
 
+#root .rqk-auth-page :where(button, input):focus-visible {
+  outline: 3px solid rgba(224, 177, 92, 0.55) !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(224, 177, 92, 0.14) !important;
+}
+
+#root .rqk-auth-page .rqk-auth-field:focus-visible {
+  outline-offset: 5px;
+}
+
+#root .rqk-auth-page .rqk-auth-mode-toggle button:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
 .rqk-auth-submit-status {
   position: absolute;
   width: 1px;
@@ -320,6 +335,23 @@
   color: var(--rq-text-secondary, rgba(255, 248, 239, 0.72));
   font-size: 0.74rem;
   font-weight: 900;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-auth-page *,
+  #root .rqk-auth-page *::before,
+  #root .rqk-auth-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  #root .rqk-auth-page .rqk-auth-ambient,
+  #root .rqk-auth-page .rqk-auth-preview-dot,
+  #root .rqk-auth-page .rqk-auth-button-spinner {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 920px) {
