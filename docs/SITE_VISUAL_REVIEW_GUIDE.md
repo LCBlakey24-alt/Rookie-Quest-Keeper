@@ -7,6 +7,7 @@ Use this guide when asking Codex or another coding agent to verify the sunset-gr
 - The intended global UI direction is now a very dark blue-purple base with deep indigo panels, white readable text, subtle pale borders, and purple-pink-orange sunset-gradient actions.
 - The active design guideline files should point at the sunset-gradient direction rather than coffee, velvet, espresso, leather, parchment, brown-tabletop, or rustic wording.
 - The signed-in rail is the main selected/unselected pattern: quiet unselected links, sunset-gradient selected icon fill, a thin selected marker, and a short gradient label underline when labels are visible.
+- The first cleanup pass has converted the main theme bridges and high-specificity app-page polish files. Visual QA should now focus on screenshots rather than more blind CSS rewriting.
 
 ## What still needs review
 
@@ -14,16 +15,17 @@ Because many pages include component-level styles, the rebrand should be checked
 
 Recommended first routes:
 
-1. `/` or the signed-in home route.
-2. `/characters/new` or current character creation entry route.
-3. `/characters/create/full`.
-4. `/characters`.
+1. `/auth`.
+2. `/home`.
+3. `/characters`.
+4. `/characters/create/full`.
 5. `/characters/:characterId`.
 6. `/campaigns`.
-7. Campaign dashboard and live-play routes.
-8. `/homebrew`.
-9. `/uploads`.
-10. `/admin`.
+7. `/campaign/:campaignId`.
+8. `/gm-screen/:campaignId`.
+9. `/homebrew`.
+10. `/uploads`.
+11. `/admin`.
 
 For each route, check mobile around `390px`, tablet around `768px`, and desktop around `1440px` wide.
 
@@ -70,7 +72,7 @@ To limit routes during a focused review, pass a comma-separated route list:
 
 ```bash
 cd tests
-ROOK_SCREENSHOT_ROUTES=/characters,/characters/create/full npm run screenshots:site
+ROOK_SCREENSHOT_ROUTES=/auth,/home,/characters,/campaigns npm run screenshots:site
 ```
 
 Generated screenshots are ignored by git. Do not commit them unless they are intentionally part of review documentation.
