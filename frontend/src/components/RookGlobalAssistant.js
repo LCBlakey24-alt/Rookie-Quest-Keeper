@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BookOpen, Copy, Loader, Maximize2, Minimize2, Send, Sparkles, Wand2, X } from 'lucide-react';
+import { BookOpen, Copy, Loader, Minimize2, Send, Sparkles, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import {
   buildRookSystemContext,
@@ -12,8 +12,13 @@ import {
 import '@/styles/rookAssistant.css';
 
 function copyToClipboard(text) {
-  if (!navigator?.clipboard || !text) return;
+  if (typeof navigator === 'undefined' || !navigator.clipboard || !text) return;
   navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function getAssistantPathname(pathname) {
+  if (pathname.includes('/player-display')) return '/player-display/global';
+  return pathname;
 }
 
 export default function RookGlobalAssistant() {
@@ -28,11 +33,12 @@ export default function RookGlobalAssistant() {
   const scrollRef = useRef(null);
 
   const pathname = location.pathname;
-  const pageMeta = useMemo(() => getRookPageMeta(pathname), [pathname]);
-  const starters = useMemo(() => getRookStarterPrompts(pathname), [pathname]);
-  const chips = useMemo(() => getRookMicroSuggestions(pathname), [pathname]);
+  const assistantPathname = useMemo(() => getAssistantPathname(pathname), [pathname]);
+  const pageMeta = useMemo(() => getRookPageMeta(assistantPathname), [assistantPathname]);
+  const starters = useMemo(() => getRookStarterPrompts(assistantPathname), [assistantPathname]);
+  const chips = useMemo(() => getRookMicroSuggestions(assistantPathname), [assistantPathname]);
   const campaignId = useMemo(() => extractCampaignIdFromPath(pathname), [pathname]);
-  const systemContext = useMemo(() => buildRookSystemContext(pathname), [pathname]);
+  const systemContext = useMemo(() => buildRookSystemContext(assistantPathname), [assistantPathname]);
 
   useEffect(() => {
     const openRook = () => {
@@ -223,7 +229,7 @@ export default function RookGlobalAssistant() {
           aria-label="Send message to Rook"
           data-testid="rook-global-send"
         >
-          {loading ? <Maximize2 size={16} /> : <Send size={16} />}
+          {loading ? <Loader size={16} className="animate-spin" /> : <Send size={16} />}
         </button>
       </footer>
     </aside>
