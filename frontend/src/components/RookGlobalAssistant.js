@@ -7,6 +7,7 @@ import {
   extractCampaignIdFromPath,
   getRookMicroSuggestions,
   getRookPageMeta,
+  getRookPagePlaybook,
   getRookStarterPrompts,
 } from '@/data/rookAssistantKnowledge';
 import '@/styles/rookAssistant.css';
@@ -92,6 +93,7 @@ export default function RookGlobalAssistant() {
   const characterId = useMemo(() => extractCharacterIdFromPath(pathname), [pathname]);
   const pageMeta = useMemo(() => getRookPageMeta(assistantPathname), [assistantPathname]);
   const starters = useMemo(() => getRookStarterPrompts(assistantPathname), [assistantPathname]);
+  const playbook = useMemo(() => getRookPagePlaybook(assistantPathname), [assistantPathname]);
   const chips = useMemo(() => getRookMicroSuggestions(assistantPathname), [assistantPathname]);
   const campaignId = useMemo(() => extractCampaignIdFromPath(pathname), [pathname]);
   const systemContext = useMemo(() => buildRookSystemContext(assistantPathname, pageDataContext), [assistantPathname, pageDataContext]);
@@ -251,6 +253,12 @@ export default function RookGlobalAssistant() {
             {characterId && pageDataContext && (
               <p className="rook-assistant-context-note">Character sheet loaded — Rook can answer from this character.</p>
             )}
+            <div className="rook-assistant-playbook" aria-label="Best ways to use Rook here">
+              <span>Best here</span>
+              <ul>
+                {playbook.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
             <div className="rook-assistant-starters">
               {starters.map((starter) => (
                 <button key={starter} type="button" onClick={() => sendMessage(starter)} disabled={loading}>
