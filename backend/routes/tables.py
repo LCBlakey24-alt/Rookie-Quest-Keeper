@@ -219,6 +219,16 @@ def normalise_table_document(raw_table: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+async def find_campaign_table_or_404(campaign_id: str, table_id: str, *, player_safe_only: bool = False) -> Dict[str, Any]:
+    query: Dict[str, Any] = {"id": table_id, "campaign_id": campaign_id}
+    if player_safe_only:
+        query["is_player_safe"] = True
+    table = await db.campaign_tables.find_one(query, {"_id": 0})
+    if not table:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Table not found")
+    return normalise_table_document(table)
+
+
 class CampaignTableCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     category: str = "general"
@@ -265,6 +275,13 @@ async def list_campaign_tables(campaign_id: str, username: str = Depends(get_cur
     return [normalise_table_document(table) for table in tables]
 
 
+@router.get("/campaigns/{campaign_id}/tables/{table_id}", response_model=CampaignTable)
+async def get_campaign_table(campaign_id: str, table_id: str, username: str = Depends(get_current_user)):
+    """Read one GM-owned campaign table by id."""
+    await verify_campaign_ownership(campaign_id, username)
+    return await find_campaign_table_or_404(campaign_id, table_id)
+
+
 @router.get("/campaigns/{campaign_id}/player-safe-tables", response_model=List[CampaignTable])
 async def list_player_safe_campaign_tables(campaign_id: str, username: str = Depends(get_current_user)):
     """List only GM-approved player-safe tables for future player-facing views."""
@@ -274,6 +291,13 @@ async def list_player_safe_campaign_tables(campaign_id: str, username: str = Dep
         {"_id": 0},
     ).sort("name", 1).to_list(500)
     return [normalise_table_document(table) for table in tables]
+
+
+@router.get("/campaigns/{campaign_id}/player-safe-tables/{table_id}", response_model=CampaignTable)
+async def get_player_safe_campaign_table(campaign_id: str, table_id: str, username: str = Depends(get_current_user)):
+    """Read one GM-approved player-safe table by id."""
+    await verify_campaign_membership(campaign_id, username)
+    return await find_campaign_table_or_404(campaign_id, table_id, player_safe_only=True)
 
 
 @router.post("/campaigns/{campaign_id}/tables", response_model=CampaignTable)
