@@ -1,4 +1,4 @@
-import { formatActionCost, resolveActionResourceCost } from './CleanSheetFeaturesTab';
+import { formatActionCost, resolveActionResourceCost, resourceDedupeKey } from './CleanSheetFeaturesTab';
 
 describe('CleanSheetFeaturesTab homebrew action resources', () => {
   const resources = [
@@ -46,5 +46,21 @@ describe('CleanSheetFeaturesTab homebrew action resources', () => {
     expect(formatActionCost({ resource: 'Greed Tokens', amount: 2 })).toBe('2 Greed Tokens');
     expect(formatActionCost({ scarab_charges: 1 })).toBe('1 Scarab Charges');
     expect(formatActionCost(['bonus action', { resource: 'Scarab Charges', amount: 1 }])).toBe('bonus action • 1 Scarab Charges');
+  });
+
+  test('dedupes live resource maps and saved homebrew metadata by readable identity', () => {
+    const liveResource = {
+      key: 'scarab_charges',
+      label: 'Scarab Charges',
+      className: 'The Gilded Scarab',
+      fieldKey: 'scarab_charges',
+    };
+    const metadataResource = {
+      key: 'Scarab Charges',
+      label: 'Scarab Charges',
+      className: 'The Gilded Scarab',
+    };
+
+    expect(resourceDedupeKey(liveResource)).toBe(resourceDedupeKey(metadataResource));
   });
 });
