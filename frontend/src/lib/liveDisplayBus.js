@@ -39,6 +39,19 @@ function stateSequence(state = {}) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function fallbackStateSequence(state = {}, updatedAt = '') {
+  const explicitSequence = stateSequence(state);
+  if (explicitSequence) return explicitSequence;
+  const parsedTime = Date.parse(updatedAt || state.updated_at || '');
+  if (Number.isFinite(parsedTime) && parsedTime > 0) return parsedTime;
+  return Date.now();
+}
+
+function stableStateId(state = {}, updatedAt = '', sequence = 0) {
+  if (state.sync_id || state.id) return state.sync_id || state.id;
+  return `${state.mode || 'blank'}-${updatedAt || 'unknown'}-${sequence}`;
+}
+
 function stateIdentity(state = {}) {
   return state.sync_id || state.id || `${state.mode || 'blank'}-${state.updated_at || ''}-${stateSequence(state)}`;
 }
@@ -54,9 +67,9 @@ function isNewerState(candidate, current) {
 
 function normaliseDisplayState(state = {}) {
   const updatedAt = state.updated_at || new Date().toISOString();
-  const sequence = state.sequence || state.seq || Date.now();
+  const sequence = fallbackStateSequence(state, updatedAt);
   return {
-    sync_id: state.sync_id || state.id || `${updatedAt}-${sequence}-${Math.random().toString(16).slice(2)}`,
+    sync_id: stableStateId(state, updatedAt, sequence),
     mode: state.mode || 'blank',
     payload: state.payload || {},
     updated_at: updatedAt,
@@ -82,12 +95,13 @@ function readStoredDisplayState(campaignId) {
 
 export function createDisplayState(mode = 'blank', payload = {}) {
   const now = new Date().toISOString();
+  const sequence = Date.now();
   return {
-    sync_id: `${now}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    sync_id: `${now}-${sequence}-${Math.random().toString(16).slice(2)}`,
     mode,
     payload,
     updated_at: now,
-    sequence: Date.now(),
+    sequence,
     source_tab: sourceTabId,
   };
 }
