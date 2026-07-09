@@ -1,8 +1,8 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import '@/App.css';
-// Style layering: base app/design styles first, route-specific legacy themes next,
-// board/layout safety layers after that, then the current Twilight Keeper brand layer last.
+// Style layering: base app/design styles first, route-specific legacy theme bridges next,
+// board/layout safety layers after that, then the current Sunset Gradient guardrails last.
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -78,157 +78,140 @@ import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
+import { seedMockCampaigns } from '@/utils/seedMockCampaigns';
+import { importLegacyCharacters } from '@/utils/importLegacyCharacters';
+import { ensureCoreContent } from '@/data/coreContent';
+import { autoSeedDemoData } from '@/utils/autoSeedDemoData';
+import { normalizeCharacterData } from '@/utils/characterDataNormalizer';
+import { Button } from '@/components/ui/button';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import apiClient from '@/lib/apiClient';
-import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
+import Login from '@/components/Login';
+import Register from '@/components/Register';
+import CharacterForm from '@/components/CharacterForm';
+import CharacterList from '@/components/CharacterList';
+import GMPage from '@/components/GMPage';
+import CharacterView from '@/components/CharacterView';
+import AuthPage from '@/components/AuthPage';
+import DiceRoller from '@/components/DiceRoller';
+import AdminPage from '@/components/admin/AdminPage';
+import CharacterSheetPage from '@/components/characters/CharacterSheetPage';
+import CharacterModeSelect from '@/components/characters/CharacterModeSelect';
+import FullCharacterCreator from '@/components/characters/FullCharacterCreator';
+import BasicBuildCharacterCreator from '@/components/characters/BasicBuildCharacterCreator';
+import KidsModeCharacterCreator from '@/components/characters/KidsModeCharacterCreator';
+import PremadeCharacterGallery from '@/components/characters/PremadeCharacterGallery';
+import AppHomePage from '@/pages/AppHomePage';
+import MyCharactersPage from '@/pages/MyCharactersPage';
+import MyCampaignsPage from '@/pages/MyCampaignsPage';
+import HomebrewWorkshopPage from '@/pages/HomebrewWorkshopPage';
+import UploadsDashboardPage from '@/pages/UploadsDashboardPage';
+import LandingPage from '@/pages/LandingPage';
 
-const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
+const STORAGE_KEY = 'token';
+const USERNAME_KEY = 'username';
 
-function isChunkLoadError(error) {
-  const message = String(error?.message || error || '');
-  return /Loading chunk \d+ failed|ChunkLoadError|Failed to fetch dynamically imported module|Importing a module script failed/i.test(message);
-}
-
-function lazyWithChunkRetry(importer) {
-  return React.lazy(async () => {
-    try {
-      const mod = await importer();
-      try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
-      return mod;
-    } catch (error) {
-      if (isChunkLoadError(error)) {
-        try {
-          const alreadyTried = sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
-          if (!alreadyTried) {
-            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
-            window.location.reload();
-          }
-        } catch {}
-      }
-      throw error;
-    }
-  });
-}
-
-const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
-const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
-const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
-const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
-const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
-const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
-const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
-const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
-const PrototypeHub = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeHub'));
-const PrototypeMobileLab = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeMobileLab'));
-const TiaKartaGmPrototype = lazyWithChunkRetry(() => import('@/components/prototype/TiaKartaGmPrototype'));
-const ClassProgressionLab = lazyWithChunkRetry(() => import('@/components/prototype/ClassProgressionLab'));
-const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
-const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
-const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
-const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
-const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
-const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
-const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
-const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
-const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
-const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
-
-const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
-
-function PrototypeRoute({ children }) {
-  return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
-}
-
-function ThemeRouter() {
+function AppRoutes({ token, username, onLogin, onLogout }) {
   const location = useLocation();
-  const { setTheme } = useTheme();
-
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
-    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
-    else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) setTheme(THEMES.PLAYER);
-    else setTheme(THEMES.PLAYER);
-  }, [location.pathname, setTheme]);
-
-  return null;
-}
-
-function AppRoutes() {
-  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
-  const [username, setUsername] = useState(() => localStorage.getItem(AUTH_USERNAME_KEY) || '');
-
-  const handleAuthLogin = useCallback((token, nextUsername) => {
-    setAuthToken(token);
-    setUsername(nextUsername || '');
-    setIsAuthenticated(true);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    setAuthToken('');
-    setUsername('');
-    setIsAuthenticated(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    apiClient.get('/auth/me').catch(() => handleLogout());
-  }, [isAuthenticated, handleLogout]);
+  const inApp = Boolean(token);
 
   return (
-    <>
-      <ThemeRouter />
-      <ImpersonationBanner />
-      <GlobalActionFillEffects />
-      <GlobalScrollRecovery />
+    <Suspense fallback={<RouteLoadingScreen message="Gathering your quest tools..." />}>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />} />
-        <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
-        <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
-        <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
-        <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
-        <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
-        <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
-        <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
-        <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
-        <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
-        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
-        <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
+        <Route path="/" element={inApp ? <Navigate to="/home" replace /> : <LandingPage />} />
+        <Route path="/login" element={inApp ? <Navigate to="/home" replace /> : <AuthPage onLogin={onLogin} />} />
+        <Route path="/register" element={inApp ? <Navigate to="/home" replace /> : <AuthPage onLogin={onLogin} />} />
+        <Route path="/auth" element={inApp ? <Navigate to="/home" replace /> : <AuthPage onLogin={onLogin} />} />
+        <Route path="/reset-password" element={inApp ? <Navigate to="/home" replace /> : <AuthPage onLogin={onLogin} />} />
+        <Route element={inApp ? <AppShell username={username} onLogout={onLogout} /> : <Navigate to="/auth" replace state={{ from: location }} />}>
+          <Route path="/home" element={<AppHomePage username={username} />} />
+          <Route path="/characters" element={<MyCharactersPage token={token} />} />
+          <Route path="/characters/new" element={<CharacterModeSelect />} />
+          <Route path="/characters/create" element={<CharacterForm token={token} username={username} />} />
+          <Route path="/characters/create/full" element={<FullCharacterCreator />} />
+          <Route path="/characters/create/basic" element={<BasicBuildCharacterCreator />} />
+          <Route path="/characters/create/kids" element={<KidsModeCharacterCreator />} />
+          <Route path="/characters/create/premade" element={<PremadeCharacterGallery token={token} username={username} />} />
+          <Route path="/characters/:characterId" element={<CharacterSheetPage token={token} username={username} />} />
+          <Route path="/campaigns" element={<MyCampaignsPage username={username} />} />
+          <Route path="/campaign/:campaignId" element={<GMPage token={token} username={username} />} />
+          <Route path="/gm" element={<GMPage token={token} username={username} />} />
+          <Route path="/homebrew" element={<HomebrewWorkshopPage />} />
+          <Route path="/uploads" element={<UploadsDashboardPage />} />
+          <Route path="/admin" element={<AdminPage token={token} />} />
+        </Route>
+        <Route path="*" element={<Navigate to={inApp ? '/home' : '/'} replace />} />
       </Routes>
-      {isAuthenticated && <FloatingDiceRoller />}
-      {isAuthenticated && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
-    </>
+    </Suspense>
   );
 }
 
-export default function App() {
-  useEffect(() => installRollBurstPersistence(), []);
+function App() {
+  const [token, setToken] = useState(localStorage.getItem(STORAGE_KEY));
+  const [username, setUsername] = useState(localStorage.getItem(USERNAME_KEY));
+  const [checkingSession, setCheckingSession] = useState(Boolean(localStorage.getItem(STORAGE_KEY)));
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(USERNAME_KEY);
+    setToken(null);
+    setUsername(null);
+  }, []);
+
+  const handleLogin = useCallback((nextToken, nextUsername) => {
+    localStorage.setItem(STORAGE_KEY, nextToken);
+    localStorage.setItem(USERNAME_KEY, nextUsername || 'Player');
+    setToken(nextToken);
+    setUsername(nextUsername || 'Player');
+  }, []);
+
+  useEffect(() => {
+    const existingToken = localStorage.getItem(STORAGE_KEY);
+    const existingUsername = localStorage.getItem(USERNAME_KEY);
+    if (!existingToken) {
+      setCheckingSession(false);
+      return;
+    }
+
+    apiClient.get('/auth/me')
+      .then((response) => {
+        const verifiedUsername = response.data?.username || existingUsername || 'Player';
+        handleLogin(existingToken, verifiedUsername);
+      })
+      .catch(() => {
+        handleLogout();
+      })
+      .finally(() => setCheckingSession(false));
+  }, [handleLogin, handleLogout]);
+
+  useEffect(() => {
+    ensureCoreContent();
+    importLegacyCharacters();
+    seedMockCampaigns();
+    autoSeedDemoData();
+    installRollBurstPersistence();
+  }, []);
+
+  if (checkingSession) {
+    return <RouteLoadingScreen message="Checking your session..." />;
+  }
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme={THEMES?.system || 'system'} storageKey="rqk-theme">
       <BrowserRouter>
         <AppErrorBoundary>
-          <Suspense fallback={<RouteLoadingScreen />}>
-            <AppRoutes />
-          </Suspense>
-          <Toaster richColors position="top-center" />
+          <ErrorBoundary>
+            <AppRoutes token={token} username={username} onLogin={handleLogin} onLogout={handleLogout} />
+            <FloatingDiceRoller />
+            <GlobalFeedbackButton token={token} username={username} />
+            <GlobalActionFillEffects />
+            <GlobalScrollRecovery />
+            <Toaster richColors position="top-right" />
+          </ErrorBoundary>
         </AppErrorBoundary>
       </BrowserRouter>
     </ThemeProvider>
   );
 }
+
+export default App;
