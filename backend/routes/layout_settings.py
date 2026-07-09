@@ -20,6 +20,12 @@ DEFAULT_SECTION_ORDER = [
     'admin_notice',
 ]
 
+DEFAULT_SECTION_ORDER_BY_DEVICE = {
+    'desktop': DEFAULT_SECTION_ORDER,
+    'tablet': DEFAULT_SECTION_ORDER,
+    'mobile': DEFAULT_SECTION_ORDER,
+}
+
 DEFAULT_LAYOUT_SETTINGS = {
     'id': 'global',
     'layout_version': 1,
@@ -52,6 +58,7 @@ DEFAULT_LAYOUT_SETTINGS = {
         'admin_notice': True,
     },
     'section_order': DEFAULT_SECTION_ORDER,
+    'section_order_by_device': DEFAULT_SECTION_ORDER_BY_DEVICE,
     'notes': '',
     'updated_at': '',
     'updated_by': '',
@@ -75,6 +82,7 @@ class LayoutSettingsUpdate(BaseModel):
     mobile: dict = Field(default_factory=dict)
     modules: dict = Field(default_factory=dict)
     section_order: list[str] = Field(default_factory=lambda: list(DEFAULT_SECTION_ORDER))
+    section_order_by_device: dict = Field(default_factory=dict)
     notes: str = Field(default='', max_length=1200)
 
 
@@ -135,11 +143,22 @@ def sanitise_section_order(incoming: Optional[list]) -> list[str]:
     return ordered
 
 
+def sanitise_section_order_by_device(incoming: Optional[dict], fallback_order: Optional[list] = None) -> dict:
+    source = incoming or {}
+    fallback = sanitise_section_order(fallback_order or DEFAULT_SECTION_ORDER)
+    return {
+        'desktop': sanitise_section_order(source.get('desktop') if isinstance(source, dict) else fallback),
+        'tablet': sanitise_section_order(source.get('tablet') if isinstance(source, dict) else fallback),
+        'mobile': sanitise_section_order(source.get('mobile') if isinstance(source, dict) else fallback),
+    }
+
+
 def merge_layout_settings(doc: Optional[dict]) -> dict:
     source = {**DEFAULT_LAYOUT_SETTINGS, **(doc or {})}
     source.pop('_id', None)
     mode = source.get('mode') if source.get('mode') in ALLOWED_MODES else DEFAULT_LAYOUT_SETTINGS['mode']
     density = source.get('density') if source.get('density') in ALLOWED_DENSITIES else DEFAULT_LAYOUT_SETTINGS['density']
+    section_order = sanitise_section_order(source.get('section_order'))
     return {
         **DEFAULT_LAYOUT_SETTINGS,
         'mode': mode,
@@ -148,7 +167,8 @@ def merge_layout_settings(doc: Optional[dict]) -> dict:
         'tablet': sanitise_device_settings('tablet', source.get('tablet')),
         'mobile': sanitise_device_settings('mobile', source.get('mobile')),
         'modules': sanitise_modules(source.get('modules')),
-        'section_order': sanitise_section_order(source.get('section_order')),
+        'section_order': section_order,
+        'section_order_by_device': sanitise_section_order_by_device(source.get('section_order_by_device'), section_order),
         'notes': str(source.get('notes', ''))[:1200],
         'updated_at': source.get('updated_at', ''),
         'updated_by': source.get('updated_by', ''),
@@ -177,6 +197,7 @@ async def update_admin_layout_settings(payload: LayoutSettingsUpdate, username: 
     now = datetime.now(timezone.utc).isoformat()
     mode = payload.mode if payload.mode in ALLOWED_MODES else DEFAULT_LAYOUT_SETTINGS['mode']
     density = payload.density if payload.density in ALLOWED_DENSITIES else DEFAULT_LAYOUT_SETTINGS['density']
+    section_order = sanitise_section_order(payload.section_order)
     patch = {
         'id': 'global',
         'layout_version': DEFAULT_LAYOUT_SETTINGS['layout_version'],
@@ -186,7 +207,8 @@ async def update_admin_layout_settings(payload: LayoutSettingsUpdate, username: 
         'tablet': sanitise_device_settings('tablet', payload.tablet),
         'mobile': sanitise_device_settings('mobile', payload.mobile),
         'modules': sanitise_modules(payload.modules),
-        'section_order': sanitise_section_order(payload.section_order),
+        'section_order': section_order,
+        'section_order_by_device': sanitise_section_order_by_device(payload.section_order_by_device, section_order),
         'notes': payload.notes.strip()[:1200],
         'updated_at': now,
         'updated_by': username,
