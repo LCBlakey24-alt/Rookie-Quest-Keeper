@@ -26,6 +26,14 @@ DEFAULT_SECTION_ORDER_BY_DEVICE = {
     'mobile': DEFAULT_SECTION_ORDER,
 }
 
+DEFAULT_SECTION_VISIBILITY = {section_id: True for section_id in DEFAULT_SECTION_ORDER}
+
+DEFAULT_SECTION_VISIBILITY_BY_DEVICE = {
+    'desktop': DEFAULT_SECTION_VISIBILITY,
+    'tablet': DEFAULT_SECTION_VISIBILITY,
+    'mobile': DEFAULT_SECTION_VISIBILITY,
+}
+
 DEFAULT_LAYOUT_SETTINGS = {
     'id': 'global',
     'layout_version': 1,
@@ -59,6 +67,7 @@ DEFAULT_LAYOUT_SETTINGS = {
     },
     'section_order': DEFAULT_SECTION_ORDER,
     'section_order_by_device': DEFAULT_SECTION_ORDER_BY_DEVICE,
+    'section_visibility_by_device': DEFAULT_SECTION_VISIBILITY_BY_DEVICE,
     'notes': '',
     'updated_at': '',
     'updated_by': '',
@@ -83,6 +92,7 @@ class LayoutSettingsUpdate(BaseModel):
     modules: dict = Field(default_factory=dict)
     section_order: list[str] = Field(default_factory=lambda: list(DEFAULT_SECTION_ORDER))
     section_order_by_device: dict = Field(default_factory=dict)
+    section_visibility_by_device: dict = Field(default_factory=dict)
     notes: str = Field(default='', max_length=1200)
 
 
@@ -153,6 +163,22 @@ def sanitise_section_order_by_device(incoming: Optional[dict], fallback_order: O
     }
 
 
+def sanitise_section_visibility(incoming: Optional[dict]) -> dict:
+    source = incoming or {}
+    if not isinstance(source, dict):
+        source = {}
+    return {section_id: bool(source.get(section_id, True)) for section_id in DEFAULT_SECTION_ORDER}
+
+
+def sanitise_section_visibility_by_device(incoming: Optional[dict]) -> dict:
+    source = incoming or {}
+    return {
+        'desktop': sanitise_section_visibility(source.get('desktop') if isinstance(source, dict) else {}),
+        'tablet': sanitise_section_visibility(source.get('tablet') if isinstance(source, dict) else {}),
+        'mobile': sanitise_section_visibility(source.get('mobile') if isinstance(source, dict) else {}),
+    }
+
+
 def merge_layout_settings(doc: Optional[dict]) -> dict:
     source = {**DEFAULT_LAYOUT_SETTINGS, **(doc or {})}
     source.pop('_id', None)
@@ -169,6 +195,7 @@ def merge_layout_settings(doc: Optional[dict]) -> dict:
         'modules': sanitise_modules(source.get('modules')),
         'section_order': section_order,
         'section_order_by_device': sanitise_section_order_by_device(source.get('section_order_by_device'), section_order),
+        'section_visibility_by_device': sanitise_section_visibility_by_device(source.get('section_visibility_by_device')),
         'notes': str(source.get('notes', ''))[:1200],
         'updated_at': source.get('updated_at', ''),
         'updated_by': source.get('updated_by', ''),
@@ -209,6 +236,7 @@ async def update_admin_layout_settings(payload: LayoutSettingsUpdate, username: 
         'modules': sanitise_modules(payload.modules),
         'section_order': section_order,
         'section_order_by_device': sanitise_section_order_by_device(payload.section_order_by_device, section_order),
+        'section_visibility_by_device': sanitise_section_visibility_by_device(payload.section_visibility_by_device),
         'notes': payload.notes.strip()[:1200],
         'updated_at': now,
         'updated_by': username,
