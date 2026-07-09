@@ -22,6 +22,10 @@ const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'l
 const defaultSectionOrderByDevice = { desktop: defaultSectionOrder, tablet: defaultSectionOrder, mobile: defaultSectionOrder };
 const defaultSectionVisibility = Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, true]));
 const defaultSectionVisibilityByDevice = { desktop: defaultSectionVisibility, tablet: defaultSectionVisibility, mobile: defaultSectionVisibility };
+const defaultSectionDisplay = Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, 'standard']));
+const defaultSectionDisplayByDevice = { desktop: defaultSectionDisplay, tablet: defaultSectionDisplay, mobile: defaultSectionDisplay };
+const sectionDisplayOptions = ['standard', 'compact', 'featured'];
+const sectionDisplayLabels = { standard: 'Standard', compact: 'Compact', featured: 'Featured' };
 
 const defaultSettings = {
   mode: 'balanced',
@@ -40,6 +44,7 @@ const defaultSettings = {
   section_order: defaultSectionOrder,
   section_order_by_device: defaultSectionOrderByDevice,
   section_visibility_by_device: defaultSectionVisibilityByDevice,
+  section_display_by_device: defaultSectionDisplayByDevice,
   notes: '',
 };
 
@@ -120,6 +125,14 @@ export default function AdminLayoutStudioTab() {
     },
   }));
 
+  const patchDeviceDisplay = (device, display) => setSettings(prev => normaliseSettings({
+    ...prev,
+    section_display_by_device: {
+      ...prev.section_display_by_device,
+      [device]: normaliseSectionDisplay(display),
+    },
+  }));
+
   const moveSection = (sectionId, direction) => {
     setSettings(prev => {
       const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
@@ -147,15 +160,31 @@ export default function AdminLayoutStudioTab() {
     });
   };
 
+  const updateDeviceSectionDisplay = (sectionId, display) => {
+    setSettings(prev => {
+      const displayByDevice = normaliseSectionDisplayByDevice(prev.section_display_by_device);
+      return normaliseSettings({
+        ...prev,
+        section_display_by_device: {
+          ...displayByDevice,
+          [previewDevice]: { ...displayByDevice[previewDevice], [sectionId]: display },
+        },
+      });
+    });
+  };
+
   const resetDeviceOrder = () => patchDeviceOrder(previewDevice, defaultSectionOrder);
   const showAllDeviceSections = () => patchDeviceVisibility(previewDevice, defaultSectionVisibility);
+  const standardiseDeviceSections = () => patchDeviceDisplay(previewDevice, defaultSectionDisplay);
   const copyDesktopOrder = () => setSettings(prev => {
     const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
     const visibilityByDevice = normaliseSectionVisibilityByDevice(prev.section_visibility_by_device);
+    const displayByDevice = normaliseSectionDisplayByDevice(prev.section_display_by_device);
     return normaliseSettings({
       ...prev,
       section_order_by_device: { ...ordersByDevice, [previewDevice]: ordersByDevice.desktop },
       section_visibility_by_device: { ...visibilityByDevice, [previewDevice]: visibilityByDevice.desktop },
+      section_display_by_device: { ...displayByDevice, [previewDevice]: displayByDevice.desktop },
     });
   });
 
@@ -171,13 +200,15 @@ export default function AdminLayoutStudioTab() {
       setLastSavedSettings(savedSettings);
       const ordersByDevice = normaliseSectionOrderByDevice(savedSettings.section_order_by_device, savedSettings.section_order);
       const visibilityByDevice = normaliseSectionVisibilityByDevice(savedSettings.section_visibility_by_device);
+      const displayByDevice = normaliseSectionDisplayByDevice(savedSettings.section_display_by_device);
       const hiddenSections = ordersByDevice[previewDevice].filter(sectionId => visibilityByDevice[previewDevice][sectionId] === false);
+      const styledSections = ordersByDevice[previewDevice].filter(sectionId => displayByDevice[previewDevice][sectionId] !== 'standard');
       await logAudit({
         action: 'Layout settings changed',
         area: 'layout_studio',
         target_id: 'global',
         target_label: 'Global layout settings',
-        detail: `Mode: ${savedSettings.mode} • Density: ${savedSettings.density} • Desktop ${savedSettings.desktop.columns} cols • Tablet ${savedSettings.tablet.columns} cols • Mobile ${savedSettings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')} • Hidden: ${hiddenSections.length ? hiddenSections.map(section => sectionLabels[section] || section).join(', ') : 'none'}`,
+        detail: `Mode: ${savedSettings.mode} • Density: ${savedSettings.density} • Desktop ${savedSettings.desktop.columns} cols • Tablet ${savedSettings.tablet.columns} cols • Mobile ${savedSettings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')} • Hidden: ${hiddenSections.length ? hiddenSections.map(section => sectionLabels[section] || section).join(', ') : 'none'} • Display: ${styledSections.length ? styledSections.map(section => `${sectionLabels[section] || section} ${sectionDisplayLabels[displayByDevice[previewDevice][section]]}`).join(', ') : 'standard'}`,
       });
       toast.success('Layout settings saved');
     } catch (err) {
@@ -194,8 +225,10 @@ export default function AdminLayoutStudioTab() {
 
   const ordersByDevice = useMemo(() => normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order), [settings.section_order, settings.section_order_by_device]);
   const visibilityByDevice = useMemo(() => normaliseSectionVisibilityByDevice(settings.section_visibility_by_device), [settings.section_visibility_by_device]);
+  const displayByDevice = useMemo(() => normaliseSectionDisplayByDevice(settings.section_display_by_device), [settings.section_display_by_device]);
   const activeSectionOrder = ordersByDevice[previewDevice];
   const activeSectionVisibility = visibilityByDevice[previewDevice];
+  const activeSectionDisplay = displayByDevice[previewDevice];
   const enabledModules = useMemo(() => activeSectionOrder.filter(key => isSectionVisible(key, settings.modules, activeSectionVisibility)), [activeSectionOrder, activeSectionVisibility, settings.modules]);
   const preview = settings[previewDevice] || defaultSettings[previewDevice];
   const previewDeviceLabel = devices.find(device => device.id === previewDevice)?.label || 'Desktop';
@@ -264,13 +297,14 @@ export default function AdminLayoutStudioTab() {
           <section style={panelStyle}>
             <div style={previewHeaderStyle}>
               <div>
-                <h3 style={panelTitleStyle}><GripVertical size={16} /> {previewDeviceLabel} section order + visibility</h3>
-                <p style={subtitleStyle}>Move or hide dashboard sections for this device only. Desktop, tablet, and mobile can now each have their own flow and visible sections.</p>
+                <h3 style={panelTitleStyle}><GripVertical size={16} /> {previewDeviceLabel} section design</h3>
+                <p style={subtitleStyle}>Move, hide, or resize dashboard sections for this device only. Display controls let a section become compact, standard, or featured.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
                 <button type="button" disabled={disabled} onClick={copyDesktopOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><Copy size={13} /> Copy desktop</button>
                 <button type="button" disabled={disabled} onClick={showAllDeviceSections} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><Eye size={13} /> Show all</button>
+                <button type="button" disabled={disabled} onClick={standardiseDeviceSections} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><RotateCcw size={13} /> Standard size</button>
                 <button type="button" disabled={disabled} onClick={resetDeviceOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><RotateCcw size={13} /> Reset order</button>
               </div>
             </div>
@@ -284,6 +318,15 @@ export default function AdminLayoutStudioTab() {
                     <span style={orderIndexStyle}>{index + 1}</span>
                     <GripVertical size={15} color={rq.muted} />
                     <span style={{ flex: 1, minWidth: 0, color: rq.textSecondary, fontWeight: 900 }}>{sectionLabels[sectionId] || sectionId}</span>
+                    <select
+                      value={activeSectionDisplay[sectionId] || 'standard'}
+                      disabled={disabled || !globallyEnabled}
+                      onChange={e => updateDeviceSectionDisplay(sectionId, e.target.value)}
+                      style={{ ...displaySelectStyle, opacity: effectivelyVisible ? 1 : 0.75 }}
+                      aria-label={`${sectionLabels[sectionId] || sectionId} display mode`}
+                    >
+                      {sectionDisplayOptions.map(option => <option key={option} value={option}>{sectionDisplayLabels[option]}</option>)}
+                    </select>
                     <button type="button" onClick={() => toggleDeviceSectionVisibility(sectionId)} disabled={disabled || !globallyEnabled} style={{ ...visibilityButtonStyle, borderColor: effectivelyVisible ? rq.accent : rq.borderDefault, color: effectivelyVisible ? rq.accentHover : rq.muted }}>
                       {deviceVisible ? <Eye size={13} /> : <EyeOff size={13} />}
                       {globallyEnabled ? (deviceVisible ? 'Visible' : 'Hidden') : 'Global off'}
@@ -331,7 +374,7 @@ export default function AdminLayoutStudioTab() {
             <div style={previewHeaderStyle}>
               <div>
                 <h3 style={panelTitleStyle}><Eye size={16} /> {previewDeviceLabel} preview blueprint</h3>
-                <p style={subtitleStyle}>The preview uses this device's order, visibility, max width, columns, card scale, sidebar setting, and global module switches.</p>
+                <p style={subtitleStyle}>The preview uses this device's order, visibility, display strength, max width, columns, card scale, sidebar setting, and global module switches.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
@@ -343,7 +386,11 @@ export default function AdminLayoutStudioTab() {
                 <div style={{ display: 'grid', gridTemplateColumns: preview.show_sidebar ? '140px 1fr' : '1fr', gap: 10 }}>
                   {preview.show_sidebar ? <div style={mockSidebarStyle}>Sidebar / filters</div> : null}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, Number(preview.columns) || 1)}, minmax(0, 1fr))`, gap: settings.density === 'spacious' ? 14 : settings.density === 'compact' ? 6 : 10 }}>
-                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No sections visible for this device</div> : enabledModules.map(key => <div key={key} style={{ ...mockCardStyle, minHeight: preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86 }}>{sectionLabels[key] || moduleLabels[key] || key}</div>)}
+                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No sections visible for this device</div> : enabledModules.map(key => {
+                      const display = activeSectionDisplay[key] || 'standard';
+                      const displayMinHeight = display === 'featured' ? 132 : display === 'compact' ? 54 : preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86;
+                      return <div key={key} style={{ ...mockCardStyle, minHeight: displayMinHeight, borderColor: display === 'featured' ? rq.accent : rq.borderDefault }}>{sectionLabels[key] || moduleLabels[key] || key}<br /><small style={{ color: rq.muted }}>{sectionDisplayLabels[display]}</small></div>;
+                    })}
                   </div>
                 </div>
               </div>
@@ -403,6 +450,23 @@ function normaliseSectionVisibilityByDevice(value = {}) {
   };
 }
 
+function normaliseSectionDisplay(value = {}) {
+  const source = value || {};
+  return Object.fromEntries(defaultSectionOrder.map(sectionId => {
+    const display = source[sectionId];
+    return [sectionId, sectionDisplayOptions.includes(display) ? display : 'standard'];
+  }));
+}
+
+function normaliseSectionDisplayByDevice(value = {}) {
+  const source = value || {};
+  return {
+    desktop: normaliseSectionDisplay(source.desktop),
+    tablet: normaliseSectionDisplay(source.tablet),
+    mobile: normaliseSectionDisplay(source.mobile),
+  };
+}
+
 function isSectionEnabled(sectionId, modules = {}) {
   if (sectionId === 'status_bar' || sectionId === 'live_workspace') return true;
   return modules?.[sectionId] !== false;
@@ -424,6 +488,7 @@ function normaliseSettings(value = {}) {
     section_order: sectionOrder,
     section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
     section_visibility_by_device: normaliseSectionVisibilityByDevice(value.section_visibility_by_device),
+    section_display_by_device: normaliseSectionDisplayByDevice(value.section_display_by_device),
   };
 }
 
@@ -452,6 +517,7 @@ const orderRowStyle = { display: 'flex', alignItems: 'center', gap: 8, backgroun
 const orderIndexStyle = { width: 24, height: 24, display: 'grid', placeItems: 'center', background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, fontSize: 11, fontWeight: 900 };
 const miniButtonStyle = { width: 30, height: 30, display: 'inline-grid', placeItems: 'center', background: rq.input, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer' };
 const visibilityButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '0 8px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
+const displaySelectStyle = { minHeight: 30, background: rq.input, color: rq.textSecondary, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '0 8px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
 const previewWrapStyle = { background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 16 };
 const previewHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 12 };
 const smallButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, padding: '8px 10px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 };
@@ -459,7 +525,7 @@ const blueprintStyle = { overflowX: 'auto', padding: 8, background: rq.panel, bo
 const mockFrameStyle = { minWidth: 280, margin: '0 auto', display: 'grid', gap: 10, transition: 'max-width 160ms ease' };
 const mockTopbarStyle = { color: rq.text, background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900 };
 const mockSidebarStyle = { color: rq.muted, background: rq.input, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12 };
-const mockCardStyle = { color: rq.textSecondary, background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' };
+const mockCardStyle = { color: rq.textSecondary, background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', flexDirection: 'column', gap: 4 };
 const unsavedStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, borderRadius: rq.radiusSm, padding: '10px 12px', fontSize: 12 };
 const loadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
 const loadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminLayoutSpin 0.9s linear infinite' };
