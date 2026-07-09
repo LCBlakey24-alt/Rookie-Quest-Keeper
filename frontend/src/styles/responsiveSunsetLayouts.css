@@ -152,6 +152,135 @@
   background: var(--rq-sunset-gradient);
 }
 
+/* Late visual guardrails for older class names still used around the app. */
+html,
+body,
+#root,
+.App,
+.rqk-app-shell-content,
+.landing-page,
+.auth-page,
+.dashboard-page,
+.unified-dashboard,
+.my-characters-page,
+.my-campaigns-page,
+.library-page,
+.homebrew-workshop-page,
+.uploads-dashboard-page,
+.gm-dashboard-shell,
+.character-page-v2,
+.clean-sheet-page,
+.full-creator-page,
+.character-mode-page {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(115, 87, 255, 0.14), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(255, 79, 129, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--rq-bg-main, #070713) 0%, var(--rq-bg-page, #0b0718) 100%) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.card,
+.glow-card,
+.glow-panel,
+.parchment-dark,
+.panel,
+.rq-card,
+.rq-panel,
+.glass,
+.glass-gm,
+.glass-player,
+.dashboard-card,
+.dashboard-panel,
+.action-card,
+.character-card,
+.campaign-card,
+.admin-card,
+.admin-panel,
+.modal-content,
+.dialog-content {
+  background: linear-gradient(180deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.90)) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+.card:hover,
+.glow-card:hover,
+.glow-panel:hover,
+.rq-card:hover,
+.rq-panel:hover,
+.dashboard-card:hover,
+.action-card:hover,
+.character-card:hover,
+.campaign-card:hover {
+  background: var(--rq-card-hover, #24103a) !important;
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30)) !important;
+}
+
+.btn-primary,
+.rq-button-primary,
+.primary-button,
+button[type='submit'],
+button[data-testid*='create'],
+button[data-testid*='new'],
+button[data-testid*='save'],
+button[data-rqk-primary='true'] {
+  background: var(--rq-sunset-gradient) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.btn-secondary,
+.btn-outline,
+.rq-button-secondary,
+.secondary-button,
+.landing-button-ghost {
+  background: rgba(19, 8, 31, 0.76) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: none !important;
+}
+
+.tab,
+.clean-sheet-tab,
+.clean-sheet-tabs button,
+.dashboard-tabs button,
+.mobile-dashboard-tabs button,
+.nav-tabs button,
+.tab-list button {
+  background: transparent !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82)) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.tab.active,
+.tab--active,
+.clean-sheet-tab.active,
+.clean-sheet-tab--active,
+.clean-sheet-tabs button.active,
+.clean-sheet-tabs button[aria-selected='true'],
+.dashboard-tabs button.active,
+.dashboard-tabs button[aria-selected='true'],
+.mobile-dashboard-tabs button.active,
+.mobile-dashboard-tabs button[aria-selected='true'],
+.nav-tabs button.active,
+.tab-list button.active {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.smokey-bg::before,
+.smokey-bg::after {
+  background:
+    radial-gradient(ellipse at center, rgba(115, 87, 255, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(255, 79, 129, 0.10) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 149, 66, 0.08) 0%, transparent 40%) !important;
+}
+
 /* Mobile layout: one column, thumb-friendly, never trapped. */
 @media (max-width: 719px) {
   :root {
