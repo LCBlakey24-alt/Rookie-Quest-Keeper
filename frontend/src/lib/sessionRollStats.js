@@ -28,6 +28,9 @@ export function normaliseRollEvent(rollEvent = {}) {
     actor_type: rollEvent.actor_type || 'gm',
     character_id: rollEvent.character_id || '',
     character_name: rollEvent.character_name || '',
+    group_check_id: rollEvent.group_check_id || rollEvent.groupCheckId || '',
+    requested_roll_id: rollEvent.requested_roll_id || rollEvent.requestedRollId || '',
+    check_name: rollEvent.check_name || rollEvent.checkName || '',
     label: rollEvent.label || rollEvent.notation || 'Roll',
     notation: rollEvent.notation || '',
     total: Number(rollEvent.total) || 0,
@@ -106,7 +109,7 @@ function summarise(events = [], playerFocus = true) {
     }
   }
 
-  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.nat20s || a.name.localeCompare(b.name));
+  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.name.localeCompare(b.name));
   const mostCrits = [...actors].sort((a, b) => b.nat20s - a.nat20s)[0];
   const mostFumbles = [...actors].sort((a, b) => b.nat1s - a.nat1s)[0];
   const busiest = actors[0];
