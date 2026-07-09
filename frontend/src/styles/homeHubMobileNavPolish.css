@@ -11,6 +11,27 @@
   color: var(--rq-sunset-cream, #fff8ef);
 }
 
+#root .rqk-app-rail-rook {
+  border-color: rgba(245,197,66,0.26) !important;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(245,197,66,0.18), transparent 36%),
+    rgba(245,197,66,0.07) !important;
+  color: #fff8ef !important;
+}
+
+#root .rqk-app-rail-rook svg {
+  color: #f5c542 !important;
+  filter: drop-shadow(0 0 8px rgba(245,197,66,0.25));
+}
+
+#root .rqk-app-rail-rook:hover,
+#root .rqk-app-rail-rook:focus-visible {
+  border-color: rgba(245,197,66,0.46) !important;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(245,197,66,0.26), transparent 40%),
+    rgba(245,197,66,0.10) !important;
+}
+
 @media (max-width: 719px) {
   #root .rqk-app-rail-link--mobile-secondary,
   #root .rqk-app-rail-support-link {
@@ -130,6 +151,31 @@
     border-radius: 12px !important;
     background: var(--rq-sunset-gradient) !important;
     box-sizing: content-box !important;
+  }
+
+  #root .rqk-app-mobile-more-item--rook {
+    grid-column: 1 / -1 !important;
+    min-height: 60px !important;
+    border-color: rgba(245,197,66,0.32) !important;
+    background:
+      radial-gradient(circle at 12% 20%, rgba(245,197,66,0.24), transparent 38%),
+      linear-gradient(135deg, rgba(245,197,66,0.12), rgba(193,18,31,0.10)) !important;
+  }
+
+  #root .rqk-app-mobile-more-item--rook svg {
+    padding: 8px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg, #f5c542, #d4a017) !important;
+    color: #140f05 !important;
+    box-sizing: content-box !important;
+  }
+
+  #root .rqk-app-mobile-more-item--rook:hover,
+  #root .rqk-app-mobile-more-item--rook:focus-visible {
+    border-color: rgba(245,197,66,0.52) !important;
+    background:
+      radial-gradient(circle at 12% 20%, rgba(245,197,66,0.30), transparent 42%),
+      linear-gradient(135deg, rgba(245,197,66,0.16), rgba(193,18,31,0.12)) !important;
   }
 }
 
