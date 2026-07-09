@@ -119,6 +119,8 @@ const AUTH_TAB_IDS = {
   register: 'rqk-auth-tab-register',
 };
 
+const AUTH_TAB_ORDER = ['login', 'register'];
+
 function getInitialMode(initialToken, queryMode) {
   if (initialToken) return 'reset';
   return URL_MODES.has(queryMode) ? queryMode : 'login';
@@ -188,6 +190,27 @@ export default function AuthPage({ onLogin = () => {} }) {
     if (safeMode !== 'reset') {
       navigate(getAuthModePath(safeMode), { replace });
     }
+  };
+
+  const handleAuthTabKeyDown = (event) => {
+    const currentIndex = AUTH_TAB_ORDER.includes(mode) ? AUTH_TAB_ORDER.indexOf(mode) : 0;
+    let nextMode = null;
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextMode = AUTH_TAB_ORDER[(currentIndex + 1) % AUTH_TAB_ORDER.length];
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextMode = AUTH_TAB_ORDER[(currentIndex - 1 + AUTH_TAB_ORDER.length) % AUTH_TAB_ORDER.length];
+    } else if (event.key === 'Home') {
+      nextMode = AUTH_TAB_ORDER[0];
+    } else if (event.key === 'End') {
+      nextMode = AUTH_TAB_ORDER[AUTH_TAB_ORDER.length - 1];
+    }
+
+    if (!nextMode) return;
+
+    event.preventDefault();
+    goToMode(nextMode);
+    window.requestAnimationFrame(() => document.getElementById(AUTH_TAB_IDS[nextMode])?.focus());
   };
 
   const handleLogin = async (e) => {
@@ -378,7 +401,13 @@ export default function AuthPage({ onLogin = () => {} }) {
             </div>
 
             {showCredentialToggle && (
-              <div className="rqk-auth-mode-toggle" role="tablist" aria-label="Choose sign in or create account">
+              <div
+                className="rqk-auth-mode-toggle"
+                role="tablist"
+                aria-label="Choose sign in or create account"
+                aria-orientation="horizontal"
+                onKeyDown={handleAuthTabKeyDown}
+              >
                 <button
                   id={AUTH_TAB_IDS.login}
                   type="button"
