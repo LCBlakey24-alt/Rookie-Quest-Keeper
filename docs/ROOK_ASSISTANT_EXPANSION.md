@@ -4,7 +4,8 @@ ROOK is intended to become the always-available helper inside Rookie Quest Keepe
 
 ## Current implementation
 
-- `frontend/src/components/RookGlobalAssistant.js` mounts a global floating assistant for authenticated users.
+- `frontend/src/components/RookGlobalAssistant.js` mounts a global floating assistant for authenticated users and now delegates route/context hydration to a dedicated helper instead of keeping all logic in the UI component.
+- `frontend/src/data/rookContextHydration.js` normalises Rook route context, detects player-facing campaign routes, extracts real character IDs while ignoring `/characters/create`, summarises character sheets, summarises GM/player-safe campaign context, and builds the loaded-context badge text.
 - `frontend/src/components/RookGlobalAssistant.js` fetches the active character on `/characters/:characterId` and `/characters/:characterId/edit`, then feeds a concise sheet summary into Rook's system context.
 - `frontend/src/components/RookGlobalAssistant.js` fetches campaign context when a campaign ID is present in the route. GM-facing routes can include campaign metadata, setting notes, GM rules, current table environment, and custom-rule upload names. Player-facing display routes only receive spoiler-safe campaign/environment context.
 - `frontend/src/data/rookAssistantKnowledge.js` provides page-aware assistant modes, starter prompts, quick suggestion chips, route playbooks, original name banks, place banks, GM moves, adventure hooks, player reminders, and homebrew checks.
@@ -13,6 +14,7 @@ ROOK is intended to become the always-available helper inside Rookie Quest Keepe
 - `frontend/src/components/app/AppShell.js` exposes an Ask Rook shortcut in the desktop rail and mobile More tools panel.
 - `backend/utils/rook_brain.py` provides a dependency-free backend prompt fragment for shared ROOK identity, behaviour rules, player-safe rules, JSON-only rules, and original quick banks.
 - `frontend/src/data/rookAssistantKnowledge.test.js` covers route mode detection, campaign ID extraction, starter prompts, micro suggestion chips, and context construction.
+- `frontend/src/data/rookContextHydration.test.js` covers character/campaign context summaries, player-safe context filtering, player-facing endpoint skipping, context badges, and the `/characters/create` guard.
 - `backend/tests/test_rook_brain.py` covers the shared backend ROOK brain fragments.
 - Backend chat still flows through the existing `/rook/chat` endpoint, which already combines request context, campaign context, campaign edition rules, and the existing AI source boundary. The shared backend brain helper is ready to wire into `/rook/chat`, `/rook/generate`, and `/rook/form-fill` in a safer focused edit.
 
@@ -39,6 +41,7 @@ ROOK should:
 - Be visible and reachable everywhere once the user is authenticated.
 - Use saved campaign context when a campaign ID can be inferred from the route.
 - Use the current character sheet as the first source when helping on character sheet pages.
+- Never try to fetch `/characters/create` or `/characters/new` as if they were real character sheets.
 - Stay spoiler-safe on player-facing screens.
 - Create original content rather than borrowing named third-party lore.
 - Prefer table-ready answers over theory, especially in live play.
