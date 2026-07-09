@@ -109,7 +109,7 @@ function summarise(events = [], playerFocus = true) {
     }
   }
 
-  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.name.localeCompare(b.name));
+  const actors = Array.from(byActor.values()).sort((a, b) => b.rolls - a.rolls || b.nat20s - a.nat20s || a.name.localeCompare(b.name));
   const mostCrits = [...actors].sort((a, b) => b.nat20s - a.nat20s)[0];
   const mostFumbles = [...actors].sort((a, b) => b.nat1s - a.nat1s)[0];
   const busiest = actors[0];
