@@ -88,7 +88,7 @@ export default function CinematicDiceOverlay({
               <Zap size={13} /> Reveal now
             </button>
           )}
-          <span>Esc closes · Enter reveals</span>
+          <span>Esc closes · Enter/Space reveals</span>
         </div>
         <div className="rq-cinematic-roll__total" data-testid="cinematic-dice-total" aria-label={isRevealed ? `Total ${displayTotal}` : 'Rolling'}>
           <span>{isRevealed ? 'Total' : 'Rolling'}</span>
