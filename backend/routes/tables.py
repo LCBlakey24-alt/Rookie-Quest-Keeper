@@ -196,6 +196,29 @@ def normalise_entries(entries: Optional[List[Any]], columns: Optional[List[str]]
     return cleaned[:200]
 
 
+def normalise_table_document(raw_table: Dict[str, Any]) -> Dict[str, Any]:
+    """Return a response-safe campaign table document without mutating stored lore."""
+    name = str(raw_table.get("name") or "Untitled Table").strip()[:120] or "Untitled Table"
+    columns = clean_columns(raw_table.get("columns"))
+    entries = normalise_entries(raw_table.get("entries"), columns)
+    return {
+        **raw_table,
+        "id": str(raw_table.get("id") or uuid.uuid4()),
+        "campaign_id": str(raw_table.get("campaign_id") or ""),
+        "name": name,
+        "category": normalise_category(raw_table.get("category"), name),
+        "description": str(raw_table.get("description") or "").strip(),
+        "die": normalise_die(raw_table.get("die"), entries),
+        "columns": columns,
+        "entries": entries,
+        "is_player_safe": bool(raw_table.get("is_player_safe", False)),
+        "source": str(raw_table.get("source") or "custom").strip() or "custom",
+        "created_by": str(raw_table.get("created_by") or ""),
+        "created_at": str(raw_table.get("created_at") or now_iso()),
+        "updated_at": str(raw_table.get("updated_at") or raw_table.get("created_at") or now_iso()),
+    }
+
+
 class CampaignTableCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     category: str = "general"
@@ -239,7 +262,7 @@ async def list_campaign_tables(campaign_id: str, username: str = Depends(get_cur
     """List tables attached to a campaign for GM prep and live-session use."""
     await verify_campaign_membership(campaign_id, username)
     tables = await db.campaign_tables.find({"campaign_id": campaign_id}, {"_id": 0}).sort("name", 1).to_list(1000)
-    return tables
+    return [normalise_table_document(table) for table in tables]
 
 
 @router.post("/campaigns/{campaign_id}/tables", response_model=CampaignTable)
@@ -300,7 +323,7 @@ async def update_campaign_table(campaign_id: str, table_id: str, table_data: Cam
         {"$set": update_dict},
     )
     table = await db.campaign_tables.find_one({"id": table_id, "campaign_id": campaign_id}, {"_id": 0})
-    return table
+    return normalise_table_document(table)
 
 
 @router.delete("/campaigns/{campaign_id}/tables/{table_id}")
