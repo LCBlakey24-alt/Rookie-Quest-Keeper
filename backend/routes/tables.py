@@ -13,8 +13,85 @@ from utils.auth import get_current_user, verify_campaign_membership, verify_camp
 router = APIRouter()
 
 
+CATEGORY_ALIASES = {
+    "general": "general",
+    "travel": "travel",
+    "journey": "travel",
+    "journeys": "travel",
+    "fate": "fate",
+    "quirks": "fate",
+    "quirks of fate": "fate",
+    "encounter": "encounter",
+    "encounters": "encounter",
+    "random encounter": "encounter",
+    "weapons": "weapons",
+    "weapon": "weapons",
+    "finesse": "weapons",
+    "ammunition": "weapons",
+    "armour": "armour",
+    "armor": "armour",
+    "shield": "armour",
+    "shields": "armour",
+    "potions": "potions",
+    "potion": "potions",
+    "poisons": "potions",
+    "poison": "potions",
+    "herbs": "potions",
+    "herb": "potions",
+    "prices": "prices",
+    "price": "prices",
+    "costs": "prices",
+    "cost": "prices",
+    "costs & shops": "prices",
+    "costs and shops": "prices",
+    "shops": "prices",
+    "shop": "prices",
+    "equipment": "prices",
+    "services": "prices",
+    "npc": "npc",
+    "npcs": "npc",
+    "people": "npc",
+    "lore": "lore",
+    "rules": "rules",
+    "rules reference": "rules",
+    "reference": "rules",
+    "combat rules": "rules",
+}
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def normalise_category(raw_category: Any, fallback_name: Any = "") -> str:
+    """Convert user-facing category labels into stable frontend slugs."""
+    value = re.sub(r"\s+", " ", str(raw_category or "").strip().lower())
+    if value in CATEGORY_ALIASES:
+        return CATEGORY_ALIASES[value]
+
+    name = str(fallback_name or "").lower()
+    haystack = f"{value} {name}"
+    if any(word in haystack for word in ["weapon", "finesse", "ammunition"]):
+        return "weapons"
+    if any(word in haystack for word in ["armour", "armor", "shield"]):
+        return "armour"
+    if any(word in haystack for word in ["potion", "poison", "herb"]):
+        return "potions"
+    if any(word in haystack for word in ["cost", "price", "shop", "equipment", "service", "mount", "food"]):
+        return "prices"
+    if any(word in haystack for word in ["travel", "journey", "watch", "rest"]):
+        return "travel"
+    if any(word in haystack for word in ["quirk", "fate", "opian"]):
+        return "fate"
+    if any(word in haystack for word in ["encounter", "combat"]):
+        return "encounter"
+    if any(word in haystack for word in ["action", "reaction", "cover", "condition", "damage", "death", "dc"]):
+        return "rules"
+    if any(word in haystack for word in ["npc", "people", "villain", "shopkeeper"]):
+        return "npc"
+    if "lore" in haystack:
+        return "lore"
+    return "general"
 
 
 def normalise_range(raw_range: Any, fallback_index: int) -> str:
@@ -64,9 +141,22 @@ def clean_cells(raw_cells: Any, allowed_columns: Optional[List[str]] = None) -> 
     return cells
 
 
+def coerce_entry(raw_entry: Any, fallback_index: int) -> Dict[str, Any]:
+    """Accept dict rows, two-item rows, or plain text rows from imperfect imports."""
+    if isinstance(raw_entry, dict):
+        return raw_entry
+    if isinstance(raw_entry, (list, tuple)):
+        return {
+            "range": raw_entry[0] if len(raw_entry) > 0 else fallback_index,
+            "text": raw_entry[1] if len(raw_entry) > 1 else "",
+        }
+    return {"range": fallback_index, "text": raw_entry}
+
+
 def normalise_entries(entries: List[Dict[str, Any]], columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     cleaned: List[Dict[str, Any]] = []
-    for index, entry in enumerate(entries, start=1):
+    for index, raw_entry in enumerate(entries or [], start=1):
+        entry = coerce_entry(raw_entry, index)
         text = str(entry.get("text") or entry.get("result") or entry.get("description") or "").strip()
         cells = clean_cells(entry.get("cells"), columns)
         if not text and cells:
@@ -143,7 +233,7 @@ async def create_campaign_table(campaign_id: str, table_data: CampaignTableCreat
     table = CampaignTable(
         campaign_id=campaign_id,
         name=table_data.name.strip(),
-        category=(table_data.category or "general").strip().lower(),
+        category=normalise_category(table_data.category, table_data.name),
         description=table_data.description.strip(),
         die=die,
         columns=columns,
@@ -168,7 +258,8 @@ async def update_campaign_table(campaign_id: str, table_id: str, table_data: Cam
     if "name" in update_dict:
         update_dict["name"] = str(update_dict["name"]).strip()
     if "category" in update_dict:
-        update_dict["category"] = str(update_dict["category"] or "general").strip().lower()
+        fallback_name = update_dict.get("name") or existing.get("name", "")
+        update_dict["category"] = normalise_category(update_dict["category"], fallback_name)
     if "description" in update_dict:
         update_dict["description"] = str(update_dict["description"] or "").strip()
     if "columns" in update_dict:
