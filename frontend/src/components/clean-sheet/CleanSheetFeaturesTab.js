@@ -9,6 +9,7 @@ const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) :
 const titleFromKey = (value = '') => String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 const normaliseResourceKey = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const singularResourceKey = (value = '') => normaliseResourceKey(value).replace(/s\b/g, '');
+const isBlankValue = (value) => value === null || value === undefined || value === '' || value === false;
 
 function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
   const seen = new Set();
@@ -122,7 +123,7 @@ function savedResourceCards(character = {}) {
 }
 
 export function formatActionCost(value) {
-  if (value in [null, undefined, '', false]) return '';
+  if (isBlankValue(value)) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   if (Array.isArray(value)) return value.map(formatActionCost).filter(Boolean).join(' • ');
   if (typeof value === 'object') {
@@ -130,7 +131,7 @@ export function formatActionCost(value) {
     const amount = Number(value.amount ?? value.cost ?? value.value ?? value.uses ?? 0);
     if (resourceName && amount) return `${amount} ${resourceName}`;
     if (resourceName) return String(resourceName);
-    const entries = Object.entries(value).filter(([, entryValue]) => entryValue not in [null, undefined, '', false]);
+    const entries = Object.entries(value).filter(([, entryValue]) => !isBlankValue(entryValue));
     if (entries.length === 1) {
       const [[key, entryValue]] = entries;
       return Number(entryValue) > 0 ? `${entryValue} ${titleFromKey(key)}` : `${titleFromKey(key)}: ${formatActionCost(entryValue)}`;
