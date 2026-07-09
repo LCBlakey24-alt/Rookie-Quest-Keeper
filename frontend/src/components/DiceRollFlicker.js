@@ -115,6 +115,21 @@ export default function DiceRollFlicker({
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
   useEffect(() => {
+    if (!visible || typeof document === 'undefined') return undefined;
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    const previousOverscroll = body.style.overscrollBehavior;
+
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'contain';
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, [visible]);
+
+  useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
