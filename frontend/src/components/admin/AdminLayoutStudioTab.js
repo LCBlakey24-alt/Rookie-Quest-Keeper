@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, Eye, GripVertical, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Eye, GripVertical, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -19,6 +19,7 @@ const rq = {
 };
 
 const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
+const defaultSectionOrderByDevice = { desktop: defaultSectionOrder, tablet: defaultSectionOrder, mobile: defaultSectionOrder };
 
 const defaultSettings = {
   mode: 'balanced',
@@ -35,6 +36,7 @@ const defaultSettings = {
     admin_notice: true,
   },
   section_order: defaultSectionOrder,
+  section_order_by_device: defaultSectionOrderByDevice,
   notes: '',
 };
 
@@ -92,29 +94,45 @@ export default function AdminLayoutStudioTab() {
   const patchDevice = (device, patch) => setSettings(prev => normaliseSettings({ ...prev, [device]: { ...prev[device], ...patch } }));
   const toggleModule = (key) => setSettings(prev => normaliseSettings({ ...prev, modules: { ...prev.modules, [key]: !prev.modules[key] } }));
 
+  const patchDeviceOrder = (device, order) => setSettings(prev => normaliseSettings({
+    ...prev,
+    section_order_by_device: {
+      ...prev.section_order_by_device,
+      [device]: normaliseSectionOrder(order),
+    },
+  }));
+
   const moveSection = (sectionId, direction) => {
     setSettings(prev => {
-      const order = normaliseSectionOrder(prev.section_order);
+      const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
+      const order = ordersByDevice[previewDevice];
       const currentIndex = order.indexOf(sectionId);
       const nextIndex = currentIndex + direction;
       if (currentIndex < 0 || nextIndex < 0 || nextIndex >= order.length) return prev;
       const next = [...order];
       [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
-      return normaliseSettings({ ...prev, section_order: next });
+      return normaliseSettings({ ...prev, section_order_by_device: { ...ordersByDevice, [previewDevice]: next } });
     });
   };
+
+  const resetDeviceOrder = () => patchDeviceOrder(previewDevice, defaultSectionOrder);
+  const copyDesktopOrder = () => setSettings(prev => {
+    const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
+    return normaliseSettings({ ...prev, section_order_by_device: { ...ordersByDevice, [previewDevice]: ordersByDevice.desktop } });
+  });
 
   const save = async () => {
     try {
       setSaving(true);
       const res = await apiClient.put('/admin/layout-settings', settings);
       setSettings(normaliseSettings(res.data?.settings || settings));
+      const ordersByDevice = normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order);
       await logAudit({
         action: 'Layout settings changed',
         area: 'layout_studio',
         target_id: 'global',
         target_label: 'Global layout settings',
-        detail: `Mode: ${settings.mode} • Density: ${settings.density} • Desktop ${settings.desktop.columns} cols • Tablet ${settings.tablet.columns} cols • Mobile ${settings.mobile.columns} cols • Order: ${normaliseSectionOrder(settings.section_order).map(section => sectionLabels[section] || section).join(' > ')}`,
+        detail: `Mode: ${settings.mode} • Density: ${settings.density} • Desktop ${settings.desktop.columns} cols • Tablet ${settings.tablet.columns} cols • Mobile ${settings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')}`,
       });
       toast.success('Layout settings saved');
     } catch (err) {
@@ -129,9 +147,11 @@ export default function AdminLayoutStudioTab() {
     setSettings(defaultSettings);
   };
 
-  const activeSectionOrder = useMemo(() => normaliseSectionOrder(settings.section_order), [settings.section_order]);
+  const ordersByDevice = useMemo(() => normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order), [settings.section_order, settings.section_order_by_device]);
+  const activeSectionOrder = ordersByDevice[previewDevice];
   const enabledModules = useMemo(() => activeSectionOrder.filter(key => isSectionEnabled(key, settings.modules)), [activeSectionOrder, settings.modules]);
   const preview = settings[previewDevice] || defaultSettings[previewDevice];
+  const previewDeviceLabel = devices.find(device => device.id === previewDevice)?.label || 'Desktop';
 
   return (
     <div style={wrapStyle} data-testid="admin-layout-studio-tab">
@@ -187,8 +207,17 @@ export default function AdminLayoutStudioTab() {
           </section>
 
           <section style={panelStyle}>
-            <h3 style={panelTitleStyle}><GripVertical size={16} /> Dashboard section order</h3>
-            <p style={subtitleStyle}>Move dashboard sections up or down. This is the safe stepping stone before true drag-and-drop editing.</p>
+            <div style={previewHeaderStyle}>
+              <div>
+                <h3 style={panelTitleStyle}><GripVertical size={16} /> {previewDeviceLabel} section order</h3>
+                <p style={subtitleStyle}>Move dashboard sections for the selected device. Desktop, tablet, and mobile can now have different flows.</p>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {devices.map(device => <button key={device.id} type="button" onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary }}>{device.label}</button>)}
+                <button type="button" onClick={copyDesktopOrder} style={smallButtonStyle}><Copy size={13} /> Copy desktop</button>
+                <button type="button" onClick={resetDeviceOrder} style={smallButtonStyle}><RotateCcw size={13} /> Reset {previewDeviceLabel}</button>
+              </div>
+            </div>
             <div style={orderListStyle}>
               {activeSectionOrder.map((sectionId, index) => (
                 <div key={sectionId} style={orderRowStyle}>
@@ -208,7 +237,7 @@ export default function AdminLayoutStudioTab() {
               const Icon = device.icon;
               const value = settings[device.id] || defaultSettings[device.id];
               return (
-                <article key={device.id} style={panelStyle}>
+                <article key={device.id} style={{ ...panelStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault }}>
                   <h3 style={panelTitleStyle}><Icon size={16} /> {device.label}</h3>
                   <div style={fieldGridStyle}>
                     <label style={labelStyle}>Max width
@@ -237,8 +266,8 @@ export default function AdminLayoutStudioTab() {
           <section style={previewWrapStyle}>
             <div style={previewHeaderStyle}>
               <div>
-                <h3 style={panelTitleStyle}><Eye size={16} /> Preview blueprint</h3>
-                <p style={subtitleStyle}>This is not full drag-and-drop yet. It shows the settings we can now store and apply page-by-page.</p>
+                <h3 style={panelTitleStyle}><Eye size={16} /> {previewDeviceLabel} preview blueprint</h3>
+                <p style={subtitleStyle}>The preview uses this device's order, max width, columns, card scale, sidebar setting, and visible modules.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {devices.map(device => <button key={device.id} type="button" onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary }}>{device.label}</button>)}
@@ -275,12 +304,23 @@ function normaliseSectionOrder(order) {
   return safe;
 }
 
+function normaliseSectionOrderByDevice(value = {}, fallbackOrder = defaultSectionOrder) {
+  const source = value || {};
+  const fallback = normaliseSectionOrder(fallbackOrder);
+  return {
+    desktop: normaliseSectionOrder(source.desktop || fallback),
+    tablet: normaliseSectionOrder(source.tablet || fallback),
+    mobile: normaliseSectionOrder(source.mobile || fallback),
+  };
+}
+
 function isSectionEnabled(sectionId, modules = {}) {
   if (sectionId === 'status_bar' || sectionId === 'live_workspace') return true;
   return modules?.[sectionId] !== false;
 }
 
 function normaliseSettings(value = {}) {
+  const sectionOrder = normaliseSectionOrder(value.section_order);
   return {
     ...defaultSettings,
     ...value,
@@ -288,7 +328,8 @@ function normaliseSettings(value = {}) {
     tablet: { ...defaultSettings.tablet, ...(value.tablet || {}) },
     mobile: { ...defaultSettings.mobile, ...(value.mobile || {}) },
     modules: { ...defaultSettings.modules, ...(value.modules || {}) },
-    section_order: normaliseSectionOrder(value.section_order),
+    section_order: sectionOrder,
+    section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
   };
 }
 
@@ -315,7 +356,7 @@ const orderIndexStyle = { width: 24, height: 24, display: 'grid', placeItems: 'c
 const miniButtonStyle = { width: 30, height: 30, display: 'inline-grid', placeItems: 'center', background: rq.input, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer' };
 const previewWrapStyle = { background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 16 };
 const previewHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 12 };
-const smallButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, padding: '8px 10px', fontWeight: 900, cursor: 'pointer' };
+const smallButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, padding: '8px 10px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 };
 const blueprintStyle = { overflowX: 'auto', padding: 8, background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm };
 const mockFrameStyle = { minWidth: 280, margin: '0 auto', display: 'grid', gap: 10, transition: 'max-width 160ms ease' };
 const mockTopbarStyle = { color: rq.text, background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900 };
