@@ -48,12 +48,13 @@ The first pass of this PR sets the shared direction and converts the main high-r
 - `frontend/src/styles/appShellRail.css`: app rail selected/unselected behaviour.
 - `frontend/src/styles/siteVelvetTheme.css`: legacy import path retained, contents moved to sunset-gradient tokens.
 - `frontend/src/styles/blueEclipseTheme.css`: legacy import path retained, contents moved away from gold/cream block styling.
+- `frontend/src/styles/gmBlueEclipseTheme.css`: GM dashboard, sidebar, active workspace, assets, and live play moved to the shared rail language.
 - `frontend/src/styles/twilightKeeperTheme.css`: high-specificity `#root` theme rules moved away from brown/espresso styling.
 - `frontend/src/styles/twilightKeeperPolish.css`: selected icons, chips, loading details, and box language flattened.
 - `frontend/src/styles/twilightKeeperScreens.css`: loading, public/auth shell, character mode, creator steps, and sheet screen polish flattened.
 - `frontend/src/styles/twilightKeeperAppPages.css`: logged-in dashboards, libraries, uploads, homebrew, admin, modals, and feedback flattened.
-- `frontend/src/styles/gmBlueEclipseTheme.css`: GM dashboard, sidebar, active workspace, assets, and live play moved to the shared rail language.
 - `frontend/src/components/AuthPage.css`: auth route directly converted so it does not rely only on late overrides.
+- `frontend/src/App.js`: preserved the current lazy-route/Rook assistant structure and imports `responsiveSunsetLayouts.css` after the existing polish stack.
 
 Continue future cleanup by replacing route CSS directly where possible, then using late guardrails only as protection for hard-to-reach legacy classes.
 
