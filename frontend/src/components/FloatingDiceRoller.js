@@ -9,6 +9,7 @@ import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } 
 import { DICE_ROLLER_MODES, diceRollerModeLabel, loadDiceRollerMode, saveDiceRollerMode } from '@/lib/diceRollerPreferences';
 import './FloatingDiceRoller.css';
 import './FloatingDiceRollerMode.css';
+import './FloatingDiceRollerExperience.css';
 
 const QUICK_DICE = [4, 6, 8, 10, 12, 20, 100];
 const HISTORY_LIMIT = 5;
