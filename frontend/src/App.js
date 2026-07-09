@@ -74,6 +74,7 @@ import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
 import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
+import RookGlobalAssistant from '@/components/RookGlobalAssistant';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
@@ -209,6 +210,7 @@ function AppRoutes() {
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
+      {isAuthenticated && <RookGlobalAssistant />}
       {isAuthenticated && <FloatingDiceRoller />}
       {isAuthenticated && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
     </>
