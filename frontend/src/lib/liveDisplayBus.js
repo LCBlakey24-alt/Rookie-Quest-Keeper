@@ -83,6 +83,20 @@ function normaliseDisplayState(state = {}) {
   };
 }
 
+function sameLogicalState(left = {}, right = {}) {
+  return left.mode === right.mode && stateTime(left) === stateTime(right) && stateSequence(left) === stateSequence(right);
+}
+
+function reconcileRemoteState(rawRemoteState = {}, normalizedRemoteState, localState) {
+  if (!localState || rawRemoteState?.sync_id || rawRemoteState?.id) return normalizedRemoteState;
+  if (!sameLogicalState(normalizedRemoteState, localState)) return normalizedRemoteState;
+  return {
+    ...normalizedRemoteState,
+    sync_id: localState.sync_id,
+    source_tab: localState.source_tab || normalizedRemoteState.source_tab,
+  };
+}
+
 function readStoredDisplayState(campaignId) {
   const runtimeWindow = getWindow();
   if (!runtimeWindow?.localStorage) return null;
@@ -121,8 +135,9 @@ export async function loadRemoteDisplayState(campaignId) {
   if (!campaignId) return createDisplayState('blank', {});
   const apiClient = await getApiClient();
   const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
-  const state = normaliseDisplayState(response.data || createDisplayState('blank', {}));
+  const rawState = response.data || createDisplayState('blank', {});
   const localState = readStoredDisplayState(campaignId);
+  const state = reconcileRemoteState(rawState, normaliseDisplayState(rawState), localState);
   if (!localState || isNewerState(state, localState)) saveDisplayState(campaignId, state);
   return state;
 }
@@ -164,8 +179,9 @@ export async function publishCampaignDisplayState(campaignId, state) {
   try {
     const apiClient = await getApiClient();
     const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, localState);
-    const remoteState = normaliseDisplayState(response.data || localState);
+    const rawRemoteState = response.data || localState;
     const latestLocalState = readStoredDisplayState(campaignId) || localState;
+    const remoteState = reconcileRemoteState(rawRemoteState, normaliseDisplayState(rawRemoteState), latestLocalState);
     if (isNewerState(remoteState, latestLocalState)) {
       publishDisplayState(campaignId, remoteState);
       return remoteState;
@@ -254,10 +270,10 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
 
   const applyRemoteState = (state) => {
     if (cancelled || !state?.updated_at) return;
-    const safeState = normaliseDisplayState(state);
+    const localState = readStoredDisplayState(campaignId);
+    const safeState = reconcileRemoteState(state, normaliseDisplayState(state), localState);
     const identity = stateIdentity(safeState);
     if (identity === lastRemoteIdentity) return;
-    const localState = readStoredDisplayState(campaignId);
     if (localState && !isNewerState(safeState, localState)) return;
     lastRemoteIdentity = identity;
     saveDisplayState(campaignId, safeState);
