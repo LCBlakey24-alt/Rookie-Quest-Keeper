@@ -89,11 +89,30 @@ function spellEntry(spell, fallbackLevel = 1) {
   return { name: String(spell || ''), level: fallbackLevel, description: '' };
 }
 
+function hasOwn(source = {}, key) {
+  return Object.prototype.hasOwnProperty.call(source || {}, key);
+}
+
+function rawScoreValue(value) {
+  return value && typeof value === 'object' ? value.score : value;
+}
+
+function scoreFromValue(value) {
+  const numeric = Number(rawScoreValue(value));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 10;
+}
+
+function readAbilityScore(source = {}, ability) {
+  if (hasOwn(source, ability)) return scoreFromValue(source[ability]);
+  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => source?.[key] && hasOwn(source[key], ability));
+  return containerKey ? scoreFromValue(source[containerKey][ability]) : 10;
+}
+
 function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
   const classInfo = SPELLCASTING_CLASSES[className];
   if (!classInfo || classInfo.type !== 'prepared') return 0;
   const numericLevel = Math.max(1, Number(level || 1));
-  const abilityScore = Number(abilities?.[classInfo.ability] || abilities?.abilityScores?.[classInfo.ability] || 10);
+  const abilityScore = readAbilityScore(abilities, classInfo.ability);
   const baseLevel = classInfo.halfCaster ? Math.max(1, Math.floor(numericLevel / 2)) : numericLevel;
   return Math.max(1, baseLevel + abilityMod(abilityScore));
 }
@@ -131,23 +150,8 @@ function clearFields(target, fields = []) {
   });
 }
 
-function hasOwn(source = {}, key) {
-  return Object.prototype.hasOwnProperty.call(source || {}, key);
-}
-
-function rawScoreValue(value) {
-  return value && typeof value === 'object' ? value.score : value;
-}
-
-function scoreFromValue(value) {
-  const numeric = Number(rawScoreValue(value));
-  return Number.isFinite(numeric) && numeric > 0 ? numeric : 10;
-}
-
 function readPayloadAbilityScore(target = {}, ability) {
-  if (hasOwn(target, ability)) return scoreFromValue(target[ability]);
-  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => target?.[key] && hasOwn(target[key], ability));
-  return containerKey ? scoreFromValue(target[containerKey][ability]) : 10;
+  return readAbilityScore(target, ability);
 }
 
 function writePayloadAbilityScore(target = {}, ability, score) {
