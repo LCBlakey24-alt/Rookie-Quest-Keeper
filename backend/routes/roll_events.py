@@ -1,6 +1,6 @@
 """Campaign roll event routes for player-focused session stats."""
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
@@ -36,13 +36,40 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def clean_identity(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+def identity_keys(value: Dict[str, Any], fallback: str = "") -> Set[str]:
+    keys = {
+        clean_identity(value.get("id")),
+        clean_identity(value.get("character_id")),
+        clean_identity(value.get("characterId")),
+        clean_identity(value.get("player_id")),
+        clean_identity(value.get("playerId")),
+        clean_identity(value.get("user_id")),
+        clean_identity(value.get("userId")),
+        clean_identity(value.get("name")),
+        clean_identity(value.get("character_name")),
+        clean_identity(value.get("characterName")),
+        clean_identity(value.get("display_name")),
+        clean_identity(value.get("displayName")),
+        clean_identity(value.get("playerName")),
+        clean_identity(value.get("player_name")),
+        clean_identity(value.get("actor")),
+        clean_identity(value.get("actor_name")),
+        clean_identity(fallback),
+    }
+    return {key for key in keys if key}
+
+
+def identities_overlap(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    return bool(identity_keys(left) & identity_keys(right))
+
+
 def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
     rolls = event.get("visibleRolls") or event.get("rolls") or []
     return [roll for roll in rolls if int(roll.get("sides") or 0) == 20 and not roll.get("dropped")]
-
-
-def group_result_key(result: Dict[str, Any], fallback: str = "") -> str:
-    return str(result.get("character_id") or result.get("character_name") or result.get("actor") or result.get("user_id") or fallback).lower()
 
 
 async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) -> None:
@@ -80,12 +107,14 @@ async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) ->
         "isFumble": event.get("isFumble"),
         "created_at": event.get("created_at"),
     }
-    result_key = group_result_key(event_result, event.get("id", ""))
-    filtered_results = [item for item in results if group_result_key(item) != result_key]
+    filtered_results = [item for item in results if not identities_overlap(item, event_result)]
+    updated_results = [*filtered_results, event_result]
+    party = payload.get("party") if isinstance(payload.get("party"), list) else []
+    matched_count = sum(1 for player in party if any(identities_overlap(player, result) for result in updated_results))
     updated_payload = {
         **payload,
-        "results": [*filtered_results, event_result],
-        "status": "complete" if len(filtered_results) + 1 >= len(payload.get("party") or []) and payload.get("party") else "collecting",
+        "results": updated_results,
+        "status": "complete" if party and matched_count >= len(party) else "collecting",
         "last_result_at": now_iso(),
     }
     updated_state = {
