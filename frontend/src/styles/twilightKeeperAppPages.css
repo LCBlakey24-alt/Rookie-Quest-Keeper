@@ -1,13 +1,13 @@
-/* Twilight Keeper app-page polish.
+/* Sunset Gradient app-page polish.
    Targets logged-in dashboards, libraries, campaign pages, admin, utilities and global feedback. */
 
-/* App frame: make the main shell feel like a twilight desktop, not a grey wrapper. */
+/* App frame: dark blue-purple shell, not a grey wrapper. */
 #root .rqk-app-shell {
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 88% 8%, rgba(235,63,233,0.16), transparent 32%),
-    radial-gradient(circle at 42% 112%, rgba(255,149,66,0.18), transparent 44%),
-    linear-gradient(180deg, #070713, #120720 52%, #1b082f) !important;
+    radial-gradient(circle at 88% 8%, rgba(235,63,233,0.12), transparent 32%),
+    radial-gradient(circle at 42% 112%, rgba(255,149,66,0.12), transparent 44%),
+    linear-gradient(180deg, #070713, #0b0718 52%, #13081f) !important;
 }
 
 #root .rqk-app-shell-content {
@@ -15,12 +15,12 @@
 }
 
 #root .rqk-app-rail {
-  border-right: 1px solid rgba(255,248,239,0.11) !important;
+  border-right: 1px solid rgba(255,255,255,0.11) !important;
   backdrop-filter: blur(14px);
 }
 
 #root .rqk-app-rail-brand {
-  border-radius: 22px !important;
+  border-radius: 16px !important;
   overflow: hidden;
 }
 
@@ -29,18 +29,18 @@
   display: block;
   grid-column: 1 / -1;
   width: 100%;
-  height: 4px;
+  height: 2px;
   margin-top: 4px;
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
-  opacity: 0.86;
+  opacity: 0.74;
 }
 
 #root .rqk-app-rail-section-label,
 #root .rqk-app-rail-user,
 #root .rqk-app-rail-footer,
 #root .rqk-app-rail-muted {
-  color: rgba(255,248,239,0.56) !important;
+  color: rgba(255,255,255,0.56) !important;
 }
 
 /* Home dashboard / overview boards. */
@@ -53,7 +53,7 @@
 #root .library-page,
 #root .uploads-dashboard-page,
 #root [data-testid="homebrew-workshop"] {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .dashboard-hero,
@@ -79,13 +79,13 @@
 #root [data-testid="homebrew-workshop"] > section > header,
 #root [data-testid="homebrew-workshop"] > section > section,
 #root [data-testid="homebrew-workshop"] aside {
-  border: 2px solid transparent !important;
-  border-radius: 24px !important;
+  border: 1px solid transparent !important;
+  border-radius: 18px !important;
   background:
-    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(34,14,54,0.92)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 28px rgba(235,63,233,0.10) !important;
-  color: var(--rq-sunset-cream) !important;
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(27,11,45,0.92)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.30), rgba(216,77,241,0.20), rgba(255,149,66,0.18)) border-box !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
 }
 
 #root .dashboard-hero h1,
@@ -97,7 +97,7 @@
 #root .uploads-dashboard-hero h1,
 #root [data-testid="homebrew-workshop"] h1 {
   font-family: var(--rq-title-font) !important;
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .dashboard-hero p,
@@ -115,7 +115,7 @@
 #root [data-testid="homebrew-workshop"] p,
 #root [data-testid="homebrew-workshop"] span,
 #root [data-testid="homebrew-workshop"] small {
-  color: rgba(255,248,239,0.70) !important;
+  color: rgba(255,255,255,0.72) !important;
 }
 
 /* Dashboard command centre. */
@@ -137,7 +137,7 @@
 
 #root .dashboard-command-card {
   position: relative !important;
-  min-height: 188px !important;
+  min-height: 176px !important;
   display: grid !important;
   align-content: start !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
@@ -152,8 +152,8 @@
 
 #root .dashboard-command-card:hover,
 #root .dashboard-command-card:focus-visible {
-  transform: translateY(-2px) !important;
-  filter: brightness(1.06) !important;
+  transform: translateY(-1px) !important;
+  filter: brightness(1.04) !important;
   outline: none !important;
 }
 
@@ -161,10 +161,10 @@
   content: "" !important;
   position: absolute !important;
   inset: auto 12px 12px 12px !important;
-  height: 3px !important;
+  height: 2px !important;
   border-radius: 999px !important;
   background: var(--rq-sunset-gradient) !important;
-  opacity: 0.78 !important;
+  opacity: 0.72 !important;
 }
 
 #root .dashboard-command-label,
@@ -175,10 +175,10 @@
   width: fit-content !important;
   min-height: 26px !important;
   padding: 0 9px !important;
-  border: 1px solid rgba(255,248,239,0.16) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 999px !important;
-  background: rgba(255,248,239,0.06) !important;
-  color: rgba(255,248,239,0.82) !important;
+  background: rgba(255,255,255,0.05) !important;
+  color: rgba(255,255,255,0.82) !important;
   font-size: 0.68rem !important;
   font-style: normal !important;
   font-weight: 950 !important;
@@ -192,7 +192,7 @@
   height: 38px !important;
   display: inline-grid !important;
   place-items: center !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
 }
@@ -203,15 +203,15 @@
 
 #root .dashboard-command-card strong {
   grid-column: 1 / -1 !important;
-  color: var(--rq-sunset-cream) !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, var(--rq-font-display, Georgia, serif)) !important;
   font-size: clamp(1.25rem, 4.4vw, 1.8rem) !important;
   line-height: 1.04 !important;
 }
 
 #root .dashboard-command-card > span:not(.dashboard-command-label):not(.dashboard-command-icon) {
   grid-column: 1 / -1 !important;
-  color: rgba(255,248,239,0.72) !important;
+  color: rgba(255,255,255,0.72) !important;
   line-height: 1.45 !important;
 }
 
@@ -220,7 +220,7 @@
   margin-top: 4px !important;
 }
 
-/* Library/action buttons: keep the sunset for primary actions and calm dark for the rest. */
+/* Library/action buttons: sunset for primary actions and calm dark for the rest. */
 #root .library-page-actions button:first-child,
 #root .dashboard-hero-actions button:first-child,
 #root .character-library-actions button:first-child,
@@ -229,8 +229,8 @@
 #root .homebrew-workshop-actions button:first-child {
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255,248,239,0.16) !important;
-  box-shadow: var(--rq-twilight-selected-shadow) !important;
+  border: 1px solid rgba(255,255,255,0.16) !important;
+  box-shadow: none !important;
 }
 
 #root .library-page-actions button:not(:first-child),
@@ -240,8 +240,8 @@
 #root .uploads-dashboard-actions button:not(:first-child),
 #root .homebrew-workshop-actions button:not(:first-child) {
   background: rgba(13,6,23,0.82) !important;
-  color: rgba(255,248,239,0.82) !important;
-  border: 1px solid rgba(255,248,239,0.14) !important;
+  color: rgba(255,255,255,0.82) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
 }
 
 #root .library-page button,
@@ -249,7 +249,7 @@
 #root [data-testid="homebrew-workshop"] button,
 #root [data-testid="homebrew-workshop"] label[for="hb-file-input"],
 #root [data-testid="homebrew-workshop"] select {
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease !important;
 }
 
@@ -263,18 +263,18 @@
 /* Homebrew inline-style rescue pass. */
 #root [data-testid="homebrew-workshop"] {
   background:
-    radial-gradient(circle at 78% 0%, rgba(235,63,233,0.16), transparent 34%),
-    radial-gradient(circle at 18% 98%, rgba(255,149,66,0.16), transparent 40%),
-    linear-gradient(180deg, #070713, #120720 58%, #1b082f) !important;
+    radial-gradient(circle at 78% 0%, rgba(235,63,233,0.12), transparent 34%),
+    radial-gradient(circle at 18% 98%, rgba(255,149,66,0.12), transparent 40%),
+    linear-gradient(180deg, #070713, #0b0718 58%, #13081f) !important;
 }
 
 #root [data-testid="homebrew-workshop"] input,
 #root [data-testid="homebrew-workshop"] textarea,
 #root [data-testid="homebrew-workshop"] select {
   background: rgba(7,7,19,0.72) !important;
-  border: 1px solid rgba(255,248,239,0.16) !important;
-  border-radius: 14px !important;
-  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
 }
 
 #root [data-testid="homebrew-workshop"] input:focus,
@@ -290,7 +290,7 @@
     linear-gradient(rgba(13,6,23,0.88), rgba(13,6,23,0.88)) padding-box,
     var(--rq-sunset-gradient) border-box !important;
   border: 1px solid transparent !important;
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
   box-shadow: none !important;
 }
 
@@ -306,7 +306,7 @@
 #root .campaign-dashboard-page,
 #root .campaign-dashboard-shell,
 #root .gm-dashboard-shell {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .campaign-dashboard-header,
@@ -323,13 +323,13 @@
 #root [data-testid="live-session-grid"] > aside,
 #root [data-testid="live-session-grid"] > main,
 #root [data-testid="live-story-focus-panel"] {
-  border: 2px solid transparent !important;
-  border-radius: 24px !important;
+  border: 1px solid transparent !important;
+  border-radius: 18px !important;
   background:
-    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(33,13,54,0.92)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: 0 14px 38px rgba(0,0,0,0.22), 0 0 26px rgba(235,63,233,0.09) !important;
-  color: var(--rq-sunset-cream) !important;
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(27,11,45,0.92)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.30), rgba(216,77,241,0.20), rgba(255,149,66,0.18)) border-box !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
 }
 
 /* Admin page beyond the audit tab. */
@@ -345,7 +345,7 @@
 #root [data-testid="admin-panel"],
 #root [data-testid="admin-users-tab"],
 #root [data-testid="admin-feedback-tab"] {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .admin-panel,
@@ -360,12 +360,12 @@
 #root [data-testid="admin-panel"],
 #root [data-testid="admin-users-tab"],
 #root [data-testid="admin-feedback-tab"] > section {
-  border: 2px solid transparent !important;
-  border-radius: 24px !important;
+  border: 1px solid transparent !important;
+  border-radius: 18px !important;
   background:
-    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(31,12,49,0.92)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: 0 14px 38px rgba(0,0,0,0.20), 0 0 24px rgba(235,63,233,0.09) !important;
+    linear-gradient(145deg, rgba(13,6,23,0.96), rgba(27,11,45,0.92)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.30), rgba(216,77,241,0.20), rgba(255,149,66,0.18)) border-box !important;
+  box-shadow: none !important;
 }
 
 /* Tables/list rows/search boxes inside app pages. */
@@ -380,8 +380,8 @@
 #root .homebrew-result,
 #root .upload-history-row {
   background: rgba(13,6,23,0.76) !important;
-  color: var(--rq-sunset-cream) !important;
-  border-color: rgba(255,248,239,0.12) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.12) !important;
 }
 
 #root th,
@@ -392,7 +392,7 @@
 #root .admin-row span,
 #root .campaign-row span,
 #root .dashboard-row span {
-  color: rgba(255,248,239,0.74) !important;
+  color: rgba(255,255,255,0.74) !important;
 }
 
 /* Modal/dropdown surfaces. */
@@ -405,12 +405,12 @@
 #root .campaign-create-modal,
 #root .character-edit-modal {
   background:
-    linear-gradient(145deg, rgba(13,6,23,0.98), rgba(34,14,54,0.96)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  border: 2px solid transparent !important;
-  border-radius: 24px !important;
-  color: var(--rq-sunset-cream) !important;
-  box-shadow: 0 22px 58px rgba(0,0,0,0.38), 0 0 34px rgba(235,63,233,0.14) !important;
+    linear-gradient(145deg, rgba(13,6,23,0.98), rgba(27,11,45,0.96)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.30), rgba(216,77,241,0.20), rgba(255,149,66,0.18)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 18px !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
 }
 
 /* Global feedback should look like part of the sunset system. */
@@ -419,8 +419,8 @@
 #root [data-testid="global-feedback-button"] {
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255,248,239,0.18) !important;
-  box-shadow: var(--rq-twilight-selected-shadow) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  box-shadow: none !important;
 }
 
 /* The app should still be practical on mobile: fewer huge glows, tighter radius. */
@@ -446,8 +446,8 @@
   #root [data-testid="homebrew-workshop"] > section > header,
   #root [data-testid="homebrew-workshop"] > section > section,
   #root [data-testid="homebrew-workshop"] aside {
-    border-radius: 18px !important;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.20), 0 0 18px rgba(235,63,233,0.07) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
   }
 
   #root .dashboard-command-grid {
@@ -455,7 +455,7 @@
   }
 
   #root .dashboard-command-card {
-    min-height: 160px !important;
+    min-height: 150px !important;
   }
 
   #root .rqk-app-rail {
