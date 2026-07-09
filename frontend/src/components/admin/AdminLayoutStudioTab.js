@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, Copy, Eye, GripVertical, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, GripVertical, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -20,6 +20,8 @@ const rq = {
 
 const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
 const defaultSectionOrderByDevice = { desktop: defaultSectionOrder, tablet: defaultSectionOrder, mobile: defaultSectionOrder };
+const defaultSectionVisibility = Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, true]));
+const defaultSectionVisibilityByDevice = { desktop: defaultSectionVisibility, tablet: defaultSectionVisibility, mobile: defaultSectionVisibility };
 
 const defaultSettings = {
   mode: 'balanced',
@@ -37,6 +39,7 @@ const defaultSettings = {
   },
   section_order: defaultSectionOrder,
   section_order_by_device: defaultSectionOrderByDevice,
+  section_visibility_by_device: defaultSectionVisibilityByDevice,
   notes: '',
 };
 
@@ -109,6 +112,14 @@ export default function AdminLayoutStudioTab() {
     },
   }));
 
+  const patchDeviceVisibility = (device, visibility) => setSettings(prev => normaliseSettings({
+    ...prev,
+    section_visibility_by_device: {
+      ...prev.section_visibility_by_device,
+      [device]: normaliseSectionVisibility(visibility),
+    },
+  }));
+
   const moveSection = (sectionId, direction) => {
     setSettings(prev => {
       const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
@@ -122,10 +133,30 @@ export default function AdminLayoutStudioTab() {
     });
   };
 
+  const toggleDeviceSectionVisibility = (sectionId) => {
+    setSettings(prev => {
+      const visibilityByDevice = normaliseSectionVisibilityByDevice(prev.section_visibility_by_device);
+      const currentVisibility = visibilityByDevice[previewDevice];
+      return normaliseSettings({
+        ...prev,
+        section_visibility_by_device: {
+          ...visibilityByDevice,
+          [previewDevice]: { ...currentVisibility, [sectionId]: currentVisibility[sectionId] === false },
+        },
+      });
+    });
+  };
+
   const resetDeviceOrder = () => patchDeviceOrder(previewDevice, defaultSectionOrder);
+  const showAllDeviceSections = () => patchDeviceVisibility(previewDevice, defaultSectionVisibility);
   const copyDesktopOrder = () => setSettings(prev => {
     const ordersByDevice = normaliseSectionOrderByDevice(prev.section_order_by_device, prev.section_order);
-    return normaliseSettings({ ...prev, section_order_by_device: { ...ordersByDevice, [previewDevice]: ordersByDevice.desktop } });
+    const visibilityByDevice = normaliseSectionVisibilityByDevice(prev.section_visibility_by_device);
+    return normaliseSettings({
+      ...prev,
+      section_order_by_device: { ...ordersByDevice, [previewDevice]: ordersByDevice.desktop },
+      section_visibility_by_device: { ...visibilityByDevice, [previewDevice]: visibilityByDevice.desktop },
+    });
   });
 
   const hasUnsavedChanges = useMemo(() => settingsSignature(settings) !== settingsSignature(lastSavedSettings), [settings, lastSavedSettings]);
@@ -139,12 +170,14 @@ export default function AdminLayoutStudioTab() {
       setSettings(savedSettings);
       setLastSavedSettings(savedSettings);
       const ordersByDevice = normaliseSectionOrderByDevice(savedSettings.section_order_by_device, savedSettings.section_order);
+      const visibilityByDevice = normaliseSectionVisibilityByDevice(savedSettings.section_visibility_by_device);
+      const hiddenSections = ordersByDevice[previewDevice].filter(sectionId => visibilityByDevice[previewDevice][sectionId] === false);
       await logAudit({
         action: 'Layout settings changed',
         area: 'layout_studio',
         target_id: 'global',
         target_label: 'Global layout settings',
-        detail: `Mode: ${savedSettings.mode} • Density: ${savedSettings.density} • Desktop ${savedSettings.desktop.columns} cols • Tablet ${savedSettings.tablet.columns} cols • Mobile ${savedSettings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')}`,
+        detail: `Mode: ${savedSettings.mode} • Density: ${savedSettings.density} • Desktop ${savedSettings.desktop.columns} cols • Tablet ${savedSettings.tablet.columns} cols • Mobile ${savedSettings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')} • Hidden: ${hiddenSections.length ? hiddenSections.map(section => sectionLabels[section] || section).join(', ') : 'none'}`,
       });
       toast.success('Layout settings saved');
     } catch (err) {
@@ -160,8 +193,10 @@ export default function AdminLayoutStudioTab() {
   };
 
   const ordersByDevice = useMemo(() => normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order), [settings.section_order, settings.section_order_by_device]);
+  const visibilityByDevice = useMemo(() => normaliseSectionVisibilityByDevice(settings.section_visibility_by_device), [settings.section_visibility_by_device]);
   const activeSectionOrder = ordersByDevice[previewDevice];
-  const enabledModules = useMemo(() => activeSectionOrder.filter(key => isSectionEnabled(key, settings.modules)), [activeSectionOrder, settings.modules]);
+  const activeSectionVisibility = visibilityByDevice[previewDevice];
+  const enabledModules = useMemo(() => activeSectionOrder.filter(key => isSectionVisible(key, settings.modules, activeSectionVisibility)), [activeSectionOrder, activeSectionVisibility, settings.modules]);
   const preview = settings[previewDevice] || defaultSettings[previewDevice];
   const previewDeviceLabel = devices.find(device => device.id === previewDevice)?.label || 'Desktop';
 
@@ -213,7 +248,8 @@ export default function AdminLayoutStudioTab() {
             </div>
 
             <div style={panelStyle}>
-              <h3 style={panelTitleStyle}>Visible modules</h3>
+              <h3 style={panelTitleStyle}>Global module switches</h3>
+              <p style={subtitleStyle}>These are master switches. Device visibility below can hide sections per device, but it cannot override a global off switch.</p>
               <div style={moduleGridStyle}>
                 {Object.entries(moduleLabels).map(([key, label]) => (
                   <button key={key} type="button" disabled={disabled} onClick={() => toggleModule(key)} style={{ ...moduleToggleStyle, borderColor: settings.modules?.[key] ? rq.accent : rq.borderDefault, background: settings.modules?.[key] ? rq.accentSoft : rq.input, opacity: disabled ? 0.72 : 1 }}>
@@ -228,26 +264,35 @@ export default function AdminLayoutStudioTab() {
           <section style={panelStyle}>
             <div style={previewHeaderStyle}>
               <div>
-                <h3 style={panelTitleStyle}><GripVertical size={16} /> {previewDeviceLabel} section order</h3>
-                <p style={subtitleStyle}>Move dashboard sections for the selected device. Desktop, tablet, and mobile can now have different flows.</p>
+                <h3 style={panelTitleStyle}><GripVertical size={16} /> {previewDeviceLabel} section order + visibility</h3>
+                <p style={subtitleStyle}>Move or hide dashboard sections for this device only. Desktop, tablet, and mobile can now each have their own flow and visible sections.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
                 <button type="button" disabled={disabled} onClick={copyDesktopOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><Copy size={13} /> Copy desktop</button>
-                <button type="button" disabled={disabled} onClick={resetDeviceOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><RotateCcw size={13} /> Reset {previewDeviceLabel}</button>
+                <button type="button" disabled={disabled} onClick={showAllDeviceSections} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><Eye size={13} /> Show all</button>
+                <button type="button" disabled={disabled} onClick={resetDeviceOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><RotateCcw size={13} /> Reset order</button>
               </div>
             </div>
             <div style={orderListStyle}>
-              {activeSectionOrder.map((sectionId, index) => (
-                <div key={sectionId} style={orderRowStyle}>
-                  <span style={orderIndexStyle}>{index + 1}</span>
-                  <GripVertical size={15} color={rq.muted} />
-                  <span style={{ flex: 1, minWidth: 0, color: rq.textSecondary, fontWeight: 900 }}>{sectionLabels[sectionId] || sectionId}</span>
-                  <span style={{ color: isSectionEnabled(sectionId, settings.modules) ? rq.accentHover : rq.muted, fontSize: 11, fontWeight: 900 }}>{isSectionEnabled(sectionId, settings.modules) ? 'Visible' : 'Hidden'}</span>
-                  <button type="button" onClick={() => moveSection(sectionId, -1)} disabled={disabled || index === 0} style={miniButtonStyle}><ArrowUp size={13} /></button>
-                  <button type="button" onClick={() => moveSection(sectionId, 1)} disabled={disabled || index === activeSectionOrder.length - 1} style={miniButtonStyle}><ArrowDown size={13} /></button>
-                </div>
-              ))}
+              {activeSectionOrder.map((sectionId, index) => {
+                const globallyEnabled = isSectionEnabled(sectionId, settings.modules);
+                const deviceVisible = activeSectionVisibility[sectionId] !== false;
+                const effectivelyVisible = globallyEnabled && deviceVisible;
+                return (
+                  <div key={sectionId} style={{ ...orderRowStyle, opacity: effectivelyVisible ? 1 : 0.68 }}>
+                    <span style={orderIndexStyle}>{index + 1}</span>
+                    <GripVertical size={15} color={rq.muted} />
+                    <span style={{ flex: 1, minWidth: 0, color: rq.textSecondary, fontWeight: 900 }}>{sectionLabels[sectionId] || sectionId}</span>
+                    <button type="button" onClick={() => toggleDeviceSectionVisibility(sectionId)} disabled={disabled || !globallyEnabled} style={{ ...visibilityButtonStyle, borderColor: effectivelyVisible ? rq.accent : rq.borderDefault, color: effectivelyVisible ? rq.accentHover : rq.muted }}>
+                      {deviceVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                      {globallyEnabled ? (deviceVisible ? 'Visible' : 'Hidden') : 'Global off'}
+                    </button>
+                    <button type="button" onClick={() => moveSection(sectionId, -1)} disabled={disabled || index === 0} style={miniButtonStyle}><ArrowUp size={13} /></button>
+                    <button type="button" onClick={() => moveSection(sectionId, 1)} disabled={disabled || index === activeSectionOrder.length - 1} style={miniButtonStyle}><ArrowDown size={13} /></button>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -286,7 +331,7 @@ export default function AdminLayoutStudioTab() {
             <div style={previewHeaderStyle}>
               <div>
                 <h3 style={panelTitleStyle}><Eye size={16} /> {previewDeviceLabel} preview blueprint</h3>
-                <p style={subtitleStyle}>The preview uses this device's order, max width, columns, card scale, sidebar setting, and visible modules.</p>
+                <p style={subtitleStyle}>The preview uses this device's order, visibility, max width, columns, card scale, sidebar setting, and global module switches.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
@@ -298,7 +343,7 @@ export default function AdminLayoutStudioTab() {
                 <div style={{ display: 'grid', gridTemplateColumns: preview.show_sidebar ? '140px 1fr' : '1fr', gap: 10 }}>
                   {preview.show_sidebar ? <div style={mockSidebarStyle}>Sidebar / filters</div> : null}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, Number(preview.columns) || 1)}, minmax(0, 1fr))`, gap: settings.density === 'spacious' ? 14 : settings.density === 'compact' ? 6 : 10 }}>
-                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No modules enabled</div> : enabledModules.map(key => <div key={key} style={{ ...mockCardStyle, minHeight: preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86 }}>{sectionLabels[key] || moduleLabels[key] || key}</div>)}
+                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No sections visible for this device</div> : enabledModules.map(key => <div key={key} style={{ ...mockCardStyle, minHeight: preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86 }}>{sectionLabels[key] || moduleLabels[key] || key}</div>)}
                   </div>
                 </div>
               </div>
@@ -344,9 +389,27 @@ function normaliseSectionOrderByDevice(value = {}, fallbackOrder = defaultSectio
   };
 }
 
+function normaliseSectionVisibility(value = {}) {
+  const source = value || {};
+  return Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, source[sectionId] !== false]));
+}
+
+function normaliseSectionVisibilityByDevice(value = {}) {
+  const source = value || {};
+  return {
+    desktop: normaliseSectionVisibility(source.desktop),
+    tablet: normaliseSectionVisibility(source.tablet),
+    mobile: normaliseSectionVisibility(source.mobile),
+  };
+}
+
 function isSectionEnabled(sectionId, modules = {}) {
   if (sectionId === 'status_bar' || sectionId === 'live_workspace') return true;
   return modules?.[sectionId] !== false;
+}
+
+function isSectionVisible(sectionId, modules = {}, visibility = {}) {
+  return isSectionEnabled(sectionId, modules) && visibility?.[sectionId] !== false;
 }
 
 function normaliseSettings(value = {}) {
@@ -360,6 +423,7 @@ function normaliseSettings(value = {}) {
     modules: { ...defaultSettings.modules, ...(value.modules || {}) },
     section_order: sectionOrder,
     section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
+    section_visibility_by_device: normaliseSectionVisibilityByDevice(value.section_visibility_by_device),
   };
 }
 
@@ -384,9 +448,10 @@ const textareaStyle = { minHeight: 98, background: rq.panel, color: rq.text, bor
 const moduleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 };
 const moduleToggleStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 8, color: rq.textSecondary, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px', fontWeight: 900, cursor: 'pointer', textAlign: 'left' };
 const orderListStyle = { display: 'grid', gap: 8, marginTop: 12 };
-const orderRowStyle = { display: 'flex', alignItems: 'center', gap: 8, background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '8px 10px' };
+const orderRowStyle = { display: 'flex', alignItems: 'center', gap: 8, background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '8px 10px', flexWrap: 'wrap' };
 const orderIndexStyle = { width: 24, height: 24, display: 'grid', placeItems: 'center', background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, fontSize: 11, fontWeight: 900 };
 const miniButtonStyle = { width: 30, height: 30, display: 'inline-grid', placeItems: 'center', background: rq.input, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer' };
+const visibilityButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '0 8px', fontSize: 11, fontWeight: 900, cursor: 'pointer' };
 const previewWrapStyle = { background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 16 };
 const previewHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 12 };
 const smallButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, padding: '8px 10px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 };
