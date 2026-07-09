@@ -62,6 +62,7 @@ const rq = {
 
 export default function AdminSiteControlTab() {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
   const [lastSavedSettings, setLastSavedSettings] = useState(defaultSettings);
@@ -79,9 +80,10 @@ export default function AdminSiteControlTab() {
     try { await apiClient.post('/admin/audit-log', entry); } catch { /* Audit logging should never block site control saves. */ }
   };
 
-  const load = async () => {
+  const load = async ({ background = false } = {}) => {
     try {
-      setLoading(true);
+      if (background) setRefreshing(true);
+      else setLoading(true);
       const [settingsRes, overviewRes] = await Promise.all([
         apiClient.get('/admin/site-settings'),
         apiClient.get('/admin/overview'),
@@ -94,6 +96,7 @@ export default function AdminSiteControlTab() {
       toast.error(e?.response?.data?.detail || 'Failed to load site controls');
     } finally {
       setLoading(false);
+      if (background) setRefreshing(false);
     }
   };
 
@@ -101,8 +104,11 @@ export default function AdminSiteControlTab() {
 
   const setField = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
 
+  const changes = useMemo(() => describeChanges(lastSavedSettings, settings), [lastSavedSettings, settings]);
+  const hasChanges = changes.length > 0;
+  const controlsDisabled = saving || refreshing;
+
   const save = async () => {
-    const changes = describeChanges(lastSavedSettings, settings);
     try {
       setSaving(true);
       await apiClient.put('/admin/site-settings', settings);
@@ -116,7 +122,7 @@ export default function AdminSiteControlTab() {
         });
       }
       toast.success(changes.length > 0 ? 'Site settings updated' : 'Site settings saved');
-      load();
+      await load({ background: true });
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Failed to save site settings');
     } finally {
@@ -126,10 +132,10 @@ export default function AdminSiteControlTab() {
 
   const enabledCount = useMemo(() => controls.filter(([key]) => settings[key] !== false).length, [settings]);
 
-  if (loading) return <div style={emptyStyle}>Loading site controls...</div>;
+  if (loading) return <AdminSiteControlLoading />;
 
   return (
-    <div style={wrapStyle} data-testid="admin-site-control-tab">
+    <div style={wrapStyle} data-testid="admin-site-control-tab" aria-busy={(saving || refreshing) ? 'true' : 'false'}>
       <header style={headerStyle}>
         <div style={{ minWidth: 0 }}>
           <p style={eyebrowStyle}>Owner controls</p>
@@ -137,10 +143,17 @@ export default function AdminSiteControlTab() {
           <p style={subtitleStyle}>Control announcements, maintenance mode, beta switches, and the public-facing behaviour of Rookie Quest Keeper.</p>
         </div>
         <div style={headerActionsStyle}>
-          <button type="button" onClick={load} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</button>
-          <button type="button" onClick={save} disabled={saving} style={saveButtonStyle}><Save size={15} /> {saving ? 'Saving...' : 'Save settings'}</button>
+          <button type="button" onClick={() => load({ background: true })} disabled={refreshing || saving} aria-busy={refreshing ? 'true' : 'false'} style={busySecondaryButtonStyle(refreshing)}><RefreshCw size={15} style={refreshing ? siteControlSpinStyle : undefined} /> {refreshing ? 'Refreshing…' : 'Refresh'}</button>
+          <button type="button" onClick={save} disabled={saving || refreshing} aria-busy={saving ? 'true' : 'false'} style={busySaveButtonStyle(saving)}>{saving ? <RefreshCw size={15} style={siteControlSpinStyle} /> : <Save size={15} />} {saving ? 'Saving settings…' : hasChanges ? `Save ${changes.length} change${changes.length === 1 ? '' : 's'}` : 'Save settings'}</button>
         </div>
       </header>
+
+      {hasChanges ? (
+        <section style={changesStyle} aria-live="polite">
+          <strong>Unsaved changes</strong>
+          <span>{changes.slice(0, 2).join(' • ')}{changes.length > 2 ? ` • +${changes.length - 2} more` : ''}</span>
+        </section>
+      ) : null}
 
       <section style={metricGridStyle} aria-label="Site overview">
         <Metric label="Users" value={overview.users_count || 0} />
@@ -162,11 +175,13 @@ export default function AdminSiteControlTab() {
           label="Enable announcement banner"
           description="Shows a short banner message to users. Keep it practical: outages, new beta tools, or important testing notes."
           checked={!!settings.announcement_enabled}
+          disabled={controlsDisabled}
           onChange={value => setField('announcement_enabled', value)}
         />
         <textarea
           value={settings.announcement_text || ''}
           onChange={e => setField('announcement_text', e.target.value)}
+          disabled={controlsDisabled}
           maxLength={240}
           placeholder="Announcement text (max 240 characters)"
           style={textareaStyle}
@@ -182,6 +197,7 @@ export default function AdminSiteControlTab() {
           label="Maintenance mode"
           description="Blocks non-admin users while you patch or test the site. Leave off unless something is genuinely broken."
           checked={!!settings.maintenance_mode}
+          disabled={controlsDisabled}
           onChange={value => setField('maintenance_mode', value)}
         />
         {settings.maintenance_mode ? <p style={warningStyle}>Maintenance mode is on. Non-admin users are blocked from the app.</p> : null}
@@ -191,10 +207,21 @@ export default function AdminSiteControlTab() {
         <p style={subtitleStyle}>Feedback and reviews are already enforced. The other switches are stored and ready to wire into their matching features as those screens mature.</p>
         <div style={controlGridStyle}>
           {controls.map(([key, label, description]) => (
-            <ControlRow key={key} label={label} description={description} checked={settings[key] !== false} onChange={value => setField(key, value)} compact />
+            <ControlRow key={key} label={label} description={description} checked={settings[key] !== false} disabled={controlsDisabled} onChange={value => setField(key, value)} compact />
           ))}
         </div>
       </Section>
+      <style>{siteControlCss}</style>
+    </div>
+  );
+}
+
+function AdminSiteControlLoading() {
+  return (
+    <div style={loadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={loadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading site controls…</strong>
+      <span style={loadingTextStyle}>Checking announcements, maintenance mode, feature switches, and live site totals.</span>
     </div>
   );
 }
@@ -220,14 +247,14 @@ function Section({ title, icon: Icon, children }) {
   return <section style={sectionStyle}><h3 style={sectionTitleStyle}><Icon size={17} />{title}</h3>{children}</section>;
 }
 
-function ControlRow({ label, description, checked, onChange, compact = false }) {
+function ControlRow({ label, description, checked, onChange, compact = false, disabled = false }) {
   return (
-    <label style={{ ...controlRowStyle, minHeight: compact ? 92 : 78 }}>
+    <label style={{ ...controlRowStyle, minHeight: compact ? 92 : 78, opacity: disabled ? 0.72 : 1 }}>
       <span style={{ display: 'grid', gap: 4, minWidth: 0 }}>
         <span style={{ color: rq.text, fontWeight: 900 }}>{label}</span>
         <span style={{ color: rq.muted, fontSize: 12, lineHeight: 1.45 }}>{description}</span>
       </span>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={checkboxStyle} />
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange(e.target.checked)} style={checkboxStyle} />
     </label>
   );
 }
@@ -267,4 +294,23 @@ const bannerPreview = { background: rq.accent, color: '#FFFFFF', padding: 10, te
 const warningStyle = { color: rq.warning, fontWeight: 900, margin: 0, background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', padding: 10, borderRadius: rq.radiusSm };
 const saveButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: rq.accent, color: rq.inverse, border: 'none', fontWeight: 950, borderRadius: rq.radiusSm, cursor: 'pointer' };
 const secondaryButtonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: rq.card, color: rq.text, border: `1px solid ${rq.borderDefault}`, fontWeight: 900, borderRadius: rq.radiusSm, cursor: 'pointer' };
-const emptyStyle = { color: rq.muted, textAlign: 'center', padding: 36, background: rq.card, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm };
+const changesStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '10px 12px', borderRadius: rq.radiusSm, fontSize: 12 };
+const loadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const loadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminSiteControlSpin 0.9s linear infinite' };
+const loadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 430 };
+const siteControlSpinStyle = { animation: 'rqAdminSiteControlSpin 0.9s linear infinite' };
+const siteControlCss = `
+  @keyframes rqAdminSiteControlSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-site-control-tab"] svg,
+    [data-testid="admin-site-control-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
+
+function busySaveButtonStyle(isBusy) {
+  return { ...saveButtonStyle, opacity: isBusy ? 0.82 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busySecondaryButtonStyle(isBusy) {
+  return { ...secondaryButtonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
