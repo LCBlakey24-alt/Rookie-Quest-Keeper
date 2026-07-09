@@ -9,6 +9,7 @@ import '@/styles/homebrewWorkshopExperience.css';
 import '@/styles/homeHubMobileNavPolish.css';
 import '@/styles/adminFeedbackExperience.css';
 import '@/styles/accountSettingsExperience.css';
+import '@/styles/appShellExperiencePolish.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
