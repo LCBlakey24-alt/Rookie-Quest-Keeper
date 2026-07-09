@@ -67,6 +67,7 @@ const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampScore = (value) => Math.max(3, Math.min(20, Number(value || 10)));
 const abilityMod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const ABILITY_CONTAINER_KEYS = ['abilityScores', 'abilities', 'scores'];
 
 function targetFromTable(table = {}, level = 1) {
   const numericLevel = Math.max(1, Number(level || 1));
@@ -128,6 +129,51 @@ function clearFields(target, fields = []) {
   fields.forEach((field) => {
     delete target[field];
   });
+}
+
+function hasOwn(source = {}, key) {
+  return Object.prototype.hasOwnProperty.call(source || {}, key);
+}
+
+function rawScoreValue(value) {
+  return value && typeof value === 'object' ? value.score : value;
+}
+
+function scoreFromValue(value) {
+  const numeric = Number(rawScoreValue(value));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 10;
+}
+
+function readPayloadAbilityScore(target = {}, ability) {
+  if (hasOwn(target, ability)) return scoreFromValue(target[ability]);
+  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => target?.[key] && hasOwn(target[key], ability));
+  return containerKey ? scoreFromValue(target[containerKey][ability]) : 10;
+}
+
+function writePayloadAbilityScore(target = {}, ability, score) {
+  let wrote = false;
+  if (hasOwn(target, ability)) {
+    target[ability] = score;
+    wrote = true;
+  }
+
+  ABILITY_CONTAINER_KEYS.forEach((containerKey) => {
+    const container = target?.[containerKey];
+    if (!container || !hasOwn(container, ability)) return;
+    const current = container[ability];
+    target[containerKey] = {
+      ...container,
+      [ability]: current && typeof current === 'object' ? { ...current, score } : score,
+    };
+    wrote = true;
+  });
+
+  if (!wrote) target[ability] = score;
+}
+
+function increasePayloadAbilityScore(target = {}, ability, amount = 1) {
+  const nextScore = clampScore(readPayloadAbilityScore(target, ability) + amount);
+  writePayloadAbilityScore(target, ability, nextScore);
 }
 
 export function getClassSpecificChoicePlan({ className, level = 1 } = {}) {
@@ -309,8 +355,7 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
     }
 
     [selection.abilityOne, selection.abilityTwo].filter(Boolean).forEach((ability) => {
-      if (next[ability] === undefined) return;
-      next[ability] = clampScore(Number(next[ability] || 10) + 1);
+      increasePayloadAbilityScore(next, ability, 1);
     });
   });
 
