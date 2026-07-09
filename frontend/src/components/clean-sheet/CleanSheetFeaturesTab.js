@@ -122,6 +122,12 @@ function savedResourceCards(character = {}) {
   return cards;
 }
 
+export function resourceDedupeKey(resource = {}) {
+  const readable = resource.label || resource.name || resource.raw?.label || resource.raw?.name || resource.key || resource.fieldKey;
+  const source = resource.className || resource.source || resource.raw?.source || '';
+  return `${singularResourceKey(readable)}-${normaliseResourceKey(source)}`;
+}
+
 export function formatActionCost(value) {
   if (isBlankValue(value)) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
@@ -343,7 +349,7 @@ export default function CleanSheetFeaturesTab({
     const merged = [...savedResourceCards(character), ...(snapshot.resources || [])];
     const seen = new Set();
     return merged.filter((resource) => {
-      const key = `${resource.key || resource.label}-${resource.className || ''}`;
+      const key = resourceDedupeKey(resource);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
