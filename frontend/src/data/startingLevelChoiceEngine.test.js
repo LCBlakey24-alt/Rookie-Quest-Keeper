@@ -33,6 +33,20 @@ describe('starting level choice engine', () => {
     expect(plan.maxSpellLevel).toBeGreaterThanOrEqual(3);
   });
 
+  test('creates prepared spell plans from nested imported ability score shapes', () => {
+    expect(getSpellChoicePlan({
+      className: 'Cleric',
+      level: 5,
+      abilities: { abilities: { wisdom: { score: 18, source: 'import' } } },
+    }).preparedTarget).toBe(9);
+
+    expect(getSpellChoicePlan({
+      className: 'Druid',
+      level: 4,
+      abilities: { scores: { wisdom: { score: 14 } } },
+    }).preparedTarget).toBe(6);
+  });
+
   test('creates known spell and Warlock choice plans for higher-level Warlocks', () => {
     const plan = buildStartingLevelChoicePlan({ className: 'Warlock', startingLevel: 5, edition: '2014', abilities: { charisma: 16 } });
 
