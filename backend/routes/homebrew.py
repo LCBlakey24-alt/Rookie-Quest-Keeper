@@ -114,6 +114,7 @@ SCHEMA_HINTS = {
     "feat": {
         "name": "string",
         "description": "string",
+        "category": "origin|general|epic — origin for level 1/background feats, epic for level 19+ boons, otherwise general",
         "prerequisite": "string",
         "repeatable": "bool",
         "ability_score_increase": "object e.g. {choose: 1, from: [strength, dexterity], amount: 1}",
@@ -241,6 +242,7 @@ TEMPLATE_LABELS = {
 FIELD_PROMPTS = {
     "name": "The public name shown in builders, sheets, and libraries.",
     "description": "The plain-English theme, lore, table-facing summary, and what makes it different.",
+    "category": "For feats, use origin, general, or epic. For custom rules, use the broad rules category.",
     "parent_class": "For subclasses only. Example: Warlock, Fighter, Monk.",
     "features": "Feature blocks. Include level, name, rules text, resource costs, and upgrades.",
     "resources": "Custom pools/charges/tokens. Include formula, max, regain, spending rules, and whether it appears on the sheet.",
@@ -280,6 +282,9 @@ Create sheet-visible resources, spending buttons, and level-scaling max values.
 """,
     "feat": """## Name
 Shield-Breaker
+
+## Category
+General
 
 ## Prerequisite
 Strength 13 or higher
@@ -345,12 +350,30 @@ def _normalise_edition(edition: str) -> str:
     return "2024" if str(edition or "").strip() == "2024" else "2014"
 
 
+def _normalise_feat_category(data: Dict[str, Any]) -> str:
+    raw = data.get("category") or data.get("feat_category") or data.get("featCategory") or data.get("type") or data.get("feat_type") or ""
+    haystack = " ".join(str(value or "") for value in [
+        raw,
+        data.get("prerequisite"),
+        data.get("prereq"),
+        data.get("requirements"),
+        " ".join(data.get("tags") or []) if isinstance(data.get("tags"), list) else data.get("tags"),
+    ]).lower()
+    if re.search(r"\bepic\b|\bboon\b|\blevel\s*19\b|\b19th[-\s]?level\b", haystack):
+        return "epic"
+    if re.search(r"\borigin\b|\bbackground\b|\blevel\s*1\b|\b1st[-\s]?level\b|\bstarter\b", haystack):
+        return "origin"
+    return "general"
+
+
 def _normalise_parsed(content_type: str, parsed: Dict[str, Any], edition: str) -> Dict[str, Any]:
     data = dict(parsed or {})
     if content_type == "subclass" and not data.get("parent_class"):
         data["parent_class"] = data.get("baseClass") or data.get("base_class") or data.get("class") or ""
     if content_type == "magic_item" and data.get("item_type") and not data.get("type"):
         data["type"] = data.get("item_type")
+    if content_type == "feat":
+        data["category"] = _normalise_feat_category(data)
     data["content_type"] = content_type
     data["edition"] = _normalise_edition(edition)
     return data
