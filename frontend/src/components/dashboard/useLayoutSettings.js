@@ -17,6 +17,16 @@ export const defaultSectionVisibilityByDevice = {
   mobile: defaultSectionVisibility,
 };
 
+export const defaultSectionDisplay = Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, 'standard']));
+
+export const defaultSectionDisplayByDevice = {
+  desktop: defaultSectionDisplay,
+  tablet: defaultSectionDisplay,
+  mobile: defaultSectionDisplay,
+};
+
+const allowedSectionDisplays = ['standard', 'compact', 'featured'];
+
 export const defaultLayoutSettings = {
   mode: 'balanced',
   density: 'comfortable',
@@ -34,6 +44,7 @@ export const defaultLayoutSettings = {
   section_order: defaultSectionOrder,
   section_order_by_device: defaultSectionOrderByDevice,
   section_visibility_by_device: defaultSectionVisibilityByDevice,
+  section_display_by_device: defaultSectionDisplayByDevice,
 };
 
 export function normaliseSectionOrder(order) {
@@ -73,6 +84,23 @@ export function normaliseSectionVisibilityByDevice(value = {}) {
   };
 }
 
+export function normaliseSectionDisplay(value = {}) {
+  const source = value || {};
+  return Object.fromEntries(defaultSectionOrder.map(sectionId => {
+    const display = source[sectionId];
+    return [sectionId, allowedSectionDisplays.includes(display) ? display : 'standard'];
+  }));
+}
+
+export function normaliseSectionDisplayByDevice(value = {}) {
+  const source = value || {};
+  return {
+    desktop: normaliseSectionDisplay(source.desktop),
+    tablet: normaliseSectionDisplay(source.tablet),
+    mobile: normaliseSectionDisplay(source.mobile),
+  };
+}
+
 function normaliseLayoutSettings(value = {}) {
   const sectionOrder = normaliseSectionOrder(value.section_order);
   return {
@@ -85,6 +113,7 @@ function normaliseLayoutSettings(value = {}) {
     section_order: sectionOrder,
     section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
     section_visibility_by_device: normaliseSectionVisibilityByDevice(value.section_visibility_by_device),
+    section_display_by_device: normaliseSectionDisplayByDevice(value.section_display_by_device),
   };
 }
 
@@ -146,6 +175,7 @@ export default function useLayoutSettings() {
 
   const sectionOrderByDevice = normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order);
   const sectionVisibilityByDevice = normaliseSectionVisibilityByDevice(settings.section_visibility_by_device);
+  const sectionDisplayByDevice = normaliseSectionDisplayByDevice(settings.section_display_by_device);
 
   return {
     settings,
@@ -157,6 +187,8 @@ export default function useLayoutSettings() {
     sectionOrderByDevice,
     sectionVisibility: sectionVisibilityByDevice[device] || defaultSectionVisibility,
     sectionVisibilityByDevice,
+    sectionDisplay: sectionDisplayByDevice[device] || defaultSectionDisplay,
+    sectionDisplayByDevice,
     layoutStyle,
     layoutClassName,
   };
