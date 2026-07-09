@@ -128,6 +128,45 @@ describe('starting level choice engine', () => {
     expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast', 'Devil’s Sight']);
   });
 
+  test('applies ASI choices to nested imported ability score shapes', () => {
+    const enhanced = applyStartingLevelChoicesToPayload(
+      {
+        name: 'Nested Hero',
+        character_class: 'Rogue',
+        level: 4,
+        abilityScores: { dexterity: 15, constitution: 12 },
+        abilities: { dexterity: { score: 15, label: 'DEX' }, constitution: { score: 12, label: 'CON' } },
+        feats: [],
+      },
+      { 'asi-4': { mode: 'asi', abilityOne: 'dexterity', abilityTwo: 'constitution' } },
+      [],
+      { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
+    );
+
+    expect(enhanced.abilityScores.dexterity).toBe(16);
+    expect(enhanced.abilityScores.constitution).toBe(13);
+    expect(enhanced.abilities.dexterity).toEqual({ score: 16, label: 'DEX' });
+    expect(enhanced.abilities.constitution).toEqual({ score: 13, label: 'CON' });
+    expect(enhanced.dexterity).toBeUndefined();
+  });
+
+  test('keeps top-level and nested ability scores in sync when both are present', () => {
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({
+        dexterity: 15,
+        abilityScores: { dexterity: 15 },
+        scores: { dexterity: { score: 15, source: 'import' } },
+      }),
+      { 'asi-4': { mode: 'asi', abilityOne: 'dexterity', abilityTwo: 'dexterity' } },
+      [],
+      { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
+    );
+
+    expect(enhanced.dexterity).toBe(17);
+    expect(enhanced.abilityScores.dexterity).toBe(17);
+    expect(enhanced.scores.dexterity).toEqual({ score: 17, source: 'import' });
+  });
+
   test('does not save invalid stale Pact Boon or Mystic Arcanum choices', () => {
     const enhanced = applyStartingLevelChoicesToPayload(
       basePayload({
