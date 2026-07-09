@@ -17,6 +17,9 @@ class RollEventPayload(BaseModel):
     actor_type: str = "player"
     character_id: str = ""
     character_name: str = ""
+    group_check_id: str = ""
+    requested_roll_id: str = ""
+    check_name: str = ""
     label: str = "Roll"
     notation: str = ""
     total: int = 0
