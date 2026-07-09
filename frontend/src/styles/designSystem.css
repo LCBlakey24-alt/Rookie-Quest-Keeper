@@ -1,37 +1,43 @@
 /* ============================================
-   ROOKIE QUEST KEEPER - DESIGN SYSTEM v4.0
-   Current app-wide direction: Velvet Tabletop
-   Espresso surfaces, leather panels, cream text, gold actions, copper warmth
+   ROOKIE QUEST KEEPER - DESIGN SYSTEM v4.1
+   Current app-wide direction: Sunset Gradient
+   Dark blue-purple surfaces, white text, sunset-gradient actions
    ============================================ */
 
 :root {
-  --rq-bg-main: #120C08;
-  --rq-bg-page: #160F0A;
-  --rq-bg-panel: #21150E;
-  --rq-bg-panel-alt: #2E1D13;
-  --rq-bg-elevated: #3A2619;
-  --rq-bg-input: #1A100B;
+  --rq-bg-main: #070713;
+  --rq-bg-page: #0b0718;
+  --rq-bg-rail: #0d0617;
+  --rq-bg-panel: #13081f;
+  --rq-bg-panel-alt: #1b0b2d;
+  --rq-bg-elevated: #24103a;
+  --rq-bg-input: #0b0614;
+  --rq-card: #1b0b2d;
+  --rq-card-hover: #24103a;
 
-  --rq-accent-primary: #C08A3D;
-  --rq-accent-hover: #E0B15C;
-  --rq-accent-active: #A45A32;
-  --rq-accent-soft: rgba(192, 138, 61, 0.14);
-  --rq-accent-border: rgba(192, 138, 61, 0.34);
-  --rq-accent-strong-border: rgba(224, 177, 92, 0.56);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+  --rq-accent-primary: #eb3fe9;
+  --rq-accent-hover: #ff9542;
+  --rq-accent-active: #7357ff;
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-accent-border: rgba(255, 149, 66, 0.30);
+  --rq-accent-strong-border: rgba(255, 149, 66, 0.48);
 
-  --rq-text-primary: #F5E6C8;
-  --rq-text-secondary: #E6D2AA;
-  --rq-text-muted: #CDBA98;
-  --rq-text-disabled: #8D7453;
-  --rq-text-inverse: #120C08;
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.82);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
+  --rq-text-disabled: rgba(255, 255, 255, 0.40);
+  --rq-text-inverse: #070713;
 
-  --rq-border-default: rgba(192, 138, 61, 0.22);
-  --rq-border-strong: rgba(224, 177, 92, 0.42);
-  --rq-border-accent: #C08A3D;
+  --rq-border-default: rgba(255, 255, 255, 0.14);
+  --rq-border-strong: rgba(255, 149, 66, 0.34);
+  --rq-border-accent: #ff9542;
 
-  --rq-radius-sm: 4px;
-  --rq-radius-md: 6px;
-  --rq-radius-lg: 8px;
+  --rq-radius-sm: 6px;
+  --rq-radius-md: 8px;
+  --rq-radius-lg: 10px;
+  --rq-radius: 10px;
+  --rq-inner-radius: 8px;
 
   --rq-space-1: 4px;
   --rq-space-2: 8px;
@@ -42,8 +48,8 @@
   --rq-space-7: 32px;
   --rq-space-8: 40px;
 
-  --rq-shadow-panel: 0 4px 14px rgba(0, 0, 0, 0.28);
-  --rq-shadow-heavy: 0 10px 28px rgba(0, 0, 0, 0.42);
+  --rq-shadow-panel: none;
+  --rq-shadow-heavy: none;
 
   --bg-black: var(--rq-bg-main);
   --bg-dark: var(--rq-bg-page);
@@ -53,8 +59,8 @@
   --bg-card: var(--rq-bg-panel-alt);
   --bg-elevated: var(--rq-bg-elevated);
   --bg-hover: var(--rq-bg-elevated);
-  --bg-overlay: rgba(18, 12, 8, 0.90);
-  --bg-light: #4A3323;
+  --bg-overlay: rgba(7, 7, 19, 0.90);
+  --bg-light: #24103a;
 
   --text-primary: var(--rq-text-primary);
   --text-secondary: var(--rq-text-secondary);
@@ -74,47 +80,47 @@
   --rq-red-border: var(--rq-accent-border);
   --rq-red-border-strong: var(--rq-accent-strong-border);
 
-  --rq-gold: var(--rq-accent-primary);
+  --rq-gold: var(--rq-accent-hover);
   --rq-gold-bright: var(--rq-accent-hover);
-  --rq-gold-soft: var(--rq-accent-soft);
-  --rq-gold-border: var(--rq-accent-border);
-  --rq-gold-border-strong: var(--rq-accent-strong-border);
+  --rq-gold-soft: rgba(255, 149, 66, 0.14);
+  --rq-gold-border: rgba(255, 149, 66, 0.30);
+  --rq-gold-border-strong: rgba(255, 149, 66, 0.48);
   --rq-charcoal: var(--rq-bg-main);
   --rq-charcoal-soft: var(--rq-bg-panel);
   --rq-navy: var(--rq-bg-main);
   --rq-navy-soft: var(--rq-bg-panel);
 
-  --rq-role-gm: var(--rq-accent-active);
+  --rq-role-gm: var(--rq-accent-hover);
   --rq-role-player: var(--rq-accent-primary);
-  --rq-role-rook: var(--rq-accent-hover);
+  --rq-role-rook: var(--rq-accent-active);
   --rq-role-homebrew: #7A9B66;
   --rq-role-lore: #D4953C;
-  --rq-surface-soft: rgba(245, 230, 200, 0.06);
+  --rq-surface-soft: rgba(255, 255, 255, 0.06);
 
   --gm-primary: var(--rq-accent-primary);
   --gm-hover: var(--rq-accent-hover);
   --gm-active: var(--rq-accent-active);
   --gm-subtle: var(--rq-accent-soft);
   --gm-border: var(--rq-accent-border);
-  --gm-glow: rgba(192, 138, 61, 0.18);
+  --gm-glow: rgba(255, 79, 129, 0.18);
 
   --player-primary: var(--rq-accent-primary);
   --player-hover: var(--rq-accent-hover);
   --player-active: var(--rq-accent-active);
   --player-subtle: var(--rq-accent-soft);
   --player-border: var(--rq-accent-border);
-  --player-glow: rgba(192, 138, 61, 0.18);
+  --player-glow: rgba(255, 79, 129, 0.18);
 
-  --border-dark: rgba(192, 138, 61, 0.10);
-  --border-subtle: rgba(192, 138, 61, 0.14);
-  --border-default: rgba(192, 138, 61, 0.24);
-  --rq-border-default: rgba(192, 138, 61, 0.24);
-  --border-hover: rgba(224, 177, 92, 0.44);
-  --border-strong: rgba(224, 177, 92, 0.42);
+  --border-dark: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --border-default: rgba(255, 255, 255, 0.16);
+  --rq-border-default: rgba(255, 255, 255, 0.16);
+  --border-hover: rgba(255, 149, 66, 0.34);
+  --border-strong: rgba(255, 149, 66, 0.34);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.36);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.44);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.54);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
 
   --radius-none: 0;
   --radius-sm: var(--rq-radius-sm);
@@ -136,9 +142,10 @@ html,
 body,
 #root,
 .App {
-  background: radial-gradient(circle at top left, rgba(224, 177, 92, 0.10), transparent 32%),
-              radial-gradient(circle at top right, rgba(164, 90, 50, 0.14), transparent 34%),
-              linear-gradient(180deg, var(--rq-bg-main), var(--rq-bg-page));
+  background:
+    radial-gradient(circle at top left, rgba(115, 87, 255, 0.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(255, 79, 129, 0.14), transparent 34%),
+    linear-gradient(180deg, var(--rq-bg-main), var(--rq-bg-page));
   color: var(--rq-text-primary);
 }
 
@@ -204,15 +211,15 @@ select {
 .btn-gm,
 .btn-player,
 .rq-button-primary {
-  background: linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-active));
-  color: var(--rq-text-inverse);
-  border: 1px solid var(--rq-accent-primary);
+  background: var(--rq-sunset-gradient);
+  color: var(--rq-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .btn-gm:hover,
 .btn-player:hover,
 .rq-button-primary:hover {
-  background: linear-gradient(135deg, var(--rq-accent-hover), var(--rq-accent-primary));
+  filter: brightness(1.08);
   border-color: var(--rq-accent-hover);
 }
 
@@ -221,7 +228,7 @@ select {
 .rq-button-secondary {
   background: transparent;
   border: 1px solid var(--rq-red-border);
-  color: var(--rq-red-bright);
+  color: var(--rq-text-primary);
 }
 
 .btn-outline-gm:hover,
@@ -239,9 +246,9 @@ select {
 
 .tab {
   padding: 12px 20px;
-  background: var(--bg-card);
+  background: transparent;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-none);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-weight: 700;
   font-size: 14px;
@@ -253,7 +260,7 @@ select {
 .tab-gm:hover,
 .tab-player.active,
 .tab-player:hover {
-  background: var(--rq-red-soft);
+  background: rgba(255, 255, 255, 0.06);
   border-color: var(--rq-red-bright);
   color: var(--text-primary);
 }
@@ -285,7 +292,7 @@ select:focus {
   outline: none;
   border-color: var(--rq-red-bright);
   background: var(--bg-elevated);
-  box-shadow: 0 0 0 2px rgba(192, 138, 61, 0.18);
+  box-shadow: 0 0 0 2px rgba(255, 149, 66, 0.18);
 }
 
 .rq-panel {
@@ -301,7 +308,7 @@ select:focus {
 .glass,
 .glass-gm,
 .glass-player {
-  background: rgba(33, 21, 14, 0.82);
+  background: rgba(19, 8, 31, 0.82);
   backdrop-filter: blur(12px);
 }
 
@@ -355,7 +362,7 @@ select:focus {
 .badge-player,
 .rq-chip {
   background: var(--rq-red-soft);
-  color: var(--rq-red-bright);
+  color: var(--rq-text-primary);
   border: 1px solid var(--rq-red-border);
 }
 
