@@ -77,3 +77,32 @@ def test_feat_parser_defaults_unclear_feats_to_general():
     }, '2014')
 
     assert parsed['category'] == 'general'
+
+
+def test_spell_parser_splits_mixed_class_separator_strings():
+    parsed = _normalise_parsed('spell', {
+        'name': 'Ashen Rebuke',
+        'classes': 'Wizard; Warlock | Cleric and Bard',
+    }, '2024')
+
+    assert parsed['classes'] == ['Wizard', 'Warlock', 'Cleric', 'Bard']
+    assert parsed['content_type'] == 'spell'
+    assert parsed['edition'] == '2024'
+
+
+def test_spell_parser_accepts_class_alias_fields():
+    parsed = _normalise_parsed('spell', {
+        'name': 'Verdant Starfall',
+        'spellClasses': ['druid', 'ranger', 'sorcerer'],
+    }, '2014')
+
+    assert parsed['classes'] == ['Druid', 'Ranger', 'Sorcerer']
+
+
+def test_spell_parser_accepts_dictionary_class_maps():
+    parsed = _normalise_parsed('spell', {
+        'name': 'Clockwork Ward',
+        'classes': {'wizard': True, 'cleric': False, 'artificer': True},
+    }, '2024')
+
+    assert parsed['classes'] == ['Wizard', 'Artificer']
