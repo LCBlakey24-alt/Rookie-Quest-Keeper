@@ -101,7 +101,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
   const [siteUpdates, setSiteUpdates] = useState([]);
-  const { modules, sectionOrder, layoutStyle, layoutClassName } = useLayoutSettings();
+  const { modules, sectionOrder, sectionVisibility, layoutStyle, layoutClassName } = useLayoutSettings();
 
   const {
     characters,
@@ -290,6 +290,8 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   };
 
   const renderSection = (sectionId) => {
+    if (sectionVisibility?.[sectionId] === false) return null;
+
     switch (sectionId) {
       case 'dashboard_hero':
         if (modules.dashboard_hero === false) return null;
