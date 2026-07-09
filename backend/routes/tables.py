@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from config import db
-from utils.auth import get_current_user, verify_campaign_ownership
+from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
 
 router = APIRouter()
 
@@ -262,6 +262,17 @@ async def list_campaign_tables(campaign_id: str, username: str = Depends(get_cur
     """List GM-owned tables attached to a campaign for prep and live-session use."""
     await verify_campaign_ownership(campaign_id, username)
     tables = await db.campaign_tables.find({"campaign_id": campaign_id}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [normalise_table_document(table) for table in tables]
+
+
+@router.get("/campaigns/{campaign_id}/player-safe-tables", response_model=List[CampaignTable])
+async def list_player_safe_campaign_tables(campaign_id: str, username: str = Depends(get_current_user)):
+    """List only GM-approved player-safe tables for future player-facing views."""
+    await verify_campaign_membership(campaign_id, username)
+    tables = await db.campaign_tables.find(
+        {"campaign_id": campaign_id, "is_player_safe": True},
+        {"_id": 0},
+    ).sort("name", 1).to_list(500)
     return [normalise_table_document(table) for table in tables]
 
 
