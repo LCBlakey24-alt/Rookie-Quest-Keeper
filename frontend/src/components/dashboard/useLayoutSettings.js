@@ -9,6 +9,14 @@ export const defaultSectionOrderByDevice = {
   mobile: defaultSectionOrder,
 };
 
+export const defaultSectionVisibility = Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, true]));
+
+export const defaultSectionVisibilityByDevice = {
+  desktop: defaultSectionVisibility,
+  tablet: defaultSectionVisibility,
+  mobile: defaultSectionVisibility,
+};
+
 export const defaultLayoutSettings = {
   mode: 'balanced',
   density: 'comfortable',
@@ -25,6 +33,7 @@ export const defaultLayoutSettings = {
   },
   section_order: defaultSectionOrder,
   section_order_by_device: defaultSectionOrderByDevice,
+  section_visibility_by_device: defaultSectionVisibilityByDevice,
 };
 
 export function normaliseSectionOrder(order) {
@@ -50,6 +59,20 @@ export function normaliseSectionOrderByDevice(value = {}, fallbackOrder = defaul
   };
 }
 
+export function normaliseSectionVisibility(value = {}) {
+  const source = value || {};
+  return Object.fromEntries(defaultSectionOrder.map(sectionId => [sectionId, source[sectionId] !== false]));
+}
+
+export function normaliseSectionVisibilityByDevice(value = {}) {
+  const source = value || {};
+  return {
+    desktop: normaliseSectionVisibility(source.desktop),
+    tablet: normaliseSectionVisibility(source.tablet),
+    mobile: normaliseSectionVisibility(source.mobile),
+  };
+}
+
 function normaliseLayoutSettings(value = {}) {
   const sectionOrder = normaliseSectionOrder(value.section_order);
   return {
@@ -61,6 +84,7 @@ function normaliseLayoutSettings(value = {}) {
     modules: { ...defaultLayoutSettings.modules, ...(value.modules || {}) },
     section_order: sectionOrder,
     section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
+    section_visibility_by_device: normaliseSectionVisibilityByDevice(value.section_visibility_by_device),
   };
 }
 
@@ -121,6 +145,7 @@ export default function useLayoutSettings() {
   ].join(' ');
 
   const sectionOrderByDevice = normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order);
+  const sectionVisibilityByDevice = normaliseSectionVisibilityByDevice(settings.section_visibility_by_device);
 
   return {
     settings,
@@ -130,6 +155,8 @@ export default function useLayoutSettings() {
     modules: settings.modules || defaultLayoutSettings.modules,
     sectionOrder: sectionOrderByDevice[device] || normaliseSectionOrder(settings.section_order),
     sectionOrderByDevice,
+    sectionVisibility: sectionVisibilityByDevice[device] || defaultSectionVisibility,
+    sectionVisibilityByDevice,
     layoutStyle,
     layoutClassName,
   };
