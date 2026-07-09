@@ -110,6 +110,28 @@ def entry_max(entry_range: str) -> int:
     return max(numbers) if numbers else 1
 
 
+def has_numeric_range(entry_range: Any) -> bool:
+    return bool(re.match(r"^\d+(?:[–-]\d+)?$", str(entry_range or "").strip().replace(" ", "")))
+
+
+def normalise_die(raw_die: Any, entries: Optional[List[Dict[str, Any]]] = None) -> str:
+    """Store only reference or d-number dice values that match the table rows."""
+    clean_entries = entries or []
+    if not clean_entries:
+        return "d20"
+    if not all(has_numeric_range(entry.get("range")) for entry in clean_entries):
+        return "reference"
+
+    row_sides = max(20, max(entry_max(entry["range"]) for entry in clean_entries))
+    raw = str(raw_die or "").strip().lower().replace(" ", "")
+    if raw == "reference":
+        return "reference"
+    match = re.match(r"^d?(\d+)$", raw)
+    if match:
+        return f"d{max(row_sides, int(match.group(1)))}"
+    return f"d{row_sides}"
+
+
 def clean_columns(columns: Optional[List[Any]]) -> List[str]:
     seen = set()
     cleaned: List[str] = []
@@ -228,14 +250,12 @@ async def create_campaign_table(campaign_id: str, table_data: CampaignTableCreat
     entries = normalise_entries(table_data.entries, columns)
     if len(entries) < 1:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Add at least one table result")
-    sides = max(20, max(entry_max(entry["range"]) for entry in entries))
-    die = table_data.die.strip() if table_data.die and table_data.die.strip() else f"d{sides}"
     table = CampaignTable(
         campaign_id=campaign_id,
         name=table_data.name.strip(),
         category=normalise_category(table_data.category, table_data.name),
         description=table_data.description.strip(),
-        die=die,
+        die=normalise_die(table_data.die, entries),
         columns=columns,
         entries=entries,
         is_player_safe=table_data.is_player_safe,
@@ -265,13 +285,14 @@ async def update_campaign_table(campaign_id: str, table_id: str, table_data: Cam
     if "columns" in update_dict:
         update_dict["columns"] = clean_columns(update_dict["columns"])
     active_columns = update_dict.get("columns", existing.get("columns", []))
+    active_entries = existing.get("entries", [])
     if "entries" in update_dict:
-        entries = normalise_entries(update_dict["entries"], active_columns)
-        if len(entries) < 1:
+        active_entries = normalise_entries(update_dict["entries"], active_columns)
+        if len(active_entries) < 1:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Add at least one table result")
-        update_dict["entries"] = entries
-        if not update_dict.get("die"):
-            update_dict["die"] = f"d{max(20, max(entry_max(entry['range']) for entry in entries))}"
+        update_dict["entries"] = active_entries
+    if "die" in update_dict or "entries" in update_dict:
+        update_dict["die"] = normalise_die(update_dict.get("die", existing.get("die")), active_entries)
     update_dict["updated_at"] = now_iso()
 
     await db.campaign_tables.update_one(
