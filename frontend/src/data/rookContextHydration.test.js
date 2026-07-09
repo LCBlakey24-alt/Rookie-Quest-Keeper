@@ -26,7 +26,8 @@ describe('rookContextHydration', () => {
   test('extracts character IDs from sheet and edit routes only', () => {
     expect(extractCharacterIdFromPath('/characters/char123')).toBe('char123');
     expect(extractCharacterIdFromPath('/characters/char123/edit')).toBe('char123');
-    expect(extractCharacterIdFromPath('/characters/create')).toBe('create');
+    expect(extractCharacterIdFromPath('/characters/create')).toBe('');
+    expect(extractCharacterIdFromPath('/characters/new')).toBe('');
     expect(extractCharacterIdFromPath('/campaign/camp123')).toBe('');
   });
 
