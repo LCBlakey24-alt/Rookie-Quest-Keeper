@@ -65,6 +65,19 @@
   -webkit-text-fill-color: rgba(245, 230, 200, 0.62) !important;
 }
 
+@supports not selector(:has(*)) {
+  #root .rqk-auth-page .rqk-auth-field[aria-invalid="true"] {
+    border-radius: 12px;
+    box-shadow: 0 0 0 2px rgba(255, 143, 112, 0.22) !important;
+    background: rgba(54, 26, 18, 0.46) !important;
+  }
+
+  #root .rqk-auth-page .rqk-auth-field:disabled {
+    opacity: 0.72;
+    background: rgba(18, 12, 8, 0.5) !important;
+  }
+}
+
 #root .rqk-auth-page .rqk-auth-icon-button[aria-pressed="true"] {
   border-color: rgba(224, 177, 92, 0.46) !important;
   color: var(--rq-accent-hover, #e0b15c) !important;
