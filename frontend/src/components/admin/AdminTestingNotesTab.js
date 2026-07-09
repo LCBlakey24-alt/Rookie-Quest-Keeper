@@ -26,6 +26,8 @@ export default function AdminTestingNotesTab() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState('');
+  const [deletingId, setDeletingId] = useState('');
+  const [creating, setCreating] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [form, setForm] = useState({ title: '', area: 'testing', priority: 'high', message: '' });
@@ -87,6 +89,7 @@ export default function AdminTestingNotesTab() {
       return;
     }
     try {
+      setCreating(true);
       const payload = {
         category: 'testing',
         area: form.area || 'testing',
@@ -108,6 +111,8 @@ export default function AdminTestingNotesTab() {
       toast.success('Testing issue logged');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to create testing note');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -145,6 +150,7 @@ export default function AdminTestingNotesTab() {
     if (!window.confirm('Delete this testing note?')) return;
     const target = items.find(item => item.id === id);
     try {
+      setDeletingId(id);
       await apiClient.delete(`/admin/feedback/${id}`);
       setItems(prev => prev.filter(item => item.id !== id));
       await logAudit({
@@ -157,6 +163,8 @@ export default function AdminTestingNotesTab() {
       toast.success('Testing note deleted');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to delete testing note');
+    } finally {
+      setDeletingId('');
     }
   };
 
@@ -193,7 +201,7 @@ export default function AdminTestingNotesTab() {
           <p style={subtitleStyle}>Log issues found while testing Punch, mobile sheets, campaign prep, and live combat.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+          <button type="button" onClick={load} disabled={loading} style={busyButtonStyle(loading)} aria-busy={loading ? 'true' : 'false'}><RefreshCw size={14} style={loading ? testingSpinStyle : undefined} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
           <button type="button" onClick={exportCsv} style={buttonStyle}><Download size={14} /> Export CSV</button>
         </div>
       </div>
@@ -219,14 +227,14 @@ export default function AdminTestingNotesTab() {
         </div>
       </div>
 
-      <form onSubmit={createIssue} style={formStyle}>
+      <form onSubmit={createIssue} style={formStyle} aria-busy={creating ? 'true' : 'false'}>
         <h3 style={formTitleStyle}><Bug size={16} /> Log a test issue</h3>
         <div style={gridStyle}>
           <label style={labelStyle}>Title
-            <input value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g. Punch condition toggle did not save" style={inputStyle} />
+            <input value={form.title} disabled={creating} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g. Punch condition toggle did not save" style={inputStyle} />
           </label>
           <label style={labelStyle}>Area
-            <select value={form.area} onChange={e => setForm(prev => ({ ...prev, area: e.target.value }))} style={inputStyle}>
+            <select value={form.area} disabled={creating} onChange={e => setForm(prev => ({ ...prev, area: e.target.value }))} style={inputStyle}>
               <option value="testing">General testing</option>
               <option value="character-builder">Character builder</option>
               <option value="mobile-sheet">Mobile player sheet</option>
@@ -236,59 +244,74 @@ export default function AdminTestingNotesTab() {
             </select>
           </label>
           <label style={labelStyle}>Priority
-            <select value={form.priority} onChange={e => setForm(prev => ({ ...prev, priority: e.target.value }))} style={inputStyle}>
+            <select value={form.priority} disabled={creating} onChange={e => setForm(prev => ({ ...prev, priority: e.target.value }))} style={inputStyle}>
               {priorities.map(priority => <option key={priority} value={priority}>{priority}</option>)}
             </select>
           </label>
         </div>
         <label style={labelStyle}>Notes
-          <textarea value={form.message} onChange={e => setForm(prev => ({ ...prev, message: e.target.value }))} placeholder="What happened, what should have happened, and how to reproduce it..." style={textareaStyle} />
+          <textarea value={form.message} disabled={creating} onChange={e => setForm(prev => ({ ...prev, message: e.target.value }))} placeholder="What happened, what should have happened, and how to reproduce it..." style={textareaStyle} />
         </label>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" style={saveButtonStyle}><Save size={14} /> Save Testing Note</button>
+          <button type="submit" disabled={creating} style={busySaveStyle(creating)}>{creating ? <RefreshCw size={14} style={testingSpinStyle} /> : <Save size={14} />} {creating ? 'Logging note…' : 'Save Testing Note'}</button>
         </div>
       </form>
 
-      {loading ? <div style={emptyStyle}>Loading testing notes...</div> : filteredTestingItems.length === 0 ? <div style={emptyStyle}>No testing notes found for this filter. Log a new test issue above.</div> : (
+      {loading ? <AdminTestingLoading /> : filteredTestingItems.length === 0 ? <div style={emptyStyle}>No testing notes found for this filter. Log a new test issue above.</div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filteredTestingItems.map(item => {
             const status = item.status || 'new';
             const nextStatuses = statuses.filter(option => option !== status);
+            const saving = savingId === item.id;
+            const deleting = deletingId === item.id;
+            const itemBusy = saving || deleting;
+
             return (
-              <article key={item.id} style={itemStyle}>
+              <article key={item.id} style={itemStyle} aria-busy={itemBusy ? 'true' : 'false'}>
                 <div style={itemTopStyle}>
                   <div>
                     <div style={badgeRowStyle}><Badge label={labelForStatus(status)} /><Badge label={item.priority || 'normal'} /><Badge label={item.area || 'testing'} /></div>
                     <h3 style={itemTitleStyle}>{item.title}</h3>
                     <p style={metaStyle}>From {item.username || 'Unknown'} {item.created_at ? `• ${new Date(item.created_at).toLocaleString()}` : ''}</p>
                   </div>
-                  <button type="button" onClick={() => deleteItem(item.id)} style={dangerButtonStyle}><Trash2 size={14} /></button>
+                  <button type="button" onClick={() => deleteItem(item.id)} disabled={itemBusy} style={busyDangerStyle(deleting)}>{deleting ? <RefreshCw size={14} style={testingSpinStyle} /> : <Trash2 size={14} />}</button>
                 </div>
                 <p style={messageStyle}>{item.message}</p>
                 <div style={quickMoveStyle}>
                   {nextStatuses.slice(0, 5).map(option => (
-                    <button key={option} type="button" onClick={() => quickStatus(item, option)} style={miniButtonStyle} disabled={savingId === item.id}>
-                      {labelForStatus(option)}
+                    <button key={option} type="button" onClick={() => quickStatus(item, option)} style={busyMiniStyle(saving)} disabled={itemBusy}>
+                      {saving ? 'Updating…' : labelForStatus(option)}
                     </button>
                   ))}
                 </div>
                 <div style={gridStyle}>
                   <label style={labelStyle}>Status
-                    <select value={status} onChange={e => updateLocal(item.id, { status: e.target.value })} style={inputStyle}>{statuses.map(option => <option key={option} value={option}>{labelForStatus(option)}</option>)}</select>
+                    <select value={status} disabled={itemBusy} onChange={e => updateLocal(item.id, { status: e.target.value })} style={inputStyle}>{statuses.map(option => <option key={option} value={option}>{labelForStatus(option)}</option>)}</select>
                   </label>
                   <label style={labelStyle}>Priority
-                    <select value={item.priority || 'normal'} onChange={e => updateLocal(item.id, { priority: e.target.value })} style={inputStyle}>{priorities.map(priority => <option key={priority} value={priority}>{priority}</option>)}</select>
+                    <select value={item.priority || 'normal'} disabled={itemBusy} onChange={e => updateLocal(item.id, { priority: e.target.value })} style={inputStyle}>{priorities.map(priority => <option key={priority} value={priority}>{priority}</option>)}</select>
                   </label>
                 </div>
                 <label style={labelStyle}>Fix notes / plan
-                  <textarea value={item.admin_notes || ''} onChange={e => updateLocal(item.id, { admin_notes: e.target.value })} style={textareaStyle} placeholder="Write fix plan or notes for the next build pass..." />
+                  <textarea value={item.admin_notes || ''} disabled={itemBusy} onChange={e => updateLocal(item.id, { admin_notes: e.target.value })} style={textareaStyle} placeholder="Write fix plan or notes for the next build pass..." />
                 </label>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button type="button" disabled={savingId === item.id} onClick={() => saveItem(item)} style={saveButtonStyle}><Save size={14} /> {savingId === item.id ? 'Saving...' : 'Save'}</button></div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button type="button" disabled={itemBusy} onClick={() => saveItem(item)} style={busySaveStyle(saving)}>{saving ? <RefreshCw size={14} style={testingSpinStyle} /> : <Save size={14} />} {saving ? 'Saving note…' : 'Save'}</button></div>
               </article>
             );
           })}
         </div>
       )}
+      <style>{testingNotesCss}</style>
+    </div>
+  );
+}
+
+function AdminTestingLoading() {
+  return (
+    <div style={testingLoadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={testingLoadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading testing notes…</strong>
+      <span style={testingLoadingTextStyle}>Gathering active bugs, mobile checks, live-play findings, and completed fixes.</span>
     </div>
   );
 }
@@ -333,3 +356,30 @@ const dangerButtonStyle = { background: rq.accentSoft, border: `1px solid ${rq.b
 const messageStyle = { color: rq.textSecondary, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: '14px 0' };
 const quickMoveStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 };
 const miniButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, padding: '6px 8px', borderRadius: rq.radiusSm, fontSize: 11, fontWeight: 900, cursor: 'pointer' };
+const testingSpinStyle = { animation: 'rqAdminTestingSpin 0.9s linear infinite' };
+const testingLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const testingLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminTestingSpin 0.9s linear infinite' };
+const testingLoadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 420 };
+const testingNotesCss = `
+  @keyframes rqAdminTestingSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-testing-notes-tab"] svg,
+    [data-testid="admin-testing-notes-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
+
+function busyButtonStyle(isBusy) {
+  return { ...buttonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busySaveStyle(isBusy) {
+  return { ...saveButtonStyle, opacity: isBusy ? 0.82 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busyMiniStyle(isBusy) {
+  return { ...miniButtonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busyDangerStyle(isBusy) {
+  return { ...dangerButtonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
