@@ -10,6 +10,16 @@ from utils.auth import get_current_user
 
 router = APIRouter()
 
+DEFAULT_SECTION_ORDER = [
+    'dashboard_hero',
+    'status_bar',
+    'quick_actions',
+    'live_workspace',
+    'site_updates',
+    'reviews',
+    'admin_notice',
+]
+
 DEFAULT_LAYOUT_SETTINGS = {
     'id': 'global',
     'layout_version': 1,
@@ -41,6 +51,7 @@ DEFAULT_LAYOUT_SETTINGS = {
         'reviews': True,
         'admin_notice': True,
     },
+    'section_order': DEFAULT_SECTION_ORDER,
     'notes': '',
     'updated_at': '',
     'updated_by': '',
@@ -63,6 +74,7 @@ class LayoutSettingsUpdate(BaseModel):
     tablet: dict = Field(default_factory=dict)
     mobile: dict = Field(default_factory=dict)
     modules: dict = Field(default_factory=dict)
+    section_order: list[str] = Field(default_factory=lambda: list(DEFAULT_SECTION_ORDER))
     notes: str = Field(default='', max_length=1200)
 
 
@@ -111,6 +123,18 @@ def sanitise_modules(incoming: Optional[dict]) -> dict:
     return {key: bool(source.get(key, default)) for key, default in DEFAULT_LAYOUT_SETTINGS['modules'].items()}
 
 
+def sanitise_section_order(incoming: Optional[list]) -> list[str]:
+    ordered = []
+    if isinstance(incoming, list):
+        for section_id in incoming:
+            if section_id in DEFAULT_SECTION_ORDER and section_id not in ordered:
+                ordered.append(section_id)
+    for section_id in DEFAULT_SECTION_ORDER:
+        if section_id not in ordered:
+            ordered.append(section_id)
+    return ordered
+
+
 def merge_layout_settings(doc: Optional[dict]) -> dict:
     source = {**DEFAULT_LAYOUT_SETTINGS, **(doc or {})}
     source.pop('_id', None)
@@ -124,6 +148,7 @@ def merge_layout_settings(doc: Optional[dict]) -> dict:
         'tablet': sanitise_device_settings('tablet', source.get('tablet')),
         'mobile': sanitise_device_settings('mobile', source.get('mobile')),
         'modules': sanitise_modules(source.get('modules')),
+        'section_order': sanitise_section_order(source.get('section_order')),
         'notes': str(source.get('notes', ''))[:1200],
         'updated_at': source.get('updated_at', ''),
         'updated_by': source.get('updated_by', ''),
@@ -161,6 +186,7 @@ async def update_admin_layout_settings(payload: LayoutSettingsUpdate, username: 
         'tablet': sanitise_device_settings('tablet', payload.tablet),
         'mobile': sanitise_device_settings('mobile', payload.mobile),
         'modules': sanitise_modules(payload.modules),
+        'section_order': sanitise_section_order(payload.section_order),
         'notes': payload.notes.strip()[:1200],
         'updated_at': now,
         'updated_by': username,
