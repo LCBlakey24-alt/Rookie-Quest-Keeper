@@ -1,0 +1,59 @@
+/* Rook assistant page playbook panel.
+   Shows users what Rook is best at on the current screen before they type. */
+
+.rook-assistant-playbook {
+  width: min(100%, 340px);
+  margin: 0 auto 14px;
+  padding: 11px 12px;
+  border: 1px solid rgba(245, 197, 66, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(245, 197, 66, 0.10), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+  text-align: left;
+}
+
+.rook-assistant-playbook > span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--rook-gold-bright, #F5C542);
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.rook-assistant-playbook ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rook-assistant-playbook li {
+  position: relative;
+  padding-left: 16px;
+  color: #F4EFE7;
+  font-size: 11px;
+  line-height: 1.38;
+}
+
+.rook-assistant-playbook li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.48em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--rook-gold-bright, #F5C542), var(--rook-gold, #D4A017));
+  box-shadow: 0 0 10px rgba(245, 197, 66, 0.24);
+}
+
+@media (max-width: 720px) {
+  .rook-assistant-playbook {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+}
