@@ -67,7 +67,9 @@ const sectionLabels = {
 
 export default function AdminLayoutStudioTab() {
   const [settings, setSettings] = useState(defaultSettings);
+  const [lastSavedSettings, setLastSavedSettings] = useState(defaultSettings);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [previewDevice, setPreviewDevice] = useState('desktop');
 
@@ -75,16 +77,21 @@ export default function AdminLayoutStudioTab() {
     try { await apiClient.post('/admin/audit-log', entry); } catch { /* Layout audit should not block saving. */ }
   };
 
-  const load = async () => {
+  const load = async ({ background = false } = {}) => {
     try {
-      setLoading(true);
+      if (background) setRefreshing(true);
+      else setLoading(true);
       const res = await apiClient.get('/admin/layout-settings');
-      setSettings(normaliseSettings(res.data));
+      const nextSettings = normaliseSettings(res.data);
+      setSettings(nextSettings);
+      setLastSavedSettings(nextSettings);
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Failed to load layout settings');
       setSettings(defaultSettings);
+      setLastSavedSettings(defaultSettings);
     } finally {
       setLoading(false);
+      if (background) setRefreshing(false);
     }
   };
 
@@ -121,18 +128,23 @@ export default function AdminLayoutStudioTab() {
     return normaliseSettings({ ...prev, section_order_by_device: { ...ordersByDevice, [previewDevice]: ordersByDevice.desktop } });
   });
 
+  const hasUnsavedChanges = useMemo(() => settingsSignature(settings) !== settingsSignature(lastSavedSettings), [settings, lastSavedSettings]);
+  const disabled = saving || refreshing;
+
   const save = async () => {
     try {
       setSaving(true);
       const res = await apiClient.put('/admin/layout-settings', settings);
-      setSettings(normaliseSettings(res.data?.settings || settings));
-      const ordersByDevice = normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order);
+      const savedSettings = normaliseSettings(res.data?.settings || settings);
+      setSettings(savedSettings);
+      setLastSavedSettings(savedSettings);
+      const ordersByDevice = normaliseSectionOrderByDevice(savedSettings.section_order_by_device, savedSettings.section_order);
       await logAudit({
         action: 'Layout settings changed',
         area: 'layout_studio',
         target_id: 'global',
         target_label: 'Global layout settings',
-        detail: `Mode: ${settings.mode} • Density: ${settings.density} • Desktop ${settings.desktop.columns} cols • Tablet ${settings.tablet.columns} cols • Mobile ${settings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')}`,
+        detail: `Mode: ${savedSettings.mode} • Density: ${savedSettings.density} • Desktop ${savedSettings.desktop.columns} cols • Tablet ${savedSettings.tablet.columns} cols • Mobile ${savedSettings.mobile.columns} cols • ${previewDevice} order: ${ordersByDevice[previewDevice].map(section => sectionLabels[section] || section).join(' > ')}`,
       });
       toast.success('Layout settings saved');
     } catch (err) {
@@ -154,34 +166,41 @@ export default function AdminLayoutStudioTab() {
   const previewDeviceLabel = devices.find(device => device.id === previewDevice)?.label || 'Desktop';
 
   return (
-    <div style={wrapStyle} data-testid="admin-layout-studio-tab">
+    <div style={wrapStyle} data-testid="admin-layout-studio-tab" aria-busy={(saving || refreshing) ? 'true' : 'false'}>
       <div style={headerStyle}>
         <div>
           <h2 style={titleStyle}><LayoutDashboard size={20} /> Layout Studio</h2>
           <p style={subtitleStyle}>The foundation for editing how Rookie Quest Keeper looks across desktop, tablet, and mobile from Admin.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
-          <button type="button" onClick={resetDraft} style={buttonStyle}><RotateCcw size={14} /> Reset draft</button>
-          <button type="button" onClick={save} disabled={saving} style={saveButtonStyle}><Save size={14} /> {saving ? 'Saving...' : 'Save layout'}</button>
+          <button type="button" onClick={() => load({ background: true })} disabled={disabled} aria-busy={refreshing ? 'true' : 'false'} style={busyButtonStyle(refreshing)}><RefreshCw size={14} style={refreshing ? layoutSpinStyle : undefined} /> {refreshing ? 'Refreshing…' : 'Refresh'}</button>
+          <button type="button" onClick={resetDraft} disabled={disabled} style={busyButtonStyle(false)}><RotateCcw size={14} /> Reset draft</button>
+          <button type="button" onClick={save} disabled={disabled} aria-busy={saving ? 'true' : 'false'} style={busySaveButtonStyle(saving)}>{saving ? <RefreshCw size={14} style={layoutSpinStyle} /> : <Save size={14} />} {saving ? 'Saving layout…' : hasUnsavedChanges ? 'Save changes' : 'Save layout'}</button>
         </div>
       </div>
 
-      {loading ? <div style={emptyStyle}>Loading layout controls...</div> : (
+      {hasUnsavedChanges && !loading ? (
+        <section style={unsavedStyle} aria-live="polite">
+          <strong>Unsaved layout draft</strong>
+          <span>Changes are only a preview until you save. Current preview: {previewDeviceLabel} • {enabledModules.length} visible section{enabledModules.length === 1 ? '' : 's'}.</span>
+        </section>
+      ) : null}
+
+      {loading ? <AdminLayoutLoading /> : (
         <>
           <section style={controlGridStyle}>
             <div style={panelStyle}>
               <h3 style={panelTitleStyle}>Global behaviour</h3>
               <div style={fieldGridStyle}>
                 <label style={labelStyle}>Layout mode
-                  <select value={settings.mode} onChange={e => patchRoot({ mode: e.target.value })} style={inputStyle}>
+                  <select value={settings.mode} disabled={disabled} onChange={e => patchRoot({ mode: e.target.value })} style={inputStyle}>
                     <option value="compact">Compact</option>
                     <option value="balanced">Balanced</option>
                     <option value="showcase">Showcase</option>
                   </select>
                 </label>
                 <label style={labelStyle}>Content density
-                  <select value={settings.density} onChange={e => patchRoot({ density: e.target.value })} style={inputStyle}>
+                  <select value={settings.density} disabled={disabled} onChange={e => patchRoot({ density: e.target.value })} style={inputStyle}>
                     <option value="compact">Compact</option>
                     <option value="comfortable">Comfortable</option>
                     <option value="spacious">Spacious</option>
@@ -189,7 +208,7 @@ export default function AdminLayoutStudioTab() {
                 </label>
               </div>
               <label style={labelStyle}>Owner notes
-                <textarea value={settings.notes || ''} onChange={e => patchRoot({ notes: e.target.value })} placeholder="What should this layout eventually control? Which pages should consume it next?" style={textareaStyle} />
+                <textarea value={settings.notes || ''} disabled={disabled} onChange={e => patchRoot({ notes: e.target.value })} placeholder="What should this layout eventually control? Which pages should consume it next?" style={textareaStyle} />
               </label>
             </div>
 
@@ -197,7 +216,7 @@ export default function AdminLayoutStudioTab() {
               <h3 style={panelTitleStyle}>Visible modules</h3>
               <div style={moduleGridStyle}>
                 {Object.entries(moduleLabels).map(([key, label]) => (
-                  <button key={key} type="button" onClick={() => toggleModule(key)} style={{ ...moduleToggleStyle, borderColor: settings.modules?.[key] ? rq.accent : rq.borderDefault, background: settings.modules?.[key] ? rq.accentSoft : rq.input }}>
+                  <button key={key} type="button" disabled={disabled} onClick={() => toggleModule(key)} style={{ ...moduleToggleStyle, borderColor: settings.modules?.[key] ? rq.accent : rq.borderDefault, background: settings.modules?.[key] ? rq.accentSoft : rq.input, opacity: disabled ? 0.72 : 1 }}>
                     {settings.modules?.[key] ? <ToggleRight size={18} color={rq.accentHover} /> : <ToggleLeft size={18} color={rq.muted} />}
                     <span>{label}</span>
                   </button>
@@ -213,9 +232,9 @@ export default function AdminLayoutStudioTab() {
                 <p style={subtitleStyle}>Move dashboard sections for the selected device. Desktop, tablet, and mobile can now have different flows.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {devices.map(device => <button key={device.id} type="button" onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary }}>{device.label}</button>)}
-                <button type="button" onClick={copyDesktopOrder} style={smallButtonStyle}><Copy size={13} /> Copy desktop</button>
-                <button type="button" onClick={resetDeviceOrder} style={smallButtonStyle}><RotateCcw size={13} /> Reset {previewDeviceLabel}</button>
+                {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
+                <button type="button" disabled={disabled} onClick={copyDesktopOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><Copy size={13} /> Copy desktop</button>
+                <button type="button" disabled={disabled} onClick={resetDeviceOrder} style={{ ...smallButtonStyle, opacity: disabled ? 0.72 : 1 }}><RotateCcw size={13} /> Reset {previewDeviceLabel}</button>
               </div>
             </div>
             <div style={orderListStyle}>
@@ -225,8 +244,8 @@ export default function AdminLayoutStudioTab() {
                   <GripVertical size={15} color={rq.muted} />
                   <span style={{ flex: 1, minWidth: 0, color: rq.textSecondary, fontWeight: 900 }}>{sectionLabels[sectionId] || sectionId}</span>
                   <span style={{ color: isSectionEnabled(sectionId, settings.modules) ? rq.accentHover : rq.muted, fontSize: 11, fontWeight: 900 }}>{isSectionEnabled(sectionId, settings.modules) ? 'Visible' : 'Hidden'}</span>
-                  <button type="button" onClick={() => moveSection(sectionId, -1)} disabled={index === 0} style={miniButtonStyle}><ArrowUp size={13} /></button>
-                  <button type="button" onClick={() => moveSection(sectionId, 1)} disabled={index === activeSectionOrder.length - 1} style={miniButtonStyle}><ArrowDown size={13} /></button>
+                  <button type="button" onClick={() => moveSection(sectionId, -1)} disabled={disabled || index === 0} style={miniButtonStyle}><ArrowUp size={13} /></button>
+                  <button type="button" onClick={() => moveSection(sectionId, 1)} disabled={disabled || index === activeSectionOrder.length - 1} style={miniButtonStyle}><ArrowDown size={13} /></button>
                 </div>
               ))}
             </div>
@@ -241,19 +260,19 @@ export default function AdminLayoutStudioTab() {
                   <h3 style={panelTitleStyle}><Icon size={16} /> {device.label}</h3>
                   <div style={fieldGridStyle}>
                     <label style={labelStyle}>Max width
-                      <input type="number" min={device.min} max={device.max} value={value.container_max_width} onChange={e => patchDevice(device.id, { container_max_width: Number(e.target.value) })} style={inputStyle} />
+                      <input type="number" min={device.min} max={device.max} value={value.container_max_width} disabled={disabled} onChange={e => patchDevice(device.id, { container_max_width: Number(e.target.value) })} style={inputStyle} />
                     </label>
                     <label style={labelStyle}>Columns
-                      <input type="number" min={1} max={device.maxColumns} value={value.columns} onChange={e => patchDevice(device.id, { columns: Number(e.target.value) })} style={inputStyle} />
+                      <input type="number" min={1} max={device.maxColumns} value={value.columns} disabled={disabled} onChange={e => patchDevice(device.id, { columns: Number(e.target.value) })} style={inputStyle} />
                     </label>
                     <label style={labelStyle}>Card scale
-                      <select value={value.card_scale} onChange={e => patchDevice(device.id, { card_scale: e.target.value })} style={inputStyle}>
+                      <select value={value.card_scale} disabled={disabled} onChange={e => patchDevice(device.id, { card_scale: e.target.value })} style={inputStyle}>
                         <option value="compact">Compact</option>
                         <option value="normal">Normal</option>
                         <option value="large">Large</option>
                       </select>
                     </label>
-                    <button type="button" onClick={() => patchDevice(device.id, { show_sidebar: !value.show_sidebar })} style={{ ...moduleToggleStyle, alignSelf: 'end', borderColor: value.show_sidebar ? rq.accent : rq.borderDefault, background: value.show_sidebar ? rq.accentSoft : rq.input }}>
+                    <button type="button" disabled={disabled} onClick={() => patchDevice(device.id, { show_sidebar: !value.show_sidebar })} style={{ ...moduleToggleStyle, alignSelf: 'end', borderColor: value.show_sidebar ? rq.accent : rq.borderDefault, background: value.show_sidebar ? rq.accentSoft : rq.input, opacity: disabled ? 0.72 : 1 }}>
                       {value.show_sidebar ? <ToggleRight size={18} color={rq.accentHover} /> : <ToggleLeft size={18} color={rq.muted} />}
                       <span>Sidebar {value.show_sidebar ? 'on' : 'off'}</span>
                     </button>
@@ -270,7 +289,7 @@ export default function AdminLayoutStudioTab() {
                 <p style={subtitleStyle}>The preview uses this device's order, max width, columns, card scale, sidebar setting, and visible modules.</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {devices.map(device => <button key={device.id} type="button" onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary }}>{device.label}</button>)}
+                {devices.map(device => <button key={device.id} type="button" disabled={disabled} onClick={() => setPreviewDevice(device.id)} style={{ ...smallButtonStyle, borderColor: previewDevice === device.id ? rq.accent : rq.borderDefault, color: previewDevice === device.id ? rq.accentHover : rq.textSecondary, opacity: disabled ? 0.72 : 1 }}>{device.label}</button>)}
               </div>
             </div>
             <div style={blueprintStyle}>
@@ -287,6 +306,17 @@ export default function AdminLayoutStudioTab() {
           </section>
         </>
       )}
+      <style>{layoutStudioCss}</style>
+    </div>
+  );
+}
+
+function AdminLayoutLoading() {
+  return (
+    <div style={loadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={loadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading layout studio…</strong>
+      <span style={loadingTextStyle}>Checking desktop, tablet, mobile, module visibility, and section order controls.</span>
     </div>
   );
 }
@@ -333,13 +363,16 @@ function normaliseSettings(value = {}) {
   };
 }
 
+function settingsSignature(value) {
+  return JSON.stringify(normaliseSettings(value));
+}
+
 const wrapStyle = { background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, padding: 'clamp(14px, 3vw, 24px)', display: 'grid', gap: 16 };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' };
 const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 10, margin: 0 };
 const subtitleStyle = { color: rq.muted, fontSize: 13, margin: '6px 0 0', lineHeight: 1.45 };
 const buttonStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, padding: '9px 12px', borderRadius: rq.radiusSm, fontWeight: 900, cursor: 'pointer' };
 const saveButtonStyle = { ...buttonStyle, background: rq.accent, color: '#FFFFFF', border: 'none' };
-const emptyStyle = { color: rq.muted, textAlign: 'center', padding: 36, background: rq.input, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm };
 const controlGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 12 };
 const deviceGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 12 };
 const panelStyle = { background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 16, minWidth: 0 };
@@ -362,3 +395,23 @@ const mockFrameStyle = { minWidth: 280, margin: '0 auto', display: 'grid', gap: 
 const mockTopbarStyle = { color: rq.text, background: rq.accentSoft, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900 };
 const mockSidebarStyle = { color: rq.muted, background: rq.input, border: `1px dashed ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12 };
 const mockCardStyle = { color: rq.textSecondary, background: rq.input, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' };
+const unsavedStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text, borderRadius: rq.radiusSm, padding: '10px 12px', fontSize: 12 };
+const loadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const loadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminLayoutSpin 0.9s linear infinite' };
+const loadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 430 };
+const layoutSpinStyle = { animation: 'rqAdminLayoutSpin 0.9s linear infinite' };
+const layoutStudioCss = `
+  @keyframes rqAdminLayoutSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-layout-studio-tab"] svg,
+    [data-testid="admin-layout-studio-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
+
+function busyButtonStyle(isBusy) {
+  return { ...buttonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busySaveButtonStyle(isBusy) {
+  return { ...saveButtonStyle, opacity: isBusy ? 0.82 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
