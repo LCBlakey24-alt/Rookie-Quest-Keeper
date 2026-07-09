@@ -94,4 +94,66 @@ describe('class specific choice engine', () => {
     expect(payload.superiority_dice).toBeUndefined();
     expect(payload.sorcery_points).toBeUndefined();
   });
+
+  test('clears stale class-specific fields when the current plan has no matching choices', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Wizard', level: 7 });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({
+        character_class: 'Wizard',
+        level: 7,
+        fighting_style: 'Defense',
+        fighting_styles: ['Defense'],
+        expertise: ['Stealth'],
+        expertise_choices: ['Stealth'],
+        metamagic: ['Quickened Spell'],
+        metamagic_options: ['Quickened Spell'],
+        sorcery_points: 7,
+        sorcery_points_remaining: 4,
+        combat_maneuvers: ['Trip Attack'],
+        battle_master_maneuvers: ['Trip Attack'],
+        maneuvers: ['Trip Attack'],
+        superiority_dice: { die: 'd8', total: 4, remaining: 2 },
+        class_features: [
+          { name: 'Fighting Style: Defense', source: 'starting-level choice' },
+          { name: 'Combat Superiority', source: 'starting-level choice' },
+          { name: 'Arcane Recovery', source: 'Wizard' },
+        ],
+      }),
+      {
+        fightingStyles: ['Defense'],
+        expertise: ['Stealth'],
+        metamagic: ['Quickened Spell'],
+        maneuvers: ['Trip Attack'],
+      },
+      plan,
+    );
+
+    expect(payload.fighting_style).toBeUndefined();
+    expect(payload.fighting_styles).toBeUndefined();
+    expect(payload.expertise).toBeUndefined();
+    expect(payload.expertise_choices).toBeUndefined();
+    expect(payload.metamagic).toBeUndefined();
+    expect(payload.metamagic_options).toBeUndefined();
+    expect(payload.sorcery_points).toBeUndefined();
+    expect(payload.sorcery_points_remaining).toBeUndefined();
+    expect(payload.combat_maneuvers).toBeUndefined();
+    expect(payload.battle_master_maneuvers).toBeUndefined();
+    expect(payload.maneuvers).toBeUndefined();
+    expect(payload.superiority_dice).toBeUndefined();
+    expect(payload.class_features).toEqual([{ name: 'Arcane Recovery', source: 'Wizard' }]);
+  });
+
+  test('preserves Sorcerer points when only Metamagic choices are empty for a Sorcerer plan', () => {
+    const plan = buildClassSpecificChoicePlan({ className: 'Sorcerer', level: 2 });
+    const payload = applyClassSpecificChoicesToPayload(
+      basePayload({ character_class: 'Sorcerer', level: 2, sorcery_points: 2, sorcery_points_remaining: 1 }),
+      { metamagic: ['Quickened Spell'] },
+      plan,
+    );
+
+    expect(payload.metamagic).toBeUndefined();
+    expect(payload.metamagic_options).toBeUndefined();
+    expect(payload.sorcery_points).toBe(2);
+    expect(payload.sorcery_points_remaining).toBe(1);
+  });
 });
