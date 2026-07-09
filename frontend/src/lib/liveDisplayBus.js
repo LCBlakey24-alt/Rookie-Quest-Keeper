@@ -14,6 +14,10 @@ const sourceTabId = (() => {
   return `display-tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 })();
 
+const getWindow = () => (typeof window !== 'undefined' ? window : null);
+const getDocument = () => (typeof document !== 'undefined' ? document : null);
+const safeNoop = () => {};
+
 let apiClientPromise;
 async function getApiClient() {
   if (!apiClientPromise) apiClientPromise = import('./apiClient');
@@ -22,10 +26,11 @@ async function getApiClient() {
 }
 
 function websocketUrl(campaignId) {
-  if (!campaignId || typeof window === 'undefined') return '';
+  const runtimeWindow = getWindow();
+  if (!campaignId || !runtimeWindow) return '';
   const token = getAuthToken();
   if (!token) return '';
-  const base = String(BACKEND_URL || window.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
+  const base = String(BACKEND_URL || runtimeWindow.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
   return `${base}/ws/campaign/${encodeURIComponent(campaignId)}?token=${encodeURIComponent(token)}`;
 }
 
@@ -79,13 +84,15 @@ function normaliseDisplayState(state = {}) {
 }
 
 function readStoredDisplayState(campaignId) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow?.localStorage) return null;
   try {
-    const raw = localStorage.getItem(storageKey(campaignId));
+    const raw = runtimeWindow.localStorage.getItem(storageKey(campaignId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     const normalized = normaliseDisplayState(parsed);
     if (!parsed.sync_id || !parsed.sequence) {
-      localStorage.setItem(storageKey(campaignId), JSON.stringify(normalized));
+      runtimeWindow.localStorage.setItem(storageKey(campaignId), JSON.stringify(normalized));
     }
     return normalized;
   } catch {
@@ -121,23 +128,27 @@ export async function loadRemoteDisplayState(campaignId) {
 }
 
 export function saveDisplayState(campaignId, state) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow?.localStorage) return;
   try {
-    localStorage.setItem(storageKey(campaignId), JSON.stringify(normaliseDisplayState(state)));
+    runtimeWindow.localStorage.setItem(storageKey(campaignId), JSON.stringify(normaliseDisplayState(state)));
   } catch {
     // Ignore storage failures. BroadcastChannel may still work.
   }
 }
 
 export function publishDisplayState(campaignId, state) {
+  const runtimeWindow = getWindow();
   const safeState = normaliseDisplayState(state);
   saveDisplayState(campaignId, safeState);
+  if (!runtimeWindow) return;
   try {
-    window.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: safeState }));
+    runtimeWindow.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: safeState }));
   } catch {
     // Ignore local event failures; BroadcastChannel/storage polling still apply.
   }
   try {
-    if ('BroadcastChannel' in window) {
+    if ('BroadcastChannel' in runtimeWindow) {
       const channel = new BroadcastChannel(channelName(campaignId));
       channel.postMessage(safeState);
       channel.close();
@@ -166,6 +177,9 @@ export async function publishCampaignDisplayState(campaignId, state) {
 }
 
 export function subscribeDisplayState(campaignId, onState) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow) return safeNoop;
+
   const handlers = [];
   let lastIdentity = '';
 
@@ -190,7 +204,7 @@ export function subscribeDisplayState(campaignId, onState) {
   };
 
   try {
-    if ('BroadcastChannel' in window) {
+    if ('BroadcastChannel' in runtimeWindow) {
       const channel = new BroadcastChannel(channelName(campaignId));
       channel.onmessage = (event) => {
         if (!event.data) return;
@@ -210,18 +224,18 @@ export function subscribeDisplayState(campaignId, onState) {
       // Ignore malformed values.
     }
   };
-  window.addEventListener('storage', onStorage);
-  handlers.push(() => window.removeEventListener('storage', onStorage));
+  runtimeWindow.addEventListener('storage', onStorage);
+  handlers.push(() => runtimeWindow.removeEventListener('storage', onStorage));
 
   const onLocalDisplayEvent = (event) => {
     if (!event.detail) return;
     applyState(event.detail);
   };
-  window.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
-  handlers.push(() => window.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
+  runtimeWindow.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
+  handlers.push(() => runtimeWindow.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
 
-  const interval = window.setInterval(readSavedState, 500);
-  handlers.push(() => window.clearInterval(interval));
+  const interval = runtimeWindow.setInterval(readSavedState, 500);
+  handlers.push(() => runtimeWindow.clearInterval(interval));
 
   readSavedState();
 
@@ -229,6 +243,9 @@ export function subscribeDisplayState(campaignId, onState) {
 }
 
 export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 1000 } = {}) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow) return safeNoop;
+
   let cancelled = false;
   let lastRemoteIdentity = '';
   let socket = null;
@@ -257,7 +274,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   };
 
   const clearSocketTimers = () => {
-    if (pingTimer) window.clearInterval(pingTimer);
+    if (pingTimer) runtimeWindow.clearInterval(pingTimer);
     pingTimer = null;
   };
 
@@ -270,7 +287,7 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
       socket = new WebSocket(url);
       socket.onopen = () => {
         clearSocketTimers();
-        pingTimer = window.setInterval(() => {
+        pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
         }, 25000);
       };
@@ -289,30 +306,31 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
       };
       socket.onclose = () => {
         clearSocketTimers();
-        if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+        if (!cancelled) reconnectTimer = runtimeWindow.setTimeout(connectSocket, 2500);
       };
     } catch {
-      if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+      if (!cancelled) reconnectTimer = runtimeWindow.setTimeout(connectSocket, 2500);
     }
   };
 
   readRemoteState();
   connectSocket();
-  const interval = window.setInterval(readRemoteState, intervalMs);
+  const interval = runtimeWindow.setInterval(readRemoteState, intervalMs);
 
+  const runtimeDocument = getDocument();
   const onWake = () => readRemoteState();
-  window.addEventListener('focus', onWake);
-  window.addEventListener('online', onWake);
-  document.addEventListener('visibilitychange', onWake);
+  runtimeWindow.addEventListener('focus', onWake);
+  runtimeWindow.addEventListener('online', onWake);
+  if (runtimeDocument) runtimeDocument.addEventListener('visibilitychange', onWake);
 
   return () => {
     cancelled = true;
-    window.clearInterval(interval);
-    if (reconnectTimer) window.clearTimeout(reconnectTimer);
+    runtimeWindow.clearInterval(interval);
+    if (reconnectTimer) runtimeWindow.clearTimeout(reconnectTimer);
     clearSocketTimers();
     try { socket?.close(); } catch { /* ignore */ }
-    window.removeEventListener('focus', onWake);
-    window.removeEventListener('online', onWake);
-    document.removeEventListener('visibilitychange', onWake);
+    runtimeWindow.removeEventListener('focus', onWake);
+    runtimeWindow.removeEventListener('online', onWake);
+    if (runtimeDocument) runtimeDocument.removeEventListener('visibilitychange', onWake);
   };
 }
