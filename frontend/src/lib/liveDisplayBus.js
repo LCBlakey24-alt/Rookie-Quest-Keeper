@@ -52,17 +52,32 @@ function isNewerState(candidate, current) {
   return stateSequence(candidate) >= stateSequence(current);
 }
 
-function normaliseDisplayState(state = createDisplayState('blank', {})) {
+function normaliseDisplayState(state = {}) {
   const updatedAt = state.updated_at || new Date().toISOString();
-  const sequence = state.sequence || Date.now();
+  const sequence = state.sequence || state.seq || Date.now();
   return {
-    sync_id: state.sync_id || `${updatedAt}-${sequence}-${Math.random().toString(16).slice(2)}`,
+    sync_id: state.sync_id || state.id || `${updatedAt}-${sequence}-${Math.random().toString(16).slice(2)}`,
     mode: state.mode || 'blank',
     payload: state.payload || {},
     updated_at: updatedAt,
     sequence,
     source_tab: state.source_tab || sourceTabId,
   };
+}
+
+function readStoredDisplayState(campaignId) {
+  try {
+    const raw = localStorage.getItem(storageKey(campaignId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const normalized = normaliseDisplayState(parsed);
+    if (!parsed.sync_id || !parsed.sequence) {
+      localStorage.setItem(storageKey(campaignId), JSON.stringify(normalized));
+    }
+    return normalized;
+  } catch {
+    return null;
+  }
 }
 
 export function createDisplayState(mode = 'blank', payload = {}) {
@@ -78,13 +93,7 @@ export function createDisplayState(mode = 'blank', payload = {}) {
 }
 
 export function loadDisplayState(campaignId) {
-  try {
-    const raw = localStorage.getItem(storageKey(campaignId));
-    if (!raw) return createDisplayState('blank', {});
-    return normaliseDisplayState(JSON.parse(raw));
-  } catch {
-    return createDisplayState('blank', {});
-  }
+  return readStoredDisplayState(campaignId) || createDisplayState('blank', {});
 }
 
 export async function loadRemoteDisplayState(campaignId) {
@@ -92,8 +101,8 @@ export async function loadRemoteDisplayState(campaignId) {
   const apiClient = await getApiClient();
   const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
   const state = normaliseDisplayState(response.data || createDisplayState('blank', {}));
-  const localState = loadDisplayState(campaignId);
-  if (isNewerState(state, localState)) saveDisplayState(campaignId, state);
+  const localState = readStoredDisplayState(campaignId);
+  if (!localState || isNewerState(state, localState)) saveDisplayState(campaignId, state);
   return state;
 }
 
@@ -131,7 +140,7 @@ export async function publishCampaignDisplayState(campaignId, state) {
     const apiClient = await getApiClient();
     const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, localState);
     const remoteState = normaliseDisplayState(response.data || localState);
-    const latestLocalState = loadDisplayState(campaignId);
+    const latestLocalState = readStoredDisplayState(campaignId) || localState;
     if (isNewerState(remoteState, latestLocalState)) {
       publishDisplayState(campaignId, remoteState);
       return remoteState;
@@ -150,17 +159,17 @@ export function subscribeDisplayState(campaignId, onState) {
     const safeState = normaliseDisplayState(state);
     const identity = stateIdentity(safeState);
     if (identity === lastIdentity) return;
-    const current = loadDisplayState(campaignId);
-    if (!isNewerState(safeState, current) && stateIdentity(current) !== identity) return;
+    const current = readStoredDisplayState(campaignId);
+    if (current && !isNewerState(safeState, current) && stateIdentity(current) !== identity) return;
     lastIdentity = identity;
     onState(safeState);
   };
 
   const readSavedState = () => {
     try {
-      const raw = localStorage.getItem(storageKey(campaignId)) || '';
-      if (!raw) return;
-      applyState(JSON.parse(raw));
+      const state = readStoredDisplayState(campaignId);
+      if (!state) return;
+      applyState(state);
     } catch {
       // Ignore malformed values.
     }
@@ -217,8 +226,8 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
     const safeState = normaliseDisplayState(state);
     const identity = stateIdentity(safeState);
     if (identity === lastRemoteIdentity) return;
-    const localState = loadDisplayState(campaignId);
-    if (!isNewerState(safeState, localState)) return;
+    const localState = readStoredDisplayState(campaignId);
+    if (localState && !isNewerState(safeState, localState)) return;
     lastRemoteIdentity = identity;
     saveDisplayState(campaignId, safeState);
     onState(safeState);
