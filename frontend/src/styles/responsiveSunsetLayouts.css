@@ -273,6 +273,100 @@ button[data-rqk-primary='true'] {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
+/* Auth page has its own lazy-loaded CSS, so these selectors intentionally outrank it. */
+html body #root .rqk-auth-page {
+  color: var(--rq-text-primary, #ffffff) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(115, 87, 255, 0.16), transparent 32%),
+    radial-gradient(circle at 84% 20%, rgba(255, 79, 129, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.12), transparent 42%),
+    linear-gradient(180deg, #070713 0%, #0b0718 46%, #13081f 100%) !important;
+}
+
+html body #root .rqk-auth-page::after {
+  background:
+    linear-gradient(90deg, rgba(7, 7, 19, 0.74), transparent 24%, transparent 76%, rgba(7, 7, 19, 0.74)),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.36) 100%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-brand,
+html body #root .rqk-auth-page .rqk-auth-hero,
+html body #root .rqk-auth-page .rqk-auth-card,
+html body #root .rqk-auth-page .rqk-auth-feature-card,
+html body #root .rqk-auth-page .rqk-auth-note,
+html body #root .rqk-auth-page .rqk-auth-mode-toggle,
+html body #root .rqk-auth-page .rqk-auth-input-shell {
+  background:
+    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.36), rgba(216, 77, 241, 0.26), rgba(255, 149, 66, 0.24)) border-box !important;
+  border-color: transparent !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-ambient span {
+  background: radial-gradient(circle, rgba(235, 63, 233, 0.16), transparent 68%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-ambient span:nth-child(2) {
+  background: radial-gradient(circle, rgba(255, 79, 129, 0.15), transparent 68%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-brand__sigil,
+html body #root .rqk-auth-page .rqk-auth-feature-icon,
+html body #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active,
+html body #root .rqk-auth-page .rqk-auth-primary {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-mode-toggle button,
+html body #root .rqk-auth-page .rqk-auth-switch-button,
+html body #root .rqk-auth-page .rqk-auth-link-button,
+html body #root .rqk-auth-page .rqk-auth-icon-button,
+html body #root .rqk-auth-page .rqk-auth-secondary {
+  background: rgba(19, 8, 31, 0.76) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-kicker,
+html body #root .rqk-auth-page .rqk-auth-heading p,
+html body #root .rqk-auth-page .rqk-auth-input-icon,
+html body #root .rqk-auth-page .rqk-auth-note svg {
+  color: var(--rq-accent-hover, #ff9542) !important;
+  stroke: var(--rq-accent-hover, #ff9542) !important;
+}
+
+html body #root .rqk-auth-page h1,
+html body #root .rqk-auth-page h2,
+html body #root .rqk-auth-page strong,
+html body #root .rqk-auth-page label,
+html body #root .rqk-auth-page .rqk-auth-field {
+  color: var(--rq-text-primary, #ffffff) !important;
+  text-shadow: none !important;
+}
+
+html body #root .rqk-auth-page p,
+html body #root .rqk-auth-page small,
+html body #root .rqk-auth-page span,
+html body #root .rqk-auth-page .rqk-auth-field-hint,
+html body #root .rqk-auth-page .rqk-auth-switch {
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82)) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:hover,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:focus,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--rq-text-primary, #ffffff) !important;
+  caret-color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: 0 0 0 1000px #0b0614 inset !important;
+}
+
 .smokey-bg::before,
 .smokey-bg::after {
   background:
