@@ -62,6 +62,7 @@ import '@/styles/characterSheetSkillsCompact.css';
 import '@/styles/characterSheetStatsFinalMobileTweaks.css';
 import '@/styles/characterSheetStatsTabFinalPolish.css';
 import '@/styles/brandedLoading.css';
+import '@/styles/loadingExperiencePolish.css';
 import '@/styles/authExperiencePolish.css';
 import '@/styles/homeHubConsistencySweep.css';
 import '@/styles/rookAssistantPlaybook.css';
