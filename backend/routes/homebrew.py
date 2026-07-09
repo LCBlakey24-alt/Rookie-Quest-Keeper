@@ -380,7 +380,7 @@ def _normalise_feat_category(data: Dict[str, Any]) -> str:
 
 
 def _spell_class_parts(value: Any) -> List[str]:
-    if value in (None, "", [], {}):
+    if value in (None, "", [], {}) or value is False:
         return []
     if isinstance(value, list):
         parts: List[str] = []
@@ -390,10 +390,11 @@ def _spell_class_parts(value: Any) -> List[str]:
     if isinstance(value, dict):
         parts: List[str] = []
         for key, item in value.items():
-            if isinstance(item, bool) and item:
-                parts.append(str(key))
-            else:
-                parts.extend(_spell_class_parts(item))
+            if isinstance(item, bool):
+                if item:
+                    parts.append(str(key))
+                continue
+            parts.extend(_spell_class_parts(item))
         return parts
     text = re.sub(r"\band\b", ",", str(value or ""), flags=re.IGNORECASE)
     return re.split(r"[,;/|&]+|\n+", text)
