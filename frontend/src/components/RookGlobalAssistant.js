@@ -23,6 +23,13 @@ function getAssistantPathname(pathname) {
   return pathname;
 }
 
+function isPlayerFacingCampaignPath(pathname = '', assistantPathname = '') {
+  return assistantPathname.includes('player-display')
+    || pathname.startsWith('/player-display/')
+    || pathname.startsWith('/gm-second-screen/')
+    || pathname.startsWith('/mobile/');
+}
+
 function extractCharacterIdFromPath(pathname = '') {
   const match = pathname.match(/^\/characters\/([^/]+)(?:\/edit)?$/);
   return match ? match[1] : '';
@@ -38,6 +45,16 @@ function listNames(value, limit = 8) {
     })
     .filter(Boolean)
     .join(', ');
+}
+
+function truncateText(value, limit = 900) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.length > limit ? `${text.slice(0, limit).trim()}…` : text;
+}
+
+function settledValue(result) {
+  return result?.status === 'fulfilled' ? result.value?.data : null;
 }
 
 function summarizeCharacterForRook(character) {
@@ -72,8 +89,65 @@ function summarizeCharacterForRook(character) {
 - AC: ${character.armor_class ?? character.ac ?? '?'}
 - Proficiency bonus: ${character.proficiency_bonus ?? '?'}
 - Ability scores: ${abilityScores}
-${feats ? `- Feats: ${feats}\n` : ''}${equipment ? `- Equipment/items: ${equipment}\n` : ''}${resources ? `- Tracked resources: ${resources}\n` : ''}${actions ? `- Custom/homebrew actions: ${actions}\n` : ''}${cantrips ? `- Cantrips: ${cantrips}\n` : ''}${knownSpells ? `- Known spells: ${knownSpells}\n` : ''}${preparedSpells ? `- Prepared spells: ${preparedSpells}\n` : ''}${character.personality_traits ? `- Personality traits: ${character.personality_traits}\n` : ''}${character.ideals ? `- Ideals: ${character.ideals}\n` : ''}${character.bonds ? `- Bonds: ${character.bonds}\n` : ''}${character.flaws ? `- Flaws: ${character.flaws}\n` : ''}${character.notes ? `- Notes: ${String(character.notes).slice(0, 800)}\n` : ''}
+${feats ? `- Feats: ${feats}\n` : ''}${equipment ? `- Equipment/items: ${equipment}\n` : ''}${resources ? `- Tracked resources: ${resources}\n` : ''}${actions ? `- Custom/homebrew actions: ${actions}\n` : ''}${cantrips ? `- Cantrips: ${cantrips}\n` : ''}${knownSpells ? `- Known spells: ${knownSpells}\n` : ''}${preparedSpells ? `- Prepared spells: ${preparedSpells}\n` : ''}${character.personality_traits ? `- Personality traits: ${character.personality_traits}\n` : ''}${character.ideals ? `- Ideals: ${character.ideals}\n` : ''}${character.bonds ? `- Bonds: ${character.bonds}\n` : ''}${character.flaws ? `- Flaws: ${character.flaws}\n` : ''}${character.notes ? `- Notes: ${truncateText(character.notes, 800)}\n` : ''}
 When answering character-sheet questions, use this actual character context first. Be practical and avoid inventing missing sheet details.`.trim();
+}
+
+function summarizeCampaignForRook({ campaign, setting, environment, rules, playerFacing = false }) {
+  if (!campaign && !setting && !environment && !rules) return '';
+
+  const customRuleNames = Array.isArray(rules?.rules)
+    ? rules.rules.slice(0, 10).map((rule) => `${rule.name || 'Untitled'}${rule.source_type ? ` (${rule.source_type})` : ''}`).join(', ')
+    : '';
+  const ruleCount = rules?.total_count ?? (Array.isArray(rules?.rules) ? rules.rules.length : 0);
+  const availableClasses = Array.isArray(campaign?.available_classes) ? campaign.available_classes.join(', ') : '';
+  const envBits = environment ? [
+    environment.location ? `location: ${environment.location}` : '',
+    environment.weather ? `weather: ${environment.weather}` : '',
+    environment.lighting ? `lighting: ${environment.lighting}` : '',
+    environment.mood ? `mood: ${environment.mood}` : '',
+  ].filter(Boolean).join('; ') : '';
+
+  const lines = [
+    playerFacing ? 'CURRENT PLAYER-FACING CAMPAIGN CONTEXT:' : 'CURRENT GM CAMPAIGN CONTEXT:',
+    `- Campaign: ${campaign?.name || 'Unknown campaign'}`,
+    `- System/rules: ${campaign?.system || campaign?.rules_edition || campaign?.ruleset_id || 'Unknown'}`,
+    campaign?.world_name || campaign?.setting ? `- World/setting: ${campaign.world_name || campaign.setting}` : '',
+    campaign?.world_setting ? `- Tone label: ${campaign.world_setting}` : '',
+    campaign?.world_setting_notes ? `- Tone notes: ${truncateText(campaign.world_setting_notes, playerFacing ? 300 : 700)}` : '',
+    availableClasses ? `- Available classes: ${availableClasses}` : '',
+    campaign?.max_character_level ? `- Max character level: ${campaign.max_character_level}${campaign.allow_epic_levels ? ' (epic levels allowed)' : ''}` : '',
+    envBits ? `- Shared table environment: ${envBits}` : '',
+    environment?.notes ? `- Environment notes: ${truncateText(environment.notes, playerFacing ? 250 : 600)}` : '',
+    ruleCount ? `- Uploaded/custom rules visible: ${ruleCount}${customRuleNames ? ` — ${customRuleNames}` : ''}` : '',
+  ].filter(Boolean);
+
+  if (!playerFacing) {
+    if (setting?.content) lines.push(`- Campaign setting notes: ${truncateText(setting.content, 1200)}`);
+    if (setting?.dm_rules) lines.push(`- GM-only rules/notes: ${truncateText(setting.dm_rules, 700)}`);
+    lines.push('Use this saved campaign context first for GM-facing answers. Do not invent lore that conflicts with saved notes.');
+  } else {
+    lines.push('This is player-facing context. Do not reveal GM-only secrets, hidden notes, unrevealed NPC motives, or private campaign prep.');
+  }
+
+  return lines.join('\n');
+}
+
+async function fetchCampaignContext(campaignId, playerFacing) {
+  const [campaignResult, settingResult, environmentResult, rulesResult] = await Promise.allSettled([
+    apiClient.get(`/campaigns/${campaignId}`),
+    playerFacing ? Promise.resolve({ data: null }) : apiClient.get(`/campaigns/${campaignId}/setting`),
+    apiClient.get(`/campaigns/${campaignId}/environment`),
+    apiClient.get(`/campaigns/${campaignId}/custom-rules`),
+  ]);
+
+  return summarizeCampaignForRook({
+    campaign: settledValue(campaignResult),
+    setting: settledValue(settingResult),
+    environment: settledValue(environmentResult),
+    rules: settledValue(rulesResult),
+    playerFacing,
+  });
 }
 
 export default function RookGlobalAssistant() {
@@ -96,26 +170,50 @@ export default function RookGlobalAssistant() {
   const playbook = useMemo(() => getRookPagePlaybook(assistantPathname), [assistantPathname]);
   const chips = useMemo(() => getRookMicroSuggestions(assistantPathname), [assistantPathname]);
   const campaignId = useMemo(() => extractCampaignIdFromPath(pathname), [pathname]);
+  const playerFacingCampaign = useMemo(() => isPlayerFacingCampaignPath(pathname, assistantPathname), [pathname, assistantPathname]);
+  const contextNote = characterId
+    ? 'Character sheet loaded — Rook can answer from this character.'
+    : campaignId && pageDataContext
+      ? playerFacingCampaign
+        ? 'Player-safe campaign context loaded.'
+        : 'Campaign context loaded — Rook can prep from this campaign.'
+      : '';
   const systemContext = useMemo(() => buildRookSystemContext(assistantPathname, pageDataContext), [assistantPathname, pageDataContext]);
 
   useEffect(() => {
     let active = true;
     setPageDataContext('');
 
-    if (!characterId) return () => { active = false; };
+    if (characterId) {
+      apiClient.get(`/characters/${characterId}`)
+        .then((response) => {
+          if (active) setPageDataContext(summarizeCharacterForRook(response.data));
+        })
+        .catch(() => {
+          if (active) setPageDataContext('CURRENT CHARACTER SHEET CONTEXT: Rook could not load this character sheet, so answer using only visible route context and the user request.');
+        });
+      return () => {
+        active = false;
+      };
+    }
 
-    apiClient.get(`/characters/${characterId}`)
-      .then((response) => {
-        if (active) setPageDataContext(summarizeCharacterForRook(response.data));
-      })
-      .catch(() => {
-        if (active) setPageDataContext('CURRENT CHARACTER SHEET CONTEXT: Rook could not load this character sheet, so answer using only visible route context and the user request.');
-      });
+    if (campaignId) {
+      fetchCampaignContext(campaignId, playerFacingCampaign)
+        .then((context) => {
+          if (active && context) setPageDataContext(context);
+        })
+        .catch(() => {
+          if (active) setPageDataContext('CURRENT CAMPAIGN CONTEXT: Rook could not load this campaign context, so answer using only route context and the user request.');
+        });
+      return () => {
+        active = false;
+      };
+    }
 
     return () => {
       active = false;
     };
-  }, [characterId]);
+  }, [characterId, campaignId, playerFacingCampaign]);
 
   useEffect(() => {
     const openRook = () => {
@@ -250,8 +348,8 @@ export default function RookGlobalAssistant() {
             <div className="rook-assistant-empty__icon"><Wand2 size={24} /></div>
             <h3>Ask Rook anything here.</h3>
             <p>Rook now carries a site-wide brain: player help, GM prep, homebrew checks, name banks, quest hooks, and page-aware guidance.</p>
-            {characterId && pageDataContext && (
-              <p className="rook-assistant-context-note">Character sheet loaded — Rook can answer from this character.</p>
+            {contextNote && (
+              <p className="rook-assistant-context-note">{contextNote}</p>
             )}
             <div className="rook-assistant-playbook" aria-label="Best ways to use Rook here">
               <span>Best here</span>
