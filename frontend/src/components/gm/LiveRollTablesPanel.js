@@ -471,6 +471,12 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
     return tables.filter(table => matchesEditionFilter(table, editionFilter) && (!needle || tableSearchText(table).includes(needle)));
   }, [editionFilter, tableSearch, tables]);
 
+  useEffect(() => {
+    const hasSearch = tableSearch.trim().length > 0;
+    if (!hasSearch || filteredTables.length === 0) return;
+    setActiveTableId(currentId => filteredTables.some(table => table.id === currentId) ? currentId : filteredTables[0].id);
+  }, [filteredTables, tableSearch]);
+
   const activeTable = tables.find(table => table.id === activeTableId) || filteredTables[0] || tables[0];
   const activeEntries = normaliseEntries(activeTable?.entries || []);
   const activeIsRollable = isRollableTable(activeTable);
@@ -697,6 +703,7 @@ export default function LiveRollTablesPanel({ campaignId, onSaveAsNote, allowDis
           <div style={filterRowStyle}>{EDITION_FILTERS.map(([value, label]) => <button key={value} type="button" onClick={() => setEditionFilter(value)} style={filterChipStyle(editionFilter === value)}>{label}</button>)}</div>
           <label style={searchBoxStyle}><Search size={14} /><input value={tableSearch} onChange={(event) => setTableSearch(event.target.value)} placeholder="Search tables, rows, weapons, potions..." style={searchInputStyle} /></label>
           {loadingTables && <p style={mutedTextStyle}>Loading campaign tables...</p>}
+          {!loadingTables && filteredTables.length === 0 && <div style={noResultsStyle}><strong>No tables found</strong><span>Try a broader term, clear the edition filter, or add a campaign table.</span></div>}
           {filteredTables.map(table => {
             const active = table.id === activeTable.id;
             return <button key={table.id} type="button" onClick={() => setActiveTableId(table.id)} style={tableButtonStyle(active)}><BookOpen size={15} /><span style={{ minWidth: 0 }}><strong>{table.name}</strong><small>{categoryLabel(table.category)} · {sourceLabel(table)}</small></span></button>;
@@ -750,6 +757,7 @@ const resultMetaStyle = { margin: 0, color: theme.muted, fontSize: 11, fontWeigh
 const rollNumberStyle = { display: 'inline-grid', placeItems: 'center', width: 58, height: 58, background: theme.red, color: theme.text, fontSize: 30, fontWeight: 950 };
 const resultTextStyle = { margin: 0, color: theme.text, fontSize: 17, lineHeight: 1.45, fontWeight: 850 };
 const emptyResultStyle = { minHeight: 100, display: 'grid', placeItems: 'center', textAlign: 'center', background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 20 };
+const noResultsStyle = { display: 'grid', gap: 4, background: theme.bg, border: `1px dashed ${theme.line}`, color: theme.soft, padding: 12, fontSize: 12, lineHeight: 1.35 };
 const createBoxStyle = { display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, padding: 10 };
 const formTitleRowStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap', color: theme.soft, fontSize: 12 };
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 };
