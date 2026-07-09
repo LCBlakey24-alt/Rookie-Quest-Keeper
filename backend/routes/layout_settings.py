@@ -34,6 +34,14 @@ DEFAULT_SECTION_VISIBILITY_BY_DEVICE = {
     'mobile': DEFAULT_SECTION_VISIBILITY,
 }
 
+DEFAULT_SECTION_DISPLAY = {section_id: 'standard' for section_id in DEFAULT_SECTION_ORDER}
+
+DEFAULT_SECTION_DISPLAY_BY_DEVICE = {
+    'desktop': DEFAULT_SECTION_DISPLAY,
+    'tablet': DEFAULT_SECTION_DISPLAY,
+    'mobile': DEFAULT_SECTION_DISPLAY,
+}
+
 DEFAULT_LAYOUT_SETTINGS = {
     'id': 'global',
     'layout_version': 1,
@@ -68,6 +76,7 @@ DEFAULT_LAYOUT_SETTINGS = {
     'section_order': DEFAULT_SECTION_ORDER,
     'section_order_by_device': DEFAULT_SECTION_ORDER_BY_DEVICE,
     'section_visibility_by_device': DEFAULT_SECTION_VISIBILITY_BY_DEVICE,
+    'section_display_by_device': DEFAULT_SECTION_DISPLAY_BY_DEVICE,
     'notes': '',
     'updated_at': '',
     'updated_by': '',
@@ -76,6 +85,7 @@ DEFAULT_LAYOUT_SETTINGS = {
 ALLOWED_MODES = {'compact', 'balanced', 'showcase'}
 ALLOWED_DENSITIES = {'compact', 'comfortable', 'spacious'}
 ALLOWED_CARD_SCALES = {'compact', 'normal', 'large'}
+ALLOWED_SECTION_DISPLAYS = {'standard', 'compact', 'featured'}
 DEVICE_LIMITS = {
     'desktop': {'min_width': 960, 'max_width': 1920, 'min_columns': 1, 'max_columns': 5},
     'tablet': {'min_width': 720, 'max_width': 1280, 'min_columns': 1, 'max_columns': 4},
@@ -93,6 +103,7 @@ class LayoutSettingsUpdate(BaseModel):
     section_order: list[str] = Field(default_factory=lambda: list(DEFAULT_SECTION_ORDER))
     section_order_by_device: dict = Field(default_factory=dict)
     section_visibility_by_device: dict = Field(default_factory=dict)
+    section_display_by_device: dict = Field(default_factory=dict)
     notes: str = Field(default='', max_length=1200)
 
 
@@ -179,6 +190,26 @@ def sanitise_section_visibility_by_device(incoming: Optional[dict]) -> dict:
     }
 
 
+def sanitise_section_display(incoming: Optional[dict]) -> dict:
+    source = incoming or {}
+    if not isinstance(source, dict):
+        source = {}
+    display = {}
+    for section_id in DEFAULT_SECTION_ORDER:
+        value = source.get(section_id, 'standard')
+        display[section_id] = value if value in ALLOWED_SECTION_DISPLAYS else 'standard'
+    return display
+
+
+def sanitise_section_display_by_device(incoming: Optional[dict]) -> dict:
+    source = incoming or {}
+    return {
+        'desktop': sanitise_section_display(source.get('desktop') if isinstance(source, dict) else {}),
+        'tablet': sanitise_section_display(source.get('tablet') if isinstance(source, dict) else {}),
+        'mobile': sanitise_section_display(source.get('mobile') if isinstance(source, dict) else {}),
+    }
+
+
 def merge_layout_settings(doc: Optional[dict]) -> dict:
     source = {**DEFAULT_LAYOUT_SETTINGS, **(doc or {})}
     source.pop('_id', None)
@@ -196,6 +227,7 @@ def merge_layout_settings(doc: Optional[dict]) -> dict:
         'section_order': section_order,
         'section_order_by_device': sanitise_section_order_by_device(source.get('section_order_by_device'), section_order),
         'section_visibility_by_device': sanitise_section_visibility_by_device(source.get('section_visibility_by_device')),
+        'section_display_by_device': sanitise_section_display_by_device(source.get('section_display_by_device')),
         'notes': str(source.get('notes', ''))[:1200],
         'updated_at': source.get('updated_at', ''),
         'updated_by': source.get('updated_by', ''),
@@ -237,6 +269,7 @@ async def update_admin_layout_settings(payload: LayoutSettingsUpdate, username: 
         'section_order': section_order,
         'section_order_by_device': sanitise_section_order_by_device(payload.section_order_by_device, section_order),
         'section_visibility_by_device': sanitise_section_visibility_by_device(payload.section_visibility_by_device),
+        'section_display_by_device': sanitise_section_display_by_device(payload.section_display_by_device),
         'notes': payload.notes.strip()[:1200],
         'updated_at': now,
         'updated_by': username,
