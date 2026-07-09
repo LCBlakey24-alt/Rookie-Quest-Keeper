@@ -62,7 +62,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Uploads, settings, Rook, feedback, and owner tools.</span>
+          <span>Rook, uploads, settings, feedback, and owner tools.</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -74,7 +74,7 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
           const Icon = item.icon;
           if (item.kind === 'rook') {
             return (
-              <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onRook} role="menuitem">
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook} role="menuitem">
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
@@ -141,8 +141,8 @@ export default function AppShell({ children }) {
 
   const mobileMoreItems = useMemo(() => {
     const tools = [
-      ...mainNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
+      ...mainNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
 
@@ -180,7 +180,7 @@ export default function AppShell({ children }) {
 
         <div className="rqk-app-rail-bottom">
           <p className="rqk-app-rail-section-label">Support</p>
-          <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openRook}>
+          <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
             <Sparkles size={20} aria-hidden="true" />
             <span>Ask Rook</span>
           </button>
