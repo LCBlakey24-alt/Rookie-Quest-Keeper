@@ -1,7 +1,7 @@
-/* Twilight Keeper screen-specific polish.
-   This layer makes the theme feel intentional on the big user-facing screens. */
+/* Sunset Gradient screen-specific polish.
+   Keeps large user-facing screens on the shared dark blue-purple system. */
 
-/* Route loading: turn the old spinner into a sunset glyph moment. */
+/* Route loading: turn the old spinner into a clean sunset glyph moment. */
 #root .loading-screen {
   min-height: 100dvh;
   display: grid !important;
@@ -13,34 +13,34 @@
 }
 
 #root .loading-spinner {
-  width: 78px !important;
-  height: 78px !important;
-  border-radius: 24px !important;
-  border: 2px solid transparent !important;
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 20px !important;
+  border: 1px solid transparent !important;
   background:
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0 14%, transparent 15%),
     conic-gradient(from 180deg, #7357ff, #eb3fe9, #ff4f81, #ff9542, #7357ff) !important;
-  box-shadow: 0 0 34px rgba(235,63,233,0.26), 0 0 46px rgba(255,149,66,0.14) !important;
-  animation: rqk-twilight-spin 1.4s linear infinite;
+  box-shadow: none !important;
+  animation: rqk-sunset-spin 1.4s linear infinite;
 }
 
 #root .loading-title {
   margin: 10px 0 0 !important;
   font-family: var(--rq-title-font) !important;
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
   font-size: clamp(20px, 6vw, 34px) !important;
-  letter-spacing: 0.04em !important;
+  letter-spacing: 0.03em !important;
 }
 
 #root .loading-tip {
   max-width: 620px !important;
   margin: 0 !important;
-  color: rgba(255,248,239,0.70) !important;
+  color: rgba(255,255,255,0.72) !important;
   font-size: 13px !important;
   line-height: 1.45 !important;
 }
 
-@keyframes rqk-twilight-spin {
+@keyframes rqk-sunset-spin {
   to { transform: rotate(360deg); }
 }
 
@@ -49,17 +49,17 @@
 #root .auth-page,
 #root .rqk-public-screen,
 #root .rqk-public-screen-card {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .landing-page,
 #root .auth-page,
 #root .rqk-public-screen {
   background:
-    radial-gradient(circle at 50% 98%, rgba(255,149,66,0.24), transparent 44%),
-    radial-gradient(circle at 82% 18%, rgba(235,63,233,0.22), transparent 36%),
-    radial-gradient(circle at 8% 8%, rgba(115,87,255,0.18), transparent 34%),
-    linear-gradient(180deg, #070713, #130820 52%, #240b38) !important;
+    radial-gradient(circle at 50% 98%, rgba(255,149,66,0.12), transparent 44%),
+    radial-gradient(circle at 82% 18%, rgba(235,63,233,0.16), transparent 36%),
+    radial-gradient(circle at 8% 8%, rgba(115,87,255,0.16), transparent 34%),
+    linear-gradient(180deg, #070713, #0b0718 52%, #13081f) !important;
 }
 
 #root .landing-final-hero,
@@ -71,12 +71,12 @@
 #root .rqk-public-screen-card,
 #root .auth-card,
 #root .auth-panel {
-  border: 2px solid transparent !important;
-  border-radius: 24px !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
   background:
     linear-gradient(145deg, rgba(13,6,23,0.94), rgba(36,16,58,0.90)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: 0 16px 46px rgba(0,0,0,0.28), 0 0 36px rgba(235,63,233,0.12) !important;
+    linear-gradient(135deg, rgba(115,87,255,0.34), rgba(216,77,241,0.24), rgba(255,149,66,0.22)) border-box !important;
+  box-shadow: none !important;
 }
 
 #root .landing-final-hero h1,
@@ -84,11 +84,11 @@
 #root .auth-card h1,
 #root .auth-panel h1 {
   font-family: var(--rq-title-font) !important;
-  color: var(--rq-sunset-cream) !important;
-  text-shadow: 0 2px 22px rgba(235,63,233,0.22) !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
 }
 
-/* Character creation mode picker: make each choice a twilight card with a selected-feeling CTA. */
+/* Character creation mode picker: choices are clean dark cards with gradient CTAs. */
 #root .character-mode-grid,
 #root .character-mode-flow,
 #root .character-mode-summary {
@@ -97,64 +97,71 @@
 
 #root .character-mode-card {
   min-height: 210px !important;
-  border-width: 2px !important;
+  border-width: 1px !important;
 }
 
 #root .character-mode-card-topline,
 #root .character-mode-card p,
 #root .character-mode-guide,
 #root .character-mode-summary {
-  color: rgba(255,248,239,0.74) !important;
+  color: rgba(255,255,255,0.74) !important;
 }
 
 #root .character-mode-icon-box {
-  border-radius: 22px !important;
+  border-radius: 18px !important;
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  box-shadow: var(--rq-twilight-selected-shadow) !important;
+  box-shadow: none !important;
 }
 
-/* Full creator: make steps look like the icon mockup, and keep form panels calmer. */
+/* Full creator: steps follow the app rail pattern and form panels stay calm. */
 #root .full-creator-steps {
   background: rgba(13,6,23,0.78) !important;
-  border: 1px solid rgba(255,248,239,0.13) !important;
-  border-radius: 22px !important;
+  border: 1px solid rgba(255,255,255,0.13) !important;
+  border-radius: 18px !important;
   padding: 8px !important;
 }
 
 #root .full-creator-steps button {
   background: transparent !important;
   border: 1px solid transparent !important;
-  color: rgba(255,248,239,0.76) !important;
-  border-radius: 18px !important;
+  color: rgba(255,255,255,0.76) !important;
+  border-radius: 14px !important;
 }
 
 #root .full-creator-steps button.active,
 #root .full-creator-steps button[aria-current="step"] {
+  background: rgba(255,255,255,0.05) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  box-shadow: none !important;
+}
+
+#root .full-creator-steps button.active svg,
+#root .full-creator-steps button[aria-current="step"] svg {
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  box-shadow: var(--rq-twilight-selected-shadow) !important;
 }
 
 #root .full-creator-form-grid label,
 #root .full-creator-wide-label,
 #root .full-creator-score-editor label {
   background: rgba(13,6,23,0.72) !important;
-  border: 1px solid rgba(255,248,239,0.13) !important;
-  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,0.13) !important;
+  border-radius: 14px !important;
   padding: 10px !important;
 }
 
 #root .full-creator-form-grid label span,
 #root .full-creator-wide-label span,
 #root .full-creator-score-editor label span {
-  color: rgba(255,248,239,0.64) !important;
+  color: rgba(255,255,255,0.64) !important;
   font-weight: 900 !important;
   letter-spacing: 0.05em !important;
   text-transform: uppercase !important;
 }
 
-/* Character sheet: make the data boxes feel like small cards inside the sunset frame. */
+/* Character sheet: data boxes feel like small cards inside the sunset frame. */
 #root .character-page-v2 .clean-sheet-content,
 #root .character-page-v2 .clean-sheet-main,
 #root .character-page-v2 .clean-sheet-tab-content {
@@ -170,16 +177,13 @@
 #root .clean-sheet-section h2,
 #root .clean-sheet-panel h3,
 #root .clean-sheet-card h3,
-#root .clean-sheet-section h3 {
-  color: var(--rq-sunset-cream) !important;
-}
-
+#root .clean-sheet-section h3,
 #root .clean-sheet-skill-card strong,
 #root .clean-sheet-save-card strong,
 #root .clean-sheet-action-card strong,
 #root .clean-sheet-attack-card strong,
 #root .clean-sheet-resource-card strong {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .clean-sheet-skill-card span,
@@ -190,14 +194,14 @@
 #root .clean-sheet-panel p,
 #root .clean-sheet-card p,
 #root .clean-sheet-section p {
-  color: rgba(255,248,239,0.70) !important;
+  color: rgba(255,255,255,0.72) !important;
 }
 
 /* Toasts and error states should belong to the new palette. */
 #root [data-sonner-toast] {
   background: rgba(13,6,23,0.96) !important;
-  border: 1px solid rgba(255,248,239,0.14) !important;
-  color: var(--rq-sunset-cream) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: #ffffff !important;
 }
 
 /* Small-screen tuning: keep the theme strong but not cramped. */
@@ -211,11 +215,11 @@
   #root .clean-sheet-panel,
   #root .clean-sheet-card,
   #root .clean-sheet-section {
-    border-radius: 18px !important;
+    border-radius: 16px !important;
   }
 
   #root .full-creator-steps {
-    border-radius: 18px !important;
+    border-radius: 16px !important;
     overflow-x: auto !important;
   }
 
@@ -224,8 +228,8 @@
   }
 
   #root .loading-spinner {
-    width: 66px !important;
-    height: 66px !important;
-    border-radius: 22px !important;
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 18px !important;
   }
 }
