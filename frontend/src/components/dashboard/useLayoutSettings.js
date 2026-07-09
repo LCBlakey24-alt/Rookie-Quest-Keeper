@@ -3,6 +3,12 @@ import apiClient from '@/lib/apiClient';
 
 export const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
 
+export const defaultSectionOrderByDevice = {
+  desktop: defaultSectionOrder,
+  tablet: defaultSectionOrder,
+  mobile: defaultSectionOrder,
+};
+
 export const defaultLayoutSettings = {
   mode: 'balanced',
   density: 'comfortable',
@@ -18,6 +24,7 @@ export const defaultLayoutSettings = {
     admin_notice: true,
   },
   section_order: defaultSectionOrder,
+  section_order_by_device: defaultSectionOrderByDevice,
 };
 
 export function normaliseSectionOrder(order) {
@@ -33,7 +40,18 @@ export function normaliseSectionOrder(order) {
   return safe;
 }
 
+export function normaliseSectionOrderByDevice(value = {}, fallbackOrder = defaultSectionOrder) {
+  const source = value || {};
+  const fallback = normaliseSectionOrder(fallbackOrder);
+  return {
+    desktop: normaliseSectionOrder(source.desktop || fallback),
+    tablet: normaliseSectionOrder(source.tablet || fallback),
+    mobile: normaliseSectionOrder(source.mobile || fallback),
+  };
+}
+
 function normaliseLayoutSettings(value = {}) {
+  const sectionOrder = normaliseSectionOrder(value.section_order);
   return {
     ...defaultLayoutSettings,
     ...value,
@@ -41,7 +59,8 @@ function normaliseLayoutSettings(value = {}) {
     tablet: { ...defaultLayoutSettings.tablet, ...(value.tablet || {}) },
     mobile: { ...defaultLayoutSettings.mobile, ...(value.mobile || {}) },
     modules: { ...defaultLayoutSettings.modules, ...(value.modules || {}) },
-    section_order: normaliseSectionOrder(value.section_order),
+    section_order: sectionOrder,
+    section_order_by_device: normaliseSectionOrderByDevice(value.section_order_by_device, sectionOrder),
   };
 }
 
@@ -101,13 +120,16 @@ export default function useLayoutSettings() {
     deviceSettings.show_sidebar ? 'dashboard-layout-sidebar-on' : 'dashboard-layout-sidebar-off',
   ].join(' ');
 
+  const sectionOrderByDevice = normaliseSectionOrderByDevice(settings.section_order_by_device, settings.section_order);
+
   return {
     settings,
     loading,
     device,
     deviceSettings,
     modules: settings.modules || defaultLayoutSettings.modules,
-    sectionOrder: normaliseSectionOrder(settings.section_order),
+    sectionOrder: sectionOrderByDevice[device] || normaliseSectionOrder(settings.section_order),
+    sectionOrderByDevice,
     layoutStyle,
     layoutClassName,
   };
