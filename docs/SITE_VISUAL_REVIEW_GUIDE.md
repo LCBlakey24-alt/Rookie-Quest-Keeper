@@ -1,11 +1,12 @@
 # Site visual review guide
 
-Use this guide when asking Codex or another coding agent to verify the sunset rebrand visually.
+Use this guide when asking Codex or another coding agent to verify the sunset-gradient rebrand visually.
 
 ## What is already visible in source
 
-- The global CSS palette in `frontend/src/App.css` now uses a sunset tabletop base: espresso backgrounds, warm brown panels, parchment text, gold/copper actions, and restrained square radii.
-- The older standalone design guideline files have been updated to point at the sunset tabletop direction instead of the previous cyber/neon direction.
+- The intended global UI direction is now a very dark blue-purple base with deep indigo panels, white readable text, subtle pale borders, and purple-pink-orange sunset-gradient actions.
+- The active design guideline files should point at the sunset-gradient direction rather than coffee, velvet, espresso, leather, parchment, brown-tabletop, or rustic wording.
+- The signed-in rail is the main selected/unselected pattern: quiet unselected links, sunset-gradient selected icon fill, a thin selected marker, and a short gradient label underline when labels are visible.
 
 ## What still needs review
 
@@ -14,15 +15,17 @@ Because many pages include component-level styles, the rebrand should be checked
 Recommended first routes:
 
 1. `/` or the signed-in home route.
-2. `/characters/new`.
-3. `/characters/new/full`.
-4. `/characters/new/basic`.
-5. `/characters/new/premade`.
-6. `/characters/new/kids`.
-7. `/characters/:characterId`.
-8. Campaign dashboard and live-play routes.
+2. `/characters/new` or current character creation entry route.
+3. `/characters/create/full`.
+4. `/characters`.
+5. `/characters/:characterId`.
+6. `/campaigns`.
+7. Campaign dashboard and live-play routes.
+8. `/homebrew`.
+9. `/uploads`.
+10. `/admin`.
 
-For each route, check desktop around `1440px` wide and mobile around `390px` wide.
+For each route, check mobile around `390px`, tablet around `768px`, and desktop around `1440px` wide.
 
 ## How to give Codex visual access
 
@@ -67,24 +70,25 @@ To limit routes during a focused review, pass a comma-separated route list:
 
 ```bash
 cd tests
-ROOK_SCREENSHOT_ROUTES=/characters/new,/characters/new/premade npm run screenshots:site
+ROOK_SCREENSHOT_ROUTES=/characters,/characters/create/full npm run screenshots:site
 ```
 
 Generated screenshots are ignored by git. Do not commit them unless they are intentionally part of review documentation.
 
 ## Review checklist
 
-- Backgrounds are espresso/charcoal, not blue, purple, white, or neon.
-- Cards feel warm and tabletop-like, with subtle copper/gold borders.
-- Primary actions are gold/copper and have clear hover/focus states.
+- Backgrounds are very dark blue-purple, not brown, white, parchment, or coffee-styled.
+- Cards use deep indigo/purple surfaces with subtle pale or sunset borders.
+- Primary actions use the sunset gradient and have clear hover/focus states.
+- Unselected rail and tabs stay quiet; selected rail and tabs use the gradient marker/fill language.
 - Destructive actions remain red and are not confused with primary CTAs.
-- Text is cream/parchment and readable on dark surfaces.
-- Empty, loading, and error states match the sunset shell.
+- Text is white or soft-white and readable on dark surfaces.
+- Empty, loading, and error states match the dark sunset shell.
 - Mobile spacing remains usable and does not hide primary actions.
 - No user-facing copy describes a path as best, default, or recommended.
 
 ## Suggested prompt for a future visual pass
 
 ```text
-Please visually review the sunset rebrand using these screenshots or this preview URL. Check the listed routes at desktop and mobile widths. Identify anything still using old blue, purple, neon, or white styling, then make one small focused fix and commit it.
+Please visually review the sunset-gradient rebrand using these screenshots or this preview URL. Check the listed routes at mobile, tablet, and desktop widths. Identify anything still using coffee, velvet, espresso, leather, parchment, brown-tabletop, white-page, or one-off styling, then make one small focused fix and commit it.
 ```
