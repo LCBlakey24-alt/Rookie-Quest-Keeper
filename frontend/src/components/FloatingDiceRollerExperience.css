@@ -1,0 +1,268 @@
+/* Floating Dice Roller experience polish.
+   Late component layer for a sharper table-ready dice panel without touching roll logic. */
+
+.rq-floating-dice {
+  --dice-card: rgba(27, 11, 45, 0.97);
+  --dice-card-deep: rgba(7, 7, 19, 0.86);
+  --dice-cream: var(--rq-sunset-cream, #fff8ef);
+  --dice-muted: rgba(255, 248, 239, 0.68);
+  --dice-line: rgba(255, 248, 239, 0.14);
+  --dice-hot: rgba(255, 149, 66, 0.95);
+  --dice-glow: rgba(235, 63, 233, 0.18);
+}
+
+.rq-floating-dice__toggle {
+  width: 62px !important;
+  height: 62px !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--dice-card), var(--dice-card)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38), 0 0 34px rgba(255, 149, 66, 0.14) !important;
+}
+
+.rq-floating-dice__toggle::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(255,149,66,0.16), transparent 62%);
+}
+
+.rq-floating-dice__toggle::after {
+  background: conic-gradient(from 120deg, transparent, rgba(115,87,255,0.24), rgba(216,77,241,0.2), rgba(255,149,66,0.22), transparent) !important;
+}
+
+.rq-floating-dice__toggle:hover,
+.rq-floating-dice__toggle:focus-visible {
+  border-color: rgba(255, 248, 239, 0.22) !important;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.42), 0 0 40px rgba(255,149,66,0.18), 0 0 28px var(--dice-glow) !important;
+}
+
+.rq-floating-dice__panel {
+  width: min(390px, calc(100vw - 28px)) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,149,66,0.12), transparent 34%) padding-box,
+    linear-gradient(var(--dice-card), var(--dice-card)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  box-shadow: 0 26px 70px rgba(0,0,0,0.46), 0 0 36px rgba(235,63,233,0.10) !important;
+}
+
+.rq-floating-dice__panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+}
+
+.rq-floating-dice__header {
+  padding: 15px 15px 11px !important;
+  border-bottom: 1px solid rgba(255,248,239,0.10) !important;
+}
+
+.rq-floating-dice__title strong {
+  color: var(--dice-cream) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.10em !important;
+}
+
+.rq-floating-dice__title span {
+  color: var(--dice-muted) !important;
+  max-width: 260px !important;
+  line-height: 1.35 !important;
+}
+
+.rq-floating-dice__close {
+  border-color: var(--dice-line) !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: var(--dice-cream) !important;
+}
+
+.rq-floating-dice__body {
+  gap: 10px !important;
+  padding: 14px !important;
+}
+
+.rq-floating-dice__render-mode,
+.rq-floating-dice__group-check,
+.rq-floating-dice__empty,
+.rq-floating-dice__result {
+  border-color: var(--dice-line) !important;
+  background: rgba(7,7,19,0.46) !important;
+  box-shadow: none !important;
+}
+
+.rq-floating-dice__group-check {
+  border-left: 0 !important;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(255,149,66,0.18), transparent 40%),
+    rgba(7,7,19,0.52) !important;
+}
+
+.rq-floating-dice__group-check strong,
+.rq-floating-dice__render-mode span,
+.rq-floating-dice__history-title {
+  color: var(--dice-cream) !important;
+}
+
+.rq-floating-dice__group-check span,
+.rq-floating-dice__render-mode small,
+.rq-floating-dice__group-check small,
+.rq-floating-dice__empty {
+  color: var(--dice-muted) !important;
+}
+
+.rq-floating-dice__group-check button,
+.rq-floating-dice__mode-toggle button.is-active,
+.rq-floating-dice__custom-button {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+.rq-floating-dice__quick-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.rq-floating-dice__button,
+.rq-floating-dice__mode,
+.rq-floating-dice__custom-button {
+  min-height: 42px !important;
+  border: 1px solid var(--dice-line) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background:
+    linear-gradient(rgba(27,11,45,0.92), rgba(27,11,45,0.92)) padding-box,
+    linear-gradient(135deg, rgba(255,248,239,0.08), rgba(255,149,66,0.18)) border-box !important;
+  color: var(--dice-cream) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  letter-spacing: 0.03em !important;
+}
+
+.rq-floating-dice__button {
+  position: relative !important;
+  overflow: hidden !important;
+  font-size: 0.98rem !important;
+}
+
+.rq-floating-dice__button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255,149,66,0.22), transparent 58%);
+  transition: opacity 150ms ease;
+}
+
+.rq-floating-dice__button:hover::before,
+.rq-floating-dice__button:focus-visible::before {
+  opacity: 1;
+}
+
+.rq-floating-dice__button:hover,
+.rq-floating-dice__button:focus-visible,
+.rq-floating-dice__mode:hover,
+.rq-floating-dice__mode:focus-visible,
+.rq-floating-dice__custom-button:hover,
+.rq-floating-dice__custom-button:focus-visible {
+  border-color: rgba(255,149,66,0.46) !important;
+  background: rgba(255,248,239,0.08) !important;
+  box-shadow: 0 0 22px rgba(255,149,66,0.14) !important;
+}
+
+.rq-floating-dice__modes {
+  gap: 9px !important;
+}
+
+.rq-floating-dice__mode {
+  font-family: var(--rq-body-font, Manrope, Inter, system-ui, sans-serif) !important;
+  font-size: 0.76rem !important;
+}
+
+.rq-floating-dice__custom {
+  grid-template-columns: minmax(0, 1fr) minmax(78px, auto) !important;
+}
+
+.rq-floating-dice__custom input {
+  min-height: 42px !important;
+  border-color: var(--dice-line) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.58) !important;
+  color: var(--dice-cream) !important;
+}
+
+.rq-floating-dice__custom input:focus {
+  border-color: rgba(255,149,66,0.55) !important;
+  box-shadow: 0 0 0 3px rgba(255,149,66,0.10) !important;
+}
+
+.rq-floating-dice__history-title {
+  padding-left: 2px !important;
+  letter-spacing: 0.12em !important;
+}
+
+.rq-floating-dice__result {
+  min-height: 42px !important;
+  padding: 8px 10px !important;
+}
+
+.rq-floating-dice__result span {
+  color: var(--dice-muted) !important;
+}
+
+.rq-floating-dice__result strong {
+  min-width: 44px !important;
+  display: inline-flex !important;
+  justify-content: flex-end !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+}
+
+.rq-floating-dice.has-group-check-request .rq-floating-dice__toggle {
+  box-shadow: 0 0 0 3px rgba(255,149,66,0.18), 0 0 34px rgba(255,149,66,0.34), 0 0 54px rgba(235,63,233,0.20) !important;
+}
+
+@media (max-width: 719px) {
+  .rq-floating-dice {
+    left: 12px !important;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .rq-floating-dice__panel {
+    width: min(360px, calc(100vw - 24px)) !important;
+    max-height: min(70dvh, 560px) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .rq-floating-dice__quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .rq-floating-dice__custom,
+  .rq-floating-dice__modes {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rq-floating-dice__custom-button,
+  .rq-floating-dice__mode {
+    width: 100% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rq-floating-dice__button::before,
+  .rq-floating-dice__toggle::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
