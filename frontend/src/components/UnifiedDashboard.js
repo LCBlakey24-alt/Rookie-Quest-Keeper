@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, AlertTriangle, BookOpen, CheckCircle2, Clock3, MessageSquare, ShieldCheck, Sparkles, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import useDashboardData from '@/components/dashboard/useDashboardData';
@@ -101,7 +101,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const [backendStatus, setBackendStatus] = useState('Checking');
   const [backendCheckedAt, setBackendCheckedAt] = useState('');
   const [siteUpdates, setSiteUpdates] = useState([]);
-  const { modules, sectionOrder, sectionVisibility, layoutStyle, layoutClassName } = useLayoutSettings();
+  const { modules, sectionOrder, sectionVisibility, sectionDisplay, layoutStyle, layoutClassName } = useLayoutSettings();
 
   const {
     characters,
@@ -413,6 +413,23 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     }
   };
 
+  const renderLayoutSection = (sectionId) => {
+    const node = renderSection(sectionId);
+    if (!node) return null;
+    const display = sectionDisplay?.[sectionId] || 'standard';
+    return (
+      <div
+        key={sectionId}
+        className={`dashboard-layout-section dashboard-layout-section--${display} dashboard-layout-section--${sectionId.replace(/_/g, '-')}`}
+        data-layout-section={sectionId}
+        data-layout-display={display}
+        style={sectionShellStyle(display)}
+      >
+        {node}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <main className="unified-dashboard-page">
@@ -431,9 +448,37 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
 
   return (
     <main className={`unified-dashboard-page unified-dashboard-page--noticeboard ${layoutClassName}`} style={layoutStyle}>
-      {sectionOrder.map((sectionId) => <Fragment key={sectionId}>{renderSection(sectionId)}</Fragment>)}
+      {sectionOrder.map(renderLayoutSection)}
     </main>
   );
+}
+
+function sectionShellStyle(display) {
+  const base = {
+    width: '100%',
+    maxWidth: 'var(--dashboard-admin-max-width, 1440px)',
+    marginInline: 'auto',
+  };
+
+  if (display === 'compact') {
+    return {
+      ...base,
+      '--dashboard-admin-gap': '7px',
+      '--dashboard-admin-card-min-height': '76px',
+    };
+  }
+
+  if (display === 'featured') {
+    return {
+      ...base,
+      maxWidth: 'min(100%, calc(var(--dashboard-admin-max-width, 1440px) + 80px))',
+      '--dashboard-admin-columns': '1',
+      '--dashboard-admin-gap': '14px',
+      '--dashboard-admin-card-min-height': '148px',
+    };
+  }
+
+  return base;
 }
 
 function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClick, variant }) {
