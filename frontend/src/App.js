@@ -63,6 +63,7 @@ import '@/styles/characterSheetStatsFinalMobileTweaks.css';
 import '@/styles/characterSheetStatsTabFinalPolish.css';
 import '@/styles/brandedLoading.css';
 import '@/styles/authExperiencePolish.css';
+import '@/styles/homeHubConsistencySweep.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
