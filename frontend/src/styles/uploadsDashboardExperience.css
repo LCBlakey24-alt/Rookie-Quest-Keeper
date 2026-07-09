@@ -1,0 +1,318 @@
+/* Uploads Dashboard experience polish.
+   Keeps the route-specific asset library tidy without rewriting the current upload workflow. */
+
+#root .uploads-dashboard-page {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  display: grid !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+  padding: clamp(12px, 2.4vw, 24px) !important;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(235,63,233,0.14), transparent 34%),
+    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.14), transparent 38%),
+    linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .uploads-dashboard-hero,
+#root .uploads-dashboard-dropzone,
+#root .uploads-dashboard-route-card,
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-next,
+#root .uploads-dashboard-safety-grid article {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  box-shadow: none !important;
+}
+
+#root .uploads-dashboard-hero::before,
+#root .uploads-dashboard-dropzone::before,
+#root .uploads-dashboard-route-card::before,
+#root .uploads-dashboard-card::before,
+#root .uploads-dashboard-next::before,
+#root .uploads-dashboard-safety-grid article::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .uploads-dashboard-hero {
+  min-height: 220px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(min(100%, 320px), 0.36fr) !important;
+  align-items: center !important;
+  gap: clamp(14px, 2.4vw, 26px) !important;
+  padding: clamp(16px, 3vw, 28px) !important;
+}
+
+#root .uploads-dashboard-eyebrow {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin: 0 0 8px !important;
+  padding: 5px 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.7rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .uploads-dashboard-hero h1,
+#root .uploads-dashboard-dropzone h2,
+#root .uploads-dashboard-card h2,
+#root .uploads-dashboard-next h2,
+#root .uploads-dashboard-safety-grid h2 {
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  line-height: 1 !important;
+}
+
+#root .uploads-dashboard-hero h1 {
+  font-size: clamp(2.45rem, 6vw, 4.35rem) !important;
+  letter-spacing: 0 !important;
+}
+
+#root .uploads-dashboard-hero p,
+#root .uploads-dashboard-dropzone p,
+#root .uploads-dashboard-card p,
+#root .uploads-dashboard-next li,
+#root .uploads-dashboard-safety-grid p,
+#root .uploads-dashboard-safety-grid li {
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.5 !important;
+}
+
+#root .uploads-dashboard-hero > div:first-child > p:last-child {
+  max-width: 72ch !important;
+  font-size: clamp(1rem, 1.7vw, 1.12rem) !important;
+}
+
+#root .uploads-dashboard-hero-card {
+  min-height: 156px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 10px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.38) !important;
+}
+
+#root .uploads-dashboard-hero-card svg,
+#root .uploads-dashboard-route-icon,
+#root .uploads-dashboard-card > svg,
+#root .uploads-dashboard-next > svg,
+#root .uploads-dashboard-safety-grid article > svg,
+#root .uploads-dashboard-dropzone > svg {
+  width: 42px !important;
+  height: 42px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  padding: 10px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .uploads-dashboard-hero-card strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.25rem, 2.8vw, 1.8rem) !important;
+  line-height: 1.05 !important;
+}
+
+#root .uploads-dashboard-hero-card span {
+  color: rgba(255,248,239,0.68) !important;
+  line-height: 1.45 !important;
+}
+
+#root .uploads-dashboard-dropzone {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(12px, 2vw, 18px) !important;
+  padding: clamp(14px, 2.4vw, 20px) !important;
+}
+
+#root .uploads-dashboard-action-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+#root .uploads-dashboard-action-row a,
+#root .uploads-dashboard-route-card em {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  text-decoration: none !important;
+  font-weight: 950 !important;
+}
+
+#root .uploads-dashboard-route-grid,
+#root .uploads-dashboard-grid,
+#root .uploads-dashboard-safety-grid {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+#root .uploads-dashboard-route-grid,
+#root .uploads-dashboard-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+}
+
+#root .uploads-dashboard-safety-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important;
+}
+
+#root .uploads-dashboard-route-card {
+  min-height: 244px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  padding: 14px !important;
+  text-decoration: none !important;
+  transition: transform 160ms ease, filter 160ms ease !important;
+}
+
+#root .uploads-dashboard-route-card:hover,
+#root .uploads-dashboard-route-card:focus-visible,
+#root .uploads-dashboard-card:hover,
+#root .uploads-dashboard-safety-grid article:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.05) !important;
+  outline: none !important;
+}
+
+#root .uploads-dashboard-route-label,
+#root .uploads-dashboard-card-status {
+  display: inline-flex !important;
+  width: fit-content !important;
+  min-height: 28px !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .uploads-dashboard-route-card strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.45rem, 3vw, 2rem) !important;
+  line-height: 1.05 !important;
+}
+
+#root .uploads-dashboard-route-card > span:not(.uploads-dashboard-route-icon):not(.uploads-dashboard-route-label) {
+  color: rgba(255,248,239,0.68) !important;
+  line-height: 1.45 !important;
+}
+
+#root .uploads-dashboard-route-card em {
+  width: fit-content !important;
+  margin-top: auto !important;
+  padding: 0 12px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+  font-style: normal !important;
+}
+
+#root .uploads-dashboard-card,
+#root .uploads-dashboard-safety-grid article {
+  min-height: 194px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  transition: transform 160ms ease, filter 160ms ease !important;
+}
+
+#root .uploads-dashboard-card {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+}
+
+#root .uploads-dashboard-card h2,
+#root .uploads-dashboard-safety-grid h2,
+#root .uploads-dashboard-next h2,
+#root .uploads-dashboard-dropzone h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem) !important;
+}
+
+#root .uploads-dashboard-card div {
+  display: grid !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+#root .uploads-dashboard-next {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 14px !important;
+  padding: clamp(14px, 2.4vw, 20px) !important;
+}
+
+#root .uploads-dashboard-next ul,
+#root .uploads-dashboard-safety-grid ul {
+  margin: 10px 0 0 !important;
+  padding-left: 1.2rem !important;
+}
+
+#root .uploads-dashboard-next li,
+#root .uploads-dashboard-safety-grid li {
+  margin: 0.35rem 0 !important;
+}
+
+@media (max-width: 860px) {
+  #root .uploads-dashboard-hero,
+  #root .uploads-dashboard-dropzone,
+  #root .uploads-dashboard-next {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .uploads-dashboard-action-row {
+    display: grid !important;
+    justify-content: stretch !important;
+    width: 100% !important;
+  }
+
+  #root .uploads-dashboard-action-row a,
+  #root .uploads-dashboard-route-card em {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .uploads-dashboard-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .uploads-dashboard-hero-card,
+  #root .uploads-dashboard-route-card,
+  #root .uploads-dashboard-card,
+  #root .uploads-dashboard-safety-grid article {
+    min-height: 0 !important;
+  }
+}
