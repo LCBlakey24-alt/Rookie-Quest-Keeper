@@ -121,18 +121,40 @@ function savedResourceCards(character = {}) {
   return cards;
 }
 
+export function formatActionCost(value) {
+  if (value in [null, undefined, '', false]) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(formatActionCost).filter(Boolean).join(' • ');
+  if (typeof value === 'object') {
+    const resourceName = value.resource || value.resource_name || value.resourceName || value.resource_key || value.resourceKey || value.key || value.name || value.label;
+    const amount = Number(value.amount ?? value.cost ?? value.value ?? value.uses ?? 0);
+    if (resourceName && amount) return `${amount} ${resourceName}`;
+    if (resourceName) return String(resourceName);
+    const entries = Object.entries(value).filter(([, entryValue]) => entryValue not in [null, undefined, '', false]);
+    if (entries.length === 1) {
+      const [[key, entryValue]] = entries;
+      return Number(entryValue) > 0 ? `${entryValue} ${titleFromKey(key)}` : `${titleFromKey(key)}: ${formatActionCost(entryValue)}`;
+    }
+    return entries.map(([key, entryValue]) => `${titleFromKey(key)}: ${formatActionCost(entryValue)}`).filter(Boolean).join(' • ');
+  }
+  return '';
+}
+
 function sheetActionCards(character = {}) {
-  return toArray(character.homebrew_actions || character.sheet_actions || character.custom_actions).map((action, index) => ({
-    key: action.id || action.key || `${action.name || action.title || 'action'}-${index}`,
-    name: action.name || action.title || `Homebrew Action ${index + 1}`,
-    type: action.action_type || action.type || action.timing || 'Action',
-    cost: action.cost || action.resource_cost || action.uses || '',
-    resourceCost: action.resource_cost || action.resourceCost || action.cost_resource || action.costResource || action.cost || '',
-    resourceName: action.resource || action.resource_name || action.resourceName || action.resource_key || action.resourceKey || '',
-    source: action.source || 'Homebrew',
-    description: action.description || action.rules_text || action.text || '',
-    raw: action,
-  }));
+  return toArray(character.homebrew_actions || character.sheet_actions || character.custom_actions).map((action, index) => {
+    const rawCost = action.cost || action.resource_cost || action.uses || '';
+    return {
+      key: action.id || action.key || `${action.name || action.title || 'action'}-${index}`,
+      name: action.name || action.title || `Homebrew Action ${index + 1}`,
+      type: action.action_type || action.type || action.timing || 'Action',
+      cost: formatActionCost(rawCost),
+      resourceCost: action.resource_cost || action.resourceCost || action.cost_resource || action.costResource || action.cost || '',
+      resourceName: action.resource || action.resource_name || action.resourceName || action.resource_key || action.resourceKey || '',
+      source: action.source || 'Homebrew',
+      description: action.description || action.rules_text || action.text || '',
+      raw: action,
+    };
+  });
 }
 
 function passiveEffectCards(character = {}) {
