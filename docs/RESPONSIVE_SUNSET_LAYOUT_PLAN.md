@@ -40,6 +40,23 @@ The rail is the main visual rule for the whole signed-in app.
 - Tablet and desktop show labels, but labels should not feel sticky, bulky, or boxed-in.
 - Other tab sets should follow the same selected/unselected language where practical.
 
+## Current cleanup progress in this PR
+
+The first pass of this PR sets the shared direction and converts the main high-risk theme bridges:
+
+- `frontend/src/styles/responsiveSunsetLayouts.css`: final token lock, responsive helpers, older-class guardrails, and auth guardrails.
+- `frontend/src/styles/appShellRail.css`: app rail selected/unselected behaviour.
+- `frontend/src/styles/siteVelvetTheme.css`: legacy import path retained, contents moved to sunset-gradient tokens.
+- `frontend/src/styles/blueEclipseTheme.css`: legacy import path retained, contents moved away from gold/cream block styling.
+- `frontend/src/styles/twilightKeeperTheme.css`: high-specificity `#root` theme rules moved away from brown/espresso styling.
+- `frontend/src/styles/twilightKeeperPolish.css`: selected icons, chips, loading details, and box language flattened.
+- `frontend/src/styles/twilightKeeperScreens.css`: loading, public/auth shell, character mode, creator steps, and sheet screen polish flattened.
+- `frontend/src/styles/twilightKeeperAppPages.css`: logged-in dashboards, libraries, uploads, homebrew, admin, modals, and feedback flattened.
+- `frontend/src/styles/gmBlueEclipseTheme.css`: GM dashboard, sidebar, active workspace, assets, and live play moved to the shared rail language.
+- `frontend/src/components/AuthPage.css`: auth route directly converted so it does not rely only on late overrides.
+
+Continue future cleanup by replacing route CSS directly where possible, then using late guardrails only as protection for hard-to-reach legacy classes.
+
 ## Mobile plan
 
 Mobile should feel like a quick character/campaign companion, not a squeezed desktop app.
@@ -103,6 +120,7 @@ Desktop page order should usually be:
 
 | Route area | Mobile | Tablet | Desktop |
 | --- | --- | --- | --- |
+| `/auth` | Single-column form first, benefits below. | Form and benefits stacked or balanced if roomy. | Hero + auth card split layout with clear focus. |
 | `/home` dashboard | Single-column hub with next actions first. | Two-column hub cards. | Professional hub with hero, quick actions, and tidy grouped cards. |
 | `/characters` | Search/actions first, character cards stacked. | Two-column library cards. | Compact library grid with filters/actions visible. |
 | `/characters/create/full` | Step-by-step single column, preview below. | Stepper + form, preview below or side only if roomy. | Builder workspace with navigation, editor, and preview balanced. |
