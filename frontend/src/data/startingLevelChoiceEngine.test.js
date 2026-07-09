@@ -130,7 +130,13 @@ describe('starting level choice engine', () => {
 
   test('does not save invalid stale Pact Boon or Mystic Arcanum choices', () => {
     const enhanced = applyStartingLevelChoicesToPayload(
-      basePayload({ character_class: 'Warlock', charisma: 16 }),
+      basePayload({
+        character_class: 'Warlock',
+        charisma: 16,
+        pact_boon: 'Pact of the Blade',
+        pactBoon: 'Pact of the Blade',
+        mystic_arcanum: [{ name: 'Eyebite', level: 6 }],
+      }),
       {},
       [],
       {
@@ -145,5 +151,36 @@ describe('starting level choice engine', () => {
     expect(enhanced.pactBoon).toBeUndefined();
     expect(enhanced.mystic_arcanum).toBeUndefined();
     expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast']);
+  });
+
+  test('clears stale saved spell fields when a build no longer supports them', () => {
+    const enhanced = applyStartingLevelChoicesToPayload(
+      basePayload({
+        character_class: 'Fighter',
+        cantrips_known: [{ name: 'Fire Bolt', level: 0 }],
+        cantrips: [{ name: 'Fire Bolt', level: 0 }],
+        spells_known: [{ name: 'Hex', level: 1 }],
+        known_spells: [{ name: 'Hex', level: 1 }],
+        prepared_spells: [{ name: 'Shield', level: 1 }],
+        spells_prepared: [{ name: 'Shield', level: 1 }],
+        preparedSpells: [{ name: 'Shield', level: 1 }],
+      }),
+      {},
+      [],
+      {
+        spellPlan: { cantripTarget: 0, knownTarget: 0, preparedTarget: 0, arcanumLevels: [] },
+        spells: {},
+        warlockPlan: null,
+        warlock: {},
+      },
+    );
+
+    expect(enhanced.cantrips_known).toBeUndefined();
+    expect(enhanced.cantrips).toBeUndefined();
+    expect(enhanced.spells_known).toBeUndefined();
+    expect(enhanced.known_spells).toBeUndefined();
+    expect(enhanced.prepared_spells).toBeUndefined();
+    expect(enhanced.spells_prepared).toBeUndefined();
+    expect(enhanced.preparedSpells).toBeUndefined();
   });
 });
