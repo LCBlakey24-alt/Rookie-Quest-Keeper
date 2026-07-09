@@ -68,6 +68,14 @@ const displayName = (value) => typeof value === 'string' ? value : value?.name |
 const clampScore = (value) => Math.max(3, Math.min(20, Number(value || 10)));
 const abilityMod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
 const ABILITY_CONTAINER_KEYS = ['abilityScores', 'abilities', 'scores'];
+const ABILITY_ALIASES = {
+  strength: ['str', 'STR', 'Strength'],
+  dexterity: ['dex', 'DEX', 'Dexterity'],
+  constitution: ['con', 'CON', 'Constitution'],
+  intelligence: ['int', 'INT', 'Intelligence'],
+  wisdom: ['wis', 'WIS', 'Wisdom'],
+  charisma: ['cha', 'CHA', 'Charisma'],
+};
 
 function targetFromTable(table = {}, level = 1) {
   const numericLevel = Math.max(1, Number(level || 1));
@@ -93,6 +101,21 @@ function hasOwn(source = {}, key) {
   return Object.prototype.hasOwnProperty.call(source || {}, key);
 }
 
+function abilityAliases(ability) {
+  const key = String(ability || '').toLowerCase();
+  const canonical = Object.entries(ABILITY_ALIASES)
+    .find(([name, aliases]) => name === key || aliases.map((alias) => String(alias).toLowerCase()).includes(key))?.[0] || key;
+  return [canonical, ...(ABILITY_ALIASES[canonical] || [])];
+}
+
+function findAbilityKey(source = {}, ability) {
+  const aliases = abilityAliases(ability);
+  const exact = aliases.find((alias) => hasOwn(source, alias));
+  if (exact) return exact;
+  const aliasKeys = new Set(aliases.map((alias) => String(alias).toLowerCase()));
+  return Object.keys(source || {}).find((key) => aliasKeys.has(String(key).toLowerCase())) || '';
+}
+
 function rawScoreValue(value) {
   return value && typeof value === 'object' ? value.score : value;
 }
@@ -103,9 +126,12 @@ function scoreFromValue(value) {
 }
 
 function readAbilityScore(source = {}, ability) {
-  if (hasOwn(source, ability)) return scoreFromValue(source[ability]);
-  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => source?.[key] && hasOwn(source[key], ability));
-  return containerKey ? scoreFromValue(source[containerKey][ability]) : 10;
+  const directKey = findAbilityKey(source, ability);
+  if (directKey) return scoreFromValue(source[directKey]);
+  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => source?.[key] && findAbilityKey(source[key], ability));
+  if (!containerKey) return 10;
+  const abilityKey = findAbilityKey(source[containerKey], ability);
+  return abilityKey ? scoreFromValue(source[containerKey][abilityKey]) : 10;
 }
 
 function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
@@ -156,18 +182,20 @@ function readPayloadAbilityScore(target = {}, ability) {
 
 function writePayloadAbilityScore(target = {}, ability, score) {
   let wrote = false;
-  if (hasOwn(target, ability)) {
-    target[ability] = score;
+  const directKey = findAbilityKey(target, ability);
+  if (directKey) {
+    target[directKey] = score;
     wrote = true;
   }
 
   ABILITY_CONTAINER_KEYS.forEach((containerKey) => {
     const container = target?.[containerKey];
-    if (!container || !hasOwn(container, ability)) return;
-    const current = container[ability];
+    const abilityKey = container ? findAbilityKey(container, ability) : '';
+    if (!container || !abilityKey) return;
+    const current = container[abilityKey];
     target[containerKey] = {
       ...container,
-      [ability]: current && typeof current === 'object' ? { ...current, score } : score,
+      [abilityKey]: current && typeof current === 'object' ? { ...current, score } : score,
     };
     wrote = true;
   });
