@@ -124,6 +124,12 @@ function maneuverTarget(className, level) {
   return 3;
 }
 
+function clearFields(target, fields = []) {
+  fields.forEach((field) => {
+    delete target[field];
+  });
+}
+
 export function getClassSpecificChoicePlan({ className, level = 1 } = {}) {
   const numericLevel = Math.max(1, Number(level || 1));
   const fightingStyleCount = fightingStyleTarget(className, numericLevel);
@@ -312,6 +318,20 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
   const warlockPlan = detailSelections.warlockPlan || null;
   const prunedDetailSelections = pruneStartingLevelDetailSelections(detailSelections, { spellPlan, warlockPlan });
   const spellSelection = prunedDetailSelections.spells;
+
+  if (!spellPlan.cantripTarget && !spellSelection.cantrips.length) {
+    clearFields(next, ['cantrips_known', 'cantrips']);
+  }
+  if (!(spellPlan.knownTarget || spellSelection.spells.length)) {
+    clearFields(next, ['spells_known', 'known_spells']);
+  }
+  if (!(spellPlan.preparedTarget || spellSelection.prepared.length)) {
+    clearFields(next, ['prepared_spells', 'spells_prepared', 'preparedSpells']);
+  }
+  if (!arr(spellPlan.arcanumLevels).length || !Object.keys(spellSelection.arcanum || {}).length) {
+    clearFields(next, ['mystic_arcanum']);
+  }
+
   if (spellSelection.cantrips.length) {
     const existing = arr(next.cantrips_known || next.cantrips).map((spell) => spellEntry(spell, 0));
     const names = new Set(existing.map((spell) => spell.name));
@@ -375,6 +395,12 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
   }
 
   const warlockSelection = prunedDetailSelections.warlock;
+  if (!warlockSelection.pactBoon) {
+    clearFields(next, ['pact_boon', 'pactBoon']);
+  }
+  if (!warlockSelection.invocations.length) {
+    clearFields(next, ['eldritch_invocations', 'invocations']);
+  }
   if (warlockSelection.pactBoon) {
     next.pact_boon = warlockSelection.pactBoon;
     next.pactBoon = warlockSelection.pactBoon;
