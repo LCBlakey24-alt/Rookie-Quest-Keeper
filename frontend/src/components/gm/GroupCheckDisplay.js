@@ -19,6 +19,10 @@ function isTable(target) {
   return target === 'virtual-table';
 }
 
+function cleanKey(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
 function playerId(player = {}, index = 0) {
   return String(player.id || player.character_id || player.player_id || player.user_id || player.name || `player-${index}`);
 }
@@ -27,8 +31,34 @@ function playerName(player = {}) {
   return player.name || player.character_name || player.display_name || player.playerName || player.player_name || 'Hero';
 }
 
-function resultKey(result = {}, index = 0) {
-  return String(result.character_id || result.characterId || result.player_id || result.playerId || result.actor || result.character_name || result.name || `result-${index}`);
+function identityKeys(value = {}, index = 0) {
+  return [
+    value.id,
+    value.character_id,
+    value.characterId,
+    value.player_id,
+    value.playerId,
+    value.user_id,
+    value.userId,
+    value.name,
+    value.character_name,
+    value.characterName,
+    value.display_name,
+    value.displayName,
+    value.playerName,
+    value.player_name,
+    value.actor,
+    value.actor_name,
+    index !== null ? `index-${index}` : '',
+  ].map(cleanKey).filter(Boolean);
+}
+
+function indexResults(results = []) {
+  const resultMap = new Map();
+  results.forEach((result, index) => {
+    identityKeys(result, index).forEach(key => resultMap.set(key, result));
+  });
+  return resultMap;
 }
 
 function naturalD20(result = {}) {
@@ -36,11 +66,17 @@ function naturalD20(result = {}) {
   return d20?.result || result.natural || result.natural_roll || null;
 }
 
+function latestResultTime(result = {}) {
+  const raw = result.created_at || result.updated_at || result.rolled_at || result.timestamp;
+  if (!raw) return '';
+  try { return new Date(raw).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  catch { return ''; }
+}
+
 function mergeResults(party = [], results = [], dc = null) {
-  const resultMap = new Map(results.map((result, index) => [resultKey(result, index).toLowerCase(), result]));
+  const resultMap = indexResults(results);
   return party.map((player, index) => {
-    const keys = [playerId(player, index), playerName(player), player.playerName, player.player_name].filter(Boolean).map(key => String(key).toLowerCase());
-    const result = keys.map(key => resultMap.get(key)).find(Boolean);
+    const result = identityKeys(player, index).map(key => resultMap.get(key)).find(Boolean);
     const total = Number(result?.total ?? result?.roll_total ?? result?.value);
     const hasResult = Number.isFinite(total);
     return {
@@ -50,6 +86,7 @@ function mergeResults(party = [], results = [], dc = null) {
       imageUrl: player.imageUrl || player.image_url || player.avatar_url || player.portrait_url || player.character_image || '',
       total: hasResult ? total : null,
       natural: result ? naturalD20(result) : null,
+      rolledAt: result ? latestResultTime(result) : '',
       status: hasResult ? (dc && total >= dc ? 'success' : dc ? 'failed' : 'rolled') : 'pending',
       result,
     };
@@ -111,6 +148,7 @@ function GroupCheckCard({ row, target, hasDc, dc }) {
       <div style={cardFooterStyle(target, row.status)}>
         {pending ? 'Waiting' : hasDc ? success ? `Success vs DC ${dc}` : `Failed vs DC ${dc}` : 'Rolled'}
         {row.natural && <em>Nat {row.natural}</em>}
+        {row.rolledAt && <em>{row.rolledAt}</em>}
       </div>
     </article>
   );
