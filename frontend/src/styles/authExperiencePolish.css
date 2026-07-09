@@ -40,6 +40,17 @@
   text-shadow: 0 0 10px rgba(224, 177, 92, 0.18);
 }
 
+.rqk-auth-form[aria-busy="true"] {
+  cursor: progress;
+}
+
+.rqk-auth-input-shell:has(.rqk-auth-field:disabled) {
+  opacity: 0.72;
+  transform: none;
+  border-color: rgba(255, 248, 239, 0.1);
+  background: rgba(18, 12, 8, 0.5);
+}
+
 .rqk-auth-input-shell:has(.rqk-auth-field[aria-invalid="true"]) {
   border-color: rgba(255, 143, 112, 0.64);
   box-shadow: 0 0 0 3px rgba(255, 143, 112, 0.1), inset 0 0 0 1px rgba(255, 143, 112, 0.12);
@@ -47,6 +58,23 @@
 
 #root .rqk-auth-page .rqk-auth-field[aria-invalid="true"] {
   caret-color: #ffb199 !important;
+}
+
+#root .rqk-auth-page .rqk-auth-field:disabled {
+  cursor: not-allowed;
+  -webkit-text-fill-color: rgba(245, 230, 200, 0.62) !important;
+}
+
+#root .rqk-auth-page .rqk-auth-icon-button[aria-pressed="true"] {
+  border-color: rgba(224, 177, 92, 0.46) !important;
+  color: var(--rq-accent-hover, #e0b15c) !important;
+  box-shadow: inset 0 0 0 1px rgba(224, 177, 92, 0.14) !important;
+}
+
+#root .rqk-auth-page button:disabled,
+#root .rqk-auth-page button[aria-disabled="true"] {
+  cursor: not-allowed !important;
+  filter: saturate(0.78) brightness(0.9);
 }
 
 .rqk-auth-assurance {
