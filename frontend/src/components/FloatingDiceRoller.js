@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Dices, MonitorSmartphone, Sparkles, Swords, X } from 'lucide-react';
+import { Dices, Smartphone, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
@@ -94,7 +94,7 @@ export default function FloatingDiceRoller() {
           <div className="rq-floating-dice__body">
             <div className="rq-floating-dice__render-mode" data-testid="dice-render-mode-selector" aria-label="Dice render mode">
               <div>
-                <span><MonitorSmartphone size={14} /> Render mode</span>
+                <span><Smartphone size={14} /> Render mode</span>
                 <small>{rollMode === DICE_ROLLER_MODES.TWO_D ? 'Performance-safe rolling' : 'Full cinematic rolling'}</small>
               </div>
               <div className="rq-floating-dice__mode-toggle" role="group" aria-label="Choose 2D or 3D dice animation">
