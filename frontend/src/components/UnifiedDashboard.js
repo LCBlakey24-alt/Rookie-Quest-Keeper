@@ -6,6 +6,7 @@ import useLayoutSettings from '@/components/dashboard/useLayoutSettings';
 import apiClient from '@/lib/apiClient';
 import '@/styles/unifiedDashboardBoard.css';
 import '@/styles/unifiedDashboardPolish.css';
+import '@/styles/dashboardRookAction.css';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
 import UnifiedDashboardStatusBar from '@/components/dashboard/home/UnifiedDashboardStatusBar';
 import {
@@ -65,6 +66,10 @@ function openFeedback() {
   window.dispatchEvent(new Event('rook-feedback-open'));
 }
 
+function openRook() {
+  window.dispatchEvent(new Event('rook-assistant-open'));
+}
+
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.campaign_id || record?.characterId || record?.campaignId || '';
 }
@@ -119,6 +124,15 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   const safeHomebrew = safeArray(homebrewItems);
   const updatesToShow = siteUpdates.length > 0 ? siteUpdates : dashboardUpdates;
   const dashboardActions = useMemo(() => [
+    {
+      label: 'Guide',
+      title: 'Ask Rook',
+      text: 'Get a page-aware next step, quick tour, campaign prep idea, or testing checklist for this hub.',
+      onClick: openRook,
+      icon: Sparkles,
+      stat: 'AI guide',
+      variant: 'rook',
+    },
     {
       label: 'Build',
       title: 'Create character',
@@ -420,7 +434,8 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   );
 }
 
-function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClick }) {
+function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClick, variant }) {
+  const cardClassName = ['dashboard-command-card', variant ? `dashboard-command-card--${variant}` : ''].filter(Boolean).join(' ');
   const content = (
     <>
       <span className="dashboard-command-label">{label}</span>
@@ -432,10 +447,10 @@ function DashboardCommandCard({ label, title, text, stat, icon: Icon, to, onClic
   );
 
   if (to) {
-    return <Link to={to} className="dashboard-command-card">{content}</Link>;
+    return <Link to={to} className={cardClassName}>{content}</Link>;
   }
 
-  return <button type="button" onClick={onClick} className="dashboard-command-card">{content}</button>;
+  return <button type="button" onClick={onClick} className={cardClassName}>{content}</button>;
 }
 
 function DashboardActivityItem({ kind, title, text, date, to, icon: Icon }) {
