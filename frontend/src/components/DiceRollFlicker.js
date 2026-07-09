@@ -205,10 +205,12 @@ export default function DiceRollFlicker({
     if (!visible || typeof window === 'undefined') return undefined;
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
         setFading(true);
         window.setTimeout(() => onCloseRef.current?.(), 90);
       }
       if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
         setShowTotal(true);
       }
     };
