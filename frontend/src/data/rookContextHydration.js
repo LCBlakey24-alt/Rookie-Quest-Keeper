@@ -13,7 +13,8 @@ export function isPlayerFacingCampaignPath(pathname = '', assistantPathname = ''
 
 export function extractCharacterIdFromPath(pathname = '') {
   const match = pathname.match(/^\/characters\/([^/]+)(?:\/edit)?$/);
-  return match ? match[1] : '';
+  const characterId = match ? match[1] : '';
+  return ['create', 'new'].includes(characterId) ? '' : characterId;
 }
 
 export function listNames(value, limit = 8) {
