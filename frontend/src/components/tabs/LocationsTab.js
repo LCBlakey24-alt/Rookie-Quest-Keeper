@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 import apiClient from '@/lib/apiClient';
 
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -68,6 +69,23 @@ const PLACE_TYPES = [
   { id: 'other', label: 'Other', icon: MapPin },
 ];
 
+const LOCATION_FORM_FIELDS = [
+  { name: 'name', label: 'Name', type: 'text' },
+  { name: 'location_type', label: 'Type', type: 'select', choices: LOCATION_TYPES.map(type => type.id) },
+  { name: 'description', label: 'Description', type: 'textarea' },
+  { name: 'notable_npcs', label: 'Notable NPCs', type: 'text' },
+  { name: 'notes', label: 'GM notes', type: 'textarea' },
+];
+
+const PLACE_FORM_FIELDS = [
+  { name: 'name', label: 'Name', type: 'text' },
+  { name: 'place_type', label: 'Type', type: 'select', choices: PLACE_TYPES.map(type => type.id) },
+  { name: 'owner', label: 'Owner / linked NPC', type: 'text' },
+  { name: 'description', label: 'Description', type: 'textarea' },
+  { name: 'services', label: 'Services / purpose', type: 'textarea' },
+  { name: 'notes', label: 'GM notes', type: 'textarea' },
+];
+
 const emptyLocationForm = {
   name: '',
   location_type: 'settlement',
@@ -107,6 +125,22 @@ function sortLocations(items) {
     if (typeCompare !== 0) return typeCompare;
     return (a.name || '').localeCompare(b.name || '');
   });
+}
+
+function normaliseLocationPatch(patch = {}) {
+  const next = { ...patch };
+  if (next.location_type && !LOCATION_TYPES.some(type => type.id === next.location_type)) {
+    delete next.location_type;
+  }
+  return next;
+}
+
+function normalisePlacePatch(patch = {}) {
+  const next = { ...patch };
+  if (next.place_type && !PLACE_TYPES.some(type => type.id === next.place_type)) {
+    delete next.place_type;
+  }
+  return next;
 }
 
 function LocationsTab({ campaignId }) {
@@ -169,6 +203,14 @@ function LocationsTab({ campaignId }) {
     const types = new Set(locations.map(location => location.location_type).filter(Boolean));
     return { locations: locations.length, places, types: types.size };
   }, [locations]);
+
+  const applyRookLocationPatch = (patch) => {
+    setFormData(prev => ({ ...prev, ...normaliseLocationPatch(patch) }));
+  };
+
+  const applyRookPlacePatch = (patch) => {
+    setPlaceFormData(prev => ({ ...prev, ...normalisePlacePatch(patch) }));
+  };
 
   const resetLocationForm = () => {
     setFormData(emptyLocationForm);
@@ -372,7 +414,15 @@ function LocationsTab({ campaignId }) {
               <Plus size={18} /> Add Location
             </Button>
           </DialogTrigger>
-          <LocationDialog editingLocation={editingLocation} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onCancel={resetLocationForm} />
+          <LocationDialog
+            campaignId={campaignId}
+            editingLocation={editingLocation}
+            formData={formData}
+            setFormData={setFormData}
+            onApplyRookPatch={applyRookLocationPatch}
+            onSubmit={handleSubmit}
+            onCancel={resetLocationForm}
+          />
         </Dialog>
       </header>
 
@@ -457,7 +507,15 @@ function LocationsTab({ campaignId }) {
       </div>
 
       <Dialog open={showPlaceDialog} onOpenChange={(open) => { if (!open) resetPlaceForm(); setShowPlaceDialog(open); }}>
-        <PlaceDialog editingPlace={editingPlace} placeFormData={placeFormData} setPlaceFormData={setPlaceFormData} onSubmit={handlePlaceSubmit} onCancel={resetPlaceForm} />
+        <PlaceDialog
+          campaignId={campaignId}
+          editingPlace={editingPlace}
+          placeFormData={placeFormData}
+          setPlaceFormData={setPlaceFormData}
+          onApplyRookPatch={applyRookPlacePatch}
+          onSubmit={handlePlaceSubmit}
+          onCancel={resetPlaceForm}
+        />
       </Dialog>
 
       <style>{`@keyframes rq-location-pulse { 0% { box-shadow: 0 0 0 2px rgba(208,0,0,0.45); } 100% { box-shadow: none; } }`}</style>
@@ -469,12 +527,22 @@ function Stat({ label, value }) {
   return <div style={statStyle}><strong style={statValueStyle}>{value}</strong><span style={statLabelStyle}>{label}</span></div>;
 }
 
-function LocationDialog({ editingLocation, formData, setFormData, onSubmit, onCancel }) {
+function LocationDialog({ campaignId, editingLocation, formData, setFormData, onApplyRookPatch, onSubmit, onCancel }) {
   return (
     <DialogContent className="modal" style={dialogStyle}>
       <DialogHeader>
         <DialogTitle style={dialogTitleStyle}>{editingLocation ? 'Edit Location' : 'Add Location'}</DialogTitle>
       </DialogHeader>
+      <RookFormFillPanel
+        title={editingLocation ? 'Ask Rook to improve this location' : 'Ask Rook for a location draft'}
+        helperText="Draft or improve this location first, then import only the fields you want before saving."
+        section="gm_location"
+        campaignId={campaignId}
+        fields={LOCATION_FORM_FIELDS}
+        currentValues={formData}
+        onApply={onApplyRookPatch}
+        placeholder="Example: A rebuilt capital city with political tension, old tunnels below, and three player-facing rumours..."
+      />
       <form onSubmit={onSubmit} style={formStyle}>
         <div style={twoColumnStyle}>
           <TextField label="Name" testId="location-name-input" value={formData.name} onChange={(value) => setFormData({ ...formData, name: value })} placeholder="Neremore, Blackmere, Western Kingdoms..." required />
@@ -490,12 +558,22 @@ function LocationDialog({ editingLocation, formData, setFormData, onSubmit, onCa
   );
 }
 
-function PlaceDialog({ editingPlace, placeFormData, setPlaceFormData, onSubmit, onCancel }) {
+function PlaceDialog({ campaignId, editingPlace, placeFormData, setPlaceFormData, onApplyRookPatch, onSubmit, onCancel }) {
   return (
     <DialogContent className="modal" style={{ ...dialogStyle, maxWidth: 560 }}>
       <DialogHeader>
         <DialogTitle style={dialogTitleStyle}>{editingPlace ? 'Edit Place of Interest' : 'Add Place of Interest'}</DialogTitle>
       </DialogHeader>
+      <RookFormFillPanel
+        title={editingPlace ? 'Ask Rook to improve this place' : 'Ask Rook for a place draft'}
+        helperText="Draft a shop, tavern, landmark, hideout, clue spot, or local feature before saving it inside the parent location."
+        section="gm_place_of_interest"
+        campaignId={campaignId}
+        fields={PLACE_FORM_FIELDS}
+        currentValues={placeFormData}
+        onApply={onApplyRookPatch}
+        placeholder="Example: A cramped black-market alchemy shop with a nervous owner, risky services, and one hidden clue..."
+      />
       <form onSubmit={onSubmit} style={formStyle}>
         <div style={twoColumnStyle}>
           <TextField label="Name" testId="place-name-input" value={placeFormData.name} onChange={(value) => setPlaceFormData({ ...placeFormData, name: value })} placeholder="The Rusty Tankard, Queen's Gate, Old Catacombs..." required />
