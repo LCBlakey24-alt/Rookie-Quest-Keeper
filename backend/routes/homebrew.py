@@ -67,6 +67,19 @@ COLLECTION = {
     "custom_rule": "user_custom_rules",
 }
 
+SPELL_CLASS_NAMES = [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger",
+    "Sorcerer",
+    "Warlock",
+    "Wizard",
+]
+SPELL_CLASS_LOOKUP = {name.lower(): name for name in SPELL_CLASS_NAMES}
+
 ADVANCED_MECHANIC_HINTS = {
     "resources": "[{name, formula, max, regain, spend_triggers, visible_on_sheet}] — custom pools such as Scarab Charges = warlock level or Greed Tokens = proficiency bonus",
     "actions": "[{name, action_type, cost, resource_cost, description}] — sheet actions and spendable options",
@@ -366,6 +379,50 @@ def _normalise_feat_category(data: Dict[str, Any]) -> str:
     return "general"
 
 
+def _spell_class_parts(value: Any) -> List[str]:
+    if value in (None, "", [], {}):
+        return []
+    if isinstance(value, list):
+        parts: List[str] = []
+        for item in value:
+            parts.extend(_spell_class_parts(item))
+        return parts
+    if isinstance(value, dict):
+        parts: List[str] = []
+        for key, item in value.items():
+            if isinstance(item, bool) and item:
+                parts.append(str(key))
+            else:
+                parts.extend(_spell_class_parts(item))
+        return parts
+    text = re.sub(r"\band\b", ",", str(value or ""), flags=re.IGNORECASE)
+    return re.split(r"[,;/|&]+|\n+", text)
+
+
+def _normalise_spell_classes(data: Dict[str, Any]) -> List[str]:
+    raw = None
+    for key in ("classes", "class", "spell_classes", "spellClasses", "class_list", "classList", "available_classes", "availableClasses"):
+        if data.get(key) not in (None, "", [], {}):
+            raw = data.get(key)
+            break
+
+    classes: List[str] = []
+    seen = set()
+    for part in _spell_class_parts(raw):
+        cleaned = re.sub(r"^(spell\s+)?classes?\s*:?\s*", "", str(part or "").strip(" -*•\t"), flags=re.IGNORECASE)
+        if not cleaned:
+            continue
+        lowered = cleaned.lower()
+        if lowered in {"class", "classes", "spell class", "spell classes", "none", "n/a"}:
+            continue
+        canonical = SPELL_CLASS_LOOKUP.get(lowered, " ".join(piece.capitalize() for piece in lowered.split()))
+        if canonical.lower() in seen:
+            continue
+        seen.add(canonical.lower())
+        classes.append(canonical)
+    return classes
+
+
 def _normalise_parsed(content_type: str, parsed: Dict[str, Any], edition: str) -> Dict[str, Any]:
     data = dict(parsed or {})
     if content_type == "subclass" and not data.get("parent_class"):
@@ -374,6 +431,8 @@ def _normalise_parsed(content_type: str, parsed: Dict[str, Any], edition: str) -
         data["type"] = data.get("item_type")
     if content_type == "feat":
         data["category"] = _normalise_feat_category(data)
+    if content_type == "spell":
+        data["classes"] = _normalise_spell_classes(data)
     data["content_type"] = content_type
     data["edition"] = _normalise_edition(edition)
     return data
