@@ -42,6 +42,40 @@ export function resolvePayloadClassName(payload = {}, classes = {}, fallback = '
   ]), classes, fallback);
 }
 
+export function resolveSubclassName(value, subclasses = [], fallback = '') {
+  const raw = displayName(value).trim();
+  const options = Array.isArray(subclasses) ? subclasses.map(displayName).filter(Boolean) : [];
+  if (!raw) return fallback || options[0] || '';
+  const matched = options.find((name) => normaliseKey(name) === normaliseKey(raw));
+  return matched || fallback || '';
+}
+
+export function resolveDraftSubclassName(draft = {}, subclasses = [], fallback = '') {
+  return resolveSubclassName(firstValue(draft, [
+    'subclass',
+    'subclassName',
+    'subclass_name',
+    'archetype',
+    'patron',
+    'domain',
+    'circle',
+    'tradition',
+  ]), subclasses, fallback);
+}
+
+export function resolvePayloadSubclassName(payload = {}, subclasses = [], fallback = '') {
+  return resolveSubclassName(firstValue(payload, [
+    'subclass',
+    'subclassName',
+    'subclass_name',
+    'archetype',
+    'patron',
+    'domain',
+    'circle',
+    'tradition',
+  ]), subclasses, fallback);
+}
+
 export function resolveRulesEdition(source = {}, fallback = '2014') {
   const raw = firstValue(source, [
     'edition',
