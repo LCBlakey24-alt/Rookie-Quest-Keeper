@@ -21,6 +21,59 @@ function getAssistantPathname(pathname) {
   return pathname;
 }
 
+function extractCharacterIdFromPath(pathname = '') {
+  const match = pathname.match(/^\/characters\/([^/]+)$/);
+  return match ? match[1] : '';
+}
+
+function listNames(value, limit = 8) {
+  if (!Array.isArray(value)) return '';
+  return value
+    .slice(0, limit)
+    .map((entry) => {
+      if (typeof entry === 'string') return entry;
+      return entry?.name || entry?.label || entry?.title || '';
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
+function summarizeCharacterForRook(character) {
+  if (!character || typeof character !== 'object') return '';
+
+  const classLevels = character.class_levels && typeof character.class_levels === 'object'
+    ? Object.entries(character.class_levels).map(([name, level]) => `${name} ${level}`).join(', ')
+    : '';
+
+  const abilityScores = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+    .map((ability) => `${ability.slice(0, 3).toUpperCase()} ${character[ability] ?? 10}`)
+    .join(', ');
+
+  const equipment = listNames(character.equipment || character.inventory || character.items, 10);
+  const feats = listNames(character.feats, 8);
+  const cantrips = listNames(character.cantrips_known, 8);
+  const knownSpells = listNames(character.spells_known, 10);
+  const preparedSpells = listNames(character.spells_prepared, 10);
+  const actions = listNames(character.homebrew_actions || character.actions, 8);
+  const resources = character.resources && typeof character.resources === 'object'
+    ? Object.keys(character.resources).slice(0, 10).join(', ')
+    : '';
+
+  return `CURRENT CHARACTER SHEET CONTEXT:
+- Name: ${character.name || 'Unnamed character'}
+- Ancestry/species: ${character.race || character.species || 'Unknown'}
+- Class: ${classLevels || `${character.character_class || character.class_name || 'Unknown'} level ${character.level || 1}`}
+- Subclass: ${character.subclass || 'None listed'}
+- Background: ${character.background || 'None listed'}
+- Edition/ruleset: ${character.edition || character.rules_edition || character.ruleset_id || 'Unknown'}
+- HP: ${character.current_hit_points ?? character.hit_points ?? '?'} / ${character.max_hit_points ?? character.max_hp ?? '?'}${character.temporary_hit_points || character.temp_hp ? `, temp ${character.temporary_hit_points || character.temp_hp}` : ''}
+- AC: ${character.armor_class ?? character.ac ?? '?'}
+- Proficiency bonus: ${character.proficiency_bonus ?? '?'}
+- Ability scores: ${abilityScores}
+${feats ? `- Feats: ${feats}\n` : ''}${equipment ? `- Equipment/items: ${equipment}\n` : ''}${resources ? `- Tracked resources: ${resources}\n` : ''}${actions ? `- Custom/homebrew actions: ${actions}\n` : ''}${cantrips ? `- Cantrips: ${cantrips}\n` : ''}${knownSpells ? `- Known spells: ${knownSpells}\n` : ''}${preparedSpells ? `- Prepared spells: ${preparedSpells}\n` : ''}${character.personality_traits ? `- Personality traits: ${character.personality_traits}\n` : ''}${character.ideals ? `- Ideals: ${character.ideals}\n` : ''}${character.bonds ? `- Bonds: ${character.bonds}\n` : ''}${character.flaws ? `- Flaws: ${character.flaws}\n` : ''}${character.notes ? `- Notes: ${String(character.notes).slice(0, 800)}\n` : ''}
+When answering character-sheet questions, use this actual character context first. Be practical and avoid inventing missing sheet details.`.trim();
+}
+
 export default function RookGlobalAssistant() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -29,16 +82,37 @@ export default function RookGlobalAssistant() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [pageDataContext, setPageDataContext] = useState('');
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
   const pathname = location.pathname;
   const assistantPathname = useMemo(() => getAssistantPathname(pathname), [pathname]);
+  const characterId = useMemo(() => extractCharacterIdFromPath(pathname), [pathname]);
   const pageMeta = useMemo(() => getRookPageMeta(assistantPathname), [assistantPathname]);
   const starters = useMemo(() => getRookStarterPrompts(assistantPathname), [assistantPathname]);
   const chips = useMemo(() => getRookMicroSuggestions(assistantPathname), [assistantPathname]);
   const campaignId = useMemo(() => extractCampaignIdFromPath(pathname), [pathname]);
-  const systemContext = useMemo(() => buildRookSystemContext(assistantPathname), [assistantPathname]);
+  const systemContext = useMemo(() => buildRookSystemContext(assistantPathname, pageDataContext), [assistantPathname, pageDataContext]);
+
+  useEffect(() => {
+    let active = true;
+    setPageDataContext('');
+
+    if (!characterId) return () => { active = false; };
+
+    apiClient.get(`/characters/${characterId}`)
+      .then((response) => {
+        if (active) setPageDataContext(summarizeCharacterForRook(response.data));
+      })
+      .catch(() => {
+        if (active) setPageDataContext('CURRENT CHARACTER SHEET CONTEXT: Rook could not load this character sheet, so answer using only visible route context and the user request.');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [characterId]);
 
   useEffect(() => {
     const openRook = () => {
@@ -173,6 +247,9 @@ export default function RookGlobalAssistant() {
             <div className="rook-assistant-empty__icon"><Wand2 size={24} /></div>
             <h3>Ask Rook anything here.</h3>
             <p>Rook now carries a site-wide brain: player help, GM prep, homebrew checks, name banks, quest hooks, and page-aware guidance.</p>
+            {characterId && pageDataContext && (
+              <p className="rook-assistant-context-note">Character sheet loaded — Rook can answer from this character.</p>
+            )}
             <div className="rook-assistant-starters">
               {starters.map((starter) => (
                 <button key={starter} type="button" onClick={() => sendMessage(starter)} disabled={loading}>
