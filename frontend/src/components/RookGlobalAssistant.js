@@ -18,11 +18,12 @@ function copyToClipboard(text) {
 
 function getAssistantPathname(pathname) {
   if (pathname.includes('/player-display')) return '/player-display/global';
+  if (/^\/characters\/[^/]+\/edit$/.test(pathname)) return '/characters/create/edit';
   return pathname;
 }
 
 function extractCharacterIdFromPath(pathname = '') {
-  const match = pathname.match(/^\/characters\/([^/]+)$/);
+  const match = pathname.match(/^\/characters\/([^/]+)(?:\/edit)?$/);
   return match ? match[1] : '';
 }
 
