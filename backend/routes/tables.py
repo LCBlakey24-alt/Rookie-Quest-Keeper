@@ -153,7 +153,7 @@ def coerce_entry(raw_entry: Any, fallback_index: int) -> Dict[str, Any]:
     return {"range": fallback_index, "text": raw_entry}
 
 
-def normalise_entries(entries: List[Dict[str, Any]], columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+def normalise_entries(entries: Optional[List[Any]], columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     cleaned: List[Dict[str, Any]] = []
     for index, raw_entry in enumerate(entries or [], start=1):
         entry = coerce_entry(raw_entry, index)
@@ -180,7 +180,7 @@ class CampaignTableCreate(BaseModel):
     description: str = ""
     die: str = "d20"
     columns: List[str] = []
-    entries: List[Dict[str, Any]] = []
+    entries: List[Any] = []
     is_player_safe: bool = False
     source: str = "custom"
 
@@ -191,7 +191,7 @@ class CampaignTableUpdate(BaseModel):
     description: Optional[str] = None
     die: Optional[str] = None
     columns: Optional[List[str]] = None
-    entries: Optional[List[Dict[str, Any]]] = None
+    entries: Optional[List[Any]] = None
     is_player_safe: Optional[bool] = None
     source: Optional[str] = None
 
