@@ -12,6 +12,9 @@ ROOK is intended to become the always-available helper inside Rookie Quest Keepe
 - `frontend/src/styles/rookAssistant.css` gives ROOK a polished floating panel, compact pill state, loaded-context badge, route playbook card, and mobile-friendly layout.
 - `frontend/src/App.js` mounts ROOK across authenticated pages, including pages that are not wrapped by the normal app shell.
 - `frontend/src/components/app/AppShell.js` exposes an Ask Rook shortcut in the desktop rail and mobile More tools panel.
+- `frontend/src/components/RookFormFillPanel.js` powers review-first AI drafting for forms that should not immediately auto-save content.
+- `frontend/src/components/tabs/NPCsTab.js` now uses `RookFormFillPanel` inside the add/edit NPC dialogs, while keeping the existing fast auto-save ROOK generator in the side panel.
+- `frontend/src/components/tabs/HandoutsTab.js` uses `RookFormFillPanel` for lore, clue, secret, letter, and handout drafts.
 - `backend/utils/rook_brain.py` provides a dependency-free backend prompt fragment for shared ROOK identity, behaviour rules, player-safe rules, JSON-only rules, and original quick banks.
 - `frontend/src/data/rookAssistantKnowledge.test.js` covers route mode detection, campaign ID extraction, starter prompts, micro suggestion chips, and context construction.
 - `frontend/src/data/rookContextHydration.test.js` covers character/campaign context summaries, player-safe context filtering, player-facing endpoint skipping, context badges, and the `/characters/create` guard.
@@ -47,6 +50,7 @@ ROOK should:
 - Prefer table-ready answers over theory, especially in live play.
 - Help newer players without talking down to them.
 - Suggest importable, field-ready copy for homebrew and campaign content.
+- Prefer review-first form drafting for editable records; reserve instant auto-save generation for explicit one-click creation flows.
 
 ## Campaign context rules
 
@@ -84,7 +88,7 @@ This keeps ROOK useful even when campaign context is thin while avoiding protect
 
 1. Wire `backend/utils/rook_brain.py` into `/rook/chat`, `/rook/generate`, and `/rook/form-fill` so all backend Rook calls share one source of truth.
 2. Add a campaign knowledge index that summarises NPCs, locations, gods, player characters, notes, homebrew, and unresolved threads for ROOK.
-3. Add Rook panels inside key forms: NPCs, locations, gods, custom creatures, homebrew feats, homebrew classes, and session notes.
+3. Add Rook panels inside key forms: locations, gods, custom creatures, homebrew feats, homebrew classes, and session notes.
 4. Add import actions where safe: "Send this to NPC form", "Turn this into a location", "Create a session checklist", "Save as campaign note".
 5. Add admin-facing telemetry for which Rook starters are used most, which fail, and where users ask for help most often.
 6. Add component-level render tests for the floating assistant and `/rook/chat` payload shape.
@@ -94,5 +98,5 @@ This keeps ROOK useful even when campaign context is thin while avoiding protect
 1. Stabilise the global assistant UI.
 2. Wire backend Rook routes to the shared Rook brain.
 3. Add campaign knowledge indexing.
-4. Add Rook form-fill everywhere content is created.
+4. Add Rook form-fill to the remaining content creation forms.
 5. Add save/import actions from Rook responses.
