@@ -1,6 +1,7 @@
 """Campaign table routes for GM reference and live-session roll tables."""
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+import random
 import re
 import uuid
 
@@ -105,13 +106,28 @@ def normalise_range(raw_range: Any, fallback_index: int) -> str:
     return label[:120] if label else str(fallback_index)
 
 
+def range_numbers(entry_range: Any) -> List[int]:
+    return [int(value) for value in re.findall(r"\d+", str(entry_range or ""))]
+
+
+def entry_min(entry_range: Any) -> int:
+    numbers = range_numbers(entry_range)
+    return min(numbers) if numbers else 1
+
+
 def entry_max(entry_range: str) -> int:
-    numbers = [int(value) for value in re.findall(r"\d+", str(entry_range))]
+    numbers = range_numbers(entry_range)
     return max(numbers) if numbers else 1
 
 
 def has_numeric_range(entry_range: Any) -> bool:
     return bool(re.match(r"^\d+(?:[–-]\d+)?$", str(entry_range or "").strip().replace(" ", "")))
+
+
+def roll_matches(entry_range: Any, roll: int) -> bool:
+    if not has_numeric_range(entry_range):
+        return False
+    return entry_min(entry_range) <= roll <= entry_max(entry_range)
 
 
 def normalise_die(raw_die: Any, entries: Optional[List[Dict[str, Any]]] = None) -> str:
@@ -229,6 +245,27 @@ async def find_campaign_table_or_404(campaign_id: str, table_id: str, *, player_
     return normalise_table_document(table)
 
 
+def roll_campaign_table(table: Dict[str, Any]) -> Dict[str, Any]:
+    entries = table.get("entries") or []
+    if not entries or table.get("die") == "reference" or not all(has_numeric_range(entry.get("range")) for entry in entries):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reference tables cannot be rolled")
+
+    sides = max(20, max(entry_max(entry["range"]) for entry in entries))
+    die_match = re.match(r"^d(\d+)$", str(table.get("die") or "").strip().lower())
+    if die_match:
+        sides = max(sides, int(die_match.group(1)))
+
+    for _ in range(20):
+        roll = random.randint(1, sides)
+        result = next((entry for entry in entries if roll_matches(entry.get("range"), roll)), None)
+        if result:
+            return {"roll": roll, "result": result}
+
+    result = random.choice(entries)
+    fallback_numbers = range_numbers(result.get("range"))
+    return {"roll": fallback_numbers[0] if fallback_numbers else 1, "result": result}
+
+
 class CampaignTableCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     category: str = "general"
@@ -267,6 +304,16 @@ class CampaignTable(BaseModel):
     updated_at: str = Field(default_factory=now_iso)
 
 
+class CampaignTableRollResult(BaseModel):
+    table_id: str
+    table_name: str
+    campaign_id: str
+    die: str
+    roll: int
+    result: Dict[str, Any]
+    rolled_at: str = Field(default_factory=now_iso)
+
+
 @router.get("/campaigns/{campaign_id}/tables", response_model=List[CampaignTable])
 async def list_campaign_tables(campaign_id: str, username: str = Depends(get_current_user)):
     """List GM-owned tables attached to a campaign for prep and live-session use."""
@@ -280,6 +327,22 @@ async def get_campaign_table(campaign_id: str, table_id: str, username: str = De
     """Read one GM-owned campaign table by id."""
     await verify_campaign_ownership(campaign_id, username)
     return await find_campaign_table_or_404(campaign_id, table_id)
+
+
+@router.post("/campaigns/{campaign_id}/tables/{table_id}/roll", response_model=CampaignTableRollResult)
+async def roll_campaign_table_result(campaign_id: str, table_id: str, username: str = Depends(get_current_user)):
+    """Roll one GM-owned campaign table and return the matched result."""
+    await verify_campaign_ownership(campaign_id, username)
+    table = await find_campaign_table_or_404(campaign_id, table_id)
+    rolled = roll_campaign_table(table)
+    return CampaignTableRollResult(
+        table_id=table["id"],
+        table_name=table["name"],
+        campaign_id=campaign_id,
+        die=table["die"],
+        roll=rolled["roll"],
+        result=rolled["result"],
+    )
 
 
 @router.get("/campaigns/{campaign_id}/player-safe-tables", response_model=List[CampaignTable])
@@ -298,6 +361,22 @@ async def get_player_safe_campaign_table(campaign_id: str, table_id: str, userna
     """Read one GM-approved player-safe table by id."""
     await verify_campaign_membership(campaign_id, username)
     return await find_campaign_table_or_404(campaign_id, table_id, player_safe_only=True)
+
+
+@router.post("/campaigns/{campaign_id}/player-safe-tables/{table_id}/roll", response_model=CampaignTableRollResult)
+async def roll_player_safe_campaign_table_result(campaign_id: str, table_id: str, username: str = Depends(get_current_user)):
+    """Roll one GM-approved player-safe table and return the matched result."""
+    await verify_campaign_membership(campaign_id, username)
+    table = await find_campaign_table_or_404(campaign_id, table_id, player_safe_only=True)
+    rolled = roll_campaign_table(table)
+    return CampaignTableRollResult(
+        table_id=table["id"],
+        table_name=table["name"],
+        campaign_id=campaign_id,
+        die=table["die"],
+        roll=rolled["roll"],
+        result=rolled["result"],
+    )
 
 
 @router.post("/campaigns/{campaign_id}/tables", response_model=CampaignTable)
