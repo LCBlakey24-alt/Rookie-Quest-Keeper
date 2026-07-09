@@ -33,11 +33,16 @@ export default function CinematicDiceOverlay({
   const outcomeClass = isCrit ? 'is-critical' : isFumble ? 'is-fumble' : '';
   const displayResult = clampResult(result);
   const displayTotal = clampResult(total);
+  const outcomeLabel = getOutcomeLabel(isCrit, isFumble, isRevealed);
 
   return (
     <div
       className={`rq-cinematic-roll ${isRevealed ? 'is-revealed' : 'is-rolling'} ${outcomeClass}`}
       data-testid="cinematic-dice-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cinematic-dice-title"
+      aria-describedby="cinematic-dice-description"
     >
       <div className="rq-cinematic-roll__backdrop" />
       <div className="rq-cinematic-roll__arena" aria-label="Cinematic dice roll animation" data-testid="cinematic-dice-arena">
@@ -55,9 +60,9 @@ export default function CinematicDiceOverlay({
           {PARTICLES.map(index => <span key={index} className={`rq-cinematic-roll__particle rq-cinematic-roll__particle--${index}`} />)}
         </div>
 
-        <div className="rq-cinematic-roll__die-wrap">
+        <div className="rq-cinematic-roll__die-wrap" aria-hidden="true">
           <div className="rq-cinematic-roll__shadow" />
-          <div className="rq-cinematic-d20" aria-label={`Rolled result ${displayResult}`} data-testid="cinematic-d20">
+          <div className="rq-cinematic-d20" data-testid="cinematic-d20">
             <span className="rq-cinematic-d20__facet rq-cinematic-d20__facet--one" />
             <span className="rq-cinematic-d20__facet rq-cinematic-d20__facet--two" />
             <span className="rq-cinematic-d20__facet rq-cinematic-d20__facet--three" />
@@ -73,19 +78,19 @@ export default function CinematicDiceOverlay({
         <div className="rq-cinematic-roll__burst" />
       </div>
 
-      <section className="rq-cinematic-roll__panel" aria-live="polite" data-testid="cinematic-dice-panel">
-        <div className="rq-cinematic-roll__status" data-testid="cinematic-dice-status"><Sparkles size={15} /> {getOutcomeLabel(isCrit, isFumble, isRevealed)}</div>
-        <h3 title={label || 'Dice roll'}>{label || 'Dice roll'}</h3>
-        <p title={rollDetail}>{isRevealed ? rollDetail : `A sunset d20 is bouncing through the roll tray${diceCount > 1 ? ` for ${diceCount} dice` : ''}.`}</p>
+      <section className="rq-cinematic-roll__panel" aria-live="polite" aria-atomic="true" data-testid="cinematic-dice-panel">
+        <div className="rq-cinematic-roll__status" data-testid="cinematic-dice-status"><Sparkles size={15} /> {outcomeLabel}</div>
+        <h3 id="cinematic-dice-title" title={label || 'Dice roll'}>{label || 'Dice roll'}</h3>
+        <p id="cinematic-dice-description" title={rollDetail}>{isRevealed ? rollDetail : `A sunset d20 is bouncing through the roll tray${diceCount > 1 ? ` for ${diceCount} dice` : ''}.`}</p>
         <div className="rq-cinematic-roll__actions">
           {!isRevealed && (
-            <button type="button" onClick={onRevealNow} className="rq-cinematic-roll__reveal-now" data-testid="cinematic-dice-reveal-now">
+            <button type="button" onClick={onRevealNow} className="rq-cinematic-roll__reveal-now" data-testid="cinematic-dice-reveal-now" autoFocus>
               <Zap size={13} /> Reveal now
             </button>
           )}
           <span>Esc closes · Enter reveals</span>
         </div>
-        <div className="rq-cinematic-roll__total" data-testid="cinematic-dice-total">
+        <div className="rq-cinematic-roll__total" data-testid="cinematic-dice-total" aria-label={isRevealed ? `Total ${displayTotal}` : 'Rolling'}>
           <span>{isRevealed ? 'Total' : 'Rolling'}</span>
           <strong>{isRevealed ? displayTotal : '—'}</strong>
           {isRevealed && <em>{formulaText}</em>}
