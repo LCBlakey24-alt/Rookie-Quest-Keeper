@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 import '@/styles/homeDashboardExperience.css';
+import '@/styles/homebrewWorkshopExperience.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'] },
