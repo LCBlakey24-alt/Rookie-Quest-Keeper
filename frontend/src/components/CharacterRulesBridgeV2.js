@@ -13,7 +13,13 @@ import {
   getSpellSlotsForCaster,
 } from '@/data/spellDatabase';
 import { buildInitialClassResources } from '@/data/classResourceRules';
-import { resolveDraftClassName, resolvePayloadClassName, resolveRulesEdition } from '@/data/characterDraftResolvers';
+import {
+  resolveDraftClassName,
+  resolvePayloadClassName,
+  resolvePayloadSubclassName,
+  resolveRulesEdition,
+  resolveSubclassName,
+} from '@/data/characterDraftResolvers';
 import {
   applyClassSpecificChoicesToPayload,
   buildClassSpecificChoicePlan,
@@ -364,9 +370,11 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
   if (!payload || typeof payload !== 'object') return payload;
   const className = resolvePayloadClassName(payload, CLASSES);
   const classData = CLASSES[className] || {};
+  const classSubclasses = arr(classData.subclasses).map(displayName).filter(Boolean);
   const level = clampLevel(targetLevel || payload.level || 1);
   const hitDie = hitDieNumber(classData.hitDie || payload.hit_die || payload.hit_dice, 8);
-  const subclassName = selectedSubclass || payload.subclass || '';
+  const subclassSource = selectedSubclass !== undefined ? { subclass: selectedSubclass } : payload;
+  const subclassName = resolvePayloadSubclassName(subclassSource, classSubclasses, '');
   const classFeatures = classFeaturesUpTo(className, classData, level, payload.class_features);
   const subclassFeatures = uploadedSubclassFeaturesUpTo(options, className, subclassName, level);
   const features = [...classFeatures];
@@ -453,6 +461,7 @@ export default function CharacterRulesBridgeV2(props) {
   const subclassSignature = subclasses.join('|');
   const subclassLevel = subclassUnlockLevel(currentClassName, currentEdition, currentClassData);
   const needsSubclass = targetLevel >= subclassLevel && subclasses.length > 0;
+  const currentSelectedSubclass = needsSubclass ? resolveSubclassName(selectedSubclass, subclasses, subclasses[0] || '') : '';
   const abilitySignature = draftAbilitySignature(builderDraft);
   const choicePlan = useMemo(() => buildStartingLevelChoicePlan({
     className: currentClassName,
@@ -463,8 +472,8 @@ export default function CharacterRulesBridgeV2(props) {
   const classSpecificPlan = useMemo(() => buildClassSpecificChoicePlan({
     className: currentClassName,
     level: targetLevel,
-    subclassName: needsSubclass ? selectedSubclass : '',
-  }), [currentClassName, targetLevel, needsSubclass, selectedSubclass]);
+    subclassName: currentSelectedSubclass,
+  }), [currentClassName, targetLevel, currentSelectedSubclass]);
   const registryFeats = useMemo(() => getFeatsForRuleset({ edition: currentEdition }), [currentEdition, options?.feats?.length]);
   const featOptions = useMemo(() => getFeatOptions({ edition: currentEdition, level: targetLevel, registryFeats, uploadedFeats: options?.feats }), [currentEdition, targetLevel, registryFeats, options]);
   const asiChoiceSignature = choicePlan.asiChoices.map((choice) => choice.id).join('|');
@@ -484,7 +493,7 @@ export default function CharacterRulesBridgeV2(props) {
   const classSpecificChoiceSignature = [
     currentClassName,
     targetLevel,
-    needsSubclass ? selectedSubclass : '',
+    currentSelectedSubclass,
     classSpecificPlan.fightingStyleTarget,
     classSpecificPlan.expertiseTarget,
     classSpecificPlan.metamagicTarget,
@@ -492,9 +501,12 @@ export default function CharacterRulesBridgeV2(props) {
   ].join('|');
 
   useEffect(() => {
-    if (!needsSubclass) return;
-    if (!selectedSubclass || !subclasses.includes(selectedSubclass)) setSelectedSubclass(subclasses[0] || '');
-  }, [needsSubclass, selectedSubclass, subclassSignature]);
+    if (!needsSubclass) {
+      if (selectedSubclass) setSelectedSubclass('');
+      return;
+    }
+    if (selectedSubclass !== currentSelectedSubclass) setSelectedSubclass(currentSelectedSubclass);
+  }, [needsSubclass, selectedSubclass, currentSelectedSubclass, subclassSignature]);
 
   useEffect(() => {
     const validIds = new Set(choicePlan.asiChoices.map((choice) => choice.id));
@@ -539,12 +551,12 @@ export default function CharacterRulesBridgeV2(props) {
 
   const enhancePayload = useCallback((payload) => withStartingLevel(payload, {
     targetLevel,
-    selectedSubclass: needsSubclass ? selectedSubclass : payload?.subclass,
+    selectedSubclass: needsSubclass ? currentSelectedSubclass : '',
     options,
     levelChoiceSelections,
     featOptions,
     detailSelections: enhancedDetailSelections,
-  }), [targetLevel, needsSubclass, selectedSubclass, options, levelChoiceSelections, featOptions, enhancedDetailSelections]);
+  }), [targetLevel, needsSubclass, currentSelectedSubclass, options, levelChoiceSelections, featOptions, enhancedDetailSelections]);
 
   useEffect(() => {
     const originalPost = apiClient.post.bind(apiClient);
@@ -581,7 +593,7 @@ export default function CharacterRulesBridgeV2(props) {
           {needsSubclass && (
             <label>
               <span>{currentEdition === '2024' ? 'Subclass at level 3' : `Subclass at level ${subclassLevel}`}</span>
-              <select value={selectedSubclass} onChange={(event) => setSelectedSubclass(event.target.value)}>
+              <select value={currentSelectedSubclass} onChange={(event) => setSelectedSubclass(event.target.value)}>
                 {subclasses.map((name) => <option key={name} value={name}>{name}</option>)}
               </select>
             </label>
