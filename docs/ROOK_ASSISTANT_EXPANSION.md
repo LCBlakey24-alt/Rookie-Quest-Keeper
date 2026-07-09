@@ -5,9 +5,10 @@ ROOK is intended to become the always-available helper inside Rookie Quest Keepe
 ## Current implementation
 
 - `frontend/src/components/RookGlobalAssistant.js` mounts a global floating assistant for authenticated users.
-- `frontend/src/components/RookGlobalAssistant.js` also fetches the active character on `/characters/:characterId` and `/characters/:characterId/edit`, then feeds a concise sheet summary into Rook's system context.
-- `frontend/src/data/rookAssistantKnowledge.js` provides page-aware assistant modes, starter prompts, quick suggestion chips, original name banks, place banks, GM moves, adventure hooks, player reminders, and homebrew checks.
-- `frontend/src/styles/rookAssistant.css` gives ROOK a polished floating panel, compact pill state, loaded-context badge, and mobile-friendly layout.
+- `frontend/src/components/RookGlobalAssistant.js` fetches the active character on `/characters/:characterId` and `/characters/:characterId/edit`, then feeds a concise sheet summary into Rook's system context.
+- `frontend/src/components/RookGlobalAssistant.js` fetches campaign context when a campaign ID is present in the route. GM-facing routes can include campaign metadata, setting notes, GM rules, current table environment, and custom-rule upload names. Player-facing display routes only receive spoiler-safe campaign/environment context.
+- `frontend/src/data/rookAssistantKnowledge.js` provides page-aware assistant modes, starter prompts, quick suggestion chips, route playbooks, original name banks, place banks, GM moves, adventure hooks, player reminders, and homebrew checks.
+- `frontend/src/styles/rookAssistant.css` gives ROOK a polished floating panel, compact pill state, loaded-context badge, route playbook card, and mobile-friendly layout.
 - `frontend/src/App.js` mounts ROOK across authenticated pages, including pages that are not wrapped by the normal app shell.
 - `frontend/src/components/app/AppShell.js` exposes an Ask Rook shortcut in the desktop rail and mobile More tools panel.
 - `frontend/src/data/rookAssistantKnowledge.test.js` covers route mode detection, campaign ID extraction, starter prompts, micro suggestion chips, and context construction.
@@ -42,6 +43,24 @@ ROOK should:
 - Help newer players without talking down to them.
 - Suggest importable, field-ready copy for homebrew and campaign content.
 
+## Campaign context rules
+
+GM-facing campaign routes may include:
+
+- Campaign name, system, rules edition, world/tone labels, available classes, and max level.
+- Saved campaign setting notes.
+- GM-only rules or prep notes.
+- Current shared table environment: location, weather, lighting, mood, and environment notes.
+- Uploaded/custom rule names and counts, but not full uploaded rule bodies.
+
+Player-facing routes may include:
+
+- Campaign name/system if available.
+- Shared table environment and reveal-safe environment notes.
+- Uploaded/custom rule names and counts when the user has membership access.
+
+Player-facing routes must not include GM-only notes, hidden prep, private setting text, unrevealed NPC motives, unrevealed secrets, or anything intended only for the GM.
+
 ## Knowledge pack principles
 
 The knowledge pack deliberately contains original material only:
@@ -59,17 +78,16 @@ This keeps ROOK useful even when campaign context is thin while avoiding protect
 ## Next upgrades
 
 1. Add backend-side ROOK brain fragments so `/rook/generate`, `/rook/form-fill`, and any future Rook endpoint share the same source of truth even when called from older components.
-2. Add campaign-dashboard data hydration so Rook can see a concise campaign snapshot before the user asks.
+2. Add a campaign knowledge index that summarises NPCs, locations, gods, player characters, notes, homebrew, and unresolved threads for ROOK.
 3. Add Rook panels inside key forms: NPCs, locations, gods, custom creatures, homebrew feats, homebrew classes, and session notes.
 4. Add import actions where safe: "Send this to NPC form", "Turn this into a location", "Create a session checklist", "Save as campaign note".
-5. Build a campaign knowledge index that summarises NPCs, locations, gods, player characters, notes, homebrew, and unresolved threads for ROOK.
-6. Add admin-facing telemetry for which Rook starters are used most, which fail, and where users ask for help most often.
-7. Add component-level render tests for the floating assistant and `/rook/chat` payload shape.
+5. Add admin-facing telemetry for which Rook starters are used most, which fail, and where users ask for help most often.
+6. Add component-level render tests for the floating assistant and `/rook/chat` payload shape.
 
 ## Rough priority
 
 1. Stabilise the global assistant UI.
-2. Make Rook smarter on campaign dashboards.
-3. Add Rook form-fill everywhere content is created.
-4. Add save/import actions from Rook responses.
-5. Add backend shared brain and campaign knowledge indexing.
+2. Build the backend shared Rook brain.
+3. Add campaign knowledge indexing.
+4. Add Rook form-fill everywhere content is created.
+5. Add save/import actions from Rook responses.
