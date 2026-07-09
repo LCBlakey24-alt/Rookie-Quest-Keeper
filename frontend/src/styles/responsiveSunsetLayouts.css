@@ -12,27 +12,28 @@
   --rq-layout-page-padding: clamp(12px, 3vw, 28px);
   --rq-layout-card-gap: clamp(12px, 2vw, 20px);
 
-  /* Final sunset token lock. This sits after older twilight/blue-eclipse imports. */
-  --rq-bg: #120C08;
-  --rq-bg-main: #120C08;
-  --rq-bg-page: #160F0A;
-  --rq-bg-rail: #160F0A;
-  --rq-bg-panel: #21150E;
-  --rq-bg-panel-alt: #2E1D13;
-  --rq-bg-card: #2E1D13;
-  --rq-card: #2E1D13;
-  --rq-card-hover: #3A2619;
-  --rq-bg-input: #1A100B;
-  --rq-accent-primary: #C08A3D;
-  --rq-accent-hover: #E0B15C;
-  --rq-accent-active: #A45A32;
-  --rq-accent-soft: rgba(192, 138, 61, 0.14);
-  --rq-accent-border: rgba(192, 138, 61, 0.34);
-  --rq-text-primary: #F5E6C8;
-  --rq-text-secondary: #E6D2AA;
-  --rq-text-muted: #CDBA98;
-  --rq-border-default: rgba(192, 138, 61, 0.22);
-  --rq-sunset-gradient: linear-gradient(135deg, #C08A3D 0%, #A45A32 48%, #E0B15C 100%);
+  /* Final sunset token lock. This sits after older one-off theme imports. */
+  --rq-bg: #070713;
+  --rq-bg-main: #070713;
+  --rq-bg-page: #0b0718;
+  --rq-bg-rail: #0d0617;
+  --rq-bg-panel: #13081f;
+  --rq-bg-panel-alt: #1b0b2d;
+  --rq-bg-card: #1b0b2d;
+  --rq-card: #1b0b2d;
+  --rq-card-hover: #24103a;
+  --rq-bg-input: #0b0614;
+  --rq-accent-primary: #eb3fe9;
+  --rq-accent-hover: #ff9542;
+  --rq-accent-active: #7357ff;
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-accent-border: rgba(255, 149, 66, 0.30);
+  --rq-accent-strong-border: rgba(255, 149, 66, 0.48);
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.82);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
+  --rq-border-default: rgba(255, 255, 255, 0.14);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
 }
 
 .rqk-responsive-page,
@@ -96,16 +97,59 @@
 .rqk-layout-card,
 .rqk-themed-card,
 .rqk-themed-panel {
-  background: var(--rq-card, #2E1D13);
-  border: 1px solid var(--rq-border-default, rgba(192, 138, 61, 0.22));
-  border-radius: var(--rq-radius, 8px);
-  color: var(--rq-text-primary, #F5E6C8);
+  background: var(--rq-card, #1b0b2d);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  border-radius: var(--rq-radius, 10px);
+  color: var(--rq-text-primary, #ffffff);
 }
 
 .rqk-themed-card:hover,
 .rqk-themed-panel:hover {
-  background: var(--rq-card-hover, #3A2619);
-  border-color: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
+  background: var(--rq-card-hover, #24103a);
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30));
+}
+
+.rqk-sunset-tab,
+.rqk-sunset-nav-item {
+  position: relative;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--rq-inner-radius, 8px);
+  background: transparent;
+  color: var(--rq-text-primary, #ffffff);
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.rqk-sunset-tab:hover,
+.rqk-sunset-tab:focus-visible,
+.rqk-sunset-nav-item:hover,
+.rqk-sunset-nav-item:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.rqk-sunset-tab.is-active,
+.rqk-sunset-tab.active,
+.rqk-sunset-nav-item.is-active,
+.rqk-sunset-nav-item.active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rqk-sunset-tab.is-active::after,
+.rqk-sunset-tab.active::after,
+.rqk-sunset-nav-item.is-active::after,
+.rqk-sunset-nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: auto 10px 5px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient);
 }
 
 /* Mobile layout: one column, thumb-friendly, never trapped. */
