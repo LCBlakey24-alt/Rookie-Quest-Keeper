@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Dices, Sparkles, Swords, X } from 'lucide-react';
+import { Dices, MonitorSmartphone, Sparkles, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
 import { getAnimationTarget, rollDiceNotation } from '@/data/diceRoller';
+import { DICE_ROLLER_MODES, diceRollerModeLabel, loadDiceRollerMode, saveDiceRollerMode } from '@/lib/diceRollerPreferences';
 import './FloatingDiceRoller.css';
+import './FloatingDiceRollerMode.css';
 
 const QUICK_DICE = [4, 6, 8, 10, 12, 20, 100];
 const HISTORY_LIMIT = 5;
@@ -25,10 +27,22 @@ export default function FloatingDiceRoller() {
   const [customFormula, setCustomFormula] = useState('2d6+3');
   const [history, setHistory] = useState([]);
   const [rollFlicker, setRollFlicker] = useState(null);
+  const [rollMode, setRollMode] = useState(loadDiceRollerMode);
 
   const latestTotal = history[0]?.total;
   const hasLatestTotal = Number.isFinite(Number(latestTotal));
   const toggleLabel = useMemo(() => hasLatestTotal ? `Dice roller. Last roll ${latestTotal}` : 'Open dice roller', [hasLatestTotal, latestTotal]);
+
+  const chooseRollMode = (mode) => {
+    const savedMode = saveDiceRollerMode(mode);
+    setRollMode(savedMode);
+    toast.success(`Dice mode set to ${diceRollerModeLabel(savedMode)}`, {
+      description: savedMode === DICE_ROLLER_MODES.TWO_D
+        ? 'Lighter 2D rolls for phones, tablets, low-power devices, or reduced motion.'
+        : 'Full cinematic dice formation for devices that can handle more animation.',
+      duration: 1800,
+    });
+  };
 
   const performRoll = (notation, label = notation, options = {}) => {
     const formula = cleanFormula(notation);
@@ -51,10 +65,11 @@ export default function FloatingDiceRoller() {
       ...result,
       label: `${label}: ${formula}`,
       animationValue: getAnimationTarget(result),
+      rollMode,
     });
 
     toast(`${label}: ${result.total}`, {
-      description: describe(result),
+      description: `${describe(result)} · ${diceRollerModeLabel(rollMode)}`,
       icon: <Dices size={18} />,
       duration: 1400,
     });
@@ -77,6 +92,33 @@ export default function FloatingDiceRoller() {
           </header>
 
           <div className="rq-floating-dice__body">
+            <div className="rq-floating-dice__render-mode" data-testid="dice-render-mode-selector" aria-label="Dice render mode">
+              <div>
+                <span><MonitorSmartphone size={14} /> Render mode</span>
+                <small>{rollMode === DICE_ROLLER_MODES.TWO_D ? 'Performance-safe rolling' : 'Full cinematic rolling'}</small>
+              </div>
+              <div className="rq-floating-dice__mode-toggle" role="group" aria-label="Choose 2D or 3D dice animation">
+                <button
+                  type="button"
+                  className={rollMode === DICE_ROLLER_MODES.TWO_D ? 'is-active' : ''}
+                  data-testid="dice-mode-2d"
+                  aria-pressed={rollMode === DICE_ROLLER_MODES.TWO_D}
+                  onClick={() => chooseRollMode(DICE_ROLLER_MODES.TWO_D)}
+                >
+                  2D Lite
+                </button>
+                <button
+                  type="button"
+                  className={rollMode === DICE_ROLLER_MODES.THREE_D ? 'is-active' : ''}
+                  data-testid="dice-mode-3d"
+                  aria-pressed={rollMode === DICE_ROLLER_MODES.THREE_D}
+                  onClick={() => chooseRollMode(DICE_ROLLER_MODES.THREE_D)}
+                >
+                  3D
+                </button>
+              </div>
+            </div>
+
             <div className="rq-floating-dice__quick-grid" aria-label="Quick dice buttons">
               {QUICK_DICE.map(sides => (
                 <button
@@ -152,6 +194,7 @@ export default function FloatingDiceRoller() {
           isCrit={rollFlicker.isCrit}
           isFumble={rollFlicker.isFumble}
           theme="player"
+          rollMode={rollFlicker.rollMode}
         />
       )}
     </div>
