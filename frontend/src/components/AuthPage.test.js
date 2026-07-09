@@ -66,4 +66,22 @@ describe('AuthPage', () => {
     expect(screen.getByRole('button', { name: /hide password/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('heading', { name: /welcome back, adventurer/i })).toBeInTheDocument();
   });
+
+  test('opens the forgot password flow from the URL mode', () => {
+    renderAuthPage('/auth?mode=forgot');
+
+    expect(screen.getByRole('heading', { name: /reset your password/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/recovery email/i)).toHaveAttribute('type', 'email');
+    expect(screen.getByLabelText(/recovery email/i)).toHaveAttribute('enterKeyHint', 'send');
+    expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
+  });
+
+  test('opens the reset password flow when a token is present', () => {
+    renderAuthPage('/auth?token=abc123');
+
+    expect(screen.getByRole('heading', { name: /choose a new password/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/new password/i)).toHaveAttribute('minLength', '8');
+    expect(screen.getByLabelText(/new password/i)).toHaveAttribute('enterKeyHint', 'done');
+    expect(screen.getByText(/set new password/i)).toBeInTheDocument();
+  });
 });
