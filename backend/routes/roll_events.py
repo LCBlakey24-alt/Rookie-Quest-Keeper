@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
+from utils.ws_manager import ws_manager
 
 router = APIRouter()
 
@@ -38,6 +39,72 @@ def now_iso() -> str:
 def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
     rolls = event.get("visibleRolls") or event.get("rolls") or []
     return [roll for roll in rolls if int(roll.get("sides") or 0) == 20 and not roll.get("dropped")]
+
+
+def group_result_key(result: Dict[str, Any], fallback: str = "") -> str:
+    return str(result.get("character_id") or result.get("character_name") or result.get("actor") or result.get("user_id") or fallback).lower()
+
+
+async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) -> None:
+    """Attach a player roll to the active group-check display state and broadcast it."""
+    group_check_id = event.get("group_check_id")
+    if not group_check_id or event.get("actor_type") != "player":
+        return
+
+    state = await db.campaign_display_states.find_one({"campaign_id": campaign_id}, {"_id": 0})
+    if not state or state.get("mode") != "group-check":
+        return
+
+    payload = state.get("payload") if isinstance(state.get("payload"), dict) else {}
+    active_id = payload.get("group_check_id") or payload.get("id")
+    if str(active_id) != str(group_check_id):
+        return
+
+    results = payload.get("results") if isinstance(payload.get("results"), list) else []
+    event_result = {
+        "id": event.get("id"),
+        "actor": event.get("actor"),
+        "actor_type": event.get("actor_type"),
+        "character_id": event.get("character_id"),
+        "character_name": event.get("character_name"),
+        "group_check_id": event.get("group_check_id"),
+        "requested_roll_id": event.get("requested_roll_id"),
+        "check_name": event.get("check_name"),
+        "label": event.get("label"),
+        "notation": event.get("notation"),
+        "total": event.get("total"),
+        "modifier": event.get("modifier"),
+        "rolls": event.get("rolls") or [],
+        "visibleRolls": event.get("visibleRolls") or event.get("rolls") or [],
+        "isCrit": event.get("isCrit"),
+        "isFumble": event.get("isFumble"),
+        "created_at": event.get("created_at"),
+    }
+    result_key = group_result_key(event_result, event.get("id", ""))
+    filtered_results = [item for item in results if group_result_key(item) != result_key]
+    updated_payload = {
+        **payload,
+        "results": [*filtered_results, event_result],
+        "status": "complete" if len(filtered_results) + 1 >= len(payload.get("party") or []) and payload.get("party") else "collecting",
+        "last_result_at": now_iso(),
+    }
+    updated_state = {
+        **state,
+        "payload": updated_payload,
+        "updated_at": now_iso(),
+    }
+
+    await db.campaign_display_states.update_one(
+        {"campaign_id": campaign_id},
+        {"$set": updated_state},
+        upsert=True,
+    )
+    await ws_manager.broadcast_to_campaign(campaign_id, {
+        "type": "player_display_update",
+        "user_id": event.get("user_id") or event.get("actor") or "player",
+        "data": updated_state,
+        "timestamp": updated_state["updated_at"],
+    })
 
 
 def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
@@ -144,6 +211,7 @@ async def record_roll_event(campaign_id: str, payload: RollEventPayload, usernam
     })
     await db.roll_events.insert_one(event)
     event.pop("_id", None)
+    await update_group_check_display(campaign_id, event)
     return event
 
 
