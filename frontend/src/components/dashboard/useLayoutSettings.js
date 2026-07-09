@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 
+export const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
+
 export const defaultLayoutSettings = {
   mode: 'balanced',
   density: 'comfortable',
@@ -15,7 +17,21 @@ export const defaultLayoutSettings = {
     reviews: true,
     admin_notice: true,
   },
+  section_order: defaultSectionOrder,
 };
+
+export function normaliseSectionOrder(order) {
+  const safe = [];
+  if (Array.isArray(order)) {
+    order.forEach(sectionId => {
+      if (defaultSectionOrder.includes(sectionId) && !safe.includes(sectionId)) safe.push(sectionId);
+    });
+  }
+  defaultSectionOrder.forEach(sectionId => {
+    if (!safe.includes(sectionId)) safe.push(sectionId);
+  });
+  return safe;
+}
 
 function normaliseLayoutSettings(value = {}) {
   return {
@@ -25,6 +41,7 @@ function normaliseLayoutSettings(value = {}) {
     tablet: { ...defaultLayoutSettings.tablet, ...(value.tablet || {}) },
     mobile: { ...defaultLayoutSettings.mobile, ...(value.mobile || {}) },
     modules: { ...defaultLayoutSettings.modules, ...(value.modules || {}) },
+    section_order: normaliseSectionOrder(value.section_order),
   };
 }
 
@@ -90,6 +107,7 @@ export default function useLayoutSettings() {
     device,
     deviceSettings,
     modules: settings.modules || defaultLayoutSettings.modules,
+    sectionOrder: normaliseSectionOrder(settings.section_order),
     layoutStyle,
     layoutClassName,
   };
