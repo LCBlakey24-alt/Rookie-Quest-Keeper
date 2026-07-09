@@ -1,6 +1,8 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import apiClient from '@/lib/apiClient';
+import { toast } from 'sonner';
 import AuthPage from './AuthPage';
 
 jest.mock('@/lib/apiClient', () => ({
@@ -16,14 +18,21 @@ jest.mock('sonner', () => ({
 }));
 
 function renderAuthPage(initialPath = '/auth') {
-  return render(
+  const onLogin = jest.fn();
+  const view = render(
     <MemoryRouter initialEntries={[initialPath]}>
-      <AuthPage onLogin={jest.fn()} />
+      <AuthPage onLogin={onLogin} />
     </MemoryRouter>
   );
+
+  return { ...view, onLogin };
 }
 
 describe('AuthPage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('renders the login gateway with accessible tabs and fields', () => {
     renderAuthPage();
 
@@ -83,5 +92,34 @@ describe('AuthPage', () => {
     expect(screen.getByLabelText(/new password/i)).toHaveAttribute('minLength', '8');
     expect(screen.getByLabelText(/new password/i)).toHaveAttribute('enterKeyHint', 'done');
     expect(screen.getByText(/set new password/i)).toBeInTheDocument();
+  });
+
+  test('shows validation feedback before login submission', () => {
+    renderAuthPage();
+
+    fireEvent.click(screen.getByTestId('login-btn'));
+
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith('Please fill in all fields');
+  });
+
+  test('submits login credentials and reports the authenticated user', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { token: 'keeper-token', username: 'Rook' } });
+    const { onLogin } = renderAuthPage();
+
+    fireEvent.change(screen.getByTestId('login-username'), { target: { value: ' player@example.com ' } });
+    fireEvent.change(screen.getByTestId('login-password'), { target: { value: 'secret-table-key' } });
+    fireEvent.click(screen.getByTestId('login-btn'));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/login', {
+        username: 'player@example.com',
+        email: 'player@example.com',
+        password: 'secret-table-key',
+      });
+    });
+
+    expect(toast.success).toHaveBeenCalledWith('Welcome back!');
+    expect(onLogin).toHaveBeenCalledWith('keeper-token', 'Rook');
   });
 });
