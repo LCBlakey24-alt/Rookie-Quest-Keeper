@@ -1,4 +1,4 @@
-import { resolveActionResourceCost } from './CleanSheetFeaturesTab';
+import { formatActionCost, resolveActionResourceCost } from './CleanSheetFeaturesTab';
 
 describe('CleanSheetFeaturesTab homebrew action resources', () => {
   const resources = [
@@ -40,5 +40,11 @@ describe('CleanSheetFeaturesTab homebrew action resources', () => {
       amount: 2,
       resource: expect.objectContaining({ key: 'greed_tokens' }),
     });
+  });
+
+  test('formats structured costs as safe display text', () => {
+    expect(formatActionCost({ resource: 'Greed Tokens', amount: 2 })).toBe('2 Greed Tokens');
+    expect(formatActionCost({ scarab_charges: 1 })).toBe('1 Scarab Charges');
+    expect(formatActionCost(['bonus action', { resource: 'Scarab Charges', amount: 1 }])).toBe('bonus action • 1 Scarab Charges');
   });
 });
