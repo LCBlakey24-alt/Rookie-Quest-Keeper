@@ -13,6 +13,7 @@ import AdminMissionBrief from './admin/AdminMissionBrief';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
+import AdminLayoutStudioTab from './admin/AdminLayoutStudioTab';
 import apiClient from '@/lib/apiClient';
 
 const theme = {
@@ -36,7 +37,7 @@ const theme = {
   dangerSoft: 'rgba(180, 71, 50, 0.15)',
 };
 
-const adminTabIds = ['testing', 'updates', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
+const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
 
 function getInitialAdminTab() {
   if (typeof window === 'undefined') return 'testing';
@@ -159,6 +160,7 @@ function AdminPage() {
   const tabs = [
     { id: 'testing', label: `Testing Notes (${overview.new_testing_notes_count || 0})`, short: 'Testing', icon: ClipboardList, description: 'Log bugs, blockers, and fix plans while testing the site.' },
     { id: 'updates', label: 'Site Updates', short: 'Updates', icon: Megaphone, description: 'Write, draft, pin, and publish dashboard updates without touching code.' },
+    { id: 'layout', label: 'Layout Studio', short: 'Layout Studio', icon: LayoutDashboard, description: 'Control responsive page layout, module visibility, card sizing, and future drag-and-drop page design settings.' },
     { id: 'audit', label: 'Audit Log', short: 'Audit Log', icon: ShieldCheck, description: 'Review important admin actions and keep receipts for live-site changes.' },
     { id: 'character-audit', label: 'Character Audit', short: 'Audit', icon: FlaskConical, description: 'Check builder and sheet rules readiness.' },
     { id: 'feedback', label: `Feedback (${overview.new_feedback_count || 0})`, short: 'Feedback', icon: MessageSquare, description: 'Review user feedback and mark what needs action.' },
@@ -180,10 +182,10 @@ function AdminPage() {
   ];
 
   const buildFocusCards = [
+    { title: 'Open Layout Studio', text: 'Shape responsive layout rules and module visibility from Admin.', icon: LayoutDashboard, tab: 'layout' },
     { title: 'Log a bug while testing', text: 'Use this instead of losing notes in ChatGPT or Codex threads.', icon: ClipboardList, tab: 'testing' },
     { title: 'Publish a site update', text: 'Write dashboard news from Admin instead of editing hardcoded cards.', icon: Megaphone, tab: 'updates' },
     { title: 'Review admin actions', text: 'Check the receipts for feedback moves, update drafts, and live-site changes.', icon: ShieldCheck, tab: 'audit' },
-    { title: 'Check rules readiness', text: 'Audit character data before a build goes near real users.', icon: Search, tab: 'character-audit' },
     { title: 'Triage user feedback', text: 'Turn feedback into planned, done, or dismissed work.', icon: MessageSquare, tab: 'feedback' },
     { title: 'Control the live site', text: 'Set announcements, maintenance mode, and beta feature gates.', icon: Settings, tab: 'site' },
   ];
@@ -216,12 +218,12 @@ function AdminPage() {
             <div style={{ minWidth: 0 }}>
               <p style={eyebrowStyle}>Owner workspace</p>
               <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin Mission Control</h1>
-              <p style={adminSubtitleStyle}>Manage testing notes, dashboard updates, feedback, reviews, users, rules, templates, audit history, and site switches without digging through Codex every time.</p>
+              <p style={adminSubtitleStyle}>Manage testing notes, layout controls, dashboard updates, feedback, reviews, users, rules, templates, audit history, and site switches without digging through Codex every time.</p>
             </div>
           </div>
           <div style={heroActionsStyle}>
             <Button onClick={fetchData} style={secondaryActionStyle}><RefreshCw size={16} />Refresh data</Button>
-            <Button onClick={() => setActiveTab('updates')} style={primaryActionStyle}><Megaphone size={16} />Site updates</Button>
+            <Button onClick={() => setActiveTab('layout')} style={primaryActionStyle}><LayoutDashboard size={16} />Layout Studio</Button>
           </div>
         </header>
 
@@ -301,6 +303,7 @@ function AdminPage() {
         <section style={contentWrapStyle}>
           {activeTab === 'testing' && <AdminTestingNotesTab />}
           {activeTab === 'updates' && <AdminSiteUpdatesTab />}
+          {activeTab === 'layout' && <AdminLayoutStudioTab />}
           {activeTab === 'audit' && <AdminAuditLogTab />}
           {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
           {activeTab === 'feedback' && <AdminFeedbackTab />}
@@ -323,7 +326,7 @@ function AdminLoadingScreen() {
         <div className="loading-spinner" aria-hidden="true" />
         <p className="loading-kicker">Owner workspace</p>
         <h1 className="loading-title">Checking admin access…</h1>
-        <p className="loading-tip">Verifying permissions, feedback queues, testing notes, reviews, users, and site controls.</p>
+        <p className="loading-tip">Verifying permissions, feedback queues, testing notes, layout controls, reviews, users, and site controls.</p>
       </section>
     </main>
   );
@@ -398,7 +401,7 @@ function ReviewsPanel({ reviews, onToggleReview, onDeleteReview }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}><span style={{ color: theme.text.white, fontWeight: 700 }}>{review.username}</span>{review.is_approved && <span style={{ background: theme.goldSoft, color: theme.gold, padding: '2px 8px', fontSize: 10, fontWeight: 800, borderRadius: 999 }}>VISIBLE</span>}</div>
-                  <p style={{ color: theme.text.secondary, fontSize: 13, fontStyle: 'italic', margin: '0 0 8px' }}>"{review.comment}"</p>
+                  <p style={{ color: theme.text.secondary, fontSize: 13, fontStyle: 'italic', margin: '0 0 8px' }}>&quot;{review.comment}&quot;</p>
                   <p style={{ color: theme.text.muted, fontSize: 11, margin: 0 }}>{new Date(review.created_at).toLocaleDateString()}</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
