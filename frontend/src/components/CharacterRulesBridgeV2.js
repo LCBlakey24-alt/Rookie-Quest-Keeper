@@ -92,6 +92,28 @@ function draftAbilitySignature(draft = {}) {
   return ABILITY_KEYS.map((ability) => draftAbilityScore(draft, ability)).join('|');
 }
 
+function resolveClassName(value, fallback = 'Fighter') {
+  const raw = displayName(value).trim();
+  if (!raw) return fallback;
+  const exact = CLASSES[raw] ? raw : Object.keys(CLASSES).find((name) => normaliseKey(name) === normaliseKey(raw));
+  return exact || raw;
+}
+
+function draftClassName(draft = {}) {
+  return resolveClassName(
+    draft.characterClass ||
+    draft.character_class ||
+    draft.className ||
+    draft.class_name ||
+    draft.class,
+  );
+}
+
+function draftRulesEdition(draft = {}) {
+  const raw = draft.edition || draft.rulesEdition || draft.rules_edition || draft.ruleset || draft.rules_set || draft.rules;
+  return String(raw || '2014').includes('2024') ? '2024' : '2014';
+}
+
 function sameJson(left, right) {
   return JSON.stringify(left || {}) === JSON.stringify(right || {});
 }
@@ -361,7 +383,13 @@ function averageHitPoints(level, hitDie, constitutionScore) {
 
 function withStartingLevel(payload, { targetLevel, selectedSubclass, options, levelChoiceSelections, featOptions, detailSelections }) {
   if (!payload || typeof payload !== 'object') return payload;
-  const className = payload.character_class;
+  const className = resolveClassName(
+    payload.character_class ||
+    payload.characterClass ||
+    payload.className ||
+    payload.class_name ||
+    payload.class,
+  );
   const classData = CLASSES[className] || {};
   const level = clampLevel(targetLevel || payload.level || 1);
   const hitDie = hitDieNumber(classData.hitDie || payload.hit_die || payload.hit_dice, 8);
@@ -379,6 +407,7 @@ function withStartingLevel(payload, { targetLevel, selectedSubclass, options, le
 
   let enhanced = {
     ...payload,
+    character_class: className,
     level,
     subclass: subclassName,
     proficiency_bonus: getProficiencyBonus(level),
@@ -444,8 +473,8 @@ export default function CharacterRulesBridgeV2(props) {
   useEffect(() => { sessionStorage.setItem(CHOICES_KEY, JSON.stringify(levelChoiceSelections || {})); }, [levelChoiceSelections]);
   useEffect(() => { sessionStorage.setItem(DETAIL_CHOICES_KEY, JSON.stringify(detailSelections || {})); }, [detailSelections]);
 
-  const currentClassName = builderDraft.characterClass || 'Fighter';
-  const currentEdition = builderDraft.edition || '2014';
+  const currentClassName = draftClassName(builderDraft);
+  const currentEdition = draftRulesEdition(builderDraft);
   const currentClassData = CLASSES[currentClassName] || {};
   const subclasses = arr(currentClassData.subclasses).map(displayName).filter(Boolean);
   const subclassSignature = subclasses.join('|');
