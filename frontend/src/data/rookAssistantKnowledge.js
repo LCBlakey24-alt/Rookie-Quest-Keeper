@@ -144,6 +144,69 @@ const ROUTE_CONTEXTS = [
   }
 ];
 
+const ROOK_PAGE_PLAYBOOKS = {
+  dashboard: [
+    'Recommend the next best action from recent characters, campaigns, homebrew, uploads, and feedback.',
+    'Explain what each hub tile does in plain English for new players or GMs.',
+    'Turn a vague project goal into a short practical checklist.'
+  ],
+  characters: [
+    'Help create a readable concept: role, motivation, flaw, table hook, and rules direction.',
+    'Translate rough character notes into builder-friendly fields without overwhelming new players.',
+    'Suggest original names, bonds, ideals, flaws, and beginner-friendly combat plans.'
+  ],
+  'character-sheet': [
+    'Summarise the character sheet into actions, bonus actions, reactions, passives, and resources.',
+    'Give a turn-by-turn combat checklist that avoids rules overload.',
+    'Convert features and inventory into roleplay prompts and table reminders.'
+  ],
+  campaigns: [
+    'Build a campaign premise with tone, player promise, first threat, and session zero questions.',
+    'Create invite copy and safety expectations for a beginner-friendly table.',
+    'Recommend what a GM should prepare first before opening live play.'
+  ],
+  'campaign-dashboard': [
+    'Turn loose campaign notes into NPCs, locations, factions, quests, and next-session prep.',
+    'Track unresolved threads and suggest consequences that feel earned.',
+    'Write table-ready recap, boxed text, complications, and cliffhangers.'
+  ],
+  'gm-live': [
+    'Answer in short table-ready chunks: ruling, description, enemy move, or consequence.',
+    'Offer three quick choices instead of long theory during live play.',
+    'Keep player-facing text spoiler-safe and dramatic.'
+  ],
+  'player-display': [
+    'Rewrite GM notes into spoiler-light player-facing scene text.',
+    'Explain conditions, objectives, and reminders without exposing hidden campaign secrets.',
+    'Create short prompts that keep the table moving.'
+  ],
+  homebrew: [
+    'Check homebrew for trigger, action economy, use limit, level, and GM readability.',
+    'Rewrite rough mechanics into clean app-ready rules text.',
+    'Suggest conservative balance fixes before adding stronger flavour.'
+  ],
+  uploads: [
+    'Sort uploaded notes into character, campaign, homebrew, map, image, or handout buckets.',
+    'Clean messy pasted text into structured content that Rook can parse later.',
+    'Create naming/tagging suggestions so files are easy to find and attach.'
+  ],
+  admin: [
+    'Convert feedback into bug reports, product tasks, acceptance criteria, and release notes.',
+    'Prioritise issues by player impact, build risk, and time to fix.',
+    'Spot UX copy that could confuse new players or GMs.'
+  ],
+  account: [
+    'Explain account settings in plain English and avoid technical support jargon.',
+    'Help write concise support messages when something does not work.',
+    'Remind users what is safe to change and what needs caution.'
+  ],
+  general: [
+    'Explain the current screen and recommend one useful next step.',
+    'Create original tabletop-ready content without borrowed setting lore.',
+    'Keep answers practical, short, and easy to paste into the app.'
+  ]
+};
+
 export const ROOK_CREATIVE_LIBRARY = {
   naming: {
     elf: [
@@ -263,6 +326,10 @@ function findRouteContext(pathname = '') {
   };
 }
 
+function getPlaybookForContext(context) {
+  return ROOK_PAGE_PLAYBOOKS[context.key] || ROOK_PAGE_PLAYBOOKS.general;
+}
+
 export function extractCampaignIdFromPath(pathname = '') {
   const campaignMatch = pathname.match(/^\/campaign\/([^/]+)/);
   if (campaignMatch) return campaignMatch[1];
@@ -284,10 +351,15 @@ export function getRookStarterPrompts(pathname = '') {
   return findRouteContext(pathname).starters;
 }
 
+export function getRookPagePlaybook(pathname = '') {
+  return getPlaybookForContext(findRouteContext(pathname));
+}
+
 export function buildRookSystemContext(pathname = '', extraContext = '') {
   const context = findRouteContext(pathname);
   const names = ROOK_CREATIVE_LIBRARY.naming;
   const places = ROOK_CREATIVE_LIBRARY.places;
+  const playbook = getPlaybookForContext(context);
 
   return `You are ROOK, the in-app AI assistant for Rookie Quest Keeper.
 
@@ -302,6 +374,18 @@ CURRENT APP AREA:
 - Route key: ${context.key}
 - Assistant mode: ${context.label}
 - Page purpose: ${context.intent}
+
+CURRENT PAGE PLAYBOOK:
+${playbook.map((item) => `- ${item}`).join('\n')}
+
+ROOKIE QUEST KEEPER PRODUCT MAP:
+- Dashboard: choose the next useful action and see recent player/GM activity.
+- Characters: create, import, review, and improve player characters.
+- Campaigns: create campaign foundations, prep sessions, and manage GM workspace.
+- Homebrew: parse, draft, clean, validate, and balance custom rules content.
+- Uploads: decide where files belong and prepare messy notes for import.
+- Account: explain profile, password, and safety settings clearly.
+- Admin: triage feedback, QA issues, product tasks, and release notes.
 
 CONTENT SAFETY AND SOURCE RULES:
 - Use saved campaign context from the backend when it is provided.
