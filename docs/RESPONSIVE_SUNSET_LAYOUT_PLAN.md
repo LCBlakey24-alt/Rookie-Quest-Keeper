@@ -4,16 +4,16 @@ This is the working layout contract for Rookie Quest Keeper as the app changes a
 
 ## Shared theme lock
 
-All app pages should stay inside the Velvet Tabletop / sunset identity:
+All app pages should stay inside the Rookie Quest sunset-gradient identity:
 
-- Espresso or charcoal page backgrounds.
-- Leather-brown cards and panels.
-- Cream/parchment readable text.
-- Gold primary actions and active states.
-- Copper hover states, dividers, and support accents.
+- Very dark blue-purple page backgrounds.
+- Deep indigo/purple panels and cards.
+- White or soft-lilac readable text on dark surfaces.
+- Sunset-gradient primary actions, active states, icon fills, and selected navigation.
+- Orange/pink/purple glow used lightly for hover, focus, and emphasis.
 - Green only for success, ready, imported, saved, or safe creation.
 - Red only for destructive actions and real errors.
-- No page-wide blue, purple, cyan, or neon themes unless the task is specifically removing legacy styling.
+- No coffee, velvet, espresso, leather, brown-tabletop, parchment, or candlelit theme language in new UI work.
 
 The page can feel different through layout, copy, density, icons, and information hierarchy. It should not feel different by becoming a separate colour theme.
 
@@ -28,6 +28,17 @@ Use these three layout plans when reviewing or building pages.
 | Desktop | `1180px+` | Full workspace with clear nav, 2–3 column content, max-width controlled. |
 
 These match the current app shell direction: compact/icon navigation on smaller mobile widths, labelled rail from tablet upwards, and wider desktop workspace after `1180px`.
+
+## Rail and selected-state pattern
+
+The rail is the main visual rule for the whole signed-in app.
+
+- Unselected items stay flat, dark, and quiet: transparent or deep panel background, white text/icons, no heavy glow.
+- Hover/focus uses a subtle pale/sunset border and a small movement only.
+- Selected items use the sunset-gradient icon fill, a thin sunset marker line, and a short gradient underline on the label where labels are visible.
+- Mobile keeps the rail compact and icon-led.
+- Tablet and desktop show labels, but labels should not feel sticky, bulky, or boxed-in.
+- Other tab sets should follow the same selected/unselected language where practical.
 
 ## Mobile plan
 
@@ -108,7 +119,7 @@ Before every design pass:
 
 1. Re-read `frontend/src/App.js` to confirm active routes and CSS import order.
 2. Re-read the touched component and its directly imported styles.
-3. Search for legacy colour clues: `blue`, `purple`, `cyan`, `neon`, `twilight`, `eclipse`, `#7357ff`, `#d84df1`, `#ff4f81`.
+3. Search for legacy theme clues: `coffee`, `velvet`, `espresso`, `leather`, `parchment`, `brown`, `tabletop`, `candlelit`, old one-off colour themes, and hard-coded colours that ignore `--rq-sunset-gradient`.
 4. Check the page at mobile, tablet, and desktop assumptions using the layout plans above.
 5. Make the smallest safe change that improves theme consistency or layout clarity.
 6. Record anything risky or unfinished in the final note rather than hiding it.
@@ -117,11 +128,11 @@ Before every design pass:
 
 A reviewed page is acceptable when:
 
-- It uses the sunset/Velvet Tabletop palette.
+- It uses the dark blue-purple sunset-gradient palette.
 - It has a deliberate mobile, tablet, and desktop layout.
 - It has no unreadable text on dark surfaces.
-- It has no accidental old blue/purple/neon full-page styling.
+- It has no accidental coffee, velvet, espresso, brown-tabletop, or parchment styling.
 - It can scroll on mobile and tablet.
 - It keeps key actions obvious without flooding the page.
-- It uses cards, rails, tabs, and buttons consistently with the shared theme.
+- It uses cards, rails, tabs, and buttons consistently with the shared selected/unselected rail language.
 - It does not introduce a new one-off visual language.
