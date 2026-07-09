@@ -5,6 +5,15 @@ const channelName = (campaignId) => `rqk-live-display-${campaignId}`;
 const storageKey = (campaignId) => `rqk.liveDisplay.${campaignId}`;
 const localEventName = (campaignId) => `rqk-live-display-local-${campaignId}`;
 
+const sourceTabId = (() => {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  } catch {
+    // Fall back below.
+  }
+  return `display-tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+})();
+
 let apiClientPromise;
 async function getApiClient() {
   if (!apiClientPromise) apiClientPromise = import('./apiClient');
@@ -20,11 +29,51 @@ function websocketUrl(campaignId) {
   return `${base}/ws/campaign/${encodeURIComponent(campaignId)}?token=${encodeURIComponent(token)}`;
 }
 
-export function createDisplayState(mode = 'blank', payload = {}) {
+function stateTime(state = {}) {
+  const parsed = Date.parse(state.updated_at || '');
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function stateSequence(state = {}) {
+  const parsed = Number(state.sequence || state.seq || 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function stateIdentity(state = {}) {
+  return state.sync_id || state.id || `${state.mode || 'blank'}-${state.updated_at || ''}-${stateSequence(state)}`;
+}
+
+function isNewerState(candidate, current) {
+  if (!candidate) return false;
+  if (!current) return true;
+  const candidateTime = stateTime(candidate);
+  const currentTime = stateTime(current);
+  if (candidateTime !== currentTime) return candidateTime > currentTime;
+  return stateSequence(candidate) >= stateSequence(current);
+}
+
+function normaliseDisplayState(state = createDisplayState('blank', {})) {
+  const updatedAt = state.updated_at || new Date().toISOString();
+  const sequence = state.sequence || Date.now();
   return {
+    sync_id: state.sync_id || `${updatedAt}-${sequence}-${Math.random().toString(16).slice(2)}`,
+    mode: state.mode || 'blank',
+    payload: state.payload || {},
+    updated_at: updatedAt,
+    sequence,
+    source_tab: state.source_tab || sourceTabId,
+  };
+}
+
+export function createDisplayState(mode = 'blank', payload = {}) {
+  const now = new Date().toISOString();
+  return {
+    sync_id: `${now}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     mode,
     payload,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
+    sequence: Date.now(),
+    source_tab: sourceTabId,
   };
 }
 
@@ -32,7 +81,7 @@ export function loadDisplayState(campaignId) {
   try {
     const raw = localStorage.getItem(storageKey(campaignId));
     if (!raw) return createDisplayState('blank', {});
-    return JSON.parse(raw);
+    return normaliseDisplayState(JSON.parse(raw));
   } catch {
     return createDisplayState('blank', {});
   }
@@ -42,30 +91,32 @@ export async function loadRemoteDisplayState(campaignId) {
   if (!campaignId) return createDisplayState('blank', {});
   const apiClient = await getApiClient();
   const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
-  const state = response.data || createDisplayState('blank', {});
-  saveDisplayState(campaignId, state);
+  const state = normaliseDisplayState(response.data || createDisplayState('blank', {}));
+  const localState = loadDisplayState(campaignId);
+  if (isNewerState(state, localState)) saveDisplayState(campaignId, state);
   return state;
 }
 
 export function saveDisplayState(campaignId, state) {
   try {
-    localStorage.setItem(storageKey(campaignId), JSON.stringify(state));
+    localStorage.setItem(storageKey(campaignId), JSON.stringify(normaliseDisplayState(state)));
   } catch {
     // Ignore storage failures. BroadcastChannel may still work.
   }
 }
 
 export function publishDisplayState(campaignId, state) {
-  saveDisplayState(campaignId, state);
+  const safeState = normaliseDisplayState(state);
+  saveDisplayState(campaignId, safeState);
   try {
-    window.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: state }));
+    window.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: safeState }));
   } catch {
     // Ignore local event failures; BroadcastChannel/storage polling still apply.
   }
   try {
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel(channelName(campaignId));
-      channel.postMessage(state);
+      channel.postMessage(safeState);
       channel.close();
     }
   } catch {
@@ -74,28 +125,42 @@ export function publishDisplayState(campaignId, state) {
 }
 
 export async function publishCampaignDisplayState(campaignId, state) {
-  publishDisplayState(campaignId, state);
+  const localState = normaliseDisplayState(state);
+  publishDisplayState(campaignId, localState);
   try {
     const apiClient = await getApiClient();
-    const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, state);
-    const remoteState = response.data || state;
-    publishDisplayState(campaignId, remoteState);
-    return remoteState;
+    const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, localState);
+    const remoteState = normaliseDisplayState(response.data || localState);
+    const latestLocalState = loadDisplayState(campaignId);
+    if (isNewerState(remoteState, latestLocalState)) {
+      publishDisplayState(campaignId, remoteState);
+      return remoteState;
+    }
+    return latestLocalState;
   } catch {
-    return state;
+    return localState;
   }
 }
 
 export function subscribeDisplayState(campaignId, onState) {
   const handlers = [];
-  let lastRaw = '';
+  let lastIdentity = '';
+
+  const applyState = (state) => {
+    const safeState = normaliseDisplayState(state);
+    const identity = stateIdentity(safeState);
+    if (identity === lastIdentity) return;
+    const current = loadDisplayState(campaignId);
+    if (!isNewerState(safeState, current) && stateIdentity(current) !== identity) return;
+    lastIdentity = identity;
+    onState(safeState);
+  };
 
   const readSavedState = () => {
     try {
       const raw = localStorage.getItem(storageKey(campaignId)) || '';
-      if (!raw || raw === lastRaw) return;
-      lastRaw = raw;
-      onState(JSON.parse(raw));
+      if (!raw) return;
+      applyState(JSON.parse(raw));
     } catch {
       // Ignore malformed values.
     }
@@ -106,8 +171,7 @@ export function subscribeDisplayState(campaignId, onState) {
       const channel = new BroadcastChannel(channelName(campaignId));
       channel.onmessage = (event) => {
         if (!event.data) return;
-        try { lastRaw = JSON.stringify(event.data); } catch { /* ignore */ }
-        onState(event.data);
+        applyState(event.data);
       };
       handlers.push(() => channel.close());
     }
@@ -118,8 +182,7 @@ export function subscribeDisplayState(campaignId, onState) {
   const onStorage = (event) => {
     if (event.key !== storageKey(campaignId) || !event.newValue) return;
     try {
-      lastRaw = event.newValue;
-      onState(JSON.parse(event.newValue));
+      applyState(JSON.parse(event.newValue));
     } catch {
       // Ignore malformed values.
     }
@@ -129,8 +192,7 @@ export function subscribeDisplayState(campaignId, onState) {
 
   const onLocalDisplayEvent = (event) => {
     if (!event.detail) return;
-    try { lastRaw = JSON.stringify(event.detail); } catch { /* ignore */ }
-    onState(event.detail);
+    applyState(event.detail);
   };
   window.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
   handlers.push(() => window.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
@@ -145,16 +207,21 @@ export function subscribeDisplayState(campaignId, onState) {
 
 export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 1000 } = {}) {
   let cancelled = false;
-  let lastRemoteUpdatedAt = '';
+  let lastRemoteIdentity = '';
   let socket = null;
   let reconnectTimer = null;
   let pingTimer = null;
 
   const applyRemoteState = (state) => {
-    if (cancelled || !state?.updated_at || state.updated_at === lastRemoteUpdatedAt) return;
-    lastRemoteUpdatedAt = state.updated_at;
-    saveDisplayState(campaignId, state);
-    onState(state);
+    if (cancelled || !state?.updated_at) return;
+    const safeState = normaliseDisplayState(state);
+    const identity = stateIdentity(safeState);
+    if (identity === lastRemoteIdentity) return;
+    const localState = loadDisplayState(campaignId);
+    if (!isNewerState(safeState, localState)) return;
+    lastRemoteIdentity = identity;
+    saveDisplayState(campaignId, safeState);
+    onState(safeState);
   };
 
   const readRemoteState = async () => {
