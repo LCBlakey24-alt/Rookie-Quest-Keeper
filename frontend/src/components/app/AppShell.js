@@ -53,7 +53,7 @@ function openFeedback() {
 
 function MobileMorePanel({ items, pathname, onClose, onFeedback }) {
   return (
-    <div className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
+    <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
