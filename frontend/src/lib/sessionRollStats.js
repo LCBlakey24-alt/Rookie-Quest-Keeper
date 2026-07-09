@@ -1,4 +1,5 @@
 import apiClient from '@/lib/apiClient';
+import { loadDisplayState } from '@/lib/liveDisplayBus';
 
 const sessionKey = (campaignId) => `rqk.rollStats.session.${campaignId}`;
 const allTimeKey = (campaignId) => `rqk.rollStats.allTime.${campaignId}`;
@@ -19,6 +20,24 @@ function normaliseActor(actor, label) {
   if (actor) return actor;
   const beforeColon = String(label || '').split(':')[0]?.trim();
   return beforeColon && beforeColon.length > 2 ? beforeColon : 'GM / Table';
+}
+
+function activeGroupCheckForRoll(campaignId, event = {}) {
+  if (!campaignId || event.group_check_id || event.actor_type !== 'player') return {};
+  try {
+    const state = loadDisplayState(campaignId);
+    if (state?.mode !== 'group-check') return {};
+    const payload = state.payload || {};
+    const groupCheckId = payload.group_check_id || payload.id;
+    if (!groupCheckId || payload.status === 'closed') return {};
+    return {
+      group_check_id: groupCheckId,
+      requested_roll_id: payload.id || groupCheckId,
+      check_name: payload.check_name || payload.title || '',
+    };
+  } catch {
+    return {};
+  }
 }
 
 export function normaliseRollEvent(rollEvent = {}) {
@@ -46,7 +65,7 @@ export function normaliseRollEvent(rollEvent = {}) {
 
 export function recordSessionRoll(campaignId, rollEvent = {}) {
   if (!campaignId || typeof localStorage === 'undefined') return null;
-  const event = normaliseRollEvent(rollEvent);
+  const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
   writeList(sessionKey(campaignId), [...readList(sessionKey(campaignId)), event], 500);
   writeList(allTimeKey(campaignId), [...readList(allTimeKey(campaignId)), event], 5000);
   return event;
@@ -54,7 +73,7 @@ export function recordSessionRoll(campaignId, rollEvent = {}) {
 
 export async function recordRemoteRoll(campaignId, rollEvent = {}) {
   if (!campaignId) return null;
-  const event = normaliseRollEvent(rollEvent);
+  const event = normaliseRollEvent({ ...activeGroupCheckForRoll(campaignId, rollEvent), ...rollEvent });
   recordSessionRoll(campaignId, event);
   try {
     const response = await apiClient.post(`/campaigns/${campaignId}/roll-events`, event);
