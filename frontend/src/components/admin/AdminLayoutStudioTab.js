@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Eye, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, Eye, GripVertical, LayoutDashboard, Monitor, RefreshCw, RotateCcw, Save, Smartphone, Tablet, ToggleLeft, ToggleRight } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 
 const rq = {
@@ -18,6 +18,8 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
+const defaultSectionOrder = ['dashboard_hero', 'status_bar', 'quick_actions', 'live_workspace', 'site_updates', 'reviews', 'admin_notice'];
+
 const defaultSettings = {
   mode: 'balanced',
   density: 'comfortable',
@@ -32,6 +34,7 @@ const defaultSettings = {
     reviews: true,
     admin_notice: true,
   },
+  section_order: defaultSectionOrder,
   notes: '',
 };
 
@@ -48,6 +51,16 @@ const moduleLabels = {
   feedback_prompt: 'Feedback prompt',
   reviews: 'Reviews',
   admin_notice: 'Admin notices',
+};
+
+const sectionLabels = {
+  dashboard_hero: 'Dashboard hero',
+  status_bar: 'Status bar',
+  quick_actions: 'Quick actions',
+  live_workspace: 'Recent activity + readiness',
+  site_updates: 'Site updates',
+  reviews: 'Information cards',
+  admin_notice: 'System status',
 };
 
 export default function AdminLayoutStudioTab() {
@@ -79,6 +92,18 @@ export default function AdminLayoutStudioTab() {
   const patchDevice = (device, patch) => setSettings(prev => normaliseSettings({ ...prev, [device]: { ...prev[device], ...patch } }));
   const toggleModule = (key) => setSettings(prev => normaliseSettings({ ...prev, modules: { ...prev.modules, [key]: !prev.modules[key] } }));
 
+  const moveSection = (sectionId, direction) => {
+    setSettings(prev => {
+      const order = normaliseSectionOrder(prev.section_order);
+      const currentIndex = order.indexOf(sectionId);
+      const nextIndex = currentIndex + direction;
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= order.length) return prev;
+      const next = [...order];
+      [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
+      return normaliseSettings({ ...prev, section_order: next });
+    });
+  };
+
   const save = async () => {
     try {
       setSaving(true);
@@ -89,7 +114,7 @@ export default function AdminLayoutStudioTab() {
         area: 'layout_studio',
         target_id: 'global',
         target_label: 'Global layout settings',
-        detail: `Mode: ${settings.mode} • Density: ${settings.density} • Desktop ${settings.desktop.columns} cols • Tablet ${settings.tablet.columns} cols • Mobile ${settings.mobile.columns} cols`,
+        detail: `Mode: ${settings.mode} • Density: ${settings.density} • Desktop ${settings.desktop.columns} cols • Tablet ${settings.tablet.columns} cols • Mobile ${settings.mobile.columns} cols • Order: ${normaliseSectionOrder(settings.section_order).map(section => sectionLabels[section] || section).join(' > ')}`,
       });
       toast.success('Layout settings saved');
     } catch (err) {
@@ -104,7 +129,8 @@ export default function AdminLayoutStudioTab() {
     setSettings(defaultSettings);
   };
 
-  const enabledModules = useMemo(() => Object.entries(settings.modules || {}).filter(([, enabled]) => enabled).map(([key]) => key), [settings.modules]);
+  const activeSectionOrder = useMemo(() => normaliseSectionOrder(settings.section_order), [settings.section_order]);
+  const enabledModules = useMemo(() => activeSectionOrder.filter(key => isSectionEnabled(key, settings.modules)), [activeSectionOrder, settings.modules]);
   const preview = settings[previewDevice] || defaultSettings[previewDevice];
 
   return (
@@ -160,6 +186,23 @@ export default function AdminLayoutStudioTab() {
             </div>
           </section>
 
+          <section style={panelStyle}>
+            <h3 style={panelTitleStyle}><GripVertical size={16} /> Dashboard section order</h3>
+            <p style={subtitleStyle}>Move dashboard sections up or down. This is the safe stepping stone before true drag-and-drop editing.</p>
+            <div style={orderListStyle}>
+              {activeSectionOrder.map((sectionId, index) => (
+                <div key={sectionId} style={orderRowStyle}>
+                  <span style={orderIndexStyle}>{index + 1}</span>
+                  <GripVertical size={15} color={rq.muted} />
+                  <span style={{ flex: 1, minWidth: 0, color: rq.textSecondary, fontWeight: 900 }}>{sectionLabels[sectionId] || sectionId}</span>
+                  <span style={{ color: isSectionEnabled(sectionId, settings.modules) ? rq.accentHover : rq.muted, fontSize: 11, fontWeight: 900 }}>{isSectionEnabled(sectionId, settings.modules) ? 'Visible' : 'Hidden'}</span>
+                  <button type="button" onClick={() => moveSection(sectionId, -1)} disabled={index === 0} style={miniButtonStyle}><ArrowUp size={13} /></button>
+                  <button type="button" onClick={() => moveSection(sectionId, 1)} disabled={index === activeSectionOrder.length - 1} style={miniButtonStyle}><ArrowDown size={13} /></button>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section style={deviceGridStyle}>
             {devices.map(device => {
               const Icon = device.icon;
@@ -207,7 +250,7 @@ export default function AdminLayoutStudioTab() {
                 <div style={{ display: 'grid', gridTemplateColumns: preview.show_sidebar ? '140px 1fr' : '1fr', gap: 10 }}>
                   {preview.show_sidebar ? <div style={mockSidebarStyle}>Sidebar / filters</div> : null}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, Number(preview.columns) || 1)}, minmax(0, 1fr))`, gap: settings.density === 'spacious' ? 14 : settings.density === 'compact' ? 6 : 10 }}>
-                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No modules enabled</div> : enabledModules.slice(0, 6).map(key => <div key={key} style={{ ...mockCardStyle, minHeight: preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86 }}>{moduleLabels[key] || key}</div>)}
+                    {enabledModules.length === 0 ? <div style={mockCardStyle}>No modules enabled</div> : enabledModules.map(key => <div key={key} style={{ ...mockCardStyle, minHeight: preview.card_scale === 'large' ? 112 : preview.card_scale === 'compact' ? 64 : 86 }}>{sectionLabels[key] || moduleLabels[key] || key}</div>)}
                   </div>
                 </div>
               </div>
@@ -219,6 +262,24 @@ export default function AdminLayoutStudioTab() {
   );
 }
 
+function normaliseSectionOrder(order) {
+  const safe = [];
+  if (Array.isArray(order)) {
+    order.forEach(sectionId => {
+      if (defaultSectionOrder.includes(sectionId) && !safe.includes(sectionId)) safe.push(sectionId);
+    });
+  }
+  defaultSectionOrder.forEach(sectionId => {
+    if (!safe.includes(sectionId)) safe.push(sectionId);
+  });
+  return safe;
+}
+
+function isSectionEnabled(sectionId, modules = {}) {
+  if (sectionId === 'status_bar' || sectionId === 'live_workspace') return true;
+  return modules?.[sectionId] !== false;
+}
+
 function normaliseSettings(value = {}) {
   return {
     ...defaultSettings,
@@ -227,6 +288,7 @@ function normaliseSettings(value = {}) {
     tablet: { ...defaultSettings.tablet, ...(value.tablet || {}) },
     mobile: { ...defaultSettings.mobile, ...(value.mobile || {}) },
     modules: { ...defaultSettings.modules, ...(value.modules || {}) },
+    section_order: normaliseSectionOrder(value.section_order),
   };
 }
 
@@ -247,6 +309,10 @@ const inputStyle = { width: '100%', background: rq.panel, color: rq.text, border
 const textareaStyle = { minHeight: 98, background: rq.panel, color: rq.text, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: 10, resize: 'vertical', outline: 'none' };
 const moduleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 };
 const moduleToggleStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 8, color: rq.textSecondary, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '10px 12px', fontWeight: 900, cursor: 'pointer', textAlign: 'left' };
+const orderListStyle = { display: 'grid', gap: 8, marginTop: 12 };
+const orderRowStyle = { display: 'flex', alignItems: 'center', gap: 8, background: rq.panel, border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '8px 10px' };
+const orderIndexStyle = { width: 24, height: 24, display: 'grid', placeItems: 'center', background: rq.accentSoft, color: rq.text, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, fontSize: 11, fontWeight: 900 };
+const miniButtonStyle = { width: 30, height: 30, display: 'inline-grid', placeItems: 'center', background: rq.input, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, cursor: 'pointer' };
 const previewWrapStyle = { background: rq.input, border: `1px solid ${rq.border}`, borderRadius: rq.radiusSm, padding: 16 };
 const previewHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 12 };
 const smallButtonStyle = { background: rq.panel, border: `1px solid ${rq.borderDefault}`, color: rq.textSecondary, borderRadius: rq.radiusSm, padding: '8px 10px', fontWeight: 900, cursor: 'pointer' };
