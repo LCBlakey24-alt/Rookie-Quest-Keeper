@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, X, Zap } from 'lucide-react';
 import { DICE_ROLLER_MODES, normaliseDiceRollerMode } from '@/lib/diceRollerPreferences';
 import './CinematicDiceOverlay.css';
+import './DiceFormationOverlay.css';
 
 const PARTICLES = Array.from({ length: 14 }, (_, index) => index + 1);
 const SUPPORTED_DICE = [4, 6, 8, 10, 12, 20, 100];
