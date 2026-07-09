@@ -1,8 +1,11 @@
 import {
   resolveClassName,
   resolveDraftClassName,
+  resolveDraftSubclassName,
   resolvePayloadClassName,
+  resolvePayloadSubclassName,
   resolveRulesEdition,
+  resolveSubclassName,
 } from './characterDraftResolvers';
 
 const CLASSES = {
@@ -10,6 +13,8 @@ const CLASSES = {
   Warlock: {},
   'Blood Hunter': {},
 };
+
+const SUBCLASSES = ['Champion', 'Battle Master', { name: 'Eldritch Knight' }];
 
 describe('character draft resolvers', () => {
   test('resolves class names case-insensitively against known classes', () => {
@@ -39,6 +44,20 @@ describe('character draft resolvers', () => {
     expect(resolvePayloadClassName({ character_class: 'Fighter', characterClass: 'Warlock' }, CLASSES)).toBe('Fighter');
     expect(resolvePayloadClassName({ characterClass: 'Warlock' }, CLASSES)).toBe('Warlock');
     expect(resolvePayloadClassName({ class_name: 'blood hunter' }, CLASSES)).toBe('Blood Hunter');
+  });
+
+  test('resolves subclass names against the current class subclass list', () => {
+    expect(resolveSubclassName('battle master', SUBCLASSES)).toBe('Battle Master');
+    expect(resolveSubclassName({ name: 'eldritch knight' }, SUBCLASSES)).toBe('Eldritch Knight');
+    expect(resolveSubclassName('Fiend', SUBCLASSES)).toBe('');
+    expect(resolveSubclassName('', SUBCLASSES, 'Champion')).toBe('Champion');
+  });
+
+  test('reads draft and payload subclass aliases without accepting invalid stale subclasses', () => {
+    expect(resolveDraftSubclassName({ subclassName: 'battle master' }, SUBCLASSES)).toBe('Battle Master');
+    expect(resolveDraftSubclassName({ archetype: 'champion' }, SUBCLASSES)).toBe('Champion');
+    expect(resolvePayloadSubclassName({ patron: 'Fiend' }, SUBCLASSES)).toBe('');
+    expect(resolvePayloadSubclassName({ subclass: 'eldritch knight' }, SUBCLASSES)).toBe('Eldritch Knight');
   });
 
   test('normalises rules edition aliases', () => {
