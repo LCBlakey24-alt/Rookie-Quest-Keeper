@@ -287,6 +287,67 @@
   display: none !important;
 }
 
+/* Admin Layout Studio live controls. These are fed by /layout-settings. */
+#root .unified-dashboard-page > .unified-dashboard-header,
+#root .unified-dashboard-page > .unified-dashboard-status,
+#root .unified-dashboard-page > .unified-dashboard-board,
+#root .unified-dashboard-page > .dashboard-live-grid,
+#root .unified-dashboard-page > .dashboard-info-grid,
+#root .unified-dashboard-page > .dashboard-system-panel {
+  width: 100% !important;
+  max-width: var(--dashboard-admin-max-width, 1440px) !important;
+  margin-inline: auto !important;
+}
+
+#root .unified-dashboard-page.dashboard-density-compact {
+  gap: var(--dashboard-admin-gap, 7px) !important;
+}
+
+#root .unified-dashboard-page.dashboard-density-spacious {
+  gap: var(--dashboard-admin-gap, 14px) !important;
+}
+
+#root .unified-dashboard-page .dashboard-command-grid,
+#root .unified-dashboard-page .dashboard-updates-grid,
+#root .unified-dashboard-page .dashboard-info-grid,
+#root .unified-dashboard-page .dashboard-readiness-grid {
+  grid-template-columns: repeat(var(--dashboard-admin-columns, 3), minmax(0, 1fr)) !important;
+  gap: var(--dashboard-admin-gap, 10px) !important;
+}
+
+#root .unified-dashboard-page .dashboard-command-card,
+#root .unified-dashboard-page .dashboard-update-card,
+#root .unified-dashboard-page .dashboard-info-card,
+#root .unified-dashboard-page .dashboard-readiness-card {
+  min-height: var(--dashboard-admin-card-min-height, 108px) !important;
+}
+
+#root .unified-dashboard-page.dashboard-layout-compact .dashboard-muted,
+#root .unified-dashboard-page.dashboard-layout-compact .dashboard-command-card span,
+#root .unified-dashboard-page.dashboard-layout-compact .dashboard-update-card p,
+#root .unified-dashboard-page.dashboard-layout-compact .dashboard-info-card p {
+  font-size: 0.85rem !important;
+}
+
+#root .unified-dashboard-page.dashboard-layout-showcase .dashboard-section-heading h2,
+#root .unified-dashboard-page.dashboard-layout-showcase .unified-dashboard-header h1 {
+  font-size: clamp(2.7rem, 7.4vw, 5rem) !important;
+}
+
+#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-command-card,
+#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-update-card,
+#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-info-card,
+#root .unified-dashboard-page.dashboard-card-scale-compact .dashboard-readiness-card {
+  padding: 10px !important;
+}
+
+#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-command-card,
+#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-update-card,
+#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-info-card,
+#root .unified-dashboard-page.dashboard-card-scale-large .dashboard-readiness-card {
+  padding: 16px !important;
+}
+
 @media (max-width: 760px) {
   #root .unified-dashboard-page {
     padding: 10px 9px !important;
@@ -318,11 +379,6 @@
 
   #root .dashboard-section-heading h2 {
     font-size: clamp(2rem, 9vw, 2.6rem) !important;
-  }
-
-  #root .dashboard-updates-grid,
-  #root .dashboard-info-grid {
-    grid-template-columns: 1fr !important;
   }
 
   #root .dashboard-system-panel {
