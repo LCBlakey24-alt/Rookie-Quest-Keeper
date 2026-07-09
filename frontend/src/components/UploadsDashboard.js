@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Archive, BookOpen, CheckCircle2, FileText, FileUp, Map, ShieldCheck, Sparkles, UploadCloud, Wand2 } from 'lucide-react';
+import '@/styles/uploadsDashboardExperience.css';
 
 const uploadOptions = [
   {
