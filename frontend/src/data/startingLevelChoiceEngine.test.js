@@ -33,17 +33,17 @@ describe('starting level choice engine', () => {
     expect(plan.maxSpellLevel).toBeGreaterThanOrEqual(3);
   });
 
-  test('creates prepared spell plans from nested imported ability score shapes', () => {
+  test('creates prepared spell plans from nested imported ability score shapes and aliases', () => {
     expect(getSpellChoicePlan({
       className: 'Cleric',
       level: 5,
-      abilities: { abilities: { wisdom: { score: 18, source: 'import' } } },
+      abilities: { abilities: { WIS: { score: 18, source: 'import' } } },
     }).preparedTarget).toBe(9);
 
     expect(getSpellChoicePlan({
       className: 'Druid',
       level: 4,
-      abilities: { scores: { wisdom: { score: 14 } } },
+      abilities: { scores: { Wis: { score: 14 } } },
     }).preparedTarget).toBe(6);
   });
 
@@ -142,14 +142,14 @@ describe('starting level choice engine', () => {
     expect(enhanced.eldritch_invocations).toEqual(['Agonizing Blast', 'Devil’s Sight']);
   });
 
-  test('applies ASI choices to nested imported ability score shapes', () => {
+  test('applies ASI choices to nested imported ability score shapes and aliases', () => {
     const enhanced = applyStartingLevelChoicesToPayload(
       {
         name: 'Nested Hero',
         character_class: 'Rogue',
         level: 4,
-        abilityScores: { dexterity: 15, constitution: 12 },
-        abilities: { dexterity: { score: 15, label: 'DEX' }, constitution: { score: 12, label: 'CON' } },
+        abilityScores: { DEX: 15, CON: 12 },
+        abilities: { Dex: { score: 15, label: 'DEX' }, Con: { score: 12, label: 'CON' } },
         feats: [],
       },
       { 'asi-4': { mode: 'asi', abilityOne: 'dexterity', abilityTwo: 'constitution' } },
@@ -157,28 +157,28 @@ describe('starting level choice engine', () => {
       { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
     );
 
-    expect(enhanced.abilityScores.dexterity).toBe(16);
-    expect(enhanced.abilityScores.constitution).toBe(13);
-    expect(enhanced.abilities.dexterity).toEqual({ score: 16, label: 'DEX' });
-    expect(enhanced.abilities.constitution).toEqual({ score: 13, label: 'CON' });
+    expect(enhanced.abilityScores.DEX).toBe(16);
+    expect(enhanced.abilityScores.CON).toBe(13);
+    expect(enhanced.abilities.Dex).toEqual({ score: 16, label: 'DEX' });
+    expect(enhanced.abilities.Con).toEqual({ score: 13, label: 'CON' });
     expect(enhanced.dexterity).toBeUndefined();
   });
 
   test('keeps top-level and nested ability scores in sync when both are present', () => {
     const enhanced = applyStartingLevelChoicesToPayload(
       basePayload({
-        dexterity: 15,
-        abilityScores: { dexterity: 15 },
-        scores: { dexterity: { score: 15, source: 'import' } },
+        DEX: 15,
+        abilityScores: { DEX: 15 },
+        scores: { Dex: { score: 15, source: 'import' } },
       }),
       { 'asi-4': { mode: 'asi', abilityOne: 'dexterity', abilityTwo: 'dexterity' } },
       [],
       { spellPlan: {}, spells: {}, warlockPlan: null, warlock: {} },
     );
 
-    expect(enhanced.dexterity).toBe(17);
-    expect(enhanced.abilityScores.dexterity).toBe(17);
-    expect(enhanced.scores.dexterity).toEqual({ score: 17, source: 'import' });
+    expect(enhanced.DEX).toBe(17);
+    expect(enhanced.abilityScores.DEX).toBe(17);
+    expect(enhanced.scores.Dex).toEqual({ score: 17, source: 'import' });
   });
 
   test('does not save invalid stale Pact Boon or Mystic Arcanum choices', () => {
