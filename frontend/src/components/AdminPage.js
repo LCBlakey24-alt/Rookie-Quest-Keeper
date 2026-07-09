@@ -204,8 +204,8 @@ function AdminPage() {
 
   if (accessDenied) {
     return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
+      <div className="admin-mission-control-page admin-mission-control-page--denied" data-testid="admin-mission-control-page" style={pageStyle}>
+        <div className="admin-mission-control-page__container" style={containerStyle}>
           <div style={adminPanelStyle}>
             <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin access check failed</h1>
             <p style={adminSubtitleStyle}>The app could not confirm your admin access. This can happen if the browser drops the auth check for a moment.</p>
@@ -220,9 +220,9 @@ function AdminPage() {
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        <header style={heroStyle}>
+    <div className="admin-mission-control-page" data-testid="admin-mission-control-page" data-active-admin-tab={activeTab} style={pageStyle}>
+      <div className="admin-mission-control-page__container" style={containerStyle}>
+        <header className="admin-mission-control-page__hero" style={heroStyle}>
           <div style={heroMainStyle}>
             <Button onClick={() => navigate('/home')} aria-label="Back to dashboard" style={backButtonStyle}><ArrowLeft size={20} /></Button>
             <div style={{ minWidth: 0 }}>
@@ -237,7 +237,7 @@ function AdminPage() {
           </div>
         </header>
 
-        <section style={statsGridStyle} aria-label="Admin overview">
+        <section className="admin-mission-control-page__stats" style={statsGridStyle} aria-label="Admin overview">
           <StatCard label="Users" value={stats.totalUsers} icon={User} />
           <StatCard label="Campaigns" value={stats.campaigns} icon={Map} />
           <StatCard label="Characters" value={stats.characters} icon={PenTool} />
@@ -254,7 +254,7 @@ function AdminPage() {
 
         <AdminMissionBrief onOpenTab={setActiveTab} />
 
-        <section style={missionGridStyle} aria-label="Admin shortcuts and build focus">
+        <section className="admin-mission-control-page__mission-grid" style={missionGridStyle} aria-label="Admin shortcuts and build focus">
           <div style={missionPanelStyle}>
             <div style={sectionHeadingStyle}>
               <p style={eyebrowStyle}>Quick jumps</p>
@@ -276,7 +276,7 @@ function AdminPage() {
           </div>
         </section>
 
-        <section style={activeSummaryStyle} aria-live="polite">
+        <section className="admin-mission-control-page__active-summary" style={activeSummaryStyle} aria-live="polite">
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Current tool</p>
             <h2 style={activeTitleStyle}>{activeTabDetails.short}</h2>
@@ -285,7 +285,7 @@ function AdminPage() {
           <span style={statusPillStyle}><Activity size={14} /> Admin only</span>
         </section>
 
-        <nav style={tabGridStyle} role="tablist" aria-label="Admin sections">
+        <nav className="admin-mission-control-page__tabs" style={tabGridStyle} role="tablist" aria-label="Admin sections">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -310,7 +310,7 @@ function AdminPage() {
           })}
         </nav>
 
-        <section style={contentWrapStyle}>
+        <section className="admin-mission-control-page__content" style={contentWrapStyle}>
           {activeTab === 'testing' && <AdminTestingNotesTab />}
           {activeTab === 'updates' && <AdminSiteUpdatesTab />}
           {activeTab === 'layout' && <AdminLayoutStudioTab />}
@@ -319,7 +319,7 @@ function AdminPage() {
           {activeTab === 'feedback' && <AdminFeedbackTab />}
           {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} busyId={reviewBusyId} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
           {activeTab === 'rules' && <RuleSystemManager />}
-          {activeTab === 'templates' && <div style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}
+          {activeTab === 'templates' && <div className="admin-mission-control-page__templates-panel" style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}
           {activeTab === 'users' && <AdminUsersTab />}
           {activeTab === 'site' && <AdminSiteControlTab />}
         </section>
@@ -414,7 +414,7 @@ function ReviewsPanel({ reviews, busyId, onToggleReview, onDeleteReview }) {
   const visibleCount = reviews.filter(review => review.is_approved).length;
 
   return (
-    <div style={adminPanelStyle}>
+    <div className="admin-mission-control-page__reviews-panel" style={adminPanelStyle}>
       <div style={reviewHeaderStyle}>
         <div>
           <h2 style={reviewTitleStyle}><Star size={20} />User Reviews</h2>
