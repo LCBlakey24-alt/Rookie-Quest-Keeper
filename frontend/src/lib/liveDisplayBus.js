@@ -163,8 +163,8 @@ export function publishDisplayState(campaignId, state) {
     // Ignore local event failures; BroadcastChannel/storage polling still apply.
   }
   try {
-    if ('BroadcastChannel' in runtimeWindow) {
-      const channel = new BroadcastChannel(channelName(campaignId));
+    if (runtimeWindow.BroadcastChannel) {
+      const channel = new runtimeWindow.BroadcastChannel(channelName(campaignId));
       channel.postMessage(safeState);
       channel.close();
     }
@@ -220,8 +220,8 @@ export function subscribeDisplayState(campaignId, onState) {
   };
 
   try {
-    if ('BroadcastChannel' in runtimeWindow) {
-      const channel = new BroadcastChannel(channelName(campaignId));
+    if (runtimeWindow.BroadcastChannel) {
+      const channel = new runtimeWindow.BroadcastChannel(channelName(campaignId));
       channel.onmessage = (event) => {
         if (!event.data) return;
         applyState(event.data);
@@ -267,6 +267,8 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   let socket = null;
   let reconnectTimer = null;
   let pingTimer = null;
+  let reconnectAttempts = 0;
+  let remoteReadInFlight = false;
 
   const applyRemoteState = (state) => {
     if (cancelled || !state?.updated_at) return;
@@ -281,11 +283,15 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
   };
 
   const readRemoteState = async () => {
+    if (cancelled || remoteReadInFlight) return;
+    remoteReadInFlight = true;
     try {
       const state = await loadRemoteDisplayState(campaignId);
       applyRemoteState(state);
     } catch {
       // Same-browser local display sync remains available when remote sync fails.
+    } finally {
+      remoteReadInFlight = false;
     }
   };
 
@@ -294,14 +300,25 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
     pingTimer = null;
   };
 
+  const scheduleReconnect = () => {
+    if (cancelled || reconnectTimer) return;
+    const delay = Math.min(15000, 1500 * (2 ** Math.min(reconnectAttempts, 3)));
+    reconnectAttempts += 1;
+    reconnectTimer = runtimeWindow.setTimeout(() => {
+      reconnectTimer = null;
+      connectSocket();
+    }, delay);
+  };
+
   const connectSocket = () => {
-    if (cancelled || typeof WebSocket === 'undefined') return;
+    if (cancelled || !runtimeWindow.WebSocket) return;
     const url = websocketUrl(campaignId);
     if (!url) return;
 
     try {
-      socket = new WebSocket(url);
+      socket = new runtimeWindow.WebSocket(url);
       socket.onopen = () => {
+        reconnectAttempts = 0;
         clearSocketTimers();
         pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
@@ -322,10 +339,10 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
       };
       socket.onclose = () => {
         clearSocketTimers();
-        if (!cancelled) reconnectTimer = runtimeWindow.setTimeout(connectSocket, 2500);
+        scheduleReconnect();
       };
     } catch {
-      if (!cancelled) reconnectTimer = runtimeWindow.setTimeout(connectSocket, 2500);
+      scheduleReconnect();
     }
   };
 
