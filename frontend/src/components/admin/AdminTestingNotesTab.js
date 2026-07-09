@@ -18,7 +18,7 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-const statuses = ['new', 'reviewing', 'planned', 'done', 'dismissed'];
+const statuses = ['new', 'reviewing', 'planned', 'in_progress', 'done', 'dismissed'];
 const statusFilters = ['all', ...statuses];
 const priorities = ['low', 'normal', 'high', 'urgent'];
 
@@ -62,7 +62,7 @@ export default function AdminTestingNotesTab() {
     total: testingItems.length,
     showing: filteredTestingItems.length,
     new: testingItems.filter(item => (item.status || 'new') === 'new').length,
-    active: testingItems.filter(item => ['reviewing', 'planned'].includes(item.status)).length,
+    active: testingItems.filter(item => ['reviewing', 'planned', 'in_progress'].includes(item.status)).length,
     done: testingItems.filter(item => item.status === 'done').length,
   }), [testingItems, filteredTestingItems]);
 
