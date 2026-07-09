@@ -125,7 +125,7 @@ export default function CinematicDiceOverlay({
           {PARTICLES.map(index => <span key={index} className={`rq-cinematic-roll__particle rq-cinematic-roll__particle--${index}`} />)}
         </div>
 
-        <div className="rq-cinematic-roll__dice-line" aria-hidden="true" data-testid="cinematic-dice-formation" data-dice-count={displayDice.length}>
+        <div className="rq-cinematic-roll__dice-line" aria-hidden="true" data-testid="cinematic-dice-formation" data-dice-count={displayDice.length} style={{ '--rq-dice-count': displayDice.length }}>
           {displayDice.map((die, index) => <DieShape key={die.id} die={{ ...die, index }} isPrimary={index === 0} />)}
         </div>
 
