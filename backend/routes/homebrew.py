@@ -51,6 +51,7 @@ CONTENT_TYPE_ALIASES = {
     "custom rule": "custom_rule",
     "sub-class": "subclass",
     "sub class": "subclass",
+    "sub_class": "subclass",
 }
 
 COLLECTION = {
