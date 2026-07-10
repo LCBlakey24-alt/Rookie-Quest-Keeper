@@ -7,22 +7,18 @@ export const FIGHTER_SUBCLASS_OPTIONS = [
     value: 'Champion',
     label: 'Champion',
     key: 'champion',
-    summary: 'Simple, reliable martial features with improved critical hits.',
+    summary: 'Public-license Fighter subclass support with simple, reliable martial features.',
     rulesets: ['2014', '2024'],
+    supportedAutomation: true,
   },
   {
-    value: 'Battle Master',
-    label: 'Battle Master',
-    key: 'battle_master',
-    summary: 'Tactical maneuvers powered by superiority dice.',
+    value: 'Custom Fighter Subclass',
+    label: 'Custom / user-added subclass',
+    key: 'custom_fighter_subclass',
+    summary: 'Record your own subclass name or official option without built-in automation.',
     rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Eldritch Knight',
-    label: 'Eldritch Knight',
-    key: 'eldritch_knight',
-    summary: 'A weapon-focused Fighter with limited spellcasting support.',
-    rulesets: ['2014', '2024'],
+    supportedAutomation: false,
+    custom: true,
   },
 ];
 
@@ -36,6 +32,12 @@ function toChoiceLabel(choiceType = '') {
 
 function normaliseSelection(value = '') {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function normaliseSelectionList(values = []) {
+  return (Array.isArray(values) ? values : [])
+    .map(normaliseSelection)
+    .filter(Boolean);
 }
 
 function buildChoiceSummary(choice) {
@@ -56,7 +58,7 @@ function buildChoiceSummary(choice) {
     return { ...base, count: choice.choices || 0, helperText: `Choose ${choice.choices || 0} Weapon Mastery option${choice.choices === 1 ? '' : 's'}.` };
   }
   if (choice.choiceType === 'subclass') {
-    return { ...base, helperText: 'Choose a Fighter subclass.' };
+    return { ...base, helperText: 'Choose Champion for built-in public-license automation, or record a custom/user-added Fighter subclass.' };
   }
   return { ...base, helperText: `Choose ${toChoiceLabel(choice.choiceType)}.` };
 }
@@ -71,6 +73,8 @@ export function getFighterSubclassOptions(edition = '2014') {
       key: option.key,
       summary: option.summary,
       ruleset,
+      supportedAutomation: option.supportedAutomation,
+      custom: Boolean(option.custom),
     }));
 }
 
@@ -123,11 +127,17 @@ export function validateFighterBuilderSelections({ level = 1, edition = '2014', 
   }
 
   if (options.needsSubclass && !isValidFighterSubclass(subclass, edition)) {
-    errors.push('Choose a Fighter subclass.');
+    errors.push('Choose or record a Fighter subclass.');
   }
 
-  if (options.weaponMasteryChoices > 0 && weaponMasteries.length !== options.weaponMasteryChoices) {
+  const normalizedMasteries = normaliseSelectionList(weaponMasteries);
+
+  if (options.weaponMasteryChoices > 0 && normalizedMasteries.length !== options.weaponMasteryChoices) {
     errors.push(`Choose ${options.weaponMasteryChoices} Weapon Mastery option${options.weaponMasteryChoices === 1 ? '' : 's'}.`);
+  }
+
+  if (options.weaponMasteryChoices > 0 && new Set(normalizedMasteries).size !== normalizedMasteries.length) {
+    errors.push('Choose unique Weapon Mastery options.');
   }
 
   if (options.weaponMasteryChoices > 0 && weaponMasteries.some(mastery => !isValidFighterWeaponMastery(mastery, edition))) {

@@ -81,7 +81,7 @@ const CLASS_PROTOTYPES = [
     className: 'Fighter',
     name: 'Garrick Ironhand',
     race: 'Human',
-    subclass: 'Battle Master',
+    subclass: 'Champion',
     level: 5,
     hitDie: '5d10',
     hp: [41, 49, 0],
@@ -89,7 +89,6 @@ const CLASS_PROTOTYPES = [
     resources: {
       second_wind: { label: 'Second Wind', remaining: 0, current: 0, max: 1, restore: 'short-rest' },
       action_surge: { label: 'Action Surge', remaining: 0, current: 0, max: 1, restore: 'short-rest' },
-      superiority_dice: { label: 'Superiority Dice', remaining: 2, current: 2, max: 4, restore: 'short-rest' },
     },
     skills: ['Athletics', 'Perception', 'History'],
     saves: ['strength', 'constitution'],

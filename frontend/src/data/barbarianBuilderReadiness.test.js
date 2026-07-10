@@ -50,3 +50,15 @@ describe('Barbarian builder readiness', () => {
     expect(readiness.errors).toContain('Choose valid Weapon Mastery options.');
   });
 });
+
+
+test('accepts custom Barbarian subclass records while keeping missing subclass validation', () => {
+  const readiness = getBarbarianBuilderReadiness({
+    level: 3,
+    edition: '2014',
+    subclass: 'Custom Barbarian Subclass',
+  });
+
+  expect(readiness.ready).toBe(true);
+  expect(readiness.errors).toEqual([]);
+});

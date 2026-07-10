@@ -76,6 +76,7 @@ export default function CreatorSpellDropdownPicker({
   characterClass,
   scores = {},
   level = 1,
+  ruleset = '2014',
   cantripLimit = 0,
   spellLimit = 0,
   selectedCantrips = [],
@@ -89,7 +90,7 @@ export default function CreatorSpellDropdownPicker({
   const preparedCaster = isCreatorPreparedCaster(characterClass);
   const preparedLimit = preparedCaster ? getCreatorPreparedSpellTarget(characterClass, scores, level) : 0;
   const listLabel = getCreatorSpellListLabel(characterClass);
-  const pools = useMemo(() => getCreatorAvailableSpellPools(characterClass, search), [characterClass, search]);
+  const pools = useMemo(() => getCreatorAvailableSpellPools(characterClass, search, ruleset), [characterClass, search, ruleset]);
   const cantripDetail = findSpellByName(pools.cantrips, selectedCantripName);
   const spellDetail = findSpellByName(pools.levelOneSpells, selectedSpellName);
   const cleanPrepared = prunePreparedToLearned(learnedSpells, preparedSpells);

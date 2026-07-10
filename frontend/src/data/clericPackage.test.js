@@ -41,7 +41,7 @@ describe('Cleric package exports', () => {
     const status = clericPackage.getClericFinalStatus({
       level: 7,
       edition: '2024',
-      subclass: 'War Domain',
+      subclass: 'Life Domain',
       divineOrder: 'Protector',
       blessedStrikes: 'Divine Strike',
       preparedSpells: ['Guiding Bolt'],
@@ -49,7 +49,7 @@ describe('Cleric package exports', () => {
         character_class: 'Cleric',
         level: 7,
         rules_edition: '2024',
-        subclass: 'War Domain',
+        subclass: 'Life Domain',
         divineOrder: 'Protector',
         blessedStrikes: 'Divine Strike',
         preparedSpells: ['Guiding Bolt'],
@@ -58,7 +58,7 @@ describe('Cleric package exports', () => {
 
     expect(status.ready).toBe(true);
     expect(status.errors).toEqual([]);
-    expect(status.choiceSummary.subclass.key).toBe('war_domain');
+    expect(status.choiceSummary.subclass.key).toBe('life_domain');
     expect(status.choiceSummary.divineOrder.key).toBe('protector');
     expect(status.choiceSummary.blessedStrikes.key).toBe('divine_strike');
     expect(status.sheetSummary.divineOrderLabel).toBe('Protector');
@@ -70,7 +70,7 @@ describe('Cleric package exports', () => {
 
     expect(status.ready).toBe(false);
     expect(status.errors).toEqual(expect.arrayContaining([
-      'Choose a Cleric subclass.',
+      'Choose or record a Cleric subclass.',
       'Choose a Divine Order.',
       'Choose a Blessed Strikes option.',
     ]));
@@ -83,13 +83,13 @@ describe('Cleric package exports', () => {
         level: 12,
         class_levels: { Fighter: 7, Cleric: 5 },
         rules_edition: '2014',
-        cleric_subclass: 'Light Domain',
+        cleric_subclass: 'Custom Cleric Subclass',
       },
     });
 
     expect(status.level).toBe(5);
     expect(status.ready).toBe(true);
     expect(status.sheetSummary.level).toBe(5);
-    expect(status.sheetSummary.subclassKey).toBe('light_domain');
+    expect(status.sheetSummary.subclassKey).toBe('custom_cleric_subclass');
   });
 });

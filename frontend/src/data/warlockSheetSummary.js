@@ -6,6 +6,10 @@ import { getWarlockBuilderSelectionList } from './warlockBuilderOptions';
 
 const normaliseRuleset = (character = {}) => String(character?.rules_edition || character?.ruleset_id || '').includes('2024') ? '2024' : '2014';
 const joinSelection = (value, fallback = '') => Array.isArray(value) ? value.filter(Boolean).join(', ') : value || fallback;
+const joinSelectionOrFallback = (value, fallback = '') => {
+  const joined = joinSelection(value, '');
+  return joined || fallback;
+};
 const getSubclassName = (character = {}) => character?.subclass || character?.warlock_subclass || character?.warlockSubclass || character?.patron || character?.warlockPatron || '';
 
 function getPactMagicLabel(progression = {}) {
@@ -45,7 +49,7 @@ export function getWarlockSheetSummary(character = {}) {
     pactMagicSlotLevel: progression.pactMagicSlotLevel,
     pactMagicLabel: getPactMagicLabel(progression),
     invocationCount: progression.invocationCount,
-    invocationsLabel: joinSelection(selections.invocations, progression.invocationCount > 0 ? `Choose ${progression.invocationCount} Eldritch Invocation${progression.invocationCount === 1 ? '' : 's'}` : 'None yet'),
+    invocationsLabel: joinSelectionOrFallback(selections.invocations, progression.invocationCount > 0 ? `Choose ${progression.invocationCount} Eldritch Invocation${progression.invocationCount === 1 ? '' : 's'}` : 'None yet'),
     mysticArcanumLevels: progression.mysticArcanumLevels,
     mysticArcanumLabel: getMysticArcanumLabel(progression.mysticArcanumLevels),
     currentLevelFeatures: progression.currentLevelFeatures,

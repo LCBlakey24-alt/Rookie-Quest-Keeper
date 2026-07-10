@@ -2,6 +2,8 @@
 
 This tracker is developer-facing. Its purpose is to prevent silent incomplete character saves across Full Creation, Basic Build, Premade Characters, Kids Mode, the character sheet, and backend persistence.
 
+For the recommended long-term structure for spell, feat, species, class, and ruleset data, see [Rules Data Architecture](./RULES_DATA_ARCHITECTURE.md).
+
 Status key:
 
 - **Complete** — implemented and saved/displayed reliably for the current supported scope.
@@ -251,3 +253,4 @@ Status key:
 - Text/list starting equipment is better than nothing, but structured equipment is still the goal for AC, attacks, and inventory quality.
 - Premade and Kids Mode should show friendly warnings/defaults when template/rules data is missing instead of silently creating thin sheets.
 - Continue using Velvet Tabletop tokens for UI work. This tracker does not change app styling or logic.
+- Homebrew/private sharing model: see [Homebrew Content Sharing Model](./HOMEBREW_CONTENT_SHARING.md) for user-provided subclasses, monsters, and content packs.

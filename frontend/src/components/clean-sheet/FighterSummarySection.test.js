@@ -15,11 +15,11 @@ describe('FighterSummarySection', () => {
     expect(screen.getByText('18–20')).toBeInTheDocument();
   });
 
-  test('renders Battle Master summary from class level maps', () => {
+  test('renders unsupported notice for recorded non-public Fighter subclasses', () => {
     render(<FighterSummarySection character={{ character_class: 'Fighter', subclass: 'Battle Master', level: 17, class_levels: { fighter: 7 }, rules_edition: '2014' }} />);
 
-    expect(screen.getByText('Battle Master Features')).toBeInTheDocument();
-    expect(screen.getByText('d8')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Fighter Subclass Support')).toBeInTheDocument();
+    expect(screen.getByText('Battle Master')).toBeInTheDocument();
+    expect(screen.getByText(/detailed sheet automation is still being wired/i)).toBeInTheDocument();
   });
 });

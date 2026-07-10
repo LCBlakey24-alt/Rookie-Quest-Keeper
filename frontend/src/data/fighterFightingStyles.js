@@ -18,7 +18,6 @@ export const FIGHTER_FIGHTING_STYLES_2024 = [
   { key: 'great_weapon_fighting', name: 'Great Weapon Fighting', ruleset: '2024', description: 'Treat damage die results of 1 or 2 as 3 for heavy melee weapons.' },
   { key: 'interception', name: 'Interception', ruleset: '2024', description: 'Use a reaction to reduce damage dealt to a nearby ally.' },
   { key: 'protection', name: 'Protection', ruleset: '2024', description: 'Use a reaction with a shield to protect a nearby ally from an attack.' },
-  { key: 'superior_technique', name: 'Superior Technique', ruleset: '2024', description: 'Learn one Battle Master maneuver and gain one superiority die.' },
   { key: 'thrown_weapon_fighting', name: 'Thrown Weapon Fighting', ruleset: '2024', description: 'Draw thrown weapons as part of the attack and add damage with thrown weapons.' },
   { key: 'two_weapon_fighting', name: 'Two-Weapon Fighting', ruleset: '2024', description: 'Add your ability modifier to the damage of your extra attack with a light weapon.' },
   { key: 'unarmed_fighting', name: 'Unarmed Fighting', ruleset: '2024', description: 'Improve unarmed strike damage and grappling pressure.' },
