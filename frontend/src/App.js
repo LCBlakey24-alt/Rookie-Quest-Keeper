@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
 // Style layering: base app/design styles first, route-specific legacy themes next,
 // board/layout safety layers after that, then the current Twilight Keeper brand layer last.
@@ -141,6 +141,11 @@ function PrototypeRoute({ children }) {
   return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
 }
 
+function CampaignLiveRedirect() {
+  const { campaignId } = useParams();
+  return <Navigate to={`/gm-screen/${campaignId}`} replace />;
+}
+
 function ThemeRouter() {
   const location = useLocation();
   const { setTheme } = useTheme();
@@ -190,6 +195,7 @@ function AppRoutes() {
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
