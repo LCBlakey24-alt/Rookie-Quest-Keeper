@@ -1,16 +1,20 @@
 /* Responsive Sunset Layout System
-   Source of truth for mobile/tablet/desktop layout guardrails.
-   Mobile: <=719px, Tablet: 720px-1179px, Desktop: >=1180px. */
+   Source of truth for route-level device guardrails.
+   Mobile: <=719px, Tablet landscape: 720px-1179px, Desktop browser: >=1180px. */
 
 :root {
   --rq-layout-mobile-max: 719px;
-  --rq-layout-tablet-min: 720px;
+  --rq-layout-tablet-landscape-min: 720px;
+  --rq-layout-tablet-landscape-max: 1179px;
   --rq-layout-desktop-min: 1180px;
   --rq-layout-page-max: 1680px;
   --rq-layout-reading-max: 1120px;
   --rq-layout-sidebar-width: 320px;
   --rq-layout-page-padding: clamp(12px, 3vw, 28px);
   --rq-layout-card-gap: clamp(12px, 2vw, 20px);
+  --rq-lane-mobile-review-width: 390px;
+  --rq-lane-tablet-landscape-review-width: 1024px;
+  --rq-lane-desktop-review-width: 1440px;
 
   /* Final sunset token lock. This sits after older one-off theme imports. */
   --rq-bg: #070713;
@@ -150,6 +154,120 @@
   height: 2px;
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
+}
+
+/* Route families: every visible app area should inherit the same page geometry and theme. */
+:where(
+  [data-testid='landing-page'],
+  .landing-page,
+  .rqk-auth-page,
+  .auth-page,
+  .unified-dashboard,
+  .dashboard-page,
+  .my-characters-page,
+  .characters-page,
+  .character-import-page,
+  .character-mode-page,
+  .full-creator-page,
+  .character-page-v2,
+  .clean-sheet-page,
+  .my-campaigns-page,
+  .campaigns-page,
+  .campaign-dashboard,
+  .campaign-dashboard-page,
+  .gm-dashboard-shell,
+  .homebrew-workshop-page,
+  [data-testid='homebrew-workshop'],
+  .uploads-dashboard-page,
+  .admin-page,
+  .admin-panel,
+  .account-page,
+  .combat-page,
+  .mobile-player-campaign-view,
+  .prototype-page
+) {
+  min-width: 0;
+  color: var(--rq-text-primary, #ffffff);
+}
+
+:where(
+  .unified-dashboard,
+  .dashboard-page,
+  .my-characters-page,
+  .characters-page,
+  .character-import-page,
+  .character-mode-page,
+  .full-creator-page,
+  .character-page-v2,
+  .clean-sheet-page,
+  .my-campaigns-page,
+  .campaign-dashboard,
+  .campaign-dashboard-page,
+  .gm-dashboard-shell,
+  .homebrew-workshop-page,
+  [data-testid='homebrew-workshop'],
+  .uploads-dashboard-page,
+  .admin-page,
+  .account-page
+) :where(section, article, aside, form, header, footer, main, div) {
+  min-width: 0;
+}
+
+:where(
+  .dashboard-grid,
+  .dashboard-command-grid,
+  .character-library-grid,
+  .characters-grid,
+  .campaign-library-grid,
+  .campaigns-grid,
+  .homebrew-grid,
+  .uploads-dashboard-grid,
+  .admin-grid,
+  .full-creator-grid,
+  .full-creator-body,
+  .character-mode-grid,
+  .clean-sheet-grid,
+  .clean-sheet-main,
+  .campaign-dashboard-grid,
+  .gm-dashboard-grid
+) {
+  display: grid;
+  gap: var(--rq-layout-card-gap);
+  min-width: 0;
+}
+
+:where(
+  .dashboard-hero,
+  .unified-dashboard-hero,
+  .library-page-hero,
+  .characters-library-hero,
+  .campaigns-library-hero,
+  .homebrew-workshop-hero,
+  .uploads-dashboard-hero,
+  .character-mode-hero,
+  .full-creator-header,
+  .clean-sheet-header,
+  .campaign-dashboard-header,
+  .gm-dashboard-header
+) {
+  min-width: 0;
+}
+
+:where(
+  .dashboard-hero-actions,
+  .library-page-actions,
+  .character-library-actions,
+  .campaign-library-actions,
+  .homebrew-workshop-actions,
+  .uploads-dashboard-actions,
+  .full-creator-footer,
+  .clean-sheet-mobile-tools,
+  .gm-dashboard-actions
+) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 /* Late visual guardrails for older class names still used around the app. */
@@ -375,61 +493,207 @@ html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:active {
     radial-gradient(ellipse at 80% 20%, rgba(255, 149, 66, 0.08) 0%, transparent 40%) !important;
 }
 
-/* Mobile layout: one column, thumb-friendly, never trapped. */
+/* Mobile layout lane: one column, thumb-friendly, never trapped. */
 @media (max-width: 719px) {
   :root {
+    --rq-layout-current-lane: 'mobile';
     --rq-layout-page-padding: 12px;
     --rq-layout-card-gap: 12px;
+  }
+
+  html,
+  body,
+  #root {
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .rqk-layout-card-grid,
   .rqk-layout-dashboard-grid,
   .rqk-layout-tool-grid,
-  .rqk-layout-sidebar {
-    grid-template-columns: minmax(0, 1fr);
+  .rqk-layout-sidebar,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .full-creator-grid,
+    .full-creator-body,
+    .character-mode-grid,
+    .clean-sheet-grid,
+    .clean-sheet-main,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .rqk-layout-actions {
-    align-items: stretch;
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
   }
 
-  .rqk-layout-actions > * {
+  .rqk-layout-actions,
+  :where(
+    .dashboard-hero-actions,
+    .library-page-actions,
+    .character-library-actions,
+    .campaign-library-actions,
+    .homebrew-workshop-actions,
+    .uploads-dashboard-actions,
+    .full-creator-footer,
+    .clean-sheet-mobile-tools,
+    .gm-dashboard-actions
+  ) {
+    align-items: stretch !important;
+  }
+
+  .rqk-layout-actions > *,
+  :where(
+    .dashboard-hero-actions,
+    .library-page-actions,
+    .character-library-actions,
+    .campaign-library-actions,
+    .homebrew-workshop-actions,
+    .uploads-dashboard-actions,
+    .full-creator-footer,
+    .clean-sheet-mobile-tools,
+    .gm-dashboard-actions
+  ) > * {
     flex: 1 1 100%;
     min-height: 44px;
   }
+
+  :where(table, .table, .data-table, .rules-table, .admin-table, .character-table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-/* Tablet layout: labelled rail, two-column summaries, stacked dense tools. */
+/* Tablet landscape lane: labelled rail, two-column summaries, stacked dense tools. */
 @media (min-width: 720px) and (max-width: 1179px) {
   :root {
+    --rq-layout-current-lane: 'tablet-landscape';
     --rq-layout-page-padding: clamp(16px, 2.4vw, 24px);
     --rq-layout-card-gap: 16px;
   }
 
   .rqk-layout-dashboard-grid,
-  .rqk-layout-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .rqk-layout-card-grid,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .character-mode-grid
+  ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .rqk-layout-tool-grid,
-  .rqk-layout-sidebar {
-    grid-template-columns: minmax(0, 1fr);
+  .rqk-layout-sidebar,
+  :where(
+    .full-creator-grid,
+    .full-creator-body,
+    .clean-sheet-grid,
+    .clean-sheet-main,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .rqk-layout-hero {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .rqk-layout-hero,
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    gap: 14px !important;
   }
 }
 
-/* Desktop layout: professional workspace with optional side context. */
+@media (min-width: 900px) and (max-width: 1179px) and (orientation: landscape) {
+  :root {
+    --rq-layout-current-lane: 'tablet-landscape-wide';
+  }
+
+  :where(
+    .full-creator-body,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.8fr) !important;
+  }
+
+  :where(
+    .clean-sheet-main,
+    .clean-sheet-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Desktop browser lane: professional workspace with optional side context. */
 @media (min-width: 1180px) {
   :root {
+    --rq-layout-current-lane: 'desktop-browser';
     --rq-layout-page-padding: clamp(20px, 2.4vw, 40px);
     --rq-layout-card-gap: clamp(16px, 1.6vw, 24px);
   }
 
-  .rqk-layout-dashboard-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .rqk-layout-dashboard-grid,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .character-mode-grid
+  ) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   .rqk-layout-card-grid,
@@ -437,11 +701,33 @@ html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:active {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 
-  .rqk-layout-sidebar {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, var(--rq-layout-sidebar-width));
+  .rqk-layout-sidebar,
+  :where(
+    .full-creator-body,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, var(--rq-layout-sidebar-width)) !important;
   }
 
-  .rqk-layout-hero {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .rqk-layout-hero,
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    gap: 16px !important;
   }
 }
