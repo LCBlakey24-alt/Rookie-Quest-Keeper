@@ -10,19 +10,21 @@ describe('Druid subclass helpers', () => {
   test('normalises Druid circle names', () => {
     expect(getDruidSubclassKey('Circle of the Land')).toBe('land');
     expect(getDruidSubclassKey('Circle of Moon')).toBe('moon');
-    expect(getDruidSubclassKey('Druid Circle of Stars')).toBe('stars');
+    expect(getDruidSubclassKey('Custom Druid Subclass')).toBe('custom_druid_subclass');
   });
 
   test('returns 2014 Druid circle options', () => {
     const options = getDruidSubclassOptions('2014');
     const keys = options.map(option => option.key);
 
-    expect(keys).toEqual(expect.arrayContaining(['land', 'moon', 'dreams', 'shepherd', 'spores', 'wildfire']));
+    expect(keys).toEqual(['land', 'custom_druid_subclass']);
     expect(keys).not.toContain('sea');
-    expect(options.find(option => option.key === 'moon')).toMatchObject({
-      label: 'Circle of the Moon',
-      role: 'Wild Shape bruiser',
+    expect(options.find(option => option.key === 'custom_druid_subclass')).toMatchObject({
+      label: 'Custom / user-added subclass',
+      role: 'User-provided Druid circle',
       ruleset: '2014',
+      custom: true,
+      supportedAutomation: false,
     });
   });
 
@@ -30,34 +32,35 @@ describe('Druid subclass helpers', () => {
     const options = getDruidSubclassOptions('2024');
     const keys = options.map(option => option.key);
 
-    expect(keys).toEqual(expect.arrayContaining(['land', 'moon', 'sea', 'stars']));
+    expect(keys).toEqual(['land', 'custom_druid_subclass']);
     expect(keys).not.toContain('dreams');
-    expect(options.find(option => option.key === 'sea')).toMatchObject({
-      label: 'Circle of the Sea',
-      role: 'Elemental skirmisher',
+    expect(options.find(option => option.key === 'land')).toMatchObject({
+      label: 'Circle of the Land',
+      role: 'Prepared nature caster',
       ruleset: '2024',
+      supportedAutomation: true,
     });
   });
 
   test('finds subclasses by key or label', () => {
-    expect(getDruidSubclassByKey('moon', '2014')).toMatchObject({ key: 'moon' });
+    expect(getDruidSubclassByKey('Custom Druid Subclass', '2014')).toMatchObject({ key: 'custom_druid_subclass' });
     expect(getDruidSubclassByKey('Circle of the Land', '2024')).toMatchObject({ key: 'land' });
     expect(getDruidSubclassByKey('sea', '2014')).toBeNull();
   });
 
   test('reports subclass availability by edition', () => {
-    expect(isDruidSubclassAvailable('Circle of Spores', '2014')).toBe(true);
+    expect(isDruidSubclassAvailable('Circle of Spores', '2014')).toBe(false);
     expect(isDruidSubclassAvailable('Circle of Spores', '2024')).toBe(false);
-    expect(isDruidSubclassAvailable('Circle of the Sea', '2024')).toBe(true);
+    expect(isDruidSubclassAvailable('Custom Druid Subclass', '2024')).toBe(true);
   });
 
   test('summarises 2014 subclass features by level', () => {
-    const summary = getDruidSubclassSummary('Circle of the Moon', 6, '2014');
+    const summary = getDruidSubclassSummary('Circle of the Land', 6, '2014');
 
     expect(summary).toMatchObject({
-      key: 'moon',
-      label: 'Circle of the Moon',
-      role: 'Wild Shape bruiser',
+      key: 'land',
+      label: 'Circle of the Land',
+      role: 'Prepared nature caster',
       ruleset: '2014',
       supportedInRuleset: true,
     });
@@ -66,11 +69,11 @@ describe('Druid subclass helpers', () => {
   });
 
   test('summarises 2024 subclass features by level', () => {
-    const summary = getDruidSubclassSummary('sea', 3, '2024');
+    const summary = getDruidSubclassSummary('land', 3, '2024');
 
     expect(summary).toMatchObject({
-      key: 'sea',
-      label: 'Circle of the Sea',
+      key: 'land',
+      label: 'Circle of the Land',
       ruleset: '2024',
       supportedInRuleset: true,
     });
@@ -86,7 +89,7 @@ describe('Druid subclass helpers', () => {
       label: 'Circle of Homebrew Spores',
       supportedInRuleset: false,
     });
-    expect(summary.activeFeatures.map(feature => feature.level)).toEqual([3, 6, 10]);
-    expect(summary.nextFeatures.map(feature => feature.level)).toEqual([14]);
+    expect(summary.activeFeatures).toEqual([]);
+    expect(summary.nextFeatures).toEqual([]);
   });
 });

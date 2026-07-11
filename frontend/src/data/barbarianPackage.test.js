@@ -16,8 +16,8 @@ describe('completed Barbarian package', () => {
   });
 
   test('exposes readiness and final status helpers', () => {
-    const readiness = getBarbarianBuilderReadiness({ level: 3, edition: '2014', subclass: 'Path of the Berserker' });
-    const status = getBarbarianFinalStatus({ character: { character_class: 'Barbarian', level: 3 }, level: 3, edition: '2014', subclass: 'Path of the Berserker' });
+    const readiness = getBarbarianBuilderReadiness({ level: 3, edition: '2014', subclass: 'Custom Barbarian Subclass' });
+    const status = getBarbarianFinalStatus({ character: { character_class: 'Barbarian', level: 3 }, level: 3, edition: '2014', subclass: 'Custom Barbarian Subclass' });
 
     expect(readiness.ready).toBe(true);
     expect(status.ready).toBe(true);

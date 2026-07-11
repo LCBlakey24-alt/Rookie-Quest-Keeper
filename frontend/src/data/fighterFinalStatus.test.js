@@ -25,6 +25,20 @@ describe('Fighter final status', () => {
     expect(status.missingSections).toEqual([]);
   });
 
+
+  test('allows public-safe custom subclass records to complete level 3 readiness', () => {
+    const status = getFighterFinalStatus({
+      character: { character_class: 'Fighter', level: 3, subclass: 'Custom Fighter Subclass' },
+      level: 3,
+      edition: '2014',
+      fightingStyle: 'Archery',
+      subclass: 'Custom Fighter Subclass',
+    });
+
+    expect(status.ready).toBe(true);
+    expect(status.sheetSummary.isUnsupportedSubclass).toBe(true);
+  });
+
   test('passes through 2024 mastery readiness', () => {
     const status = getFighterFinalStatus({
       character: { character_class: 'Fighter', level: 1 },

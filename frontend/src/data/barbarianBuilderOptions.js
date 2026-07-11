@@ -6,36 +6,42 @@ export const BARBARIAN_SUBCLASS_OPTIONS = [
     value: 'Path of the Berserker',
     label: 'Path of the Berserker',
     key: 'berserker',
-    summary: 'A direct, aggressive Barbarian focused on overwhelming rage-fuelled attacks.',
+    summary: 'Public-license Barbarian subclass support focused on direct rage-fuelled attacks.',
     rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Path of the Totem Warrior',
-    label: 'Path of the Totem Warrior',
-    key: 'totem_warrior',
-    summary: 'A spirit-guided Barbarian with animal-themed resilience and utility.',
-    rulesets: ['2014'],
+    supportedAutomation: true,
   },
   {
     value: 'Path of the Wild Heart',
     label: 'Path of the Wild Heart',
     key: 'wild_heart',
-    summary: 'A nature-bonded Barbarian that channels primal animal traits.',
+    summary: 'Public-license 2024 Barbarian subclass support for primal animal aspects.',
     rulesets: ['2024'],
+    supportedAutomation: true,
   },
   {
     value: 'Path of the World Tree',
     label: 'Path of the World Tree',
     key: 'world_tree',
-    summary: 'A protective Barbarian connected to world-spanning primal magic.',
+    summary: 'Public-license 2024 Barbarian subclass support for protection and repositioning.',
     rulesets: ['2024'],
+    supportedAutomation: true,
   },
   {
     value: 'Path of the Zealot',
     label: 'Path of the Zealot',
     key: 'zealot',
-    summary: 'A divinely driven Barbarian with relentless battle fervour.',
+    summary: 'Public-license 2024 Barbarian subclass support for divine battle fervour.',
     rulesets: ['2024'],
+    supportedAutomation: true,
+  },
+  {
+    value: 'Custom Barbarian Subclass',
+    label: 'Custom / user-added subclass',
+    key: 'custom_barbarian_subclass',
+    summary: 'Record your own Barbarian subclass or accepted homebrew without built-in app-provided automation.',
+    rulesets: ['2014', '2024'],
+    supportedAutomation: false,
+    custom: true,
   },
 ];
 
@@ -63,7 +69,7 @@ function buildChoiceSummary(choice) {
   };
 
   if (choice.choiceType === 'subclass') {
-    return { ...base, helperText: 'Choose a Barbarian subclass.' };
+    return { ...base, helperText: 'Choose a public-license Barbarian subclass, or record a custom/user-added Barbarian subclass.' };
   }
   if (choice.choiceType === 'weapon_mastery') {
     return { ...base, count: choice.choices || 0, helperText: `Choose ${choice.choices || 0} Weapon Mastery option${choice.choices === 1 ? '' : 's'}.` };
@@ -94,6 +100,8 @@ export function getBarbarianSubclassOptions(edition = '2014') {
       key: option.key,
       summary: option.summary,
       ruleset,
+      supportedAutomation: option.supportedAutomation,
+      custom: Boolean(option.custom),
     }));
 }
 
@@ -143,7 +151,7 @@ export function validateBarbarianBuilderSelections({ level = 1, edition = '2014'
   const errors = [];
 
   if (options.needsSubclass && !isValidBarbarianSubclass(subclass, edition)) {
-    errors.push('Choose a Barbarian subclass.');
+    errors.push('Choose or record a Barbarian subclass.');
   }
 
   if (options.weaponMasteryChoices > 0 && weaponMasteries.length !== options.weaponMasteryChoices) {

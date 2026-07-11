@@ -5,65 +5,20 @@ export const DRUID_SUBCLASSES = [
     value: 'Circle of the Land',
     label: 'Circle of the Land',
     key: 'land',
-    summary: 'A terrain-attuned Druid focused on flexible spell support, natural magic, and battlefield control.',
+    summary: 'Public-license Druid subclass support focused on terrain-attuned spell support, natural magic, and battlefield control.',
     role: 'Prepared nature caster',
     rulesets: ['2014', '2024'],
+    supportedAutomation: true,
   },
   {
-    value: 'Circle of the Moon',
-    label: 'Circle of the Moon',
-    key: 'moon',
-    summary: 'A shapeshifting Druid who leans into Wild Shape as a front-line combat tool.',
-    role: 'Wild Shape bruiser',
+    value: 'Custom Druid Subclass',
+    label: 'Custom / user-added subclass',
+    key: 'custom_druid_subclass',
+    summary: 'User-provided Druid circle from private or shared homebrew content.',
+    role: 'User-provided Druid circle',
     rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Circle of Stars',
-    label: 'Circle of Stars',
-    key: 'stars',
-    summary: 'A star-guided Druid who blends guidance, radiant magic, and adaptable support forms.',
-    role: 'Cosmic support caster',
-    rulesets: ['2014', '2024'],
-  },
-  {
-    value: 'Circle of the Sea',
-    label: 'Circle of the Sea',
-    key: 'sea',
-    summary: 'A wave-and-storm themed Druid built around movement, elemental pressure, and oceanic magic.',
-    role: 'Elemental skirmisher',
-    rulesets: ['2024'],
-  },
-  {
-    value: 'Circle of Dreams',
-    label: 'Circle of Dreams',
-    key: 'dreams',
-    summary: 'A fey-touched Druid focused on healing, refuge, and dreamlike support magic.',
-    role: 'Fey healer',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'Circle of the Shepherd',
-    label: 'Circle of the Shepherd',
-    key: 'shepherd',
-    summary: 'A summoning and spirit-focused Druid who supports allies and calls on nature companions.',
-    role: 'Summoner support',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'Circle of Spores',
-    label: 'Circle of Spores',
-    key: 'spores',
-    summary: 'A decay-themed Druid who mixes close-range durability, poison flavour, and fungal magic.',
-    role: 'Necrotic controller',
-    rulesets: ['2014'],
-  },
-  {
-    value: 'Circle of Wildfire',
-    label: 'Circle of Wildfire',
-    key: 'wildfire',
-    summary: 'A fire-and-renewal Druid with a spirit companion, damage pressure, and healing support.',
-    role: 'Companion blaster',
-    rulesets: ['2014'],
+    supportedAutomation: false,
+    custom: true,
   },
 ];
 
@@ -88,6 +43,8 @@ export function getDruidSubclassOptions(edition = '2014') {
       summary: option.summary,
       role: option.role,
       ruleset,
+      supportedAutomation: Boolean(option.supportedAutomation),
+      custom: Boolean(option.custom),
     }));
 }
 
@@ -115,7 +72,7 @@ export function getDruidSubclassSummary(value = '', level = 1, edition = '2014')
   const ruleset = normaliseDruidRulesEdition(edition);
   const subclass = getDruidSubclassByKey(value, ruleset);
   const druidLevel = Math.max(1, Number(level || 1));
-  const featureLevels = getDruidSubclassFeatureLevels(ruleset);
+  const featureLevels = subclass?.supportedAutomation ? getDruidSubclassFeatureLevels(ruleset) : [];
   const activeFeatures = featureLevels
     .filter(featureLevel => featureLevel <= druidLevel)
     .map(featureLevel => buildSubclassFeature(subclass, value, featureLevel));
@@ -129,6 +86,8 @@ export function getDruidSubclassSummary(value = '', level = 1, edition = '2014')
     summary: subclass?.summary || '',
     ruleset,
     supportedInRuleset: Boolean(!value || subclass),
+    supportedAutomation: Boolean(subclass?.supportedAutomation),
+    custom: Boolean(subclass?.custom),
     activeFeatures,
     nextFeatures,
   };

@@ -86,6 +86,8 @@ const CharacterCreationModePicker = React.lazy(() => import('@/components/Charac
 const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
 const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
 const RookCharacterMatchmaker = React.lazy(() => import('@/components/RookCharacterMatchmaker'));
+const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCharacterBuilder'));
+const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
 const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
@@ -163,10 +165,19 @@ function AppRoutes() {
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={isAuthenticated ? <AppShell><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={isAuthenticated ? <AppShell><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/rook" element={isAuthenticated ? <AppShell><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/modes" element={isAuthenticated ? <Navigate to="/characters/new" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/basic" element={isAuthenticated ? <AppShell><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/premade" element={isAuthenticated ? <AppShell><PremadeCharacterBuilder /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/kids" element={isAuthenticated ? <AppShell><KidsCharacterBuilder /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/new/matchmaker" element={isAuthenticated ? <AppShell><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create" element={isAuthenticated ? <Navigate to="/characters/new" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/full" element={isAuthenticated ? <Navigate to="/characters/new/full" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/basic" element={isAuthenticated ? <Navigate to="/characters/new/basic" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/premade" element={isAuthenticated ? <Navigate to="/characters/new/premade" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/kids" element={isAuthenticated ? <Navigate to="/characters/new/kids" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/rook" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>

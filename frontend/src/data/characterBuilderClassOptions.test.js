@@ -32,7 +32,7 @@ describe('character builder class options resolver', () => {
   });
 
   test('returns convenience subclass lists', () => {
-    expect(getCharacterBuilderSubclassNames('Fighter', { edition: '2014' })).toEqual(expect.arrayContaining(['Champion', 'Battle Master', 'Eldritch Knight']));
+    expect(getCharacterBuilderSubclassNames('Fighter', { edition: '2014' })).toEqual(['Champion']);
     expect(getCharacterBuilderSubclassOptions('Warlock', { edition: '2014' })[0]).toEqual(expect.objectContaining({
       value: expect.any(String),
       label: expect.any(String),

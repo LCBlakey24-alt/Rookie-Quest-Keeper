@@ -12,24 +12,24 @@ import {
 
 const dashboardUpdates = [
   {
-    label: 'Update',
-    title: 'Mobile layout polish',
-    text: 'Character cards, action buttons, loading screens, and navigation are being tightened for phone and tablet use.',
+    label: 'Improved',
+    title: 'Rules data cleanup',
+    text: 'Spells, feats, race/species handling, and 2014/2024 class rules are being centralised so builders and sheets stay consistent.',
   },
   {
-    label: 'Coming Soon',
-    title: 'Campaign join codes',
-    text: 'Campaign owners will be able to share a code so users can link one character to that campaign.',
+    label: 'Fighter',
+    title: 'Fighter completion pass',
+    text: 'Fighter Weapon Mastery validation and action-card unlock timing have been tightened while subclasses are reviewed one at a time.',
   },
   {
-    label: 'Coming Soon',
-    title: 'Campaign uploads',
-    text: 'Uploads are being prepared for campaign PDFs, maps, handouts, notes, images, and reference files.',
+    label: 'Classes',
+    title: 'Builder validation pass',
+    text: 'Wizard spellbooks, Warlock invocations, Ranger resources, Rogue reminders, and Fighter choices now have stricter readiness checks.',
   },
   {
     label: 'Beta',
     title: 'Public launch preparation',
-    text: 'The app is being cleaned up for user accounts, admin-only tools, campaign permissions, and smoother mobile use.',
+    text: 'The app is being cleaned up for user accounts, character creation, class support, campaign permissions, and smoother mobile use.',
   },
 ];
 

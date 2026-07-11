@@ -14,6 +14,8 @@ export function getWizardBuilderReadiness({
     edition,
     subclass,
     scholarSkill,
+    spellbookSpells,
+    preparedSpells,
   });
 
   const choiceSummary = getWizardBuilderChoiceSummary({

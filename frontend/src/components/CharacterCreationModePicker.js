@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/characterCreationModePicker.css';
-import { ChevronLeft, ChevronRight, Clock, HelpCircle, ShieldCheck, SlidersHorizontal, Sparkles, Wand2, Zap, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, HelpCircle, ShieldCheck, SlidersHorizontal, Sparkles, Wand2, Zap, Search, Users, Smile } from 'lucide-react';
 import { characterCreationModes } from '../data/characterCreationModes';
 
-const icons = { full: Wand2, basic: Zap, matchmaker: Search };
+const icons = { full: Wand2, basic: Zap, premade: Users, kids: Smile, matchmaker: Search };
 const quickGuide = characterCreationModes.map((mode) => ({ label: mode.title, value: mode.eyebrow, copy: mode.decision }));
 
 export default function CharacterCreationModePicker() {
@@ -18,11 +18,11 @@ export default function CharacterCreationModePicker() {
           <div className="character-mode-hero-copy">
             <div className="character-mode-kicker"><Sparkles size={16} /> New Character</div>
             <h1>Choose how you want to build your hero.</h1>
-            <p>Pick a detailed creator, a guided setup, or describe your idea so Rook can suggest a character to review before saving.</p>
+            <p>Pick the build path that fits tonight: full control, guided setup, ready-to-play templates, simple Kids Mode, or Rook suggestions.</p>
           </div>
           <aside className="character-mode-tip" data-testid="mode-picker-help-card">
             <div className="character-mode-tip-icon"><HelpCircle size={20} /></div>
-            <div><h2>Three clear routes</h2><p>Full Creator gives full control. Basic Creator guides the main choices. Rook Character Matchmaker helps when you are not sure what to play.</p></div>
+            <div><h2>Five clear routes</h2><p>Full Creator gives full control. Basic Creator guides the main choices. Premades and Kids Mode get players started fast. Rook helps when you are not sure what to play.</p></div>
           </aside>
         </section>
         <section className="character-mode-guide" data-testid="mode-picker-quick-guide" aria-label="Character creation mode guide">

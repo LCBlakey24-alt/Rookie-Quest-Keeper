@@ -48,11 +48,12 @@ describe('creator spell selection flow', () => {
     expect(spellMatchesDropdownSearch(spellPool[0], 'nature')).toBe(false);
   });
 
-  test('uses available class spell pools for dropdowns', () => {
-    const wizardPools = getCreatorAvailableSpellPools('Wizard', 'shield');
+  test('uses registry-backed available class spell pools for dropdowns', () => {
+    const wizardPools = getCreatorAvailableSpellPools('Wizard', 'shield', '2024');
 
     expect(wizardPools.cantrips).toEqual([]);
     expect(wizardPools.levelOneSpells.some((spell) => spell.name === 'Shield')).toBe(true);
+    expect(wizardPools.levelOneSpells.every((spell) => spell.rulesets.includes('2024'))).toBe(true);
   });
 
   test('adds and removes learned spell names within limits', () => {

@@ -30,6 +30,7 @@ import {
   getSpellSlotsForCaster,
   getSpellsForClass,
 } from "@/data/spellDatabase";
+import { getFeatsForRuleset } from "@/data/rules/feats/featRegistry";
 import {
   buildCreatorEquipmentPayload,
   calculateCreatedCharacterArmorClass,
@@ -122,18 +123,6 @@ const SPELL_CLASSES = new Set([
   "Warlock",
   "Wizard",
 ]);
-const FEATS = [
-  "None",
-  "Alert",
-  "Crafter",
-  "Healer",
-  "Lucky",
-  "Magic Initiate",
-  "Savage Attacker",
-  "Skilled",
-  "Tavern Brawler",
-  "Tough",
-];
 const EXTRA_LANGUAGES = [
   "Dwarvish",
   "Elvish",
@@ -1247,6 +1236,11 @@ function Skills({ backgroundSkills, classSkills, selected, target, toggle }) {
 }
 
 function Feats({ draft, update, originFeat }) {
+  const featOptions = ['None', ...getFeatsForRuleset({
+    edition: draft.edition,
+    category: draft.edition === '2024' ? 'origin' : 'general',
+  }).map(feat => feat.name)];
+
   return (
     <>
       <Title
@@ -1268,7 +1262,7 @@ function Feats({ draft, update, originFeat }) {
           value={draft.feat}
           onChange={(e) => update({ feat: e.target.value })}
         >
-          {FEATS.map((name) => (
+          {featOptions.map((name) => (
             <option key={name}>{name}</option>
           ))}
         </select>

@@ -34,4 +34,16 @@ describe('Fighter builder readiness', () => {
     expect(readiness.ready).toBe(true);
     expect(readiness.missingSections).toEqual([]);
   });
+
+  test('reports duplicate 2024 weapon masteries as not ready', () => {
+    const readiness = getFighterBuilderReadiness({
+      level: 1,
+      edition: '2024',
+      fightingStyle: 'Blind Fighting',
+      weaponMasteries: ['Cleave', 'Cleave', 'Topple'],
+    });
+
+    expect(readiness.ready).toBe(false);
+    expect(readiness.errors).toContain('Choose unique Weapon Mastery options.');
+  });
 });

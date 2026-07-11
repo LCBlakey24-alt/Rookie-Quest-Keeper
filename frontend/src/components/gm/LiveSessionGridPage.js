@@ -156,7 +156,7 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  const launchCombat = (scenario) => navigate(`/campaign/${campaignId}/combat`, { state: { scenario, campaignName: campaign?.name } });
+  const launchCombat = (scenario) => navigate('/combat', { state: { scenario, campaignId, campaignName: campaign?.name } });
 
   const quickStartCombat = () => {
     const quickScenario = {

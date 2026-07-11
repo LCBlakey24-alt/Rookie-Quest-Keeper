@@ -29,13 +29,25 @@ describe('deriveCharacterSnapshot', () => {
     expect(levelTwenty.features.length).toBeGreaterThanOrEqual(levelOne.features.length);
   });
 
-  test.each(getSupportedRaceNames())('derives race/species basics for %s', (race) => {
-    const snapshot = deriveCharacterSnapshot(baseCharacter({ race, species: race, rules_edition: '2024' }));
-    expect(snapshot.race.name).toBe(race);
+  test.each(['2014', '2024'])('derives supported %s race/species basics', (edition) => {
+    getSupportedRaceNames(edition).forEach((race) => {
+      const snapshot = deriveCharacterSnapshot(baseCharacter({ race, species: race, rules_edition: edition }));
+      expect(snapshot.race.name).toBe(race);
+      expect(snapshot.race.found).toBe(true);
+      expect(snapshot.race.speed).toBeGreaterThan(0);
+      expect(snapshot.race.size).toBeTruthy();
+      expect(Array.isArray(snapshot.race.traits)).toBe(true);
+    });
+  });
+
+  test('derives starter Dragonborn without relying on side-effect data mutation', () => {
+    const snapshot = deriveCharacterSnapshot(baseCharacter({ race: 'Dragonborn', species: 'Dragonborn', rules_edition: '2024' }));
+    expect(snapshot.race.name).toBe('Dragonborn');
     expect(snapshot.race.found).toBe(true);
     expect(snapshot.race.speed).toBeGreaterThan(0);
     expect(snapshot.race.size).toBeTruthy();
     expect(Array.isArray(snapshot.race.traits)).toBe(true);
+    expect(snapshot.warnings.join(' ')).not.toMatch(/2014 ability-score data/);
   });
 
   test('derives Monk resource and bonus action cards from the canonical snapshot', () => {

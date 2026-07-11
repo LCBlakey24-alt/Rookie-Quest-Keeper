@@ -65,13 +65,6 @@ export const CLASS_RESOURCES = {
       restoreOn: 'long',
       maxByLevel: { 9: 1, 13: 2, 17: 3 },
     },
-    {
-      key: 'superiority_dice',
-      name: 'Superiority Dice',
-      restoreOn: 'short',
-      maxByLevel: { 3: 4, 7: 5, 15: 6 },
-      subclass: 'battle_master',
-    },
   ],
   Monk: [
     {

@@ -28,7 +28,7 @@ function buildChoiceSummary(choice) {
   const count = choice.choices || 1;
   const label = toChoiceLabel(choice.choiceType);
   const helperByType = {
-    subclass: 'Choose a Bard subclass.',
+    subclass: 'Choose College of Lore for built-in public-license automation, or record a custom/user-added Bard subclass.',
     expertise: `Choose ${count} Expertise skills.`,
     magical_secrets: `Choose ${count} Magical Secrets spells.`,
     asi_or_feat: 'Choose an Ability Score Improvement or feat.',
@@ -96,7 +96,7 @@ export function validateBardBuilderSelections({
   const expertiseRequired = getRequiredChoiceCount(options.choices, 'expertise');
   const magicalSecretsRequired = getRequiredChoiceCount(options.choices, 'magical_secrets');
 
-  if (options.needsSubclass && !isValidBardSubclass(subclass, edition)) errors.push('Choose a Bard subclass.');
+  if (options.needsSubclass && !isValidBardSubclass(subclass, edition)) errors.push('Choose or record a Bard subclass.');
   if (expertiseRequired > 0 && !hasSelection(expertise, expertiseRequired)) errors.push(`Choose ${expertiseRequired} Expertise skills.`);
   if (magicalSecretsRequired > 0 && !hasSelection(magicalSecrets, magicalSecretsRequired)) errors.push(`Choose ${magicalSecretsRequired} Magical Secrets spells.`);
 

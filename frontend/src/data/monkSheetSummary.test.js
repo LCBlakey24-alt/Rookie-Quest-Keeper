@@ -9,11 +9,13 @@ describe('monk sheet summary', () => {
   });
 
   test('summarises discipline, martial arts, and defenses', () => {
-    const summary = getMonkSheetSummary({ character_class: 'Monk', level: 7, subclass: 'Way of Shadow', dexterity: 16, wisdom: 14 });
+    const summary = getMonkSheetSummary({ character_class: 'Monk', level: 7, subclass: 'Custom Monk Subclass', dexterity: 16, wisdom: 14 });
     expect(summary.resourceUses).toBe(7);
     expect(summary.martialArtsDie).toBe('d6');
     expect(summary.unarmoredDefenseAc).toBe(15);
     expect(summary.evasion).toBe(true);
-    expect(summary.subclassLabel).toBe('Way of Shadow');
+    expect(summary.subclassLabel).toBe('Custom / user-added subclass');
+    expect(summary.subclass.supportedAutomation).toBe(false);
+    expect(summary.subclass.custom).toBe(true);
   });
 });

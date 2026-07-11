@@ -6,6 +6,7 @@ import { ArrowLeft, Backpack, BookOpen, Check, ChevronLeft, ChevronRight, Dices,
 import apiClient from '@/lib/apiClient';
 import { BACKGROUNDS, CLASSES, EDITIONS, RACES, getProficiencyBonus } from '@/data/characterRules5e';
 import { CANTRIPS_KNOWN, SPELLCASTING_CLASSES, SPELLS_KNOWN, getSpellSlotsForCaster, getSpellsForClass } from '@/data/spellDatabase';
+import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import './FullCharacterCreatorV2.css';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
@@ -13,7 +14,6 @@ const LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelli
 const STANDARD = { strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8 };
 const LEVEL_ONE_SUBCLASS = new Set(['Cleric', 'Sorcerer', 'Warlock']);
 const SPELL_CLASSES = new Set(['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Warlock', 'Wizard']);
-const FEATS = ['None', 'Alert', 'Crafter', 'Healer', 'Lucky', 'Magic Initiate', 'Savage Attacker', 'Skilled', 'Tavern Brawler', 'Tough'];
 const DRAFT_KEY = 'rqk.full_character_creator_v2.safe';
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
@@ -425,10 +425,15 @@ function Skills({ backgroundSkills, skillOptions, selected, target, toggle }) {
 }
 
 function Feats({ draft, update, originFeat }) {
+  const featOptions = ['None', ...getFeatsForRuleset({
+    edition: draft.edition,
+    category: draft.edition === '2024' ? 'origin' : 'general',
+  }).map(feat => feat.name)];
+
   return <>
     <Title icon={Sparkles} title="Feats" text="Confirm the 2024 origin feat or optional table feat." />
     {draft.edition === '2024' && <div className="full-creator-auto-box"><strong>Suggested origin feat</strong><span>{originFeat || 'Choose one below'}</span></div>}
-    <label className="full-creator-wide-label"><span>{draft.edition === '2024' ? 'Origin feat override' : 'Optional feat'}</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{FEATS.map((name) => <option key={name}>{name}</option>)}</select></label>
+    <label className="full-creator-wide-label"><span>{draft.edition === '2024' ? 'Origin feat override' : 'Optional feat'}</span><select value={draft.extraFeat} onChange={(event) => update({ extraFeat: event.target.value })}>{featOptions.map((name) => <option key={name}>{name}</option>)}</select></label>
   </>;
 }
 
