@@ -269,3 +269,143 @@
     padding-inline: 5px;
   }
 }
+
+/* Desktop/tablet/mobile app-frame polish.
+   Desktop gets a compact top search bar and contained workspace so browser chrome does not crush the layout.
+   Tablet keeps the same structure tighter; mobile keeps content-first app spacing. */
+.rqk-app-workspace {
+  min-width: 0;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 74% 0%, rgba(235, 63, 233, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(7, 7, 19, 0.98), rgba(18, 7, 32, 0.98) 54%, rgba(27, 8, 47, 0.98));
+}
+
+.rqk-app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: minmax(180px, 0.5fr) minmax(280px, 560px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px clamp(18px, 2.4vw, 30px);
+  background: rgba(7, 7, 19, 0.86);
+  border-bottom: 1px solid rgba(255, 248, 239, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.rqk-app-topbar-title {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rqk-app-topbar-title span {
+  color: rgba(255, 248, 239, 0.58);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rqk-app-topbar-title strong {
+  color: var(--rq-sunset-cream, #fff8ef);
+  font-family: var(--rq-title-font, Cinzel, Georgia, serif);
+  font-size: clamp(18px, 1.5vw, 24px);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rqk-app-search {
+  min-width: 0;
+  height: 42px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 248, 239, 0.16);
+  border-radius: 999px !important;
+  background:
+    linear-gradient(145deg, rgba(13, 6, 23, 0.94), rgba(35, 14, 58, 0.86)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #ff9542, #eb3fe9, #7c3cff)) border-box;
+  color: rgba(255, 248, 239, 0.74);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+.rqk-app-search svg {
+  color: #ff9542;
+}
+
+.rqk-app-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-size: 14px;
+}
+
+.rqk-app-search input::placeholder {
+  color: rgba(255, 248, 239, 0.48);
+}
+
+.rqk-app-shell-content {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+@media (min-width: 1180px) {
+  .rqk-app-shell {
+    height: 100svh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .rqk-app-rail {
+    height: 100svh;
+  }
+
+  .rqk-app-shell-content > main,
+  .rqk-app-shell-content > div:first-child {
+    width: min(100%, 1480px);
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1179px) {
+  .rqk-app-topbar {
+    grid-template-columns: minmax(140px, 0.45fr) minmax(220px, 1fr);
+    gap: 12px;
+    min-height: 58px;
+    padding-inline: 14px;
+  }
+
+  .rqk-app-search {
+    height: 38px;
+  }
+}
+
+@media (max-width: 719px) {
+  .rqk-app-workspace {
+    min-height: 100dvh;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .rqk-app-topbar {
+    display: none;
+  }
+
+  .rqk-app-shell-content {
+    overflow: visible;
+  }
+}

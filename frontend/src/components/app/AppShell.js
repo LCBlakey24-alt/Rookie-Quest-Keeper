@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
+import { BookOpen, Home, MessageSquare, Search, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
@@ -39,6 +39,11 @@ function RailLink({ item, pathname }) {
 
 function openFeedback() {
   window.dispatchEvent(new Event('rook-feedback-open'));
+}
+
+function sectionLabel(pathname) {
+  const item = [...mainNavItems, adminNavItem, settingsNavItem].find((entry) => isActive(pathname, entry));
+  return item?.label || 'Workspace';
 }
 
 export default function AppShell({ children }) {
@@ -81,8 +86,21 @@ export default function AppShell({ children }) {
         </button>
       </aside>
 
-      <div className="rqk-app-shell-content">
-        {children}
+      <div className="rqk-app-workspace">
+        <header className="rqk-app-topbar" aria-label="Workspace controls">
+          <div className="rqk-app-topbar-title">
+            <span>Rookie Quest Keeper</span>
+            <strong>{sectionLabel(location.pathname)}</strong>
+          </div>
+          <label className="rqk-app-search">
+            <Search size={18} aria-hidden="true" />
+            <input type="search" placeholder="Search characters, campaigns, notes..." aria-label="Search Rookie Quest Keeper" />
+          </label>
+        </header>
+
+        <div className="rqk-app-shell-content">
+          {children}
+        </div>
       </div>
     </div>
   );
