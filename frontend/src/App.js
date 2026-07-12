@@ -75,6 +75,7 @@ const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/Proto
 const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
 const ClassProgressionLab = React.lazy(() => import('@/components/prototype/ClassProgressionLab'));
 const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
+const PlayerDashboard = React.lazy(() => import('@/components/PlayerDashboard'));
 const CombatPage = React.lazy(() => import('@/components/CombatPage'));
 const AdminPage = React.lazy(() => import('@/components/AdminPage'));
 const LandingPage = React.lazy(() => import('@/components/LandingPage'));
@@ -151,6 +152,7 @@ function AppRoutes() {
         <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
