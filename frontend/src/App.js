@@ -1,8 +1,8 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
-// Style layering: base app/design styles first, route-specific legacy themes next,
-// board/layout safety layers after that, then the current Twilight Keeper brand layer last.
+// Style layering: base app/design styles first, route-specific legacy theme bridges next,
+// board/layout safety layers after that, then the current Sunset Gradient guardrails last.
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';

@@ -1,26 +1,31 @@
-/* Site-wide Blue Eclipse theme bridge.
-   This file is token-first: it nudges legacy route components onto the current
-   arcane navy, violet, gold, and ivory surfaces without rewriting every page. */
+/* Site-wide sunset-gradient theme bridge.
+   Legacy filename retained for import stability. This file nudges older route
+   components onto the current dark blue-purple shell without rewriting every page. */
 
 :root,
 [data-theme="gm"],
 [data-theme="player"] {
-  --rq-bg-main: #080A18;
-  --rq-bg-panel: #11152A;
-  --rq-bg-panel-alt: #191D3A;
-  --rq-bg-input: #0C1024;
-  --rq-text-primary: #F6EAD2;
-  --rq-text-secondary: #D9C8A5;
-  --rq-text-muted: #9EA4C6;
-  --rq-text-inverse: #080A18;
-  --rq-accent-primary: #D6A84F;
-  --rq-accent-hover: #F0CF75;
-  --rq-accent-active: #6E78FF;
-  --rq-accent-magic: #59C8FF;
-  --rq-accent-soft: rgba(89, 200, 255, 0.13);
-  --rq-accent-border: rgba(214, 168, 79, 0.34);
-  --rq-accent-strong-border: rgba(240, 207, 117, 0.56);
-  --rq-border-default: rgba(214, 168, 79, 0.22);
+  --rq-bg-main: #070713;
+  --rq-bg-page: #0b0718;
+  --rq-bg-rail: #0d0617;
+  --rq-bg-panel: #13081f;
+  --rq-bg-panel-alt: #1b0b2d;
+  --rq-bg-input: #0b0614;
+  --rq-card: #1b0b2d;
+  --rq-card-hover: #24103a;
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.82);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
+  --rq-text-inverse: #070713;
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+  --rq-accent-primary: #eb3fe9;
+  --rq-accent-hover: #ff9542;
+  --rq-accent-active: #7357ff;
+  --rq-accent-magic: #ff4f81;
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-accent-border: rgba(255, 149, 66, 0.30);
+  --rq-accent-strong-border: rgba(255, 149, 66, 0.48);
+  --rq-border-default: rgba(255, 255, 255, 0.14);
   --rq-danger: #E25A54;
 
   --background: var(--rq-bg-main);
@@ -30,7 +35,7 @@
   --popover: var(--rq-bg-panel);
   --popover-foreground: var(--rq-text-primary);
   --primary: var(--rq-accent-primary);
-  --primary-foreground: var(--rq-text-inverse);
+  --primary-foreground: var(--rq-text-primary);
   --secondary: var(--rq-accent-active);
   --secondary-foreground: var(--rq-text-primary);
   --muted: var(--rq-bg-input);
@@ -41,10 +46,10 @@
   --destructive-foreground: var(--rq-text-primary);
   --border: var(--rq-border-default);
   --input: var(--rq-bg-input);
-  --ring: var(--rq-accent-magic);
-  --theme-glow: rgba(89, 200, 255, 0.24);
-  --theme-glow-secondary: rgba(110, 120, 255, 0.18);
-  --glass-bg: rgba(17, 21, 42, 0.84);
+  --ring: var(--rq-accent-hover);
+  --theme-glow: rgba(255, 79, 129, 0.20);
+  --theme-glow-secondary: rgba(115, 87, 255, 0.18);
+  --glass-bg: rgba(19, 8, 31, 0.84);
   --glass-border: var(--rq-accent-border);
 }
 
@@ -53,9 +58,9 @@ body,
 #root,
 .App {
   background:
-    radial-gradient(circle at 14% 0%, rgba(89, 200, 255, 0.13), transparent 31%),
-    radial-gradient(circle at 86% 8%, rgba(110, 120, 255, 0.16), transparent 36%),
-    radial-gradient(circle at 52% 100%, rgba(214, 168, 79, 0.08), transparent 32%),
+    radial-gradient(circle at 14% 0%, rgba(115, 87, 255, 0.16), transparent 31%),
+    radial-gradient(circle at 86% 8%, rgba(255, 79, 129, 0.16), transparent 36%),
+    radial-gradient(circle at 52% 100%, rgba(255, 149, 66, 0.08), transparent 32%),
     var(--rq-bg-main) !important;
   color: var(--rq-text-primary) !important;
 }
@@ -69,9 +74,9 @@ body,
 main[style*="100vh"],
 main[style*="100dvh"] {
   background:
-    radial-gradient(circle at 15% 0%, rgba(89, 200, 255, 0.15), transparent 30%),
-    radial-gradient(circle at 86% 10%, rgba(110, 120, 255, 0.17), transparent 35%),
-    radial-gradient(circle at 50% 100%, rgba(214, 168, 79, 0.08), transparent 34%),
+    radial-gradient(circle at 15% 0%, rgba(115, 87, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 86% 10%, rgba(255, 79, 129, 0.16), transparent 35%),
+    radial-gradient(circle at 50% 100%, rgba(255, 149, 66, 0.08), transparent 34%),
     var(--rq-bg-main) !important;
   color: var(--rq-text-primary) !important;
 }
@@ -109,8 +114,8 @@ textarea::placeholder {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--rq-accent-magic) !important;
-  box-shadow: 0 0 0 3px var(--rq-accent-soft) !important;
+  border-color: var(--rq-accent-hover) !important;
+  box-shadow: 0 0 0 3px rgba(255, 149, 66, 0.18) !important;
   outline: none !important;
 }
 
@@ -121,10 +126,10 @@ button[data-testid*="save"],
 button[data-testid*="open-dm-screen"],
 .rq-auth-primary,
 .landing-button-primary {
-  background: linear-gradient(135deg, var(--rq-accent-primary), var(--rq-accent-hover)) !important;
-  border-color: var(--rq-accent-hover) !important;
-  color: var(--rq-text-inverse) !important;
-  box-shadow: 0 10px 28px rgba(214, 168, 79, 0.2) !important;
+  background: var(--rq-sunset-gradient) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: var(--rq-text-primary) !important;
+  box-shadow: none !important;
 }
 
 .btn-primary:hover,
@@ -133,13 +138,13 @@ button[data-testid*="new"]:hover,
 button[data-testid*="save"]:hover,
 .rq-auth-primary:hover,
 .landing-button-primary:hover {
-  background: linear-gradient(135deg, var(--rq-accent-hover), #FFE8A5) !important;
+  filter: brightness(1.08) !important;
 }
 
 .btn-outline,
 .landing-button-ghost,
 .rq-auth-secondary {
-  background: rgba(17, 21, 42, 0.72) !important;
+  background: rgba(19, 8, 31, 0.72) !important;
   border-color: var(--rq-border-default) !important;
   color: var(--rq-text-primary) !important;
 }
@@ -160,10 +165,10 @@ button[data-testid*="save"]:hover,
 .landing-preview-card,
 .landing-product-frame,
 .rq-auth-panel {
-  background: linear-gradient(180deg, rgba(25, 29, 58, 0.94), rgba(17, 21, 42, 0.97)) !important;
+  background: linear-gradient(180deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.97)) !important;
   border-color: var(--rq-border-default) !important;
   color: var(--rq-text-primary) !important;
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42), 0 0 28px rgba(89, 200, 255, 0.06) !important;
+  box-shadow: none !important;
 }
 
 #player-section *,
@@ -199,8 +204,8 @@ button[data-testid*="save"]:hover,
   --cs-accent-soft: var(--rq-accent-soft) !important;
   --cs-accent-border: var(--rq-accent-border) !important;
   --cs-accent-hover-border: var(--rq-accent-strong-border) !important;
-  --cs-accent-hover-bg: rgba(89, 200, 255, 0.16) !important;
-  --cs-blue-soft: rgba(89, 200, 255, 0.14) !important;
+  --cs-accent-hover-bg: rgba(255, 79, 129, 0.14) !important;
+  --cs-blue-soft: rgba(115, 87, 255, 0.14) !important;
 }
 
 .clean-sheet-header,

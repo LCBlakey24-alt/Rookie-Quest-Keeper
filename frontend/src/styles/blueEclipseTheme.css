@@ -1,43 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Metal+Mania&display=swap');
+/* Legacy filename retained for import stability.
+   This bridge now aligns older page classes with the Sunset Gradient system. */
 
 :root {
-  --rq-blue-eclipse-bg: #0f0e47;
-  --rq-blue-eclipse-bg-deep: #080816;
-  --rq-blue-eclipse-card: #272757;
-  --rq-blue-eclipse-card-soft: #343463;
-  --rq-blue-eclipse-muted: #505081;
-  --rq-blue-eclipse-mist: #8686ac;
-  --rq-blue-eclipse-gold: #d8ad4f;
-  --rq-blue-eclipse-gold-soft: #f2d18a;
-  --rq-blue-eclipse-cream: #f6ead2;
-  --rq-blue-eclipse-ink: #050612;
-  --rq-blue-eclipse-glow: #7c78ff;
+  --rq-blue-eclipse-bg: #070713;
+  --rq-blue-eclipse-bg-deep: #070713;
+  --rq-blue-eclipse-card: #1b0b2d;
+  --rq-blue-eclipse-card-soft: #24103a;
+  --rq-blue-eclipse-muted: rgba(255, 255, 255, 0.40);
+  --rq-blue-eclipse-mist: rgba(255, 255, 255, 0.62);
+  --rq-blue-eclipse-gold: #eb3fe9;
+  --rq-blue-eclipse-gold-soft: #ff9542;
+  --rq-blue-eclipse-cream: #ffffff;
+  --rq-blue-eclipse-ink: #070713;
+  --rq-blue-eclipse-glow: #ff4f81;
 
-  --cs-bg: var(--rq-blue-eclipse-bg-deep);
-  --cs-panel: rgba(39, 39, 87, 0.92);
-  --cs-panel-soft: rgba(80, 80, 129, 0.44);
-  --cs-border: rgba(216, 173, 79, 0.32);
-  --cs-accent: var(--rq-blue-eclipse-gold);
-  --cs-accent-2: var(--rq-blue-eclipse-glow);
-  --cs-text: var(--rq-blue-eclipse-cream);
-  --cs-text-soft: #e6d7bb;
-  --cs-muted: var(--rq-blue-eclipse-mist);
+  --cs-bg: var(--rq-bg-main, #070713);
+  --cs-panel: rgba(19, 8, 31, 0.92);
+  --cs-panel-soft: rgba(36, 16, 58, 0.44);
+  --cs-border: rgba(255, 255, 255, 0.14);
+  --cs-accent: var(--rq-accent-primary, #eb3fe9);
+  --cs-accent-2: var(--rq-accent-hover, #ff9542);
+  --cs-text: var(--rq-text-primary, #ffffff);
+  --cs-text-soft: var(--rq-text-secondary, rgba(255, 255, 255, 0.82));
+  --cs-muted: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
 
-  --rq-bg-app: var(--rq-blue-eclipse-bg-deep);
-  --rq-bg-page: var(--rq-blue-eclipse-bg-deep);
-  --rq-bg-card: rgba(39, 39, 87, 0.94);
-  --rq-bg-elevated: rgba(52, 52, 99, 0.88);
-  --rq-bg-muted: rgba(80, 80, 129, 0.38);
-  --rq-border-default: rgba(216, 173, 79, 0.32);
-  --rq-border-muted: rgba(134, 134, 172, 0.22);
-  --rq-border-subtle: rgba(246, 234, 210, 0.14);
-  --rq-accent-primary: var(--rq-blue-eclipse-gold);
-  --rq-accent-hover: var(--rq-blue-eclipse-gold-soft);
-  --rq-accent-soft: rgba(216, 173, 79, 0.16);
-  --rq-text-primary: var(--rq-blue-eclipse-cream);
-  --rq-text-secondary: #e6d7bb;
-  --rq-text-muted: var(--rq-blue-eclipse-mist);
-  --rq-text-on-accent: #17100a;
+  --rq-bg-app: var(--rq-bg-main, #070713);
+  --rq-bg-page: var(--rq-bg-main, #070713);
+  --rq-bg-card: rgba(27, 11, 45, 0.94);
+  --rq-bg-elevated: rgba(36, 16, 58, 0.88);
+  --rq-bg-muted: rgba(255, 255, 255, 0.06);
+  --rq-border-default: rgba(255, 255, 255, 0.14);
+  --rq-border-muted: rgba(255, 255, 255, 0.10);
+  --rq-border-subtle: rgba(255, 255, 255, 0.12);
+  --rq-accent-primary: #eb3fe9;
+  --rq-accent-hover: #ff9542;
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.82);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
+  --rq-text-on-accent: #ffffff;
   --rq-success: #187a62;
   --rq-success-soft: rgba(24, 122, 98, 0.22);
   --rq-success-text: #bbf7d0;
@@ -46,12 +47,12 @@
 html,
 body,
 #root {
-  background: var(--rq-blue-eclipse-bg-deep) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
+  background: var(--rq-bg-main, #070713) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 a {
-  color: var(--rq-blue-eclipse-gold-soft);
+  color: var(--rq-accent-hover, #ff9542);
 }
 
 .character-page-v2,
@@ -69,10 +70,10 @@ a {
 .site-page,
 main {
   background:
-    radial-gradient(circle at 18% 8%, rgba(124, 120, 255, 0.22), transparent 34%),
-    radial-gradient(circle at 80% 0%, rgba(216, 173, 79, 0.12), transparent 28%),
-    linear-gradient(145deg, #080816 0%, #0f0e47 44%, #151433 100%) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
+    radial-gradient(circle at 18% 8%, rgba(115, 87, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 80% 0%, rgba(255, 79, 129, 0.14), transparent 28%),
+    linear-gradient(145deg, #070713 0%, #0b0718 44%, #13081f 100%) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 .clean-sheet-header,
@@ -104,13 +105,10 @@ main {
 .dialog-content,
 .panel,
 .card {
-  border-color: rgba(216, 173, 79, 0.28) !important;
-  background:
-    linear-gradient(180deg, rgba(39, 39, 87, 0.9), rgba(15, 14, 71, 0.78)) !important;
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(246, 234, 210, 0.06) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  background: linear-gradient(180deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.86)) !important;
+  box-shadow: none !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 .clean-sheet-header,
@@ -120,9 +118,8 @@ main {
 .page-header,
 .site-header,
 .app-header {
-  background:
-    linear-gradient(90deg, rgba(39, 39, 87, 0.96), rgba(15, 14, 71, 0.9), rgba(39, 39, 87, 0.88)) !important;
-  border-color: rgba(216, 173, 79, 0.28) !important;
+  background: linear-gradient(90deg, rgba(19, 8, 31, 0.96), rgba(7, 7, 19, 0.9), rgba(27, 11, 45, 0.88)) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
 }
 
 .clean-sheet-kicker,
@@ -139,7 +136,7 @@ main {
 .kicker,
 .stat-label,
 .section-label {
-  color: var(--rq-blue-eclipse-gold-soft) !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82)) !important;
 }
 
 .clean-sheet-identity h1,
@@ -155,10 +152,9 @@ main {
 .admin-page h1,
 .page-title,
 .hero-title {
-  font-family: 'Metal Mania', Georgia, serif !important;
-  color: var(--rq-blue-eclipse-cream) !important;
-  letter-spacing: 0.035em;
-  text-shadow: 0 0 18px rgba(216, 173, 79, 0.18);
+  color: var(--rq-text-primary, #ffffff) !important;
+  letter-spacing: 0.015em;
+  text-shadow: none !important;
 }
 
 .clean-sheet-identity p,
@@ -174,7 +170,7 @@ main {
 .admin-page li,
 .home-page p,
 .landing-page p {
-  color: var(--cs-text-soft, #e6d7bb);
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82));
 }
 
 .clean-sheet-header-stat,
@@ -192,9 +188,9 @@ main {
 .action-button,
 .admin-button,
 button:not(.unstyled):not(.plain-button) {
-  border-color: rgba(216, 173, 79, 0.32) !important;
-  background: linear-gradient(180deg, rgba(39, 39, 87, 0.92), rgba(8, 8, 22, 0.82)) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  background: rgba(19, 8, 31, 0.72) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 .clean-sheet-level,
@@ -203,9 +199,9 @@ button:not(.unstyled):not(.plain-button) {
 .btn-primary,
 .primary-button,
 button[type='submit'] {
-  background: linear-gradient(180deg, rgba(216, 173, 79, 0.92), rgba(151, 104, 31, 0.92)) !important;
-  color: #17100a !important;
-  border-color: rgba(246, 234, 210, 0.28) !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
 }
 
 .clean-sheet-edit,
@@ -213,7 +209,7 @@ button[type='submit'] {
 .rq-hp-action-button--rest,
 .secondary-button,
 .btn-secondary {
-  background: linear-gradient(180deg, rgba(80, 80, 129, 0.82), rgba(39, 39, 87, 0.86)) !important;
+  background: rgba(27, 11, 45, 0.84) !important;
 }
 
 .rq-hp-action-button--plus {
@@ -232,7 +228,7 @@ button[type='submit'] {
 .dashboard-card svg,
 .action-card svg,
 .admin-card svg {
-  color: var(--rq-blue-eclipse-gold) !important;
+  color: var(--rq-accent-primary, #eb3fe9) !important;
 }
 
 .clean-sheet-tabs,
@@ -242,8 +238,8 @@ button[type='submit'] {
 .mobile-dashboard-tabs,
 .tab-list,
 .nav-tabs {
-  background: rgba(8, 8, 22, 0.46) !important;
-  border-color: rgba(134, 134, 172, 0.22) !important;
+  background: rgba(7, 7, 19, 0.46) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
 }
 
 .clean-sheet-tabs button[aria-selected='true'],
@@ -256,29 +252,42 @@ button[type='submit'] {
 .mobile-dashboard-tabs button.active,
 .tab.active,
 .tab--active {
-  background: linear-gradient(180deg, rgba(216, 173, 79, 0.24), rgba(39, 39, 87, 0.92)) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
-  border-color: rgba(216, 173, 79, 0.56) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30)) !important;
+}
+
+.clean-sheet-tabs button[aria-selected='true'] svg,
+.clean-sheet-tabs button.active svg,
+.clean-sheet-tab.active svg,
+.clean-sheet-tab--active svg,
+.dashboard-tabs button[aria-selected='true'] svg,
+.dashboard-tabs button.active svg,
+.mobile-dashboard-tabs button[aria-selected='true'] svg,
+.mobile-dashboard-tabs button.active svg,
+.tab.active svg,
+.tab--active svg {
+  color: #ffffff !important;
 }
 
 input,
 textarea,
 select {
-  background: rgba(8, 8, 22, 0.66) !important;
-  border-color: rgba(134, 134, 172, 0.28) !important;
-  color: var(--rq-blue-eclipse-cream) !important;
+  background: var(--rq-bg-input, #0b0614) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(230, 215, 187, 0.62) !important;
+  color: var(--rq-text-muted, rgba(255, 255, 255, 0.62)) !important;
 }
 
 input:focus,
 textarea:focus,
 select:focus,
 button:focus-visible {
-  outline: 2px solid rgba(124, 120, 255, 0.72) !important;
+  outline: 2px solid rgba(255, 149, 66, 0.52) !important;
   outline-offset: 2px;
 }
 
@@ -288,7 +297,7 @@ button:focus-visible {
 .status-pill,
 .badge,
 .pill {
-  border-color: rgba(216, 173, 79, 0.28) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
 }
 
 @media (max-width: 980px) {

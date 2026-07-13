@@ -1,4 +1,4 @@
-/* Logged-in app shell rail: labelled on tablet/desktop, icon-only on mobile. */
+/* Logged-in app shell rail: icon-only on mobile, labelled on tablet/desktop. */
 
 .rqk-app-shell {
   min-height: 100vh;
@@ -39,6 +39,10 @@
   border-radius: var(--rq-radius, 10px);
 }
 
+#root .rqk-app-shell .rqk-app-rail-brand {
+  display: grid !important;
+}
+
 .rqk-app-rail-brand-mark {
   width: 36px;
   height: 36px;
@@ -47,7 +51,7 @@
   border-radius: var(--rq-inner-radius, 8px);
   background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
   color: #ffffff;
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif;
+  font-family: var(--rq-heading-font, var(--rq-font-display, Georgia, serif));
   font-size: 0.76rem;
   font-weight: 950;
   letter-spacing: 0.04em;
@@ -68,7 +72,7 @@
 }
 
 .rqk-app-rail-brand-copy strong {
-  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif;
+  font-family: var(--rq-heading-font, var(--rq-font-display, Georgia, serif));
   font-size: 0.98rem;
   line-height: 1.05;
 }
@@ -129,7 +133,7 @@
 .rqk-app-rail-link svg {
   width: 21px;
   height: 21px;
-  color: #ffffff !important;
+  color: currentColor !important;
   background: transparent !important;
   border-radius: var(--rq-inner-radius, 8px);
   box-shadow: none !important;
@@ -141,7 +145,7 @@
   min-width: 0;
   overflow: hidden;
   color: #ffffff !important;
-  font-family: var(--rq-heading-font, 'Cinzel'), serif;
+  font-family: var(--rq-heading-font, var(--rq-font-display, Georgia, serif));
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -175,7 +179,8 @@
   width: 21px;
   height: 21px;
   padding: 8px;
-  background: var(--rq-sunset-gradient) !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
   border-radius: var(--rq-inner-radius, 8px);
   box-sizing: content-box;
 }
@@ -187,7 +192,7 @@
   height: 2px;
   margin-top: 5px;
   border-radius: 999px;
-  background: var(--rq-sunset-gradient);
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
 }
 
 .rqk-app-shell-content {
@@ -243,7 +248,7 @@
 .uploads-dashboard-dropzone p,
 .uploads-dashboard-next li {
   margin: 0;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.82);
   line-height: 1.5;
 }
 
@@ -357,31 +362,5 @@
   .uploads-dashboard-card,
   .uploads-dashboard-next {
     flex-direction: column;
-  }
-}
-
-@media (max-width: 420px) {
-  .rqk-app-shell {
-    grid-template-columns: 54px minmax(0, 1fr);
-  }
-
-  .rqk-app-rail {
-    padding-inline: 6px;
-  }
-
-  .rqk-app-rail-brand {
-    min-height: 42px;
-    padding: 4px;
-  }
-
-  .rqk-app-rail-brand-mark {
-    width: 32px;
-    height: 32px;
-    font-size: 0.68rem;
-  }
-
-  .rqk-app-rail-link {
-    min-height: 42px;
-    padding-inline: 5px;
   }
 }

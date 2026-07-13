@@ -1,56 +1,56 @@
 /*
-  Sunset Tabletop theme layer.
-  Late-loaded brand pass: espresso app surfaces with ember/gold accents.
-  Keep the app readable first; use warmth as selected-state/edge polish, not as noise.
+  Sunset Gradient theme layer.
+  Late-loaded brand pass: very dark blue-purple surfaces with sunset-gradient
+  selected states. Keep inactive UI quiet and readable.
 */
 
 :root {
-  --rq-twilight-bg: #120C08;
-  --rq-twilight-bg-2: #160F0A;
-  --rq-twilight-rail: #1A100B;
-  --rq-twilight-panel: #2E1D13;
-  --rq-twilight-panel-deep: #21150E;
-  --rq-twilight-card: #2E1D13;
-  --rq-twilight-card-2: #3A2619;
-  --rq-twilight-input: #1A100B;
-  --rq-sunset-copper: #A45A32;
-  --rq-sunset-gold: #C08A3D;
+  --rq-twilight-bg: #070713;
+  --rq-twilight-bg-2: #0b0718;
+  --rq-twilight-rail: #0d0617;
+  --rq-twilight-panel: #1b0b2d;
+  --rq-twilight-panel-deep: #13081f;
+  --rq-twilight-card: #1b0b2d;
+  --rq-twilight-card-2: #24103a;
+  --rq-twilight-input: #0b0614;
+  --rq-sunset-copper: #ff4f81;
+  --rq-sunset-gold: #eb3fe9;
   --rq-sunset-red: #B44732;
-  --rq-sunset-orange: #E0B15C;
-  --rq-sunset-cream: #F5E6C8;
-  --rq-sunset-muted: rgba(255, 248, 239, 0.72);
-  --rq-sunset-faint: rgba(255, 248, 239, 0.48);
-  --rq-sunset-line: rgba(255, 248, 239, 0.15);
-  --rq-sunset-line-strong: rgba(255, 248, 239, 0.28);
-  --rq-sunset-gradient: linear-gradient(135deg, #A45A32 0%, #C08A3D 48%, #E0B15C 100%);
-  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(164,90,50,0.32), rgba(192,138,61,0.24), rgba(224,177,92,0.22));
-  --rq-sunset-glow: 0 0 24px rgba(192, 138, 61, 0.14), 0 0 38px rgba(224, 177, 92, 0.08);
+  --rq-sunset-orange: #ff9542;
+  --rq-sunset-cream: #ffffff;
+  --rq-sunset-muted: rgba(255, 255, 255, 0.82);
+  --rq-sunset-faint: rgba(255, 255, 255, 0.58);
+  --rq-sunset-line: rgba(255, 255, 255, 0.14);
+  --rq-sunset-line-strong: rgba(255, 149, 66, 0.34);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+  --rq-sunset-gradient-soft: linear-gradient(135deg, rgba(115,87,255,0.22), rgba(216,77,241,0.18), rgba(255,149,66,0.16));
+  --rq-sunset-glow: none;
 
   --rq-bg: var(--rq-twilight-bg);
   --rq-bg-main: var(--rq-twilight-bg);
-  --rq-bg-deep: #120C08;
+  --rq-bg-deep: #070713;
   --rq-bg-rail: var(--rq-twilight-rail);
   --rq-bg-panel: var(--rq-twilight-panel-deep);
   --rq-bg-panel-alt: var(--rq-twilight-panel);
   --rq-bg-card: var(--rq-twilight-card);
   --rq-bg-input: var(--rq-twilight-input);
-  --rq-bg-button: #2E1D13;
-  --rq-bg-button-hover: #3A2619;
+  --rq-bg-button: #1b0b2d;
+  --rq-bg-button-hover: #24103a;
   --rq-surface: var(--rq-twilight-panel);
   --rq-card: var(--rq-twilight-card);
   --rq-card-hover: var(--rq-twilight-card-2);
-  --rq-button: #2E1D13;
-  --rq-button-hover: #3A2619;
+  --rq-button: #1b0b2d;
+  --rq-button-hover: #24103a;
   --rq-primary: var(--rq-sunset-gold);
   --rq-primary-hover: var(--rq-sunset-orange);
-  --rq-primary-soft: rgba(192, 138, 61, 0.18);
+  --rq-primary-soft: rgba(235, 63, 233, 0.14);
   --rq-accent-primary: var(--rq-sunset-gold);
-  --rq-accent-soft: rgba(192, 138, 61, 0.18);
-  --rq-accent-border: rgba(255, 149, 66, 0.42);
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-accent-border: rgba(255, 149, 66, 0.30);
   --rq-text: var(--rq-sunset-cream);
   --rq-text-primary: var(--rq-sunset-cream);
   --rq-text-secondary: var(--rq-sunset-muted);
-  --rq-text-muted: rgba(255, 248, 239, 0.58);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
   --rq-muted: var(--rq-sunset-muted);
   --rq-faint: var(--rq-sunset-faint);
   --rq-line: var(--rq-sunset-line);
@@ -61,8 +61,8 @@
   --rq-board-card: var(--rq-twilight-card);
   --rq-board-line: var(--rq-sunset-line);
   --rq-board-red: var(--rq-sunset-red);
-  --rq-radius: 8px;
-  --rq-title-font: "Cinzel", "Cinzel Decorative", Georgia, serif;
+  --rq-radius: 10px;
+  --rq-title-font: var(--rq-font-display, 'Recoleta', Georgia, serif);
 }
 
 html,
@@ -71,10 +71,10 @@ body,
   min-height: 100%;
   color: var(--rq-sunset-cream) !important;
   background:
-    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.22) 0, rgba(180, 71, 50, 0.12) 22%, transparent 52%),
-    radial-gradient(circle at 82% 18%, rgba(192, 138, 61, 0.16) 0, transparent 38%),
-    radial-gradient(circle at 14% 8%, rgba(164, 90, 50, 0.16) 0, transparent 34%),
-    linear-gradient(180deg, #120C08 0%, #160F0A 46%, #21150E 100%) !important;
+    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.12) 0, rgba(255, 79, 129, 0.10) 22%, transparent 52%),
+    radial-gradient(circle at 82% 18%, rgba(216, 77, 241, 0.12) 0, transparent 38%),
+    radial-gradient(circle at 14% 8%, rgba(115, 87, 255, 0.14) 0, transparent 34%),
+    linear-gradient(180deg, #070713 0%, #0b0718 46%, #13081f 100%) !important;
 }
 
 body {
@@ -93,17 +93,17 @@ body {
 #root .clean-sheet-page,
 #root main[style*="clamp(14px, 2vw, 28px)"] {
   background:
-    radial-gradient(circle at 50% 120%, rgba(255,149,66,0.16), transparent 48%),
-    radial-gradient(circle at 100% 0%, rgba(192,138,61,0.12), transparent 40%),
-    linear-gradient(180deg, rgba(18,12,8,0.98), rgba(22,15,10,0.98) 52%, rgba(33,21,14,0.98)) !important;
+    radial-gradient(circle at 50% 120%, rgba(255,149,66,0.10), transparent 48%),
+    radial-gradient(circle at 100% 0%, rgba(255,79,129,0.12), transparent 40%),
+    linear-gradient(180deg, rgba(7,7,19,0.98), rgba(11,7,24,0.98) 52%, rgba(19,8,31,0.98)) !important;
   color: var(--rq-sunset-cream) !important;
 }
 
 #root .rqk-app-rail,
 #root .character-page-v2 .clean-sheet-tabs {
-  background: rgba(26, 16, 11, 0.94) !important;
-  border-color: rgba(255, 248, 239, 0.12) !important;
-  box-shadow: 0 0 36px rgba(0, 0, 0, 0.28) !important;
+  background: rgba(13, 6, 23, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
 }
 
 #root h1,
@@ -119,8 +119,8 @@ body {
 #root .gm-campaign-title {
   font-family: var(--rq-title-font) !important;
   color: var(--rq-sunset-cream) !important;
-  letter-spacing: 0.03em;
-  text-shadow: 0 2px 18px rgba(192, 138, 61, 0.18) !important;
+  letter-spacing: 0.02em;
+  text-shadow: none !important;
 }
 
 #root .rqk-app-rail-brand,
@@ -173,9 +173,9 @@ body {
   border-left: 1px solid transparent !important;
   border-radius: var(--rq-radius) !important;
   background:
-    linear-gradient(145deg, rgba(33, 21, 14, 0.96), rgba(58, 38, 25, 0.92)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  box-shadow: var(--rq-sunset-glow) !important;
+    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.34), rgba(216,77,241,0.24), rgba(255,149,66,0.24)) border-box !important;
+  box-shadow: none !important;
   color: var(--rq-sunset-cream) !important;
 }
 
@@ -185,8 +185,8 @@ body {
 #root .full-creator-panel .full-creator-choice-block,
 #root .admin-character-audit-card {
   background:
-    linear-gradient(145deg, rgba(26, 16, 11, 0.98), rgba(46, 29, 19, 0.96)) padding-box,
-    linear-gradient(135deg, rgba(164,90,50,0.62), rgba(192,138,61,0.46), rgba(224,177,92,0.52)) border-box !important;
+    linear-gradient(145deg, rgba(19, 8, 31, 0.98), rgba(27, 11, 45, 0.96)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.34), rgba(255,79,129,0.24), rgba(255,149,66,0.24)) border-box !important;
 }
 
 #root button,
@@ -201,15 +201,15 @@ body {
 #root textarea,
 #root select,
 #root .full-creator-search {
-  background: rgba(26, 16, 11, 0.92) !important;
+  background: rgba(11, 6, 20, 0.92) !important;
   color: var(--rq-sunset-cream) !important;
-  border: 1px solid rgba(255, 248, 239, 0.16) !important;
-  box-shadow: inset 0 0 0 1px rgba(192, 138, 61, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
 }
 
 #root input::placeholder,
 #root textarea::placeholder {
-  color: rgba(255, 248, 239, 0.46) !important;
+  color: rgba(255, 255, 255, 0.46) !important;
 }
 
 #root .btn-primary,
@@ -221,24 +221,24 @@ body {
 #root main[style*="clamp(14px, 2vw, 28px)"] button[type="submit"] {
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 248, 239, 0.14) !important;
-  box-shadow: 0 8px 24px rgba(192, 138, 61, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: none !important;
 }
 
 #root button:not(.rqk-app-rail-link):not(.clean-sheet-tabs button):not([type="submit"]),
 #root .btn-outline,
 #root .landing-button-ghost,
 #root [data-rqk-secondary="true"] {
-  background: rgba(46, 29, 19, 0.92) !important;
+  background: rgba(27, 11, 45, 0.82) !important;
   color: var(--rq-sunset-cream) !important;
-  border: 1px solid rgba(255, 248, 239, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
 }
 
 #root button:hover,
 #root button:focus-visible,
 #root [role="button"]:hover,
 #root [role="button"]:focus-visible {
-  border-color: rgba(255, 149, 66, 0.46) !important;
+  border-color: rgba(255, 149, 66, 0.42) !important;
   outline: none !important;
 }
 
@@ -246,93 +246,76 @@ body {
   border-radius: 10px !important;
   border: 1px solid transparent !important;
   border-left: 1px solid transparent !important;
-  color: rgba(255, 248, 239, 0.74) !important;
+  color: rgba(255, 255, 255, 0.74) !important;
+  background: transparent !important;
 }
 
 #root .rqk-app-rail-link:hover,
 #root .rqk-app-rail-link:focus-visible {
-  background: rgba(58, 38, 25, 0.92) !important;
-  border-color: rgba(255, 248, 239, 0.14) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
   color: var(--rq-sunset-cream) !important;
 }
 
 #root .rqk-app-rail-link.is-active,
 #root .character-page-v2 .clean-sheet-tabs button.active {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-rail-link.is-active svg,
+#root .character-page-v2 .clean-sheet-tabs button.active svg {
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 248, 239, 0.22) !important;
-  border-left: 1px solid rgba(255, 248, 239, 0.22) !important;
-  box-shadow: 0 0 24px rgba(192, 138, 61, 0.22) !important;
+}
+
+#root .rqk-app-rail-link.is-active::before,
+#root .rqk-app-rail-link.is-active span::after {
+  background: var(--rq-sunset-gradient) !important;
 }
 
 #root .character-page-v2 .clean-sheet-tabs button,
-#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
-#root .character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
-  border-radius: 10px !important;
+#root .clean-sheet-tab,
+#root .clean-sheet-tabs button:not(.active) {
   background: transparent !important;
-  border: 1px solid transparent !important;
-  color: rgba(255, 248, 239, 0.76) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  border-color: transparent !important;
 }
 
-#root .character-page-v2 .clean-sheet-tabs button:not(.active):hover,
-#root .character-page-v2 .clean-sheet-tabs button:not(.active):focus-visible {
-  background: rgba(58, 38, 25, 0.86) !important;
-  color: var(--rq-sunset-cream) !important;
-  border-color: rgba(255, 248, 239, 0.14) !important;
+#root .clean-sheet-section-title,
+#root .clean-sheet-card h3,
+#root .full-creator-section-eyebrow,
+#root .uploads-dashboard-eyebrow,
+#root .dashboard-eyebrow,
+#root .admin-character-audit__eyebrow,
+#root .gm-panel-eyebrow {
+  color: var(--rq-sunset-orange) !important;
 }
 
-#root .clean-sheet-tabs::after,
-#root .rqk-app-rail-nav::after {
-  content: "";
-  display: block;
-  width: 34px;
-  height: 4px;
-  margin: 4px auto 0;
-  border-radius: 999px;
-  background: var(--rq-sunset-gradient);
-  opacity: 0.78;
-}
-
-#root .full-creator-spell-chip.active,
-#root .full-creator-choice-block button.active,
-#root .character-mode-card:focus-within,
-#root .character-mode-card:hover,
-#root .admin-character-audit-card.has-problems {
-  background:
-    linear-gradient(145deg, rgba(46, 29, 19, 0.96), rgba(58, 38, 25, 0.95)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 0 22px rgba(192, 138, 61, 0.16) !important;
-}
-
-#root .clean-sheet-status-pill,
-#root .clean-sheet-pill,
-#root .full-creator-mini-grid,
-#root .full-creator-score-grid > div,
-#root .full-creator-equipment-list span,
-#root .admin-character-audit-card em {
-  background: rgba(26, 16, 11, 0.82) !important;
-  border: 1px solid rgba(255, 248, 239, 0.14) !important;
-  color: var(--rq-sunset-cream) !important;
-}
-
-#root .loading-screen,
-#root .full-creator-loading {
-  background:
-    radial-gradient(circle at 50% 88%, rgba(255,149,66,0.20), transparent 38%),
-    radial-gradient(circle at 50% 30%, rgba(192,138,61,0.16), transparent 34%),
-    linear-gradient(180deg, #120C08, #21150E) !important;
-  color: var(--rq-sunset-cream) !important;
-}
-
-@media (max-width: 520px) {
-  #root .rqk-app-rail-link.is-active,
-  #root .character-page-v2 .clean-sheet-tabs button.active {
-    border-radius: 10px !important;
+@media (max-width: 760px) {
+  #root .rqk-app-rail-link span,
+  #root .character-page-v2 .clean-sheet-tabs button span,
+  #root .rqk-app-rail-brand-copy,
+  #root .rqk-app-rail-section-label {
+    display: none !important;
   }
 
-  #root .character-page-v2 .clean-sheet-tabs button,
-  #root .rqk-app-rail-link {
-    min-height: 42px !important;
+  #root .rqk-app-rail,
+  #root .character-page-v2 .clean-sheet-tabs {
+    padding-inline: 6px !important;
+  }
+
+  #root .clean-sheet-header--simple,
+  #root .clean-sheet-panel,
+  #root .clean-sheet-card,
+  #root .clean-sheet-section,
+  #root .full-creator-panel,
+  #root .uploads-dashboard-card,
+  #root .uploads-dashboard-next,
+  #root .uploads-dashboard-dropzone {
+    border-radius: 10px !important;
   }
 }

@@ -1,15 +1,15 @@
-/* Twilight Keeper polish pass: selected icons, cleaner boxes, loading details. */
+/* Sunset Gradient polish pass: selected icons, quieter boxes, loading details. */
 
 :root {
   --rq-twilight-inner: #0d0617;
   --rq-twilight-outer: #24103a;
-  --rq-twilight-selected-shadow: 0 0 18px rgba(235, 63, 233, 0.28), 0 0 28px rgba(255, 149, 66, 0.14);
+  --rq-twilight-selected-shadow: none;
 }
 
-/* Make selected nav feel like the mock-up: gradient square icon, not a full heavy bar. */
+/* Selected nav should be a gradient icon and marker, not a heavy filled bar. */
 #root .rqk-app-rail-link.is-active {
-  background: rgba(16, 7, 25, 0.78) !important;
-  border-color: rgba(255, 248, 239, 0.13) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
 }
 
@@ -24,26 +24,26 @@
 #root .character-page-v2 .clean-sheet-tabs button.active svg {
   width: 20px !important;
   height: 20px !important;
-  padding: 10px !important;
+  padding: 9px !important;
   box-sizing: content-box !important;
-  border-radius: 18px !important;
+  border-radius: 14px !important;
   background: var(--rq-sunset-gradient) !important;
   color: #ffffff !important;
-  filter: drop-shadow(0 0 12px rgba(235, 63, 233, 0.34));
+  filter: none !important;
 }
 
 #root .rqk-app-rail-link:not(.is-active) svg,
 #root .character-page-v2 .clean-sheet-tabs button:not(.active) svg {
-  color: rgba(255, 248, 239, 0.82) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
 #root .rqk-app-rail-link.is-active span {
-  color: var(--rq-sunset-cream) !important;
+  color: #ffffff !important;
 }
 
 #root .character-page-v2 .clean-sheet-tabs button.active {
-  background: rgba(16, 7, 25, 0.78) !important;
-  border-color: rgba(255, 248, 239, 0.13) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
 }
 
@@ -57,12 +57,12 @@
 
   #root .rqk-app-rail-link.is-active svg,
   #root .character-page-v2 .clean-sheet-tabs button.active svg {
-    padding: 9px !important;
-    border-radius: 17px !important;
+    padding: 8px !important;
+    border-radius: 13px !important;
   }
 }
 
-/* Box language: purple outer presence, darker readable inner surface, sunset edge. */
+/* Box language: dark readable inner surface with a restrained sunset edge. */
 #root .clean-sheet-panel,
 #root .clean-sheet-card,
 #root .clean-sheet-section,
@@ -81,10 +81,10 @@
 #root .admin-character-audit__tools,
 #root [data-testid="gm-active-workspace"] > div > section {
   background:
-    linear-gradient(145deg, rgba(13, 6, 23, 0.98), rgba(26, 9, 43, 0.96)) padding-box,
-    var(--rq-sunset-gradient) border-box !important;
-  border-width: 2px !important;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22), 0 0 24px rgba(235, 63, 233, 0.10) !important;
+    linear-gradient(145deg, rgba(19, 8, 31, 0.96), rgba(27, 11, 45, 0.94)) padding-box,
+    linear-gradient(135deg, rgba(115,87,255,0.34), rgba(216,77,241,0.24), rgba(255,149,66,0.24)) border-box !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
 }
 
 #root .clean-sheet-panel > header,
@@ -104,12 +104,12 @@
 #root .admin-character-audit__report-head::after {
   content: "";
   display: block;
-  width: min(220px, 56%);
-  height: 3px;
+  width: min(180px, 52%);
+  height: 2px;
   margin-top: 8px;
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
-  opacity: 0.82;
+  opacity: 0.74;
 }
 
 /* Keep nested content darker so the gradient border stays special. */
@@ -127,9 +127,9 @@
 #root .full-creator-equipment-list span,
 #root .admin-character-audit-card em {
   background: rgba(13, 6, 23, 0.86) !important;
-  border: 1px solid rgba(255, 248, 239, 0.14) !important;
-  border-left: 3px solid rgba(255, 149, 66, 0.52) !important;
-  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-left: 2px solid rgba(255, 149, 66, 0.44) !important;
+  border-radius: 12px !important;
 }
 
 /* Choice chips and spell chips: selected gets sunset border/fill; unselected stays calm. */
@@ -138,8 +138,8 @@
 #root .clean-sheet-tabs button,
 #root .clean-sheet-mobile-tools button {
   background: rgba(13, 6, 23, 0.78) !important;
-  border: 1px solid rgba(255, 248, 239, 0.13) !important;
-  color: rgba(255, 248, 239, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
 #root .full-creator-choice-block button.active,
@@ -149,11 +149,11 @@
   background:
     linear-gradient(145deg, rgba(27, 11, 45, 0.96), rgba(44, 16, 71, 0.94)) padding-box,
     var(--rq-sunset-gradient) border-box !important;
-  border: 2px solid transparent !important;
+  border: 1px solid transparent !important;
   color: #ffffff !important;
 }
 
-/* Loading pages: make them feel branded without needing a new image/logo. */
+/* Loading pages: branded without needing a new image/logo. */
 #root .loading-screen,
 #root .full-creator-loading {
   position: relative;
@@ -166,11 +166,11 @@
   position: absolute;
   inset: auto 50% 18% auto;
   width: min(260px, 62vw);
-  height: 5px;
+  height: 4px;
   transform: translateX(50%);
   border-radius: 999px;
   background: var(--rq-sunset-gradient);
-  box-shadow: var(--rq-twilight-selected-shadow);
+  box-shadow: none;
 }
 
 #root .loading-screen::after,

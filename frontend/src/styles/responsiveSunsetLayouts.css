@@ -1,0 +1,733 @@
+/* Responsive Sunset Layout System
+   Source of truth for route-level device guardrails.
+   Mobile: <=719px, Tablet landscape: 720px-1179px, Desktop browser: >=1180px. */
+
+:root {
+  --rq-layout-mobile-max: 719px;
+  --rq-layout-tablet-landscape-min: 720px;
+  --rq-layout-tablet-landscape-max: 1179px;
+  --rq-layout-desktop-min: 1180px;
+  --rq-layout-page-max: 1680px;
+  --rq-layout-reading-max: 1120px;
+  --rq-layout-sidebar-width: 320px;
+  --rq-layout-page-padding: clamp(12px, 3vw, 28px);
+  --rq-layout-card-gap: clamp(12px, 2vw, 20px);
+  --rq-lane-mobile-review-width: 390px;
+  --rq-lane-tablet-landscape-review-width: 1024px;
+  --rq-lane-desktop-review-width: 1440px;
+
+  /* Final sunset token lock. This sits after older one-off theme imports. */
+  --rq-bg: #070713;
+  --rq-bg-main: #070713;
+  --rq-bg-page: #0b0718;
+  --rq-bg-rail: #0d0617;
+  --rq-bg-panel: #13081f;
+  --rq-bg-panel-alt: #1b0b2d;
+  --rq-bg-card: #1b0b2d;
+  --rq-card: #1b0b2d;
+  --rq-card-hover: #24103a;
+  --rq-bg-input: #0b0614;
+  --rq-accent-primary: #eb3fe9;
+  --rq-accent-hover: #ff9542;
+  --rq-accent-active: #7357ff;
+  --rq-accent-soft: rgba(235, 63, 233, 0.14);
+  --rq-accent-border: rgba(255, 149, 66, 0.30);
+  --rq-accent-strong-border: rgba(255, 149, 66, 0.48);
+  --rq-text-primary: #ffffff;
+  --rq-text-secondary: rgba(255, 255, 255, 0.82);
+  --rq-text-muted: rgba(255, 255, 255, 0.62);
+  --rq-border-default: rgba(255, 255, 255, 0.14);
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%);
+}
+
+.rqk-responsive-page,
+.rqk-page-shell,
+.rqk-layout-page {
+  width: min(100%, var(--rq-layout-page-max));
+  margin-inline: auto;
+  padding: var(--rq-layout-page-padding);
+  min-width: 0;
+}
+
+.rqk-layout-readable {
+  width: min(100%, var(--rq-layout-reading-max));
+  margin-inline: auto;
+}
+
+.rqk-layout-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rq-layout-card-gap);
+  min-width: 0;
+}
+
+.rqk-layout-card-grid,
+.rqk-layout-dashboard-grid,
+.rqk-layout-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: var(--rq-layout-card-gap);
+  min-width: 0;
+}
+
+.rqk-layout-sidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rq-layout-card-gap);
+  min-width: 0;
+}
+
+.rqk-layout-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+  min-width: 0;
+}
+
+.rqk-layout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.rqk-layout-scroll-x {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rqk-layout-card,
+.rqk-themed-card,
+.rqk-themed-panel {
+  background: var(--rq-card, #1b0b2d);
+  border: 1px solid var(--rq-border-default, rgba(255, 255, 255, 0.14));
+  border-radius: var(--rq-radius, 10px);
+  color: var(--rq-text-primary, #ffffff);
+}
+
+.rqk-themed-card:hover,
+.rqk-themed-panel:hover {
+  background: var(--rq-card-hover, #24103a);
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30));
+}
+
+.rqk-sunset-tab,
+.rqk-sunset-nav-item {
+  position: relative;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--rq-inner-radius, 8px);
+  background: transparent;
+  color: var(--rq-text-primary, #ffffff);
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.rqk-sunset-tab:hover,
+.rqk-sunset-tab:focus-visible,
+.rqk-sunset-nav-item:hover,
+.rqk-sunset-nav-item:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.rqk-sunset-tab.is-active,
+.rqk-sunset-tab.active,
+.rqk-sunset-nav-item.is-active,
+.rqk-sunset-nav-item.active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rqk-sunset-tab.is-active::after,
+.rqk-sunset-tab.active::after,
+.rqk-sunset-nav-item.is-active::after,
+.rqk-sunset-nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: auto 10px 5px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--rq-sunset-gradient);
+}
+
+/* Route families: every visible app area should inherit the same page geometry and theme. */
+:where(
+  [data-testid='landing-page'],
+  .landing-page,
+  .rqk-auth-page,
+  .auth-page,
+  .unified-dashboard,
+  .dashboard-page,
+  .my-characters-page,
+  .characters-page,
+  .character-import-page,
+  .character-mode-page,
+  .full-creator-page,
+  .character-page-v2,
+  .clean-sheet-page,
+  .my-campaigns-page,
+  .campaigns-page,
+  .campaign-dashboard,
+  .campaign-dashboard-page,
+  .gm-dashboard-shell,
+  .homebrew-workshop-page,
+  [data-testid='homebrew-workshop'],
+  .uploads-dashboard-page,
+  .admin-page,
+  .admin-panel,
+  .account-page,
+  .combat-page,
+  .mobile-player-campaign-view,
+  .prototype-page
+) {
+  min-width: 0;
+  color: var(--rq-text-primary, #ffffff);
+}
+
+:where(
+  .unified-dashboard,
+  .dashboard-page,
+  .my-characters-page,
+  .characters-page,
+  .character-import-page,
+  .character-mode-page,
+  .full-creator-page,
+  .character-page-v2,
+  .clean-sheet-page,
+  .my-campaigns-page,
+  .campaign-dashboard,
+  .campaign-dashboard-page,
+  .gm-dashboard-shell,
+  .homebrew-workshop-page,
+  [data-testid='homebrew-workshop'],
+  .uploads-dashboard-page,
+  .admin-page,
+  .account-page
+) :where(section, article, aside, form, header, footer, main, div) {
+  min-width: 0;
+}
+
+:where(
+  .dashboard-grid,
+  .dashboard-command-grid,
+  .character-library-grid,
+  .characters-grid,
+  .campaign-library-grid,
+  .campaigns-grid,
+  .homebrew-grid,
+  .uploads-dashboard-grid,
+  .admin-grid,
+  .full-creator-grid,
+  .full-creator-body,
+  .character-mode-grid,
+  .clean-sheet-grid,
+  .clean-sheet-main,
+  .campaign-dashboard-grid,
+  .gm-dashboard-grid
+) {
+  display: grid;
+  gap: var(--rq-layout-card-gap);
+  min-width: 0;
+}
+
+:where(
+  .dashboard-hero,
+  .unified-dashboard-hero,
+  .library-page-hero,
+  .characters-library-hero,
+  .campaigns-library-hero,
+  .homebrew-workshop-hero,
+  .uploads-dashboard-hero,
+  .character-mode-hero,
+  .full-creator-header,
+  .clean-sheet-header,
+  .campaign-dashboard-header,
+  .gm-dashboard-header
+) {
+  min-width: 0;
+}
+
+:where(
+  .dashboard-hero-actions,
+  .library-page-actions,
+  .character-library-actions,
+  .campaign-library-actions,
+  .homebrew-workshop-actions,
+  .uploads-dashboard-actions,
+  .full-creator-footer,
+  .clean-sheet-mobile-tools,
+  .gm-dashboard-actions
+) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Late visual guardrails for older class names still used around the app. */
+html,
+body,
+#root,
+.App,
+.rqk-app-shell-content,
+.landing-page,
+.auth-page,
+.dashboard-page,
+.unified-dashboard,
+.my-characters-page,
+.my-campaigns-page,
+.library-page,
+.homebrew-workshop-page,
+.uploads-dashboard-page,
+.gm-dashboard-shell,
+.character-page-v2,
+.clean-sheet-page,
+.full-creator-page,
+.character-mode-page {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(115, 87, 255, 0.14), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(255, 79, 129, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--rq-bg-main, #070713) 0%, var(--rq-bg-page, #0b0718) 100%) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+}
+
+.card,
+.glow-card,
+.glow-panel,
+.parchment-dark,
+.panel,
+.rq-card,
+.rq-panel,
+.glass,
+.glass-gm,
+.glass-player,
+.dashboard-card,
+.dashboard-panel,
+.action-card,
+.character-card,
+.campaign-card,
+.admin-card,
+.admin-panel,
+.modal-content,
+.dialog-content {
+  background: linear-gradient(180deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.90)) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+.card:hover,
+.glow-card:hover,
+.glow-panel:hover,
+.rq-card:hover,
+.rq-panel:hover,
+.dashboard-card:hover,
+.action-card:hover,
+.character-card:hover,
+.campaign-card:hover {
+  background: var(--rq-card-hover, #24103a) !important;
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30)) !important;
+}
+
+.btn-primary,
+.rq-button-primary,
+.primary-button,
+button[type='submit'],
+button[data-testid*='create'],
+button[data-testid*='new'],
+button[data-testid*='save'],
+button[data-rqk-primary='true'] {
+  background: var(--rq-sunset-gradient) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.btn-secondary,
+.btn-outline,
+.rq-button-secondary,
+.secondary-button,
+.landing-button-ghost {
+  background: rgba(19, 8, 31, 0.76) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: none !important;
+}
+
+.tab,
+.clean-sheet-tab,
+.clean-sheet-tabs button,
+.dashboard-tabs button,
+.mobile-dashboard-tabs button,
+.nav-tabs button,
+.tab-list button {
+  background: transparent !important;
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82)) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.tab.active,
+.tab--active,
+.clean-sheet-tab.active,
+.clean-sheet-tab--active,
+.clean-sheet-tabs button.active,
+.clean-sheet-tabs button[aria-selected='true'],
+.dashboard-tabs button.active,
+.dashboard-tabs button[aria-selected='true'],
+.mobile-dashboard-tabs button.active,
+.mobile-dashboard-tabs button[aria-selected='true'],
+.nav-tabs button.active,
+.tab-list button.active {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Auth page has its own lazy-loaded CSS, so these selectors intentionally outrank it. */
+html body #root .rqk-auth-page {
+  color: var(--rq-text-primary, #ffffff) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(115, 87, 255, 0.16), transparent 32%),
+    radial-gradient(circle at 84% 20%, rgba(255, 79, 129, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.12), transparent 42%),
+    linear-gradient(180deg, #070713 0%, #0b0718 46%, #13081f 100%) !important;
+}
+
+html body #root .rqk-auth-page::after {
+  background:
+    linear-gradient(90deg, rgba(7, 7, 19, 0.74), transparent 24%, transparent 76%, rgba(7, 7, 19, 0.74)),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.36) 100%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-brand,
+html body #root .rqk-auth-page .rqk-auth-hero,
+html body #root .rqk-auth-page .rqk-auth-card,
+html body #root .rqk-auth-page .rqk-auth-feature-card,
+html body #root .rqk-auth-page .rqk-auth-note,
+html body #root .rqk-auth-page .rqk-auth-mode-toggle,
+html body #root .rqk-auth-page .rqk-auth-input-shell {
+  background:
+    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.36), rgba(216, 77, 241, 0.26), rgba(255, 149, 66, 0.24)) border-box !important;
+  border-color: transparent !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-ambient span {
+  background: radial-gradient(circle, rgba(235, 63, 233, 0.16), transparent 68%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-ambient span:nth-child(2) {
+  background: radial-gradient(circle, rgba(255, 79, 129, 0.15), transparent 68%) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-brand__sigil,
+html body #root .rqk-auth-page .rqk-auth-feature-icon,
+html body #root .rqk-auth-page .rqk-auth-mode-toggle button.is-active,
+html body #root .rqk-auth-page .rqk-auth-primary {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-mode-toggle button,
+html body #root .rqk-auth-page .rqk-auth-switch-button,
+html body #root .rqk-auth-page .rqk-auth-link-button,
+html body #root .rqk-auth-page .rqk-auth-icon-button,
+html body #root .rqk-auth-page .rqk-auth-secondary {
+  background: rgba(19, 8, 31, 0.76) !important;
+  color: var(--rq-text-primary, #ffffff) !important;
+  border-color: var(--rq-border-default, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: none !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-kicker,
+html body #root .rqk-auth-page .rqk-auth-heading p,
+html body #root .rqk-auth-page .rqk-auth-input-icon,
+html body #root .rqk-auth-page .rqk-auth-note svg {
+  color: var(--rq-accent-hover, #ff9542) !important;
+  stroke: var(--rq-accent-hover, #ff9542) !important;
+}
+
+html body #root .rqk-auth-page h1,
+html body #root .rqk-auth-page h2,
+html body #root .rqk-auth-page strong,
+html body #root .rqk-auth-page label,
+html body #root .rqk-auth-page .rqk-auth-field {
+  color: var(--rq-text-primary, #ffffff) !important;
+  text-shadow: none !important;
+}
+
+html body #root .rqk-auth-page p,
+html body #root .rqk-auth-page small,
+html body #root .rqk-auth-page span,
+html body #root .rqk-auth-page .rqk-auth-field-hint,
+html body #root .rqk-auth-page .rqk-auth-switch {
+  color: var(--rq-text-secondary, rgba(255, 255, 255, 0.82)) !important;
+}
+
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:hover,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:focus,
+html body #root .rqk-auth-page .rqk-auth-field:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--rq-text-primary, #ffffff) !important;
+  caret-color: var(--rq-text-primary, #ffffff) !important;
+  box-shadow: 0 0 0 1000px #0b0614 inset !important;
+}
+
+.smokey-bg::before,
+.smokey-bg::after {
+  background:
+    radial-gradient(ellipse at center, rgba(115, 87, 255, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(255, 79, 129, 0.10) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 149, 66, 0.08) 0%, transparent 40%) !important;
+}
+
+/* Mobile layout lane: one column, thumb-friendly, never trapped. */
+@media (max-width: 719px) {
+  :root {
+    --rq-layout-current-lane: 'mobile';
+    --rq-layout-page-padding: 12px;
+    --rq-layout-card-gap: 12px;
+  }
+
+  html,
+  body,
+  #root {
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .rqk-layout-card-grid,
+  .rqk-layout-dashboard-grid,
+  .rqk-layout-tool-grid,
+  .rqk-layout-sidebar,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .full-creator-grid,
+    .full-creator-body,
+    .character-mode-grid,
+    .clean-sheet-grid,
+    .clean-sheet-main,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .rqk-layout-actions,
+  :where(
+    .dashboard-hero-actions,
+    .library-page-actions,
+    .character-library-actions,
+    .campaign-library-actions,
+    .homebrew-workshop-actions,
+    .uploads-dashboard-actions,
+    .full-creator-footer,
+    .clean-sheet-mobile-tools,
+    .gm-dashboard-actions
+  ) {
+    align-items: stretch !important;
+  }
+
+  .rqk-layout-actions > *,
+  :where(
+    .dashboard-hero-actions,
+    .library-page-actions,
+    .character-library-actions,
+    .campaign-library-actions,
+    .homebrew-workshop-actions,
+    .uploads-dashboard-actions,
+    .full-creator-footer,
+    .clean-sheet-mobile-tools,
+    .gm-dashboard-actions
+  ) > * {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  :where(table, .table, .data-table, .rules-table, .admin-table, .character-table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet landscape lane: labelled rail, two-column summaries, stacked dense tools. */
+@media (min-width: 720px) and (max-width: 1179px) {
+  :root {
+    --rq-layout-current-lane: 'tablet-landscape';
+    --rq-layout-page-padding: clamp(16px, 2.4vw, 24px);
+    --rq-layout-card-gap: 16px;
+  }
+
+  .rqk-layout-dashboard-grid,
+  .rqk-layout-card-grid,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .character-mode-grid
+  ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .rqk-layout-tool-grid,
+  .rqk-layout-sidebar,
+  :where(
+    .full-creator-grid,
+    .full-creator-body,
+    .clean-sheet-grid,
+    .clean-sheet-main,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .rqk-layout-hero,
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    gap: 14px !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1179px) and (orientation: landscape) {
+  :root {
+    --rq-layout-current-lane: 'tablet-landscape-wide';
+  }
+
+  :where(
+    .full-creator-body,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.8fr) !important;
+  }
+
+  :where(
+    .clean-sheet-main,
+    .clean-sheet-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Desktop browser lane: professional workspace with optional side context. */
+@media (min-width: 1180px) {
+  :root {
+    --rq-layout-current-lane: 'desktop-browser';
+    --rq-layout-page-padding: clamp(20px, 2.4vw, 40px);
+    --rq-layout-card-gap: clamp(16px, 1.6vw, 24px);
+  }
+
+  .rqk-layout-dashboard-grid,
+  :where(
+    .dashboard-grid,
+    .dashboard-command-grid,
+    .character-library-grid,
+    .characters-grid,
+    .campaign-library-grid,
+    .campaigns-grid,
+    .homebrew-grid,
+    .uploads-dashboard-grid,
+    .admin-grid,
+    .character-mode-grid
+  ) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .rqk-layout-card-grid,
+  .rqk-layout-tool-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .rqk-layout-sidebar,
+  :where(
+    .full-creator-body,
+    .campaign-dashboard-grid,
+    .gm-dashboard-grid
+  ) {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, var(--rq-layout-sidebar-width)) !important;
+  }
+
+  .rqk-layout-hero,
+  :where(
+    .dashboard-hero,
+    .unified-dashboard-hero,
+    .library-page-hero,
+    .characters-library-hero,
+    .campaigns-library-hero,
+    .homebrew-workshop-hero,
+    .uploads-dashboard-hero,
+    .character-mode-hero,
+    .full-creator-header,
+    .clean-sheet-header,
+    .campaign-dashboard-header,
+    .gm-dashboard-header
+  ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: end !important;
+    gap: 16px !important;
+  }
+}
