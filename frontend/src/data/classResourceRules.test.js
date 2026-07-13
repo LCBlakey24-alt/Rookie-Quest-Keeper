@@ -1,4 +1,4 @@
-import { buildInitialClassResources, getClassResourceRules, restoreClassResources } from './classResourceRules';
+import { buildHomebrewResourceTrackers, buildInitialClassResources, getClassResourceRules, restoreClassResources } from './classResourceRules';
 
 const fighter = {
   character_class: 'Fighter',
@@ -127,5 +127,59 @@ describe('Bard, Sorcerer, and Warlock multiclass resources', () => {
     });
 
     expect(rules.find(rule => rule.className === 'Warlock' && rule.key === 'pact_magic')).toMatchObject({ maxValue: 1 });
+  });
+});
+
+describe('Homebrew resource trackers', () => {
+  const gildedScarabWarlock = {
+    character_class: 'Warlock',
+    level: 9,
+    rules_edition: '2014',
+    proficiency_bonus: 4,
+    homebrew_resources: [
+      { name: 'Scarab Charges', formula: 'Warlock level', restore: 'long rest', source: 'The Gilded Scarab' },
+      { name: 'Greed Tokens', formula: 'proficiency bonus', restore: 'short rest', gm_adjustable: true, source: 'The Gilded Scarab' },
+    ],
+  };
+
+  test('builds level and proficiency based homebrew resources', () => {
+    const resources = buildHomebrewResourceTrackers(gildedScarabWarlock);
+
+    expect(resources.scarab_charges).toMatchObject({
+      label: 'Scarab Charges',
+      max: 9,
+      remaining: 9,
+      restore: 'long-rest',
+      source: 'The Gilded Scarab',
+      homebrew: true,
+    });
+    expect(resources.greed_tokens).toMatchObject({
+      label: 'Greed Tokens',
+      max: 4,
+      remaining: 4,
+      restore: 'short-rest',
+      gm_adjustable: true,
+    });
+  });
+
+  test('includes homebrew resources alongside core class resources', () => {
+    const resources = buildInitialClassResources(gildedScarabWarlock);
+
+    expect(resources.pact_magic).toMatchObject({ max: 2, restore: 'short-rest' });
+    expect(resources.scarab_charges).toMatchObject({ max: 9, restore: 'long-rest' });
+    expect(resources.greed_tokens).toMatchObject({ max: 4, restore: 'short-rest' });
+  });
+
+  test('short rest only restores short-rest homebrew resources', () => {
+    const restored = restoreClassResources({
+      ...gildedScarabWarlock,
+      resources: {
+        scarab_charges: { label: 'Scarab Charges', current: 0, remaining: 0, max: 9, restore: 'long-rest' },
+        greed_tokens: { label: 'Greed Tokens', current: 0, remaining: 0, max: 4, restore: 'short-rest' },
+      },
+    }, 'short-rest');
+
+    expect(restored.scarab_charges).toMatchObject({ remaining: 0, max: 9, restore: 'long-rest' });
+    expect(restored.greed_tokens).toMatchObject({ current: 4, remaining: 4, max: 4, restore: 'short-rest' });
   });
 });

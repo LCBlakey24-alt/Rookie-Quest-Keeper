@@ -1,29 +1,33 @@
-/* Brand polish: auth page, landing text and ROOK logo loader */
+/* Brand polish: auth page, landing text and ROOK logo loader. */
 
 :root {
-  --rook-black: var(--rq-bg-main, #120C08);
-  --rook-panel: var(--rq-bg-panel, #21150E);
-  --rook-card: var(--rq-bg-panel-alt, #2E1D13);
-  --rook-red: var(--rq-accent-primary, #C08A3D);
-  --rook-red-soft: var(--rq-accent-soft, rgba(192, 138, 61, 0.14));
-  --rook-red-border: var(--rq-accent-border, rgba(192, 138, 61, 0.34));
-  --rook-white: var(--rq-text-primary, #F5E6C8);
-  --rook-soft-white: var(--rq-text-secondary, #E6D2AA);
-  --rook-muted: var(--rq-text-muted, #CDBA98);
-  --rook-inverse: var(--rq-text-inverse, #120C08);
+  --rook-black: var(--rq-bg-main, #070713);
+  --rook-panel: var(--rq-bg-panel, #13081f);
+  --rook-card: var(--rq-bg-panel-alt, #1b0b2d);
+  --rook-red: var(--rq-accent-primary, #eb3fe9);
+  --rook-red-soft: var(--rq-accent-soft, rgba(235, 63, 233, 0.14));
+  --rook-red-border: var(--rq-accent-border, rgba(255, 149, 66, 0.30));
+  --rook-white: var(--rq-text-primary, #ffffff);
+  --rook-soft-white: var(--rq-text-secondary, rgba(255, 255, 255, 0.82));
+  --rook-muted: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
+  --rook-inverse: #ffffff;
 
   /* Compatibility overrides for old role tokens declared in App.css. */
-  --rq-role-gm: var(--rq-accent-active, #A45A32);
-  --rq-role-player: var(--rq-accent-primary, #C08A3D);
-  --rq-role-rook: var(--rq-accent-hover, #E0B15C);
-  --rq-role-homebrew: var(--rq-success, #7A9B66);
-  --rq-role-lore: var(--rq-warning, #D4953C);
-  --rq-surface-soft: rgba(245, 230, 200, 0.07);
+  --rq-role-gm: var(--rq-accent-active, #7357ff);
+  --rq-role-player: var(--rq-accent-primary, #eb3fe9);
+  --rq-role-rook: var(--rq-accent-hover, #ff9542);
+  --rq-role-homebrew: var(--rq-success, #187a62);
+  --rq-role-lore: var(--rq-warning, #ff9542);
+  --rq-surface-soft: rgba(255, 255, 255, 0.06);
 }
 
-/* Loading screen: Velvet Tabletop branded background. The logo image is rendered by React, not CSS. */
+/* Loading screen: sunset-gradient branded background. The logo image is rendered by React, not CSS. */
 .loading-screen {
-  background: radial-gradient(circle at 50% 38%, rgba(192, 138, 61, 0.18), transparent 32%), var(--rook-black) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(115, 87, 255, 0.16), transparent 32%),
+    radial-gradient(circle at 84% 20%, rgba(255, 79, 129, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 118%, rgba(255, 149, 66, 0.12), transparent 42%),
+    var(--rook-black) !important;
 }
 
 .loading-spinner {
@@ -32,7 +36,7 @@
   border: none !important;
   border-radius: 0 !important;
   background: transparent !important;
-  filter: drop-shadow(0 0 18px rgba(192, 138, 61, 0.45));
+  filter: drop-shadow(0 0 14px rgba(235, 63, 233, 0.22));
   animation: rookLogoPulse 1.25s ease-in-out infinite !important;
 }
 
@@ -48,7 +52,7 @@
   50% { opacity: 1; transform: scale(1.06); }
 }
 
-/* Landing page: text should read cream, with gold kept as the primary accent. */
+/* Landing page: text stays white/soft-white; sunset gradient is the primary accent. */
 [data-testid="landing-page"] {
   background: var(--rook-black) !important;
   color: var(--rook-white) !important;
@@ -72,14 +76,15 @@
   color: var(--rook-white) !important;
 }
 
-/* Auth page */
+/* Legacy auth page class set. New auth uses rqk-auth-* but these stay aligned for compatibility. */
 .rq-auth-page {
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at 20% 10%, rgba(192, 138, 61, 0.18), transparent 34%),
-              radial-gradient(circle at 80% 80%, rgba(164, 90, 50, 0.16), transparent 38%),
-              var(--rook-black);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(115, 87, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 80% 80%, rgba(255, 79, 129, 0.14), transparent 38%),
+    var(--rook-black);
   color: var(--rook-white);
 }
 
@@ -106,7 +111,7 @@
 .rq-auth-logo img {
   height: 54px;
   width: auto;
-  filter: drop-shadow(0 0 16px rgba(192, 138, 61, 0.42));
+  filter: drop-shadow(0 0 14px rgba(235, 63, 233, 0.22));
 }
 
 .rq-auth-logo span {
@@ -119,11 +124,13 @@
 .rq-auth-panel {
   width: 100%;
   max-width: 430px;
-  background: rgba(33, 21, 14, 0.94);
-  border: 1px solid var(--rook-red-border);
+  background:
+    linear-gradient(145deg, rgba(27, 11, 45, 0.94), rgba(19, 8, 31, 0.92)) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.34), rgba(216, 77, 241, 0.24), rgba(255, 149, 66, 0.22)) border-box;
+  border: 1px solid transparent;
   border-radius: 18px;
   padding: 38px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48), 0 0 36px rgba(192, 138, 61, 0.12);
+  box-shadow: none;
   backdrop-filter: blur(18px);
 }
 
@@ -155,14 +162,14 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--rook-red);
+  color: var(--rq-accent-hover, #ff9542);
 }
 
 .rq-auth-input {
   width: 100%;
   padding: 14px 16px 14px 48px;
-  background: var(--rq-bg-input, #1A100B);
-  border: 1px solid rgba(192, 138, 61, 0.24);
+  background: var(--rq-bg-input, #0b0614);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   color: var(--rook-white);
   font-size: 15px;
@@ -171,8 +178,8 @@
 }
 
 .rq-auth-input:focus {
-  border-color: var(--rook-red);
-  box-shadow: 0 0 0 3px var(--rook-red-soft);
+  border-color: var(--rq-accent-hover, #ff9542);
+  box-shadow: 0 0 0 3px rgba(255, 149, 66, 0.16);
 }
 
 .rq-auth-input::placeholder {
@@ -182,18 +189,18 @@
 .rq-auth-primary {
   width: 100%;
   padding: 14px;
-  background: var(--rook-red);
-  border: 1px solid var(--rq-accent-hover, #E0B15C);
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542));
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   color: var(--rook-inverse);
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: filter 0.2s ease, transform 0.2s ease;
 }
 
 .rq-auth-primary:hover:not(:disabled) {
-  background: var(--rq-accent-hover, #E0B15C);
+  filter: brightness(1.07);
   transform: translateY(-1px);
 }
 
@@ -212,7 +219,7 @@
 }
 
 .rq-auth-link:hover {
-  color: var(--rook-red);
+  color: var(--rq-accent-hover, #ff9542);
 }
 
 .rq-auth-secondary {
@@ -222,8 +229,8 @@
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  background: transparent;
-  border: 1px solid var(--rook-red-border);
+  background: rgba(19, 8, 31, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   color: var(--rook-white);
   font-size: 14px;
@@ -243,12 +250,13 @@
   font-size: 13px;
 }
 
-/* Legacy global effect overrides from App.css. Keep class names for compatibility, but use Velvet colours. */
+/* Legacy global effect overrides from App.css. Keep class names for compatibility, but use sunset colours. */
 .smokey-bg::before,
 .smokey-bg::after {
-  background: radial-gradient(ellipse at center, rgba(192, 138, 61, 0.14) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(164, 90, 50, 0.10) 0%, transparent 40%),
-              radial-gradient(ellipse at 80% 20%, rgba(224, 177, 92, 0.08) 0%, transparent 40%) !important;
+  background:
+    radial-gradient(ellipse at center, rgba(115, 87, 255, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(255, 79, 129, 0.10) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 149, 66, 0.08) 0%, transparent 40%) !important;
 }
 
 .tron-border-blue::before,
@@ -256,9 +264,9 @@
   background: linear-gradient(90deg,
     transparent 0%,
     transparent 40%,
-    var(--rq-accent-primary, #C08A3D) 45%,
-    var(--rq-text-primary, #F5E6C8) 50%,
-    var(--rq-accent-hover, #E0B15C) 55%,
+    var(--rq-accent-active, #7357ff) 45%,
+    var(--rq-accent-primary, #eb3fe9) 50%,
+    var(--rq-accent-hover, #ff9542) 55%,
     transparent 60%,
     transparent 100%
   ) !important;
@@ -271,11 +279,9 @@
     from 0deg,
     transparent 0deg,
     transparent 60deg,
-    var(--rq-accent-primary, #C08A3D) 80deg,
-    var(--rq-accent-hover, #E0B15C) 90deg,
-    var(--rq-text-primary, #F5E6C8) 95deg,
-    var(--rq-accent-hover, #E0B15C) 100deg,
-    var(--rq-accent-active, #A45A32) 110deg,
+    var(--rq-accent-active, #7357ff) 80deg,
+    var(--rq-accent-primary, #eb3fe9) 90deg,
+    var(--rq-accent-hover, #ff9542) 100deg,
     transparent 130deg,
     transparent 360deg
   ) !important;
@@ -286,19 +292,19 @@
 .tron-border-spin-blue::after,
 .tron-border-spin-red::after,
 .tron-border-spin-dual::after {
-  background: var(--rq-bg-panel, #21150E) !important;
+  background: var(--rq-bg-panel, #13081f) !important;
 }
 
 select,
 select.input-glow {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23C08A3D' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23ff9542' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
 }
 
 .rq-role-rook,
 .rq-role-homebrew,
 .rq-role-player,
 .rq-role-lore {
-  border-color: var(--rq-accent-border, rgba(192, 138, 61, 0.34)) !important;
+  border-color: var(--rq-accent-border, rgba(255, 149, 66, 0.30)) !important;
 }
 
 @media (max-width: 520px) {

@@ -1,0 +1,291 @@
+/* Final logged-in hub consistency sweep.
+   This sits very late in App.js and targets AppShell pages only so Dashboard,
+   Characters, Campaigns, Homebrew, Uploads, Account, and Admin feel like one product. */
+
+#root .rqk-app-shell {
+  background:
+    radial-gradient(circle at 82% 2%, rgba(235, 63, 233, 0.10), transparent 34%),
+    radial-gradient(circle at 16% 100%, rgba(255,149,66,0.10), transparent 40%),
+    linear-gradient(180deg, #070713 0%, #10071e 54%, #19082d 100%) !important;
+}
+
+#root .rqk-app-shell-content {
+  position: relative !important;
+  min-width: 0 !important;
+  isolation: isolate !important;
+  background: transparent !important;
+}
+
+#root .rqk-app-shell-content > * {
+  min-width: 0 !important;
+}
+
+#root .unified-dashboard-page,
+#root .library-page,
+#root .uploads-dashboard-page,
+#root .account-settings-page,
+#root [data-testid="homebrew-workshop"],
+#root .admin-mission-control-page {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: clip !important;
+}
+
+#root .unified-dashboard-page,
+#root .library-page,
+#root .uploads-dashboard-page,
+#root .account-settings-page,
+#root [data-testid="homebrew-workshop"] {
+  padding: clamp(12px, 2vw, 24px) !important;
+}
+
+#root .unified-dashboard-page > *,
+#root .library-page > *,
+#root .uploads-dashboard-page > *,
+#root .account-settings-container,
+#root [data-testid="homebrew-workshop"] > section,
+#root .admin-mission-control-page__container {
+  max-width: 1440px !important;
+  margin-inline: auto !important;
+}
+
+#root .library-page,
+#root .uploads-dashboard-page,
+#root [data-testid="homebrew-workshop"] > section,
+#root .account-settings-container,
+#root .unified-dashboard-content,
+#root .admin-mission-control-page__container {
+  gap: clamp(12px, 1.8vw, 18px) !important;
+}
+
+#root .rqk-app-shell a,
+#root .rqk-app-shell button,
+#root .rqk-app-shell input,
+#root .rqk-app-shell textarea,
+#root .rqk-app-shell select {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+#root .rqk-app-shell a:focus-visible,
+#root .rqk-app-shell button:focus-visible,
+#root .rqk-app-shell input:focus-visible,
+#root .rqk-app-shell textarea:focus-visible,
+#root .rqk-app-shell select:focus-visible {
+  outline: 2px solid rgba(255, 149, 66, 0.72) !important;
+  outline-offset: 3px !important;
+}
+
+#root .rqk-app-shell .library-page-button,
+#root .rqk-app-shell .library-page-button-primary,
+#root .rqk-app-shell .library-page-button-secondary,
+#root .rqk-app-shell button[class*="button"],
+#root .rqk-app-shell a[class*="button"] {
+  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease, box-shadow 160ms ease !important;
+}
+
+#root .rqk-app-shell .library-page-button:hover,
+#root .rqk-app-shell .library-page-button-primary:hover,
+#root .rqk-app-shell .library-page-button-secondary:hover,
+#root .rqk-app-shell button[class*="button"]:hover,
+#root .rqk-app-shell a[class*="button"]:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.05) !important;
+}
+
+#root .rqk-app-rail {
+  backdrop-filter: blur(18px) saturate(1.1) !important;
+}
+
+#root .rqk-app-rail-brand,
+#root .rqk-app-rail-link {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+
+#root .rqk-app-rail-link.is-active {
+  border-color: rgba(255,248,239,0.16) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+#root .rqk-app-shell ::selection {
+  background: rgba(255, 149, 66, 0.34) !important;
+  color: #ffffff !important;
+}
+
+#root .rqk-app-shell-content::-webkit-scrollbar,
+#root .rqk-app-shell *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#root .rqk-app-shell-content::-webkit-scrollbar-thumb,
+#root .rqk-app-shell *::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(7, 7, 19, 0.85);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(216,77,241,0.68), rgba(255,149,66,0.68));
+}
+
+#root .rqk-app-shell-content::-webkit-scrollbar-track,
+#root .rqk-app-shell *::-webkit-scrollbar-track {
+  background: rgba(7,7,19,0.55);
+}
+
+@media (max-width: 719px) {
+  #root .rqk-app-shell {
+    min-height: 100dvh !important;
+    display: block !important;
+    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root .rqk-app-shell-content {
+    min-height: 100dvh !important;
+  }
+
+  #root .rqk-app-rail {
+    position: fixed !important;
+    inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    width: auto !important;
+    height: 66px !important;
+    z-index: 80 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 7px !important;
+    border: 1px solid rgba(255,248,239,0.16) !important;
+    border-radius: 24px !important;
+    background:
+      linear-gradient(145deg, rgba(13,6,23,0.94), rgba(32,12,52,0.91)) padding-box,
+      var(--rq-sunset-gradient) border-box !important;
+    box-shadow: 0 18px 46px rgba(0,0,0,0.42), 0 0 24px rgba(235,63,233,0.15) !important;
+  }
+
+  #root .rqk-app-rail-brand {
+    width: 48px !important;
+    min-height: 48px !important;
+    padding: 4px !important;
+    border-radius: 17px !important;
+  }
+
+  #root .rqk-app-rail-brand-copy,
+  #root .rqk-app-rail-section-label,
+  #root .rqk-app-rail-link span {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-brand-mark {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 0.72rem !important;
+  }
+
+  #root .rqk-app-rail-nav {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: 48px !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    scroll-snap-type: x mandatory !important;
+    padding: 0 2px 2px !important;
+    scrollbar-width: none !important;
+  }
+
+  #root .rqk-app-rail-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #root .rqk-app-rail-bottom {
+    margin-top: 0 !important;
+    display: grid !important;
+    grid-auto-flow: column !important;
+    gap: 6px !important;
+  }
+
+  #root .rqk-app-rail-link {
+    width: 48px !important;
+    min-height: 48px !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 4px !important;
+    border-radius: 17px !important;
+    scroll-snap-align: center !important;
+  }
+
+  #root .rqk-app-rail-link.is-active::before {
+    inset: auto 12px 4px 12px !important;
+    width: auto !important;
+    height: 3px !important;
+  }
+
+  #root .rqk-app-rail-link.is-active svg {
+    width: 20px !important;
+    height: 20px !important;
+    padding: 7px !important;
+  }
+
+  #root .unified-dashboard-page,
+  #root .library-page,
+  #root .uploads-dashboard-page,
+  #root .account-settings-page,
+  #root [data-testid="homebrew-workshop"],
+  #root .admin-mission-control-page {
+    padding: 10px !important;
+  }
+
+  #root .library-page-hero,
+  #root .unified-dashboard-header,
+  #root .dashboard-command-panel,
+  #root .dashboard-activity-panel,
+  #root .dashboard-readiness-panel,
+  #root .uploads-dashboard-hero,
+  #root .uploads-dashboard-dropzone,
+  #root .uploads-dashboard-route-card,
+  #root .uploads-dashboard-card,
+  #root .uploads-dashboard-next,
+  #root .uploads-dashboard-safety-grid article,
+  #root .account-settings-header,
+  #root .account-settings-panel,
+  #root [data-testid="homebrew-workshop"] > section > header,
+  #root [data-testid="homebrew-workshop"] > section > section:nth-of-type(2) > aside,
+  #root [data-testid="homebrew-workshop"] > section > section:nth-of-type(2) > section,
+  #root [data-testid="homebrew-workshop"] > section > section:nth-of-type(3) {
+    border-radius: 18px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  #root .rqk-app-rail {
+    inset-inline: 6px !important;
+    height: 62px !important;
+    border-radius: 21px !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+  }
+
+  #root .rqk-app-rail-brand,
+  #root .rqk-app-rail-link {
+    width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 15px !important;
+  }
+
+  #root .rqk-app-rail-nav {
+    grid-auto-columns: 44px !important;
+  }
+
+  #root .rqk-app-rail-brand-mark {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-app-shell *,
+  #root .rqk-app-shell *::before,
+  #root .rqk-app-shell *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

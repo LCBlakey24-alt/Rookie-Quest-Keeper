@@ -1,77 +1,85 @@
-/* Auth brand override layer for the legacy inline-styled AuthPage. */
+/*
+ * Legacy auth brand override layer.
+ *
+ * The current AuthPage uses the dedicated .rqk-auth-page component styles plus
+ * authExperiencePolish.css. These compatibility selectors are intentionally
+ * guarded so the old inline-auth patch cannot leak into the modern auth page.
+ */
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="min-height: 100vh"],
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="minHeight: 100vh"] {
-  background: var(--rq-bg-main, #120C08) !important;
-  color: var(--rq-text-primary, #F5E6C8) !important;
-}
+@supports selector(:has(*)) {
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="min-height: 100vh"],
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="minHeight: 100vh"] {
+    background: var(--rq-bg-main, #120C08) !important;
+    color: var(--rq-text-primary, #F5E6C8) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="position: fixed"] {
-  background: radial-gradient(circle at 20% 10%, rgba(192, 138, 61, 0.18), transparent 34%), var(--rq-bg-main, #120C08) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="position: fixed"] {
+    background: radial-gradient(circle at 20% 10%, rgba(192, 138, 61, 0.18), transparent 34%), var(--rq-bg-main, #120C08) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="max-width: 420px"],
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="maxWidth: 420px"] {
-  background: rgba(33, 21, 14, 0.94) !important;
-  border: 1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34)) !important;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5), 0 0 36px rgba(192, 138, 61, 0.12) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="max-width: 420px"],
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div[style*="maxWidth: 420px"] {
+    background: rgba(33, 21, 14, 0.94) !important;
+    border: 1px solid var(--rq-accent-border, rgba(192, 138, 61, 0.34)) !important;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5), 0 0 36px rgba(192, 138, 61, 0.12) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) h1,
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) h2,
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) p,
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) span,
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) div {
-  color: var(--rq-text-primary, #F5E6C8) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) h1,
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) h2,
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) p,
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) span,
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) div {
+    color: var(--rq-text-primary, #F5E6C8) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) p {
-  color: var(--rq-text-secondary, #E6D2AA) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) p {
+    color: var(--rq-text-secondary, #E6D2AA) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) input {
-  background: var(--rq-bg-input, #1A100B) !important;
-  border: 1px solid rgba(192, 138, 61, 0.24) !important;
-  color: var(--rq-text-primary, #F5E6C8) !important;
-  border-radius: 10px !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) input {
+    background: var(--rq-bg-input, #1A100B) !important;
+    border: 1px solid rgba(192, 138, 61, 0.24) !important;
+    color: var(--rq-text-primary, #F5E6C8) !important;
+    border-radius: 10px !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) input:focus {
-  border-color: var(--rq-accent-primary, #C08A3D) !important;
-  box-shadow: 0 0 0 3px var(--rq-accent-soft, rgba(192, 138, 61, 0.14)) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) input:focus {
+    border-color: var(--rq-accent-primary, #C08A3D) !important;
+    box-shadow: 0 0 0 3px var(--rq-accent-soft, rgba(192, 138, 61, 0.14)) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) input::placeholder {
-  color: var(--rq-text-muted, #CDBA98) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) input::placeholder {
+    color: var(--rq-text-muted, #CDBA98) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) svg {
-  color: var(--rq-accent-primary, #C08A3D) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) svg {
+    color: var(--rq-accent-primary, #C08A3D) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) button[type="submit"] {
-  background: var(--rq-accent-primary, #C08A3D) !important;
-  border: 1px solid var(--rq-accent-hover, #E0B15C) !important;
-  color: var(--rq-text-inverse, #120C08) !important;
-  box-shadow: none !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) button[type="submit"] {
+    background: var(--rq-accent-primary, #C08A3D) !important;
+    border: 1px solid var(--rq-accent-hover, #E0B15C) !important;
+    color: var(--rq-text-inverse, #120C08) !important;
+    box-shadow: none !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) button[type="button"] {
-  color: var(--rq-text-primary, #F5E6C8) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) button[type="button"] {
+    color: var(--rq-text-primary, #F5E6C8) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) button[type="button"]:hover {
-  color: var(--rq-accent-hover, #E0B15C) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) button[type="button"]:hover {
+    color: var(--rq-accent-hover, #E0B15C) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) img[src="/images/logo-mini.png"] {
-  filter: drop-shadow(0 0 16px rgba(192, 138, 61, 0.42)) !important;
-}
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) img[src="/images/logo-mini.png"] {
+    filter: drop-shadow(0 0 16px rgba(192, 138, 61, 0.42)) !important;
+  }
 
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) span[style*="WebkitTextFillColor"],
-.App:has(input[placeholder="Email address"]):has(input[type="password"]) span[style*="-webkit-text-fill-color"] {
-  background: none !important;
-  color: var(--rq-text-primary, #F5E6C8) !important;
-  -webkit-text-fill-color: var(--rq-text-primary, #F5E6C8) !important;
-  letter-spacing: 0.18em !important;
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) span[style*="WebkitTextFillColor"],
+  .App:not(:has(.rqk-auth-page)):has(input[placeholder="Email address"]):has(input[type="password"]) span[style*="-webkit-text-fill-color"] {
+    background: none !important;
+    color: var(--rq-text-primary, #F5E6C8) !important;
+    -webkit-text-fill-color: var(--rq-text-primary, #F5E6C8) !important;
+    letter-spacing: 0.18em !important;
+  }
 }

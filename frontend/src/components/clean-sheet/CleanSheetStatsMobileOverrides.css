@@ -1,16 +1,19 @@
-/* Final mobile Stats tab overrides.
-   Loaded after the older compact stats CSS so mobile skills stay two-column,
-   boxes line up, and every red accent is a full-height left edge. */
+/* Mobile Stats tab polish using the sunset sheet language. */
 
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-stats-tab--compact {
-    gap: 8px !important;
+    gap: 10px !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-panel {
     padding: 10px !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
     overflow: hidden !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-core-stat-grid,
@@ -22,7 +25,7 @@
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-skills {
     width: 100% !important;
     display: grid !important;
-    gap: 6px !important;
+    gap: 8px !important;
     background: transparent !important;
     border: 0 !important;
   }
@@ -50,10 +53,13 @@
     min-width: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    background: var(--rq-bg-card, #151515) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#10051d, #10051d) padding-box,
+      linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.75), rgba(255, 149, 66, 0.5)) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 9px !important;
     padding-left: 9px !important;
     padding-right: 8px !important;
     overflow: hidden !important;
@@ -93,7 +99,7 @@
     min-width: 0 !important;
     max-width: 100% !important;
     display: block !important;
-    color: var(--rq-text-primary, #ffffff) !important;
+    color: #ffffff !important;
     font-size: 9px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -116,10 +122,13 @@
     padding: 0 !important;
     display: grid !important;
     place-items: center !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-left: 3px solid rgba(255,255,255,0.18) !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 8px !important;
     font-size: 10px !important;
     line-height: 1 !important;
     font-weight: 950 !important;
@@ -137,12 +146,11 @@
     padding: 0 4px !important;
     font-size: 9px !important;
     text-align: center !important;
-    border-left-color: transparent !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-filter-row button.active {
-    background: var(--rq-bg-panel, #101010) !important;
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
+    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    border-left-color: transparent !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact span,
@@ -171,7 +179,7 @@
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-saves,
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-summary,
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-readable-skills {
-    gap: 5px !important;
+    gap: 6px !important;
   }
 
   .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skill-label,

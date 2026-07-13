@@ -71,6 +71,7 @@ SUBCLASS_LEVELS_2024 = {
     'Monk': 3, 'Paladin': 3, 'Ranger': 3, 'Rogue': 3, 'Sorcerer': 3,
     'Warlock': 3, 'Wizard': 3
 }
+HOMEBREW_SUBCLASS_UNLOCK_LEVEL = int(os.environ.get('HOMEBREW_SUBCLASS_UNLOCK_LEVEL', '1'))
 HIT_DICE = {
     'Barbarian': 12, 'Fighter': 10, 'Paladin': 10, 'Ranger': 10,
     'Bard': 8, 'Cleric': 8, 'Druid': 8, 'Monk': 8, 'Rogue': 8, 'Warlock': 8,
@@ -79,6 +80,7 @@ HIT_DICE = {
 
 
 def get_subclass_unlock_level(class_name: str, edition: str = "2014") -> int:
+    """Return subclass unlock level, keeping standard classes strict and custom classes flexible."""
     if edition == "2024":
-        return SUBCLASS_LEVELS_2024.get(class_name, 3)
-    return SUBCLASS_LEVELS_2014.get(class_name, 3)
+        return SUBCLASS_LEVELS_2024.get(class_name, HOMEBREW_SUBCLASS_UNLOCK_LEVEL)
+    return SUBCLASS_LEVELS_2014.get(class_name, HOMEBREW_SUBCLASS_UNLOCK_LEVEL)

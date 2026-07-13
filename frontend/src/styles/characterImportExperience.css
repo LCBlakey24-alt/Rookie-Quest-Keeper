@@ -1,0 +1,225 @@
+/* Character Import experience polish.
+   Targets the importer by its unique file accept pattern so we can polish the inline-heavy page safely. */
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  min-height: 100dvh !important;
+  display: grid !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+  padding: clamp(12px, 2.4vw, 24px) !important;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(235,63,233,0.14), transparent 34%),
+    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.14), transparent 38%),
+    linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > header,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > header::before,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > header {
+  min-height: 220px !important;
+  display: grid !important;
+  gap: 14px !important;
+  padding: clamp(16px, 3vw, 28px) !important;
+  align-content: center !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) h1,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) h2 {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  line-height: 1 !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) h1 {
+  font-size: clamp(2.45rem, 6vw, 4.35rem) !important;
+  letter-spacing: 0 !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) header p:first-of-type {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin: 0 0 8px !important;
+  padding: 5px 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.7rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) p,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) li,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) span {
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.5 !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) input,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) select,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) textarea {
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) input,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) select,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) textarea {
+  border: 1px solid rgba(255,248,239,0.15) !important;
+  background: rgba(7,7,19,0.62) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) input:focus,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) select:focus,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) textarea:focus {
+  border-color: rgba(255,149,66,0.58) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255,149,66,0.1) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) label {
+  color: rgba(255,248,239,0.78) !important;
+  font-size: 0.76rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:nth-of-type(1) {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: start !important;
+  padding: clamp(14px, 2.2vw, 18px) !important;
+  background:
+    linear-gradient(rgba(32,12,52,0.94), rgba(27,11,45,0.96)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:nth-of-type(1) svg,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) section svg {
+  color: rgba(255,149,66,0.96) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) article {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background: rgba(7,7,19,0.32) !important;
+  box-shadow: none !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) article::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) input[type="file"] {
+  min-height: 68px !important;
+  border-style: dashed !important;
+  padding: 18px !important;
+  cursor: pointer !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:last-of-type {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: clamp(14px, 2.4vw, 20px) !important;
+  background:
+    linear-gradient(rgba(32,12,52,0.95), rgba(27,11,45,0.98)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button {
+  min-height: 42px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  background:
+    linear-gradient(rgba(27,11,45,0.96), rgba(27,11,45,0.96)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-weight: 950 !important;
+  transition: transform 160ms ease, filter 160ms ease !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button:hover,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button:focus-visible {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+  outline: none !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button:disabled {
+  transform: none !important;
+  filter: none !important;
+  cursor: not-allowed !important;
+}
+
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:last-of-type button,
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button[type="button"]:has(svg + text),
+#root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button:not(:disabled):has(svg) {
+  color: #ffffff !important;
+}
+
+@media (max-width: 860px) {
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:last-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > section:last-of-type button,
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) {
+    padding: 12px !important;
+  }
+
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) > header {
+    min-height: 0 !important;
+  }
+
+  #root .rqk-app-shell-content > main:has(input[accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp"]) h1 {
+    font-size: clamp(2.1rem, 11vw, 3rem) !important;
+  }
+}

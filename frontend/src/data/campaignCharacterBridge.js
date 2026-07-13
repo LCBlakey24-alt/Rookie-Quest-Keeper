@@ -1,6 +1,14 @@
 const arr = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const normalize = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 
+const first = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
+const num = (...values) => {
+  const value = first(...values);
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
 export function getCharacterId(value = {}) {
   return value.character_id || value.characterId || value.character?.id || value.id || null;
 }
@@ -14,17 +22,43 @@ export function getCharacterDisplayName(value = {}) {
   return character.name || character.character_name || value.characterName || 'Unnamed Character';
 }
 
+export function getCharacterPortrait(value = {}) {
+  const character = value.character || value.raw?.character || value.raw || value;
+  return first(
+    character.image_url,
+    character.avatar_url,
+    character.portrait_url,
+    character.character_image,
+    character.character_portrait,
+    character.token_url,
+    character.thumbnail_url,
+    value.image_url,
+    value.avatar_url,
+    value.portrait_url,
+    value.character_image,
+    value.character_portrait,
+    value.token_url
+  ) || '';
+}
+
 export function isLinkedCampaignCharacter(value = {}) {
   return Boolean(value.character_id || value.characterId || value.character?.id || value.linked_character_id);
 }
 
 export function normalizeCampaignCharacter(value = {}) {
   const character = value.character || value;
-  const characterClass = character.character_class || character.class_name || character.class || character.characterClass || '';
-  const level = Number(character.level || value.level || 1) || 1;
-  const maxHp = Number(character.max_hit_points || character.max_hp || character.hp_max || character.maxHp || 0) || 0;
-  const currentHp = Number(character.current_hit_points ?? character.current_hp ?? character.hp ?? character.currentHp ?? maxHp) || 0;
-  const tempHp = Number(character.temporary_hit_points ?? character.temp_hp ?? character.tempHp ?? 0) || 0;
+  const characterClass = first(character.character_class, character.class_name, character.class, character.characterClass, value.character_class, value.className, value.class) || '';
+  const level = num(character.level, value.level, 1) || 1;
+  const maxHp = num(character.max_hit_points, character.max_hp, character.hp_max, character.maxHp, value.max_hit_points, value.max_hp, value.hp_max, value.maxHp, character.hp, value.hp);
+  const currentHp = num(character.current_hit_points, character.current_hp, character.hp_current, character.currentHp, value.current_hit_points, value.current_hp, value.hp_current, value.currentHp, value.hp, character.hp, maxHp);
+  const tempHp = num(character.temporary_hit_points, character.temp_hp, character.tempHp, value.temporary_hit_points, value.temp_hp, value.tempHp);
+  const armorClass = num(character.armor_class, character.ac, character.armorClass, value.armor_class, value.ac, value.armorClass);
+  const speed = num(character.speed, character.walking_speed, character.movement_speed, value.speed, value.walking_speed, value.movement_speed, 30) || 30;
+  const initiative = num(character.initiative_bonus, character.initiative, character.init, value.initiative_bonus, value.initiative, value.init);
+  const passivePerception = num(character.passive_perception, character.passivePerception, character.senses?.passive_perception, value.passive_perception, value.passivePerception, 10) || 10;
+  const hpPercent = maxHp ? clamp(Math.round((currentHp / maxHp) * 100), 0, 100) : 0;
+  const hpStatus = maxHp && currentHp <= 0 ? 'down' : hpPercent <= 33 ? 'bloodied' : hpPercent <= 66 ? 'hurt' : 'healthy';
+  const portraitUrl = getCharacterPortrait({ ...value, character });
 
   return {
     id: getCharacterId(value),
@@ -32,16 +66,23 @@ export function normalizeCampaignCharacter(value = {}) {
     playerName: getPlayerDisplayName(value),
     name: getCharacterDisplayName(value),
     className: characterClass || 'Class',
-    subclass: character.subclass || character.sub_class || '',
+    subclass: character.subclass || character.sub_class || value.subclass || value.sub_class || '',
     level,
     race: character.race || value.race || '',
-    armorClass: Number(character.armor_class || character.ac || 0) || 0,
+    armorClass,
+    ac: armorClass,
     currentHp,
+    hp: currentHp,
     maxHp,
     tempHp,
-    speed: Number(character.speed || 30) || 30,
-    initiative: Number(character.initiative_bonus ?? character.initiative ?? 0) || 0,
-    passivePerception: Number(character.passive_perception || character.passivePerception || 10) || 10,
+    hpPercent,
+    hpStatus,
+    speed,
+    initiative,
+    initiativeLabel: initiative >= 0 ? `+${initiative}` : `${initiative}`,
+    passivePerception,
+    portraitUrl,
+    imageUrl: portraitUrl,
     spellcasting: Boolean(
       arr(character.cantrips_known || character.cantrips).length ||
       arr(character.spells_known || character.known_spells).length ||
@@ -69,12 +110,16 @@ export function getCampaignPartyStats(party = []) {
   const spellcasters = normalized.filter((member) => member.spellcasting).length;
   const totalMaxHp = normalized.reduce((sum, member) => sum + Number(member.maxHp || 0), 0);
   const totalCurrentHp = normalized.reduce((sum, member) => sum + Number(member.currentHp || 0), 0);
+  const bloodied = normalized.filter((member) => member.hpStatus === 'bloodied').length;
+  const down = normalized.filter((member) => member.hpStatus === 'down').length;
 
   return {
     total: normalized.length,
     linked,
     unlinked: normalized.length - linked,
     spellcasters,
+    bloodied,
+    down,
     totalMaxHp,
     totalCurrentHp,
     averageLevel: normalized.length ? Number((normalized.reduce((sum, member) => sum + member.level, 0) / normalized.length).toFixed(1)) : 0,

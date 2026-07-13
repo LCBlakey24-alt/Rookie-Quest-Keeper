@@ -1,0 +1,268 @@
+/* Mobile-only compact Skills panel.
+   Keeps every skill rollable while reducing the tall card stack into a quick play list. */
+
+@media (max-width: 759px) {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel {
+    padding: 10px !important;
+    background: linear-gradient(#190728, #190728) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: start !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row h2 {
+    margin: 0 !important;
+    min-width: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row > span {
+    align-self: start !important;
+    padding: 3px 7px !important;
+    min-height: 24px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 6px !important;
+    font-size: 0.65rem !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin: 0 0 7px !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary div {
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 6px 4px !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 2px !important;
+    text-align: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.72), rgba(216, 77, 241, 0.72), rgba(255, 79, 129, 0.68), rgba(255, 149, 66, 0.68)) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary div::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary div::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary span {
+    font-size: 0.52rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.68) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skills-summary strong {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-size: 0.92rem !important;
+    line-height: 1 !important;
+    color: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin: 0 0 8px !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button {
+    min-height: 28px !important;
+    padding: 4px 2px !important;
+    border-radius: 7px !important;
+    color: #ffffff !important;
+    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.65), rgba(216, 77, 241, 0.65), rgba(255, 79, 129, 0.62), rgba(255, 149, 66, 0.62)) border-box !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    font-size: 0.62rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active {
+    background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    border-color: transparent !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-readable-skills {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    padding: 5px 5px 5px 7px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 5px !important;
+    color: #ffffff !important;
+    background: linear-gradient(#150721, #150721) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.72), rgba(216, 77, 241, 0.72), rgba(255, 79, 129, 0.68), rgba(255, 149, 66, 0.68)) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient {
+    padding-left: 12px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient::before {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    top: 5px !important;
+    bottom: 5px !important;
+    left: 4px !important;
+    width: 4px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-name {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-label {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 0.7rem !important;
+    line-height: 1.05 !important;
+    font-weight: 850 !important;
+    color: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags small {
+    display: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags em {
+    padding: 1px 3px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border-radius: 4px !important;
+    font-size: 0.45rem !important;
+    line-height: 1.05 !important;
+    font-style: normal !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
+    width: auto !important;
+    min-width: 31px !important;
+    max-width: 42px !important;
+    min-height: 27px !important;
+    height: 27px !important;
+    padding: 0 5px !important;
+    display: grid !important;
+    place-items: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(#12051c, #12051c) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+    font-size: 0.68rem !important;
+    font-weight: 950 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-readable-skills {
+    gap: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
+    min-height: 36px !important;
+    padding-left: 5px !important;
+    padding-right: 4px !important;
+    gap: 4px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient {
+    padding-left: 11px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill.is-proficient::before {
+    left: 3px !important;
+    width: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-label {
+    font-size: 0.64rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill .clean-sheet-roll-chip {
+    min-width: 28px !important;
+    max-width: 36px !important;
+    font-size: 0.62rem !important;
+  }
+}

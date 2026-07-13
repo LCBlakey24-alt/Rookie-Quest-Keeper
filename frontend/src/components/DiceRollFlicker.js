@@ -1,20 +1,36 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
+import { DICE_ROLLER_MODES, loadDiceRollerMode, normaliseDiceRollerMode } from '@/lib/diceRollerPreferences';
+import CinematicDiceOverlay from '@/components/CinematicDiceOverlay';
+import './DiceRollFlicker.css';
 
 const characterCache = new Map();
 
 const palette = {
-  player: { bg: 'rgba(36,36,36,0.97)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)', line: 'rgba(255,255,255,0.16)' },
-  gm: { bg: 'rgba(36,36,36,0.97)', panel: '#2f2f2f', card: '#3a3a3a', accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.68)', line: 'rgba(255,255,255,0.16)' },
+  player: {
+    className: 'rq-dice-flicker--player',
+    accent: 'var(--rq-accent-primary, #D6A84F)',
+    accentHover: 'var(--rq-accent-hover, #F0CF75)',
+    magic: 'var(--rq-accent-magic, #59C8FF)',
+    success: 'var(--rq-success, #2DD4BF)',
+    danger: 'var(--rq-danger, #E25A54)',
+  },
+  gm: {
+    className: 'rq-dice-flicker--gm',
+    accent: 'var(--rq-accent-primary, #D6A84F)',
+    accentHover: 'var(--rq-accent-hover, #F0CF75)',
+    magic: 'var(--rq-accent-active, #6E78FF)',
+    success: 'var(--rq-success, #2DD4BF)',
+    danger: 'var(--rq-danger, #E25A54)',
+  },
 };
 
-const FLICKER_DURATION = 3500;
-const REVEAL_GAP = 500;
-const FLICKER_INTERVAL = 55;
-const HOLD_AFTER_TOTAL = 5200;
+const CINEMATIC_REVEAL_DELAY = 2300;
+const TWO_D_REVEAL_DELAY = 520;
+const REDUCED_MOTION_REVEAL_DELAY = 90;
+const HOLD_AFTER_REVEAL = 3100;
 
 const formatModifier = (modifier) => {
   const value = Number(modifier) || 0;
@@ -27,35 +43,36 @@ const clampSides = (value) => Math.max(2, Math.min(100, Math.floor(Number(value)
 function normalizeDice(rolls, fallbackTotal) {
   const dice = Array.isArray(rolls)
     ? rolls
-      .filter(roll => roll && Number.isFinite(Number(roll.result)))
+      .filter(roll => roll && Number.isFinite(Number(typeof roll === 'object' ? roll.result : roll)))
       .map((roll, index) => {
-        const sides = clampSides(roll.sides);
+        const raw = typeof roll === 'object' ? roll : { result: roll };
+        const sides = clampSides(raw.sides);
         return {
-          id: `${roll.exploded ? 'x' : 'd'}-${index}`,
+          id: raw.id || `${raw.exploded ? 'x' : 'd'}-${sides}-${index}`,
           sides,
-          result: Math.max(1, Math.min(sides, Number(roll.result) || 1)),
-          exploded: Boolean(roll.exploded),
+          result: Math.max(1, Math.min(sides, Number(raw.result) || 1)),
+          dropped: Boolean(raw.dropped),
+          exploded: Boolean(raw.exploded),
           originalIndex: index,
         };
       })
     : [];
 
-  if (dice.length) {
-    return [...dice].sort((a, b) => a.sides - b.sides || a.originalIndex - b.originalIndex);
-  }
+  if (dice.length) return dice;
 
   const result = Math.max(1, Number(fallbackTotal) || 1);
-  return [{ id: 'fallback', sides: Math.max(20, result), result, exploded: false, originalIndex: 0 }];
-}
-
-function randomFace(sides) {
-  return Math.floor(Math.random() * sides) + 1;
+  return [{ id: 'fallback', sides: Math.max(20, result), result, dropped: false, exploded: false, originalIndex: 0 }];
 }
 
 function getCharacterIdFromPath() {
   if (typeof window === 'undefined') return '';
   const match = window.location.pathname.match(/\/characters\/([^/]+)/i);
   return match?.[1] || '';
+}
+
+function getPrefersReducedMotion() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 async function getCharacterForRoll(characterId) {
@@ -70,47 +87,87 @@ async function getCharacterForRoll(characterId) {
   }
 }
 
-export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rolls = [], label, modifier = 0, total = 0, animationValue, isCrit = false, isFumble = false, theme = 'player' }) {
+export default function DiceRollFlicker({
+  isOpen,
+  show,
+  onClose,
+  onComplete,
+  rolls = [],
+  label,
+  modifier = 0,
+  total = 0,
+  animationValue,
+  isCrit = false,
+  isFumble = false,
+  theme = 'player',
+  rollMode,
+}) {
   const colors = palette[theme] || palette.player;
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
-  const revealedRef = useRef([]);
-  const finalDisplayValue = Number(animationValue ?? total) || 0;
-  const dice = useMemo(() => normalizeDice(rolls, finalDisplayValue), [rolls, finalDisplayValue]);
-  const [displayValues, setDisplayValues] = useState(() => dice.map((die) => randomFace(die.sides)));
-  const [revealed, setRevealed] = useState(() => dice.map(() => false));
+  const effectiveRollMode = normaliseDiceRollerMode(rollMode || loadDiceRollerMode());
+  const numericTotal = Number(total);
+  const numericAnimationValue = Number(animationValue);
+  const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
+  const naturalFocus = Number.isFinite(numericAnimationValue) && numericAnimationValue !== finalTotal ? numericAnimationValue : null;
+  const dice = useMemo(() => normalizeDice(rolls, finalTotal), [rolls, finalTotal]);
   const [showTotal, setShowTotal] = useState(false);
   const [fading, setFading] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 640 : false));
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 640);
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    return () => window.removeEventListener('resize', updateViewport);
+    if (!visible || typeof document === 'undefined') return undefined;
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    const previousOverscroll = body.style.overscrollBehavior;
+
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'contain';
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, [visible]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener?.('change', updatePreference);
+    return () => mediaQuery.removeEventListener?.('change', updatePreference);
   }, []);
 
+  const keptDice = useMemo(() => {
+    const kept = dice.filter(die => !die.dropped);
+    return kept.length ? kept : dice;
+  }, [dice]);
+
   const rollDetail = useMemo(() => {
-    const base = dice.map((roll) => `${roll.exploded ? '↳ ' : ''}d${roll.sides}: ${roll.result}`).join(' + ');
-    const explosionText = dice.some((roll) => roll.exploded) ? ' • exploding dice' : '';
-    return `${base}${formatModifier(modifier)}${explosionText}`;
+    const base = dice.map((die) => {
+      const prefix = die.exploded ? '↳ ' : '';
+      const suffix = die.dropped ? ' dropped' : die.exploded ? ' exploding' : '';
+      return `${prefix}d${die.sides}: ${die.result}${suffix}`;
+    }).join(' • ');
+    return `${base}${formatModifier(modifier)}`;
   }, [modifier, dice]);
 
-  const diceSubtotal = useMemo(() => dice.reduce((sum, die) => sum + Number(die.result || 0), 0), [dice]);
-  const natural20 = useMemo(() => dice.some(die => die.sides === 20 && die.result === 20), [dice]);
-  const natural1 = useMemo(() => dice.some(die => die.sides === 20 && die.result === 1), [dice]);
+  const diceSubtotal = useMemo(() => keptDice.reduce((sum, die) => sum + Number(die.result || 0), 0), [keptDice]);
+  const natural20 = useMemo(() => keptDice.some(die => die.sides === 20 && die.result === 20), [keptDice]);
+  const natural1 = useMemo(() => keptDice.some(die => die.sides === 20 && die.result === 1), [keptDice]);
   const finalCrit = Boolean(isCrit || natural20);
-  const finalFumble = Boolean(isFumble || natural1);
+  const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
+  const cinematicResult = naturalFocus ?? finalTotal;
 
   useEffect(() => {
     if (!visible || theme !== 'player') return undefined;
     const characterId = getCharacterIdFromPath();
     if (!characterId) return undefined;
-    const rollKey = `${characterId}-${label}-${total}-${modifier}-${JSON.stringify(rolls)}`;
+    const rollKey = `${characterId}-${label}-${finalTotal}-${modifier}-${JSON.stringify(rolls)}`;
     if (recordedKeyRef.current === rollKey) return undefined;
     recordedKeyRef.current = rollKey;
 
@@ -127,111 +184,100 @@ export default function DiceRollFlicker({ isOpen, show, onClose, onComplete, rol
         character_name: characterName,
         label: label || 'Player Roll',
         notation: label || '',
-        total,
+        total: finalTotal,
         modifier,
         rolls,
-        visibleRolls: rolls,
+        visibleRolls: rolls.filter?.(roll => !roll?.dropped) || rolls,
         isCrit: finalCrit,
         isFumble: finalFumble,
-        explosionCount: rolls.filter(roll => roll.exploded).length,
+        explosionCount: rolls.filter?.(roll => roll?.exploded).length || 0,
       });
     });
     return () => { cancelled = true; };
-  }, [visible, theme, label, total, modifier, rolls, finalCrit, finalFumble]);
+  }, [visible, theme, label, finalTotal, modifier, rolls, finalCrit, finalFumble]);
 
   useEffect(() => {
-    if (!visible) return undefined;
+    if (!visible || typeof window === 'undefined') return undefined;
 
-    const timers = [];
-    const initialRevealState = dice.map(() => false);
-    const finalRevealTime = FLICKER_DURATION + REVEAL_GAP * Math.max(0, dice.length - 1);
-    const totalRevealTime = finalRevealTime + REVEAL_GAP;
-
-    revealedRef.current = initialRevealState;
-    setDisplayValues(dice.map((die) => randomFace(die.sides)));
-    setRevealed(initialRevealState);
     setShowTotal(false);
     setFading(false);
 
-    const flickerId = window.setInterval(() => {
-      const currentRevealed = revealedRef.current;
-      setDisplayValues((current) => current.map((value, index) => (
-        currentRevealed[index] ? value : randomFace(dice[index]?.sides || 20)
-      )));
-    }, FLICKER_INTERVAL);
+    const revealDelay = prefersReducedMotion
+      ? REDUCED_MOTION_REVEAL_DELAY
+      : effectiveRollMode === DICE_ROLLER_MODES.TWO_D
+        ? TWO_D_REVEAL_DELAY
+        : CINEMATIC_REVEAL_DELAY;
+    const revealTimer = window.setTimeout(() => setShowTotal(true), revealDelay);
 
-    dice.forEach((die, dieIndex) => {
-      timers.push(window.setTimeout(() => {
-        revealedRef.current = revealedRef.current.map((item, index) => index === dieIndex ? true : item);
-        setRevealed(revealedRef.current);
-        setDisplayValues((prev) => prev.map((value, index) => index === dieIndex ? die.result : value));
-      }, FLICKER_DURATION + REVEAL_GAP * dieIndex));
-    });
+    return () => window.clearTimeout(revealTimer);
+  }, [visible, dice, finalTotal, prefersReducedMotion, effectiveRollMode]);
 
-    timers.push(window.setTimeout(() => setShowTotal(true), totalRevealTime));
-    timers.push(window.setTimeout(() => setFading(true), totalRevealTime + HOLD_AFTER_TOTAL - 650));
-    timers.push(window.setTimeout(() => { onCloseRef.current?.(); }, totalRevealTime + HOLD_AFTER_TOTAL));
+  useEffect(() => {
+    if (!visible || !showTotal || typeof window === 'undefined') return undefined;
+
+    const fadeTimer = window.setTimeout(() => setFading(true), HOLD_AFTER_REVEAL - 360);
+    const closeTimer = window.setTimeout(() => { onCloseRef.current?.(); }, HOLD_AFTER_REVEAL);
 
     return () => {
-      window.clearInterval(flickerId);
-      timers.forEach(id => window.clearTimeout(id));
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(closeTimer);
     };
-  }, [visible, dice]);
+  }, [visible, showTotal, finalTotal]);
 
-  if (!visible) return null;
+  useEffect(() => {
+    if (!visible || typeof window === 'undefined') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setFading(true);
+        window.setTimeout(() => onCloseRef.current?.(), 90);
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setShowTotal(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [visible]);
 
-  const settled = showTotal;
-  const statusColor = settled && finalFumble ? colors.accent : colors.text;
-  const status = settled ? (finalCrit ? 'Natural 20' : finalFumble ? 'Natural 1' : label || 'Result') : 'Rolling…';
-  const shellPosition = { left: '50%', bottom: isMobileViewport ? '104px' : '34px', transform: 'translateX(-50%)' };
-  const wheelHeight = isMobileViewport ? 58 : 52;
-  const wheelWidth = isMobileViewport ? 56 : 50;
-  const fontSize = isMobileViewport ? 34 : 30;
-  const resultFontSize = showTotal ? (isMobileViewport ? 38 : 34) : 14;
-  const outcomeLabel = finalCrit ? 'Critical success' : finalFumble ? 'Critical fail' : 'Roll complete';
+  if (!visible || typeof document === 'undefined') return null;
 
+  const outcomeClass = showTotal && finalCrit ? 'is-critical' : showTotal && finalFumble ? 'is-fumble' : showTotal ? 'is-complete' : 'is-rolling';
+  const formulaText = `${diceSubtotal}${formatModifier(modifier)} = ${finalTotal}`;
   const closeNow = () => {
     setFading(true);
-    window.setTimeout(() => onCloseRef.current?.(), 80);
+    window.setTimeout(() => onCloseRef.current?.(), 90);
   };
 
   return createPortal(
-    <div aria-live="polite" style={{ position: 'fixed', ...shellPosition, zIndex: 3000, pointerEvents: 'auto', fontFamily: 'var(--rq-body-font, Manrope, Inter, sans-serif)', opacity: fading ? 0 : 1, transition: 'opacity 650ms ease' }}>
-      <div style={{ width: 'max-content', maxWidth: 'calc(100vw - 24px)', padding: isMobileViewport ? '10px 12px 9px' : '9px 11px', borderRadius: 0, background: colors.bg, color: colors.text, display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: isMobileViewport ? 12 : 10, textAlign: 'left', borderLeft: `5px solid ${settled && (finalCrit || finalFumble) ? colors.accent : colors.line}`, boxShadow: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: dice.length > 1 ? 6 : 8, flexWrap: dice.length > 3 ? 'wrap' : 'nowrap', maxWidth: isMobileViewport ? 210 : 260 }}>
-          {dice.map((die, index) => {
-            const isRevealed = Boolean(revealed[index]);
-            const isNat1 = die.sides === 20 && die.result === 1;
-            const isNat20 = die.sides === 20 && die.result === 20;
-            const dieColor = isRevealed && (isNat1 || isNat20) ? colors.accent : colors.text;
-            return (
-              <div key={die.id} style={{ display: 'grid', gap: 3, justifyItems: 'center' }}>
-                <div style={{ width: wheelWidth, height: wheelHeight, overflow: 'hidden', background: colors.card, display: 'grid', placeItems: 'center', position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: 8, right: 8, bottom: 0, height: 3, background: isRevealed ? colors.accent : 'transparent', opacity: isRevealed ? 0.9 : 0 }} />
-                  <div style={{ color: dieColor, fontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: isRevealed ? 'color 180ms ease, transform 180ms ease' : 'none', transform: isRevealed ? 'scale(1.08)' : 'scale(1)' }}>
-                    {displayValues[index] ?? die.result}
-                  </div>
-                </div>
-                <div style={{ color: colors.muted, fontSize: isMobileViewport ? 10 : 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{die.exploded ? 'ex' : `d${die.sides}`}</div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'grid', gap: 4, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, minWidth: 0 }}>
-            <span style={{ color: statusColor, fontSize: isMobileViewport ? 12 : 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{status}</span>
-            <strong style={{ color: colors.text, fontSize: resultFontSize, lineHeight: 1, fontWeight: 950, fontVariantNumeric: 'tabular-nums', transition: 'font-size 220ms ease' }}>{showTotal ? finalDisplayValue : 'rolling'}</strong>
-          </div>
-          {showTotal && <div style={{ color: finalCrit || finalFumble ? colors.text : colors.muted, fontSize: isMobileViewport ? 10 : 9, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{outcomeLabel}</div>}
-          <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobileViewport ? 240 : 280 }}>{showTotal ? (rollDetail || label) : `${dice.length} dice flickering`}</div>
-          {showTotal && <div style={{ color: colors.muted, fontSize: isMobileViewport ? 11 : 10, fontWeight: 800 }}>Dice {diceSubtotal}{formatModifier(modifier)} = {finalDisplayValue}</div>}
-        </div>
-
-        <button type="button" onClick={closeNow} aria-label="Dismiss roll result" style={{ width: 30, height: 30, minWidth: 30, border: 0, borderRadius: 0, background: colors.card, color: colors.text, display: 'grid', placeItems: 'center', cursor: 'pointer', padding: 0 }}>
-          <X size={15} />
-        </button>
-      </div>
+    <div
+      className={`rq-dice-flicker rq-dice-flicker--cinematic ${colors.className} rq-dice-flicker--${effectiveRollMode} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
+      role="status"
+      aria-live="polite"
+      style={{
+        '--rq-roll-accent': colors.accent,
+        '--rq-roll-accent-hover': colors.accentHover,
+        '--rq-roll-magic': colors.magic,
+        '--rq-roll-success': colors.success,
+        '--rq-roll-danger': colors.danger,
+      }}
+    >
+      <CinematicDiceOverlay
+        result={cinematicResult}
+        total={finalTotal}
+        label={label}
+        rollDetail={rollDetail}
+        formulaText={formulaText}
+        isRevealed={showTotal}
+        isCrit={finalCrit}
+        isFumble={finalFumble}
+        diceCount={dice.length}
+        rolls={dice}
+        rollMode={effectiveRollMode}
+        onRevealNow={() => setShowTotal(true)}
+        onClose={closeNow}
+      />
     </div>,
     document.body
   );

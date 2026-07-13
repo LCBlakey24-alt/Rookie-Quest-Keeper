@@ -1,0 +1,27 @@
+/* Final hero badge correction.
+   The title reserves space for the Level badge, but the underline should still span the full card width. */
+
+#root .character-page-v2 {
+  --rq-sheet-hero-badge-space: 92px;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1 {
+  padding-right: var(--rq-sheet-hero-badge-space) !important;
+}
+
+#root .character-page-v2 .clean-sheet-identity h1::after {
+  width: calc(100% + var(--rq-sheet-hero-badge-space)) !important;
+  max-width: none !important;
+}
+
+@media (max-width: 759px) {
+  #root .character-page-v2 {
+    --rq-sheet-hero-badge-space: 78px;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 {
+    --rq-sheet-hero-badge-space: 70px;
+  }
+}

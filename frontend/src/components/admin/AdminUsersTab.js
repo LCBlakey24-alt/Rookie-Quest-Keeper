@@ -47,6 +47,8 @@ export default function AdminUsersTab() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [exportingKind, setExportingKind] = useState('');
+  const [impersonatingUser, setImpersonatingUser] = useState('');
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches);
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function AdminUsersTab() {
 
   const downloadCsv = async (kind) => {
     try {
+      setExportingKind(kind);
       const res = await apiClient.get(`/admin/export/${kind}.csv`, { responseType: 'blob' });
       const blob = new Blob([res.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
@@ -87,12 +90,15 @@ export default function AdminUsersTab() {
       toast.success(`Downloaded ${kind} CSV`);
     } catch (err) {
       toast.error(err?.response?.data?.detail || `Failed to export ${kind}`);
+    } finally {
+      setExportingKind('');
     }
   };
 
   const impersonate = async (targetUsername) => {
     if (!window.confirm(`Impersonate ${targetUsername}? Your current session will be stashed and restorable via the top banner.`)) return;
     try {
+      setImpersonatingUser(targetUsername);
       const res = await apiClient.post(`/admin/users/${encodeURIComponent(targetUsername)}/impersonate`, {});
       const { token, username } = res.data || {};
       if (!token) throw new Error('No token returned');
@@ -106,6 +112,7 @@ export default function AdminUsersTab() {
       window.location.assign('/home');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Impersonation failed');
+      setImpersonatingUser('');
     }
   };
 
@@ -135,12 +142,12 @@ export default function AdminUsersTab() {
           <p style={subtitleStyle}>Track who has signed up, which email they used, and how much they are using the site.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={loadUsers} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
-          <button type="button" onClick={() => downloadCsv('users')} data-testid="export-users-csv-btn" style={buttonStyle}>
-            <Download size={14} /> Export Users CSV
+          <button type="button" onClick={loadUsers} disabled={loading} style={busyButtonStyle(loading)} aria-busy={loading ? 'true' : 'false'}><RefreshCw size={14} style={loading ? usersSpinStyle : undefined} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
+          <button type="button" onClick={() => downloadCsv('users')} disabled={Boolean(exportingKind)} aria-busy={exportingKind === 'users' ? 'true' : 'false'} data-testid="export-users-csv-btn" style={busyButtonStyle(exportingKind === 'users')}>
+            {exportingKind === 'users' ? <RefreshCw size={14} style={usersSpinStyle} /> : <Download size={14} />} {exportingKind === 'users' ? 'Exporting users…' : 'Export Users CSV'}
           </button>
-          <button type="button" onClick={() => downloadCsv('campaigns')} data-testid="export-campaigns-csv-btn" style={buttonStyle}>
-            <Download size={14} /> Export Campaigns CSV
+          <button type="button" onClick={() => downloadCsv('campaigns')} disabled={Boolean(exportingKind)} aria-busy={exportingKind === 'campaigns' ? 'true' : 'false'} data-testid="export-campaigns-csv-btn" style={busyButtonStyle(exportingKind === 'campaigns')}>
+            {exportingKind === 'campaigns' ? <RefreshCw size={14} style={usersSpinStyle} /> : <Download size={14} />} {exportingKind === 'campaigns' ? 'Exporting campaigns…' : 'Export Campaigns CSV'}
           </button>
         </div>
       </div>
@@ -165,38 +172,41 @@ export default function AdminUsersTab() {
       </div>
 
       {loading ? (
-        <div style={emptyStyle}>Loading users...</div>
+        <AdminUsersLoading />
       ) : isMobile ? (
         <div style={mobileListStyle}>
           {filtered.length === 0 ? (
             <div style={emptyStyle}>No users match</div>
-          ) : filtered.map(user => (
-            <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle}>
-              <div style={userCardHeaderStyle}>
-                <div style={{ minWidth: 0 }}>
-                  <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
-                  <span style={userMetaStyle}>{user.email || 'No recovery email'}</span>
+          ) : filtered.map(user => {
+            const impersonating = impersonatingUser === user.username;
+            return (
+              <article key={user.username || user.email} data-testid={`user-row-${user.username}`} style={userCardStyle} aria-busy={impersonating ? 'true' : 'false'}>
+                <div style={userCardHeaderStyle}>
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={userNameStyle}>{user.username || 'Unnamed user'}</strong>
+                    <span style={userMetaStyle}>{user.email || 'No recovery email'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => impersonate(user.username)}
+                    data-testid={`impersonate-${user.username}`}
+                    style={busySubtleStyle(impersonating)}
+                    disabled={!user.username || Boolean(impersonatingUser)}
+                  >
+                    {impersonating ? <RefreshCw size={12} style={usersSpinStyle} /> : <LogIn size={12} />} {impersonating ? 'Opening…' : 'Impersonate'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => impersonate(user.username)}
-                  data-testid={`impersonate-${user.username}`}
-                  style={subtleButtonStyle}
-                  disabled={!user.username}
-                >
-                  <LogIn size={12} /> Impersonate
-                </button>
-              </div>
-              <div style={userStatsGridStyle}>
-                <MiniStat label="Joined" value={formatDate(user.created_at)} />
-                <MiniStat label="Characters" value={user.character_count || 0} />
-                <MiniStat label="GM Campaigns" value={user.owned_campaign_count || 0} />
-                <MiniStat label="Player In" value={user.joined_campaign_count || 0} />
-                <MiniStat label="Feedback" value={user.feedback_count || 0} />
-                <MiniStat label="Reviews" value={user.review_count || 0} />
-              </div>
-            </article>
-          ))}
+                <div style={userStatsGridStyle}>
+                  <MiniStat label="Joined" value={formatDate(user.created_at)} />
+                  <MiniStat label="Characters" value={user.character_count || 0} />
+                  <MiniStat label="GM Campaigns" value={user.owned_campaign_count || 0} />
+                  <MiniStat label="Player In" value={user.joined_campaign_count || 0} />
+                  <MiniStat label="Feedback" value={user.feedback_count || 0} />
+                  <MiniStat label="Reviews" value={user.review_count || 0} />
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div style={tableScrollStyle}>
@@ -218,34 +228,48 @@ export default function AdminUsersTab() {
               {filtered.length === 0 ? (
                 <tr><td colSpan="9" style={{ color: rq.muted, padding: 24, textAlign: 'center' }}>No users match</td></tr>
               ) : (
-                filtered.map(user => (
-                  <tr key={user.username || user.email} data-testid={`user-row-${user.username}`} style={trStyle}>
-                    <td style={tdStrongStyle}>{user.username || '-'}</td>
-                    <td style={tdStyle}>{user.email || '-'}</td>
-                    <td style={tdStyle}>{formatDate(user.created_at)}</td>
-                    <td style={tdNumberStyle}>{user.character_count || 0}</td>
-                    <td style={tdNumberStyle}>{user.owned_campaign_count || 0}</td>
-                    <td style={tdNumberStyle}>{user.joined_campaign_count || 0}</td>
-                    <td style={tdNumberStyle}>{user.feedback_count || 0}</td>
-                    <td style={tdNumberStyle}>{user.review_count || 0}</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        onClick={() => impersonate(user.username)}
-                        data-testid={`impersonate-${user.username}`}
-                        style={subtleButtonStyle}
-                        disabled={!user.username}
-                      >
-                        <LogIn size={12} /> Impersonate
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filtered.map(user => {
+                  const impersonating = impersonatingUser === user.username;
+                  return (
+                    <tr key={user.username || user.email} data-testid={`user-row-${user.username}`} style={trStyle} aria-busy={impersonating ? 'true' : 'false'}>
+                      <td style={tdStrongStyle}>{user.username || '-'}</td>
+                      <td style={tdStyle}>{user.email || '-'}</td>
+                      <td style={tdStyle}>{formatDate(user.created_at)}</td>
+                      <td style={tdNumberStyle}>{user.character_count || 0}</td>
+                      <td style={tdNumberStyle}>{user.owned_campaign_count || 0}</td>
+                      <td style={tdNumberStyle}>{user.joined_campaign_count || 0}</td>
+                      <td style={tdNumberStyle}>{user.feedback_count || 0}</td>
+                      <td style={tdNumberStyle}>{user.review_count || 0}</td>
+                      <td style={{ padding: '10px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          onClick={() => impersonate(user.username)}
+                          data-testid={`impersonate-${user.username}`}
+                          style={busySubtleStyle(impersonating)}
+                          disabled={!user.username || Boolean(impersonatingUser)}
+                        >
+                          {impersonating ? <RefreshCw size={12} style={usersSpinStyle} /> : <LogIn size={12} />} {impersonating ? 'Opening…' : 'Impersonate'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       )}
+      <style>{usersTabCss}</style>
+    </div>
+  );
+}
+
+function AdminUsersLoading() {
+  return (
+    <div style={usersLoadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={usersLoadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading user accounts…</strong>
+      <span style={usersLoadingTextStyle}>Checking signups, emails, characters, campaign ownership, feedback, and review activity.</span>
     </div>
   );
 }
@@ -294,3 +318,22 @@ const trStyle = { color: rq.text, borderBottom: `1px solid rgba(193,18,31,0.10)`
 const tdStyle = { padding: '10px', color: rq.textSecondary, whiteSpace: 'nowrap' };
 const tdStrongStyle = { padding: '10px', color: rq.text, fontWeight: 900, whiteSpace: 'nowrap' };
 const tdNumberStyle = { padding: '10px', color: rq.accentHover, fontWeight: 900, textAlign: 'center' };
+const usersSpinStyle = { animation: 'rqAdminUsersSpin 0.9s linear infinite' };
+const usersLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const usersLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminUsersSpin 0.9s linear infinite' };
+const usersLoadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 430 };
+const usersTabCss = `
+  @keyframes rqAdminUsersSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-users-tab"] svg,
+    [data-testid="admin-users-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
+
+function busyButtonStyle(isBusy) {
+  return { ...buttonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function busySubtleStyle(isBusy) {
+  return { ...subtleButtonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}

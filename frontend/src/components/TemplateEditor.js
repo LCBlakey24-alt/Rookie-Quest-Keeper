@@ -94,9 +94,10 @@ export default function TemplateEditor() {
           style={{
             marginLeft: 'auto', padding: '6px 12px', borderRadius: 6, fontSize: 11,
             background: 'transparent', border: '1px solid rgba(212, 160, 23, 0.30)',
-            color: '#D4A017', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+            color: '#D4A017', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+            opacity: loading ? 0.72 : 1,
           }}>
-          <RefreshCw size={12} /> Refresh
+          <RefreshCw size={12} style={loading ? refreshSpinStyle : undefined} /> {loading ? 'Refreshing' : 'Refresh'}
         </button>
       </div>
 
@@ -123,9 +124,7 @@ export default function TemplateEditor() {
           <div style={{ textAlign: 'right' }}>Actions</div>
         </div>
         {filtered.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', color: '#64748B', fontSize: 12 }}>
-            {loading ? 'Loading…' : 'No templates match this filter.'}
-          </div>
+          <TemplateTableEmpty loading={loading} />
         ) : filtered.map(t => (
           <div key={t.id} data-testid={`template-row-${t.id}`} style={{
             display: 'grid',
@@ -199,6 +198,48 @@ export default function TemplateEditor() {
           </div>
         ))}
       </div>
+      <style>{templateLoadingCss}</style>
     </div>
   );
 }
+
+function TemplateTableEmpty({ loading }) {
+  return (
+    <div style={templateEmptyStyle} role={loading ? 'status' : undefined} aria-live={loading ? 'polite' : undefined} aria-busy={loading ? 'true' : undefined}>
+      {loading && <span style={templateSpinnerStyle} aria-hidden="true" />}
+      <strong>{loading ? 'Loading templates…' : 'No templates match this filter.'}</strong>
+      {loading && <span style={templateHelperStyle}>Checking core and homebrew character templates.</span>}
+    </div>
+  );
+}
+
+const refreshSpinStyle = { animation: 'rqTemplateSpin 0.9s linear infinite' };
+const templateEmptyStyle = {
+  minHeight: 158,
+  padding: 24,
+  display: 'grid',
+  placeItems: 'center',
+  gap: 9,
+  textAlign: 'center',
+  color: 'var(--rq-text, #f5e6c8)',
+  background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))',
+  borderTop: '1px solid rgba(212, 160, 23, 0.2)',
+  fontSize: 13,
+};
+const templateSpinnerStyle = {
+  width: 36,
+  height: 36,
+  borderRadius: '50%',
+  backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))',
+  WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)',
+  mask: 'radial-gradient(circle, transparent 42%, #000 44%)',
+  animation: 'rqTemplateSpin 0.9s linear infinite',
+};
+const templateHelperStyle = { color: 'var(--rq-muted, rgba(255,248,239,0.72))', fontSize: 12 };
+const templateLoadingCss = `
+  @keyframes rqTemplateSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-template-editor"] svg,
+    [data-testid="admin-template-editor"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;

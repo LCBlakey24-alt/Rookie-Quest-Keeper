@@ -1,0 +1,232 @@
+/* App shell experience polish.
+   Final layer for the logged-in frame: desktop rail, support actions, active states, and mobile More panel spacing. */
+
+#root .rqk-app-shell {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255,149,66,0.10), transparent 28%),
+    radial-gradient(circle at 100% 100%, rgba(235,63,233,0.10), transparent 34%),
+    var(--rq-bg-main, #070713) !important;
+}
+
+#root .rqk-app-rail {
+  border-right: 1px solid rgba(255,248,239,0.14) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,149,66,0.18), transparent 38%),
+    linear-gradient(180deg, rgba(16,7,29,0.99), rgba(7,7,19,0.98)) !important;
+}
+
+#root .rqk-app-rail::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 0 auto !important;
+  width: 1px !important;
+  background: linear-gradient(180deg, transparent, rgba(255,149,66,0.38), rgba(235,63,233,0.22), transparent) !important;
+  pointer-events: none !important;
+}
+
+#root .rqk-app-rail-brand {
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 52px !important;
+}
+
+#root .rqk-app-rail-brand::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .rqk-app-rail-brand-mark {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.16) !important;
+}
+
+#root .rqk-app-rail-section-label {
+  color: rgba(255,248,239,0.58) !important;
+}
+
+#root .rqk-app-rail-link {
+  isolation: isolate !important;
+  overflow: hidden !important;
+}
+
+#root .rqk-app-rail-link::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  opacity: 0 !important;
+  background: radial-gradient(circle at 20% 50%, rgba(255,149,66,0.16), transparent 46%) !important;
+  transition: opacity 160ms ease !important;
+}
+
+#root .rqk-app-rail-link:hover::after,
+#root .rqk-app-rail-link:focus-visible::after,
+#root .rqk-app-rail-link.is-active::after {
+  opacity: 1 !important;
+}
+
+#root .rqk-app-rail-link:hover,
+#root .rqk-app-rail-link:focus-visible {
+  border-color: rgba(255,149,66,0.32) !important;
+  background: rgba(255,248,239,0.055) !important;
+}
+
+#root .rqk-app-rail-link.is-active {
+  border-color: rgba(255,248,239,0.18) !important;
+  background: rgba(255,248,239,0.07) !important;
+}
+
+#root .rqk-app-rail-link.is-active::before {
+  inset-block: 9px !important;
+  width: 4px !important;
+  box-shadow: 0 0 14px rgba(255,149,66,0.42) !important;
+}
+
+#root .rqk-app-rail-rook {
+  position: relative !important;
+  border-color: rgba(245,197,66,0.34) !important;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(245,197,66,0.22), transparent 42%),
+    linear-gradient(135deg, rgba(245,197,66,0.10), rgba(255,149,66,0.06)) !important;
+}
+
+#root .rqk-app-rail-rook::before {
+  background: linear-gradient(180deg, rgba(245,197,66,0.95), rgba(255,149,66,0.82)) !important;
+}
+
+#root .rqk-app-rail-rook svg {
+  color: #f5c542 !important;
+}
+
+#root .rqk-app-rail-feedback {
+  border-color: rgba(255,248,239,0.14) !important;
+  background: rgba(255,248,239,0.04) !important;
+}
+
+#root .rqk-app-shell-content {
+  position: relative !important;
+  overflow-x: clip !important;
+}
+
+#root .rqk-app-shell-content::before {
+  content: '' !important;
+  position: fixed !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at calc(100% - 80px) 40px, rgba(235,63,233,0.07), transparent 26%),
+    radial-gradient(circle at 80px calc(100% - 80px), rgba(255,149,66,0.06), transparent 32%) !important;
+  z-index: 0 !important;
+}
+
+#root .rqk-app-shell-content > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+@media (min-width: 960px) {
+  #root .rqk-app-shell {
+    grid-template-columns: 238px minmax(0, 1fr) !important;
+  }
+
+  #root .rqk-app-rail {
+    padding: 14px 12px !important;
+    gap: 12px !important;
+  }
+
+  #root .rqk-app-rail-brand {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    place-items: center start !important;
+    padding: 8px 10px !important;
+  }
+
+  #root .rqk-app-rail-brand-copy,
+  #root .rqk-app-rail-section-label,
+  #root .rqk-app-rail-link span {
+    display: block !important;
+  }
+
+  #root .rqk-app-rail-link {
+    min-height: 48px !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    place-items: center start !important;
+    gap: 10px !important;
+    padding: 8px 10px !important;
+  }
+
+  #root .rqk-app-rail-link svg {
+    justify-self: center !important;
+  }
+
+  #root .rqk-app-rail-link.is-active svg {
+    width: 19px !important;
+    height: 19px !important;
+    padding: 7px !important;
+  }
+
+  #root .rqk-app-rail-bottom {
+    padding-top: 10px !important;
+    border-top: 1px solid rgba(255,248,239,0.09) !important;
+  }
+}
+
+@media (max-width: 719px) {
+  #root .rqk-app-shell {
+    min-height: 100dvh !important;
+  }
+
+  #root .rqk-app-rail {
+    box-shadow: 0 -18px 48px rgba(0,0,0,0.36) !important;
+  }
+
+  #root .rqk-app-rail-link.is-active::before {
+    inset: auto 12px 5px !important;
+    width: auto !important;
+    height: 3px !important;
+  }
+
+  #root .rqk-app-mobile-more-trigger.is-active {
+    border-color: rgba(255,149,66,0.42) !important;
+    background: rgba(255,248,239,0.08) !important;
+  }
+
+  #root .rqk-app-mobile-more-panel {
+    max-height: min(68dvh, 420px) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  #root .rqk-app-mobile-more-panel::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 0 auto !important;
+    height: 3px !important;
+    background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  }
+
+  #root .rqk-app-mobile-more-item {
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease !important;
+  }
+
+  #root .rqk-app-mobile-more-item:hover,
+  #root .rqk-app-mobile-more-item:focus-visible {
+    transform: translateY(-1px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .rqk-app-rail-link,
+  #root .rqk-app-rail-link::after,
+  #root .rqk-app-mobile-more-item {
+    transition: none !important;
+  }
+
+  #root .rqk-app-rail-link:hover,
+  #root .rqk-app-rail-link:focus-visible,
+  #root .rqk-app-mobile-more-item:hover,
+  #root .rqk-app-mobile-more-item:focus-visible {
+    transform: none !important;
+  }
+}

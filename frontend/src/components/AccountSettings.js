@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -6,14 +6,14 @@ import { Input } from '@/components/ui/input';
 import apiClient from '@/lib/apiClient';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
-  AlertTriangle, CheckCircle, Eye, EyeOff
+  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState('');
 
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -25,15 +25,23 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  const saving = Boolean(savingAction);
+  const profileSaving = savingAction === 'profile';
+  const passwordSaving = savingAction === 'password';
+  const deleteSaving = savingAction === 'delete';
+  const profileEmail = profile?.email || '';
+  const profileChanged = useMemo(() => newEmail.trim() !== profileEmail, [newEmail, profileEmail]);
+
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
     try {
+      setLoading(true);
       const response = await apiClient.get('/account/profile');
       setProfile(response.data);
-      setNewUsername(response.data.username);
+      setNewUsername(response.data.username || username || '');
       setNewEmail(response.data.email || '');
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to load profile');
@@ -44,31 +52,31 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setSaving(true);
 
+    const updates = {};
+    if (newEmail.trim() !== profileEmail) updates.email = newEmail.trim();
+
+    if (Object.keys(updates).length === 0) {
+      toast.info('No changes to save');
+      return;
+    }
+
+    setSavingAction('profile');
     try {
-      const updates = {};
-      if (newEmail.trim() && newEmail.trim() !== (profile.email || '')) updates.email = newEmail.trim();
-
-      if (Object.keys(updates).length === 0) {
-        toast.info('No changes to save');
-        setSaving(false);
-        return;
-      }
-
       const response = await apiClient.put('/account/update', updates);
-
-      setProfile({
+      const nextProfile = {
         ...profile,
-        username: response.data.username || profile.username,
+        username: response.data.username || profile?.username || newUsername,
         email: response.data.email || '',
-      });
-
+      };
+      setProfile(nextProfile);
+      setNewEmail(nextProfile.email || '');
+      if (response.data.username && response.data.username !== username) onUsernameChange?.(response.data.username);
       toast.success('Profile updated successfully!');
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to update profile');
     } finally {
-      setSaving(false);
+      setSavingAction('');
     }
   };
 
@@ -90,7 +98,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       return;
     }
 
-    setSaving(true);
+    setSavingAction('password');
     try {
       await apiClient.post('/account/change-password', {
         current_password: currentPassword,
@@ -101,10 +109,12 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to change password');
     } finally {
-      setSaving(false);
+      setSavingAction('');
     }
   };
 
@@ -114,7 +124,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       return;
     }
 
-    setSaving(true);
+    setSavingAction('delete');
     try {
       await apiClient.delete('/account/delete');
       toast.success('Account deleted. Farewell, adventurer!');
@@ -122,24 +132,17 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
       navigate('/');
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to delete account');
-    } finally {
-      setSaving(false);
+      setSavingAction('');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
+  if (loading) return <AccountSettingsLoading />;
 
   return (
-    <div className="account-settings-page" style={pageStyle}>
+    <div className="account-settings-page" style={pageStyle} aria-busy={saving ? 'true' : 'false'}>
       <div className="account-settings-container" style={containerStyle}>
         <div className="account-settings-header" style={headerStyle}>
-          <Button onClick={() => navigate('/home')} className="btn-outline account-settings-back" style={backButtonStyle} data-testid="back-btn">
+          <Button onClick={() => navigate('/home')} className="btn-outline account-settings-back" style={backButtonStyle} data-testid="back-btn" disabled={saving}>
             <ArrowLeft size={18} />
           </Button>
           <div>
@@ -148,7 +151,7 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </div>
         </div>
 
-        <section className="account-settings-panel" style={panelStyle}>
+        <section className="account-settings-panel" style={panelStyle} aria-busy={profileSaving ? 'true' : 'false'}>
           <SectionHeader icon={User} title="Profile Information" />
           <form onSubmit={handleUpdateProfile}>
             <div style={{ display: 'grid', gap: '20px' }}>
@@ -157,34 +160,34 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               <p style={helpTextStyle}>Username changes are paused for now so campaign, character, handout, and private playtest records stay safely linked to the account.</p>
 
               <FieldLabel icon={Mail} text="Recovery Email (optional)" />
-              <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
+              <Input type="email" value={newEmail} disabled={saving} onChange={(e) => setNewEmail(e.target.value)} placeholder="parent-or-guardian@email.com" data-testid="profile-email" />
               <p style={helpTextStyle}>Existing accounts can keep using their original email to sign in. New accounts can leave this blank unless they want password recovery.</p>
 
-              <Button type="submit" disabled={saving} className="btn-primary account-settings-primary" style={buttonFitStyle} data-testid="save-profile-btn">
-                <Save size={16} style={{ marginRight: '8px' }} />
-                {saving ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" disabled={saving || !profileChanged} className="btn-primary account-settings-primary" style={busyButtonStyle(profileSaving, !profileChanged)} data-testid="save-profile-btn">
+                {profileSaving ? <RefreshCw size={16} style={spinStyle} /> : <Save size={16} />}
+                {profileSaving ? 'Saving profile…' : profileChanged ? 'Save profile changes' : 'Profile up to date'}
               </Button>
             </div>
           </form>
         </section>
 
-        <section className="account-settings-panel" style={panelStyle}>
+        <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving ? 'true' : 'false'}>
           <SectionHeader icon={Shield} title="Change Password" />
           <form onSubmit={handleChangePassword}>
             <div style={{ display: 'grid', gap: '20px' }}>
               <div>
                 <FieldLabel icon={Lock} text="Current Password" />
-                <PasswordInput value={currentPassword} setValue={setCurrentPassword} show={showCurrentPassword} setShow={setShowCurrentPassword} placeholder="Enter current password" testId="current-password" />
+                <PasswordInput value={currentPassword} setValue={setCurrentPassword} show={showCurrentPassword} setShow={setShowCurrentPassword} placeholder="Enter current password" testId="current-password" disabled={saving} />
               </div>
 
               <div>
                 <FieldLabel icon={Lock} text="New Password" />
-                <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 6 characters)" testId="new-password" />
+                <PasswordInput value={newPassword} setValue={setNewPassword} show={showNewPassword} setShow={setShowNewPassword} placeholder="Enter new password (min. 6 characters)" testId="new-password" disabled={saving} />
               </div>
 
               <div>
                 <FieldLabel icon={CheckCircle} text="Confirm New Password" />
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" data-testid="confirm-password" />
+                <Input type="password" value={confirmPassword} disabled={saving} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" data-testid="confirm-password" />
                 {newPassword && confirmPassword && (
                   <div style={{ marginTop: '8px', fontSize: '12px', color: newPassword === confirmPassword ? 'var(--rq-success, #2E8B57)' : 'var(--rq-danger, #C1121F)', fontWeight: 800 }}>
                     {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
@@ -192,22 +195,22 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
                 )}
               </div>
 
-              <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary account-settings-primary" style={buttonFitStyle} data-testid="change-password-btn">
-                <Lock size={16} style={{ marginRight: '8px' }} />
-                {saving ? 'Changing...' : 'Change Password'}
+              <Button type="submit" disabled={saving || !currentPassword || !newPassword || newPassword !== confirmPassword} className="btn-primary account-settings-primary" style={busyButtonStyle(passwordSaving)} data-testid="change-password-btn">
+                {passwordSaving ? <RefreshCw size={16} style={spinStyle} /> : <Lock size={16} />}
+                {passwordSaving ? 'Changing password…' : 'Change Password'}
               </Button>
             </div>
           </form>
         </section>
 
-        <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle}>
+        <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />
           <p style={dangerTextStyle}>
             Once you delete your account, there is no going back. All your campaigns, characters, and data will be permanently removed. Please be certain.
           </p>
 
           {!showDeleteConfirm ? (
-            <Button onClick={() => setShowDeleteConfirm(true)} className="account-settings-danger-button" style={dangerButtonStyle} data-testid="delete-account-btn">
+            <Button onClick={() => setShowDeleteConfirm(true)} disabled={saving} className="account-settings-danger-button" style={dangerButtonStyle} data-testid="delete-account-btn">
               <Trash2 size={16} style={{ marginRight: '8px' }} />
               Delete Account
             </Button>
@@ -216,12 +219,13 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               <p style={{ color: 'var(--rq-danger, #C1121F)', marginBottom: '12px', fontWeight: 900 }}>
                 Type "DELETE" to confirm:
               </p>
-              <Input type="text" value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())} placeholder="Type DELETE" style={{ marginBottom: '12px' }} data-testid="delete-confirm-input" />
+              <Input type="text" value={deleteConfirmText} disabled={saving} onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())} placeholder="Type DELETE" style={{ marginBottom: '12px' }} data-testid="delete-confirm-input" />
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <Button onClick={handleDeleteAccount} disabled={saving || deleteConfirmText !== 'DELETE'} className="account-settings-danger-button" style={confirmDeleteButtonStyle} data-testid="confirm-delete-btn">
-                  {saving ? 'Deleting...' : 'Permanently Delete'}
+                <Button onClick={handleDeleteAccount} disabled={saving || deleteConfirmText !== 'DELETE'} className="account-settings-danger-button" style={busyDeleteButtonStyle(deleteSaving)} data-testid="confirm-delete-btn">
+                  {deleteSaving ? <RefreshCw size={16} style={spinStyle} /> : <Trash2 size={16} />}
+                  {deleteSaving ? 'Deleting account…' : 'Permanently Delete'}
                 </Button>
-                <Button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} className="btn-outline">
+                <Button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} disabled={saving} className="btn-outline">
                   Cancel
                 </Button>
               </div>
@@ -229,7 +233,22 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           )}
         </section>
       </div>
+      <style>{accountSettingsCss}</style>
     </div>
+  );
+}
+
+function AccountSettingsLoading() {
+  return (
+    <main className="loading-screen account-settings-loading" role="status" aria-live="polite" aria-busy="true">
+      <section className="loading-card" aria-label="Account settings are loading">
+        <div className="loading-brand-mark" aria-hidden="true">AC</div>
+        <div className="loading-spinner" aria-hidden="true" />
+        <p className="loading-kicker">Account settings</p>
+        <h1 className="loading-title">Opening your account vault…</h1>
+        <p className="loading-tip">Checking profile details, recovery email, and account safety controls.</p>
+      </section>
+    </main>
   );
 }
 
@@ -251,11 +270,11 @@ function FieldLabel({ icon: Icon, text }) {
   );
 }
 
-function PasswordInput({ value, setValue, show, setShow, placeholder, testId }) {
+function PasswordInput({ value, setValue, show, setShow, placeholder, testId, disabled = false }) {
   return (
     <div className="account-password-wrap" style={{ position: 'relative' }}>
-      <Input type={show ? 'text' : 'password'} value={value} onChange={(e) => setValue(e.target.value)} placeholder={placeholder} data-testid={testId} />
-      <button type="button" onClick={() => setShow(!show)} className="account-password-toggle" style={eyeButtonStyle} aria-label={show ? 'Hide password' : 'Show password'}>
+      <Input type={show ? 'text' : 'password'} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} placeholder={placeholder} data-testid={testId} />
+      <button type="button" onClick={() => setShow(!show)} disabled={disabled} className="account-password-toggle" style={eyeButtonStyle} aria-label={show ? 'Hide password' : 'Show password'}>
         {show ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>
     </div>
@@ -273,12 +292,27 @@ const sectionHeaderStyle = { display: 'flex', alignItems: 'center', gap: '12px',
 const sectionTitleStyle = { fontSize: '20px', fontWeight: 900, fontFamily: "'Montserrat', sans-serif", margin: 0 };
 const labelStyle = { color: 'var(--rq-text-secondary, #D6D6D6)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', fontWeight: 800 };
 const helpTextStyle = { margin: '-10px 0 0', color: 'var(--rq-text-muted, #A8A8A8)', fontSize: '13px', lineHeight: 1.45 };
-const buttonFitStyle = { width: 'fit-content', borderRadius: 'var(--rq-radius-sm, 4px)' };
+const buttonFitStyle = { width: 'fit-content', borderRadius: 'var(--rq-radius-sm, 4px)', display: 'inline-flex', alignItems: 'center', gap: 8 };
 const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--rq-text-muted, #A0A0A0)', cursor: 'pointer' };
 const dangerPanelStyle = { ...panelStyle, background: 'var(--rq-accent-soft, rgba(193,18,31,0.12))', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))' };
 const dangerTextStyle = { color: 'var(--rq-text-secondary, #D6D6D6)', marginBottom: '16px', fontSize: '14px', lineHeight: 1.55 };
 const dangerButtonStyle = { background: 'transparent', border: '1px solid var(--rq-danger, #C1121F)', color: 'var(--rq-danger, #C1121F)', borderRadius: 'var(--rq-radius-sm, 4px)' };
 const confirmBoxStyle = { background: 'rgba(0, 0, 0, 0.3)', padding: '20px', borderRadius: 'var(--rq-radius-sm, 4px)', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))' };
-const confirmDeleteButtonStyle = { background: 'var(--rq-danger, #C1121F)', border: 'none', color: 'white', borderRadius: 'var(--rq-radius-sm, 4px)' };
+const confirmDeleteButtonStyle = { background: 'var(--rq-danger, #C1121F)', border: 'none', color: 'white', borderRadius: 'var(--rq-radius-sm, 4px)', display: 'inline-flex', alignItems: 'center', gap: 8 };
+const spinStyle = { animation: 'rqAccountSettingsSpin 0.9s linear infinite' };
+const accountSettingsCss = `
+  @keyframes rqAccountSettingsSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .account-settings-page svg { animation: none !important; }
+  }
+`;
+
+function busyButtonStyle(isBusy, isQuiet = false) {
+  return { ...buttonFitStyle, opacity: isBusy || isQuiet ? 0.72 : 1, cursor: isBusy ? 'progress' : isQuiet ? 'not-allowed' : 'pointer' };
+}
+
+function busyDeleteButtonStyle(isBusy) {
+  return { ...confirmDeleteButtonStyle, opacity: isBusy ? 0.78 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
 
 export default AccountSettings;

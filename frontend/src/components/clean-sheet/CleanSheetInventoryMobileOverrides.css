@@ -1,9 +1,9 @@
-/* Final mobile Inventory tab overrides.
-   Keeps equipment slots, item cards, currency, and item actions compact and aligned. */
+/* Mobile Inventory tab overrides using the sunset sheet language.
+   Compact, readable, no full-height side bars. */
 
 @media (max-width: 760px) {
   .character-page-v2 .clean-sheet-inventory-tab {
-    gap: 8px !important;
+    gap: 10px !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-tab .clean-sheet-panel {
@@ -12,25 +12,32 @@
     padding: 10px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-tab h2 {
     margin: 0 !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
-    font-weight: 950 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
+    color: #ffffff !important;
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-size: clamp(1.45rem, 5.5vw, 2rem) !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: none !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-header {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 7px !important;
+    gap: 8px !important;
     align-items: stretch !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-header > div,
@@ -40,14 +47,10 @@
   }
 
   .character-page-v2 .clean-sheet-inventory-header p {
-    margin: 4px 0 0 !important;
-    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
-    font-size: 10px !important;
-    line-height: 1.25 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
+    margin: 6px 0 0 !important;
+    color: rgba(255,255,255,0.72) !important;
+    font-size: 0.9rem !important;
+    line-height: 1.3 !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-summary,
@@ -58,7 +61,7 @@
     width: 100% !important;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    gap: 8px !important;
     background: transparent !important;
     border: 0 !important;
     align-items: stretch !important;
@@ -68,33 +71,38 @@
   .character-page-v2 .clean-sheet-currency-grid > div,
   .character-page-v2 .clean-sheet-equipment-preview > div,
   .character-page-v2 .clean-sheet-item-card,
-  .character-page-v2 .clean-sheet-empty-slot {
+  .character-page-v2 .clean-sheet-empty-slot,
+  .character-page-v2 .clean-sheet-checkbox-row,
+  .character-page-v2 .clean-sheet-empty-note {
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
-    background: var(--rq-bg-card, #151515) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-    padding: 8px 9px !important;
+    background:
+      linear-gradient(#10051d, #10051d) padding-box,
+      linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 9px !important;
+    padding: 9px !important;
     overflow: hidden !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-summary > div,
   .character-page-v2 .clean-sheet-currency-grid > div,
   .character-page-v2 .clean-sheet-equipment-preview > div {
-    min-height: 44px !important;
+    min-height: 52px !important;
     display: grid !important;
     place-items: center !important;
     align-content: center !important;
-    gap: 3px !important;
+    gap: 4px !important;
     text-align: center !important;
   }
 
   .character-page-v2 .clean-sheet-item-card {
     min-height: 92px !important;
     display: grid !important;
-    gap: 5px !important;
+    gap: 6px !important;
     align-content: start !important;
   }
 
@@ -106,20 +114,23 @@
     min-width: 0 !important;
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 4px !important;
+    gap: 5px !important;
   }
 
   .character-page-v2 .clean-sheet-item-slot {
     max-width: 100% !important;
-    min-height: 17px !important;
-    padding: 3px 5px !important;
+    min-height: 18px !important;
+    padding: 3px 6px !important;
     display: inline-grid !important;
     place-items: center !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
-    font-size: 7.5px !important;
+    background:
+      linear-gradient(#160722, #160722) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 6px !important;
+    font-size: 0.72rem !important;
     line-height: 1 !important;
     font-weight: 950 !important;
     letter-spacing: 0.05em !important;
@@ -134,13 +145,9 @@
   .character-page-v2 .clean-sheet-currency-grid strong,
   .character-page-v2 .clean-sheet-equipment-preview strong {
     max-width: 100% !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    font-size: 12px !important;
-    line-height: 1.05 !important;
+    color: #ffffff !important;
     font-weight: 950 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    overflow-wrap: anywhere !important;
   }
 
   .character-page-v2 .clean-sheet-item-card p,
@@ -151,34 +158,25 @@
   .character-page-v2 .clean-sheet-equipment-preview span,
   .character-page-v2 .clean-sheet-equipment-preview em {
     max-width: 100% !important;
-    color: var(--rq-text-secondary, rgba(255,255,255,0.72)) !important;
-    font-size: 9px !important;
-    line-height: 1.2 !important;
+    color: rgba(255,255,255,0.72) !important;
     font-style: normal !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  .character-page-v2 .clean-sheet-item-card p,
-  .character-page-v2 .clean-sheet-equipment-preview em {
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-  }
-
-  .character-page-v2 .clean-sheet-item-card em,
-  .character-page-v2 .clean-sheet-inventory-summary span,
-  .character-page-v2 .clean-sheet-currency-grid span,
-  .character-page-v2 .clean-sheet-equipment-preview span {
-    white-space: nowrap !important;
+  .character-page-v2 .clean-sheet-item-actions,
+  .character-page-v2 .clean-sheet-equipment-tools,
+  .character-page-v2 .clean-sheet-equipment-picker,
+  .character-page-v2 .clean-sheet-add-item-form {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
   }
 
   .character-page-v2 .clean-sheet-item-actions {
-    width: 100% !important;
-    display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 5px !important;
-    margin-top: 2px !important;
+    margin-top: 3px !important;
   }
 
   .character-page-v2 .clean-sheet-item-actions button,
@@ -187,95 +185,49 @@
   .character-page-v2 .clean-sheet-add-item-form button {
     min-width: 0 !important;
     width: 100% !important;
-    min-height: 30px !important;
-    padding: 0 6px !important;
+    min-height: 34px !important;
+    padding: 0 8px !important;
     display: grid !important;
     place-items: center !important;
-    background: var(--rq-bg-button, #202020) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 3px solid transparent !important;
-    font-size: 9px !important;
-    line-height: 1 !important;
+    background:
+      linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+      linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 8px !important;
     font-weight: 950 !important;
     white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
   }
 
-  .character-page-v2 .clean-sheet-item-actions button:first-child,
-  .character-page-v2 .clean-sheet-inventory-header button,
-  .character-page-v2 .clean-sheet-equipment-picker button:last-child,
-  .character-page-v2 .clean-sheet-add-item-form button {
-    border-left-color: var(--rq-accent-primary, #c30000) !important;
-  }
-
-  .character-page-v2 .clean-sheet-equipment-tools,
-  .character-page-v2 .clean-sheet-equipment-picker,
-  .character-page-v2 .clean-sheet-add-item-form {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
-  }
-
-  .character-page-v2 .clean-sheet-equipment-tools label {
-    width: 100% !important;
-    min-width: 0 !important;
-    display: grid !important;
-    grid-template-columns: auto minmax(0, 1fr) !important;
-    align-items: center !important;
-    gap: 6px !important;
-    background: var(--rq-bg-input, #181818) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-    padding: 0 8px !important;
-  }
-
+  .character-page-v2 .clean-sheet-equipment-tools label,
   .character-page-v2 .clean-sheet-inventory-tab input,
   .character-page-v2 .clean-sheet-inventory-tab select,
   .character-page-v2 .clean-sheet-inventory-tab textarea {
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 36px !important;
+    min-height: 38px !important;
     box-sizing: border-box !important;
-    background: var(--rq-bg-input, #181818) !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+    background:
+      linear-gradient(#090313, #090313) padding-box,
+      linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(255, 149, 66, 0.42)) border-box !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 8px !important;
     padding: 0 9px !important;
-    font-size: 11px !important;
+  }
+
+  .character-page-v2 .clean-sheet-equipment-tools label {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 7px !important;
   }
 
   .character-page-v2 .clean-sheet-inventory-tab textarea {
     min-height: 72px !important;
     padding-top: 8px !important;
-  }
-
-  .character-page-v2 .clean-sheet-checkbox-row {
-    min-height: 36px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 7px !important;
-    background: var(--rq-bg-card, #151515) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-    padding: 6px 8px !important;
-    color: var(--rq-text-primary, #ffffff) !important;
-    font-size: 10px !important;
-    font-weight: 900 !important;
-  }
-
-  .character-page-v2 .clean-sheet-empty-note {
-    width: 100% !important;
-    min-height: 44px !important;
-    padding: 8px 9px !important;
-    display: grid !important;
-    place-items: center !important;
-    background: var(--rq-bg-card, #151515) !important;
-    border: 1px solid rgba(255,255,255,0.14) !important;
-    border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
-    text-align: center !important;
   }
 }
 
@@ -289,15 +241,6 @@
   .character-page-v2 .clean-sheet-item-grid,
   .character-page-v2 .clean-sheet-currency-grid,
   .character-page-v2 .clean-sheet-equipment-preview {
-    gap: 5px !important;
-  }
-
-  .character-page-v2 .clean-sheet-item-card strong {
-    font-size: 11px !important;
-  }
-
-  .character-page-v2 .clean-sheet-item-actions button {
-    font-size: 8px !important;
-    padding-inline: 3px !important;
+    gap: 6px !important;
   }
 }

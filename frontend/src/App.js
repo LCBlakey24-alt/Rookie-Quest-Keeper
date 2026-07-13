@@ -1,9 +1,8 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import '@/App.css';
-// Style layering: base app/design styles first, route-specific legacy themes next,
-// board/layout safety layers after that, then the current Twilight Keeper brand layer last.
-import '@/styles/brandedLoading.css';
+// Style layering: base app/design styles first, route-specific legacy theme bridges next,
+// board/layout safety layers after that, then the current Sunset Gradient guardrails last.
 import '@/styles/designSystem.css';
 import '@/styles/characterBuilderResponsive.css';
 import '@/styles/characterBuilderUXFoundation.css';
@@ -40,6 +39,8 @@ import '@/styles/twilightKeeperTheme.css';
 import '@/styles/twilightKeeperPolish.css';
 import '@/styles/twilightKeeperScreens.css';
 import '@/styles/twilightKeeperAppPages.css';
+import '@/styles/homeHubFinalPolish.css';
+import '@/styles/homeHubSurfacePolish.css';
 import '@/styles/twilightKeeperCharacterSheet.css';
 import '@/styles/twilightKeeperCreator.css';
 import '@/styles/sunsetRebrandFixes.css';
@@ -48,6 +49,24 @@ import '@/styles/sunsetMobileTightening.css';
 import '@/styles/utilityPagesFinalFixes.css';
 import '@/styles/sunsetButtonFinalOverride.css';
 import '@/styles/sunsetScrollbar.css';
+import '@/styles/fullCreatorReadiness.css';
+import '@/styles/characterSheetSunsetFinalOverride.css';
+import '@/styles/characterSheetRailAndHeroFix.css';
+import '@/styles/characterSheetColumnAlignmentFix.css';
+import '@/styles/characterSheetHeroBadgeFix.css';
+import '@/styles/characterSheetSpellUnavailableState.css';
+import '@/styles/characterSheetPlayHeaderCompact.css';
+import '@/styles/characterSheetUnifiedMobileHeader.css';
+import '@/styles/characterSheetSavingThrowsCompact.css';
+import '@/styles/characterSheetSkillsCompact.css';
+import '@/styles/characterSheetStatsFinalMobileTweaks.css';
+import '@/styles/characterSheetStatsTabFinalPolish.css';
+import '@/styles/brandedLoading.css';
+import '@/styles/loadingExperiencePolish.css';
+import '@/styles/authExperiencePolish.css';
+import '@/styles/homeHubConsistencySweep.css';
+import '@/styles/adminMissionControlHooks.css';
+import '@/styles/rookAssistantPlaybook.css';
 import '@/data/applyTestBackgrounds';
 import '@/data/sanitizeCharacterBuilderDraft';
 import { installRollBurstPersistence } from '@/utils/persistRollBurst';
@@ -56,45 +75,75 @@ import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import AppShell from '@/components/app/AppShell';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner';
+import FloatingDiceRoller from '@/components/FloatingDiceRoller';
 import GlobalFeedbackButton from '@/components/GlobalFeedbackButton';
+import RookGlobalAssistant from '@/components/RookGlobalAssistant';
 import GlobalActionFillEffects from '@/components/ui/GlobalActionFillEffects';
 import GlobalScrollRecovery from '@/components/ui/GlobalScrollRecovery';
 import { ThemeProvider, useTheme, THEMES } from '@/contexts/ThemeContext';
 import apiClient from '@/lib/apiClient';
 import { AUTH_USERNAME_KEY, getAuthToken, setAuthToken } from '@/lib/auth';
 
-const AuthPage = React.lazy(() => import('@/components/AuthPage'));
-const UnifiedDashboard = React.lazy(() => import('@/components/UnifiedDashboard'));
-const MyCharactersPage = React.lazy(() => import('@/components/MyCharactersPage'));
-const MyCampaignsPage = React.lazy(() => import('@/components/MyCampaignsPage'));
-const CampaignDashboard = React.lazy(() => import('@/components/CampaignDashboard'));
-const LiveSessionGridPage = React.lazy(() => import('@/components/gm/LiveSessionGridPage'));
-const PlayerDisplayPage = React.lazy(() => import('@/components/gm/PlayerDisplayPage'));
-const PrototypeHub = React.lazy(() => import('@/components/prototype/PrototypeHub'));
-const PrototypeMobileLab = React.lazy(() => import('@/components/prototype/PrototypeMobileLab'));
-const TiaKartaGmPrototype = React.lazy(() => import('@/components/prototype/TiaKartaGmPrototype'));
-const ClassProgressionLab = React.lazy(() => import('@/components/prototype/ClassProgressionLab'));
-const MobilePlayerCampaignView = React.lazy(() => import('@/components/MobilePlayerCampaignView'));
-const CombatPage = React.lazy(() => import('@/components/CombatPage'));
-const AdminPage = React.lazy(() => import('@/components/AdminPage'));
-const LandingPage = React.lazy(() => import('@/components/LandingPage'));
-const AccountSettings = React.lazy(() => import('@/components/AccountSettings'));
-const HomebrewWorkshop = React.lazy(() => import('@/components/HomebrewWorkshop'));
-const UploadsDashboard = React.lazy(() => import('@/components/UploadsDashboard'));
-const CharacterCreationModePicker = React.lazy(() => import('@/components/CharacterCreationModePicker'));
-// V3 has a known preview AC runtime crash. Keep the full creator usable while V3 is patched safely.
-const FullCharacterCreatorV3 = React.lazy(() => import('@/components/FullCharacterCreatorV2'));
-const BasicCharacterCreator = React.lazy(() => import('@/components/BasicCharacterCreator'));
-const RookCharacterMatchmaker = React.lazy(() => import('@/components/RookCharacterMatchmaker'));
-const PremadeCharacterBuilder = React.lazy(() => import('@/components/PremadeCharacterBuilder'));
-const KidsCharacterBuilder = React.lazy(() => import('@/components/KidsCharacterBuilder'));
-const CleanCharacterSheet = React.lazy(() => import('@/components/CleanCharacterSheet'));
+const CHUNK_RELOAD_KEY = 'rqk.chunk-reload-attempted';
+
+function isChunkLoadError(error) {
+  const message = String(error?.message || error || '');
+  return /Loading chunk \d+ failed|ChunkLoadError|Failed to fetch dynamically imported module|Importing a module script failed/i.test(message);
+}
+
+function lazyWithChunkRetry(importer) {
+  return React.lazy(async () => {
+    try {
+      const mod = await importer();
+      try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
+      return mod;
+    } catch (error) {
+      if (isChunkLoadError(error)) {
+        try {
+          const alreadyTried = sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
+          if (!alreadyTried) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+            window.location.reload();
+          }
+        } catch {}
+      }
+      throw error;
+    }
+  });
+}
+
+const AuthPage = lazyWithChunkRetry(() => import('@/components/AuthPage'));
+const UnifiedDashboard = lazyWithChunkRetry(() => import('@/components/UnifiedDashboard'));
+const MyCharactersPage = lazyWithChunkRetry(() => import('@/components/MyCharactersPage'));
+const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaignsPage'));
+const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
+const LiveSessionGridPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionGridPage'));
+const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
+const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
+const PrototypeHub = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeHub'));
+const PrototypeMobileLab = lazyWithChunkRetry(() => import('@/components/prototype/PrototypeMobileLab'));
+const TiaKartaGmPrototype = lazyWithChunkRetry(() => import('@/components/prototype/TiaKartaGmPrototype'));
+const ClassProgressionLab = lazyWithChunkRetry(() => import('@/components/prototype/ClassProgressionLab'));
+const MobilePlayerCampaignView = lazyWithChunkRetry(() => import('@/components/MobilePlayerCampaignView'));
+const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
+const AdminPage = lazyWithChunkRetry(() => import('@/components/AdminPage'));
+const LandingPage = lazyWithChunkRetry(() => import('@/components/LandingPage'));
+const AccountSettings = lazyWithChunkRetry(() => import('@/components/AccountSettings'));
+const HomebrewWorkshop = lazyWithChunkRetry(() => import('@/components/HomebrewWorkshop'));
+const UploadsDashboard = lazyWithChunkRetry(() => import('@/components/UploadsDashboard'));
+const CharacterImportPage = lazyWithChunkRetry(() => import('@/components/CharacterImportPage'));
+const FullCharacterCreatorV3 = lazyWithChunkRetry(() => import('@/components/CharacterRulesBridge'));
+const CleanCharacterSheet = lazyWithChunkRetry(() => import('@/components/CleanCharacterSheet'));
 
 const ENABLE_PROTOTYPE_ROUTES = process.env.REACT_APP_ENABLE_PROTOTYPE_ROUTES === 'true';
 
 function PrototypeRoute({ children }) {
-  // Prototype/lab routes are intentionally hidden from normal users unless enabled for dev/admin review.
   return ENABLE_PROTOTYPE_ROUTES ? children : <Navigate to="/home" replace />;
+}
+
+function CampaignLiveRedirect() {
+  const { campaignId } = useParams();
+  return <Navigate to={`/gm-screen/${campaignId}`} replace />;
 }
 
 function ThemeRouter() {
@@ -103,15 +152,10 @@ function ThemeRouter() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path === '/' || path.startsWith('/auth')) {
-      setTheme(THEMES.LANDING);
-    } else if (path.startsWith('/gm-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) {
-      setTheme(THEMES.GM);
-    } else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) {
-      setTheme(THEMES.PLAYER);
-    } else {
-      setTheme(THEMES.PLAYER);
-    }
+    if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
+    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
+    else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) setTheme(THEMES.PLAYER);
+    else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
 
   return null;
@@ -135,9 +179,7 @@ function AppRoutes() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    apiClient.get('/auth/me').catch(() => {
-      handleLogout();
-    });
+    apiClient.get('/auth/me').catch(() => handleLogout());
   }, [isAuthenticated, handleLogout]);
 
   return (
@@ -152,9 +194,12 @@ function AppRoutes() {
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <Navigate to="/auth" replace />} />
         <Route path="/prototype" element={<PrototypeRoute><PrototypeHub /></PrototypeRoute>} />
         <Route path="/prototype-mobile" element={<PrototypeRoute><PrototypeMobileLab /></PrototypeRoute>} />
         <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
@@ -165,23 +210,18 @@ function AppRoutes() {
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/uploads" element={isAuthenticated ? <AppShell><UploadsDashboard /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new" element={isAuthenticated ? <AppShell><CharacterCreationModePicker /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/modes" element={isAuthenticated ? <Navigate to="/characters/new" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/basic" element={isAuthenticated ? <AppShell><BasicCharacterCreator /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/premade" element={isAuthenticated ? <AppShell><PremadeCharacterBuilder /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/kids" element={isAuthenticated ? <AppShell><KidsCharacterBuilder /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/new/matchmaker" element={isAuthenticated ? <AppShell><RookCharacterMatchmaker /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create" element={isAuthenticated ? <Navigate to="/characters/new" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/full" element={isAuthenticated ? <Navigate to="/characters/new/full" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/basic" element={isAuthenticated ? <Navigate to="/characters/new/basic" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/premade" element={isAuthenticated ? <Navigate to="/characters/new/premade" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/kids" element={isAuthenticated ? <Navigate to="/characters/new/kids" replace /> : <Navigate to="/auth" replace />} />
-        <Route path="/characters/create/rook" element={isAuthenticated ? <Navigate to="/characters/new/matchmaker" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/create/full" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/create/basic" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/create/rook" element={<Navigate to="/characters/create/full" replace />} />
+        <Route path="/characters/import" element={isAuthenticated ? <AppShell><CharacterImportPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/characters/:characterId/edit" element={isAuthenticated ? <AppShell><FullCharacterCreatorV3 editMode /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters/:characterId" element={isAuthenticated ? <CleanCharacterSheet /> : <Navigate to="/auth" replace />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
-      {isAuthenticated && <GlobalFeedbackButton />}
+      {isAuthenticated && <RookGlobalAssistant />}
+      {isAuthenticated && <FloatingDiceRoller />}
+      {isAuthenticated && <GlobalFeedbackButton isAuthenticated={isAuthenticated} />}
     </>
   );
 }
