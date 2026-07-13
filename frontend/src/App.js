@@ -193,6 +193,7 @@ function AppRoutes() {
         <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage onLogin={handleAuthLogin} />} />
         <Route path="/home" element={isAuthenticated ? <AppShell><UnifiedDashboard username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to="/auth" replace />} />

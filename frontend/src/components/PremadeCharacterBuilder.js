@@ -1,4 +1,4 @@
-        import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -31,17 +31,17 @@ const ROLE_FILTERS = [
 const DIFFICULTY_FILTERS = ['All', 'Beginner', 'Balanced', 'Spellcaster'];
 
 const velvet = {
-  bg: '#120C08',
-  panel: '#21150E',
-  card: '#2E1D13',
-  raised: '#3A2619',
-  input: '#1A100B',
-  text: '#F5E6C8',
-  soft: '#E6D2AA',
-  muted: '#CDBA98',
-  gold: '#C08A3D',
-  goldHover: '#E0B15C',
-  copper: '#A45A32',
+  bg: '#07070B',
+  panel: '#141018',
+  card: '#1E1621',
+  raised: '#291B23',
+  input: '#100B12',
+  text: '#FFF7EF',
+  soft: '#F4DED4',
+  muted: '#B8A8A4',
+  gold: '#E94B4B',
+  goldHover: '#FF7A45',
+  copper: '#B91C1C',
   success: '#7A9B66',
 };
 
@@ -50,7 +50,7 @@ const inputStyle = {
   padding: '11px 12px',
   borderRadius: 8,
   background: velvet.input,
-  border: '1px solid rgba(192, 138, 61, 0.34)',
+  border: '1px solid rgba(255, 122, 69, 0.32)',
   color: velvet.text,
   fontSize: 14,
   outline: 'none',
@@ -114,6 +114,8 @@ export default function PremadeCharacterBuilder() {
   const [edition, setEdition] = useState('2014');
   const [rulesetId, setRulesetId] = useState('dnd5e_2014');
   const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [templateLoadError, setTemplateLoadError] = useState('');
   const [description, setDescription] = useState('');
   const [match, setMatch] = useState(null);
   const [name, setName] = useState('');
@@ -134,6 +136,8 @@ export default function PremadeCharacterBuilder() {
 
   useEffect(() => {
     const load = async () => {
+      setLoadingTemplates(true);
+      setTemplateLoadError('');
       const res = await apiClient.get('/character-templates', { params: { ruleset_id: rulesetId } });
       const nextTemplates = res.data?.templates || [];
       setTemplates(nextTemplates);
@@ -143,7 +147,14 @@ export default function PremadeCharacterBuilder() {
       });
     };
 
-    load().catch(() => toast.error('Failed to load premade heroes'));
+    load()
+      .catch(() => {
+        setTemplateLoadError('Premade heroes could not be loaded. Check your connection and try again.');
+        setTemplates([]);
+        setSelectedTemplate(null);
+        toast.error('Failed to load premade heroes');
+      })
+      .finally(() => setLoadingTemplates(false));
   }, [rulesetId]);
 
   const classOptions = useMemo(
@@ -177,6 +188,7 @@ export default function PremadeCharacterBuilder() {
 
   const selectedIsSuggested = match?.best_match?.id && selectedTemplate?.id === match.best_match.id;
   const selectedIsPreparedCaster = selectedTemplate && PREPARED_SPELLCASTERS.has(selectedTemplate.character_class);
+  const canRunMatch = description.trim().length > 0 && !loadingMatch;
 
   const updateSpellPlan = (templateId, spellLoadoutId) => {
     setSpellPlans(current => ({
@@ -212,41 +224,41 @@ export default function PremadeCharacterBuilder() {
     }
   };
 
-const createFromTemplate = async (template) => {
-  if (!template) {
-    toast.error('Choose a hero first');
-    return;
-  }
-
-  const characterName = name.trim() || template.name || 'New Hero';
-
-  setCreatingTemplateId(template.id);
-
-  try {
-    const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
-    const spellLoadoutId = spellPlans[template.id] || 'rook-balanced';
-    const payload = buildCharacterCreationPayloadFromTemplate(full, {
-      name: characterName,
-      edition,
-      rulesetId,
-      spellLoadoutId,
-    });
-
-    const warnings = getCharacterCreationPayloadWarnings(payload);
-
-    if (warnings.length) {
-      toast.warning(`Created with ${warnings.length} sheet detail${warnings.length === 1 ? '' : 's'} to review.`);
+  const createFromTemplate = async (template) => {
+    if (!template) {
+      toast.error('Choose a hero first');
+      return;
     }
 
-    const res = await apiClient.post('/characters', payload);
-    toast.success('Premade hero created. You can rename them later.');
-    navigate(`/characters/${res.data?.character_id}`);
-  } catch (e) {
-    toast.error(e?.response?.data?.detail || 'Failed to create character from template');
-  } finally {
-    setCreatingTemplateId('');
-  }
-};
+    const characterName = name.trim() || template.name || 'New Hero';
+
+    setCreatingTemplateId(template.id);
+
+    try {
+      const { data: full } = await apiClient.get(`/character-templates/${template.id}`);
+      const spellLoadoutId = spellPlans[template.id] || 'rook-balanced';
+      const payload = buildCharacterCreationPayloadFromTemplate(full, {
+        name: characterName,
+        edition,
+        rulesetId,
+        spellLoadoutId,
+      });
+
+      const warnings = getCharacterCreationPayloadWarnings(payload);
+
+      if (warnings.length) {
+        toast.warning(`Created with ${warnings.length} sheet detail${warnings.length === 1 ? '' : 's'} to review.`);
+      }
+
+      const res = await apiClient.post('/characters', payload);
+      toast.success('Premade hero created. You can rename them later.');
+      navigate(`/characters/${res.data?.character_id}`);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || 'Failed to create character from template');
+    } finally {
+      setCreatingTemplateId('');
+    }
+  };
 
   return (
     <main className="premade-page">
@@ -289,15 +301,15 @@ const createFromTemplate = async (template) => {
 
         <section className="premade-toolbar" aria-label="Premade character setup">
           <label style={labelStyle}>
-  Character Name Optional
-  <input
-    placeholder="Leave blank to use the premade hero’s name..."
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    style={inputStyle}
-    data-testid="premade-name"
-  />
-</label>
+            Character Name Optional
+            <input
+              placeholder="Leave blank to use the premade hero’s name..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={inputStyle}
+              data-testid="premade-name"
+            />
+          </label>
 
           <label style={labelStyle}>
             Edition
@@ -338,7 +350,7 @@ const createFromTemplate = async (template) => {
 
           <button
             onClick={runMatch}
-            disabled={loadingMatch}
+            disabled={!canRunMatch}
             data-testid="premade-match-btn"
             className="premade-primary premade-suggest-button"
             type="button"
@@ -400,15 +412,22 @@ const createFromTemplate = async (template) => {
               <span>{filteredTemplates.length} shown</span>
             </div>
 
-            {templates.length === 0 && <div className="premade-empty">Loading premade heroes…</div>}
+            {loadingTemplates && <div className="premade-empty">Loading premade heroes…</div>}
 
-            {templates.length > 0 && filteredTemplates.length === 0 && (
+            {!loadingTemplates && templateLoadError && <div className="premade-empty premade-empty-error">{templateLoadError}</div>}
+
+            {!loadingTemplates && !templateLoadError && templates.length === 0 && (
+              <div className="premade-empty">No premade heroes are available for this ruleset yet.</div>
+            )}
+
+            {!loadingTemplates && !templateLoadError && templates.length > 0 && filteredTemplates.length === 0 && (
               <div className="premade-empty">
                 No heroes match those filters yet. Try another role, class, difficulty, or search term.
               </div>
             )}
 
-            <div className="premade-card-grid">
+            {!loadingTemplates && !templateLoadError && (
+              <div className="premade-card-grid">
               {filteredTemplates.map(template => (
                 <HeroCard
                   key={template.id}
@@ -421,7 +440,8 @@ const createFromTemplate = async (template) => {
                   creating={creatingTemplateId === template.id}
                 />
               ))}
-            </div>
+              </div>
+            )}
           </section>
 
           <aside className="premade-preview" data-testid="premade-selected-preview">
@@ -569,10 +589,10 @@ const pageCss = `
   min-height: 100vh;
   overflow-y: auto;
   background:
-    radial-gradient(circle at top left, rgba(224, 177, 92, 0.14), transparent 32%),
-    radial-gradient(circle at top right, rgba(164, 90, 50, 0.18), transparent 34%),
-    linear-gradient(180deg, #120C08, #21150E);
-  color: #F5E6C8;
+    radial-gradient(circle at top left, rgba(255, 122, 69, 0.14), transparent 32%),
+    radial-gradient(circle at top right, rgba(233, 75, 75, 0.18), transparent 34%),
+    linear-gradient(180deg, #07070B, #141018);
+  color: #FFF7EF;
   padding: 20px;
   font-family: var(--rq-font-sans, var(--font-sans));
 }
@@ -583,9 +603,9 @@ const pageCss = `
 }
 
 .premade-back {
-  background: rgba(46, 29, 19, 0.78);
-  border: 1px solid rgba(192, 138, 61, 0.24);
-  color: #CDBA98;
+  background: rgba(30, 22, 33, 0.78);
+  border: 1px solid rgba(255, 122, 69, 0.24);
+  color: #B8A8A4;
   cursor: pointer;
   font-size: 12px;
   font-weight: 900;
@@ -597,9 +617,9 @@ const pageCss = `
 }
 
 .premade-back:hover {
-  border-color: rgba(224, 177, 92, 0.58);
-  color: #F5E6C8;
-  background: rgba(192, 138, 61, 0.12);
+  border-color: rgba(255, 122, 69, 0.58);
+  color: #FFF7EF;
+  background: rgba(255, 122, 69, 0.12);
 }
 
 .premade-hero {
@@ -617,8 +637,8 @@ margin-bottom: 12px;
 .premade-filters,
 .premade-gallery,
 .premade-preview {
-background: rgba(33, 21, 14, 0.95);
-border: 1px solid rgba(192, 138, 61, 0.22);
+background: rgba(20, 16, 24, 0.95);
+border: 1px solid rgba(255, 122, 69, 0.22);
 border-radius: 12px;
 box-shadow: 0 22px 56px rgba(0, 0, 0, 0.48);
 }
@@ -628,7 +648,7 @@ padding: 20px;
 }
 
 .premade-kicker {
-color: #E0B15C;
+color: #FF7A45;
 font-size: 12px;
 font-weight: 900;
 text-transform: uppercase;
@@ -638,7 +658,7 @@ margin-bottom: 9px;
 
 .premade-hero h1 {
 margin: 0;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: clamp(30px, 4vw, 46px);
 line-height: 1;
 font-weight: 900;
@@ -647,7 +667,7 @@ letter-spacing: -1.2px;
 
 .premade-hero p {
 margin: 10px 0 0;
-color: #CDBA98;
+color: #B8A8A4;
 line-height: 1.55;
 font-size: 14px;
 max-width: 760px;
@@ -667,9 +687,9 @@ gap: 7px;
 min-height: 32px;
 padding: 0 10px;
 border-radius: 999px;
-color: #E6D2AA;
-background: rgba(192, 138, 61, 0.09);
-border: 1px solid rgba(192, 138, 61, 0.25);
+color: #F4DED4;
+background: rgba(255, 122, 69, 0.09);
+border: 1px solid rgba(255, 122, 69, 0.25);
 font-size: 12px;
 font-weight: 800;
 }
@@ -681,8 +701,8 @@ justify-content: center;
 width: 19px;
 height: 19px;
 border-radius: 999px;
-color: #120C08;
-background: #C08A3D;
+color: #07070B;
+background: #E94B4B;
 font-size: 11px;
 font-weight: 900;
 }
@@ -691,8 +711,8 @@ font-weight: 900;
 display: grid;
 gap: 7px;
 padding: 16px;
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.12), rgba(164, 90, 50, 0.15));
-border-color: rgba(224, 177, 92, 0.3);
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.12), rgba(233, 75, 75, 0.15));
+border-color: rgba(255, 122, 69, 0.3);
 }
 
 .premade-help-card strong {
@@ -700,7 +720,7 @@ font-size: 16px;
 }
 
 .premade-help-card span {
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 13px;
 line-height: 1.45;
 }
@@ -723,15 +743,15 @@ margin-bottom: 12px;
 }
 
 .premade-primary {
-background: linear-gradient(135deg, #C08A3D, #A45A32);
-border: 1px solid rgba(224, 177, 92, 0.72);
+background: linear-gradient(135deg, #E94B4B, #B91C1C);
+border: 1px solid rgba(255, 122, 69, 0.72);
 border-radius: 8px;
-color: #120C08;
+color: #07070B;
 cursor: pointer;
 font-weight: 900;
 text-transform: uppercase;
 letter-spacing: 0.7px;
-box-shadow: 0 14px 32px rgba(192, 138, 61, 0.24);
+box-shadow: 0 14px 32px rgba(255, 122, 69, 0.24);
 }
 
 .premade-primary:disabled {
@@ -746,8 +766,8 @@ height: 42px;
 }
 
 .premade-suggestion {
-border: 1px solid rgba(224, 177, 92, 0.28);
-background: rgba(46, 29, 19, 0.78);
+border: 1px solid rgba(255, 122, 69, 0.28);
+background: rgba(30, 22, 33, 0.78);
 border-radius: 10px;
 padding: 10px;
 }
@@ -759,9 +779,9 @@ opacity: 0.9;
 .premade-suggestion span,
 .premade-section-title > span {
 display: inline-flex;
-color: #F5E6C8;
-border: 1px solid rgba(192, 138, 61, 0.46);
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.22), rgba(164, 90, 50, 0.24));
+color: #FFF7EF;
+border: 1px solid rgba(255, 122, 69, 0.46);
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.22), rgba(233, 75, 75, 0.24));
 border-radius: 999px;
 padding: 3px 7px;
 font-size: 10px;
@@ -773,13 +793,13 @@ letter-spacing: 0.7px;
 .premade-suggestion strong {
 display: block;
 margin-top: 6px;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: 14px;
 }
 
 .premade-suggestion p {
 margin: 5px 0 0;
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 12px;
 line-height: 1.4;
 }
@@ -799,7 +819,7 @@ gap: 5px;
 }
 
 .premade-filter-group span {
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 10px;
 font-weight: 900;
 text-transform: uppercase;
@@ -807,9 +827,9 @@ letter-spacing: 0.8px;
 }
 
 .premade-filter-group select {
-background: #1A100B;
-border: 1px solid rgba(192, 138, 61, 0.34);
-color: #F5E6C8;
+background: #100B12;
+border: 1px solid rgba(255, 122, 69, 0.34);
+color: #FFF7EF;
 border-radius: 8px;
 padding: 9px 10px;
 }
@@ -821,9 +841,9 @@ gap: 7px;
 }
 
 .premade-role-pills button {
-background: #2E1D13;
-border: 1px solid rgba(192, 138, 61, 0.2);
-color: #CDBA98;
+background: #1E1621;
+border: 1px solid rgba(255, 122, 69, 0.2);
+color: #B8A8A4;
 border-radius: 999px;
 padding: 7px 10px;
 font-size: 11px;
@@ -833,9 +853,9 @@ cursor: pointer;
 
 .premade-role-pills button.active,
 .premade-role-pills button:hover {
-border-color: rgba(224, 177, 92, 0.72);
-color: #F5E6C8;
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.22), rgba(164, 90, 50, 0.24));
+border-color: rgba(255, 122, 69, 0.72);
+color: #FFF7EF;
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.22), rgba(233, 75, 75, 0.24));
 }
 
 .premade-layout {
@@ -860,25 +880,31 @@ margin-bottom: 12px;
 
 .premade-section-title h2 {
 margin: 0;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: 19px;
 }
 
 .premade-section-title p {
 margin: 4px 0 0;
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 12px;
 line-height: 1.4;
 }
 
 .premade-empty {
-color: #CDBA98;
+color: #B8A8A4;
 padding: 18px;
-border: 1px dashed rgba(192, 138, 61, 0.24);
+border: 1px dashed rgba(255, 122, 69, 0.24);
 border-radius: 10px;
-background: rgba(46, 29, 19, 0.45);
+background: rgba(30, 22, 33, 0.45);
 font-size: 13px;
 line-height: 1.45;
+}
+
+.premade-empty-error {
+border-color: rgba(233, 75, 75, 0.5);
+background: rgba(80, 12, 20, 0.26);
+color: #FFE4E4;
 }
 
 .premade-card-grid {
@@ -888,8 +914,8 @@ gap: 11px;
 }
 
 .premade-card {
-background: #2E1D13;
-border: 1px solid rgba(192, 138, 61, 0.2);
+background: #1E1621;
+border: 1px solid rgba(255, 122, 69, 0.2);
 border-radius: 12px;
 display: flex;
 flex-direction: column;
@@ -900,8 +926,8 @@ transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease
 .premade-card:hover,
 .premade-card.selected {
 transform: translateY(-2px);
-border-color: rgba(224, 177, 92, 0.7);
-box-shadow: 0 18px 42px rgba(192, 138, 61, 0.16);
+border-color: rgba(255, 122, 69, 0.7);
+box-shadow: 0 18px 42px rgba(255, 122, 69, 0.16);
 }
 
 .premade-card-main {
@@ -926,7 +952,7 @@ gap: 8px;
 }
 
 .premade-card-topline > span {
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 10px;
 font-weight: 900;
 text-transform: uppercase;
@@ -935,9 +961,9 @@ letter-spacing: 0.7px;
 
 .premade-card-topline em {
 font-style: normal;
-color: #F5E6C8;
-border: 1px solid rgba(192, 138, 61, 0.46);
-background: rgba(192, 138, 61, 0.16);
+color: #FFF7EF;
+border: 1px solid rgba(255, 122, 69, 0.46);
+background: rgba(255, 122, 69, 0.16);
 border-radius: 999px;
 padding: 3px 7px;
 font-size: 10px;
@@ -960,9 +986,9 @@ border-radius: 13px;
 display: flex;
 align-items: center;
 justify-content: center;
-border: 1px solid rgba(224, 177, 92, 0.36);
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.3), rgba(164, 90, 50, 0.32));
-color: #F5E6C8;
+border: 1px solid rgba(255, 122, 69, 0.36);
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.3), rgba(233, 75, 75, 0.32));
+color: #FFF7EF;
 font-size: 24px;
 font-weight: 900;
 }
@@ -978,7 +1004,7 @@ flex: 0 0 auto;
 .premade-card h3,
 .premade-preview h3 {
 margin: 0;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: 16px;
 font-weight: 900;
 }
@@ -986,7 +1012,7 @@ font-weight: 900;
 .premade-card-header p,
 .premade-preview-card p {
 margin: 4px 0 0;
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 11px;
 line-height: 1.35;
 }
@@ -994,15 +1020,15 @@ line-height: 1.35;
 .premade-card-pitch,
 .premade-preview-pitch {
 margin: 0;
-color: #E6D2AA;
+color: #F4DED4;
 font-size: 12px;
 line-height: 1.45;
 }
 
 .premade-pill {
-color: #E6D2AA;
-border: 1px solid rgba(192, 138, 61, 0.22);
-background: rgba(192, 138, 61, 0.08);
+color: #F4DED4;
+border: 1px solid rgba(255, 122, 69, 0.22);
+background: rgba(255, 122, 69, 0.08);
 border-radius: 999px;
 padding: 4px 7px;
 font-size: 10px;
@@ -1010,7 +1036,7 @@ font-weight: 800;
 }
 
 .premade-pill-soft {
-color: #CDBA98;
+color: #B8A8A4;
 background: rgba(245, 230, 200, 0.05);
 }
 
@@ -1022,9 +1048,9 @@ margin-top: 4px;
 }
 
 .premade-tags span {
-border: 1px solid rgba(192, 138, 61, 0.22);
-background: rgba(192, 138, 61, 0.08);
-color: #E6D2AA;
+border: 1px solid rgba(255, 122, 69, 0.22);
+background: rgba(255, 122, 69, 0.08);
+color: #F4DED4;
 border-radius: 999px;
 padding: 4px 7px;
 font-size: 10px;
@@ -1037,9 +1063,9 @@ font-size: 9px;
 
 .premade-card-create {
 border: 0;
-border-top: 1px solid rgba(192, 138, 61, 0.18);
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.24), rgba(164, 90, 50, 0.26));
-color: #F5E6C8;
+border-top: 1px solid rgba(255, 122, 69, 0.18);
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.24), rgba(233, 75, 75, 0.26));
+color: #FFF7EF;
 padding: 10px 12px;
 font-size: 11px;
 font-weight: 900;
@@ -1057,7 +1083,7 @@ cursor: not-allowed;
 display: grid;
 grid-template-columns: 1fr 1fr;
 gap: 0;
-border-top: 1px solid rgba(192, 138, 61, 0.18);
+border-top: 1px solid rgba(255, 122, 69, 0.18);
 }
 
 .premade-card-actions .premade-card-create {
@@ -1070,9 +1096,9 @@ justify-content: center;
 
 .premade-card-secondary {
 border: 0;
-border-right: 1px solid rgba(192, 138, 61, 0.18);
+border-right: 1px solid rgba(255, 122, 69, 0.18);
 background: rgba(18, 12, 8, 0.48);
-color: #E6D2AA;
+color: #F4DED4;
 padding: 10px 12px;
 min-height: 44px;
 display: inline-flex;
@@ -1086,21 +1112,21 @@ cursor: pointer;
 }
 
 .premade-card-secondary:hover {
-background: rgba(192, 138, 61, 0.12);
-color: #F5E6C8;
+background: rgba(255, 122, 69, 0.12);
+color: #FFF7EF;
 }
 
 .premade-card-backstory {
 margin: 0 13px 12px;
 padding: 10px 11px;
-border-left: 2px solid #C08A3D;
+border-left: 2px solid #E94B4B;
 border-radius: 8px;
-background: rgba(192, 138, 61, 0.08);
+background: rgba(255, 122, 69, 0.08);
 }
 
 .premade-card-backstory strong {
 display: block;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: 12px;
 font-weight: 900;
 margin-bottom: 4px;
@@ -1108,7 +1134,7 @@ margin-bottom: 4px;
 
 .premade-card-backstory p {
 margin: 0;
-color: #E6D2AA;
+color: #F4DED4;
 font-size: 12px;
 line-height: 1.45;
 }
@@ -1119,8 +1145,8 @@ top: 14px;
 }
 
 .premade-preview-card {
-background: linear-gradient(135deg, rgba(192, 138, 61, 0.12), rgba(164, 90, 50, 0.14));
-border: 1px solid rgba(224, 177, 92, 0.24);
+background: linear-gradient(135deg, rgba(255, 122, 69, 0.12), rgba(233, 75, 75, 0.14));
+border: 1px solid rgba(255, 122, 69, 0.24);
 border-radius: 12px;
 padding: 12px;
 margin-bottom: 11px;
@@ -1138,15 +1164,15 @@ margin-bottom: 10px;
 }
 
 .premade-preview-stats div {
-border: 1px solid rgba(192, 138, 61, 0.22);
-background: rgba(46, 29, 19, 0.7);
+border: 1px solid rgba(255, 122, 69, 0.22);
+background: rgba(30, 22, 33, 0.7);
 border-radius: 9px;
 padding: 9px;
 }
 
 .premade-preview-stats span {
 display: block;
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 10px;
 font-weight: 900;
 text-transform: uppercase;
@@ -1155,7 +1181,7 @@ letter-spacing: 0.7px;
 
 .premade-preview-stats strong {
 display: block;
-color: #F5E6C8;
+color: #FFF7EF;
 font-size: 14px;
 margin-top: 3px;
 }
@@ -1172,7 +1198,7 @@ margin-top: 12px;
 
 .premade-edit-note {
 display: block;
-color: #CDBA98;
+color: #B8A8A4;
 font-size: 11px;
 text-align: center;
 margin-top: 8px;

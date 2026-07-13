@@ -218,8 +218,21 @@ export default function AppShell({ children }) {
         )}
       </aside>
 
-      <div className="rqk-app-shell-content">
-        {children}
+      <div className="rqk-app-workspace">
+        <header className="rqk-app-topbar" aria-label="Workspace controls">
+          <div className="rqk-app-topbar-title">
+            <span>Rookie Quest Keeper</span>
+            <strong>{sectionLabel(location.pathname)}</strong>
+          </div>
+          <label className="rqk-app-search">
+            <Search size={18} aria-hidden="true" />
+            <input type="search" placeholder="Search characters, campaigns, notes..." aria-label="Search Rookie Quest Keeper" />
+          </label>
+        </header>
+
+        <div className="rqk-app-shell-content">
+          {children}
+        </div>
       </div>
     </div>
   );
