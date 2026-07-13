@@ -1,0 +1,126 @@
+/* Rook assistant page playbook panel.
+   Shows users what Rook is best at on the current screen before they type. */
+
+.rook-assistant-playbook {
+  width: min(100%, 340px);
+  margin: 0 auto 14px;
+  padding: 11px 12px;
+  border: 1px solid rgba(245, 197, 66, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(245, 197, 66, 0.10), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+  text-align: left;
+}
+
+.rook-assistant-playbook > span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--rook-gold-bright, #F5C542);
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.rook-assistant-playbook ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rook-assistant-playbook li {
+  position: relative;
+  padding-left: 16px;
+  color: #F4EFE7;
+  font-size: 11px;
+  line-height: 1.38;
+}
+
+.rook-assistant-playbook li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.48em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--rook-gold-bright, #F5C542), var(--rook-gold, #D4A017));
+  box-shadow: 0 0 10px rgba(245, 197, 66, 0.24);
+}
+
+@media (max-width: 720px) {
+  .rook-assistant-playbook {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+}
+
+/* Mobile AppShell dock safety.
+   The logged-in hub now has a fixed bottom dock, so Rook and dice need to float
+   above it instead of covering navigation while open. */
+@media (max-width: 719px) {
+  #root .rqk-app-shell ~ .rook-assistant-fab,
+  #root .rqk-app-shell ~ .rook-assistant-pill,
+  #root .rook-assistant-fab,
+  #root .rook-assistant-pill {
+    right: 12px !important;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 120 !important;
+  }
+
+  #root .rook-assistant-panel {
+    inset: auto 10px calc(84px + env(safe-area-inset-bottom, 0px)) 10px !important;
+    width: auto !important;
+    height: min(620px, calc(100dvh - 104px - env(safe-area-inset-bottom, 0px))) !important;
+    max-height: calc(100dvh - 104px - env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: 20px !important;
+    z-index: 130 !important;
+  }
+
+  #root .rook-assistant-messages {
+    padding-bottom: 12px !important;
+  }
+
+  #root .rook-assistant-compose {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root .rq-floating-dice {
+    left: 12px !important;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 115 !important;
+  }
+
+  #root .rq-floating-dice__panel {
+    max-height: calc(100dvh - 116px - env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto !important;
+  }
+
+  #root [data-testid="global-feedback-btn"] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  #root .rook-assistant-panel {
+    inset-inline: 6px !important;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    height: min(600px, calc(100dvh - 92px - env(safe-area-inset-bottom, 0px))) !important;
+    max-height: calc(100dvh - 92px - env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: 18px !important;
+  }
+
+  #root .rook-assistant-fab,
+  #root .rook-assistant-pill {
+    right: 10px !important;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root .rq-floating-dice {
+    left: 10px !important;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

@@ -10,7 +10,15 @@ os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from routes.characters import compute_multiclass_spell_slots
+from routes.characters import calculate_spell_slots, compute_multiclass_spell_slots
+
+
+def test_level_19_full_caster_has_one_9th_level_slot():
+    slots = calculate_spell_slots('Wizard', 19)
+
+    assert slots['9'] == 1
+    assert slots['8'] == 1
+    assert slots['7'] == 1
 
 
 def test_epic_multiclass_spell_slots_stay_capped_at_level_20_table():

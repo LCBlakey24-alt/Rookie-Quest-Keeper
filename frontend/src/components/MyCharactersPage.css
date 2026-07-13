@@ -1,0 +1,209 @@
+/* Character library component-level repairs.
+   Keeps the saved-character card aligned with the current sunset mobile design. */
+
+#root .characters-library-page .library-card-grid,
+#root .characters-library-page .characters-card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+#root .characters-library-page .library-card.character-library-card,
+#root .characters-library-page .character-library-card {
+  min-height: 0 !important;
+  padding: 12px !important;
+  display: grid !important;
+  gap: 12px !important;
+  background: linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  overflow: hidden !important;
+}
+
+#root .characters-library-page .character-card-main {
+  display: grid !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+#root .characters-library-page .character-card-identity-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+#root .characters-library-page .character-card-level-badge {
+  min-height: 30px !important;
+  padding: 0 9px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: 0.82rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+  background: linear-gradient(#14061f, #14061f) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+}
+
+#root .characters-library-page .character-library-card h2 {
+  margin: 0 !important;
+  min-width: 0 !important;
+  color: #ffffff !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(2rem, 9vw, 2.85rem) !important;
+  line-height: 0.96 !important;
+  overflow-wrap: anywhere !important;
+}
+
+#root .characters-library-page .character-card-identity-row::after {
+  content: '' !important;
+  grid-column: 1 / -1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 3px !important;
+  margin-top: 2px !important;
+  border-radius: 999px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .characters-library-page .character-library-card h2::after {
+  display: none !important;
+  content: none !important;
+}
+
+#root .characters-library-page .character-card-subtitle-stack {
+  display: grid !important;
+  gap: 2px !important;
+}
+
+#root .characters-library-page .character-library-card p {
+  margin: 0 !important;
+  color: #ffffff !important;
+}
+
+#root .characters-library-page .character-card-primary-line {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: clamp(1rem, 4vw, 1.18rem) !important;
+  line-height: 1.15 !important;
+  font-weight: 850 !important;
+}
+
+#root .characters-library-page .character-card-subclass-line {
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 0.92rem !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+#root .characters-library-page .library-card-kicker {
+  display: none !important;
+}
+
+#root .characters-library-page .character-card-actions {
+  display: grid !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#root .characters-library-page .character-card-open {
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  color: #ffffff !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  text-decoration: none !important;
+}
+
+#root .characters-library-page .character-card-secondary-actions {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  align-items: stretch !important;
+}
+
+#root .characters-library-page .character-card-secondary-actions > * {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  padding: 0 9px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  color: #ffffff !important;
+  font-size: 0.86rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  background: linear-gradient(#1b0b2d, #1b0b2d) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+}
+
+#root .characters-library-page .character-card-secondary-actions svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 auto !important;
+}
+
+#root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
+  background: linear-gradient(#221025, #221025) padding-box,
+    linear-gradient(135deg, rgba(255, 79, 129, 0.72), rgba(255, 149, 66, 0.62)) border-box !important;
+  opacity: 0.9 !important;
+}
+
+#root .characters-library-page .library-page-action-secondary .library-page-button-secondary {
+  background: linear-gradient(#1b0b2d, #1b0b2d) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  border: 1px solid transparent !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 520px) {
+  #root .characters-library-page .character-card-secondary-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #root .characters-library-page .character-card-identity-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .characters-library-page .character-card-level-badge {
+    width: fit-content !important;
+  }
+
+  #root .characters-library-page .character-card-secondary-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .characters-library-page .character-card-secondary-actions .library-page-button-danger {
+    grid-column: auto !important;
+  }
+}

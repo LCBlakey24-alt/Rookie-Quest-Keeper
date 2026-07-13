@@ -1,0 +1,249 @@
+/* Last-mile clean sheet override.
+   Imported after legacy sheet CSS inside the sheet child components so old
+   brown/copper panels and red left bars cannot win. */
+
+.character-page-v2.clean-sheet-page,
+.clean-sheet-page.character-page-v2 {
+  --cs-bg: #070513 !important;
+  --cs-panel: #1a0b2d !important;
+  --cs-card: #10051d !important;
+  --cs-text: #ffffff !important;
+  --cs-text-soft: rgba(255, 255, 255, 0.88) !important;
+  --cs-muted: rgba(255, 255, 255, 0.66) !important;
+  --cs-border: transparent !important;
+  --cs-border-strong: transparent !important;
+  --cs-accent: transparent !important;
+  --rq-bg-main: #070513 !important;
+  --rq-bg-panel: #1a0b2d !important;
+  --rq-bg-card: #10051d !important;
+  --rq-bg-input: #090313 !important;
+  --rq-bg-button: #1a0b2d !important;
+  --rq-card: #1a0b2d !important;
+  --rq-panel: #1a0b2d !important;
+  --rq-surface: #10051d !important;
+  --rq-border-default: transparent !important;
+  --rq-accent-primary: #d84df1 !important;
+  --rq-sunset-gradient: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(115, 87, 255, 0.15), transparent 22rem),
+    radial-gradient(circle at 95% 12%, rgba(255, 79, 129, 0.09), transparent 18rem),
+    #070513 !important;
+  color: #ffffff !important;
+  overflow-x: hidden !important;
+}
+
+.character-page-v2 .clean-sheet-header,
+.character-page-v2 .clean-sheet-header--simple,
+.character-page-v2 .clean-sheet-compact-status,
+.character-page-v2 .clean-sheet-compact-status--hp-only,
+.character-page-v2 .clean-sheet-panel,
+.character-page-v2 .clean-sheet-empty,
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-vitals,
+.character-page-v2 .clean-sheet-play-tools,
+.character-page-v2 .clean-sheet-recovery-panel,
+.character-page-v2 .clean-sheet-condition-panel,
+.character-page-v2 .clean-sheet-roll-history-panel,
+.character-page-v2 .clean-sheet-turn-strip,
+.character-page-v2 .clean-sheet-identity,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-skills-summary,
+.character-page-v2 .clean-sheet-skills-summary > div,
+.character-page-v2 .clean-sheet-readable-saves,
+.character-page-v2 .clean-sheet-readable-skills,
+.character-page-v2 .clean-sheet-readiness-grid > div,
+.character-page-v2 .clean-sheet-proficiency-lists > div,
+.character-page-v2 .clean-sheet-note-field,
+.character-page-v2 .clean-sheet-compact-stat,
+.character-page-v2 .clean-sheet-compact-stat--hp {
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-left-color: transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.character-page-v2 .clean-sheet-identity,
+.character-page-v2 .clean-sheet-core-stat-card,
+.character-page-v2 .clean-sheet-passive-card,
+.character-page-v2 .clean-sheet-compact-ability,
+.character-page-v2 .clean-sheet-save-card,
+.character-page-v2 .clean-sheet-skill-card,
+.character-page-v2 .clean-sheet-spell-card,
+.character-page-v2 .clean-sheet-slot-card,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-skills-summary > div,
+.character-page-v2 .clean-sheet-readiness-grid > div,
+.character-page-v2 .clean-sheet-proficiency-lists > div,
+.character-page-v2 .clean-sheet-note-field,
+.character-page-v2 .clean-sheet-compact-stat,
+.character-page-v2 .clean-sheet-compact-stat--hp {
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.9), rgba(216, 77, 241, 0.8), rgba(255, 149, 66, 0.55)) border-box !important;
+}
+
+.character-page-v2 .clean-sheet-header::before,
+.character-page-v2 .clean-sheet-header::after,
+.character-page-v2 .clean-sheet-compact-status::before,
+.character-page-v2 .clean-sheet-compact-status::after,
+.character-page-v2 .clean-sheet-panel::before,
+.character-page-v2 .clean-sheet-panel::after,
+.character-page-v2 .clean-sheet-identity::before,
+.character-page-v2 .clean-sheet-identity::after,
+.character-page-v2 .clean-sheet-compact-stat--hp::before,
+.character-page-v2 .clean-sheet-compact-stat--hp::after {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+}
+
+.character-page-v2 [class*="clean-sheet"] {
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 10px auto !important;
+  max-width: 1180px !important;
+}
+
+.character-page-v2 .clean-sheet-header-actions button,
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-edit,
+.character-page-v2 .clean-sheet-compact-hp-actions button,
+.character-page-v2 .clean-sheet-notes-actions button,
+.character-page-v2 .clean-sheet-slot-actions button,
+.character-page-v2 .clean-sheet-item-actions button,
+.character-page-v2 .clean-sheet-roll-chip {
+  min-height: 42px !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-left-color: transparent !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  background:
+    linear-gradient(#1a0b2d, #1a0b2d) padding-box,
+    linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+}
+
+.character-page-v2 .clean-sheet-level,
+.character-page-v2 .clean-sheet-notes-actions button {
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+}
+
+.character-page-v2 .clean-sheet-compact-status--hp-only {
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.character-page-v2 .clean-sheet-compact-hp-actions {
+  display: grid !important;
+  grid-template-columns: 82px minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.character-page-v2 .clean-sheet-hp-wheel select,
+.character-page-v2 input,
+.character-page-v2 select,
+.character-page-v2 textarea {
+  background:
+    linear-gradient(#090313, #090313) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(255, 149, 66, 0.45)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+}
+
+.character-page-v2 .clean-sheet-tabs {
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.75), rgba(216, 77, 241, 0.75), rgba(255, 149, 66, 0.5)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-back,
+.character-page-v2 .clean-sheet-tabs .clean-sheet-rail-feedback {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.character-page-v2 .clean-sheet-tabs button.active svg {
+  background: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) !important;
+  border-radius: 8px !important;
+}
+
+.character-page-v2 .clean-sheet-attention-section,
+.character-page-v2 .clean-sheet-snapshot-warning,
+.character-page-v2 .clean-sheet-detail-warning {
+  background:
+    linear-gradient(#10051d, #10051d) padding-box,
+    linear-gradient(135deg, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left-width: 1px !important;
+  border-radius: 9px !important;
+}
+
+@media (min-width: 760px) {
+  .character-page-v2 .clean-sheet-header-actions {
+    grid-template-columns: repeat(2, minmax(0, 180px)) !important;
+    justify-content: end !important;
+  }
+
+  .character-page-v2 .clean-sheet-compact-status--hp-only {
+    grid-template-columns: minmax(180px, 0.34fr) minmax(0, 0.66fr) !important;
+  }
+}
+
+@media (max-width: 759px) {
+  .character-page-v2.clean-sheet-page,
+  .clean-sheet-page.character-page-v2 {
+    padding: 8px 8px 34px 66px !important;
+  }
+
+  .character-page-v2 .clean-sheet-header-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .character-page-v2 .clean-sheet-header-actions button {
+    font-size: 0.82rem !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .character-page-v2.clean-sheet-page,
+  .clean-sheet-page.character-page-v2 {
+    padding-left: 62px !important;
+  }
+
+  .character-page-v2 .clean-sheet-tabs {
+    left: 7px !important;
+    width: 46px !important;
+    max-width: 46px !important;
+  }
+}

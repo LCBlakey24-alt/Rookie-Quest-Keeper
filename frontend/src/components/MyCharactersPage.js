@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Copy, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronRight, Copy, FileUp, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/libraryPages.css';
+import './MyCharactersPage.css';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.characterId || '';
@@ -21,6 +22,13 @@ function classSummary(character) {
   return character?.character_class || character?.class_name || character?.class || 'Adventurer';
 }
 
+function characterSubclass(character) {
+  const raw = character?.subclass || character?.subclass_name || character?.class_subclass || character?.archetype || '';
+  if (!raw) return '';
+  if (typeof raw === 'string') return raw;
+  return raw?.name || raw?.title || '';
+}
+
 function characterLine(character) {
   const race = character?.race || character?.species || 'Unknown origin';
   return `${race} • ${classSummary(character)}`.replace(/\s+/g, ' ').trim();
@@ -28,6 +36,20 @@ function characterLine(character) {
 
 function characterLevel(character) {
   return `Level ${character?.level || 1}`;
+}
+
+function characterRules(character) {
+  const raw = character?.ruleset_id || character?.edition || character?.rules_edition || '';
+  if (String(raw).includes('2024')) return '2024 rules';
+  if (String(raw).includes('2014')) return '2014 rules';
+  return 'Playable sheet';
+}
+
+function formatDate(value) {
+  if (!value) return 'Not updated yet';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently updated';
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function duplicatePayload(source) {
@@ -95,7 +117,6 @@ function duplicatePayload(source) {
 }
 
 export default function MyCharactersPage() {
-  const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -105,6 +126,10 @@ export default function MyCharactersPage() {
   const sortedCharacters = useMemo(() => [...characters].sort((a, b) => (
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
   )), [characters]);
+
+  const highestLevel = useMemo(() => sortedCharacters.reduce((highest, character) => (
+    Math.max(highest, Number(character?.level || 1))
+  ), 0), [sortedCharacters]);
 
   const loadCharacters = async () => {
     try {
@@ -173,10 +198,14 @@ export default function MyCharactersPage() {
   if (loading) {
     return (
       <main className="library-page library-page-loading">
-        <section className="loading-screen" role="status" aria-live="polite">
-          <div className="loading-spinner" aria-hidden="true" />
-          <p className="loading-title">Opening My Characters...</p>
-          <p className="loading-tip">Loading your created characters.</p>
+        <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
+          <div className="loading-card">
+            <div className="loading-brand-mark" aria-hidden="true">PC</div>
+            <div className="loading-spinner" aria-hidden="true" />
+            <p className="loading-kicker">Character vault</p>
+            <h1 className="loading-title">Opening My Characters…</h1>
+            <p className="loading-tip">Loading your saved heroes, playable sheets, and latest edits.</p>
+          </div>
         </section>
       </main>
     );
@@ -185,29 +214,45 @@ export default function MyCharactersPage() {
   return (
     <main className="library-page characters-library-page">
       <section className="library-page-hero characters-library-hero">
-        <h1>My Characters</h1>
-        <p>Manage your heroes, level them up, and jump back into play.</p>
+        <div>
+          <p className="library-page-eyebrow">Player vault</p>
+          <h1>My Characters</h1>
+          <p>Manage your heroes, level them up, upload existing sheets, duplicate builds, and jump back into play without hunting through menus.</p>
+        </div>
       </section>
 
       <section className="library-page-action-row" aria-label="Character library actions">
         <div className="library-page-action-main">
-          <Link to="/characters/new" className="library-page-button library-page-button-primary">
+          <Link to="/characters/create/full" className="library-page-button library-page-button-primary">
             <Plus size={16} />
             Create Character
           </Link>
+          <Link to="/characters/import" className="library-page-button-secondary">
+            <FileUp size={16} />
+            Import / Free-build
+          </Link>
         </div>
         <div className="library-page-action-secondary">
-          <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary">
-            <RefreshCw size={16} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+          <button type="button" onClick={refresh} disabled={refreshing} className="library-page-button-secondary library-page-loading-button" aria-busy={refreshing ? 'true' : 'false'}>
+            <RefreshCw size={16} className={refreshing ? 'library-page-spin-icon' : undefined} />
+            {refreshing ? 'Refreshing characters…' : 'Refresh'}
           </button>
         </div>
       </section>
 
+      <section className="library-page-stat-grid" aria-label="Character library overview">
+        <LibraryStat label="Characters" value={sortedCharacters.length} note="Saved heroes" />
+        <LibraryStat label="Highest level" value={highestLevel ? `Level ${highestLevel}` : '—'} note="Top saved sheet" />
+        <LibraryStat label="Latest update" value={formatDate(sortedCharacters[0]?.updated_at || sortedCharacters[0]?.created_at)} note="Most recent sheet" />
+      </section>
+
       <section className="library-page-toolbar" aria-label="Character library status">
-        <p className="library-page-count">
-          {sortedCharacters.length} character{sortedCharacters.length === 1 ? '' : 's'} saved
-        </p>
+        <div>
+          <p className="library-page-count">
+            {sortedCharacters.length} character{sortedCharacters.length === 1 ? '' : 's'} saved
+          </p>
+          <p className="library-page-toolbar-note">Open the sheet for play, or edit the build when a rules pass needs testing.</p>
+        </div>
       </section>
 
       {sortedCharacters.length === 0 ? (
@@ -215,37 +260,41 @@ export default function MyCharactersPage() {
           <h2>No characters yet</h2>
           <p>Your next hero is waiting to be written into the story.</p>
           <div className="library-page-actions">
-            <Link to="/characters/new" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/create/full" className="library-page-button library-page-button-primary">Create Character</Link>
+            <Link to="/characters/import" className="library-page-button-secondary">Import or Free-build</Link>
           </div>
         </section>
       ) : (
-        <section className="library-page-grid" aria-label="Saved characters">
-          {sortedCharacters.map((character, index) => {
+        <section className="library-card-grid characters-card-grid" aria-label="Saved characters">
+          {sortedCharacters.map((character) => {
             const id = recordId(character);
-            const deleting = deletingId === id;
+            const subclass = characterSubclass(character);
             const duplicating = duplicatingId === id;
-
+            const deleting = deletingId === id;
             return (
-              <article key={id || `character-${index}`} className="library-page-card character-library-card">
-                <div className="character-library-card-copy">
-                  <h2>{characterTitle(character)}</h2>
-                  <p>{characterLine(character)}</p>
-                  <p>{characterLevel(character)}</p>
+              <article key={id || characterTitle(character)} className="library-card character-library-card">
+                <div className="character-card-main">
+                  <div className="character-card-meta-row">
+                    <span className="character-card-status">{characterRules(character)}</span>
+                    <span className="character-card-status">{formatDate(character?.updated_at || character?.created_at)}</span>
+                  </div>
+                  <div className="character-card-identity-row">
+                    <h2>{characterTitle(character)}</h2>
+                    <span className="character-card-level-badge">{characterLevel(character)}</span>
+                  </div>
+                  <div className="character-card-subtitle-stack">
+                    <p className="character-card-primary-line">{characterLine(character)}</p>
+                    {subclass && <p className="character-card-subclass-line">{subclass}</p>}
+                  </div>
                 </div>
-                <div className="library-page-actions character-library-card-actions">
-                  <button type="button" onClick={() => id && navigate(`/characters/${id}`)} disabled={!id} className="library-page-card-open">
+                <div className="character-card-actions">
+                  <Link to={`/characters/${id}`} className="library-page-button library-page-button-primary character-card-open">
                     Open Sheet <ChevronRight size={16} />
-                  </button>
-                  <div className="library-page-card-secondary-actions">
-                    <button type="button" onClick={() => id && navigate(`/characters/${id}/edit`)} disabled={!id}>
-                      <Pencil size={15} /> Edit
-                    </button>
-                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={!id || duplicating}>
-                      <Copy size={15} /> {duplicating ? 'Duplicating...' : 'Duplicate'}
-                    </button>
-                    <button type="button" onClick={() => deleteCharacter(character)} disabled={!id || deleting} className="library-page-danger-button">
-                      <Trash2 size={15} /> {deleting ? 'Deleting...' : 'Delete'}
-                    </button>
+                  </Link>
+                  <div className="character-card-secondary-actions">
+                    <Link to={`/characters/${id}/edit`} className="library-page-button-secondary"><Pencil size={15} /> Edit</Link>
+                    <button type="button" onClick={() => duplicateCharacter(character)} disabled={duplicating} className="library-page-button-secondary library-page-loading-button" aria-busy={duplicating ? 'true' : 'false'}>{duplicating ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Copy size={15} />} {duplicating ? 'Duplicating…' : 'Duplicate'}</button>
+                    <button type="button" onClick={() => deleteCharacter(character)} disabled={deleting} className="library-page-button-secondary library-page-button-danger library-page-loading-button" aria-busy={deleting ? 'true' : 'false'}>{deleting ? <RefreshCw size={15} className="library-page-spin-icon" /> : <Trash2 size={15} />} {deleting ? 'Deleting…' : 'Delete'}</button>
                   </div>
                 </div>
               </article>
@@ -254,5 +303,15 @@ export default function MyCharactersPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function LibraryStat({ label, value, note }) {
+  return (
+    <article className="library-page-stat-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{note}</small>
+    </article>
   );
 }

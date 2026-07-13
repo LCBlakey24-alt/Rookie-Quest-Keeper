@@ -1,6 +1,7 @@
-import React from 'react';
-import { Edit3, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Edit3, Moon, Settings, Sun, TrendingUp } from 'lucide-react';
 import './CleanSheetHeaderCompact.css';
+import './CleanSheetFinalHammer.css';
 
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'or', 'a', 'an', 'to', 'in']);
 const ACRONYMS = new Set(['ac', 'dc', 'hp', 'str', 'dex', 'con', 'int', 'wis', 'cha']);
@@ -30,39 +31,88 @@ function titleCaseSlug(value) {
   return wrapped ? `(${formatted})` : formatted;
 }
 
-function formatSubtitle(subtitle) {
-  return String(subtitle || '')
-    .split('•')
-    .map((part) => titleCaseSlug(part))
-    .filter(Boolean)
-    .join(' • ');
+function formatSubtitleParts(parts) {
+  return parts.map((part) => titleCaseSlug(part)).filter(Boolean);
 }
 
-function compactSubtitle(character, fallbackSubtitle) {
-  const parts = [
+function compactSubtitleParts(character, fallbackSubtitle) {
+  const directParts = [
     character?.race,
     character?.character_class,
     character?.subclass,
-    `Level ${character?.level || 1}`,
   ].filter(Boolean);
-  return formatSubtitle(parts.join(' • ') || fallbackSubtitle);
+
+  if (directParts.length) return formatSubtitleParts(directParts);
+
+  return formatSubtitleParts(String(fallbackSubtitle || '').split('•')).filter((part) => !/^level\s+\d+/i.test(part));
 }
 
-export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp }) {
+export default function CleanSheetHeader({ character, subtitle, onEdit, onLevelUp, onShortRest, onLongRest, resting }) {
+  const [showOptions, setShowOptions] = useState(false);
+  const subtitleParts = compactSubtitleParts(character, subtitle);
+  const primaryLine = subtitleParts.slice(0, 2).join(' • ');
+  const secondaryLine = subtitleParts[2] || '';
+  const levelLabel = `Level ${character?.level || 1}`;
+
+  const confirmRest = (type) => {
+    const isLongRest = type === 'long';
+    const message = isLongRest
+      ? 'Take a Long Rest? This may restore HP, reset temporary HP, restore spell slots/resources, reset death saves, and recover hit dice where the sheet supports it.'
+      : 'Take a Short Rest? This may restore short-rest resources and allow hit dice recovery where the sheet supports it.';
+    if (!window.confirm(message)) return;
+    if (isLongRest) onLongRest?.();
+    else onShortRest?.();
+  };
+
+  const handleHeroAction = (action) => {
+    setShowOptions(false);
+    action?.();
+  };
+
   return (
     <>
       <header className="clean-sheet-header clean-sheet-header--simple">
         <div className="clean-sheet-identity">
+          <span className="clean-sheet-hero-level-badge">{levelLabel}</span>
           <h1>{character.name}</h1>
-          <p>{compactSubtitle(character, subtitle)}</p>
+          <p className="clean-sheet-hero-subtitle" aria-label={[...subtitleParts, levelLabel].join(' • ')}>
+            {primaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--primary">{primaryLine}</span>}
+            {secondaryLine && <span className="clean-sheet-hero-subtitle-line clean-sheet-hero-subtitle-line--secondary">{secondaryLine}</span>}
+          </p>
+          <button
+            type="button"
+            className="clean-sheet-hero-options-toggle"
+            aria-label="Character options"
+            aria-expanded={showOptions}
+            onClick={() => setShowOptions(value => !value)}
+          >
+            <Settings size={17} />
+          </button>
+          {showOptions && (
+            <div className="clean-sheet-hero-options-menu" role="menu" aria-label="Character options">
+              <button type="button" role="menuitem" onClick={() => handleHeroAction(onLevelUp)}>
+                <TrendingUp size={16} /> Level Up Character
+              </button>
+              <button type="button" role="menuitem" onClick={() => handleHeroAction(onEdit)}>
+                <Edit3 size={16} /> Edit Character
+              </button>
+              <button type="button" role="menuitem" onClick={() => setShowOptions(false)}>Cancel</button>
+            </div>
+          )}
         </div>
       </header>
-      <div className="clean-sheet-header-actions" aria-label="Character sheet actions">
+      <div className="clean-sheet-header-actions clean-sheet-header-actions--play" aria-label="Character sheet actions">
         <button className="clean-sheet-level" onClick={onLevelUp} type="button">
           <TrendingUp size={18} /> Level Up
         </button>
         <button className="clean-sheet-edit" onClick={onEdit} type="button">
           <Edit3 size={18} /> Edit
+        </button>
+        <button className="clean-sheet-rest clean-sheet-rest--short" onClick={() => confirmRest('short')} type="button" disabled={resting}>
+          <Moon size={17} /> Short Rest
+        </button>
+        <button className="clean-sheet-rest clean-sheet-rest--long" onClick={() => confirmRest('long')} type="button" disabled={resting}>
+          <Sun size={17} /> Long Rest
         </button>
       </div>
     </>

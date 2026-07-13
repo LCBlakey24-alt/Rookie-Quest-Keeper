@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, FlaskConical, Search } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardCheck, ClipboardCopy, FlaskConical, RefreshCw, Search } from 'lucide-react';
 
 import { runCharacterAuditSuite } from '@/data/characterAuditReport';
 import { auditCreatorSpellSelection, buildCreatorSpellSelectionReport } from '@/data/creatorSpellSelectionAudit';
@@ -64,6 +64,13 @@ function runSafeCreatorSpellAudit() {
   }
 }
 
+function runAuditBundle() {
+  return {
+    characterAudit: runSafeCharacterAudit(),
+    creatorSpellAudit: runSafeCreatorSpellAudit(),
+  };
+}
+
 function ResultCard({ result }) {
   const failed = result.problems.length > 0;
   const character = result.character || {};
@@ -112,8 +119,11 @@ function CreatorSpellAuditCard({ result }) {
 export default function AdminCharacterAuditTab() {
   const [filter, setFilter] = useState('problems');
   const [search, setSearch] = useState('');
-  const characterAudit = useMemo(() => runSafeCharacterAudit(), []);
-  const creatorSpellAudit = useMemo(() => runSafeCreatorSpellAudit(), []);
+  const [auditBundle, setAuditBundle] = useState(() => runAuditBundle());
+  const [lastRunAt, setLastRunAt] = useState(() => new Date());
+  const [rerunning, setRerunning] = useState(false);
+  const [copiedReport, setCopiedReport] = useState(false);
+  const { characterAudit, creatorSpellAudit } = auditBundle;
   const suite = characterAudit.suite || emptyCharacterReport;
   const creatorSpellResults = creatorSpellAudit.results || [];
   const creatorSpellReport = creatorSpellAudit.report || emptyCreatorSpellReport;
@@ -130,6 +140,8 @@ export default function AdminCharacterAuditTab() {
   const passCount = suite.report.passed + creatorSpellReport.passed;
   const totalCount = suite.report.total + creatorSpellReport.total;
   const lowerSearch = search.trim().toLowerCase();
+  const plainReportText = `${creatorSpellReport.text}\n\n${suite.report.text}`;
+
   const visibleResults = allResults.filter((result) => {
     if (filter === 'problems' && result.problems.length === 0) return false;
     if (filter === 'demo' && result.group !== 'demo') return false;
@@ -144,18 +156,54 @@ export default function AdminCharacterAuditTab() {
     return `${result.className} ${result.problems.join(' ')}`.toLowerCase().includes(lowerSearch);
   });
 
+  const rerunAudit = () => {
+    setRerunning(true);
+    const run = () => {
+      setAuditBundle(runAuditBundle());
+      setLastRunAt(new Date());
+      setRerunning(false);
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(run);
+    } else {
+      run();
+    }
+  };
+
+  const copyReport = async () => {
+    try {
+      await navigator.clipboard.writeText(plainReportText);
+      setCopiedReport(true);
+      window.setTimeout(() => setCopiedReport(false), 1600);
+    } catch {
+      setCopiedReport(false);
+    }
+  };
+
   return (
-    <div className="admin-character-audit">
+    <div className="admin-character-audit" aria-busy={rerunning ? 'true' : 'false'}>
       <header className="admin-character-audit__hero">
         <div>
           <p>Character Testing</p>
           <h2><FlaskConical size={21} /> Character Audit Lab</h2>
           <span>Checks demo fixtures plus every core class from level 1 to 20 for spells, slots, features, equipment, HP and AC.</span>
+          <small>Last run: {lastRunAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</small>
         </div>
         <div className={`admin-character-audit__status ${failureCount ? 'bad' : 'good'}`}>
           {failureCount ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
           <strong>{failureCount ? `${failureCount} failing` : 'All clear'}</strong>
           <span>{passCount}/{totalCount} passing</span>
+        </div>
+        <div className="admin-character-audit__actions">
+          <button type="button" onClick={rerunAudit} disabled={rerunning} aria-busy={rerunning ? 'true' : 'false'}>
+            <RefreshCw size={15} />
+            {rerunning ? 'Running audit…' : 'Run audit again'}
+          </button>
+          <button type="button" onClick={copyReport} disabled={!plainReportText.trim()}>
+            {copiedReport ? <ClipboardCheck size={15} /> : <ClipboardCopy size={15} />}
+            {copiedReport ? 'Copied' : 'Copy report'}
+          </button>
         </div>
       </header>
 
@@ -226,8 +274,14 @@ export default function AdminCharacterAuditTab() {
       </section>
 
       <section className="admin-character-audit__plain-report">
-        <h3>Plain report text</h3>
-        <pre>{`${creatorSpellReport.text}\n\n${suite.report.text}`}</pre>
+        <div className="admin-character-audit__plain-report-head">
+          <h3>Plain report text</h3>
+          <button type="button" onClick={copyReport} disabled={!plainReportText.trim()}>
+            {copiedReport ? <ClipboardCheck size={14} /> : <ClipboardCopy size={14} />}
+            {copiedReport ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+        <pre>{plainReportText}</pre>
       </section>
     </div>
   );

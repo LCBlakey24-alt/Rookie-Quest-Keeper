@@ -1,117 +1,76 @@
 /* Focused mobile tidy pass for the character sheet.
-   Compact HP controls, stronger equal-box alignment, tighter skills, and no blue leaks. */
-
-.character-page-v2 {
-  --rq-blue-leak-block: var(--rq-text-primary, #ffffff);
-}
-
-.character-page-v2 [class*="blue"],
-.character-page-v2 [class*="sky"],
-.character-page-v2 [class*="cyan"] {
-  --tw-ring-color: rgba(255,255,255,0.18) !important;
-  --tw-border-opacity: 1 !important;
-  --tw-bg-opacity: 1 !important;
-  --tw-text-opacity: 1 !important;
-}
-
-.character-page-v2 button[class*="blue"],
-.character-page-v2 div[class*="blue"],
-.character-page-v2 span[class*="blue"],
-.character-page-v2 input[class*="blue"],
-.character-page-v2 select[class*="blue"],
-.character-page-v2 textarea[class*="blue"] {
-  background-color: var(--rq-bg-button, #202020) !important;
-  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-}
-
-.character-page-v2 a[class*="blue"],
-.character-page-v2 svg[class*="blue"],
-.character-page-v2 [class*="text-blue"],
-.character-page-v2 [class*="text-sky"],
-.character-page-v2 [class*="text-cyan"] {
-  color: var(--rq-text-primary, #ffffff) !important;
-}
-
-.character-page-v2 [class*="bg-blue"],
-.character-page-v2 [class*="bg-sky"],
-.character-page-v2 [class*="bg-cyan"] {
-  background: var(--rq-bg-button, #202020) !important;
-}
-
-.character-page-v2 [class*="border-blue"],
-.character-page-v2 [class*="border-sky"],
-.character-page-v2 [class*="border-cyan"] {
-  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-}
+   Keeps controls compact without side bars or brown cards. */
 
 .character-page-v2 .clean-sheet-compact-status--hp-only {
-  gap: 6px !important;
-  padding: 8px !important;
+  gap: 8px !important;
+  padding: 10px !important;
   align-items: stretch !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp {
-  min-height: 42px !important;
-  padding: 7px 9px !important;
+  min-height: 46px !important;
+  padding: 8px 10px !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
-  gap: 7px !important;
+  gap: 8px !important;
+  background: linear-gradient(#10051d, #10051d) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp > span,
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   white-space: nowrap !important;
-  font-size: 9px !important;
+  font-size: 0.72rem !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
-  font-size: clamp(1.1rem, 4vw, 1.45rem) !important;
-  text-align: center !important;
+  font-size: clamp(1.5rem, 7vw, 2.35rem) !important;
+  text-align: right !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   grid-column: auto !important;
   justify-self: end !important;
-  padding: 3px 5px !important;
+  padding: 4px 7px !important;
+  background: linear-gradient(#160722, #160722) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-hp-actions {
-  padding: 7px !important;
+  padding: 0 !important;
   display: grid !important;
-  grid-template-columns: 44px repeat(4, minmax(0, 1fr)) !important;
-  gap: 5px !important;
+  grid-template-columns: 82px repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
   align-items: stretch !important;
+  background: transparent !important;
+  border: 0 !important;
 }
 
 .character-page-v2 .clean-sheet-hp-amount-select,
 .character-page-v2 .clean-sheet-compact-hp-actions button {
   min-width: 0 !important;
-  min-height: 30px !important;
-  height: 30px !important;
-  padding: 0 4px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 7px !important;
   display: grid !important;
   place-items: center !important;
   text-align: center !important;
-  background: var(--rq-bg-button, #202020) !important;
-  color: var(--rq-text-primary, #ffffff) !important;
-  border: 1px solid var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-  border-left: 3px solid var(--rq-accent-primary, #c30000) !important;
-  font-size: 9px !important;
+  background: linear-gradient(#1a0b2d, #1a0b2d) padding-box, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542) border-box !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 0.82rem !important;
   font-weight: 950 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
   line-height: 1 !important;
   white-space: nowrap !important;
 }
 
 .character-page-v2 .clean-sheet-hp-amount-select {
   appearance: auto !important;
-  font-size: 12px !important;
-}
-
-.character-page-v2 .rq-temp-hp-action-button--minus,
-.character-page-v2 .rq-temp-hp-action-button--plus {
-  border-left-color: rgba(255,255,255,0.18) !important;
 }
 
 .character-page-v2 .clean-sheet-content,
@@ -134,9 +93,10 @@
 
 .character-page-v2 .clean-sheet-skill-card {
   overflow: hidden !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border-color: var(--rq-border-default, rgba(255,255,255,0.14)) !important;
-  border-left: 4px solid var(--rq-accent-primary, #c30000) !important;
+  background: linear-gradient(#10051d, #10051d) padding-box, linear-gradient(135deg, rgba(115, 87, 255, 0.85), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
 }
 
 .character-page-v2 .clean-sheet-skill-name {
@@ -169,7 +129,7 @@
   .character-page-v2 .clean-sheet-readable-skills,
   .character-page-v2 .clean-sheet-compact-skills {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 5px !important;
+    gap: 6px !important;
   }
 
   .character-page-v2 .clean-sheet-skill-card {
@@ -181,20 +141,16 @@
 
 @media (max-width: 420px) {
   .character-page-v2 .clean-sheet-compact-hp-actions {
-    grid-template-columns: 40px repeat(4, minmax(0, 1fr)) !important;
-    gap: 4px !important;
+    grid-template-columns: 76px repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
 
   .character-page-v2 .clean-sheet-hp-amount-select,
   .character-page-v2 .clean-sheet-compact-hp-actions button {
-    min-height: 28px !important;
-    height: 28px !important;
-    font-size: 8px !important;
-    padding-inline: 2px !important;
-  }
-
-  .character-page-v2 .clean-sheet-hp-amount-select {
-    font-size: 11px !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    font-size: 0.76rem !important;
+    padding-inline: 4px !important;
   }
 
   .character-page-v2 .clean-sheet-skill-label,

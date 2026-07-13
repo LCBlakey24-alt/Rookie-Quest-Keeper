@@ -1,6 +1,6 @@
 """Campaign roll event routes for player-focused session stats."""
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from config import db
 from utils.auth import get_current_user, verify_campaign_membership, verify_campaign_ownership
+from utils.ws_manager import ws_manager
 
 router = APIRouter()
 
@@ -17,6 +18,9 @@ class RollEventPayload(BaseModel):
     actor_type: str = "player"
     character_id: str = ""
     character_name: str = ""
+    group_check_id: str = ""
+    requested_roll_id: str = ""
+    check_name: str = ""
     label: str = "Roll"
     notation: str = ""
     total: int = 0
@@ -32,9 +36,104 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def clean_identity(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+def identity_keys(value: Dict[str, Any], fallback: str = "") -> Set[str]:
+    keys = {
+        clean_identity(value.get("id")),
+        clean_identity(value.get("character_id")),
+        clean_identity(value.get("characterId")),
+        clean_identity(value.get("player_id")),
+        clean_identity(value.get("playerId")),
+        clean_identity(value.get("user_id")),
+        clean_identity(value.get("userId")),
+        clean_identity(value.get("name")),
+        clean_identity(value.get("character_name")),
+        clean_identity(value.get("characterName")),
+        clean_identity(value.get("display_name")),
+        clean_identity(value.get("displayName")),
+        clean_identity(value.get("playerName")),
+        clean_identity(value.get("player_name")),
+        clean_identity(value.get("actor")),
+        clean_identity(value.get("actor_name")),
+        clean_identity(fallback),
+    }
+    return {key for key in keys if key}
+
+
+def identities_overlap(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    return bool(identity_keys(left) & identity_keys(right))
+
+
 def d20s_for(event: Dict[str, Any]) -> List[Dict[str, Any]]:
     rolls = event.get("visibleRolls") or event.get("rolls") or []
     return [roll for roll in rolls if int(roll.get("sides") or 0) == 20 and not roll.get("dropped")]
+
+
+async def update_group_check_display(campaign_id: str, event: Dict[str, Any]) -> None:
+    """Attach a player roll to the active group-check display state and broadcast it."""
+    group_check_id = event.get("group_check_id")
+    if not group_check_id or event.get("actor_type") != "player":
+        return
+
+    state = await db.campaign_display_states.find_one({"campaign_id": campaign_id}, {"_id": 0})
+    if not state or state.get("mode") != "group-check":
+        return
+
+    payload = state.get("payload") if isinstance(state.get("payload"), dict) else {}
+    active_id = payload.get("group_check_id") or payload.get("id")
+    if str(active_id) != str(group_check_id):
+        return
+
+    results = payload.get("results") if isinstance(payload.get("results"), list) else []
+    event_result = {
+        "id": event.get("id"),
+        "actor": event.get("actor"),
+        "actor_type": event.get("actor_type"),
+        "character_id": event.get("character_id"),
+        "character_name": event.get("character_name"),
+        "group_check_id": event.get("group_check_id"),
+        "requested_roll_id": event.get("requested_roll_id"),
+        "check_name": event.get("check_name"),
+        "label": event.get("label"),
+        "notation": event.get("notation"),
+        "total": event.get("total"),
+        "modifier": event.get("modifier"),
+        "rolls": event.get("rolls") or [],
+        "visibleRolls": event.get("visibleRolls") or event.get("rolls") or [],
+        "isCrit": event.get("isCrit"),
+        "isFumble": event.get("isFumble"),
+        "created_at": event.get("created_at"),
+    }
+    filtered_results = [item for item in results if not identities_overlap(item, event_result)]
+    updated_results = [*filtered_results, event_result]
+    party = payload.get("party") if isinstance(payload.get("party"), list) else []
+    matched_count = sum(1 for player in party if any(identities_overlap(player, result) for result in updated_results))
+    updated_payload = {
+        **payload,
+        "results": updated_results,
+        "status": "complete" if party and matched_count >= len(party) else "collecting",
+        "last_result_at": now_iso(),
+    }
+    updated_state = {
+        **state,
+        "payload": updated_payload,
+        "updated_at": now_iso(),
+    }
+
+    await db.campaign_display_states.update_one(
+        {"campaign_id": campaign_id},
+        {"$set": updated_state},
+        upsert=True,
+    )
+    await ws_manager.broadcast_to_campaign(campaign_id, {
+        "type": "player_display_update",
+        "user_id": event.get("user_id") or event.get("actor") or "player",
+        "data": updated_state,
+        "timestamp": updated_state["updated_at"],
+    })
 
 
 def summarise(events: List[Dict[str, Any]], player_focus: bool = True) -> Dict[str, Any]:
@@ -141,6 +240,7 @@ async def record_roll_event(campaign_id: str, payload: RollEventPayload, usernam
     })
     await db.roll_events.insert_one(event)
     event.pop("_id", None)
+    await update_group_check_display(campaign_id, event)
     return event
 
 

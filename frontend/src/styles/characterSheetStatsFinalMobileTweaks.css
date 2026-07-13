@@ -1,0 +1,293 @@
+/* Final mobile tweaks for the Stats tab.
+   Long skill names can wrap without growing the row, and passive scores become compact quick stats. */
+
+@media (max-width: 759px) {
+  #root .character-page-v2 {
+    --rqk-mobile-sunset-gradient: linear-gradient(135deg, #7357ff 0%, #d84df1 34%, #ff4f81 66%, #ff9542 100%);
+    --rqk-mobile-panel-purple: #190728;
+    --rqk-mobile-chip-purple: #12051c;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-name {
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-label {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    width: 100% !important;
+    max-height: 2.1em !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    line-height: 1.05 !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-tags {
+    display: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row {
+    position: relative !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 4px !important;
+    border-radius: 999px !important;
+    background: var(--rqk-mobile-sunset-gradient) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-section-heading-row h2::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives {
+    padding: 10px !important;
+    background: linear-gradient(var(--rqk-mobile-panel-purple), var(--rqk-mobile-panel-purple)) padding-box, var(--rqk-mobile-sunset-gradient) border-box !important;
+    border: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2 {
+    margin-bottom: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passives h2::after {
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin-top: 3px !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card {
+    min-width: 0 !important;
+    min-height: 68px !important;
+    padding: 6px 3px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto 1fr !important;
+    place-items: center !important;
+    gap: 2px !important;
+    text-align: center !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card svg {
+    width: 12px !important;
+    height: 12px !important;
+    color: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    gap: 1px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label small,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label em {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-style: normal !important;
+    line-height: 1 !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label small {
+    font-size: 0.45rem !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card .clean-sheet-passive-label em {
+    font-size: 0.56rem !important;
+    color: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card > span:not(.clean-sheet-passive-label) {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card strong {
+    font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+    font-size: clamp(1.35rem, 7vw, 1.85rem) !important;
+    line-height: 0.95 !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+  }
+
+  /* Sunset button language: no solid pink, no copper/gold fill leaks. */
+  #root .character-page-v2 .clean-sheet-hero-options-toggle,
+  #root .character-page-v2 button.clean-sheet-hero-options-toggle,
+  #root .character-page-v2 .clean-sheet-combat-temp-pill,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle,
+  #root .character-page-v2 button.clean-sheet-combat-rest-toggle,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle,
+  #root .character-page-v2 button.clean-sheet-inspiration-toggle,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-level,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-edit,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play .clean-sheet-rest,
+  #root .character-page-v2 .clean-sheet-hero-options-menu button,
+  #root .character-page-v2 .clean-sheet-rest-menu button,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls select,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button,
+  #root .character-page-v2 .clean-sheet-roll-chip,
+  #root .character-page-v2 .clean-sheet-panel button.clean-sheet-roll-chip {
+    color: #ffffff !important;
+    background: linear-gradient(var(--rqk-mobile-chip-purple), var(--rqk-mobile-chip-purple)) padding-box, var(--rqk-mobile-sunset-gradient) border-box !important;
+    background-color: var(--rqk-mobile-chip-purple) !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle *,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle *,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle *,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button *,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button *,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::before,
+  #root .character-page-v2 .clean-sheet-hero-options-toggle::after,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::before,
+  #root .character-page-v2 .clean-sheet-combat-rest-toggle::after,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::before,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle::after,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button::before,
+  #root .character-page-v2 .clean-sheet-header-actions.clean-sheet-header-actions--play button::after,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::before,
+  #root .character-page-v2 .clean-sheet-compact-hp-actions.clean-sheet-combat-dashboard-hp-controls button::after,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button::before,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'],
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
+    color: #ffffff !important;
+    background: var(--rqk-mobile-sunset-gradient) border-box !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-inspiration-toggle.is-active svg,
+  #root .character-page-v2 .clean-sheet-inspiration-toggle[aria-pressed='true'] svg,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button.active,
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-skill-filter-row button[aria-pressed='true'] {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  /* Pull the character details and always-visible HP line closer together on mobile. */
+  #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
+    padding-bottom: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-hero-subtitle {
+    margin-bottom: -1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple + .clean-sheet-compact-status--battle-bar,
+  #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
+    padding-top: 3px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-combat-dashboard-topline {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-skills-panel .clean-sheet-compact-skill {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-grid {
+    gap: 3px !important;
+    margin-top: 2px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card {
+    min-height: 64px !important;
+    padding-left: 1px !important;
+    padding-right: 1px !important;
+  }
+
+  #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-passive-card strong {
+    font-size: clamp(1.18rem, 6.5vw, 1.55rem) !important;
+  }
+}

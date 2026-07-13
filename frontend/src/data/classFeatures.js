@@ -91,7 +91,7 @@ export const CLASS_FEATURES = {
       { level: 1, name: 'Spellcasting', type: 'passive', description: 'Cast bard spells using CHA. Ritual casting. Spell preparation replaces spells known.' },
       { level: 2, name: 'Expertise', type: 'passive', description: 'Double proficiency bonus on two skills' },
       { level: 2, name: 'Jack of All Trades', type: 'passive', description: 'Add half proficiency bonus to any ability check not using proficiency' },
-      { level: 3, name: 'Bard Subclass', type: 'passive', description: 'Choose a Bard subclass. Built-in automation is limited to public-license subclass data.', isChoice: true },
+      { level: 3, name: 'Bard Subclass', type: 'passive', description: 'Choose a Bard subclass', isChoice: true },
       { level: 5, name: 'Bardic Inspiration (d8)', type: 'bonus_action', description: 'Inspiration die increases to d8', uses: 'CHA mod/short rest' },
       { level: 5, name: 'Font of Inspiration', type: 'passive', description: 'Regain all Bardic Inspiration on short or long rest' },
       { level: 7, name: 'Countercharm', type: 'reaction', description: 'Reaction when ally fails save vs charmed/frightened: reroll with Bardic Inspiration die' },

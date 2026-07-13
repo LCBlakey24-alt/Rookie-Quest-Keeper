@@ -1,0 +1,317 @@
+.rq-cinematic-roll__dice-line {
+  --rq-die-size: clamp(74px, 10vw, 124px);
+  position: absolute;
+  inset: 17% 5% 23%;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--rq-die-size), var(--rq-die-size)));
+  grid-auto-rows: var(--rq-die-size);
+  place-content: center;
+  align-items: center;
+  justify-items: center;
+  gap: clamp(12px, 2.2vw, 22px);
+  pointer-events: none;
+  transform-style: preserve-3d;
+  animation: rq-dice-formation-sweep 2200ms cubic-bezier(.18, .85, .24, 1) both;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__dice-line {
+  animation: rq-dice-formation-lite 520ms ease-out both;
+}
+
+.rq-cinematic-roll.is-revealed .rq-cinematic-roll__dice-line {
+  animation: rq-dice-formation-settle 560ms cubic-bezier(.18, 1.35, .24, 1) both;
+}
+
+.rq-cinematic-die-card {
+  position: relative;
+  width: var(--rq-die-size);
+  height: var(--rq-die-size);
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  animation: rq-die-card-hop 880ms ease-in-out infinite;
+  animation-delay: calc(var(--rq-die-index, 0) * -96ms);
+}
+
+.rq-cinematic-roll.is-revealed .rq-cinematic-die-card,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die-card {
+  animation: none;
+}
+
+.rq-cinematic-die-card.is-dropped {
+  opacity: 0.45;
+  filter: grayscale(0.55) saturate(0.74);
+}
+
+.rq-cinematic-die-card.is-exploded .rq-cinematic-die {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -18px 34px rgba(0, 0, 0, 0.24),
+    0 0 0 2px color-mix(in srgb, var(--rq-roll-success) 34%, transparent),
+    0 0 42px color-mix(in srgb, var(--rq-roll-success) 34%, transparent);
+}
+
+.rq-cinematic-die-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -13%;
+  width: 86%;
+  height: 18%;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.50), transparent 72%);
+  filter: blur(5px);
+  transform: translateX(-50%) rotateX(70deg);
+  opacity: 0.72;
+}
+
+.rq-cinematic-die {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.30), transparent 18%),
+    radial-gradient(circle at 76% 82%, rgba(89, 200, 255, 0.22), transparent 32%),
+    linear-gradient(140deg, #f7c96b 0%, #f1844b 34%, #d84c62 68%, #4c2b6f 100%);
+  border: 2px solid color-mix(in srgb, var(--rq-roll-accent-hover) 68%, transparent);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -18px 34px rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(255, 255, 255, 0.04),
+    0 0 36px rgba(240, 207, 117, 0.26),
+    0 0 56px rgba(216, 76, 98, 0.18);
+  animation: rq-die-spin-3d 620ms linear infinite;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die {
+  animation: rq-die-lite-pop 520ms ease-out both;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.20),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.22),
+    0 10px 22px rgba(0, 0, 0, 0.26),
+    0 0 22px rgba(214, 168, 79, 0.16);
+}
+
+.rq-cinematic-roll.is-revealed .rq-cinematic-die {
+  animation: rq-die-land 560ms cubic-bezier(.18, 1.35, .28, 1) both;
+}
+
+.rq-cinematic-die--d4 {
+  clip-path: polygon(50% 2%, 98% 94%, 2% 94%);
+}
+
+.rq-cinematic-die--d6 {
+  border-radius: 18%;
+  clip-path: inset(0 round 18%);
+}
+
+.rq-cinematic-die--d8 {
+  clip-path: polygon(50% 0%, 96% 50%, 50% 100%, 4% 50%);
+}
+
+.rq-cinematic-die--d10,
+.rq-cinematic-die--d100 {
+  clip-path: polygon(50% 0%, 88% 18%, 100% 52%, 70% 100%, 30% 100%, 0% 52%, 12% 18%);
+}
+
+.rq-cinematic-die--d12 {
+  clip-path: polygon(50% 0%, 78% 8%, 100% 30%, 96% 66%, 72% 94%, 50% 100%, 28% 94%, 4% 66%, 0% 30%, 22% 8%);
+}
+
+.rq-cinematic-die--d20 {
+  clip-path: polygon(50% 0%, 82% 12%, 100% 42%, 94% 74%, 68% 100%, 32% 100%, 6% 74%, 0% 42%, 18% 12%);
+}
+
+.rq-cinematic-die::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(60deg, transparent 40%, rgba(255, 255, 255, 0.20), transparent 58%),
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.18), transparent 24%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.rq-cinematic-die__facet,
+.rq-cinematic-die__ridge {
+  position: absolute;
+  pointer-events: none;
+}
+
+.rq-cinematic-die__facet {
+  width: 46%;
+  height: 46%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rq-cinematic-die__facet--one { top: 9%; left: 27%; }
+.rq-cinematic-die__facet--two { top: 34%; right: 7%; transform: rotate(72deg); }
+.rq-cinematic-die__facet--three { bottom: 8%; left: 24%; transform: rotate(216deg); }
+
+.rq-cinematic-die__ridge {
+  width: 70%;
+  height: 2px;
+  left: 15%;
+  top: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+}
+
+.rq-cinematic-die__ridge--a { transform: rotate(0deg); }
+.rq-cinematic-die__ridge--b { transform: rotate(60deg); }
+
+.rq-cinematic-die small {
+  position: absolute;
+  z-index: 3;
+  top: 17%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 247, 216, 0.70);
+  font-size: clamp(8px, 1.1vw, 12px);
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rq-cinematic-die strong {
+  position: relative;
+  z-index: 3;
+  color: rgba(255, 248, 218, 0);
+  font-size: clamp(28px, 4.8vw, 52px);
+  font-weight: 1000;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none;
+  transform: translateY(5px) scale(0.76);
+  opacity: 0;
+}
+
+.rq-cinematic-roll.is-revealed .rq-cinematic-die strong,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-die strong {
+  color: #fff7d8;
+  opacity: 1;
+  transform: translateY(5px) scale(1);
+  text-shadow:
+    0 0 10px rgba(255, 247, 216, 0.96),
+    0 0 24px rgba(240, 207, 117, 0.86),
+    0 0 46px rgba(216, 76, 98, 0.46);
+  transition: opacity 180ms ease 80ms, transform 220ms cubic-bezier(.18, 1.4, .24, 1) 80ms, color 180ms ease 80ms;
+}
+
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__wall,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__trail,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__impact,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__particles,
+.rq-cinematic-roll.is-mode-2d .rq-cinematic-roll__burst {
+  display: none;
+}
+
+.rq-cinematic-roll.is-critical .rq-cinematic-die {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -18px 34px rgba(0, 0, 0, 0.20),
+    0 0 0 2px color-mix(in srgb, var(--rq-roll-success) 32%, transparent),
+    0 0 48px color-mix(in srgb, var(--rq-roll-success) 42%, transparent),
+    0 0 76px rgba(240, 207, 117, 0.32);
+}
+
+.rq-cinematic-roll.is-fumble .rq-cinematic-die {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -18px 34px rgba(0, 0, 0, 0.34),
+    0 0 0 2px color-mix(in srgb, var(--rq-roll-danger) 36%, transparent),
+    0 0 48px color-mix(in srgb, var(--rq-roll-danger) 40%, transparent),
+    0 0 70px rgba(216, 76, 98, 0.26);
+}
+
+@media (max-width: 720px) {
+  .rq-cinematic-roll__dice-line {
+    --rq-die-size: clamp(70px, 24vw, 94px);
+    inset: 13% 7% 30%;
+    grid-template-columns: repeat(2, minmax(var(--rq-die-size), var(--rq-die-size)));
+    grid-auto-rows: var(--rq-die-size);
+    gap: 12px;
+    align-content: center;
+  }
+
+  .rq-cinematic-roll.has-1-dice .rq-cinematic-roll__dice-line {
+    grid-template-columns: minmax(var(--rq-die-size), var(--rq-die-size));
+  }
+
+  .rq-cinematic-die small {
+    top: 14%;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1080px) {
+  .rq-cinematic-roll__dice-line {
+    --rq-die-size: clamp(84px, 13vw, 116px);
+    grid-template-columns: repeat(4, minmax(var(--rq-die-size), var(--rq-die-size)));
+  }
+
+  .rq-cinematic-roll.has-1-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-2-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-3-dice .rq-cinematic-roll__dice-line {
+    grid-template-columns: repeat(auto-fit, minmax(var(--rq-die-size), var(--rq-die-size)));
+  }
+}
+
+@media (min-width: 1081px) {
+  .rq-cinematic-roll.has-1-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-2-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-3-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-4-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-5-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-6-dice .rq-cinematic-roll__dice-line,
+  .rq-cinematic-roll.has-7-dice .rq-cinematic-roll__dice-line {
+    grid-template-columns: repeat(var(--rq-dice-count, auto-fit), minmax(var(--rq-die-size), var(--rq-die-size)));
+  }
+}
+
+@keyframes rq-dice-formation-sweep {
+  0% { transform: translateX(-44vw) translateY(38px) rotate(-4deg) scale(0.92); }
+  28% { transform: translateX(22vw) translateY(12px) rotate(5deg) scale(1); }
+  52% { transform: translateX(-12vw) translateY(-92px) rotate(-5deg) scale(1.02); }
+  78% { transform: translateX(0) translateY(14px) rotate(2deg) scale(1); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); }
+}
+
+@keyframes rq-dice-formation-lite {
+  0% { opacity: 0; transform: translateY(18px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rq-dice-formation-settle {
+  0% { transform: translateY(0) scale(1); }
+  42% { transform: translateY(-8px) scale(1.025); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes rq-die-card-hop {
+  0%, 100% { transform: translateY(0) rotateZ(-1deg); }
+  50% { transform: translateY(-12px) rotateZ(2deg); }
+}
+
+@keyframes rq-die-spin-3d {
+  0% { transform: rotateX(22deg) rotateY(0deg) rotateZ(-8deg); }
+  100% { transform: rotateX(382deg) rotateY(720deg) rotateZ(352deg); }
+}
+
+@keyframes rq-die-lite-pop {
+  0% { opacity: 0; transform: scale(0.86); }
+  70% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rq-die-land {
+  0% { transform: rotateX(56deg) rotateY(220deg) rotateZ(-16deg) scale(0.98); }
+  58% { transform: rotateX(12deg) rotateY(-12deg) rotateZ(4deg) scale(1.06); }
+  100% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); }
+}

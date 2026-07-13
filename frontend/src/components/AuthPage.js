@@ -1,10 +1,160 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, ShieldCheck, Eye, EyeOff, BookOpen, Sparkles } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { getErrorMessage } from '@/lib/errorMessage';
-import { BrandMainLogo } from '@/components/ui/BrandLogo';
+import './AuthPage.css';
+
+const AUTH_COPY = {
+  login: {
+    eyebrow: 'Player gateway',
+    title: 'Welcome back, adventurer',
+    subtitle: 'Open your dashboard, character sheets, campaigns, and tabletop tools from one polished command post.',
+    notice: (
+      <>
+        Sign in with your username or recovery email. New player? Create an account and keep it nickname-first.
+      </>
+    ),
+  },
+  register: {
+    eyebrow: 'Begin the quest',
+    title: 'Create your keeper account',
+    subtitle: 'Save characters, prep campaigns, and build a cleaner first-session experience for every rookie at the table.',
+    notice: (
+      <>
+        Kid-friendly signup: use a nickname instead of a real name. Recovery email is optional, but handy if you forget your password.
+      </>
+    ),
+  },
+  forgot: {
+    eyebrow: 'Account recovery',
+    title: 'Reset your password',
+    subtitle: 'Enter your recovery email and we will send a reset link so you can get back to the table.',
+    notice: (
+      <>
+        Only the recovery email linked to your account can receive a password reset.
+      </>
+    ),
+  },
+  reset: {
+    eyebrow: 'Secure the vault',
+    title: 'Choose a new password',
+    subtitle: 'Set a fresh password with at least 8 characters, then sign back in to continue your adventure.',
+    notice: (
+      <>
+        Pick something memorable, but not obvious. Passwords need at least 8 characters.
+      </>
+    ),
+  },
+};
+
+const FEATURE_CARDS = [
+  {
+    icon: ShieldCheck,
+    title: 'Kid-aware by design',
+    text: 'Nickname-first accounts and optional recovery email keep signup lightweight.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Campaign-ready',
+    text: 'Jump from login into sheets, campaigns, uploads, and GM tools without clutter.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Built for the table',
+    text: 'A focused, theme-matched gateway that feels like the rest of Rookie Quest Keeper.',
+  },
+];
+
+const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
+const URL_MODES = new Set(['login', 'register', 'forgot']);
+
+const PAGE_TITLES = {
+  login: 'Sign in',
+  register: 'Create account',
+  forgot: 'Reset password',
+  reset: 'Choose new password',
+};
+
+const NEXT_STEPS = {
+  login: ['Open dashboard', 'Pick a character', 'Join the table'],
+  register: ['Create account', 'Build first character', 'Start a campaign'],
+  forgot: ['Request reset link', 'Check your inbox', 'Return to login'],
+  reset: ['Set new password', 'Sign back in', 'Continue the quest'],
+};
+
+const SUBMIT_STATUS = {
+  login: 'Opening your Rookie Quest Keeper dashboard.',
+  register: 'Creating your keeper account.',
+  forgot: 'Sending password reset instructions.',
+  reset: 'Saving your new password.',
+};
+
+const MODE_ASSURANCE = {
+  login: {
+    label: 'Keeper note',
+    title: 'Made for quick table access',
+    text: 'The auth screen stays lightweight so players can get from sign in to sheets, campaigns, and GM tools without extra noise.',
+  },
+  register: {
+    label: 'Signup tip',
+    title: 'Nickname-first is the cleanest route',
+    text: 'Rookie Quest Keeper works best when younger players use a table name or nickname, with recovery email kept optional.',
+  },
+  forgot: {
+    label: 'Recovery note',
+    title: 'Use the linked recovery email',
+    text: 'Reset instructions are requested through the account recovery flow, then the page safely returns you to sign in.',
+  },
+  reset: {
+    label: 'Password note',
+    title: 'Create a fresh table key',
+    text: 'Once the new password is saved, you will come back through sign in before reopening your dashboard.',
+  },
+};
+
+const AUTH_PANEL_IDS = {
+  login: 'rqk-auth-panel-login',
+  register: 'rqk-auth-panel-register',
+  forgot: 'rqk-auth-panel-forgot',
+  reset: 'rqk-auth-panel-reset',
+};
+
+const AUTH_TAB_IDS = {
+  login: 'rqk-auth-tab-login',
+  register: 'rqk-auth-tab-register',
+};
+
+const AUTH_TAB_ORDER = ['login', 'register'];
+
+function getInitialMode(initialToken, queryMode) {
+  if (initialToken) return 'reset';
+  return URL_MODES.has(queryMode) ? queryMode : 'login';
+}
+
+function getAuthModePath(nextMode) {
+  if (nextMode === 'login') return '/auth';
+  if (URL_MODES.has(nextMode)) return `/auth?mode=${nextMode}`;
+  return '/auth';
+}
+
+function getPasswordChecks(password) {
+  return [
+    { label: '8+ characters', passed: password.length >= 8 },
+    { label: 'Includes a letter', passed: /[a-z]/i.test(password) },
+    { label: 'Includes a number', passed: /\d/.test(password) },
+  ];
+}
+
+function getPasswordStrength(checks, password) {
+  const score = checks.filter(check => check.passed).length;
+
+  if (!password) return { score: 0, tone: 'empty', label: 'Add a password' };
+  if (score <= 1) return { score, tone: 'low', label: 'Needs work' };
+  if (score === 2) return { score, tone: 'medium', label: 'Nearly there' };
+  return { score, tone: 'high', label: 'Table-ready' };
+}
 
 export default function AuthPage({ onLogin = () => {} }) {
   const [searchParams] = useSearchParams();
@@ -12,7 +162,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const initialToken = searchParams.get('token');
   const queryMode = searchParams.get('mode');
-  const initialMode = initialToken ? 'reset' : queryMode === 'register' ? 'register' : 'login';
+  const initialMode = getInitialMode(initialToken, queryMode);
 
   const [mode, setMode] = useState(initialMode);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -31,12 +181,44 @@ export default function AuthPage({ onLogin = () => {} }) {
       return;
     }
 
-    if (queryMode === 'register') {
-      setMode('register');
-    } else if (queryMode === 'login' || !queryMode) {
-      setMode('login');
-    }
+    setMode(URL_MODES.has(queryMode) ? queryMode : 'login');
   }, [initialToken, queryMode]);
+
+  useEffect(() => {
+    setShowLoginPassword(false);
+    setShowRegisterPassword(false);
+    setShowResetPassword(false);
+  }, [mode]);
+
+  const goToMode = (nextMode, { replace = false } = {}) => {
+    const safeMode = nextMode === 'reset' ? 'reset' : URL_MODES.has(nextMode) ? nextMode : 'login';
+    setMode(safeMode);
+
+    if (safeMode !== 'reset') {
+      navigate(getAuthModePath(safeMode), { replace });
+    }
+  };
+
+  const handleAuthTabKeyDown = (event) => {
+    const currentIndex = AUTH_TAB_ORDER.includes(mode) ? AUTH_TAB_ORDER.indexOf(mode) : 0;
+    let nextMode = null;
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextMode = AUTH_TAB_ORDER[(currentIndex + 1) % AUTH_TAB_ORDER.length];
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextMode = AUTH_TAB_ORDER[(currentIndex - 1 + AUTH_TAB_ORDER.length) % AUTH_TAB_ORDER.length];
+    } else if (event.key === 'Home') {
+      nextMode = AUTH_TAB_ORDER[0];
+    } else if (event.key === 'End') {
+      nextMode = AUTH_TAB_ORDER[AUTH_TAB_ORDER.length - 1];
+    }
+
+    if (!nextMode) return;
+
+    event.preventDefault();
+    goToMode(nextMode);
+    window.requestAnimationFrame(() => document.getElementById(AUTH_TAB_IDS[nextMode])?.focus());
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -66,7 +248,10 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!registerData.username || !registerData.password || !registerData.confirmPassword) {
+    const username = registerData.username.trim();
+    const recoveryEmail = registerData.email.trim();
+
+    if (!username || !registerData.password || !registerData.confirmPassword) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -83,8 +268,9 @@ export default function AuthPage({ onLogin = () => {} }) {
 
     setLoading(true);
     try {
-      const payload = { username: registerData.username.trim(), password: registerData.password };
-      if (registerData.email.trim()) payload.email = registerData.email.trim();
+      const payload = { username, password: registerData.password };
+      if (recoveryEmail) payload.email = recoveryEmail;
+
       const response = await apiClient.post('/auth/register', payload);
       toast.success('Account created! Welcome to Rookie Quest Keeper!');
       onLogin(response.data.token, response.data.username || payload.username);
@@ -98,16 +284,18 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!forgotEmail) {
+    const recoveryEmail = forgotEmail.trim();
+
+    if (!recoveryEmail) {
       toast.error('Please enter your email');
       return;
     }
 
     setLoading(true);
     try {
-      await apiClient.post('/auth/forgot-password', { email: forgotEmail });
+      await apiClient.post('/auth/forgot-password', { email: recoveryEmail });
       toast.success('Password reset email sent!');
-      setMode('login');
+      goToMode('login', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Failed to send reset email'));
     } finally {
@@ -117,6 +305,7 @@ export default function AuthPage({ onLogin = () => {} }) {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+
     if (!resetData.token || !resetData.new_password) {
       toast.error('Please fill in all fields');
       return;
@@ -131,8 +320,7 @@ export default function AuthPage({ onLogin = () => {} }) {
     try {
       await apiClient.post('/auth/reset-password', resetData);
       toast.success('Password reset successful!');
-      setMode('login');
-      navigate('/auth');
+      goToMode('login', { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, 'Password reset failed'));
     } finally {
@@ -140,356 +328,554 @@ export default function AuthPage({ onLogin = () => {} }) {
     }
   };
 
-  const authCopy = {
-    login: { title: 'Welcome back', subtitle: 'Sign in to open your dashboard, sheets, campaigns, and player tools.' },
-    register: { title: 'Create account', subtitle: 'Make an account, then build your first character or join a campaign.' },
-    forgot: { title: 'Reset password', subtitle: 'Enter your recovery email and we will send a reset link.' },
-    reset: { title: 'New password', subtitle: 'Choose a new password for your account.' },
-  };
+  const copy = AUTH_COPY[mode] || AUTH_COPY.login;
+  const assurance = MODE_ASSURANCE[mode] || MODE_ASSURANCE.login;
+  const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
+  const submitStatus = SUBMIT_STATUS[mode] || SUBMIT_STATUS.login;
+  const showCredentialToggle = mode === 'login' || mode === 'register';
+  const registerPasswordChecks = getPasswordChecks(registerData.password);
+  const registerPasswordStrength = getPasswordStrength(registerPasswordChecks, registerData.password);
+  const resetPasswordChecks = getPasswordChecks(resetData.new_password);
+  const resetPasswordStrength = getPasswordStrength(resetPasswordChecks, resetData.new_password);
+  const confirmStatus = getConfirmPasswordStatus(registerData.password, registerData.confirmPassword);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${PAGE_TITLES[mode] || PAGE_TITLES.login} | Rookie Quest Keeper`;
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [mode]);
 
   return (
-    <div style={pageStyle}>
-      <div style={contentStyle}>
-        <button type="button" onClick={() => navigate('/')} style={logoWrapStyle} data-no-fill-animation="true" aria-label="Back to Rookie Quest Keeper home">
-          <BrandMainLogo height={104} />
+    <main className={`rqk-auth-page rqk-auth-page--${mode}`} data-testid="auth-page">
+      <div className="rqk-auth-ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <div className="rqk-auth-shell">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="rqk-auth-brand"
+          data-no-fill-animation="true"
+          aria-label="Back to Rookie Quest Keeper home"
+        >
+          <span className="rqk-auth-brand__sigil" aria-hidden="true">RQK</span>
+          <span className="rqk-auth-brand__text">
+            <strong>Rookie Quest Keeper</strong>
+            <small>Character tools • Campaign prep</small>
+          </span>
         </button>
 
-        <div style={panelStyle}>
-          <div style={headingStyle}>
-            <p style={eyebrowStyle}>Rookie Quest Keeper</p>
-            <h1 style={titleStyle}>{authCopy[mode]?.title}</h1>
-            <p style={subtitleStyle}>{authCopy[mode]?.subtitle}</p>
-          </div>
+        <div className="rqk-auth-layout">
+          <aside className="rqk-auth-hero" aria-label="Rookie Quest Keeper account benefits">
+            <p className="rqk-auth-kicker">Character-first campaign tools</p>
+            <h2>Keep the table moving before the first initiative roll.</h2>
+            <p>
+              A cleaner gateway for players, young adventurers, and GMs who want sheets,
+              campaign prep, uploads, and table tools to feel organised from the start.
+            </p>
 
-          {mode === 'register' && (
-            <div style={nextStepNoteStyle}>
-              <ShieldCheck size={15} />
-              <span>After signup, start with <strong>Build Your First Character</strong>. Use a nickname instead of a real name.</span>
+            <div className="rqk-auth-feature-grid">
+              {FEATURE_CARDS.map(({ icon: Icon, title, text }) => (
+                <div className="rqk-auth-feature-card" key={title}>
+                  <span className="rqk-auth-feature-icon" aria-hidden="true"><Icon size={18} /></span>
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{text}</small>
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
 
-          {mode === 'login' && (
-            <div style={accountChangeNoticeStyle}>
-              <ShieldCheck size={15} />
-              <span>Use your username or recovery email. New player? Tap <strong>Create an account</strong> below.</span>
+            <div className="rqk-auth-preview-card" aria-hidden="true">
+              <div>
+                <span className="rqk-auth-preview-dot" />
+                <strong>Next stop</strong>
+              </div>
+              <p>Dashboard → Characters → Campaign tools</p>
             </div>
-          )}
+          </aside>
 
-          {mode === 'login' && (
-            <form onSubmit={handleLogin}>
-              <AuthInput
-                icon={User}
-                type="text"
-                placeholder="Username or email"
-                value={loginData.username}
-                onChange={(value) => setLoginData({ ...loginData, username: value })}
-                testId="login-username"
-              />
-              <AuthInput
-                icon={Lock}
-                type={showLoginPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={loginData.password}
-                onChange={(value) => setLoginData({ ...loginData, password: value })}
-                testId="login-password"
-                rightAction={
-                  <IconButton
-                    label={showLoginPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowLoginPassword(prev => !prev)}
-                    icon={showLoginPassword ? EyeOff : Eye}
-                  />
-                }
-              />
+          <section className="rqk-auth-card" aria-labelledby="rqk-auth-title">
+            <div className="rqk-auth-heading">
+              <p>{copy.eyebrow}</p>
+              <h1 id="rqk-auth-title">{copy.title}</h1>
+              <span>{copy.subtitle}</span>
+            </div>
 
-              <button type="button" onClick={() => setMode('forgot')} style={linkButtonStyle}>
-                <span>Forgot password?</span>
-              </button>
+            {showCredentialToggle && (
+              <div
+                className="rqk-auth-mode-toggle"
+                role="tablist"
+                aria-label="Choose sign in or create account"
+                aria-orientation="horizontal"
+                onKeyDown={handleAuthTabKeyDown}
+              >
+                <button
+                  id={AUTH_TAB_IDS.login}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === 'login'}
+                  aria-controls={AUTH_PANEL_IDS.login}
+                  tabIndex={mode === 'login' ? 0 : -1}
+                  className={mode === 'login' ? 'is-active' : ''}
+                  onClick={() => goToMode('login')}
+                  disabled={loading}
+                >
+                  Sign in
+                </button>
+                <button
+                  id={AUTH_TAB_IDS.register}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === 'register'}
+                  aria-controls={AUTH_PANEL_IDS.register}
+                  tabIndex={mode === 'register' ? 0 : -1}
+                  className={mode === 'register' ? 'is-active' : ''}
+                  onClick={() => goToMode('register')}
+                  disabled={loading}
+                >
+                  Create account
+                </button>
+              </div>
+            )}
 
-              <PrimaryButton type="submit" disabled={loading} testId="login-btn">
-                {loading ? 'Opening dashboard...' : 'Open Dashboard'}
-              </PrimaryButton>
+            <AuthNotice>{copy.notice}</AuthNotice>
+            <AuthAssurancePanel {...assurance} />
 
-              <AuthSwitch text="New here?" actionText="Create an account" onClick={() => setMode('register')} />
-            </form>
-          )}
+            {mode === 'login' && (
+              <form
+                id={AUTH_PANEL_IDS.login}
+                role="tabpanel"
+                aria-labelledby={AUTH_TAB_IDS.login}
+                aria-busy={loading ? 'true' : undefined}
+                onSubmit={handleLogin}
+                className="rqk-auth-form"
+              >
+                <AuthInput
+                  id="login-identifier"
+                  name="username"
+                  icon={User}
+                  label="Username or email"
+                  type="text"
+                  placeholder="Username or recovery email"
+                  value={loginData.username}
+                  onChange={(value) => setLoginData({ ...loginData, username: value })}
+                  autoComplete="username"
+                  enterKeyHint="next"
+                  testId="login-username"
+                  disabled={loading}
+                  required
+                />
 
-          {mode === 'register' && (
-            <form onSubmit={handleRegister}>
-              <AuthInput
-                icon={User}
-                type="text"
-                placeholder="Username"
-                value={registerData.username}
-                onChange={(value) => setRegisterData({ ...registerData, username: value })}
-              />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Kid-friendly signup: no email needed. Use a nickname, not a real name.</p>
-              <AuthInput
-                icon={Mail}
-                type="email"
-                placeholder="Recovery email (optional)"
-                value={registerData.email}
-                onChange={(value) => setRegisterData({ ...registerData, email: value })}
-              />
-              <AuthInput
-                icon={Lock}
-                type={showRegisterPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={registerData.password}
-                onChange={(value) => setRegisterData({ ...registerData, password: value })}
-                rightAction={
-                  <IconButton
-                    label={showRegisterPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowRegisterPassword(prev => !prev)}
-                    icon={showRegisterPassword ? EyeOff : Eye}
-                  />
-                }
-              />
-              <AuthInput
-                icon={Lock}
-                type={showRegisterPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                value={registerData.confirmPassword}
-                onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
-              />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Passwords need at least 8 characters. Recovery email helps if you forget it later.</p>
+                <AuthInput
+                  id="login-password"
+                  name="password"
+                  icon={Lock}
+                  label="Password"
+                  type={showLoginPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={loginData.password}
+                  onChange={(value) => setLoginData({ ...loginData, password: value })}
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  testId="login-password"
+                  disabled={loading}
+                  required
+                  rightAction={
+                    <IconButton
+                      label={showLoginPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowLoginPassword(prev => !prev)}
+                      icon={showLoginPassword ? EyeOff : Eye}
+                      pressed={showLoginPassword}
+                      controls="login-password"
+                      disabled={loading}
+                    />
+                  }
+                />
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create Account'}
-              </PrimaryButton>
+                <div className="rqk-auth-form-options">
+                  <button type="button" onClick={() => goToMode('forgot')} className="rqk-auth-link-button" disabled={loading}>
+                    Forgot password?
+                  </button>
+                </div>
 
-              <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => setMode('login')} />
-            </form>
-          )}
+                <PrimaryButton type="submit" disabled={loading} loading={loading} testId="login-btn">
+                  {loading ? 'Opening dashboard...' : 'Open dashboard'}
+                </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
-          {mode === 'forgot' && (
-            <form onSubmit={handleForgotPassword}>
-              <AuthInput
-                icon={Mail}
-                type="email"
-                placeholder="Email address"
-                value={forgotEmail}
-                onChange={setForgotEmail}
-              />
+                <AuthSwitch text="New here?" actionText="Create an account" onClick={() => goToMode('register')} disabled={loading} />
+              </form>
+            )}
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
-              </PrimaryButton>
+            {mode === 'register' && (
+              <form
+                id={AUTH_PANEL_IDS.register}
+                role="tabpanel"
+                aria-labelledby={AUTH_TAB_IDS.register}
+                aria-busy={loading ? 'true' : undefined}
+                onSubmit={handleRegister}
+                className="rqk-auth-form"
+              >
+                <AuthInput
+                  id="register-username"
+                  name="username"
+                  icon={User}
+                  label="Username"
+                  type="text"
+                  placeholder="Choose a nickname"
+                  value={registerData.username}
+                  onChange={(value) => setRegisterData({ ...registerData, username: value })}
+                  autoComplete="username"
+                  enterKeyHint="next"
+                  hint="Use a table name or nickname rather than a real name."
+                  disabled={loading}
+                  required
+                />
 
-              <SecondaryButton type="button" onClick={() => setMode('login')}>
-                <ArrowLeft size={16} /> <span>Back to login</span>
-              </SecondaryButton>
-            </form>
-          )}
+                <AuthInput
+                  id="register-email"
+                  name="email"
+                  icon={Mail}
+                  label="Recovery email"
+                  type="email"
+                  placeholder="Optional recovery email"
+                  value={registerData.email}
+                  onChange={(value) => setRegisterData({ ...registerData, email: value })}
+                  autoComplete="email"
+                  inputMode="email"
+                  enterKeyHint="next"
+                  hint="Optional, but useful if you need a password reset later."
+                  disabled={loading}
+                />
 
-          {mode === 'reset' && (
-            <form onSubmit={handleResetPassword}>
-              <AuthInput
-                icon={Lock}
-                type={showResetPassword ? 'text' : 'password'}
-                placeholder="New password"
-                value={resetData.new_password}
-                onChange={(value) => setResetData({ ...resetData, new_password: value })}
-                rightAction={
-                  <IconButton
-                    label={showResetPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowResetPassword(prev => !prev)}
-                    icon={showResetPassword ? EyeOff : Eye}
-                  />
-                }
-              />
-              <p style={kidSafeNoteStyle}><ShieldCheck size={14} /> Use at least 8 characters.</p>
+                <AuthInput
+                  id="register-password"
+                  name="password"
+                  icon={Lock}
+                  label="Password"
+                  type={showRegisterPassword ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  value={registerData.password}
+                  onChange={(value) => setRegisterData({ ...registerData, password: value })}
+                  autoComplete="new-password"
+                  enterKeyHint="next"
+                  describedBy="register-password-readiness"
+                  disabled={loading}
+                  minLength={8}
+                  required
+                  rightAction={
+                    <IconButton
+                      label={showRegisterPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowRegisterPassword(prev => !prev)}
+                      icon={showRegisterPassword ? EyeOff : Eye}
+                      pressed={showRegisterPassword}
+                      controls="register-password"
+                      disabled={loading}
+                    />
+                  }
+                />
 
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Resetting...' : 'Reset Password'}
-              </PrimaryButton>
-            </form>
-          )}
+                <PasswordReadiness id="register-password-readiness" checks={registerPasswordChecks} strength={registerPasswordStrength} />
+
+                <AuthInput
+                  id="register-confirm-password"
+                  name="confirmPassword"
+                  icon={Lock}
+                  label="Confirm password"
+                  type={showRegisterPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={registerData.confirmPassword}
+                  onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
+                  autoComplete="new-password"
+                  enterKeyHint="done"
+                  describedBy="register-password-match"
+                  disabled={loading}
+                  minLength={8}
+                  required
+                  ariaInvalid={confirmStatus.tone === 'bad'}
+                />
+
+                <PasswordMatchNotice id="register-password-match" status={confirmStatus} />
+
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Creating account...' : 'Create account'}
+                </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
+
+                <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => goToMode('login')} disabled={loading} />
+              </form>
+            )}
+
+            {mode === 'forgot' && (
+              <form
+                id={AUTH_PANEL_IDS.forgot}
+                aria-labelledby="rqk-auth-title"
+                aria-busy={loading ? 'true' : undefined}
+                onSubmit={handleForgotPassword}
+                className="rqk-auth-form"
+              >
+                <AuthInput
+                  id="forgot-email"
+                  name="email"
+                  icon={Mail}
+                  label="Recovery email"
+                  type="email"
+                  placeholder="Enter your recovery email"
+                  value={forgotEmail}
+                  onChange={setForgotEmail}
+                  autoComplete="email"
+                  inputMode="email"
+                  enterKeyHint="send"
+                  disabled={loading}
+                  required
+                />
+
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Sending link...' : 'Send reset link'}
+                </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
+
+                <SecondaryButton type="button" onClick={() => goToMode('login')} disabled={loading}>
+                  <ArrowLeft size={16} /> <span>Back to login</span>
+                </SecondaryButton>
+              </form>
+            )}
+
+            {mode === 'reset' && (
+              <form
+                id={AUTH_PANEL_IDS.reset}
+                aria-labelledby="rqk-auth-title"
+                aria-busy={loading ? 'true' : undefined}
+                onSubmit={handleResetPassword}
+                className="rqk-auth-form"
+              >
+                <AuthInput
+                  id="reset-password"
+                  name="new_password"
+                  icon={Lock}
+                  label="New password"
+                  type={showResetPassword ? 'text' : 'password'}
+                  placeholder="Enter a new password"
+                  value={resetData.new_password}
+                  onChange={(value) => setResetData({ ...resetData, new_password: value })}
+                  autoComplete="new-password"
+                  enterKeyHint="done"
+                  describedBy="reset-password-readiness"
+                  disabled={loading}
+                  minLength={8}
+                  required
+                  rightAction={
+                    <IconButton
+                      label={showResetPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowResetPassword(prev => !prev)}
+                      icon={showResetPassword ? EyeOff : Eye}
+                      pressed={showResetPassword}
+                      controls="reset-password"
+                      disabled={loading}
+                    />
+                  }
+                />
+
+                <PasswordReadiness id="reset-password-readiness" checks={resetPasswordChecks} strength={resetPasswordStrength} />
+
+                <PrimaryButton type="submit" disabled={loading} loading={loading}>
+                  {loading ? 'Resetting password...' : 'Reset password'}
+                </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
+              </form>
+            )}
+
+            <AuthNextSteps steps={nextSteps} />
+            <TrustBadges />
+          </section>
         </div>
 
-        <p style={footerStyle}>© {new Date().getFullYear()} Rookie Quest Keeper</p>
+        <p className="rqk-auth-footer">© {new Date().getFullYear()} Rookie Quest Keeper</p>
       </div>
+    </main>
+  );
+}
+
+function AuthNotice({ children }) {
+  return (
+    <div className="rqk-auth-note">
+      <ShieldCheck size={16} aria-hidden="true" />
+      <span>{children}</span>
     </div>
   );
 }
 
-function AuthInput({ icon: Icon, type, placeholder, value, onChange, testId, rightAction }) {
+function AuthAssurancePanel({ label, title, text }) {
   return (
-    <div style={inputWrapStyle}>
-      <Icon size={18} style={inputIconStyle} />
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        data-testid={testId}
-        style={inputStyle}
-      />
-      {rightAction}
+    <aside className="rqk-auth-assurance" aria-label={label}>
+      <span>{label}</span>
+      <strong>{title}</strong>
+      <p>{text}</p>
+    </aside>
+  );
+}
+
+function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, enterKeyHint, hint, describedBy, testId, rightAction, disabled = false, required = false, minLength, ariaInvalid = false }) {
+  const hintId = hint ? `${id}-hint` : undefined;
+  const describedByIds = [hintId, describedBy].filter(Boolean).join(' ') || undefined;
+
+  return (
+    <div className="rqk-auth-input-group">
+      <label htmlFor={id}>{label}{required && <span className="rqk-auth-required-mark" aria-hidden="true"> *</span>}</label>
+      <div className="rqk-auth-input-shell">
+        <Icon size={18} className="rqk-auth-input-icon" aria-hidden="true" />
+        <input
+          id={id}
+          name={name}
+          className="rqk-auth-field"
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          autoCapitalize="none"
+          inputMode={inputMode}
+          enterKeyHint={enterKeyHint}
+          spellCheck={false}
+          aria-describedby={describedByIds}
+          aria-invalid={ariaInvalid ? 'true' : undefined}
+          data-testid={testId}
+          disabled={disabled}
+          required={required}
+          minLength={minLength}
+        />
+        {rightAction}
+      </div>
+      {hint && <p id={hintId} className="rqk-auth-field-hint">{hint}</p>}
     </div>
   );
 }
 
-function IconButton({ icon: Icon, label, onClick }) {
+function IconButton({ icon: Icon, label, onClick, pressed, controls, disabled = false }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} style={iconButtonStyle}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={typeof pressed === 'boolean' ? pressed : undefined}
+      aria-controls={controls}
+      title={label}
+      className="rqk-auth-icon-button"
+      disabled={disabled}
+    >
       <Icon size={17} />
     </button>
   );
 }
 
-function PrimaryButton({ children, disabled, type = 'button', testId }) {
-  return <button type={type} disabled={disabled} data-testid={testId} style={primaryButtonStyle}><span>{children}</span></button>;
-}
-
-function SecondaryButton({ children, onClick, type = 'button' }) {
-  return <button type={type} onClick={onClick} style={secondaryButtonStyle}>{children}</button>;
-}
-
-function AuthSwitch({ text, actionText, onClick }) {
+function PrimaryButton({ children, disabled, loading, type = 'button', testId }) {
   return (
-    <div style={switchStyle}>
+    <button
+      type={type}
+      disabled={disabled}
+      data-testid={testId}
+      className="rqk-auth-primary"
+      aria-busy={loading ? 'true' : undefined}
+      aria-disabled={disabled ? 'true' : undefined}
+    >
+      {loading && <span className="rqk-auth-button-spinner" aria-hidden="true" />}
+      <span>{children}</span>
+    </button>
+  );
+}
+
+function SecondaryButton({ children, onClick, disabled, type = 'button' }) {
+  return (
+    <button type={type} onClick={onClick} disabled={disabled} aria-disabled={disabled ? 'true' : undefined} className="rqk-auth-secondary">
+      {children}
+    </button>
+  );
+}
+
+function AuthSwitch({ text, actionText, onClick, disabled }) {
+  return (
+    <div className="rqk-auth-switch">
       <span>{text}</span>
-      <button type="button" onClick={onClick} style={switchButtonStyle}><span>{actionText}</span></button>
+      <button type="button" onClick={onClick} disabled={disabled} aria-disabled={disabled ? 'true' : undefined} className="rqk-auth-switch-button">
+        {actionText}
+      </button>
     </div>
   );
 }
 
-const pageStyle = {
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'center',
-  padding: '16px 16px 24px',
-  background: 'var(--rq-bg, #242424)',
-  position: 'relative',
-  overflowX: 'hidden',
-  overflowY: 'auto',
-  color: 'var(--rq-text, #ffffff)',
-};
+function SubmitStatus({ loading, children }) {
+  return (
+    <p className="rqk-auth-submit-status" role="status" aria-live="polite">
+      {loading ? children : ''}
+    </p>
+  );
+}
 
-const contentStyle = {
-  position: 'relative',
-  zIndex: 1,
-  width: 'min(100%, 430px)',
-  display: 'grid',
-  gap: 14,
-  justifyItems: 'center',
-};
+function PasswordReadiness({ id, checks, strength }) {
+  const filledSegments = Math.max(1, strength.score);
 
-const logoWrapStyle = {
-  cursor: 'pointer',
-  display: 'inline-flex',
-  justifyContent: 'center',
-  border: 0,
-  background: 'transparent',
-  padding: 0,
-  margin: '0 0 2px',
-  color: 'var(--rq-text, #ffffff)',
-};
+  return (
+    <div id={id} className={`rqk-auth-password-readiness is-${strength.tone}`} aria-live="polite">
+      <div className="rqk-auth-password-readiness__top">
+        <span>Password strength</span>
+        <strong>{strength.label}</strong>
+      </div>
+      <div className="rqk-auth-strength-meter" aria-hidden="true">
+        {[0, 1, 2].map(index => (
+          <span key={index} className={index < filledSegments && strength.tone !== 'empty' ? 'is-filled' : ''} />
+        ))}
+      </div>
+      <ul>
+        {checks.map(check => (
+          <li key={check.label} className={check.passed ? 'is-passed' : ''}>
+            <span aria-hidden="true" />
+            {check.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-const panelStyle = {
-  width: '100%',
-  padding: '16px 0 0',
-  borderRadius: 0,
-  background: 'transparent',
-  border: 0,
-  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
-  boxShadow: 'none',
-};
+function getConfirmPasswordStatus(password, confirmPassword) {
+  if (!confirmPassword) return { tone: 'empty', message: 'Confirm your password to catch typos before creating the account.' };
+  if (password === confirmPassword) return { tone: 'good', message: 'Passwords match.' };
+  return { tone: 'bad', message: 'Passwords do not match yet.' };
+}
 
-const headingStyle = { textAlign: 'center', marginBottom: 14 };
-const eyebrowStyle = { margin: '0 0 6px', color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.11em', fontWeight: 950 };
-const titleStyle = { margin: 0, color: 'var(--rq-text, #ffffff)', fontSize: 30, fontWeight: 950, lineHeight: 1.05, letterSpacing: '-0.02em' };
-const subtitleStyle = { margin: '7px auto 0', maxWidth: 360, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14, lineHeight: 1.42 };
+function PasswordMatchNotice({ id, status }) {
+  return (
+    <p id={id} className={`rqk-auth-match-notice is-${status.tone}`} aria-live="polite">
+      <span aria-hidden="true" />
+      {status.message}
+    </p>
+  );
+}
 
-const inputWrapStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 9,
-  marginBottom: 9,
-  padding: '0 10px',
-  minHeight: 46,
-  borderRadius: 0,
-  border: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
-  background: 'var(--rq-surface, #3a3a3a)',
-};
+function AuthNextSteps({ steps }) {
+  return (
+    <div className="rqk-auth-next-steps" aria-label="What happens next">
+      <span>What happens next</span>
+      <ol>
+        {steps.map(step => <li key={step}>{step}</li>)}
+      </ol>
+    </div>
+  );
+}
 
-const inputIconStyle = { color: 'var(--rq-primary, #d00000)', flexShrink: 0 };
-const inputStyle = { width: '100%', minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: 'var(--rq-text, #ffffff)', fontSize: 15 };
-const iconButtonStyle = { border: 0, background: 'transparent', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', minHeight: 34, width: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-
-const primaryButtonStyle = {
-  width: '100%',
-  minHeight: 46,
-  borderRadius: 0,
-  border: 0,
-  background: 'var(--rq-surface, #3a3a3a)',
-  color: 'var(--rq-text, #ffffff)',
-  fontWeight: 950,
-  fontSize: 15,
-  cursor: 'pointer',
-  marginTop: 6,
-  boxShadow: 'none',
-};
-
-const secondaryButtonStyle = {
-  width: '100%',
-  minHeight: 42,
-  marginTop: 8,
-  borderRadius: 0,
-  border: 0,
-  background: 'var(--rq-surface, #3a3a3a)',
-  color: 'var(--rq-text, #ffffff)',
-  fontWeight: 850,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  boxShadow: 'none',
-};
-
-const linkButtonStyle = {
-  border: 0,
-  background: 'transparent',
-  color: 'var(--rq-text, #ffffff)',
-  cursor: 'pointer',
-  fontSize: 12,
-  margin: '0 0 8px',
-  padding: '6px 0',
-  textAlign: 'left',
-  fontWeight: 900,
-};
-
-const switchStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 13, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 14 };
-const switchButtonStyle = { border: 0, background: 'var(--rq-surface, #3a3a3a)', color: 'var(--rq-text, #ffffff)', cursor: 'pointer', fontWeight: 900, padding: '8px 10px', borderRadius: 0 };
-const footerStyle = { margin: 0, color: 'var(--rq-muted, rgba(255,255,255,0.68))', fontSize: 12 };
-
-const nextStepNoteStyle = {
-  display: 'flex',
-  gap: 8,
-  alignItems: 'flex-start',
-  padding: '10px 0',
-  borderRadius: 0,
-  background: 'transparent',
-  border: 0,
-  borderTop: '1px solid var(--rq-line, rgba(255,255,255,0.16))',
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
-  fontSize: 12,
-  lineHeight: 1.35,
-  marginBottom: 10,
-};
-
-const accountChangeNoticeStyle = {
-  ...nextStepNoteStyle,
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
-};
-
-const kidSafeNoteStyle = {
-  display: 'flex',
-  gap: 7,
-  alignItems: 'flex-start',
-  color: 'var(--rq-muted, rgba(255,255,255,0.68))',
-  fontSize: 12,
-  lineHeight: 1.3,
-  margin: '-2px 0 9px',
-};
+function TrustBadges() {
+  return (
+    <div className="rqk-auth-trust-row" aria-label="Account safeguards">
+      {TRUST_BADGES.map(badge => (
+        <span key={badge}>{badge}</span>
+      ))}
+    </div>
+  );
+}

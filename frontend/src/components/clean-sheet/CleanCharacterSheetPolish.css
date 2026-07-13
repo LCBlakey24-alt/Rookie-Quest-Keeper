@@ -1,24 +1,30 @@
-/* Final character sheet visual polish.
-   Loaded after the older sheet CSS to keep the standalone character page aligned
-   with the app direction: dark grey, off-black cards, white text, rare red left bars. */
+/* Clean character sheet sunset polish.
+   Source-of-truth replacement for the old grey/red-bar sheet theme. */
 
 .character-page-v2.clean-sheet-page {
-  --cs-bg: var(--rq-bg-main, #202020);
-  --cs-panel: var(--rq-bg-panel, #171717);
-  --cs-card: var(--rq-bg-card, #141414);
-  --cs-text: var(--rq-text-primary, #ffffff);
-  --cs-text-soft: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
-  --cs-muted: var(--rq-text-muted, rgba(255, 255, 255, 0.62));
-  --cs-border: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  --cs-border-strong: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  --cs-accent: var(--rq-accent-primary, #c30000);
-  --cs-accent-soft: transparent;
-  --cs-accent-border: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  --cs-accent-ghost-border: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  --cs-accent-hover-border: var(--rq-border-default, rgba(255, 255, 255, 0.14));
-  --cs-accent-hover-bg: var(--rq-bg-panel, #171717);
-  background: var(--cs-bg) !important;
+  --cs-bg: #070513;
+  --cs-panel: #1a0b2d;
+  --cs-card: #10051d;
+  --cs-input: #090313;
+  --cs-text: #ffffff;
+  --cs-text-soft: rgba(255, 255, 255, 0.88);
+  --cs-muted: rgba(255, 255, 255, 0.66);
+  --cs-border: transparent;
+  --cs-border-strong: transparent;
+  --cs-accent: #d84df1;
+  --cs-accent-soft: rgba(216, 77, 241, 0.12);
+  --cs-accent-border: transparent;
+  --cs-accent-ghost-border: transparent;
+  --cs-accent-hover-border: transparent;
+  --cs-accent-hover-bg: #1a0b2d;
+  --cs-sunset: linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+  --cs-sunset-line: linear-gradient(90deg, #7357ff, #d84df1, #ff4f81, #ff9542);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(115, 87, 255, 0.14), transparent 22rem),
+    radial-gradient(circle at 95% 12%, rgba(255, 79, 129, 0.1), transparent 18rem),
+    var(--cs-bg) !important;
   color: var(--cs-text) !important;
+  overflow-x: hidden !important;
 }
 
 .character-page-v2 *,
@@ -26,9 +32,7 @@
 .character-page-v2 input,
 .character-page-v2 select,
 .character-page-v2 textarea {
-  border-radius: 0 !important;
   box-shadow: none !important;
-  background-image: none !important;
 }
 
 .character-page-v2 .clean-sheet-header,
@@ -37,16 +41,32 @@
 .character-page-v2 .clean-sheet-mobile-tools,
 .character-page-v2 .clean-sheet-panel,
 .character-page-v2 .clean-sheet-empty {
-  background: var(--cs-panel) !important;
-  border: 1px solid var(--cs-border) !important;
-  border-left: 5px solid var(--cs-accent) !important;
+  background:
+    linear-gradient(var(--cs-panel), var(--cs-panel)) padding-box,
+    var(--cs-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 10px !important;
   color: var(--cs-text) !important;
 }
 
 .character-page-v2 .clean-sheet-header,
 .character-page-v2 .clean-sheet-compact-status,
-.character-page-v2 .clean-sheet-mobile-tools {
-  padding: 14px 16px !important;
+.character-page-v2 .clean-sheet-mobile-tools,
+.character-page-v2 .clean-sheet-panel {
+  padding: 12px !important;
+}
+
+.character-page-v2 .clean-sheet-header::before,
+.character-page-v2 .clean-sheet-header::after,
+.character-page-v2 .clean-sheet-compact-status::before,
+.character-page-v2 .clean-sheet-compact-status::after,
+.character-page-v2 .clean-sheet-panel::before,
+.character-page-v2 .clean-sheet-panel::after,
+.character-page-v2 .clean-sheet-identity::before,
+.character-page-v2 .clean-sheet-identity::after {
+  display: none !important;
+  content: none !important;
 }
 
 .character-page-v2 .clean-sheet-kicker,
@@ -104,11 +124,7 @@
 .character-page-v2 .clean-sheet-condition-picker button,
 .character-page-v2 .clean-sheet-spell-summary div,
 .character-page-v2 .clean-sheet-list div,
-.character-page-v2 .clean-sheet-skills div {
-  background: var(--cs-card) !important;
-  border-color: var(--cs-border) !important;
-}
-
+.character-page-v2 .clean-sheet-skills div,
 .character-page-v2 .clean-sheet-core-stat-card,
 .character-page-v2 .clean-sheet-passive-card,
 .character-page-v2 .clean-sheet-compact-ability,
@@ -116,9 +132,18 @@
 .character-page-v2 .clean-sheet-skill-card,
 .character-page-v2 .clean-sheet-spell-card,
 .character-page-v2 .clean-sheet-slot-card,
-.character-page-v2 .clean-sheet-skills-summary div {
-  background: var(--cs-card) !important;
-  border-color: var(--cs-border) !important;
+.character-page-v2 .clean-sheet-skills-summary div,
+.character-page-v2 .clean-sheet-feature-card,
+.character-page-v2 .clean-sheet-item-card,
+.character-page-v2 .clean-sheet-readiness-grid > div,
+.character-page-v2 .clean-sheet-proficiency-lists > div,
+.character-page-v2 .clean-sheet-note-field {
+  background:
+    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.8), rgba(216, 77, 241, 0.78), rgba(255, 149, 66, 0.5)) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
   color: var(--cs-text) !important;
 }
 
@@ -127,8 +152,10 @@
 .character-page-v2 .clean-sheet-roll-mode-group button.active,
 .character-page-v2 .clean-sheet-condition-picker button.active,
 .character-page-v2 .clean-sheet-inspiration.active {
-  border-left: 4px solid var(--cs-accent) !important;
-  background: var(--cs-card) !important;
+  border-left: 1px solid transparent !important;
+  background:
+    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
+    var(--cs-sunset) border-box !important;
   color: var(--cs-text) !important;
 }
 
@@ -149,9 +176,13 @@
 .character-page-v2 .clean-sheet-hitdice-row button,
 .character-page-v2 .clean-sheet-slot-actions button,
 .character-page-v2 .clean-sheet-roll-chip {
-  background: var(--cs-card) !important;
+  background:
+    linear-gradient(var(--cs-panel), var(--cs-panel)) padding-box,
+    var(--cs-sunset) border-box !important;
   color: var(--cs-text) !important;
-  border: 1px solid var(--cs-border) !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
 }
 
 .character-page-v2 button:hover,
@@ -161,31 +192,34 @@
 .character-page-v2 .clean-sheet-skill-card:hover,
 .character-page-v2 .clean-sheet-spell-card:hover,
 .character-page-v2 .clean-sheet-slot-card:hover {
-  background: var(--cs-panel) !important;
-  border-color: var(--cs-border) !important;
+  filter: brightness(1.06);
   outline: none !important;
 }
 
 .character-page-v2 .clean-sheet-readable-saves .clean-sheet-compact-save > em,
 .character-page-v2 .clean-sheet-skill-tags small,
 .character-page-v2 .clean-sheet-condition-chip {
-  background: var(--cs-card) !important;
+  background:
+    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
+    var(--cs-sunset) border-box !important;
   color: var(--cs-text) !important;
-  border: 1px solid var(--cs-border) !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 8px !important;
 }
 
 .character-page-v2 .clean-sheet-hp-bar,
 .character-page-v2 .clean-sheet-slot-pips i,
 .character-page-v2 .clean-sheet-death-track button {
-  background: var(--rq-bg-input, #111111) !important;
-  border-color: var(--cs-border) !important;
+  background: var(--cs-input) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
 }
 
 .character-page-v2 .clean-sheet-hp-bar div,
 .character-page-v2 .clean-sheet-slot-pips i.filled,
 .character-page-v2 .clean-sheet-death-track button.marked {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border-color: rgba(255, 255, 255, 0.72) !important;
+  background: var(--cs-sunset) !important;
+  border-color: transparent !important;
 }
 
 .character-page-v2 input,
@@ -194,9 +228,12 @@
 .character-page-v2 .clean-sheet-hp-bulk-row input,
 .character-page-v2 .clean-sheet-temp-hp-bulk-row input,
 .character-page-v2 .clean-sheet-roll-controls input {
-  background: var(--rq-bg-input, #111111) !important;
+  background:
+    linear-gradient(var(--cs-input), var(--cs-input)) padding-box,
+    linear-gradient(135deg, rgba(115, 87, 255, 0.72), rgba(255, 149, 66, 0.42)) border-box !important;
   color: var(--cs-text) !important;
-  border: 1px solid var(--cs-border) !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
   color-scheme: dark;
 }
 
@@ -209,14 +246,18 @@
 
 .character-page-v2 .clean-sheet-compact-stat,
 .character-page-v2 .clean-sheet-compact-hp-actions {
-  background: var(--cs-card) !important;
-  border: 1px solid var(--cs-border) !important;
+  background:
+    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
+    var(--cs-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 9px !important;
   padding: 10px 12px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-hp-actions {
   display: grid !important;
-  grid-template-columns: minmax(92px, 0.7fr) 1fr 1fr !important;
+  grid-template-columns: minmax(86px, 0.65fr) 1fr 1fr !important;
   gap: 8px !important;
 }
 
@@ -233,26 +274,21 @@
   text-transform: uppercase !important;
 }
 
-/* Top header and HP strip polish. */
 .character-page-v2 .clean-sheet-header--simple {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   gap: 10px !important;
   align-items: stretch !important;
   padding: 12px !important;
-  background: var(--rq-bg-panel, #101010) !important;
-  border-left-width: 4px !important;
 }
 
 .character-page-v2 .clean-sheet-identity {
   min-width: 0 !important;
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) !important;
-  gap: 12px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 6px !important;
   align-items: center !important;
-  padding: 10px 12px !important;
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid var(--cs-border) !important;
+  padding: 14px 16px !important;
 }
 
 .character-page-v2 .clean-sheet-portrait {
@@ -260,7 +296,7 @@
   height: 54px !important;
   display: grid !important;
   place-items: center !important;
-  border-left: 4px solid var(--cs-accent) !important;
+  border-left: 1px solid transparent !important;
   overflow: hidden !important;
 }
 
@@ -270,14 +306,10 @@
   object-fit: cover !important;
 }
 
-.character-page-v2 .clean-sheet-identity > div:last-child {
-  min-width: 0 !important;
-}
-
 .character-page-v2 .clean-sheet-identity h1 {
   margin: 0 !important;
-  font-size: clamp(1.45rem, 3vw, 2.25rem) !important;
-  line-height: 1.02 !important;
+  font-size: clamp(2rem, 8.8vw, 3rem) !important;
+  line-height: 0.96 !important;
   overflow-wrap: anywhere !important;
 }
 
@@ -296,29 +328,11 @@
 .character-page-v2 .clean-sheet-header-actions button,
 .character-page-v2 .clean-sheet-compact-hp-actions button {
   min-height: 42px !important;
-  border-left: 4px solid var(--cs-accent) !important;
-  background: var(--rq-bg-button, #202020) !important;
+  border-left: 1px solid transparent !important;
   text-transform: uppercase !important;
   letter-spacing: 0.04em !important;
   font-size: 12px !important;
   font-weight: 950 !important;
-}
-
-.character-page-v2 .clean-sheet-compact-status--hp-only {
-  margin-top: 10px !important;
-  padding: 12px !important;
-  grid-template-columns: minmax(180px, 0.38fr) minmax(280px, 0.62fr) !important;
-  gap: 10px !important;
-  align-items: stretch !important;
-  background: var(--rq-bg-panel, #101010) !important;
-  border-left-width: 4px !important;
-}
-
-.character-page-v2 .clean-sheet-compact-stat--hp,
-.character-page-v2 .clean-sheet-compact-hp-actions {
-  background: var(--rq-bg-card, #151515) !important;
-  border: 1px solid var(--cs-border) !important;
-  padding: 10px 12px !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp {
@@ -326,7 +340,7 @@
   grid-template-columns: minmax(0, 1fr) auto !important;
   gap: 8px !important;
   align-items: center !important;
-  border-left: 4px solid var(--cs-accent) !important;
+  border-left: 1px solid transparent !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp > span {
@@ -340,16 +354,21 @@
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp strong {
-  font-size: clamp(1.35rem, 3vw, 2rem) !important;
+  font-size: clamp(1.7rem, 6.5vw, 2.35rem) !important;
   line-height: 1 !important;
 }
 
 .character-page-v2 .clean-sheet-compact-stat--hp em {
   grid-column: 1 / -1 !important;
   width: fit-content !important;
+  justify-self: end !important;
   padding: 4px 7px !important;
-  background: var(--rq-bg-button, #202020) !important;
-  border-left: 4px solid var(--cs-accent) !important;
+  background:
+    linear-gradient(var(--cs-card), var(--cs-card)) padding-box,
+    var(--cs-sunset) border-box !important;
+  border: 1px solid transparent !important;
+  border-left: 4px solid #d84df1 !important;
+  border-radius: 8px !important;
   color: var(--cs-text-soft) !important;
   font-size: 10px !important;
   font-style: normal !important;
@@ -375,44 +394,29 @@
 }
 
 @media (max-width: 760px) {
-  .character-page-v2 .clean-sheet-header,
-  .character-page-v2 .clean-sheet-compact-status,
-  .character-page-v2 .clean-sheet-mobile-tools {
-    padding: 12px !important;
-  }
-
   .character-page-v2 .clean-sheet-compact-status--hp-only {
     grid-template-columns: 1fr !important;
   }
 
   .character-page-v2 .clean-sheet-compact-hp-actions {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .character-page-v2 .clean-sheet-hp-wheel {
-    grid-column: 1 / -1 !important;
+    grid-template-columns: minmax(80px, 0.7fr) 1fr 1fr !important;
   }
 }
 
 @media (max-width: 520px) {
   .character-page-v2 .clean-sheet-header--simple,
   .character-page-v2 .clean-sheet-compact-status--hp-only,
-  .character-page-v2 .clean-sheet-compact-hp-actions,
   .character-page-v2 .clean-sheet-header-actions {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .character-page-v2 .clean-sheet-header--simple,
+  .character-page-v2 .clean-sheet-compact-status--hp-only {
     grid-template-columns: 1fr !important;
   }
 
   .character-page-v2 .clean-sheet-identity {
-    grid-template-columns: 44px minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 10px !important;
-  }
-
-  .character-page-v2 .clean-sheet-portrait {
-    width: 44px !important;
-    height: 44px !important;
-  }
-
-  .character-page-v2 .clean-sheet-hp-wheel {
-    grid-column: auto !important;
   }
 }

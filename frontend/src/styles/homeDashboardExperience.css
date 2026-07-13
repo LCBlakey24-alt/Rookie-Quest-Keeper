@@ -1,0 +1,609 @@
+/* Logged-in home/dashboard experience polish.
+   This layer keeps the current sunset/twilight theme but makes the dashboard feel more like a finished command centre. */
+
+#root .unified-dashboard-page--noticeboard {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+}
+
+#root .dashboard-live-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr) !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+  align-items: stretch !important;
+}
+
+#root .dashboard-activity-panel,
+#root .dashboard-readiness-panel,
+#root .dashboard-updates-panel,
+#root .dashboard-system-panel {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#root .dashboard-activity-panel::before,
+#root .dashboard-readiness-panel::before,
+#root .dashboard-updates-panel::before,
+#root .dashboard-system-panel::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .dashboard-panel-heading-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin-bottom: 12px !important;
+}
+
+#root .dashboard-panel-heading-row h2 {
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.55rem, 3vw, 2.35rem) !important;
+  line-height: 1 !important;
+}
+
+#root .dashboard-panel-heading-row > svg {
+  flex: 0 0 auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 14px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-activity-list {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-activity-item {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 62px !important;
+  padding: 10px !important;
+  border: 1px solid rgba(255,248,239,0.11) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.36) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  text-decoration: none !important;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease !important;
+}
+
+#root .dashboard-activity-item:hover,
+#root .dashboard-activity-item:focus-visible {
+  transform: translateY(-1px) !important;
+  border-color: rgba(255,149,66,0.5) !important;
+  background: rgba(255,248,239,0.07) !important;
+  outline: none !important;
+}
+
+#root .dashboard-activity-icon {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .dashboard-activity-copy {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+}
+
+#root .dashboard-activity-copy strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-weight: 950 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#root .dashboard-activity-copy span,
+#root .dashboard-activity-item time {
+  color: rgba(255,248,239,0.66) !important;
+  font-size: 0.82rem !important;
+}
+
+#root .dashboard-activity-item time {
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+#root .dashboard-empty-compact {
+  min-height: 180px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 10px !important;
+  padding: 18px !important;
+  border: 1px dashed rgba(255,248,239,0.18) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.28) !important;
+  text-align: center !important;
+}
+
+#root .dashboard-empty-compact svg {
+  color: rgba(255,149,66,0.9) !important;
+}
+
+#root .dashboard-empty-compact p {
+  max-width: 420px !important;
+  margin: 0 !important;
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.5 !important;
+}
+
+#root .dashboard-readiness-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+#root .dashboard-readiness-card {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 10px !important;
+  min-height: 118px !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255,248,239,0.11) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.34) !important;
+}
+
+#root .dashboard-readiness-icon {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.88) !important;
+}
+
+#root .dashboard-readiness-card--good {
+  border-color: rgba(255,149,66,0.32) !important;
+}
+
+#root .dashboard-readiness-card--warn {
+  border-color: rgba(255,79,129,0.52) !important;
+}
+
+#root .dashboard-readiness-card div {
+  display: grid !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+#root .dashboard-readiness-card span:not(.dashboard-readiness-icon) {
+  color: rgba(255,248,239,0.64) !important;
+  font-size: 0.72rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .dashboard-readiness-card strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.25rem, 3vw, 1.85rem) !important;
+  line-height: 1 !important;
+}
+
+#root .dashboard-readiness-card p {
+  margin: 0 !important;
+  color: rgba(255,248,239,0.68) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.42 !important;
+}
+
+#root .dashboard-system-panel--quiet {
+  min-height: 76px !important;
+}
+
+/* Shared app libraries: My Characters, My Campaigns, uploads, and similar grid pages. */
+#root .library-page {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+}
+
+#root .library-page-hero,
+#root .library-page-toolbar,
+#root .library-page-empty,
+#root .library-page-stat-card,
+#root .library-card,
+#root .character-library-card,
+#root .campaign-library-card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#root .library-page-hero::before,
+#root .library-page-toolbar::before,
+#root .library-page-empty::before,
+#root .library-page-stat-card::before,
+#root .library-card::before,
+#root .character-library-card::before,
+#root .campaign-library-card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .library-page-hero {
+  min-height: 190px !important;
+  align-content: center !important;
+}
+
+#root .library-page-eyebrow {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin: 0 0 8px !important;
+  padding: 5px 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.7rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .library-page-hero h1 {
+  font-size: clamp(2.45rem, 6vw, 4.35rem) !important;
+  letter-spacing: 0 !important;
+}
+
+#root .library-page-hero p {
+  max-width: 68ch !important;
+  color: rgba(255,248,239,0.76) !important;
+  font-size: clamp(1rem, 1.7vw, 1.12rem) !important;
+}
+
+#root .library-page-action-row {
+  padding: 12px !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background: rgba(7,7,19,0.32) !important;
+}
+
+#root .library-page-stat-grid,
+#root .library-card-grid,
+#root .characters-card-grid,
+#root .campaigns-card-grid {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+#root .library-page-stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+#root .library-page-stat-card {
+  min-height: 118px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 6px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+}
+
+#root .library-page-stat-card span,
+#root .library-page-stat-card small {
+  color: rgba(255,248,239,0.66) !important;
+  font-size: 0.72rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .library-page-stat-card strong {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.75rem, 4vw, 2.7rem) !important;
+  line-height: 1 !important;
+}
+
+#root .library-page-toolbar {
+  min-height: 74px !important;
+}
+
+#root .library-page-count {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-size: clamp(1.05rem, 2vw, 1.25rem) !important;
+  font-weight: 950 !important;
+}
+
+#root .library-page-toolbar-note {
+  margin: 4px 0 0 !important;
+  color: rgba(255,248,239,0.66) !important;
+}
+
+#root .library-card-grid,
+#root .characters-card-grid,
+#root .campaigns-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)) !important;
+}
+
+#root .library-card,
+#root .character-library-card,
+#root .campaign-library-card {
+  display: grid !important;
+  min-height: 260px !important;
+  padding: 14px !important;
+  gap: 14px !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: #ffffff !important;
+  transition: transform 160ms ease, filter 160ms ease !important;
+}
+
+#root .library-card:hover,
+#root .library-card:focus-within,
+#root .character-library-card:hover,
+#root .character-library-card:focus-within,
+#root .campaign-library-card:hover,
+#root .campaign-library-card:focus-within {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.05) !important;
+}
+
+#root .character-card-main,
+#root .character-card-actions,
+#root .character-card-subtitle-stack {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+#root .character-card-meta-row,
+#root .character-card-identity-row,
+#root .character-card-secondary-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+#root .character-card-meta-row {
+  justify-content: space-between !important;
+}
+
+#root .character-card-identity-row {
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+}
+
+#root .character-card-status,
+#root .character-card-level-badge {
+  display: inline-flex !important;
+  width: fit-content !important;
+  min-height: 28px !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .character-card-level-badge {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .character-card-identity-row h2 {
+  min-width: min(100%, 190px) !important;
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.7rem, 4vw, 2.55rem) !important;
+  line-height: 1 !important;
+}
+
+#root .character-card-primary-line,
+#root .character-card-subclass-line {
+  margin: 0 !important;
+  color: rgba(255,248,239,0.72) !important;
+  line-height: 1.45 !important;
+}
+
+#root .character-card-subclass-line {
+  color: rgba(255,149,66,0.88) !important;
+  font-weight: 850 !important;
+}
+
+#root .character-card-actions {
+  align-content: end !important;
+}
+
+#root .character-card-open {
+  justify-content: space-between !important;
+}
+
+#root .character-card-secondary-actions > * {
+  flex: 1 1 120px !important;
+}
+
+/* Campaign library: make saved tables feel like GM mission cards. */
+#root .campaigns-library-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(14px, 2vw, 24px) !important;
+}
+
+#root .campaign-create-hero-button {
+  width: auto !important;
+  min-width: 190px !important;
+  justify-self: end !important;
+}
+
+#root .campaign-library-card {
+  min-height: 292px !important;
+  align-content: space-between !important;
+}
+
+#root .campaign-card-main,
+#root .campaign-card-actions {
+  display: grid !important;
+  gap: 11px !important;
+}
+
+#root .campaign-card-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+#root .campaign-card-meta-row .library-page-card-meta,
+#root .campaign-card-status {
+  display: inline-flex !important;
+  width: fit-content !important;
+  min-height: 28px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  border-radius: 999px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .campaign-card-status {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+}
+
+#root .campaign-library-card h2 {
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.75rem, 4vw, 2.65rem) !important;
+  line-height: 1 !important;
+}
+
+#root .campaign-library-card h2::after {
+  width: 100% !important;
+}
+
+#root .campaign-library-card p:not(.library-page-card-meta):not(.library-page-card-note) {
+  margin: 0 !important;
+  color: rgba(255,248,239,0.72) !important;
+  font-weight: 850 !important;
+}
+
+#root .campaign-library-card .library-page-card-note {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(255,248,239,0.66) !important;
+  line-height: 1.5 !important;
+}
+
+#root .campaign-card-actions {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  margin-top: auto !important;
+}
+
+#root .campaign-card-actions button:first-child {
+  justify-content: space-between !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+  font-weight: 950 !important;
+}
+
+#root .campaign-card-actions .library-page-danger-button {
+  min-width: 108px !important;
+}
+
+#root .campaign-library-empty {
+  width: min(760px, 100%) !important;
+  min-height: 230px !important;
+  align-content: center !important;
+}
+
+@media (max-width: 1080px) {
+  #root .dashboard-live-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #root .dashboard-panel-heading-row {
+    align-items: center !important;
+  }
+
+  #root .dashboard-readiness-grid,
+  #root .library-page-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #root .dashboard-activity-item {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  #root .dashboard-activity-item time {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+
+  #root .library-page-action-row,
+  #root .library-page-action-main,
+  #root .library-page-action-secondary,
+  #root .campaigns-library-hero,
+  #root .campaign-card-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  #root .campaign-create-hero-button {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-self: stretch !important;
+  }
+
+  #root .library-page-action-row a,
+  #root .library-page-action-row button,
+  #root .library-page-button,
+  #root .library-page-button-secondary,
+  #root .campaign-card-actions button {
+    width: 100% !important;
+  }
+}

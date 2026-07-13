@@ -1,6 +1,11 @@
 """Route module - import all routers for inclusion in the main app."""
 from routes.auth import router as auth_router
+from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
+from routes.site_updates import router as site_updates_router
+from routes.admin_audit import router as admin_audit_router
+from routes.admin_metrics import router as admin_metrics_router
+from routes.layout_settings import router as layout_settings_router
 from routes.campaign_invites import router as campaign_invites_router
 from routes.campaign_display import router as campaign_display_router
 from routes.campaign_setup import router as campaign_setup_router
@@ -12,9 +17,11 @@ from routes.npcs import router as npcs_router
 from routes.combat import router as combat_router
 from routes.players import router as players_router
 from routes.maps import router as maps_router
+from routes.tables import router as tables_router
 from routes.ai import router as ai_router
 from routes.inventory import router as inventory_router
 from routes.user_content import router as user_content_router
+from routes.player_rules import router as player_rules_router
 from routes.character_patch import router as character_patch_router
 from routes.characters import router as characters_router
 from routes.srd import router as srd_router
@@ -29,7 +36,14 @@ from routes.roll_events import router as roll_events_router
 
 all_routers = [
     auth_router,
+    # Register focused admin feedback reads before the legacy admin router so
+    # separated feedback/testing list and export endpoints take precedence.
+    admin_feedback_router,
     admin_router,
+    site_updates_router,
+    admin_audit_router,
+    admin_metrics_router,
+    layout_settings_router,
     campaign_invites_router,
     campaign_display_router,
     # Register the setup router before the legacy campaigns router so the
@@ -43,9 +57,12 @@ all_routers = [
     combat_router,
     players_router,
     maps_router,
+    tables_router,
     ai_router,  # Text-based Rook AI helpers stay enabled.
     inventory_router,
     user_content_router,
+    # Player rules feeds sit beside user content so builders can consume uploaded options.
+    player_rules_router,
     # Keep lenient PATCH before the legacy strict characters router so
     # PATCH /characters/{id} accepts current builder/sheet fields.
     character_patch_router,

@@ -1,0 +1,115 @@
+/* Admin Mission Control explicit hook styling.
+   This avoids relying on fragile :has() parent selectors for the inline-heavy Admin page. */
+
+#root .admin-mission-control-page {
+  background:
+    radial-gradient(circle at 84% 0%, rgba(235, 63, 233, 0.14), transparent 34%),
+    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.13), transparent 38%),
+    linear-gradient(180deg, #070713 0%, #10071e 54%, #19082d 100%) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .admin-mission-control-page__container,
+#root .admin-mission-control-page__hero,
+#root .admin-mission-control-page__stats,
+#root .admin-mission-control-page__mission-grid,
+#root .admin-mission-control-page__active-summary,
+#root .admin-mission-control-page__tabs,
+#root .admin-mission-control-page__content {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+#root .admin-mission-control-page__hero,
+#root .admin-mission-control-page__stats,
+#root .admin-mission-control-page__mission-grid > div,
+#root .admin-mission-control-page__active-summary,
+#root .admin-mission-control-page__templates-panel,
+#root .admin-mission-control-page__reviews-panel {
+  border-radius: 24px !important;
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(145deg, rgba(13,6,23,0.97), rgba(32,12,52,0.93)) padding-box,
+    var(--rq-sunset-gradient) border-box !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,0.20), 0 0 24px rgba(235,63,233,0.07) !important;
+}
+
+#root .admin-mission-control-page__stats > div,
+#root .admin-mission-control-page__mission-grid button,
+#root .admin-mission-control-page__active-summary span,
+#root .admin-mission-control-page__content article,
+#root .admin-mission-control-page__content section,
+#root .admin-mission-control-page__content [role="tabpanel"] {
+  max-width: 100% !important;
+}
+
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] {
+  min-height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(7,7,19,0.55) !important;
+  border-color: rgba(255,248,239,0.14) !important;
+  color: rgba(255,248,239,0.72) !important;
+  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease !important;
+}
+
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"][aria-pressed="true"] {
+  background: var(--rq-sunset-gradient) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,248,239,0.25) !important;
+}
+
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"]:hover,
+#root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"]:focus-visible {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.07) !important;
+  outline: none !important;
+}
+
+#root .admin-mission-control-page input,
+#root .admin-mission-control-page textarea,
+#root .admin-mission-control-page select,
+#root .admin-mission-control-page table,
+#root .admin-mission-control-page [role="tabpanel"] {
+  max-width: 100% !important;
+}
+
+#root .admin-mission-control-page input,
+#root .admin-mission-control-page textarea,
+#root .admin-mission-control-page select {
+  border-radius: 14px !important;
+  background: rgba(7,7,19,0.68) !important;
+  border-color: rgba(255,248,239,0.16) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+@media (max-width: 780px) {
+  #root .admin-mission-control-page {
+    padding: 10px !important;
+  }
+
+  #root .admin-mission-control-page__container {
+    gap: 12px !important;
+  }
+
+  #root .admin-mission-control-page__tabs {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding: 2px 2px 10px !important;
+    scroll-snap-type: x mandatory !important;
+  }
+
+  #root .admin-mission-control-page__tabs button[data-testid^="admin-tab-"] {
+    min-width: 142px !important;
+    scroll-snap-align: start !important;
+  }
+
+  #root .admin-mission-control-page__hero,
+  #root .admin-mission-control-page__stats,
+  #root .admin-mission-control-page__mission-grid > div,
+  #root .admin-mission-control-page__active-summary,
+  #root .admin-mission-control-page__templates-panel,
+  #root .admin-mission-control-page__reviews-panel {
+    border-radius: 18px !important;
+  }
+}

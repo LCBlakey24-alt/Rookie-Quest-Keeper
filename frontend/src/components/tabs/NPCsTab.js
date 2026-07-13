@@ -8,7 +8,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Edit, Trash2, MapPin, Loader, Wand2, Check, User, Search, X } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 
+const NPC_BASIC_FIELDS = [
+  { name: 'name', label: 'Name', type: 'text' },
+  { name: 'description', label: 'Description', type: 'textarea' },
+];
+
+const NPC_FORM_FIELDS = [
+  ...NPC_BASIC_FIELDS,
+  { name: 'hp', label: 'Hit Points', type: 'number' },
+  { name: 'ac', label: 'Armour Class', type: 'number' },
+  { name: 'location', label: 'Location', type: 'text' },
+  { name: 'notes', label: 'Motivations, secrets, and hooks', type: 'textarea' },
+];
+
+function normaliseNpcPatch(patch = {}) {
+  const next = { ...patch };
+  if (next.hp !== undefined) next.hp = parseInt(next.hp, 10) || 10;
+  if (next.ac !== undefined) next.ac = parseInt(next.ac, 10) || 10;
+  return next;
+}
 
 function NPCsTab({ campaignId }) {
   const [npcs, setNpcs] = useState([]);
@@ -42,6 +62,10 @@ function NPCsTab({ campaignId }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyRookNpcPatch = (patch) => {
+    setFormData(prev => ({ ...prev, ...normaliseNpcPatch(patch) }));
   };
 
   const handleSubmit = async (e) => {
@@ -228,6 +252,16 @@ function NPCsTab({ campaignId }) {
                 Add NPC
               </DialogTitle>
             </DialogHeader>
+            <RookFormFillPanel
+              title="Ask Rook for an NPC draft"
+              helperText="Draft the core fields first, then review and save when you are happy. This does not auto-create the NPC."
+              section="gm_npc"
+              campaignId={campaignId}
+              fields={NPC_BASIC_FIELDS}
+              currentValues={formData}
+              onApply={applyRookNpcPatch}
+              placeholder="Example: A wary tavern keeper who knows why travellers disappear near the old bridge..."
+            />
             <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Name</label>
@@ -282,6 +316,16 @@ function NPCsTab({ campaignId }) {
                 {editingNPC ? 'Edit NPC' : 'Add NPC'}
               </DialogTitle>
             </DialogHeader>
+            <RookFormFillPanel
+              title={editingNPC ? 'Ask Rook to improve this NPC' : 'Ask Rook for an NPC draft'}
+              helperText="Draft or improve fields first, then import only the suggestions you want before saving."
+              section="gm_npc"
+              campaignId={campaignId}
+              fields={NPC_FORM_FIELDS}
+              currentValues={formData}
+              onApply={applyRookNpcPatch}
+              placeholder="Example: Turn this into a charming informant with a secret debt, a useful clue, and a memorable voice..."
+            />
             <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="gold-text" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Name</label>

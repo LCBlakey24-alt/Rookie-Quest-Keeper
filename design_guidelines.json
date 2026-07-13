@@ -1,8 +1,8 @@
 {
   "theme": {
-    "name": "Rookie Quest Sunset Tabletop",
+    "name": "Rookie Quest Sunset Gradient",
     "mode": "dark-only",
-    "description": "A warm sunset tabletop system using espresso backgrounds, ember-brown cards, cream text, copper borders, and golden-orange actions. This replaces older cyber, blue, purple, and neon directions.",
+    "description": "A dark blue-purple fantasy UI system using deep indigo surfaces, white text, subtle pale borders, and a purple-pink-orange sunset gradient for active states, primary actions, selected navigation, and focus highlights.",
     "fonts": {
       "heading": "Fraunces or existing display token",
       "body": "Manrope",
@@ -11,38 +11,40 @@
   },
   "colors": {
     "core": {
-      "background": "#120C08",
-      "backgroundDeep": "#160F0A",
-      "panel": "#21150E",
-      "card": "#2E1D13",
-      "raised": "#3A2619",
-      "primary": "#C08A3D",
-      "primaryHover": "#E0B15C",
-      "copper": "#A45A32",
-      "foreground": "#F5E6C8",
-      "foregroundSecondary": "#E6D2AA",
-      "muted": "#CDBA98",
-      "mutedDeep": "#8D7453",
-      "border": "rgba(192, 138, 61, 0.22)",
-      "borderHover": "rgba(224, 177, 92, 0.34)",
+      "background": "#070713",
+      "backgroundDeep": "#0b0718",
+      "rail": "#0d0617",
+      "panel": "#13081f",
+      "card": "#1b0b2d",
+      "raised": "#24103a",
+      "sunsetGradient": "linear-gradient(135deg, #7357ff 0%, #d84df1 36%, #ff4f81 66%, #ff9542 100%)",
+      "primary": "#eb3fe9",
+      "primaryHover": "#ff9542",
+      "selectedSupport": "#7357ff",
+      "foreground": "#ffffff",
+      "foregroundSecondary": "rgba(255, 255, 255, 0.82)",
+      "muted": "rgba(255, 255, 255, 0.62)",
+      "border": "rgba(255, 255, 255, 0.14)",
+      "borderHover": "rgba(255, 149, 66, 0.30)",
       "success": "#7A9B66",
       "warning": "#D4953C",
       "danger": "#B44732"
     }
   },
   "implementation_status": {
-    "global_tokens": "Mostly implemented in frontend/src/App.css root variables.",
+    "global_tokens": "Protected by the late-loaded responsiveSunsetLayouts.css token lock and app shell rail styles.",
     "known_gaps": [
-      "Some older docs and component-level styles still reference cyber, blue, purple, cyan, or neon treatments.",
-      "Each route should be visually checked at desktop and mobile widths before calling the rebrand complete.",
+      "Some older docs and component-level styles may still reference coffee, velvet, espresso, leather, parchment, brown-tabletop, or one-off colour treatments.",
+      "Each route should be visually checked at desktop, tablet, and mobile widths before calling the rebrand complete.",
       "Screenshots or a preview URL are needed for agent-side visual verification beyond source review."
     ]
   },
   "rules": [
-    "Use a shared sunset shell across player, GM, and character-builder pages.",
-    "Use gold/copper for primary actions and selected states.",
+    "Use a shared dark blue-purple sunset shell across player, GM, and character-builder pages.",
+    "Use the sunset gradient for primary actions and selected states.",
+    "Keep unselected rail and tab states quiet, dark, and readable.",
     "Reserve red for destructive actions and errors.",
-    "Avoid old blue, purple, cyan, and neon glows.",
-    "Prefer sharp, minimal cards with readable cream text."
+    "Avoid coffee, velvet, espresso, leather, parchment, brown-tabletop, candlelit, and rustic theme language.",
+    "Prefer sharp, minimal cards with readable white text."
   ]
 }

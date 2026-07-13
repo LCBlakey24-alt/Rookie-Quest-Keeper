@@ -35,30 +35,29 @@ const rq = {
   muted: 'rgba(255,255,255,0.58)',
 };
 
-export const LIVE_GRID_DEFAULTS = ['overview', 'combat', 'notes', 'player-display'];
+export const LIVE_GRID_DEFAULTS = ['overview', 'combat', 'tables', 'player-display'];
 
 export const LIVE_GRID_TOOLS = [
-  { id: 'overview', label: 'Overview', icon: Target, group: 'Run' },
-  { id: 'combat', label: 'Combat', icon: Swords, group: 'Run' },
-  { id: 'party', label: 'Party', icon: Users, group: 'Run' },
-  { id: 'notes', label: 'Notes', icon: FileText, group: 'Run' },
+  { id: 'overview', label: 'Run Screen', icon: Target, group: 'Run' },
+  { id: 'combat', label: 'Premade Combat', icon: Swords, group: 'Run' },
+  { id: 'tables', label: 'Roll Tables', icon: Compass, group: 'Run' },
+  { id: 'notes', label: 'Session Notes', icon: FileText, group: 'Run' },
+  { id: 'player-display', label: 'Player TV', icon: Monitor, group: 'Run' },
   { id: 'handouts', label: 'Handouts', icon: Mail, group: 'Run' },
-  { id: 'player-display', label: 'Player Display', icon: Monitor, group: 'Run' },
-  { id: 'maps', label: 'Maps', icon: Map, group: 'Table' },
-  { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Table' },
-  { id: 'environment', label: 'Environment', icon: CloudRain, group: 'Table' },
-  { id: 'reference-hub', label: 'Reference', icon: BookOpen, group: 'Reference' },
+  { id: 'party', label: 'Party', icon: Users, group: 'Reference' },
+  { id: 'maps', label: 'Maps', icon: Map, group: 'Reference' },
+  { id: 'npcs', label: 'NPCs', icon: UserCircle, group: 'Reference' },
+  { id: 'environment', label: 'Environment', icon: CloudRain, group: 'Reference' },
+  { id: 'reference-hub', label: 'Rules Reference', icon: BookOpen, group: 'Reference' },
   { id: 'quick-dice', label: 'Quick Dice', icon: Dices, group: 'Reference' },
-  { id: 'monsters', label: 'Monsters', icon: Skull, group: 'Optional' },
-  { id: 'tables', label: 'Random Tables', icon: Compass, group: 'Optional' },
-  { id: 'loot', label: 'Loot', icon: Coins, group: 'Optional' },
+  { id: 'monsters', label: 'Monster Builder', icon: Skull, group: 'Prep' },
+  { id: 'loot', label: 'Loot', icon: Coins, group: 'Prep' },
 ];
 
 const TOOL_GROUPS = [
-  { id: 'Run', label: 'Run Session' },
-  { id: 'Table', label: 'Table Tools' },
-  { id: 'Reference', label: 'Quick Reference' },
-  { id: 'Optional', label: 'Optional' },
+  { id: 'Run', label: 'Use During Play' },
+  { id: 'Reference', label: 'Find Information' },
+  { id: 'Prep', label: 'Emergency Prep' },
 ];
 
 function getStoredTool(storageKey) {
@@ -81,7 +80,7 @@ export default function LiveSessionGridMode({
 }) {
   const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
   const [activeTool, setActiveTool] = useState(() => getStoredTool(storageKey));
-  const [expandedGroups, setExpandedGroups] = useState({ Run: true, Table: true, Reference: true, Optional: false });
+  const [expandedGroups, setExpandedGroups] = useState({ Run: true, Reference: true, Prep: false });
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify({ activeTool })); } catch { /* ignore */ }
@@ -104,7 +103,7 @@ export default function LiveSessionGridMode({
       <aside style={sideBarStyle} aria-label="Live Play tools">
         <div style={sideHeaderStyle}>
           <p style={eyebrowStyle}>Live Tools</p>
-          <strong style={sideTitleStyle}>GM Screen</strong>
+          <strong style={sideTitleStyle}>Use, don't build</strong>
         </div>
         {TOOL_GROUPS.map(group => {
           const isExpanded = Boolean(expandedGroups[group.id]);
@@ -135,7 +134,7 @@ export default function LiveSessionGridMode({
           <div style={toolTitleWrapStyle}>
             <span style={toolIconStyle}><ActiveIcon size={19} /></span>
             <div style={{ minWidth: 0 }}>
-              <p style={eyebrowStyle}>{active.group}</p>
+              <p style={eyebrowStyle}>{active.group === 'Run' ? 'Live use' : active.group}</p>
               <h2 style={toolTitleStyle}>{active.label}</h2>
             </div>
           </div>
@@ -155,19 +154,19 @@ export default function LiveSessionGridMode({
 
 function LiveOverview({ onSelect }) {
   const cards = [
-    { id: 'combat', title: 'Run Combat', text: 'Open encounters, initiative, and fight tools.', icon: Swords },
-    { id: 'notes', title: 'Capture Notes', text: 'Save rulings, choices, clues, loot, and consequences.', icon: FileText },
-    { id: 'handouts', title: 'Reveal Handouts', text: 'Send secrets, lore, letters, and clues to players.', icon: Mail },
-    { id: 'player-display', title: 'Control TV Display', text: 'Choose what appears on the extended player screen.', icon: Monitor },
-    { id: 'party', title: 'Check Party', text: 'See players and table status quickly.', icon: Users },
-    { id: 'reference-hub', title: 'Rules Reference', text: 'Look up quick table references without leaving live mode.', icon: BookOpen },
+    { id: 'combat', title: 'Premade Combat', text: 'Open saved encounters and start fights quickly.', icon: Swords },
+    { id: 'tables', title: 'Roll Tables', text: 'Roll travel, fey quirks, random encounters, or your own d20 tables.', icon: Compass },
+    { id: 'player-display', title: 'Player TV', text: 'Control exactly what the players see on the extended screen.', icon: Monitor },
+    { id: 'notes', title: 'Session Notes', text: 'Capture rulings, choices, clues, loot, and consequences.', icon: FileText },
+    { id: 'handouts', title: 'Handouts', text: 'Reveal letters, images, clues, secrets, and lore when ready.', icon: Mail },
+    { id: 'reference-hub', title: 'Find Rules', text: 'Look up references without leaving live mode.', icon: BookOpen },
   ];
   return (
     <div style={overviewStyle}>
       <section style={overviewHeroStyle}>
         <p style={eyebrowStyle}>Run flow</p>
-        <h3 style={overviewTitleStyle}>Pick the tool you need, keep the table moving.</h3>
-        <p style={overviewTextStyle}>Live Play now works like the GM dashboard: one focused workspace, a left tool menu, and a slim quick rail for dice and fast references.</p>
+        <h3 style={overviewTitleStyle}>Live mode is for finding and using your prep.</h3>
+        <p style={overviewTextStyle}>Keep creation in prep where possible. During the session, jump to combat, roll tables, notes, handouts, and the player TV display.</p>
       </section>
       <section style={overviewGridStyle}>
         {cards.map(card => {
@@ -207,8 +206,8 @@ function QuickRail({ onRollDice, onSelect, activeTool }) {
         <p style={railLabelStyle}>Fast Switch</p>
         {[
           ['combat', 'Combat'],
+          ['tables', 'Tables'],
           ['notes', 'Notes'],
-          ['handouts', 'Handouts'],
           ['player-display', 'TV Display'],
         ].map(([id, label]) => (
           <button key={id} type="button" onClick={() => onSelect(id)} style={railLinkStyle(activeTool === id)}>{label}</button>
@@ -217,7 +216,7 @@ function QuickRail({ onRollDice, onSelect, activeTool }) {
 
       <section style={railBoxStyle}>
         <p style={railLabelStyle}>Table Rule</p>
-        <p style={railTextStyle}>During play, use the fewest tools possible: combat, notes, handouts, and player display should do most of the heavy lifting.</p>
+        <p style={railTextStyle}>Live mode should help you use what already exists: premade combat, notes, roll tables, maps, NPCs, and the player display.</p>
       </section>
     </div>
   );
