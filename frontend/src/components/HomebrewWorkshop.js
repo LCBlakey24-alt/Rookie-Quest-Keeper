@@ -54,12 +54,13 @@ const EMPTY_DRAFTS = {
   race: { name: '', image_url: '', description: '', size: 'Medium', speed: 30, ability_bonuses: {}, traits: [], languages: [], subraces: [], ...ADVANCED },
   class: { name: '', image_url: '', description: '', hit_die: 'd8', primary_ability: '', saving_throw_proficiencies: [], armor_proficiencies: [], weapon_proficiencies: [], tool_proficiencies: [], skill_choices: {}, equipment: [], subclass_unlock_levels: [], features: [], ...ADVANCED },
   subclass: { name: '', image_url: '', parent_class: '', description: '', subclass_level: 3, features: [], ...ADVANCED },
-  feat: { name: '', image_url: '', description: '', prerequisite: '', repeatable: false, ability_score_increase: {}, benefits: [], ...ADVANCED },
+  feat: { name: '', image_url: '', description: '', category: 'general', prerequisite: '', repeatable: false, ability_score_increase: {}, benefits: [], ...ADVANCED },
   spell: { name: '', image_url: '', description: '', level: 0, school: '', casting_time: '', range: '', components: '', duration: '', ritual: false, concentration: false, classes: [], damage: {}, higher_level: '', effects: [], ...ADVANCED },
   background: { name: '', image_url: '', description: '', skill_proficiencies: [], tool_proficiencies: [], languages: 0, equipment: [], feature_name: '', feature_description: '', suggested_characteristics: {}, ...ADVANCED },
 };
 
 const CATEGORIES = ['exploding_dice', 'chaos_tokens', 'custom_skill', 'resting', 'combat', 'magic', 'futuristic', 'other'];
+const FEAT_CATEGORIES = ['origin', 'general', 'epic'];
 const SCHOOLS = ['', 'Abjuration', 'Conjuration', 'Divination', 'Enchantment', 'Evocation', 'Illusion', 'Necromancy', 'Transmutation'];
 
 function asArray(value) { return Array.isArray(value) ? value : []; }
@@ -76,8 +77,13 @@ function namedFromLines(value) {
 function safeJson(value, fallback) { try { return JSON.parse(value); } catch { return fallback; } }
 function typeMeta(type) { return TYPES.find(item => item.key === type) || TYPES[0]; }
 function emptyDraft(type) { return JSON.parse(JSON.stringify(EMPTY_DRAFTS[type] || {})); }
-function normaliseDraft(type, value = {}) { return { ...emptyDraft(type), ...(value || {}), image_url: value?.image_url || value?.image || value?.portrait_url || value?.avatar_url || '' }; }
+function normaliseDraft(type, value = {}) {
+  const draft = { ...emptyDraft(type), ...(value || {}), image_url: value?.image_url || value?.image || value?.portrait_url || value?.avatar_url || '' };
+  if (type === 'feat' && !draft.category) draft.category = 'general';
+  return draft;
+}
 function formatType(type) { return typeMeta(type).label; }
+function formatLibraryChip(value = '') { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()); }
 
 function findMissing(type, draft) {
   const checks = {
@@ -231,7 +237,7 @@ function DraftEditor({ contentType, draft, missing, onChange }) {
 
   if (contentType === 'feat') {
     return <div style={formStackStyle}>{art}
-      <FormGrid><FieldRow label="Name" value={draft.name} onChange={v => upd('name', v)} missing={miss('name')} /><FieldRow label="Prerequisite" value={draft.prerequisite} onChange={v => upd('prerequisite', v)} /><CheckRow label="Repeatable" checked={draft.repeatable} onChange={v => upd('repeatable', v)} /></FormGrid>
+      <FormGrid><FieldRow label="Name" value={draft.name} onChange={v => upd('name', v)} missing={miss('name')} /><SelectRow label="Feat Category" value={draft.category || 'general'} onChange={v => upd('category', v)} options={FEAT_CATEGORIES} /><FieldRow label="Prerequisite" value={draft.prerequisite} onChange={v => upd('prerequisite', v)} /><CheckRow label="Repeatable" checked={draft.repeatable} onChange={v => upd('repeatable', v)} /></FormGrid>
       <FieldRow label="Description" value={draft.description} onChange={v => upd('description', v)} multiline missing={miss('description')} />
       <FieldRow label="Benefits" value={toLines(draft.benefits)} onChange={v => upd('benefits', namedFromLines(v))} multiline missing={miss('benefits')} />
       <JsonField label="Ability Score Increase JSON" value={draft.ability_score_increase || {}} onChange={v => upd('ability_score_increase', v)} placeholder='{"choose":1,"from":["strength","dexterity"],"amount":1}' />
@@ -482,7 +488,12 @@ export default function HomebrewWorkshop() {
 
 function LibraryCard({ item, onEdit, onDelete }) {
   const img = item.image_url || item.image || item.portrait_url || item.avatar_url || '';
-  return <article style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong><p>{item.summary || item.description || item.role || item.creature_type || item.category || item.school || item.prerequisite || 'No description yet.'}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
+  const chips = [item.category, item.school, item.rarity, item.role || item.combat_role, item.creature_type]
+    .filter(Boolean)
+    .map(formatLibraryChip)
+    .slice(0, 3);
+  const summary = item.summary || item.description || item.prerequisite || item.feature_description || item.rule_text || 'No description yet.';
+  return <article style={libraryCardStyle}>{img && <img src={img} alt="" style={libraryImageStyle} />}<div><strong>{item.name || 'Untitled'}</strong>{chips.length > 0 && <div style={libraryBadgeRowStyle}>{chips.map(chip => <span key={chip} style={libraryBadgeStyle}>{chip}</span>)}</div>}<p>{summary}</p><small>{item.visibility || 'private'} · {item.edition || '2014'}</small></div><div style={cardActionsStyle}><button type="button" onClick={onEdit} style={smallButtonStyle}>Edit</button><button type="button" onClick={onDelete} style={smallButtonStyle}><Trash2 size={13} /> Delete</button></div></article>;
 }
 
 const pageStyle = { minHeight: '100dvh', background: rq.bg, color: rq.text, fontFamily: fontStack, padding: 'clamp(12px, 2vw, 24px)' };
@@ -522,5 +533,7 @@ const emptyStyle = { color: rq.muted, margin: 0 };
 const libraryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 };
 const libraryCardStyle = { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 10, background: rq.card, border: `1px solid ${rq.line}`, padding: 10, minWidth: 0 };
 const libraryImageStyle = { width: 74, height: 74, objectFit: 'cover', border: `1px solid ${rq.line}` };
+const libraryBadgeRowStyle = { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 };
+const libraryBadgeStyle = { border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '2px 6px', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase' };
 const cardActionsStyle = { gridColumn: '1 / -1', display: 'flex', gap: 8, justifyContent: 'flex-end' };
 const smallButtonStyle = { ...secondaryButtonStyle, minHeight: 30, padding: '0 9px', fontSize: 12 };

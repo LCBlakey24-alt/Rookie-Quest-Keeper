@@ -67,6 +67,15 @@ const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 const displayName = (value) => typeof value === 'string' ? value : value?.name || value?.title || String(value || '');
 const clampScore = (value) => Math.max(3, Math.min(20, Number(value || 10)));
 const abilityMod = (score = 10) => Math.floor(((Number(score) || 10) - 10) / 2);
+const ABILITY_CONTAINER_KEYS = ['abilityScores', 'abilities', 'scores'];
+const ABILITY_ALIASES = {
+  strength: ['str', 'STR', 'Strength'],
+  dexterity: ['dex', 'DEX', 'Dexterity'],
+  constitution: ['con', 'CON', 'Constitution'],
+  intelligence: ['int', 'INT', 'Intelligence'],
+  wisdom: ['wis', 'WIS', 'Wisdom'],
+  charisma: ['cha', 'CHA', 'Charisma'],
+};
 
 function targetFromTable(table = {}, level = 1) {
   const numericLevel = Math.max(1, Number(level || 1));
@@ -88,11 +97,48 @@ function spellEntry(spell, fallbackLevel = 1) {
   return { name: String(spell || ''), level: fallbackLevel, description: '' };
 }
 
+function hasOwn(source = {}, key) {
+  return Object.prototype.hasOwnProperty.call(source || {}, key);
+}
+
+function abilityAliases(ability) {
+  const key = String(ability || '').toLowerCase();
+  const canonical = Object.entries(ABILITY_ALIASES)
+    .find(([name, aliases]) => name === key || aliases.map((alias) => String(alias).toLowerCase()).includes(key))?.[0] || key;
+  return [canonical, ...(ABILITY_ALIASES[canonical] || [])];
+}
+
+function findAbilityKey(source = {}, ability) {
+  const aliases = abilityAliases(ability);
+  const exact = aliases.find((alias) => hasOwn(source, alias));
+  if (exact) return exact;
+  const aliasKeys = new Set(aliases.map((alias) => String(alias).toLowerCase()));
+  return Object.keys(source || {}).find((key) => aliasKeys.has(String(key).toLowerCase())) || '';
+}
+
+function rawScoreValue(value) {
+  return value && typeof value === 'object' ? value.score : value;
+}
+
+function scoreFromValue(value) {
+  const numeric = Number(rawScoreValue(value));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 10;
+}
+
+function readAbilityScore(source = {}, ability) {
+  const directKey = findAbilityKey(source, ability);
+  if (directKey) return scoreFromValue(source[directKey]);
+  const containerKey = ABILITY_CONTAINER_KEYS.find((key) => source?.[key] && findAbilityKey(source[key], ability));
+  if (!containerKey) return 10;
+  const abilityKey = findAbilityKey(source[containerKey], ability);
+  return abilityKey ? scoreFromValue(source[containerKey][abilityKey]) : 10;
+}
+
 function preparedSpellTarget({ className, level = 1, abilities = {} } = {}) {
   const classInfo = SPELLCASTING_CLASSES[className];
   if (!classInfo || classInfo.type !== 'prepared') return 0;
   const numericLevel = Math.max(1, Number(level || 1));
-  const abilityScore = Number(abilities?.[classInfo.ability] || abilities?.abilityScores?.[classInfo.ability] || 10);
+  const abilityScore = readAbilityScore(abilities, classInfo.ability);
   const baseLevel = classInfo.halfCaster ? Math.max(1, Math.floor(numericLevel / 2)) : numericLevel;
   return Math.max(1, baseLevel + abilityMod(abilityScore));
 }
@@ -128,6 +174,38 @@ function clearFields(target, fields = []) {
   fields.forEach((field) => {
     delete target[field];
   });
+}
+
+function readPayloadAbilityScore(target = {}, ability) {
+  return readAbilityScore(target, ability);
+}
+
+function writePayloadAbilityScore(target = {}, ability, score) {
+  let wrote = false;
+  const directKey = findAbilityKey(target, ability);
+  if (directKey) {
+    target[directKey] = score;
+    wrote = true;
+  }
+
+  ABILITY_CONTAINER_KEYS.forEach((containerKey) => {
+    const container = target?.[containerKey];
+    const abilityKey = container ? findAbilityKey(container, ability) : '';
+    if (!container || !abilityKey) return;
+    const current = container[abilityKey];
+    target[containerKey] = {
+      ...container,
+      [abilityKey]: current && typeof current === 'object' ? { ...current, score } : score,
+    };
+    wrote = true;
+  });
+
+  if (!wrote) target[ability] = score;
+}
+
+function increasePayloadAbilityScore(target = {}, ability, amount = 1) {
+  const nextScore = clampScore(readPayloadAbilityScore(target, ability) + amount);
+  writePayloadAbilityScore(target, ability, nextScore);
 }
 
 export function getClassSpecificChoicePlan({ className, level = 1 } = {}) {
@@ -309,8 +387,7 @@ export function applyStartingLevelChoicesToPayload(payload, selections = {}, fea
     }
 
     [selection.abilityOne, selection.abilityTwo].filter(Boolean).forEach((ability) => {
-      if (next[ability] === undefined) return;
-      next[ability] = clampScore(Number(next[ability] || 10) + 1);
+      increasePayloadAbilityScore(next, ability, 1);
     });
   });
 

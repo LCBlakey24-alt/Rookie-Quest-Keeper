@@ -26,6 +26,7 @@ import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
 import LivePlayerDisplayControls from '@/components/gm/LivePlayerDisplayControls';
 import EndSessionReviewModal from '@/components/gm/EndSessionReviewModal';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
+import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
 import LiveRollTablesPanel from '@/components/gm/LiveRollTablesPanel';
 import MapsTab from '@/components/tabs/MapsTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
@@ -274,6 +275,7 @@ export default function LiveSessionGridPage() {
         </header>
 
         <LiveStoryFocusPanel campaignId={campaignId} />
+        <GroupCheckRequestPanel campaignId={campaignId} players={players} />
         <section style={gridShellStyle}><LiveSessionGridMode campaignId={campaignId} theme={theme} renderTool={renderTool} onOpenSingleTab={handleLiveToolOpen} onRollDice={rollQuickDice} refreshKey={sessionRefreshKey} /></section>
 
         <DiceRollFlicker show={showDiceFlicker} rolls={diceRolls} label={diceLabel} modifier={diceModifier} total={diceTotal} animationValue={diceAnimationValue} isCrit={diceCrit} isFumble={diceFumble} theme="gm" onComplete={() => setShowDiceFlicker(false)} />

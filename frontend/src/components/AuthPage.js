@@ -84,6 +84,13 @@ const NEXT_STEPS = {
   reset: ['Set new password', 'Sign back in', 'Continue the quest'],
 };
 
+const SUBMIT_STATUS = {
+  login: 'Opening your Rookie Quest Keeper dashboard.',
+  register: 'Creating your keeper account.',
+  forgot: 'Sending password reset instructions.',
+  reset: 'Saving your new password.',
+};
+
 const MODE_ASSURANCE = {
   login: {
     label: 'Keeper note',
@@ -324,6 +331,7 @@ export default function AuthPage({ onLogin = () => {} }) {
   const copy = AUTH_COPY[mode] || AUTH_COPY.login;
   const assurance = MODE_ASSURANCE[mode] || MODE_ASSURANCE.login;
   const nextSteps = NEXT_STEPS[mode] || NEXT_STEPS.login;
+  const submitStatus = SUBMIT_STATUS[mode] || SUBMIT_STATUS.login;
   const showCredentialToggle = mode === 'login' || mode === 'register';
   const registerPasswordChecks = getPasswordChecks(registerData.password);
   const registerPasswordStrength = getPasswordStrength(registerPasswordChecks, registerData.password);
@@ -445,6 +453,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 id={AUTH_PANEL_IDS.login}
                 role="tabpanel"
                 aria-labelledby={AUTH_TAB_IDS.login}
+                aria-busy={loading ? 'true' : undefined}
                 onSubmit={handleLogin}
                 className="rqk-auth-form"
               >
@@ -458,7 +467,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={loginData.username}
                   onChange={(value) => setLoginData({ ...loginData, username: value })}
                   autoComplete="username"
+                  enterKeyHint="next"
                   testId="login-username"
+                  disabled={loading}
                   required
                 />
 
@@ -472,19 +483,24 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={loginData.password}
                   onChange={(value) => setLoginData({ ...loginData, password: value })}
                   autoComplete="current-password"
+                  enterKeyHint="go"
                   testId="login-password"
+                  disabled={loading}
                   required
                   rightAction={
                     <IconButton
                       label={showLoginPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowLoginPassword(prev => !prev)}
                       icon={showLoginPassword ? EyeOff : Eye}
+                      pressed={showLoginPassword}
+                      controls="login-password"
+                      disabled={loading}
                     />
                   }
                 />
 
                 <div className="rqk-auth-form-options">
-                  <button type="button" onClick={() => goToMode('forgot')} className="rqk-auth-link-button">
+                  <button type="button" onClick={() => goToMode('forgot')} className="rqk-auth-link-button" disabled={loading}>
                     Forgot password?
                   </button>
                 </div>
@@ -492,6 +508,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 <PrimaryButton type="submit" disabled={loading} loading={loading} testId="login-btn">
                   {loading ? 'Opening dashboard...' : 'Open dashboard'}
                 </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
                 <AuthSwitch text="New here?" actionText="Create an account" onClick={() => goToMode('register')} disabled={loading} />
               </form>
@@ -502,6 +519,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 id={AUTH_PANEL_IDS.register}
                 role="tabpanel"
                 aria-labelledby={AUTH_TAB_IDS.register}
+                aria-busy={loading ? 'true' : undefined}
                 onSubmit={handleRegister}
                 className="rqk-auth-form"
               >
@@ -515,7 +533,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.username}
                   onChange={(value) => setRegisterData({ ...registerData, username: value })}
                   autoComplete="username"
+                  enterKeyHint="next"
                   hint="Use a table name or nickname rather than a real name."
+                  disabled={loading}
                   required
                 />
 
@@ -530,7 +550,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={(value) => setRegisterData({ ...registerData, email: value })}
                   autoComplete="email"
                   inputMode="email"
+                  enterKeyHint="next"
                   hint="Optional, but useful if you need a password reset later."
+                  disabled={loading}
                 />
 
                 <AuthInput
@@ -543,7 +565,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.password}
                   onChange={(value) => setRegisterData({ ...registerData, password: value })}
                   autoComplete="new-password"
+                  enterKeyHint="next"
                   describedBy="register-password-readiness"
+                  disabled={loading}
                   minLength={8}
                   required
                   rightAction={
@@ -551,6 +575,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                       label={showRegisterPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowRegisterPassword(prev => !prev)}
                       icon={showRegisterPassword ? EyeOff : Eye}
+                      pressed={showRegisterPassword}
+                      controls="register-password"
+                      disabled={loading}
                     />
                   }
                 />
@@ -567,7 +594,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={registerData.confirmPassword}
                   onChange={(value) => setRegisterData({ ...registerData, confirmPassword: value })}
                   autoComplete="new-password"
+                  enterKeyHint="done"
                   describedBy="register-password-match"
+                  disabled={loading}
                   minLength={8}
                   required
                   ariaInvalid={confirmStatus.tone === 'bad'}
@@ -578,6 +607,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Creating account...' : 'Create account'}
                 </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
                 <AuthSwitch text="Already have an account?" actionText="Sign in" onClick={() => goToMode('login')} disabled={loading} />
               </form>
@@ -587,6 +617,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form
                 id={AUTH_PANEL_IDS.forgot}
                 aria-labelledby="rqk-auth-title"
+                aria-busy={loading ? 'true' : undefined}
                 onSubmit={handleForgotPassword}
                 className="rqk-auth-form"
               >
@@ -601,12 +632,15 @@ export default function AuthPage({ onLogin = () => {} }) {
                   onChange={setForgotEmail}
                   autoComplete="email"
                   inputMode="email"
+                  enterKeyHint="send"
+                  disabled={loading}
                   required
                 />
 
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Sending link...' : 'Send reset link'}
                 </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
 
                 <SecondaryButton type="button" onClick={() => goToMode('login')} disabled={loading}>
                   <ArrowLeft size={16} /> <span>Back to login</span>
@@ -618,6 +652,7 @@ export default function AuthPage({ onLogin = () => {} }) {
               <form
                 id={AUTH_PANEL_IDS.reset}
                 aria-labelledby="rqk-auth-title"
+                aria-busy={loading ? 'true' : undefined}
                 onSubmit={handleResetPassword}
                 className="rqk-auth-form"
               >
@@ -631,7 +666,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                   value={resetData.new_password}
                   onChange={(value) => setResetData({ ...resetData, new_password: value })}
                   autoComplete="new-password"
+                  enterKeyHint="done"
                   describedBy="reset-password-readiness"
+                  disabled={loading}
                   minLength={8}
                   required
                   rightAction={
@@ -639,6 +676,9 @@ export default function AuthPage({ onLogin = () => {} }) {
                       label={showResetPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowResetPassword(prev => !prev)}
                       icon={showResetPassword ? EyeOff : Eye}
+                      pressed={showResetPassword}
+                      controls="reset-password"
+                      disabled={loading}
                     />
                   }
                 />
@@ -648,6 +688,7 @@ export default function AuthPage({ onLogin = () => {} }) {
                 <PrimaryButton type="submit" disabled={loading} loading={loading}>
                   {loading ? 'Resetting password...' : 'Reset password'}
                 </PrimaryButton>
+                <SubmitStatus loading={loading}>{submitStatus}</SubmitStatus>
               </form>
             )}
 
@@ -681,7 +722,7 @@ function AuthAssurancePanel({ label, title, text }) {
   );
 }
 
-function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, hint, describedBy, testId, rightAction, required = false, minLength, ariaInvalid = false }) {
+function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onChange, autoComplete, inputMode, enterKeyHint, hint, describedBy, testId, rightAction, disabled = false, required = false, minLength, ariaInvalid = false }) {
   const hintId = hint ? `${id}-hint` : undefined;
   const describedByIds = [hintId, describedBy].filter(Boolean).join(' ') || undefined;
 
@@ -701,10 +742,12 @@ function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onCh
           autoComplete={autoComplete}
           autoCapitalize="none"
           inputMode={inputMode}
-          spellCheck="false"
+          enterKeyHint={enterKeyHint}
+          spellCheck={false}
           aria-describedby={describedByIds}
           aria-invalid={ariaInvalid ? 'true' : undefined}
           data-testid={testId}
+          disabled={disabled}
           required={required}
           minLength={minLength}
         />
@@ -715,9 +758,18 @@ function AuthInput({ id, name, icon: Icon, label, type, placeholder, value, onCh
   );
 }
 
-function IconButton({ icon: Icon, label, onClick }) {
+function IconButton({ icon: Icon, label, onClick, pressed, controls, disabled = false }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} className="rqk-auth-icon-button">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={typeof pressed === 'boolean' ? pressed : undefined}
+      aria-controls={controls}
+      title={label}
+      className="rqk-auth-icon-button"
+      disabled={disabled}
+    >
       <Icon size={17} />
     </button>
   );
@@ -725,7 +777,14 @@ function IconButton({ icon: Icon, label, onClick }) {
 
 function PrimaryButton({ children, disabled, loading, type = 'button', testId }) {
   return (
-    <button type={type} disabled={disabled} data-testid={testId} className="rqk-auth-primary" aria-busy={loading ? 'true' : undefined}>
+    <button
+      type={type}
+      disabled={disabled}
+      data-testid={testId}
+      className="rqk-auth-primary"
+      aria-busy={loading ? 'true' : undefined}
+      aria-disabled={disabled ? 'true' : undefined}
+    >
       {loading && <span className="rqk-auth-button-spinner" aria-hidden="true" />}
       <span>{children}</span>
     </button>
@@ -734,7 +793,7 @@ function PrimaryButton({ children, disabled, loading, type = 'button', testId })
 
 function SecondaryButton({ children, onClick, disabled, type = 'button' }) {
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className="rqk-auth-secondary">
+    <button type={type} onClick={onClick} disabled={disabled} aria-disabled={disabled ? 'true' : undefined} className="rqk-auth-secondary">
       {children}
     </button>
   );
@@ -744,10 +803,18 @@ function AuthSwitch({ text, actionText, onClick, disabled }) {
   return (
     <div className="rqk-auth-switch">
       <span>{text}</span>
-      <button type="button" onClick={onClick} disabled={disabled} className="rqk-auth-switch-button">
+      <button type="button" onClick={onClick} disabled={disabled} aria-disabled={disabled ? 'true' : undefined} className="rqk-auth-switch-button">
         {actionText}
       </button>
     </div>
+  );
+}
+
+function SubmitStatus({ loading, children }) {
+  return (
+    <p className="rqk-auth-submit-status" role="status" aria-live="polite">
+      {loading ? children : ''}
+    </p>
   );
 }
 

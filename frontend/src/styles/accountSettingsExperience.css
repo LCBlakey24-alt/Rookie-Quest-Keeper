@@ -1,0 +1,232 @@
+/* Account Settings experience polish.
+   Route-specific styling for the logged-in settings page without touching account logic. */
+
+#root .account-settings-page {
+  width: min(100%, 1320px) !important;
+  margin-inline: auto !important;
+  min-height: 100dvh !important;
+  padding: clamp(12px, 2.4vw, 24px) !important;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(235,63,233,0.14), transparent 34%),
+    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.14), transparent 38%),
+    linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .account-settings-container {
+  max-width: 960px !important;
+  display: grid !important;
+  gap: clamp(12px, 1.8vw, 18px) !important;
+}
+
+#root .account-settings-header,
+#root .account-settings-panel {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  box-shadow: none !important;
+}
+
+#root .account-settings-header::before,
+#root .account-settings-panel::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  opacity: 0.9 !important;
+}
+
+#root .account-settings-header {
+  min-height: 170px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: clamp(16px, 3vw, 26px) !important;
+  margin-bottom: 0 !important;
+}
+
+#root .account-settings-header h1 {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(2.25rem, 5vw, 3.8rem) !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+#root .account-settings-header p {
+  max-width: 62ch !important;
+  color: rgba(255,248,239,0.72) !important;
+  font-size: clamp(0.98rem, 1.6vw, 1.08rem) !important;
+}
+
+#root .account-settings-back,
+#root .account-settings-primary,
+#root .account-settings-danger-button,
+#root .account-settings-page button {
+  min-height: 42px !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  box-shadow: none !important;
+  font-weight: 950 !important;
+}
+
+#root .account-settings-back {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255,248,239,0.14) !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .account-settings-panel {
+  display: grid !important;
+  gap: 14px !important;
+  padding: clamp(16px, 2.8vw, 24px) !important;
+  margin-bottom: 0 !important;
+}
+
+#root .account-settings-panel h2 {
+  margin: 0 !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.45rem, 3vw, 2.1rem) !important;
+  line-height: 1 !important;
+}
+
+#root .account-settings-panel form > div,
+#root .account-settings-panel form > div > div {
+  min-width: 0 !important;
+}
+
+#root .account-settings-panel label {
+  color: rgba(255,248,239,0.78) !important;
+  font-size: 0.76rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .account-settings-panel label svg,
+#root .account-settings-panel > div:first-child svg {
+  color: rgba(255,149,66,0.95) !important;
+}
+
+#root .account-settings-panel input {
+  min-height: 44px !important;
+  border: 1px solid rgba(255,248,239,0.15) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.62) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  box-shadow: none !important;
+}
+
+#root .account-settings-panel input:focus {
+  border-color: rgba(255,149,66,0.58) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255,149,66,0.1) !important;
+}
+
+#root .account-settings-panel input:disabled,
+#root .account-settings-panel input[readonly] {
+  opacity: 0.78 !important;
+  cursor: not-allowed !important;
+  background: rgba(7,7,19,0.38) !important;
+}
+
+#root .account-settings-panel p {
+  color: rgba(255,248,239,0.66) !important;
+}
+
+#root .account-settings-primary {
+  width: fit-content !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,248,239,0.16) !important;
+}
+
+#root .account-password-wrap input {
+  padding-right: 48px !important;
+}
+
+#root .account-password-toggle {
+  width: 36px !important;
+  height: 36px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(255,248,239,0.12) !important;
+  border-radius: 12px !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.82) !important;
+}
+
+#root .account-settings-danger {
+  border-color: rgba(255,79,129,0.46) !important;
+  background:
+    linear-gradient(rgba(39,10,26,0.96), rgba(28,8,24,0.96)) padding-box,
+    linear-gradient(135deg, rgba(255,79,129,0.9), rgba(255,149,66,0.65)) border-box !important;
+}
+
+#root .account-settings-danger::before {
+  background: linear-gradient(135deg, rgba(255,79,129,0.95), rgba(255,149,66,0.8)) !important;
+}
+
+#root .account-settings-danger h2,
+#root .account-settings-danger label,
+#root .account-settings-danger p:first-of-type {
+  color: #ffd7df !important;
+}
+
+#root .account-settings-danger-button {
+  width: fit-content !important;
+  border: 1px solid rgba(255,112,144,0.58) !important;
+  background: rgba(255,79,129,0.12) !important;
+  color: #ffd7df !important;
+}
+
+#root .account-settings-danger-button:hover,
+#root .account-settings-danger-button:focus-visible,
+#root .account-settings-primary:hover,
+#root .account-settings-primary:focus-visible,
+#root .account-settings-back:hover,
+#root .account-settings-back:focus-visible,
+#root .account-password-toggle:hover,
+#root .account-password-toggle:focus-visible {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+  outline: none !important;
+}
+
+#root .account-settings-danger [style*="rgba(0, 0, 0, 0.3)"] {
+  border: 1px solid rgba(255,112,144,0.32) !important;
+  border-radius: var(--rq-inner-radius, 8px) !important;
+  background: rgba(7,7,19,0.42) !important;
+}
+
+@media (max-width: 760px) {
+  #root .account-settings-page {
+    padding: 12px !important;
+  }
+
+  #root .account-settings-header {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  #root .account-settings-back {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  #root .account-settings-primary,
+  #root .account-settings-danger-button,
+  #root .account-settings-page button {
+    width: 100% !important;
+  }
+}

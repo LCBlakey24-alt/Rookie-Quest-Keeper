@@ -67,7 +67,7 @@ export default function AdminAuditLogTab() {
           <h2 style={titleStyle}><ShieldCheck size={20} /> Admin Audit Log</h2>
           <p style={subtitleStyle}>A running receipt book for important admin actions. Future you deserves fewer “what did I press?” moments.</p>
         </div>
-        <button type="button" onClick={load} style={buttonStyle}><RefreshCw size={14} /> Refresh</button>
+        <button type="button" onClick={load} disabled={loading} style={busyButtonStyle(loading)} aria-busy={loading ? 'true' : 'false'}><RefreshCw size={14} style={loading ? auditSpinStyle : undefined} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
       </div>
 
       <div style={metricsStyle}>
@@ -92,7 +92,7 @@ export default function AdminAuditLogTab() {
       </div>
 
       {loading ? (
-        <div style={emptyStyle}>Loading audit log...</div>
+        <AdminAuditLoading />
       ) : filtered.length === 0 ? (
         <div style={emptyStyle}>No audit entries found yet.</div>
       ) : (
@@ -117,6 +117,17 @@ export default function AdminAuditLogTab() {
           ))}
         </div>
       )}
+      <style>{auditLogCss}</style>
+    </div>
+  );
+}
+
+function AdminAuditLoading() {
+  return (
+    <div style={auditLoadingStyle} role="status" aria-live="polite" aria-busy="true">
+      <span style={auditLoadingSpinnerStyle} aria-hidden="true" />
+      <strong>Loading admin audit log…</strong>
+      <span style={auditLoadingTextStyle}>Checking recent feedback moves, testing notes, site updates, reviews, and owner actions.</span>
     </div>
   );
 }
@@ -158,3 +169,18 @@ const badgeRowStyle = { display: 'flex', alignItems: 'center', gap: 6, flexWrap:
 const badgeStyle = { fontSize: 10, fontWeight: 900, textTransform: 'uppercase', border: `1px solid ${rq.borderDefault}`, borderRadius: rq.radiusSm, padding: '2px 7px', background: rq.panel, color: rq.textSecondary };
 const detailStyle = { color: rq.textSecondary, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', margin: '10px 0 0' };
 const idStyle = { color: rq.muted, fontSize: 11, margin: '8px 0 0', wordBreak: 'break-all' };
+const auditSpinStyle = { animation: 'rqAdminAuditSpin 0.9s linear infinite' };
+const auditLoadingStyle = { minHeight: 184, display: 'grid', placeItems: 'center', gap: 10, textAlign: 'center', color: rq.text, padding: 28, background: 'linear-gradient(145deg, rgba(33, 21, 14, 0.92), rgba(58, 38, 25, 0.84))', border: `1px solid ${rq.border}`, borderLeft: `5px solid ${rq.accent}`, borderRadius: rq.radius, boxShadow: '0 16px 44px rgba(0,0,0,0.22)' };
+const auditLoadingSpinnerStyle = { width: 42, height: 42, borderRadius: '50%', backgroundImage: 'conic-gradient(from 0deg, var(--rq-primary-hover, #e0b15c), rgba(192, 138, 61, 0.18), rgba(255, 248, 239, 0.2), var(--rq-primary-hover, #e0b15c))', WebkitMask: 'radial-gradient(circle, transparent 42%, #000 44%)', mask: 'radial-gradient(circle, transparent 42%, #000 44%)', animation: 'rqAdminAuditSpin 0.9s linear infinite' };
+const auditLoadingTextStyle = { color: rq.muted, fontSize: 13, lineHeight: 1.45, maxWidth: 420 };
+const auditLogCss = `
+  @keyframes rqAdminAuditSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [data-testid="admin-audit-log-tab"] svg,
+    [data-testid="admin-audit-log-tab"] span[aria-hidden="true"] { animation: none !important; }
+  }
+`;
+
+function busyButtonStyle(isBusy) {
+  return { ...buttonStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}

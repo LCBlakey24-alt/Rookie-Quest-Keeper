@@ -7,6 +7,9 @@ const toArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
 const firstArray = (...values) => values.find(value => toArray(value).length) || [];
 const oneOrArray = (value) => value ? (Array.isArray(value) ? value : [value]) : [];
 const titleFromKey = (value = '') => String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+const normaliseResourceKey = (value = '') => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const singularResourceKey = (value = '') => normaliseResourceKey(value).replace(/s\b/g, '');
+const isBlankValue = (value) => value === null || value === undefined || value === '' || value === false;
 
 function mergeFeatures(snapshotFeatures = [], legacyFeatures = []) {
   const seen = new Set();
@@ -119,15 +122,46 @@ function savedResourceCards(character = {}) {
   return cards;
 }
 
+export function resourceDedupeKey(resource = {}) {
+  const readable = resource.label || resource.name || resource.raw?.label || resource.raw?.name || resource.key || resource.fieldKey;
+  const source = resource.className || resource.source || resource.raw?.source || '';
+  return `${singularResourceKey(readable)}-${normaliseResourceKey(source)}`;
+}
+
+export function formatActionCost(value) {
+  if (isBlankValue(value)) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(formatActionCost).filter(Boolean).join(' • ');
+  if (typeof value === 'object') {
+    const resourceName = value.resource || value.resource_name || value.resourceName || value.resource_key || value.resourceKey || value.key || value.name || value.label;
+    const amount = Number(value.amount ?? value.cost ?? value.value ?? value.uses ?? 0);
+    if (resourceName && amount) return `${amount} ${resourceName}`;
+    if (resourceName) return String(resourceName);
+    const entries = Object.entries(value).filter(([, entryValue]) => !isBlankValue(entryValue));
+    if (entries.length === 1) {
+      const [[key, entryValue]] = entries;
+      return Number(entryValue) > 0 ? `${entryValue} ${titleFromKey(key)}` : `${titleFromKey(key)}: ${formatActionCost(entryValue)}`;
+    }
+    return entries.map(([key, entryValue]) => `${titleFromKey(key)}: ${formatActionCost(entryValue)}`).filter(Boolean).join(' • ');
+  }
+  return '';
+}
+
 function sheetActionCards(character = {}) {
-  return toArray(character.homebrew_actions || character.sheet_actions || character.custom_actions).map((action, index) => ({
-    key: action.id || action.key || `${action.name || action.title || 'action'}-${index}`,
-    name: action.name || action.title || `Homebrew Action ${index + 1}`,
-    type: action.action_type || action.type || action.timing || 'Action',
-    cost: action.cost || action.resource_cost || action.uses || '',
-    source: action.source || 'Homebrew',
-    description: action.description || action.rules_text || action.text || '',
-  }));
+  return toArray(character.homebrew_actions || character.sheet_actions || character.custom_actions).map((action, index) => {
+    const rawCost = action.cost || action.resource_cost || action.uses || '';
+    return {
+      key: action.id || action.key || `${action.name || action.title || 'action'}-${index}`,
+      name: action.name || action.title || `Homebrew Action ${index + 1}`,
+      type: action.action_type || action.type || action.timing || 'Action',
+      cost: formatActionCost(rawCost),
+      resourceCost: action.resource_cost || action.resourceCost || action.cost_resource || action.costResource || action.cost || '',
+      resourceName: action.resource || action.resource_name || action.resourceName || action.resource_key || action.resourceKey || '',
+      source: action.source || 'Homebrew',
+      description: action.description || action.rules_text || action.text || '',
+      raw: action,
+    };
+  });
 }
 
 function passiveEffectCards(character = {}) {
@@ -140,34 +174,98 @@ function passiveEffectCards(character = {}) {
   }));
 }
 
+function resourceAliases(resource = {}) {
+  return [
+    resource.key,
+    resource.fieldKey,
+    resource.label,
+    resource.name,
+    resource.raw?.key,
+    resource.raw?.label,
+    resource.raw?.name,
+  ].filter(Boolean).flatMap(value => [normaliseResourceKey(value), singularResourceKey(value)]).filter(Boolean);
+}
+
+function parseResourceCost(action = {}) {
+  const raw = action.resourceCost || action.resource_cost || action.cost || action.raw?.resource_cost || action.raw?.cost;
+  const fallbackName = action.resourceName || action.raw?.resource || action.raw?.resource_name || action.raw?.resourceKey || action.raw?.resource_key;
+
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const explicitName = raw.resource || raw.resource_name || raw.resourceName || raw.resource_key || raw.resourceKey || raw.key || raw.name || raw.label || fallbackName;
+    const amount = Number(raw.amount ?? raw.cost ?? raw.value ?? raw.uses ?? 1) || 1;
+    if (explicitName) return { amount, resourceName: explicitName };
+    const [name, value] = Object.entries(raw).find(([, entryValue]) => Number(entryValue) > 0) || [];
+    if (name) return { amount: Number(value) || 1, resourceName: name };
+  }
+
+  if (Number(raw) > 0) return { amount: Number(raw), resourceName: fallbackName };
+
+  const text = [raw, fallbackName, action.description].filter(Boolean).join(' ');
+  const match = String(text || '').match(/(?:cost|spend|use|consume)?\s*(\d+)\s+([a-z][a-z0-9 '\-_]+?)(?:[,.]|$)/i);
+  if (match) return { amount: Number(match[1]) || 1, resourceName: match[2].trim() };
+
+  return fallbackName ? { amount: 1, resourceName: fallbackName } : null;
+}
+
+export function resolveActionResourceCost(action = {}, resources = []) {
+  const parsed = parseResourceCost(action);
+  if (!parsed) return null;
+  const requested = normaliseResourceKey(parsed.resourceName);
+  const requestedSingular = singularResourceKey(parsed.resourceName);
+  const actionText = normaliseResourceKey([action.name, action.cost, action.description].filter(Boolean).join(' '));
+  const actionTextSingular = singularResourceKey(actionText);
+
+  const resource = toArray(resources).find(candidate => {
+    const aliases = resourceAliases(candidate);
+    if (requested && aliases.includes(requested)) return true;
+    if (requestedSingular && aliases.includes(requestedSingular)) return true;
+    return aliases.some(alias => alias && (actionText.includes(alias) || actionTextSingular.includes(alias)));
+  });
+
+  if (!resource) return null;
+  return {
+    resource,
+    amount: Math.max(1, Number(parsed.amount || 1)),
+  };
+}
+
+function buildResourcePatch(resource, nextValue) {
+  if (resource.field) return { [resource.field]: nextValue };
+  if (resource.nestedField) return { [resource.nestedField]: { ...(resource.raw || {}), remaining: nextValue } };
+  if (resource.fieldKey) {
+    return {
+      resources: {
+        ...(resource.resourceMap || {}),
+        [resource.fieldKey]: {
+          ...(resource.raw || {}),
+          current: nextValue,
+          remaining: nextValue,
+          max: Number(resource.max || 0),
+        },
+      },
+    };
+  }
+  return null;
+}
+
+function canPatchResource(resource = {}) {
+  return Boolean(resource.field || resource.nestedField || resource.fieldKey);
+}
+
 function ResourceCard({ resource, onChange }) {
   const [saving, setSaving] = useState(false);
   const current = Math.max(0, Math.min(Number(resource.max || 0), Number(resource.current || 0)));
   const max = Number(resource.max || 0);
-  const canPatch = Boolean(onChange && (resource.field || resource.nestedField || resource.fieldKey));
+  const canPatch = Boolean(onChange && canPatchResource(resource));
 
   const update = async (delta) => {
     if (!canPatch || saving) return;
     const nextValue = Math.max(0, Math.min(max, current + delta));
     if (nextValue === current) return;
+    const patch = buildResourcePatch(resource, nextValue);
+    if (!patch) return;
     setSaving(true);
-    if (resource.field) {
-      await onChange({ [resource.field]: nextValue }, { error: `Could not update ${resource.label}` });
-    } else if (resource.nestedField) {
-      await onChange({ [resource.nestedField]: { ...(resource.raw || {}), remaining: nextValue } }, { error: `Could not update ${resource.label}` });
-    } else if (resource.fieldKey) {
-      await onChange({
-        resources: {
-          ...(resource.resourceMap || {}),
-          [resource.fieldKey]: {
-            ...(resource.raw || {}),
-            current: nextValue,
-            remaining: nextValue,
-            max,
-          },
-        },
-      }, { error: `Could not update ${resource.label}` });
-    }
+    await onChange(patch, { error: `Could not update ${resource.label}` });
     setSaving(false);
   };
 
@@ -180,6 +278,45 @@ function ResourceCard({ resource, onChange }) {
         <div className="clean-sheet-slot-actions">
           <button type="button" disabled={saving || current <= 0} onClick={() => update(-1)}>Spend</button>
           <button type="button" disabled={saving || current >= max} onClick={() => update(1)}>Restore</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HomebrewActionCard({ action, resources, onChange }) {
+  const [saving, setSaving] = useState(false);
+  const spend = resolveActionResourceCost(action, resources);
+  const resource = spend?.resource;
+  const current = resource ? Math.max(0, Number(resource.current || 0)) : 0;
+  const max = resource ? Number(resource.max || 0) : 0;
+  const canUse = Boolean(onChange && resource && canPatchResource(resource) && current >= spend.amount && !saving);
+
+  const useAction = async () => {
+    if (!canUse) return;
+    const nextValue = Math.max(0, Math.min(max, current - spend.amount));
+    const patch = buildResourcePatch(resource, nextValue);
+    if (!patch) return;
+    setSaving(true);
+    await onChange(patch, { error: `Could not spend ${resource.label || 'resource'}` });
+    setSaving(false);
+  };
+
+  return (
+    <div>
+      <span>{action.type}</span>
+      <strong>{action.name}</strong>
+      {action.cost && <em>{action.cost}</em>}
+      {action.source && <em>{action.source}</em>}
+      {spend && (
+        <em>{resource.label}: {current}/{max} • costs {spend.amount}</em>
+      )}
+      {action.description && <p>{action.description}</p>}
+      {spend && canPatchResource(resource) && (
+        <div className="clean-sheet-slot-actions">
+          <button type="button" disabled={!canUse} onClick={useAction}>
+            Use {spend.amount > 1 ? `(-${spend.amount})` : '(-1)'}
+          </button>
         </div>
       )}
     </div>
@@ -212,7 +349,7 @@ export default function CleanSheetFeaturesTab({
     const merged = [...savedResourceCards(character), ...(snapshot.resources || [])];
     const seen = new Set();
     return merged.filter((resource) => {
-      const key = `${resource.key || resource.label}-${resource.className || ''}`;
+      const key = resourceDedupeKey(resource);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -266,13 +403,12 @@ export default function CleanSheetFeaturesTab({
           </div>
           <div className="clean-sheet-readiness-grid">
             {homebrewActions.map(action => (
-              <div key={action.key}>
-                <span>{action.type}</span>
-                <strong>{action.name}</strong>
-                {action.cost && <em>{action.cost}</em>}
-                {action.source && <em>{action.source}</em>}
-                {action.description && <p>{action.description}</p>}
-              </div>
+              <HomebrewActionCard
+                key={action.key}
+                action={action}
+                resources={resources}
+                onChange={onCharacterUpdate}
+              />
             ))}
           </div>
         </section>

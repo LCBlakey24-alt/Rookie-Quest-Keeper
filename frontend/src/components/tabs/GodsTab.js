@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Edit, Trash2, Loader, Wand2, Check, Church, Search, X, Shield } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import RookFormFillPanel from '@/components/RookFormFillPanel';
 
 const fontStack = 'var(--rq-body-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
@@ -14,6 +15,15 @@ const rq = {
   line: 'rgba(255,255,255,0.16)', lineStrong: 'rgba(255,255,255,0.22)',
   accent: '#d00000', text: '#ffffff', muted: 'rgba(255,255,255,0.62)', soft: 'rgba(255,255,255,0.74)'
 };
+
+const POWER_FORM_FIELDS = [
+  { name: 'name', label: 'Name', type: 'text' },
+  { name: 'domain', label: 'Influence / domain', type: 'text' },
+  { name: 'description', label: 'Description', type: 'textarea' },
+  { name: 'symbol', label: 'Symbol / emblem', type: 'text' },
+  { name: 'alignment', label: 'Stance / alignment', type: 'text' },
+  { name: 'notes', label: 'GM notes', type: 'textarea' },
+];
 
 const emptyForm = { name: '', domain: '', description: '', symbol: '', alignment: '', notes: '' };
 
@@ -50,6 +60,10 @@ function GodsTab({ campaignId }) {
     return sorted.filter(power => [power.name, power.domain, power.description, power.symbol, power.alignment, power.notes]
       .some(value => String(value || '').toLowerCase().includes(query)));
   }, [powers, searchTerm]);
+
+  const applyRookPowerPatch = (patch) => {
+    setFormData(prev => ({ ...prev, ...patch }));
+  };
 
   const resetForm = () => {
     setFormData(emptyForm);
@@ -153,7 +167,15 @@ function GodsTab({ campaignId }) {
         </div>
         <Dialog open={showDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowDialog(open); }}>
           <DialogTrigger asChild><Button data-testid="add-god-btn" style={primaryButtonStyle}><Plus size={18} /> Add Power</Button></DialogTrigger>
-          <PowerDialog editingPower={editingPower} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onCancel={resetForm} />
+          <PowerDialog
+            campaignId={campaignId}
+            editingPower={editingPower}
+            formData={formData}
+            setFormData={setFormData}
+            onApplyRookPatch={applyRookPowerPatch}
+            onSubmit={handleSubmit}
+            onCancel={resetForm}
+          />
         </Dialog>
       </header>
 
@@ -192,10 +214,20 @@ function GodsTab({ campaignId }) {
 
 function Stat({ label, value }) { return <div style={statStyle}><strong style={statValueStyle}>{value}</strong><span style={statLabelStyle}>{label}</span></div>; }
 
-function PowerDialog({ editingPower, formData, setFormData, onSubmit, onCancel }) {
+function PowerDialog({ campaignId, editingPower, formData, setFormData, onApplyRookPatch, onSubmit, onCancel }) {
   return (
     <DialogContent className="modal" style={dialogStyle}>
       <DialogHeader><DialogTitle style={dialogTitleStyle}>{editingPower ? 'Edit Power' : 'Add Power'}</DialogTitle></DialogHeader>
+      <RookFormFillPanel
+        title={editingPower ? 'Ask Rook to improve this power' : 'Ask Rook for a power draft'}
+        helperText="Draft a deity, patron, order, government, noble house, guild, cult, or faction first, then import only the fields you want before saving."
+        section="gm_power_faction"
+        campaignId={campaignId}
+        fields={POWER_FORM_FIELDS}
+        currentValues={formData}
+        onApply={onApplyRookPatch}
+        placeholder="Example: A secretive order that protects forbidden knowledge, with a public symbol, hidden agenda, and two campaign hooks..."
+      />
       <form onSubmit={onSubmit} style={formStyle}>
         <div style={twoColumnStyle}>
           <TextField label="Name" testId="god-name-input" value={formData.name} onChange={(value) => setFormData({ ...formData, name: value })} required />

@@ -25,7 +25,7 @@
 #root .uploads-dashboard-page,
 #root .account-settings-page,
 #root [data-testid="homebrew-workshop"],
-#root .rqk-app-shell-content:has([data-testid^="admin-tab-"]) > div {
+#root .admin-mission-control-page {
   width: 100% !important;
   min-width: 0 !important;
   overflow-x: clip !important;
@@ -44,7 +44,7 @@
 #root .uploads-dashboard-page > *,
 #root .account-settings-container,
 #root [data-testid="homebrew-workshop"] > section,
-#root .rqk-app-shell-content:has([data-testid^="admin-tab-"]) > div > div {
+#root .admin-mission-control-page__container {
   max-width: 1440px !important;
   margin-inline: auto !important;
 }
@@ -54,7 +54,7 @@
 #root [data-testid="homebrew-workshop"] > section,
 #root .account-settings-container,
 #root .unified-dashboard-content,
-#root .rqk-app-shell-content:has([data-testid^="admin-tab-"]) > div > div {
+#root .admin-mission-control-page__container {
   gap: clamp(12px, 1.8vw, 18px) !important;
 }
 
@@ -229,7 +229,7 @@
   #root .uploads-dashboard-page,
   #root .account-settings-page,
   #root [data-testid="homebrew-workshop"],
-  #root .rqk-app-shell-content:has([data-testid^="admin-tab-"]) > div {
+  #root .admin-mission-control-page {
     padding: 10px !important;
   }
 

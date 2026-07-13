@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
+import { DICE_ROLLER_MODES, loadDiceRollerMode, normaliseDiceRollerMode } from '@/lib/diceRollerPreferences';
 import CinematicDiceOverlay from '@/components/CinematicDiceOverlay';
 import './DiceRollFlicker.css';
 
@@ -27,6 +28,7 @@ const palette = {
 };
 
 const CINEMATIC_REVEAL_DELAY = 2300;
+const TWO_D_REVEAL_DELAY = 520;
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 3100;
 
@@ -98,11 +100,13 @@ export default function DiceRollFlicker({
   isCrit = false,
   isFumble = false,
   theme = 'player',
+  rollMode,
 }) {
   const colors = palette[theme] || palette.player;
   const visible = Boolean(isOpen ?? show);
   const onCloseRef = useRef(onClose || onComplete);
   const recordedKeyRef = useRef('');
+  const effectiveRollMode = normaliseDiceRollerMode(rollMode || loadDiceRollerMode());
   const numericTotal = Number(total);
   const numericAnimationValue = Number(animationValue);
   const finalTotal = Number.isFinite(numericTotal) ? numericTotal : Number.isFinite(numericAnimationValue) ? numericAnimationValue : 0;
@@ -198,11 +202,15 @@ export default function DiceRollFlicker({
     setShowTotal(false);
     setFading(false);
 
-    const revealDelay = prefersReducedMotion ? REDUCED_MOTION_REVEAL_DELAY : CINEMATIC_REVEAL_DELAY;
+    const revealDelay = prefersReducedMotion
+      ? REDUCED_MOTION_REVEAL_DELAY
+      : effectiveRollMode === DICE_ROLLER_MODES.TWO_D
+        ? TWO_D_REVEAL_DELAY
+        : CINEMATIC_REVEAL_DELAY;
     const revealTimer = window.setTimeout(() => setShowTotal(true), revealDelay);
 
     return () => window.clearTimeout(revealTimer);
-  }, [visible, dice, finalTotal, prefersReducedMotion]);
+  }, [visible, dice, finalTotal, prefersReducedMotion, effectiveRollMode]);
 
   useEffect(() => {
     if (!visible || !showTotal || typeof window === 'undefined') return undefined;
@@ -244,7 +252,7 @@ export default function DiceRollFlicker({
 
   return createPortal(
     <div
-      className={`rq-dice-flicker rq-dice-flicker--cinematic ${colors.className} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
+      className={`rq-dice-flicker rq-dice-flicker--cinematic ${colors.className} rq-dice-flicker--${effectiveRollMode} ${outcomeClass} ${fading ? 'is-fading' : ''}`}
       role="status"
       aria-live="polite"
       style={{
@@ -265,6 +273,8 @@ export default function DiceRollFlicker({
         isCrit={finalCrit}
         isFumble={finalFumble}
         diceCount={dice.length}
+        rolls={dice}
+        rollMode={effectiveRollMode}
         onRevealNow={() => setShowTotal(true)}
         onClose={closeNow}
       />

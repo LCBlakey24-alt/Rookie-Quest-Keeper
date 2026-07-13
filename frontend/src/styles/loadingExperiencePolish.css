@@ -1,0 +1,165 @@
+/* Loading experience polish.
+   A late layer that brings route, sheet, creator, and legacy loading states into the newer sunset/twilight product language. */
+
+#root .loading-screen,
+#root .clean-sheet-loading {
+  --rq-loading-board-width: min(640px, calc(100vw - 36px));
+  --rq-loading-board-height: 318px;
+  --rq-loading-gap: 12px;
+  --rq-loading-spinner-box: 78px;
+  --rq-loading-wheel: 42px;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(235,63,233,0.16), transparent 34%),
+    radial-gradient(circle at 12% 100%, rgba(255,149,66,0.16), transparent 38%),
+    linear-gradient(180deg, #070713 0%, #0b0718 52%, #100822 100%) !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+}
+
+#root .loading-screen::before,
+#root .clean-sheet-loading::before {
+  border-left: 0 !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.42) !important;
+}
+
+#root .loading-screen::after,
+#root .clean-sheet-loading::after {
+  pointer-events: none !important;
+}
+
+#root .loading-card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#root .loading-card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  height: 3px !important;
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .loading-brand-mark {
+  border-color: rgba(255,248,239,0.16) !important;
+  background: rgba(255,248,239,0.06) !important;
+  color: rgba(255,248,239,0.86) !important;
+}
+
+#root .loading-screen .loading-spinner {
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(rgba(27,11,45,0.96), rgba(27,11,45,0.96)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  box-shadow: 0 0 34px rgba(235,63,233,0.12) !important;
+}
+
+#root .loading-screen .loading-spinner::before,
+#root .clean-sheet-loading::after,
+#root .full-creator-loading::before {
+  background-image: conic-gradient(from 0deg, #7357ff, #d84df1, #ff4f81, #ff9542, #7357ff) !important;
+}
+
+#root .loading-kicker {
+  color: rgba(255,149,66,0.94) !important;
+}
+
+#root .loading-screen .loading-title,
+#root .clean-sheet-loading p:first-of-type {
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  font-family: var(--rq-heading-font, 'Cinzel'), Georgia, serif !important;
+  font-size: clamp(1.7rem, 5vw, 2.45rem) !important;
+}
+
+#root .loading-screen .loading-title::after,
+#root .clean-sheet-loading p:first-of-type::after,
+#root .full-creator-loading::after {
+  background: var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) !important;
+}
+
+#root .loading-screen .loading-tip,
+#root .clean-sheet-loading p:last-of-type {
+  color: rgba(255,248,239,0.7) !important;
+}
+
+#root .route-loading-steps {
+  width: min(390px, 100%) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 4px auto 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+#root .route-loading-steps li {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255,248,239,0.13) !important;
+  border-radius: 999px !important;
+  background: rgba(7,7,19,0.38) !important;
+  color: rgba(255,248,239,0.74) !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#root .route-loading-steps li:nth-child(1) { animation: rqLoadingStepPulse 1.8s ease-in-out infinite; }
+#root .route-loading-steps li:nth-child(2) { animation: rqLoadingStepPulse 1.8s ease-in-out 0.18s infinite; }
+#root .route-loading-steps li:nth-child(3) { animation: rqLoadingStepPulse 1.8s ease-in-out 0.36s infinite; }
+
+#root .full-creator-loading,
+#root [data-testid="custom-creature-manager"] > div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid]),
+#root .gm-dashboard-shell div[style*="text-align: center"][style*="padding: 40px"]:not([data-testid]),
+#root .gm-dashboard-shell p[style*="text-align: center"][style*="padding: 20px"] {
+  border-left: 0 !important;
+  border-radius: var(--rq-radius, 10px) !important;
+  background:
+    linear-gradient(var(--rq-card, #1b0b2d), var(--rq-card, #1b0b2d)) padding-box,
+    var(--rq-sunset-gradient, linear-gradient(135deg, #7357ff, #d84df1, #ff4f81, #ff9542)) border-box !important;
+  color: var(--rq-sunset-cream, #fff8ef) !important;
+  box-shadow: 0 20px 56px rgba(0,0,0,0.28) !important;
+}
+
+#root .full-creator-loading::after {
+  width: min(260px, 62vw) !important;
+}
+
+@keyframes rqLoadingStepPulse {
+  0%, 100% {
+    border-color: rgba(255,248,239,0.13);
+    color: rgba(255,248,239,0.66);
+    background: rgba(7,7,19,0.38);
+  }
+  50% {
+    border-color: rgba(255,149,66,0.42);
+    color: #ffffff;
+    background: rgba(255,149,66,0.13);
+  }
+}
+
+@media (max-width: 560px) {
+  #root .loading-screen,
+  #root .clean-sheet-loading {
+    --rq-loading-board-height: 318px;
+    --rq-loading-spinner-box: 62px;
+    --rq-loading-wheel: 34px;
+  }
+
+  #root .route-loading-steps {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .route-loading-steps li {
+    animation: none !important;
+  }
+}

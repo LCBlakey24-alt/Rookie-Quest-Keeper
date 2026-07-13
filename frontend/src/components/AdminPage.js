@@ -51,6 +51,8 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [overview, setOverview] = useState({ feedback_count: 0, new_feedback_count: 0 });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [reviewBusyId, setReviewBusyId] = useState('');
   const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState(getInitialAdminTab);
 
@@ -80,8 +82,9 @@ function AdminPage() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async ({ background = false } = {}) => {
     try {
+      if (background) setRefreshing(true);
       const [reviewsRes, usersRes, overviewRes] = await Promise.all([
         apiClient.get('/reviews/all').catch(() => ({ data: [] })),
         apiClient.get('/admin/users').catch(() => ({ data: [] })),
@@ -96,6 +99,7 @@ function AdminPage() {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not refresh admin data');
     } finally {
       setLoading(false);
+      if (background) setRefreshing(false);
     }
   };
 
@@ -123,6 +127,7 @@ function AdminPage() {
   const handleToggleReview = async (reviewId) => {
     const review = reviews.find(item => item.id === reviewId);
     try {
+      setReviewBusyId(`toggle-${reviewId}`);
       const response = await apiClient.put(`/reviews/${reviewId}/approve`);
       await logAudit({
         action: response.data?.is_approved ? 'Review shown' : 'Review hidden',
@@ -132,9 +137,11 @@ function AdminPage() {
         detail: review?.comment ? review.comment.slice(0, 300) : '',
       });
       toast.success(response.data.message);
-      fetchData();
+      await fetchData({ background: true });
     } catch (error) {
       toast.error('Failed to update review');
+    } finally {
+      setReviewBusyId('');
     }
   };
 
@@ -142,6 +149,7 @@ function AdminPage() {
     const review = reviews.find(item => item.id === reviewId);
     if (!window.confirm('Delete this review?')) return;
     try {
+      setReviewBusyId(`delete-${reviewId}`);
       await apiClient.delete(`/reviews/${reviewId}`);
       await logAudit({
         action: 'Review deleted',
@@ -151,9 +159,11 @@ function AdminPage() {
         detail: review?.comment ? review.comment.slice(0, 300) : '',
       });
       toast.success('Review deleted');
-      fetchData();
+      await fetchData({ background: true });
     } catch (error) {
       toast.error('Failed to delete review');
+    } finally {
+      setReviewBusyId('');
     }
   };
 
@@ -194,8 +204,8 @@ function AdminPage() {
 
   if (accessDenied) {
     return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
+      <div className="admin-mission-control-page admin-mission-control-page--denied" data-testid="admin-mission-control-page" style={pageStyle}>
+        <div className="admin-mission-control-page__container" style={containerStyle}>
           <div style={adminPanelStyle}>
             <h1 style={adminTitleStyle}><Shield size={28} color={theme.gold} />Admin access check failed</h1>
             <p style={adminSubtitleStyle}>The app could not confirm your admin access. This can happen if the browser drops the auth check for a moment.</p>
@@ -210,9 +220,9 @@ function AdminPage() {
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        <header style={heroStyle}>
+    <div className="admin-mission-control-page" data-testid="admin-mission-control-page" data-active-admin-tab={activeTab} style={pageStyle}>
+      <div className="admin-mission-control-page__container" style={containerStyle}>
+        <header className="admin-mission-control-page__hero" style={heroStyle}>
           <div style={heroMainStyle}>
             <Button onClick={() => navigate('/home')} aria-label="Back to dashboard" style={backButtonStyle}><ArrowLeft size={20} /></Button>
             <div style={{ minWidth: 0 }}>
@@ -222,12 +232,12 @@ function AdminPage() {
             </div>
           </div>
           <div style={heroActionsStyle}>
-            <Button onClick={fetchData} style={secondaryActionStyle}><RefreshCw size={16} />Refresh data</Button>
+            <Button onClick={() => fetchData({ background: true })} disabled={refreshing} style={busySecondaryActionStyle(refreshing)} aria-busy={refreshing ? 'true' : 'false'}>{refreshing ? <RefreshCw size={16} style={adminInlineSpinStyle} /> : <RefreshCw size={16} />}{refreshing ? 'Refreshing…' : 'Refresh data'}</Button>
             <Button onClick={() => setActiveTab('layout')} style={primaryActionStyle}><LayoutDashboard size={16} />Layout Studio</Button>
           </div>
         </header>
 
-        <section style={statsGridStyle} aria-label="Admin overview">
+        <section className="admin-mission-control-page__stats" style={statsGridStyle} aria-label="Admin overview">
           <StatCard label="Users" value={stats.totalUsers} icon={User} />
           <StatCard label="Campaigns" value={stats.campaigns} icon={Map} />
           <StatCard label="Characters" value={stats.characters} icon={PenTool} />
@@ -244,7 +254,7 @@ function AdminPage() {
 
         <AdminMissionBrief onOpenTab={setActiveTab} />
 
-        <section style={missionGridStyle} aria-label="Admin shortcuts and build focus">
+        <section className="admin-mission-control-page__mission-grid" style={missionGridStyle} aria-label="Admin shortcuts and build focus">
           <div style={missionPanelStyle}>
             <div style={sectionHeadingStyle}>
               <p style={eyebrowStyle}>Quick jumps</p>
@@ -266,7 +276,7 @@ function AdminPage() {
           </div>
         </section>
 
-        <section style={activeSummaryStyle} aria-live="polite">
+        <section className="admin-mission-control-page__active-summary" style={activeSummaryStyle} aria-live="polite">
           <div style={{ minWidth: 0 }}>
             <p style={eyebrowStyle}>Current tool</p>
             <h2 style={activeTitleStyle}>{activeTabDetails.short}</h2>
@@ -275,7 +285,7 @@ function AdminPage() {
           <span style={statusPillStyle}><Activity size={14} /> Admin only</span>
         </section>
 
-        <nav style={tabGridStyle} role="tablist" aria-label="Admin sections">
+        <nav className="admin-mission-control-page__tabs" style={tabGridStyle} role="tablist" aria-label="Admin sections">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -300,19 +310,20 @@ function AdminPage() {
           })}
         </nav>
 
-        <section style={contentWrapStyle}>
+        <section className="admin-mission-control-page__content" style={contentWrapStyle}>
           {activeTab === 'testing' && <AdminTestingNotesTab />}
           {activeTab === 'updates' && <AdminSiteUpdatesTab />}
           {activeTab === 'layout' && <AdminLayoutStudioTab />}
           {activeTab === 'audit' && <AdminAuditLogTab />}
           {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
           {activeTab === 'feedback' && <AdminFeedbackTab />}
-          {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
+          {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} busyId={reviewBusyId} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
           {activeTab === 'rules' && <RuleSystemManager />}
-          {activeTab === 'templates' && <div style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}
+          {activeTab === 'templates' && <div className="admin-mission-control-page__templates-panel" style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}
           {activeTab === 'users' && <AdminUsersTab />}
           {activeTab === 'site' && <AdminSiteControlTab />}
         </section>
+        <style>{adminPageCss}</style>
       </div>
     </div>
   );
@@ -359,6 +370,15 @@ const contentWrapStyle = { minWidth: 0, overflow: 'visible' };
 const adminPanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.borderStrong}`, borderRadius: 12, padding: 'clamp(14px, 4vw, 24px)', minWidth: 0, overflow: 'hidden' };
 const shortcutCardStyle = { width: '100%', minHeight: 112, textAlign: 'left', display: 'grid', alignContent: 'start', gap: 8, background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.white, borderRadius: 12, padding: 14, cursor: 'pointer' };
 const focusCardStyle = { width: '100%', minHeight: 130, textAlign: 'left', display: 'grid', alignContent: 'space-between', gap: 10, background: theme.bg.card, border: `1px solid ${theme.border}`, color: theme.text.white, borderRadius: 12, padding: 14, cursor: 'pointer' };
+const adminInlineSpinStyle = { animation: 'rqAdminPageSpin 0.9s linear infinite' };
+const reviewHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 };
+const reviewTitleStyle = { color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 };
+const reviewSubtitleStyle = { color: theme.text.muted, fontSize: 12, margin: '5px 0 0' };
+const reviewCountStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, color: theme.text.white, border: `1px solid ${theme.border}`, background: theme.bg.card, borderRadius: 999, padding: '8px 11px', fontSize: 12, fontWeight: 900 };
+const reviewEmptyStyle = { textAlign: 'center', padding: 60, color: theme.text.muted, background: theme.bg.card, border: `1px dashed ${theme.border}`, borderRadius: 12 };
+const reviewCardBaseStyle = { background: theme.bg.card, borderRadius: 10, padding: '16px 20px' };
+const reviewCardTopStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' };
+const reviewActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 function StatCard({ label, value, icon: Icon, tone = 'normal' }) {
   return (
@@ -390,31 +410,85 @@ function FocusCard({ title, text, icon: Icon, onOpen }) {
   );
 }
 
-function ReviewsPanel({ reviews, onToggleReview, onDeleteReview }) {
+function ReviewsPanel({ reviews, busyId, onToggleReview, onDeleteReview }) {
+  const visibleCount = reviews.filter(review => review.is_approved).length;
+
   return (
-    <div style={adminPanelStyle}>
-      <h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}><Star size={20} />User Reviews</h2>
-      {reviews.length === 0 ? <div style={{ textAlign: 'center', padding: 60, color: theme.text.muted }}><Star size={48} style={{ opacity: 0.3, marginBottom: 16 }} /><p>No reviews yet</p></div> : (
+    <div className="admin-mission-control-page__reviews-panel" style={adminPanelStyle}>
+      <div style={reviewHeaderStyle}>
+        <div>
+          <h2 style={reviewTitleStyle}><Star size={20} />User Reviews</h2>
+          <p style={reviewSubtitleStyle}>Approve, hide, or remove public review cards without guessing whether the action worked.</p>
+        </div>
+        <span style={reviewCountStyle}><Star size={13} /> {visibleCount} visible / {reviews.length} total</span>
+      </div>
+      {reviews.length === 0 ? <div style={reviewEmptyStyle}><Star size={48} style={{ opacity: 0.3, marginBottom: 16 }} /><p>No reviews yet</p></div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {reviews.map(review => (
-            <div key={review.id} style={{ background: theme.bg.card, border: `1px solid ${review.is_approved ? theme.borderStrong : theme.border}`, borderLeft: `3px solid ${review.is_approved ? theme.gold : theme.text.muted}`, borderRadius: 10, padding: '16px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}><span style={{ color: theme.text.white, fontWeight: 700 }}>{review.username}</span>{review.is_approved && <span style={{ background: theme.goldSoft, color: theme.gold, padding: '2px 8px', fontSize: 10, fontWeight: 800, borderRadius: 999 }}>VISIBLE</span>}</div>
-                  <p style={{ color: theme.text.secondary, fontSize: 13, fontStyle: 'italic', margin: '0 0 8px' }}>&quot;{review.comment}&quot;</p>
-                  <p style={{ color: theme.text.muted, fontSize: 11, margin: 0 }}>{new Date(review.created_at).toLocaleDateString()}</p>
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <Button onClick={() => onToggleReview(review.id)} style={{ padding: '8px 12px', fontSize: 11, background: review.is_approved ? 'transparent' : theme.gold, border: review.is_approved ? `1px solid ${theme.border}` : 'none', color: review.is_approved ? theme.text.muted : theme.text.inverse, display: 'flex', alignItems: 'center', gap: 4 }}>{review.is_approved ? <X size={12} /> : <Check size={12} />}{review.is_approved ? 'Hide' : 'Show'}</Button>
-                  <Button onClick={() => onDeleteReview(review.id)} style={{ padding: 8, background: theme.dangerSoft, border: 'none' }}><Trash2 size={14} color="var(--rq-danger)" /></Button>
+          {reviews.map(review => {
+            const toggling = busyId === `toggle-${review.id}`;
+            const deleting = busyId === `delete-${review.id}`;
+            const busy = toggling || deleting;
+
+            return (
+              <div key={review.id} aria-busy={busy ? 'true' : 'false'} style={{ ...reviewCardBaseStyle, opacity: busy ? 0.78 : 1, border: `1px solid ${review.is_approved ? theme.borderStrong : theme.border}`, borderLeft: `3px solid ${review.is_approved ? theme.gold : theme.text.muted}` }}>
+                <div style={reviewCardTopStyle}>
+                  <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}><span style={{ color: theme.text.white, fontWeight: 700 }}>{review.username}</span>{review.is_approved && <span style={{ background: theme.goldSoft, color: theme.gold, padding: '2px 8px', fontSize: 10, fontWeight: 800, borderRadius: 999 }}>VISIBLE</span>}</div>
+                    <p style={{ color: theme.text.secondary, fontSize: 13, fontStyle: 'italic', margin: '0 0 8px' }}>&quot;{review.comment}&quot;</p>
+                    <p style={{ color: theme.text.muted, fontSize: 11, margin: 0 }}>{new Date(review.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div style={reviewActionsStyle}>
+                    <Button onClick={() => onToggleReview(review.id)} disabled={busy} style={reviewToggleButtonStyle(review, toggling)}>{toggling ? <RefreshCw size={12} style={adminInlineSpinStyle} /> : review.is_approved ? <X size={12} /> : <Check size={12} />}{toggling ? 'Updating…' : review.is_approved ? 'Hide' : 'Show'}</Button>
+                    <Button onClick={() => onDeleteReview(review.id)} disabled={busy} style={reviewDeleteButtonStyle(deleting)}>{deleting ? <RefreshCw size={14} style={adminInlineSpinStyle} /> : <Trash2 size={14} color="var(--rq-danger)" />}{deleting ? 'Deleting…' : ''}</Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
+}
+
+const adminPageCss = `
+  @keyframes rqAdminPageSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    [aria-busy="true"] svg { animation: none !important; }
+  }
+`;
+
+function busySecondaryActionStyle(isBusy) {
+  return { ...secondaryActionStyle, opacity: isBusy ? 0.72 : 1, cursor: isBusy ? 'progress' : 'pointer' };
+}
+
+function reviewToggleButtonStyle(review, isBusy) {
+  return {
+    padding: '8px 12px',
+    fontSize: 11,
+    background: review.is_approved ? 'transparent' : theme.gold,
+    border: review.is_approved ? `1px solid ${theme.border}` : 'none',
+    color: review.is_approved ? theme.text.muted : theme.text.inverse,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    opacity: isBusy ? 0.82 : 1,
+    cursor: isBusy ? 'progress' : 'pointer',
+  };
+}
+
+function reviewDeleteButtonStyle(isBusy) {
+  return {
+    padding: '8px 10px',
+    background: theme.dangerSoft,
+    border: 'none',
+    color: theme.danger,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    opacity: isBusy ? 0.82 : 1,
+    cursor: isBusy ? 'progress' : 'pointer',
+  };
 }
 
 export default AdminPage;

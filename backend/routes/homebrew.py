@@ -67,6 +67,19 @@ COLLECTION = {
     "custom_rule": "user_custom_rules",
 }
 
+SPELL_CLASS_NAMES = [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger",
+    "Sorcerer",
+    "Warlock",
+    "Wizard",
+]
+SPELL_CLASS_LOOKUP = {name.lower(): name for name in SPELL_CLASS_NAMES}
+
 ADVANCED_MECHANIC_HINTS = {
     "resources": "[{name, formula, max, regain, spend_triggers, visible_on_sheet}] — custom pools such as Scarab Charges = warlock level or Greed Tokens = proficiency bonus",
     "actions": "[{name, action_type, cost, resource_cost, description}] — sheet actions and spendable options",
@@ -114,6 +127,7 @@ SCHEMA_HINTS = {
     "feat": {
         "name": "string",
         "description": "string",
+        "category": "origin|general|epic — origin for level 1/background feats, epic for level 19+ boons, otherwise general",
         "prerequisite": "string",
         "repeatable": "bool",
         "ability_score_increase": "object e.g. {choose: 1, from: [strength, dexterity], amount: 1}",
@@ -241,6 +255,7 @@ TEMPLATE_LABELS = {
 FIELD_PROMPTS = {
     "name": "The public name shown in builders, sheets, and libraries.",
     "description": "The plain-English theme, lore, table-facing summary, and what makes it different.",
+    "category": "For feats, use origin, general, or epic. For custom rules, use the broad rules category.",
     "parent_class": "For subclasses only. Example: Warlock, Fighter, Monk.",
     "features": "Feature blocks. Include level, name, rules text, resource costs, and upgrades.",
     "resources": "Custom pools/charges/tokens. Include formula, max, regain, spending rules, and whether it appears on the sheet.",
@@ -280,6 +295,9 @@ Create sheet-visible resources, spending buttons, and level-scaling max values.
 """,
     "feat": """## Name
 Shield-Breaker
+
+## Category
+General
 
 ## Prerequisite
 Strength 13 or higher
@@ -345,12 +363,77 @@ def _normalise_edition(edition: str) -> str:
     return "2024" if str(edition or "").strip() == "2024" else "2014"
 
 
+def _normalise_feat_category(data: Dict[str, Any]) -> str:
+    raw = data.get("category") or data.get("feat_category") or data.get("featCategory") or data.get("type") or data.get("feat_type") or ""
+    haystack = " ".join(str(value or "") for value in [
+        raw,
+        data.get("prerequisite"),
+        data.get("prereq"),
+        data.get("requirements"),
+        " ".join(data.get("tags") or []) if isinstance(data.get("tags"), list) else data.get("tags"),
+    ]).lower()
+    if re.search(r"\bepic\b|\bboon\b|\blevel\s*19\b|\b19th[-\s]?level\b", haystack):
+        return "epic"
+    if re.search(r"\borigin\b|\bbackground\b|\blevel\s*1\b|\b1st[-\s]?level\b|\bstarter\b", haystack):
+        return "origin"
+    return "general"
+
+
+def _spell_class_parts(value: Any) -> List[str]:
+    if value in (None, "", [], {}) or value is False:
+        return []
+    if isinstance(value, list):
+        parts: List[str] = []
+        for item in value:
+            parts.extend(_spell_class_parts(item))
+        return parts
+    if isinstance(value, dict):
+        parts: List[str] = []
+        for key, item in value.items():
+            if isinstance(item, bool):
+                if item:
+                    parts.append(str(key))
+                continue
+            parts.extend(_spell_class_parts(item))
+        return parts
+    text = re.sub(r"\band\b", ",", str(value or ""), flags=re.IGNORECASE)
+    return re.split(r"[,;/|&]+|\n+", text)
+
+
+def _normalise_spell_classes(data: Dict[str, Any]) -> List[str]:
+    raw = None
+    for key in ("classes", "class", "spell_classes", "spellClasses", "class_list", "classList", "available_classes", "availableClasses"):
+        if data.get(key) not in (None, "", [], {}):
+            raw = data.get(key)
+            break
+
+    classes: List[str] = []
+    seen = set()
+    for part in _spell_class_parts(raw):
+        cleaned = re.sub(r"^(spell\s+)?classes?\s*:?\s*", "", str(part or "").strip(" -*•\t"), flags=re.IGNORECASE)
+        if not cleaned:
+            continue
+        lowered = cleaned.lower()
+        if lowered in {"class", "classes", "spell class", "spell classes", "none", "n/a"}:
+            continue
+        canonical = SPELL_CLASS_LOOKUP.get(lowered, " ".join(piece.capitalize() for piece in lowered.split()))
+        if canonical.lower() in seen:
+            continue
+        seen.add(canonical.lower())
+        classes.append(canonical)
+    return classes
+
+
 def _normalise_parsed(content_type: str, parsed: Dict[str, Any], edition: str) -> Dict[str, Any]:
     data = dict(parsed or {})
     if content_type == "subclass" and not data.get("parent_class"):
         data["parent_class"] = data.get("baseClass") or data.get("base_class") or data.get("class") or ""
     if content_type == "magic_item" and data.get("item_type") and not data.get("type"):
         data["type"] = data.get("item_type")
+    if content_type == "feat":
+        data["category"] = _normalise_feat_category(data)
+    if content_type == "spell":
+        data["classes"] = _normalise_spell_classes(data)
     data["content_type"] = content_type
     data["edition"] = _normalise_edition(edition)
     return data

@@ -100,10 +100,12 @@ export default function GlobalScrollRecovery() {
       if (!isLivePlayButton(button)) return;
       const campaignId = campaignIdFromPath();
       if (!campaignId) return;
+      const livePath = `/gm-screen/${campaignId}`;
+      if (window.location.pathname === livePath) return;
       event.preventDefault();
       event.stopPropagation();
       if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-      window.location.assign(`/campaign/${campaignId}/live`);
+      window.location.assign(livePath);
     };
 
     const initialiseCampaignGroups = () => {

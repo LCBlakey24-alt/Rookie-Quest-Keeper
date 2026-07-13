@@ -16,6 +16,7 @@ ALLOWED_DISPLAY_MODES = {
     'image',
     'npc-grid',
     'combat',
+    'group-check',
     'end-session-stats',
 }
 

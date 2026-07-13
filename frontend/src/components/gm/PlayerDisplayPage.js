@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/apiClient';
 import { loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
+import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -29,6 +30,7 @@ function modeLabel(mode) {
   if (mode === 'image') return 'Map / image';
   if (mode === 'npc-grid') return 'NPC reveal';
   if (mode === 'combat') return 'Combat HUD';
+  if (mode === 'group-check') return 'Group check';
   if (mode === 'end-session-stats') return 'Session recap';
   return 'Ready screen';
 }
@@ -143,7 +145,7 @@ export default function PlayerDisplayPage() {
     const fromPayload = Array.isArray(payload.party) ? payload.party.map(normalisePartyMember) : [];
     return (fromPayload.length ? fromPayload : party).filter(member => member?.name).slice(0, 10);
   }, [payload.party, party]);
-  const showPartySidebar = !isTable(target) && mode !== 'combat' && partyMembers.length > 0;
+  const showPartySidebar = !isTable(target) && mode !== 'combat' && mode !== 'group-check' && partyMembers.length > 0;
 
   return (
     <main style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
@@ -178,6 +180,7 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
   if (mode === 'image') return <ImageDisplay key={key} payload={payload} target={target} hasPartySidebar={hasPartySidebar} />;
   if (mode === 'npc-grid') return <NPCGridDisplay key={key} payload={payload} target={target} />;
   if (mode === 'combat') return <CombatDisplay key={key} payload={payload} target={target} partyMembers={partyMembers} />;
+  if (mode === 'group-check') return <GroupCheckDisplay key={key} payload={payload} target={target} fallbackParty={partyMembers} />;
   if (mode === 'end-session-stats') return <EndSessionStatsDisplay key={key} payload={payload} target={target} />;
   return <BlankDisplay key={key} payload={payload} target={target} />;
 }

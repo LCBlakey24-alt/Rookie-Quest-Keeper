@@ -38,10 +38,9 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "cra-template": "1.2.0",
-    "date-fns": "^3.0.0",
-    "embla-carousel-react": "^8.6.0",
-    "input-otp": "^1.4.2",
-    "lucide-react": "^0.507.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.468.0",
+    "motion": "^12.11.0",
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
@@ -64,8 +63,9 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js src/data/campaignCharacterBridge.test.js src/data/startingLevelChoiceEngine.test.js src/data/classSpecificChoiceEngine.test.js",
-    "test:homebrew": "craco test --watchAll=false --runTestsByPath src/data/homebrewContent.test.js src/data/classResourceRules.test.js src/components/CharacterRulesBridge.test.js src/components/CharacterRulesBridgeV2.test.js"
+    "test:auth": "craco test --watchAll=false --runTestsByPath src/components/AuthPage.test.js",
+    "test:character-audit": "craco test --watchAll=false --runTestsByPath src/data/characterAuditReport.test.js src/data/demoCharacterFixtures.test.js src/data/deriveCharacterSnapshot.test.js src/data/creatorSpellSelectionAudit.test.js src/data/creatorSpellSelectionFlow.test.js src/data/campaignCharacterBridge.test.js src/data/startingLevelChoiceEngine.test.js src/data/classSpecificChoiceEngine.test.js src/data/characterDraftResolvers.test.js",
+    "test:homebrew": "craco test --watchAll=false --runTestsByPath src/data/homebrewContent.test.js src/data/classResourceRules.test.js src/components/clean-sheet/CleanSheetFeaturesTab.test.js src/components/CharacterRulesBridge.test.js src/components/CharacterRulesBridgeV2.test.js"
   },
   "browserslist": {
     "production": [

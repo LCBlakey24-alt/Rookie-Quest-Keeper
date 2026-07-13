@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
+import { BookOpen, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import '@/styles/appShellRail.css';
 import '@/styles/railFeedbackButtons.css';
 import '@/styles/homeDashboardExperience.css';
 import '@/styles/homebrewWorkshopExperience.css';
 import '@/styles/homeHubMobileNavPolish.css';
+import '@/styles/adminFeedbackExperience.css';
+import '@/styles/accountSettingsExperience.css';
+import '@/styles/appShellExperiencePolish.css';
+import '@/styles/characterImportExperience.css';
 
 const mainNavItems = [
   { label: 'Dashboard', to: '/home', icon: Home, matches: ['/home'], mobilePrimary: true },
@@ -51,13 +55,17 @@ function openFeedback() {
   window.dispatchEvent(new Event('rook-feedback-open'));
 }
 
-function MobileMorePanel({ items, pathname, onClose, onFeedback }) {
+function openRook() {
+  window.dispatchEvent(new Event('rook-assistant-open'));
+}
+
+function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook }) {
   return (
-    <div className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
+    <div id="rqk-app-mobile-more-panel" className="rqk-app-mobile-more-panel" role="menu" aria-label="More app tools">
       <div className="rqk-app-mobile-more-heading">
         <div>
           <strong>More tools</strong>
-          <span>Uploads, settings, feedback, and owner tools.</span>
+          <span>Rook, uploads, settings, feedback, and owner tools.</span>
         </div>
         <button type="button" className="rqk-app-mobile-more-close" onClick={onClose} aria-label="Close more tools">
           <X size={18} aria-hidden="true" />
@@ -67,6 +75,15 @@ function MobileMorePanel({ items, pathname, onClose, onFeedback }) {
       <div className="rqk-app-mobile-more-grid">
         {items.map((item) => {
           const Icon = item.icon;
+          if (item.kind === 'rook') {
+            return (
+              <button key={item.label} type="button" className="rqk-app-mobile-more-item rqk-app-mobile-more-item--rook" onClick={onRook} role="menuitem">
+                <Icon size={18} aria-hidden="true" />
+                <span>{item.label}</span>
+              </button>
+            );
+          }
+
           if (item.kind === 'feedback') {
             return (
               <button key={item.label} type="button" className="rqk-app-mobile-more-item" onClick={onFeedback} role="menuitem">
@@ -127,6 +144,7 @@ export default function AppShell({ children }) {
 
   const mobileMoreItems = useMemo(() => {
     const tools = [
+      { label: 'Ask Rook', icon: Sparkles, kind: 'rook' },
       ...mainNavItems.filter((item) => item.mobilePrimary === false),
       { label: 'Feedback', icon: MessageSquare, kind: 'feedback' },
     ];
@@ -134,6 +152,11 @@ export default function AppShell({ children }) {
     if (isAdmin) tools.push(adminNavItem);
     return tools;
   }, [isAdmin]);
+
+  const handleRook = () => {
+    setIsMoreOpen(false);
+    openRook();
+  };
 
   const handleFeedback = () => {
     setIsMoreOpen(false);
@@ -160,6 +183,10 @@ export default function AppShell({ children }) {
 
         <div className="rqk-app-rail-bottom">
           <p className="rqk-app-rail-section-label">Support</p>
+          <button type="button" className="rqk-app-rail-link rqk-app-rail-rook rqk-app-rail-support-link" onClick={openRook}>
+            <Sparkles size={20} aria-hidden="true" />
+            <span>Ask Rook</span>
+          </button>
           <button type="button" className="rqk-app-rail-link rqk-app-rail-feedback rqk-app-rail-support-link" onClick={openFeedback}>
             <MessageSquare size={20} aria-hidden="true" />
             <span>Feedback</span>
@@ -185,6 +212,7 @@ export default function AppShell({ children }) {
             items={mobileMoreItems}
             pathname={location.pathname}
             onClose={() => setIsMoreOpen(false)}
+            onRook={handleRook}
             onFeedback={handleFeedback}
           />
         )}

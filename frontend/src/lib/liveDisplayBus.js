@@ -5,6 +5,19 @@ const channelName = (campaignId) => `rqk-live-display-${campaignId}`;
 const storageKey = (campaignId) => `rqk.liveDisplay.${campaignId}`;
 const localEventName = (campaignId) => `rqk-live-display-local-${campaignId}`;
 
+const sourceTabId = (() => {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  } catch {
+    // Fall back below.
+  }
+  return `display-tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+})();
+
+const getWindow = () => (typeof window !== 'undefined' ? window : null);
+const getDocument = () => (typeof document !== 'undefined' ? document : null);
+const safeNoop = () => {};
+
 let apiClientPromise;
 async function getApiClient() {
   if (!apiClientPromise) apiClientPromise = import('./apiClient');
@@ -13,59 +26,146 @@ async function getApiClient() {
 }
 
 function websocketUrl(campaignId) {
-  if (!campaignId || typeof window === 'undefined') return '';
+  const runtimeWindow = getWindow();
+  if (!campaignId || !runtimeWindow) return '';
   const token = getAuthToken();
   if (!token) return '';
-  const base = String(BACKEND_URL || window.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
+  const base = String(BACKEND_URL || runtimeWindow.location.origin).replace(/\/+$/, '').replace(/^http/i, 'ws');
   return `${base}/ws/campaign/${encodeURIComponent(campaignId)}?token=${encodeURIComponent(token)}`;
 }
 
-export function createDisplayState(mode = 'blank', payload = {}) {
+function stateTime(state = {}) {
+  const parsed = Date.parse(state.updated_at || '');
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function stateSequence(state = {}) {
+  const parsed = Number(state.sequence || state.seq || 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function fallbackStateSequence(state = {}, updatedAt = '') {
+  const explicitSequence = stateSequence(state);
+  if (explicitSequence) return explicitSequence;
+  const parsedTime = Date.parse(updatedAt || state.updated_at || '');
+  if (Number.isFinite(parsedTime) && parsedTime > 0) return parsedTime;
+  return Date.now();
+}
+
+function stableStateId(state = {}, updatedAt = '', sequence = 0) {
+  if (state.sync_id || state.id) return state.sync_id || state.id;
+  return `${state.mode || 'blank'}-${updatedAt || 'unknown'}-${sequence}`;
+}
+
+function stateIdentity(state = {}) {
+  return state.sync_id || state.id || `${state.mode || 'blank'}-${state.updated_at || ''}-${stateSequence(state)}`;
+}
+
+function isNewerState(candidate, current) {
+  if (!candidate) return false;
+  if (!current) return true;
+  const candidateTime = stateTime(candidate);
+  const currentTime = stateTime(current);
+  if (candidateTime !== currentTime) return candidateTime > currentTime;
+  return stateSequence(candidate) >= stateSequence(current);
+}
+
+function normaliseDisplayState(state = {}) {
+  const updatedAt = state.updated_at || new Date().toISOString();
+  const sequence = fallbackStateSequence(state, updatedAt);
   return {
+    sync_id: stableStateId(state, updatedAt, sequence),
+    mode: state.mode || 'blank',
+    payload: state.payload || {},
+    updated_at: updatedAt,
+    sequence,
+    source_tab: state.source_tab || sourceTabId,
+  };
+}
+
+function sameLogicalState(left = {}, right = {}) {
+  return left.mode === right.mode && stateTime(left) === stateTime(right) && stateSequence(left) === stateSequence(right);
+}
+
+function reconcileRemoteState(rawRemoteState = {}, normalizedRemoteState, localState) {
+  if (!localState || rawRemoteState?.sync_id || rawRemoteState?.id) return normalizedRemoteState;
+  if (!sameLogicalState(normalizedRemoteState, localState)) return normalizedRemoteState;
+  return {
+    ...normalizedRemoteState,
+    sync_id: localState.sync_id,
+    source_tab: localState.source_tab || normalizedRemoteState.source_tab,
+  };
+}
+
+function readStoredDisplayState(campaignId) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow?.localStorage) return null;
+  try {
+    const raw = runtimeWindow.localStorage.getItem(storageKey(campaignId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const normalized = normaliseDisplayState(parsed);
+    if (!parsed.sync_id || !parsed.sequence) {
+      runtimeWindow.localStorage.setItem(storageKey(campaignId), JSON.stringify(normalized));
+    }
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+
+export function createDisplayState(mode = 'blank', payload = {}) {
+  const now = new Date().toISOString();
+  const sequence = Date.now();
+  return {
+    sync_id: `${now}-${sequence}-${Math.random().toString(16).slice(2)}`,
     mode,
     payload,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
+    sequence,
+    source_tab: sourceTabId,
   };
 }
 
 export function loadDisplayState(campaignId) {
-  try {
-    const raw = localStorage.getItem(storageKey(campaignId));
-    if (!raw) return createDisplayState('blank', {});
-    return JSON.parse(raw);
-  } catch {
-    return createDisplayState('blank', {});
-  }
+  return readStoredDisplayState(campaignId) || createDisplayState('blank', {});
 }
 
 export async function loadRemoteDisplayState(campaignId) {
   if (!campaignId) return createDisplayState('blank', {});
   const apiClient = await getApiClient();
   const response = await apiClient.get(`/campaigns/${campaignId}/display-state`);
-  const state = response.data || createDisplayState('blank', {});
-  saveDisplayState(campaignId, state);
+  const rawState = response.data || createDisplayState('blank', {});
+  const localState = readStoredDisplayState(campaignId);
+  const state = reconcileRemoteState(rawState, normaliseDisplayState(rawState), localState);
+  if (!localState || isNewerState(state, localState)) saveDisplayState(campaignId, state);
   return state;
 }
 
 export function saveDisplayState(campaignId, state) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow?.localStorage) return;
   try {
-    localStorage.setItem(storageKey(campaignId), JSON.stringify(state));
+    runtimeWindow.localStorage.setItem(storageKey(campaignId), JSON.stringify(normaliseDisplayState(state)));
   } catch {
     // Ignore storage failures. BroadcastChannel may still work.
   }
 }
 
 export function publishDisplayState(campaignId, state) {
-  saveDisplayState(campaignId, state);
+  const runtimeWindow = getWindow();
+  const safeState = normaliseDisplayState(state);
+  saveDisplayState(campaignId, safeState);
+  if (!runtimeWindow) return;
   try {
-    window.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: state }));
+    runtimeWindow.dispatchEvent(new CustomEvent(localEventName(campaignId), { detail: safeState }));
   } catch {
     // Ignore local event failures; BroadcastChannel/storage polling still apply.
   }
   try {
-    if ('BroadcastChannel' in window) {
-      const channel = new BroadcastChannel(channelName(campaignId));
-      channel.postMessage(state);
+    if (runtimeWindow.BroadcastChannel) {
+      const channel = new runtimeWindow.BroadcastChannel(channelName(campaignId));
+      channel.postMessage(safeState);
       channel.close();
     }
   } catch {
@@ -74,40 +174,57 @@ export function publishDisplayState(campaignId, state) {
 }
 
 export async function publishCampaignDisplayState(campaignId, state) {
-  publishDisplayState(campaignId, state);
+  const localState = normaliseDisplayState(state);
+  publishDisplayState(campaignId, localState);
   try {
     const apiClient = await getApiClient();
-    const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, state);
-    const remoteState = response.data || state;
-    publishDisplayState(campaignId, remoteState);
-    return remoteState;
+    const response = await apiClient.put(`/campaigns/${campaignId}/display-state`, localState);
+    const rawRemoteState = response.data || localState;
+    const latestLocalState = readStoredDisplayState(campaignId) || localState;
+    const remoteState = reconcileRemoteState(rawRemoteState, normaliseDisplayState(rawRemoteState), latestLocalState);
+    if (isNewerState(remoteState, latestLocalState)) {
+      publishDisplayState(campaignId, remoteState);
+      return remoteState;
+    }
+    return latestLocalState;
   } catch {
-    return state;
+    return localState;
   }
 }
 
 export function subscribeDisplayState(campaignId, onState) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow) return safeNoop;
+
   const handlers = [];
-  let lastRaw = '';
+  let lastIdentity = '';
+
+  const applyState = (state) => {
+    const safeState = normaliseDisplayState(state);
+    const identity = stateIdentity(safeState);
+    if (identity === lastIdentity) return;
+    const current = readStoredDisplayState(campaignId);
+    if (current && !isNewerState(safeState, current) && stateIdentity(current) !== identity) return;
+    lastIdentity = identity;
+    onState(safeState);
+  };
 
   const readSavedState = () => {
     try {
-      const raw = localStorage.getItem(storageKey(campaignId)) || '';
-      if (!raw || raw === lastRaw) return;
-      lastRaw = raw;
-      onState(JSON.parse(raw));
+      const state = readStoredDisplayState(campaignId);
+      if (!state) return;
+      applyState(state);
     } catch {
       // Ignore malformed values.
     }
   };
 
   try {
-    if ('BroadcastChannel' in window) {
-      const channel = new BroadcastChannel(channelName(campaignId));
+    if (runtimeWindow.BroadcastChannel) {
+      const channel = new runtimeWindow.BroadcastChannel(channelName(campaignId));
       channel.onmessage = (event) => {
         if (!event.data) return;
-        try { lastRaw = JSON.stringify(event.data); } catch { /* ignore */ }
-        onState(event.data);
+        applyState(event.data);
       };
       handlers.push(() => channel.close());
     }
@@ -118,25 +235,23 @@ export function subscribeDisplayState(campaignId, onState) {
   const onStorage = (event) => {
     if (event.key !== storageKey(campaignId) || !event.newValue) return;
     try {
-      lastRaw = event.newValue;
-      onState(JSON.parse(event.newValue));
+      applyState(JSON.parse(event.newValue));
     } catch {
       // Ignore malformed values.
     }
   };
-  window.addEventListener('storage', onStorage);
-  handlers.push(() => window.removeEventListener('storage', onStorage));
+  runtimeWindow.addEventListener('storage', onStorage);
+  handlers.push(() => runtimeWindow.removeEventListener('storage', onStorage));
 
   const onLocalDisplayEvent = (event) => {
     if (!event.detail) return;
-    try { lastRaw = JSON.stringify(event.detail); } catch { /* ignore */ }
-    onState(event.detail);
+    applyState(event.detail);
   };
-  window.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
-  handlers.push(() => window.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
+  runtimeWindow.addEventListener(localEventName(campaignId), onLocalDisplayEvent);
+  handlers.push(() => runtimeWindow.removeEventListener(localEventName(campaignId), onLocalDisplayEvent));
 
-  const interval = window.setInterval(readSavedState, 500);
-  handlers.push(() => window.clearInterval(interval));
+  const interval = runtimeWindow.setInterval(readSavedState, 500);
+  handlers.push(() => runtimeWindow.clearInterval(interval));
 
   readSavedState();
 
@@ -144,43 +259,68 @@ export function subscribeDisplayState(campaignId, onState) {
 }
 
 export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 1000 } = {}) {
+  const runtimeWindow = getWindow();
+  if (!runtimeWindow) return safeNoop;
+
   let cancelled = false;
-  let lastRemoteUpdatedAt = '';
+  let lastRemoteIdentity = '';
   let socket = null;
   let reconnectTimer = null;
   let pingTimer = null;
+  let reconnectAttempts = 0;
+  let remoteReadInFlight = false;
 
   const applyRemoteState = (state) => {
-    if (cancelled || !state?.updated_at || state.updated_at === lastRemoteUpdatedAt) return;
-    lastRemoteUpdatedAt = state.updated_at;
-    saveDisplayState(campaignId, state);
-    onState(state);
+    if (cancelled || !state?.updated_at) return;
+    const localState = readStoredDisplayState(campaignId);
+    const safeState = reconcileRemoteState(state, normaliseDisplayState(state), localState);
+    const identity = stateIdentity(safeState);
+    if (identity === lastRemoteIdentity) return;
+    if (localState && !isNewerState(safeState, localState)) return;
+    lastRemoteIdentity = identity;
+    saveDisplayState(campaignId, safeState);
+    onState(safeState);
   };
 
   const readRemoteState = async () => {
+    if (cancelled || remoteReadInFlight) return;
+    remoteReadInFlight = true;
     try {
       const state = await loadRemoteDisplayState(campaignId);
       applyRemoteState(state);
     } catch {
       // Same-browser local display sync remains available when remote sync fails.
+    } finally {
+      remoteReadInFlight = false;
     }
   };
 
   const clearSocketTimers = () => {
-    if (pingTimer) window.clearInterval(pingTimer);
+    if (pingTimer) runtimeWindow.clearInterval(pingTimer);
     pingTimer = null;
   };
 
+  const scheduleReconnect = () => {
+    if (cancelled || reconnectTimer) return;
+    const delay = Math.min(15000, 1500 * (2 ** Math.min(reconnectAttempts, 3)));
+    reconnectAttempts += 1;
+    reconnectTimer = runtimeWindow.setTimeout(() => {
+      reconnectTimer = null;
+      connectSocket();
+    }, delay);
+  };
+
   const connectSocket = () => {
-    if (cancelled || typeof WebSocket === 'undefined') return;
+    if (cancelled || !runtimeWindow.WebSocket) return;
     const url = websocketUrl(campaignId);
     if (!url) return;
 
     try {
-      socket = new WebSocket(url);
+      socket = new runtimeWindow.WebSocket(url);
       socket.onopen = () => {
+        reconnectAttempts = 0;
         clearSocketTimers();
-        pingTimer = window.setInterval(() => {
+        pingTimer = runtimeWindow.setInterval(() => {
           try { socket?.send(JSON.stringify({ type: 'ping' })); } catch { /* ignore */ }
         }, 25000);
       };
@@ -199,30 +339,31 @@ export function subscribeRemoteDisplayState(campaignId, onState, { intervalMs = 
       };
       socket.onclose = () => {
         clearSocketTimers();
-        if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+        scheduleReconnect();
       };
     } catch {
-      if (!cancelled) reconnectTimer = window.setTimeout(connectSocket, 2500);
+      scheduleReconnect();
     }
   };
 
   readRemoteState();
   connectSocket();
-  const interval = window.setInterval(readRemoteState, intervalMs);
+  const interval = runtimeWindow.setInterval(readRemoteState, intervalMs);
 
+  const runtimeDocument = getDocument();
   const onWake = () => readRemoteState();
-  window.addEventListener('focus', onWake);
-  window.addEventListener('online', onWake);
-  document.addEventListener('visibilitychange', onWake);
+  runtimeWindow.addEventListener('focus', onWake);
+  runtimeWindow.addEventListener('online', onWake);
+  if (runtimeDocument) runtimeDocument.addEventListener('visibilitychange', onWake);
 
   return () => {
     cancelled = true;
-    window.clearInterval(interval);
-    if (reconnectTimer) window.clearTimeout(reconnectTimer);
+    runtimeWindow.clearInterval(interval);
+    if (reconnectTimer) runtimeWindow.clearTimeout(reconnectTimer);
     clearSocketTimers();
     try { socket?.close(); } catch { /* ignore */ }
-    window.removeEventListener('focus', onWake);
-    window.removeEventListener('online', onWake);
-    document.removeEventListener('visibilitychange', onWake);
+    runtimeWindow.removeEventListener('focus', onWake);
+    runtimeWindow.removeEventListener('online', onWake);
+    if (runtimeDocument) runtimeDocument.removeEventListener('visibilitychange', onWake);
   };
 }

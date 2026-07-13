@@ -5,8 +5,9 @@ import { dismissToasts, removeBlockingBadges } from '../fixtures/helpers';
  * Tests for the global Rookie Quest Keeper dice roller:
  * - Floating dice button stays anchored bottom-left
  * - Dice tray opens bottom-left
- * - Rolls launch the cinematic sunset d20 overlay
- * - Users can reveal/close the cinematic result without waiting
+ * - Rolls launch the cinematic sunset dice overlay
+ * - Users can choose 2D Lite or 3D Cinematic rendering
+ * - Multi-dice rolls render as responsive dice formations
  */
 
 async function registerTestUser(page: any) {
@@ -64,6 +65,7 @@ test.describe('Global cinematic dice roller', () => {
 
     const panel = page.getByTestId('dice-roller-panel');
     await expect(panel).toBeVisible();
+    await expect(page.getByTestId('dice-render-mode-selector')).toBeVisible();
 
     const box = await panel.boundingBox();
     expect(box).not.toBeNull();
@@ -93,9 +95,13 @@ test.describe('Global cinematic dice roller', () => {
 
     const overlay = page.getByTestId('cinematic-dice-overlay');
     await expect(overlay).toBeVisible();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+    await expect(page.getByTestId('cinematic-dice-formation')).toHaveAttribute('data-dice-count', '1');
     await expect(page.getByTestId('cinematic-d20')).toBeVisible();
     await expect(page.getByTestId('cinematic-dice-status')).toContainText('Rolling dice');
     await expect(page.getByTestId('cinematic-dice-reveal-now')).toBeVisible();
+    await expect(page.getByTestId('cinematic-dice-reveal-now')).toBeFocused();
 
     await page.getByTestId('cinematic-dice-reveal-now').click();
 
@@ -107,6 +113,27 @@ test.describe('Global cinematic dice roller', () => {
     const rollResult = page.getByTestId('roll-result').first();
     await expect(rollResult).toBeVisible();
     await expect(page.getByText('1d20')).toBeVisible();
+  });
+
+  test('Dice Roller 2D mode renders multi-dice formations', async ({ page }) => {
+    await openDiceRoller(page);
+
+    await page.getByTestId('dice-mode-2d').click();
+    await expect(page.getByTestId('dice-mode-2d')).toHaveAttribute('aria-pressed', 'true');
+
+    const customInput = page.getByTestId('custom-dice-input');
+    await customInput.fill('2d6+3');
+    await page.getByTestId('custom-roll-btn').click();
+
+    const overlay = page.getByTestId('cinematic-dice-overlay');
+    await expect(overlay).toBeVisible();
+    await expect(overlay).toHaveAttribute('data-roll-mode', '2d');
+    await expect(page.getByTestId('cinematic-dice-formation')).toHaveAttribute('data-dice-count', '2');
+    await expect(page.getByTestId('cinematic-d6').first()).toBeVisible();
+
+    await page.getByTestId('cinematic-dice-reveal-now').click();
+    await expect(overlay).toHaveClass(/is-revealed/);
+    await expect(page.getByText('2d6+3')).toBeVisible();
   });
 
   test('Cinematic dice overlay supports keyboard reveal and close', async ({ page }) => {
@@ -146,6 +173,7 @@ test.describe('Global cinematic dice roller', () => {
     await page.getByTestId('custom-roll-btn').click();
     const overlay = page.getByTestId('cinematic-dice-overlay');
     await expect(overlay).toBeVisible();
+    await expect(page.getByTestId('cinematic-dice-formation')).toHaveAttribute('data-dice-count', '2');
 
     await page.getByTestId('cinematic-dice-reveal-now').click();
     await expect(overlay).toHaveClass(/is-revealed/);

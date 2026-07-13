@@ -54,6 +54,21 @@ function maneuverTarget(className, level, subclassName = '') {
   return 3;
 }
 
+function clearFields(target, fields = []) {
+  fields.forEach((field) => {
+    delete target[field];
+  });
+}
+
+function removeGeneratedClassChoiceFeatures(features, removers = []) {
+  if (!removers.length) return features;
+  return arr(features).filter((feature) => {
+    const name = feature?.name || feature || '';
+    const source = feature?.source || '';
+    return !removers.some((remove) => remove(name, source));
+  });
+}
+
 export function buildClassSpecificChoicePlan({ className = '', level = 1, subclassName = '' } = {}) {
   const numericLevel = Math.max(1, Math.min(20, Number(level || 1)));
   const fightingStyles = fightingStyleTarget(className, numericLevel);
@@ -98,6 +113,27 @@ export function applyClassSpecificChoicesToPayload(payload, selection = {}, plan
   if (!payload || typeof payload !== 'object') return payload;
   const next = { ...payload };
   const current = normaliseClassSpecificSelection(selection, plan);
+  const featureRemovers = [];
+
+  if (!current.fightingStyles.length) {
+    clearFields(next, ['fighting_styles', 'fighting_style']);
+    featureRemovers.push((name, source) => source === 'starting-level choice' && String(name).startsWith('Fighting Style:'));
+  }
+  if (!current.expertise.length) {
+    clearFields(next, ['expertise_choices', 'expertise']);
+  }
+  if (!current.metamagic.length) {
+    clearFields(next, ['metamagic_options', 'metamagic']);
+    if (plan.className !== 'Sorcerer') clearFields(next, ['sorcery_points', 'sorcery_points_remaining']);
+  }
+  if (!current.maneuvers.length) {
+    clearFields(next, ['combat_maneuvers', 'battle_master_maneuvers', 'maneuvers', 'superiority_dice']);
+    featureRemovers.push((name, source) => source === 'starting-level choice' && name === 'Combat Superiority');
+  }
+
+  if (featureRemovers.length) {
+    next.class_features = removeGeneratedClassChoiceFeatures(next.class_features, featureRemovers);
+  }
 
   if (current.fightingStyles.length) {
     next.fighting_styles = current.fightingStyles;
