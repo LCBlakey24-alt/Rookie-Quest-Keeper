@@ -3,6 +3,7 @@ import apiClient from '@/lib/apiClient';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, ChevronRight, CloudRain, Heart, Link2, Plus, RefreshCw, Shield, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import CombatInitiativeSubmitter from '@/components/player/CombatInitiativeSubmitter';
 
 const theme = {
   bg: '#242424',
@@ -296,6 +297,8 @@ export default function MobilePlayerCampaignView() {
           <NavPill label="Campaign" onClick={() => campaignRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
         </div>
       </section>
+
+      <CombatInitiativeSubmitter campaignId={campaignId} />
 
       {myCampaignCharacters.length > 0 && (
         <section ref={charactersRef} style={panelStyle}>
