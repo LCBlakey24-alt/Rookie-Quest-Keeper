@@ -33,6 +33,13 @@ export default function LiveNpcLookup({ campaignId }) {
         setNpcs(safeArray(npcRes.data));
         setLocations(safeArray(locationRes.data));
         setCompanionIds(safeArray(stateRes.data?.companion_npc_ids));
+        try {
+          const requested = localStorage.getItem(`gm.liveNpcSearch.${campaignId}`) || '';
+          if (requested) {
+            setSearch(requested);
+            localStorage.removeItem(`gm.liveNpcSearch.${campaignId}`);
+          }
+        } catch { /* ignore */ }
       } catch (error) {
         toast.error(error?.response?.data?.detail || 'Could not load NPCs');
       } finally {
@@ -60,8 +67,8 @@ export default function LiveNpcLookup({ campaignId }) {
       return String(a.name || '').localeCompare(String(b.name || ''));
     });
     if (!term) return sorted;
-    return sorted.filter(npc => [npc.name, npc.role, npc.occupation, npc.location, npc.description, npc.notes].some(value => normalize(value).includes(term)));
-  }, [companionIds, npcs, search]);
+    return sorted.filter(npc => [npc.name, npc.role, npc.occupation, npc.location, locationFor(npc)?.name, npc.description, npc.notes].some(value => normalize(value).includes(term)));
+  }, [companionIds, locations, npcs, search]);
 
   const saveCompanionState = async npc => {
     const travelling = companionIds.includes(npc.id);
@@ -69,7 +76,8 @@ export default function LiveNpcLookup({ campaignId }) {
     setSavingId(npc.id);
     try {
       const response = await apiClient.put(`/campaigns/${campaignId}/live-state`, { companion_npc_ids: next });
-      setCompanionIds(safeArray(response.data?.companion_npc_ids).length || next.length === 0 ? safeArray(response.data?.companion_npc_ids) : next);
+      const returned = safeArray(response.data?.companion_npc_ids);
+      setCompanionIds(returned.length || next.length === 0 ? returned : next);
       toast.success(travelling ? `${npc.name} left the travelling party` : `${npc.name} is travelling with the party`);
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not update travelling party');
@@ -104,7 +112,6 @@ export default function LiveNpcLookup({ campaignId }) {
   return (
     <div data-testid="live-npc-lookup" style={shellStyle}>
       <label style={searchStyle}><Search size={15} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Find NPC by name, role or location" style={searchInputStyle} /></label>
-
       <div style={summaryStyle}><Users size={14} /><strong>{companionIds.length}</strong> travelling · <strong>{filtered.length}</strong> shown</div>
 
       <div style={listStyle}>
