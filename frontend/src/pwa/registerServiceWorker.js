@@ -1,3 +1,5 @@
+import { getOfflineMediaCacheName } from '@/offline/offlineMediaCache';
+
 const UPDATE_READY_EVENT = 'rqk:pwa-update-ready';
 const OFFLINE_READY_EVENT = 'rqk:pwa-offline-ready';
 const INSTALL_AVAILABLE_EVENT = 'rqk:pwa-install-available';
@@ -7,6 +9,17 @@ let refreshingForUpdate = false;
 
 function dispatch(name, detail = {}) {
   try { window.dispatchEvent(new CustomEvent(name, { detail })); } catch {}
+}
+
+function mediaCacheMessage() {
+  return { type: 'SET_MEDIA_CACHE', cacheName: getOfflineMediaCacheName() || '' };
+}
+
+function syncMediaCacheScope(registration) {
+  const message = mediaCacheMessage();
+  try { navigator.serviceWorker?.controller?.postMessage(message); } catch {}
+  try { registration?.active?.postMessage(message); } catch {}
+  try { registration?.waiting?.postMessage(message); } catch {}
 }
 
 export function getPendingInstallPrompt() {
@@ -32,6 +45,17 @@ export function registerPwaServiceWorker() {
   if (process.env.NODE_ENV !== 'production') return;
   if (!('serviceWorker' in navigator)) return;
 
+  const syncCurrentScope = () => {
+    navigator.serviceWorker.getRegistration().then(syncMediaCacheScope).catch(() => {});
+  };
+
+  // If a prior installation already controls this page, tell it the account
+  // media cache immediately. React-rendered campaign images can then resolve
+  // offline without waiting for the window load event.
+  if (navigator.serviceWorker.controller) syncCurrentScope();
+
+  window.addEventListener('rqk:auth-scope-changed', syncCurrentScope);
+
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     pendingInstallPrompt = event;
@@ -45,6 +69,7 @@ export function registerPwaServiceWorker() {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
       .then(registration => {
+        syncMediaCacheScope(registration);
         if (registration.waiting && navigator.serviceWorker.controller) {
           dispatch(UPDATE_READY_EVENT, { registration });
         }
@@ -54,6 +79,7 @@ export function registerPwaServiceWorker() {
           if (!worker) return;
           worker.addEventListener('statechange', () => {
             if (worker.state !== 'installed') return;
+            syncMediaCacheScope(registration);
             if (navigator.serviceWorker.controller) {
               dispatch(UPDATE_READY_EVENT, { registration });
             } else {
@@ -69,6 +95,7 @@ export function registerPwaServiceWorker() {
   });
 
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    syncCurrentScope();
     if (refreshingForUpdate) return;
     refreshingForUpdate = true;
     window.location.reload();
