@@ -208,8 +208,8 @@ function EmptyTool({ title }) {
 }
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
-const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(6, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}`, overflowX: 'auto' };
-const navButtonStyle = (active) => ({ minWidth: 92, minHeight: 52, border: 0, background: active ? rq.red : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
+const primaryNavStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 1, background: rq.line, border: `1px solid ${rq.line}` };
+const navButtonStyle = (active) => ({ minWidth: 0, minHeight: 52, border: 0, background: active ? rq.red : rq.panel, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontWeight: 950, fontSize: 12, fontFamily: fontStack, whiteSpace: 'nowrap' });
 const mainStyle = { minWidth: 0, background: rq.panel, border: `1px solid ${rq.line}` };
 const toolHeaderStyle = { minHeight: 48, padding: '0 11px', borderBottom: `1px solid ${rq.line}`, background: rq.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 };
 const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: rq.text, fontSize: 15 };
@@ -228,8 +228,8 @@ const recentStyle = { display: 'grid', gap: 6, paddingTop: 2 };
 const sectionLabelStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.09em' };
 const recentRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const recentButtonStyle = { minHeight: 31, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.soft, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 850 };
-const quickStripStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(90px, 1fr))', gap: 5, overflowX: 'auto' };
-const quickButtonStyle = { minWidth: 90, minHeight: 36, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontWeight: 900, fontFamily: fontStack, fontSize: 11 };
+const quickStripStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 5 };
+const quickButtonStyle = { minWidth: 0, minHeight: 36, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontWeight: 900, fontFamily: fontStack, fontSize: 11 };
 const moreStyle = { display: 'grid', gap: 10 };
 const moreGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7 };
 const moreButtonStyle = { minHeight: 62, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: 10, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: fontStack };
