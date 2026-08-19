@@ -1,100 +1,149 @@
-import React from 'react';
-import { FileText, Send, Users, Loader } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { Check, FileText, Send, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
-import RookFormFillPanel from '@/components/RookFormFillPanel';
 
-export default function NotesTab({ theme, campaignId, quickNote, setQuickNote, processingNote, handleSubmitNote, sessionNotes, setSessionNotes }) {
-  const syncNote = async () => {
-    if (!quickNote.trim()) return;
+export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNote, sessionNotes = [], setSessionNotes }) {
+  const [saving, setSaving] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [applyingId, setApplyingId] = useState('');
+
+  const accent = theme?.accent?.gm || theme?.accent?.primary || '#d00000';
+  const border = theme?.border || 'rgba(255,255,255,0.16)';
+  const textPrimary = theme?.text?.primary || '#ffffff';
+  const textSecondary = theme?.text?.secondary || 'rgba(255,255,255,0.74)';
+  const textMuted = theme?.text?.muted || 'rgba(255,255,255,0.58)';
+  const cardBg = theme?.bg?.card || '#3a3a3a';
+  const panelBg = theme?.bg?.panel || '#2f2f2f';
+  const inputBg = theme?.bg?.primary || '#242424';
+
+  const checkSuggestions = async (content) => {
     try {
-      await apiClient.post(`/campaigns/${campaignId}/sync-note`, {
-        note_content: quickNote,
-        note_type: 'gm_note',
-        title: 'Session Update',
-        create_timeline_event: true
-      });
-      toast.success('Note synced to all players!');
-      setQuickNote('');
-    } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Failed to sync note');
+      const response = await apiClient.post(`/campaigns/${campaignId}/live-state/suggestions`, { content });
+      setSuggestions(Array.isArray(response.data?.suggestions) ? response.data.suggestions : []);
+    } catch {
+      setSuggestions([]);
     }
   };
 
-  const accent = theme?.accent?.gm || theme?.accent?.primary || 'var(--rq-accent-primary, #C1121F)';
-  const border = theme?.border || 'var(--rq-accent-border, rgba(193,18,31,0.35))';
-  const textPrimary = theme?.text?.primary || 'var(--rq-text-primary, #FFFFFF)';
-  const textSecondary = theme?.text?.secondary || 'var(--rq-text-secondary, #D6D6D6)';
-  const textMuted = theme?.text?.muted || 'var(--rq-text-muted, #A0A0A0)';
-  const cardBg = theme?.bg?.card || 'var(--rq-bg-panel, #242424)';
+  const saveNote = async () => {
+    const content = quickNote.trim();
+    if (!content || saving) return;
+    setSaving(true);
+    try {
+      const response = await apiClient.post(`/campaigns/${campaignId}/ingame-notes`, { content });
+      const note = { ...response.data, content };
+      setSessionNotes?.(prev => [note, ...(Array.isArray(prev) ? prev : [])]);
+      setQuickNote('');
+      await checkSuggestions(content);
+      toast.success('Note saved');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save note');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const syncNoteToPlayers = async (note) => {
+    if (!note?.content) return;
+    try {
+      await apiClient.post(`/campaigns/${campaignId}/sync-note`, {
+        note_content: note.content,
+        note_type: 'gm_note',
+        title: 'Campaign Update',
+        create_timeline_event: true,
+      });
+      toast.success('Note shared with campaign players');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not share note');
+    }
+  };
+
+  const applySuggestion = async (suggestion) => {
+    if (!suggestion?.npc_id) return;
+    setApplyingId(suggestion.id);
+    try {
+      const stateRes = await apiClient.get(`/campaigns/${campaignId}/live-state`);
+      const current = Array.isArray(stateRes.data?.companion_npc_ids) ? stateRes.data.companion_npc_ids : [];
+      const next = suggestion.type === 'companion_add'
+        ? [...new Set([...current, suggestion.npc_id])]
+        : current.filter(id => id !== suggestion.npc_id);
+      await apiClient.put(`/campaigns/${campaignId}/live-state`, { companion_npc_ids: next });
+      setSuggestions(prev => prev.filter(item => item.id !== suggestion.id));
+      toast.success(suggestion.type === 'companion_add' ? `${suggestion.npc_name} marked as travelling with the party` : `${suggestion.npc_name} removed from travelling party`);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not apply Rookie suggestion');
+    } finally {
+      setApplyingId('');
+    }
+  };
+
+  const ignoreSuggestion = (suggestionId) => setSuggestions(prev => prev.filter(item => item.id !== suggestionId));
 
   return (
-    <div>
-      <h2 style={{ fontSize: '22px', color: textPrimary, fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <FileText size={24} style={{ color: accent }} /> Session Notes
-      </h2>
+    <div data-testid="live-notes-panel" style={{ display: 'grid', gap: 9, color: textPrimary }}>
+      <header style={{ background: cardBg, border: `1px solid ${border}`, borderLeft: `5px solid ${accent}`, padding: 11 }}>
+        <p style={{ margin: 0, color: textMuted, fontSize: 9, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Play</p>
+        <h2 style={{ margin: '3px 0 0', color: textPrimary, fontSize: 21, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 7 }}><FileText size={20} /> Notes</h2>
+      </header>
 
-      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-        <div>
-          <h3 style={{ fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Quick Note</h3>
-          <RookFormFillPanel
-            title="Ask Rook to draft a note"
-            helperText="Describe the moment, clue, NPC reveal, or recap you need. Import the result straight into the note box."
-            section="GM quick session note"
-            campaignId={campaignId}
-            fields={[{ name: 'quick_note', label: 'Quick note', field_type: 'textarea' }]}
-            currentValues={{ quick_note: quickNote }}
-            onApply={(patch) => { if (patch.quick_note !== undefined) setQuickNote(String(patch.quick_note)); }}
-            placeholder="Example: Draft a short recap that the party found a coded map in the smugglers' warehouse."
-          />
-          <textarea
-            value={quickNote}
-            onChange={(e) => setQuickNote(e.target.value)}
-            style={{ minHeight: '150px', marginBottom: '12px', fontSize: '15px', width: '100%', background: 'var(--rq-bg-input, #1F1F1F)', border: `1px solid ${border}`, borderRadius: 'var(--rq-radius-sm, 4px)', padding: '14px', color: textPrimary, resize: 'vertical' }}
-            placeholder="Write a quick note about the session... people met, events, plot points, etc."
-          />
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <Button
-              onClick={handleSubmitNote}
-              disabled={processingNote || !quickNote.trim()}
-              className="press-scale"
-              style={{ flex: 1, display: 'flex', gap: '8px', justifyContent: 'center', background: 'var(--rq-accent-primary, #C1121F)', color: textPrimary, border: '1px solid var(--rq-accent-primary, #C1121F)', borderRadius: 'var(--rq-radius-sm, 4px)', padding: '14px', fontSize: '15px', fontWeight: 800 }}
-            >
-              {processingNote ? <Loader size={16} className="animate-spin" /> : <Send size={16} />} Save Note
-            </Button>
-            <Button
-              onClick={syncNote}
-              disabled={!quickNote.trim()}
-              className="press-scale tab-glow"
-              style={{ display: 'flex', gap: '8px', justifyContent: 'center', background: 'var(--rq-accent-soft, rgba(193,18,31,0.12))', color: 'var(--rq-accent-hover, #D62839)', border: '1px solid var(--rq-accent-border, rgba(193,18,31,0.35))', borderRadius: 'var(--rq-radius-sm, 4px)', padding: '14px', fontSize: '14px', whiteSpace: 'nowrap', fontWeight: 800 }}
-            >
-              <Users size={16} /> Sync to Players
-            </Button>
-          </div>
+      <section style={{ background: panelBg, border: `1px solid ${border}`, padding: 10 }}>
+        <textarea
+          data-testid="live-quick-note"
+          value={quickNote}
+          onChange={event => setQuickNote(event.target.value)}
+          onKeyDown={event => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+              event.preventDefault();
+              saveNote();
+            }
+          }}
+          placeholder="What just changed? NPC choices, clues, rulings, loot…"
+          style={{ minHeight: 100, width: '100%', boxSizing: 'border-box', background: inputBg, border: `1px solid ${border}`, color: textPrimary, padding: 10, resize: 'vertical', fontSize: 13 }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+          <button type="button" onClick={saveNote} disabled={saving || !quickNote.trim()} style={{ minHeight: 34, border: 0, background: accent, color: '#fff', padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, cursor: 'pointer' }}>
+            <Send size={14} /> {saving ? 'Saving…' : 'Save Note'}
+          </button>
         </div>
+      </section>
 
-        <div>
-          <h3 style={{ fontSize: '16px', color: accent, fontWeight: 800, marginBottom: '12px' }}>Recent Notes ({sessionNotes.length})</h3>
-          <div className="scroll-smooth" style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {sessionNotes.length === 0 ? (
-              <div className="card-hover" style={{ background: cardBg, border: `2px dashed ${border}`, padding: '30px', textAlign: 'center', borderRadius: 'var(--rq-radius-sm, 4px)' }}>
-                <FileText size={32} style={{ color: textMuted, margin: '0 auto 12px' }} />
-                <p style={{ color: textSecondary, fontSize: '13px' }}>No notes yet</p>
+      {suggestions.length > 0 && (
+        <section data-testid="rookie-live-suggestions" style={{ display: 'grid', gap: 6 }}>
+          <div style={{ color: textMuted, fontSize: 9, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Rookie noticed</div>
+          {suggestions.map(suggestion => (
+            <article key={suggestion.id} style={{ background: cardBg, border: `1px solid ${border}`, borderLeft: `5px solid ${accent}`, padding: 9, display: 'grid', gap: 6 }}>
+              <strong style={{ fontSize: 13, color: textPrimary }}>{suggestion.title}</strong>
+              {(suggestion.affected_quest_titles?.length > 0 || suggestion.affected_encounter_ids?.length > 0) && (
+                <span style={{ color: textMuted, fontSize: 10 }}>
+                  This may affect {suggestion.affected_quest_titles?.length || 0} open quest{suggestion.affected_quest_titles?.length === 1 ? '' : 's'} and {suggestion.affected_encounter_ids?.length || 0} linked encounter{suggestion.affected_encounter_ids?.length === 1 ? '' : 's'}.
+                </span>
+              )}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button type="button" disabled={applyingId === suggestion.id} onClick={() => applySuggestion(suggestion)} style={{ minHeight: 30, border: 0, background: accent, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><Check size={13} /> Apply</button>
+                <button type="button" onClick={() => ignoreSuggestion(suggestion.id)} style={{ minHeight: 30, border: `1px solid ${border}`, background: inputBg, color: textSecondary, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><X size={13} /> Ignore</button>
               </div>
-            ) : (
-              sessionNotes.map(note => (
-                <div key={note.id} className="card-hover" style={{ background: cardBg, border: `1px solid ${border}`, padding: '12px', borderRadius: 'var(--rq-radius-sm, 4px)' }}>
-                  <div style={{ fontSize: '10px', color: textMuted, marginBottom: '6px' }}>
-                    {new Date(note.created_at).toLocaleString()}
-                  </div>
-                  <div style={{ color: textPrimary, fontSize: '13px', lineHeight: '1.5' }}>{note.content}</div>
-                </div>
-              ))
-            )}
-          </div>
+            </article>
+          ))}
+        </section>
+      )}
+
+      <section style={{ background: panelBg, border: `1px solid ${border}`, padding: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', marginBottom: 7 }}>
+          <strong style={{ fontSize: 12, color: textPrimary }}>Recent Notes</strong>
+          <span style={{ fontSize: 10, color: textMuted }}>{sessionNotes.length}</span>
         </div>
-      </div>
+        <div style={{ display: 'grid', gap: 5, maxHeight: 360, overflowY: 'auto' }}>
+          {sessionNotes.length === 0 && <div style={{ padding: 14, color: textMuted, textAlign: 'center', fontSize: 11, background: inputBg }}>No notes yet.</div>}
+          {sessionNotes.map(note => (
+            <article key={note.id} style={{ background: inputBg, border: `1px solid ${border}`, padding: 8 }}>
+              <div style={{ color: textMuted, fontSize: 9, marginBottom: 4 }}>{note.created_at ? new Date(note.created_at).toLocaleString() : ''}</div>
+              <div style={{ color: textPrimary, fontSize: 12, lineHeight: 1.4 }}>{note.content}</div>
+              <button type="button" onClick={() => syncNoteToPlayers(note)} style={{ marginTop: 6, minHeight: 27, border: `1px solid ${border}`, background: cardBg, color: textSecondary, padding: '0 7px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 850 }}><Users size={12} /> Share with Players</button>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
