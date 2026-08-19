@@ -2,37 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Skull, Swords } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CombatTab from '@/components/gm/CombatTab';
 import MonstersTab from '@/components/gm/MonstersTab';
 
 const theme = {
-  bg: {
-    primary: '#242424',
-    surface: '#2f2f2f',
-    elevated: '#3a3a3a',
-    panel: '#2f2f2f',
-    card: '#3a3a3a',
-    hover: '#444444',
-  },
-  accent: {
-    primary: '#d00000',
-    secondary: '#d00000',
-    gold: '#d00000',
-    orange: '#ff3b3b',
-    hover: '#ff3b3b',
-    subtle: 'rgba(208,0,0,0.18)',
-    glow: 'none',
-    gm: '#d00000',
-    gmSubtle: 'rgba(208,0,0,0.18)',
-  },
-  text: {
-    primary: '#ffffff',
-    secondary: 'rgba(255,255,255,0.74)',
-    muted: 'rgba(255,255,255,0.58)',
-    white: '#ffffff',
-  },
+  bg: { primary: '#242424', surface: '#2f2f2f', elevated: '#3a3a3a', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
+  accent: { primary: '#d00000', secondary: '#d00000', gold: '#d00000', orange: '#ff3b3b', hover: '#ff3b3b', subtle: 'rgba(208,0,0,0.18)', glow: 'none', gm: '#d00000', gmSubtle: 'rgba(208,0,0,0.18)' },
+  text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)', white: '#ffffff' },
   border: 'rgba(255,255,255,0.16)',
   gradient: '#d00000',
 };
@@ -102,7 +79,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
         return loadedScenarios[0] || null;
       });
     } catch (error) {
-      toast.error(error?.response?.data?.detail || 'Could not load Combat Control');
+      toast.error(error?.response?.data?.detail || 'Could not load encounters');
     } finally {
       setLoading(false);
     }
@@ -118,9 +95,9 @@ export default function CombatConsolidatedTab({ campaignId }) {
     grid_size: 40,
   }), [campaignId, players]);
 
-  const launchCombat = (scenario) => {
+  const launchCombat = scenario => {
     if (!scenario) return;
-    navigate('/combat', { state: { scenario, campaignId, campaignName } });
+    navigate(`/combat/${campaignId}`, { state: { scenario, campaignId, campaignName } });
   };
 
   const quickStartCombat = () => {
@@ -131,7 +108,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
     launchCombat(quickScenario);
   };
 
-  const handleMonsterEncounter = (encounter) => {
+  const handleMonsterEncounter = encounter => {
     if (encounter?.id) {
       setScenarios(prev => uniqueScenarioList(prev, encounter));
       setSelectedScenario(encounter);
@@ -140,30 +117,20 @@ export default function CombatConsolidatedTab({ campaignId }) {
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   };
 
-  if (loading) {
-    return <section style={loadingStyle}>Loading Combat Control…</section>;
-  }
+  if (loading) return <section style={loadingStyle}>Loading encounters…</section>;
 
   return (
     <section data-testid="combat-consolidated-tab" style={shellStyle}>
-      <header style={headerStyle}>
-        <div>
-          <p style={eyebrowStyle}>Encounters</p>
-          <h2 style={titleStyle}><Swords size={28} /> Combat Control</h2>
-          <p style={subtitleStyle}>Prep encounters, build monster groups, add the current party, check launch readiness, and drop post-fight loot.</p>
-        </div>
-        <Button onClick={loadCombatPrep} style={secondaryButtonStyle}><RefreshCw size={15} /> Refresh</Button>
-      </header>
-
-      <nav style={modeNavStyle} aria-label="Encounter workspace mode">
-        <button type="button" onClick={() => setActiveMode('combat')} data-active={activeMode === 'combat'} style={modeButtonStyle(activeMode === 'combat')}><Swords size={16} /> Combat Setup</button>
-        <button type="button" onClick={() => setActiveMode('monsters')} data-active={activeMode === 'monsters'} style={modeButtonStyle(activeMode === 'monsters')}><Skull size={16} /> Monster Builder</button>
-      </nav>
+      <div style={topBarStyle}>
+        <nav style={modeNavStyle} aria-label="Encounter tools">
+          <button type="button" onClick={() => setActiveMode('combat')} style={modeButtonStyle(activeMode === 'combat')}><Swords size={15} /> Encounters</button>
+          <button type="button" onClick={() => setActiveMode('monsters')} style={modeButtonStyle(activeMode === 'monsters')}><Skull size={15} /> Monster Builder</button>
+        </nav>
+        <button type="button" onClick={loadCombatPrep} style={refreshButtonStyle}><RefreshCw size={14} /> Refresh</button>
+      </div>
 
       {!players.length && activeMode === 'combat' && (
-        <section style={warningStyle}>
-          <AlertTriangle size={17} /> No players are linked yet. You can still prep enemy encounters, but ordinary table combat works best once players have joined or been added.
-        </section>
+        <section style={warningStyle}><AlertTriangle size={15} /> No players are linked yet. You can still prep encounters.</section>
       )}
 
       {activeMode === 'monsters' ? (
@@ -184,13 +151,10 @@ export default function CombatConsolidatedTab({ campaignId }) {
   );
 }
 
-const shellStyle = { display: 'grid', gap: 12, minHeight: '100%', color: '#ffffff' };
-const loadingStyle = { padding: 24, background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.74)' };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', background: '#3a3a3a', border: '1px solid rgba(255,255,255,0.16)', padding: 14 };
-const eyebrowStyle = { margin: '0 0 5px', color: '#d00000', fontSize: 11, fontWeight: 950, letterSpacing: '0.12em', textTransform: 'uppercase' };
-const titleStyle = { margin: 0, display: 'flex', alignItems: 'center', gap: 9, color: '#ffffff', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 950, lineHeight: 0.95 };
-const subtitleStyle = { margin: '8px 0 0', color: 'rgba(255,255,255,0.74)', lineHeight: 1.45, maxWidth: 820 };
-const secondaryButtonStyle = { minHeight: 38, border: 0, borderRadius: 0, background: '#2f2f2f', color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 900 };
-const warningStyle = { display: 'flex', gap: 8, alignItems: 'center', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', borderLeft: '6px solid #d00000', padding: 10, color: 'rgba(255,255,255,0.8)', fontWeight: 850 };
-const modeNavStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', padding: 8 };
-const modeButtonStyle = (active) => ({ minHeight: 38, border: 0, background: active ? '#d00000' : '#3a3a3a', color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '0 12px', fontWeight: 950, cursor: 'pointer' });
+const shellStyle = { display: 'grid', gap: 8, minHeight: '100%', color: '#fff' };
+const loadingStyle = { padding: 18, background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.74)' };
+const topBarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' };
+const modeNavStyle = { display: 'flex', gap: 1, overflowX: 'auto', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.16)' };
+const modeButtonStyle = active => ({ minHeight: 42, border: 0, background: active ? '#d00000' : '#3a3a3a', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 11px', fontWeight: 950, cursor: 'pointer', whiteSpace: 'nowrap' });
+const refreshButtonStyle = { minHeight: 40, border: '1px solid rgba(255,255,255,0.16)', background: '#3a3a3a', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px', fontWeight: 850, cursor: 'pointer' };
+const warningStyle = { display: 'flex', gap: 7, alignItems: 'center', background: '#2f2f2f', border: '1px solid rgba(255,255,255,0.16)', borderLeft: '4px solid #d00000', padding: 8, color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 800 };
