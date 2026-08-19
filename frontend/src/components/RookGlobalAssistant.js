@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BookOpen, Copy, Loader, Minimize2, Send, Sparkles, Wand2, X } from 'lucide-react';
+import { BookOpen, Copy, Loader, MessageCircle, Minimize2, Send, Sparkles, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import RookCreateStudio from '@/components/gm/RookCreateStudio';
 import {
   buildRookSystemContext,
   extractCampaignIdFromPath,
@@ -34,6 +35,7 @@ export default function RookGlobalAssistant() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [pageDataContext, setPageDataContext] = useState('');
+  const [assistantMode, setAssistantMode] = useState('chat');
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -48,6 +50,9 @@ export default function RookGlobalAssistant() {
   const playerFacingCampaign = useMemo(() => isPlayerFacingCampaignPath(pathname, assistantPathname), [pathname, assistantPathname]);
   const contextNote = getRookContextNote({ characterId, campaignId, pageDataContext, playerFacingCampaign });
   const systemContext = useMemo(() => buildRookSystemContext(assistantPathname, pageDataContext), [assistantPathname, pageDataContext]);
+  const canCreate = Boolean(campaignId && (
+    pathname.startsWith('/campaign/') || pathname.startsWith('/gm-screen') || pathname.startsWith('/combat')
+  ));
 
   useEffect(() => {
     let active = true;
@@ -94,20 +99,25 @@ export default function RookGlobalAssistant() {
   }, []);
 
   useEffect(() => {
-    if (!isOpen || isMinimized) return;
+    if (!isOpen || isMinimized || assistantMode !== 'chat') return;
     const focusTimer = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(focusTimer);
-  }, [isOpen, isMinimized, pathname]);
+  }, [assistantMode, isOpen, isMinimized, pathname]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages, loading]);
+    if (assistantMode === 'chat') scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [assistantMode, messages, loading]);
 
   useEffect(() => {
     setMessages([]);
     setInput('');
     setCopiedIndex(null);
+    setAssistantMode('chat');
   }, [pathname]);
+
+  useEffect(() => {
+    if (!canCreate && assistantMode === 'create') setAssistantMode('chat');
+  }, [assistantMode, canCreate]);
 
   const sendMessage = async (forcedText) => {
     const text = (forcedText || input).trim();
@@ -176,8 +186,8 @@ export default function RookGlobalAssistant() {
         data-testid="rook-global-restore"
       >
         <Sparkles size={16} aria-hidden="true" />
-        <span>{pageMeta.label}</span>
-        {messages.length > 0 && <strong>{messages.length}</strong>}
+        <span>{assistantMode === 'create' ? 'Rook Create' : pageMeta.label}</span>
+        {assistantMode === 'chat' && messages.length > 0 && <strong>{messages.length}</strong>}
       </button>
     );
   }
@@ -190,8 +200,8 @@ export default function RookGlobalAssistant() {
         </div>
         <div className="rook-assistant-title">
           <span>ROOK</span>
-          <strong>{pageMeta.label}</strong>
-          <small>{pageMeta.subtitle}</small>
+          <strong>{assistantMode === 'create' ? 'Create Studio' : pageMeta.label}</strong>
+          <small>{assistantMode === 'create' ? 'Generate → review → edit → save' : pageMeta.subtitle}</small>
         </div>
         <div className="rook-assistant-actions">
           <button type="button" onClick={() => setIsMinimized(true)} aria-label="Minimise Rook">
@@ -203,88 +213,106 @@ export default function RookGlobalAssistant() {
         </div>
       </header>
 
-      <div className="rook-assistant-chip-row" aria-label="Rook can help with">
-        {chips.map((chip) => (
-          <button key={chip} type="button" onClick={() => sendMessage(chip)} disabled={loading}>
-            {chip}
-          </button>
-        ))}
-      </div>
+      {canCreate && (
+        <div style={modeTabsStyle}>
+          <button type="button" onClick={() => setAssistantMode('chat')} style={modeTabStyle(assistantMode === 'chat')}><MessageCircle size={13} /> Ask</button>
+          <button type="button" onClick={() => setAssistantMode('create')} style={modeTabStyle(assistantMode === 'create')}><Wand2 size={13} /> Create</button>
+        </div>
+      )}
 
-      <main className="rook-assistant-messages">
-        {messages.length === 0 && (
-          <section className="rook-assistant-empty">
-            <div className="rook-assistant-empty__icon"><Wand2 size={24} /></div>
-            <h3>Ask Rook anything here.</h3>
-            <p>Rook now carries a site-wide brain: player help, GM prep, homebrew checks, name banks, quest hooks, and page-aware guidance.</p>
-            {contextNote && (
-              <p className="rook-assistant-context-note">{contextNote}</p>
-            )}
-            <div className="rook-assistant-playbook" aria-label="Best ways to use Rook here">
-              <span>Best here</span>
-              <ul>
-                {playbook.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            </div>
-            <div className="rook-assistant-starters">
-              {starters.map((starter) => (
-                <button key={starter} type="button" onClick={() => sendMessage(starter)} disabled={loading}>
-                  <BookOpen size={13} />
-                  {starter}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {messages.map((message, index) => (
-          <article key={`${message.timestamp}-${index}`} className={`rook-assistant-message is-${message.role}${message.isError ? ' is-error' : ''}`}>
-            <div className="rook-assistant-message__bubble">
-              {message.content}
-            </div>
-            {message.role === 'assistant' && !message.isError && (
-              <button type="button" className="rook-assistant-copy" onClick={() => handleCopy(message.content, index)}>
-                <Copy size={11} />
-                {copiedIndex === index ? 'Copied' : 'Copy'}
+      {assistantMode === 'create' && canCreate ? (
+        <main className="rook-assistant-messages" style={{ overflowY: 'auto' }}>
+          <RookCreateStudio campaignId={campaignId} />
+        </main>
+      ) : (
+        <>
+          <div className="rook-assistant-chip-row" aria-label="Rook can help with">
+            {chips.map((chip) => (
+              <button key={chip} type="button" onClick={() => sendMessage(chip)} disabled={loading}>
+                {chip}
               </button>
-            )}
-          </article>
-        ))}
-
-        {loading && (
-          <div className="rook-assistant-thinking">
-            <Loader size={15} className="animate-spin" />
-            <span>Rook is thinking…</span>
+            ))}
           </div>
-        )}
-        <div ref={scrollRef} />
-      </main>
 
-      <footer className="rook-assistant-compose">
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              sendMessage();
-            }
-          }}
-          placeholder={`Ask ${pageMeta.label}…`}
-          rows={2}
-          data-testid="rook-global-input"
-        />
-        <button
-          type="button"
-          onClick={() => sendMessage()}
-          disabled={loading || !input.trim()}
-          aria-label="Send message to Rook"
-          data-testid="rook-global-send"
-        >
-          {loading ? <Loader size={16} className="animate-spin" /> : <Send size={16} />}
-        </button>
-      </footer>
+          <main className="rook-assistant-messages">
+            {messages.length === 0 && (
+              <section className="rook-assistant-empty">
+                <div className="rook-assistant-empty__icon"><Wand2 size={24} /></div>
+                <h3>Ask Rook anything here.</h3>
+                <p>{canCreate ? 'Use Ask for ideas and advice, or switch to Create when you want a reviewable campaign draft.' : 'Rook carries page-aware player help, GM prep, homebrew checks, name banks, quest hooks, and rules guidance.'}</p>
+                {contextNote && (
+                  <p className="rook-assistant-context-note">{contextNote}</p>
+                )}
+                <div className="rook-assistant-playbook" aria-label="Best ways to use Rook here">
+                  <span>Best here</span>
+                  <ul>
+                    {playbook.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+                <div className="rook-assistant-starters">
+                  {starters.map((starter) => (
+                    <button key={starter} type="button" onClick={() => sendMessage(starter)} disabled={loading}>
+                      <BookOpen size={13} />
+                      {starter}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {messages.map((message, index) => (
+              <article key={`${message.timestamp}-${index}`} className={`rook-assistant-message is-${message.role}${message.isError ? ' is-error' : ''}`}>
+                <div className="rook-assistant-message__bubble">
+                  {message.content}
+                </div>
+                {message.role === 'assistant' && !message.isError && (
+                  <button type="button" className="rook-assistant-copy" onClick={() => handleCopy(message.content, index)}>
+                    <Copy size={11} />
+                    {copiedIndex === index ? 'Copied' : 'Copy'}
+                  </button>
+                )}
+              </article>
+            ))}
+
+            {loading && (
+              <div className="rook-assistant-thinking">
+                <Loader size={15} className="animate-spin" />
+                <span>Rook is thinking…</span>
+              </div>
+            )}
+            <div ref={scrollRef} />
+          </main>
+
+          <footer className="rook-assistant-compose">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder={`Ask ${pageMeta.label}…`}
+              rows={2}
+              data-testid="rook-global-input"
+            />
+            <button
+              type="button"
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              aria-label="Send message to Rook"
+              data-testid="rook-global-send"
+            >
+              {loading ? <Loader size={16} className="animate-spin" /> : <Send size={16} />}
+            </button>
+          </footer>
+        </>
+      )}
     </aside>
   );
 }
+
+const modeTabsStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, padding: '6px 8px 0', background: 'var(--rook-panel, #242424)' };
+const modeTabStyle = active => ({ minHeight: 34, border: `1px solid ${active ? '#d00000' : 'rgba(255,255,255,.14)'}`, background: active ? 'rgba(208,0,0,.14)' : '#2f2f2f', color: active ? '#fff' : 'rgba(255,255,255,.58)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 900 });
