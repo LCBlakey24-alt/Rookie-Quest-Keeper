@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_BASE } from '@/lib/api';
 import { clearAuthToken, getAuthToken } from '@/lib/auth';
+import { readOfflineApiResponse, storeOfflineApiResponse } from '@/offline/offlineApiCache';
 
 import { formatApiErrorDetail } from '@/lib/apiErrors';
 
@@ -48,8 +49,11 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    storeOfflineApiResponse(response.config, response).catch(() => {});
+    return response;
+  },
+  async (error) => {
     if (error?.response?.data?.detail) {
       error.formattedDetail = formatApiErrorDetail(error.response.data.detail);
     }
@@ -58,13 +62,27 @@ apiClient.interceptors.response.use(
     // installed-app session. A network outage must not eject a player or GM
     // from an already signed-in PWA/desktop shell. A real 401 still clears it.
     if (isAuthProbeNetworkFailure(error)) {
-      return Promise.resolve({
+      return {
         data: { offline: true },
         status: 200,
         statusText: 'Offline',
         headers: {},
         config: error.config,
-      });
+      };
+    }
+
+    // GET-only offline fallback. Mutations still fail normally: they will not
+    // be queued until the dedicated sync/conflict layer is implemented.
+    if (!error?.response && error?.config) {
+      const cached = await readOfflineApiResponse(error.config).catch(() => null);
+      if (cached) {
+        try {
+          window.dispatchEvent(new CustomEvent('rqk:offline-cache-hit', {
+            detail: { url: error.config.url, savedAt: cached.rqkOfflineSavedAt },
+          }));
+        } catch {}
+        return cached;
+      }
     }
 
     if (error?.response?.status === 401) {
