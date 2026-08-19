@@ -21,7 +21,7 @@ export const tabGroups = [
     { id: 'inventory', icon: Backpack, label: 'Loot & Rewards' },
   ] },
   { id: 'sessions', label: 'Notes & Handouts', icon: FileText, tabs: [
-    { id: 'ingame-notes', icon: FileText, label: 'Session Notes' },
+    { id: 'ingame-notes', icon: FileText, label: 'Campaign Notes' },
     { id: 'handouts', icon: Mail, label: 'Handouts & Secrets' },
     { id: 'uploads', icon: Upload, label: 'Uploads' },
   ] },
