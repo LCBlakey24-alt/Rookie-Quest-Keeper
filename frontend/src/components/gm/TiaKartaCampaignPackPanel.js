@@ -19,6 +19,7 @@ const rq = {
 };
 
 export default function TiaKartaCampaignPackPanel({ campaignId, destination, compact = true }) {
+  const [panelOpen, setPanelOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [savingId, setSavingId] = useState('');
@@ -42,7 +43,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
 
   if (!entries.length && destination !== 'npcs') return null;
 
-  const copyEntry = async (entry) => {
+  const copyEntry = async entry => {
     try {
       await navigator.clipboard.writeText(formatEntry(entry));
       toast.success(`${entry.title} copied`);
@@ -51,7 +52,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
     }
   };
 
-  const saveEntry = async (entry) => {
+  const saveEntry = async entry => {
     if (!campaignId) {
       toast.error('Open a campaign before saving this lore.');
       return;
@@ -62,7 +63,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
         title: `Tia Karta — ${entry.title}`,
         content: formatEntry(entry),
       }));
-      toast.success(`${entry.title} saved to Secrets & Handouts`);
+      toast.success(`${entry.title} saved to Handouts`);
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || `Could not save ${entry.title}`);
     } finally {
@@ -73,15 +74,33 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
   const shownEntries = expanded || !compact ? filteredEntries : filteredEntries.slice(0, 3);
   const destinationLabel = tiaKartaDashboardDestinations[destination] || destination;
 
+  if (!panelOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setPanelOpen(true)}
+        style={closedPanelStyle}
+        data-testid={`tia-karta-pack-${destination}`}
+      >
+        <span style={closedLabelStyle}><Sparkles size={14} /> Tia-Karta Campaign Pack</span>
+        <span style={closedMetaStyle}>{destinationLabel} <ChevronRight size={15} /></span>
+      </button>
+    );
+  }
+
   return (
-    <>
+    <section style={openShellStyle} data-testid={`tia-karta-pack-${destination}`}>
+      <button type="button" onClick={() => setPanelOpen(false)} style={openHeaderStyle}>
+        <span style={closedLabelStyle}><Sparkles size={14} /> Tia-Karta Campaign Pack</span>
+        <span style={closedMetaStyle}>Hide <ChevronDown size={15} /></span>
+      </button>
+
       <TiaKartaSessionTwoPackPanel campaignId={campaignId} destination={destination} />
-      <section className="tia-karta-lore-panel" style={panelStyle} data-testid={`tia-karta-pack-${destination}`}>
+
+      <section className="tia-karta-lore-panel" style={panelStyle}>
         <div style={headerStyle}>
           <div style={{ minWidth: 0 }}>
-            <p style={eyebrowStyle}><Sparkles size={13} /> Tia Karta campaign material</p>
             <h3 style={titleStyle}>{destinationLabel}</h3>
-            <p style={helperStyle}>Coded-in campaign notes that belong in this existing GM tab. Save any entry to Secrets & Handouts when you want a persistent draft.</p>
           </div>
           <button type="button" onClick={() => setExpanded(prev => !prev)} style={toggleStyle}>
             {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -94,7 +113,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
           <input
             value={query}
             onChange={event => setQuery(event.target.value)}
-            placeholder="Search this tab’s Tia Karta notes..."
+            placeholder="Search campaign pack…"
             style={searchInputStyle}
           />
         </label>
@@ -132,8 +151,9 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
         </div>
         <style>{tileLoreCss}</style>
       </section>
+
       {destination === 'npcs' && <TiaKartaNpcRosterPanel campaignId={campaignId} />}
-    </>
+    </section>
   );
 }
 
@@ -156,40 +176,43 @@ function formatEntry(entry) {
   ].filter(Boolean).join('\n');
 }
 
-const panelStyle = { display: 'grid', gap: 12, padding: 14, marginBottom: 16, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' };
-const eyebrowStyle = { margin: '0 0 6px', color: rq.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: 1, display: 'flex', alignItems: 'center', gap: 6 };
-const titleStyle = { margin: 0, fontSize: 20, color: rq.text, fontWeight: 950 };
-const helperStyle = { margin: '6px 0 0', color: rq.secondary, fontSize: 13, lineHeight: 1.45, maxWidth: 840 };
-const toggleStyle = { minHeight: 36, border: `1px solid ${rq.border}`, background: rq.card, color: rq.text, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 900 };
-const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: rq.panel, border: `1px solid ${rq.border}` };
+const closedPanelStyle = { width: '100%', minHeight: 42, marginBottom: 8, border: `1px solid ${rq.border}`, background: rq.panel, color: rq.text, padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' };
+const closedLabelStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 950, fontSize: 11 };
+const closedMetaStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, color: rq.muted, fontSize: 10, fontWeight: 850 };
+const openShellStyle = { display: 'grid', gap: 8, marginBottom: 10 };
+const openHeaderStyle = { minHeight: 42, border: `1px solid ${rq.border}`, background: rq.accentSoft, color: rq.text, padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' };
+const panelStyle = { display: 'grid', gap: 10, padding: 10, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' };
+const titleStyle = { margin: 0, fontSize: 16, color: rq.text, fontWeight: 950 };
+const toggleStyle = { minHeight: 32, border: `1px solid ${rq.border}`, background: rq.card, color: rq.text, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 900, fontSize: 10 };
+const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px', background: rq.panel, border: `1px solid ${rq.border}` };
 const searchInputStyle = { flex: 1, border: 0, outline: 0, background: 'transparent', color: rq.text, minWidth: 120 };
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 };
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 7 };
 const entryStyle = { display: 'grid', gap: 0, background: rq.panel, border: `1px solid ${rq.border}`, padding: 0, minWidth: 0 };
 const entryTopStyle = { display: 'flex', gap: 8, alignItems: 'flex-start', minWidth: 0 };
-const entryTitleStyle = { display: 'block', color: rq.text, fontSize: 15, lineHeight: 1.25, textAlign: 'left' };
-const categoryStyle = { display: 'block', color: rq.muted, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 3, textAlign: 'left' };
-const textStyle = { color: rq.secondary, lineHeight: 1.45, fontSize: 13, margin: 0 };
-const secretStyle = { color: '#FDE68A', lineHeight: 1.45, fontSize: 13, margin: 0 };
-const metaStyle = { color: rq.muted, lineHeight: 1.4, fontSize: 12, margin: 0 };
-const tbdStyle = { color: '#FCA5A5', lineHeight: 1.4, fontSize: 12, margin: 0 };
-const actionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 };
-const primaryButtonStyle = { minHeight: 34, border: 0, background: rq.accent, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
-const secondaryButtonStyle = { minHeight: 34, border: `1px solid ${rq.border}`, background: rq.card, color: '#fff', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 900, cursor: 'pointer' };
+const entryTitleStyle = { display: 'block', color: rq.text, fontSize: 13, lineHeight: 1.25, textAlign: 'left' };
+const categoryStyle = { display: 'block', color: rq.muted, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, marginTop: 2, textAlign: 'left' };
+const textStyle = { color: rq.secondary, lineHeight: 1.4, fontSize: 12, margin: 0 };
+const secretStyle = { color: '#FDE68A', lineHeight: 1.4, fontSize: 12, margin: 0 };
+const metaStyle = { color: rq.muted, lineHeight: 1.35, fontSize: 11, margin: 0 };
+const tbdStyle = { color: '#FCA5A5', lineHeight: 1.35, fontSize: 11, margin: 0 };
+const actionsStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 };
+const primaryButtonStyle = { minHeight: 30, border: 0, background: rq.accent, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontSize: 10 };
+const secondaryButtonStyle = { minHeight: 30, border: `1px solid ${rq.border}`, background: rq.card, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 900, cursor: 'pointer', fontSize: 10 };
 
 const tileLoreCss = `
   .tia-lore-card-toggle {
     border: 0;
     background: transparent;
     color: inherit;
-    padding: 12px;
+    padding: 9px;
     margin: 0;
     width: 100%;
-    min-height: 72px;
+    min-height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     cursor: pointer;
     font: inherit;
   }
@@ -197,8 +220,8 @@ const tileLoreCss = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     flex: 0 0 auto;
     background: ${rq.card};
     border: 1px solid ${rq.border};
@@ -206,18 +229,10 @@ const tileLoreCss = `
   }
   .tia-lore-card-details {
     display: none;
-    gap: 9px;
-    padding: 0 12px 12px;
+    gap: 7px;
+    padding: 0 9px 9px;
     border-top: 1px solid ${rq.border};
   }
-  .tia-lore-card[data-open="true"] .tia-lore-card-details {
-    display: grid;
-  }
-  .tia-lore-card[data-open="true"] {
-    outline: 1px solid ${rq.accent};
-  }
-  @media (max-width: 760px) {
-    .tia-karta-lore-panel { padding: 10px !important; gap: 10px !important; }
-    .tia-karta-lore-panel > div:first-child p:not(:first-child) { display: none !important; }
-  }
+  .tia-lore-card[data-open="true"] .tia-lore-card-details { display: grid; }
+  .tia-lore-card[data-open="true"] { outline: 1px solid ${rq.accent}; }
 `;
