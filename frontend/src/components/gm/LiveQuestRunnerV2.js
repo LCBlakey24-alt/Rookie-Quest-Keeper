@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Circle, FileText, Gift, Map, MapPin, Search, SkipForward, Swords, UserCircle } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Circle, FileText, Gift, Map, MapPin, Pin, Search, SkipForward, Swords, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
@@ -23,7 +23,13 @@ function progress(quest) {
   const items = safeArray(quest.objectives);
   const completed = items.filter(item => item.status === 'completed').length;
   const skipped = items.filter(item => item.status === 'skipped').length;
-  return { total: items.length, completed, resolved: completed + skipped };
+  return { total: items.length, completed, skipped, resolved: completed + skipped };
+}
+
+function statusRank(status) {
+  if (status === 'active') return 0;
+  if (status === 'available') return 1;
+  return 2;
 }
 
 export default function LiveQuestRunnerV2({ campaignId }) {
@@ -32,6 +38,7 @@ export default function LiveQuestRunnerV2({ campaignId }) {
   const [resources, setResources] = useState({ encounters: [], npcs: [], locations: [], maps: [], handouts: [], rewards: [] });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showResolved, setShowResolved] = useState({});
   const [expandedId, setExpandedId] = useState(() => {
     try { return localStorage.getItem(storageKey) || ''; } catch { return ''; }
   });
@@ -61,8 +68,17 @@ export default function LiveQuestRunnerV2({ campaignId }) {
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return quests.filter(quest => OPEN.has(quest.status) && (!term || [quest.title, quest.summary, quest.hook].some(value => String(value || '').toLowerCase().includes(term))));
-  }, [quests, search]);
+    return quests
+      .filter(quest => OPEN.has(quest.status) && (!term || [quest.title, quest.summary, quest.hook].some(value => String(value || '').toLowerCase().includes(term))))
+      .sort((a, b) => {
+        if (a.id === expandedId && b.id !== expandedId) return -1;
+        if (b.id === expandedId && a.id !== expandedId) return 1;
+        if (Boolean(a.is_pinned) !== Boolean(b.is_pinned)) return a.is_pinned ? -1 : 1;
+        const statusDifference = statusRank(a.status) - statusRank(b.status);
+        if (statusDifference) return statusDifference;
+        return String(a.title || '').localeCompare(String(b.title || ''));
+      });
+  }, [expandedId, quests, search]);
 
   const toggleQuest = questId => {
     const next = expandedId === questId ? '' : questId;
@@ -98,6 +114,15 @@ export default function LiveQuestRunnerV2({ campaignId }) {
     button?.click?.();
   };
 
+  const completeQuest = async quest => {
+    if (!window.confirm(`Mark “${quest.title}” complete?`)) return;
+    const updated = await updateQuest(quest.id, { status: 'completed' });
+    if (!updated) return;
+    setExpandedId('');
+    try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
+    toast.success(`${quest.title} completed`);
+  };
+
   if (loading) return <div style={emptyStyle}>Loading quests…</div>;
 
   return (
@@ -109,14 +134,20 @@ export default function LiveQuestRunnerV2({ campaignId }) {
       {visible.map(quest => {
         const p = progress(quest);
         const open = expandedId === quest.id;
+        const objectives = safeArray(quest.objectives);
+        const unresolved = objectives.filter(item => item.status !== 'completed' && item.status !== 'skipped');
+        const resolved = objectives.filter(item => item.status === 'completed' || item.status === 'skipped');
+        const showingResolved = Boolean(showResolved[quest.id]) || unresolved.length === 0;
+        const shownObjectives = showingResolved ? objectives : unresolved;
         return (
           <article key={quest.id} style={questStyle}>
             <button type="button" onClick={() => toggleQuest(quest.id)} style={questHeaderStyle}>
               {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <span style={{ minWidth: 0, display: 'grid', gap: 2, textAlign: 'left' }}>
                 <strong style={questTitleStyle}>{quest.title}</strong>
-                <span style={questMetaStyle}>{p.completed}/{p.total} complete · {quest.status}</span>
+                <span style={questMetaStyle}>{unresolved.length} left · {p.completed}/{p.total} complete · {quest.status}</span>
               </span>
+              {quest.is_pinned && <Pin size={14} style={{ color: rq.red }} />}
             </button>
 
             {open && (
@@ -124,11 +155,11 @@ export default function LiveQuestRunnerV2({ campaignId }) {
                 {quest.summary && <div style={summaryStyle}>{quest.summary}</div>}
 
                 <section style={sectionStyle}>
-                  <div style={sectionHeaderStyle}><strong>Objectives</strong><span>{p.resolved}/{p.total}</span></div>
+                  <div style={sectionHeaderStyle}><strong>Objectives</strong><span>{unresolved.length} remaining</span></div>
                   <div style={objectiveListStyle}>
-                    {safeArray(quest.objectives).map(objective => (
+                    {shownObjectives.map(objective => (
                       <div key={objective.id} style={objectiveStyle(objective.status)}>
-                        <button type="button" onClick={() => setObjective(quest.id, objective.id, objective.status === 'completed' ? 'upcoming' : 'completed')} style={checkButtonStyle}>
+                        <button type="button" onClick={() => setObjective(quest.id, objective.id, objective.status === 'completed' ? 'upcoming' : 'completed')} style={checkButtonStyle} title={objective.status === 'completed' ? 'Mark unresolved' : 'Complete'}>
                           {objective.status === 'completed' ? <Check size={16} /> : objective.status === 'skipped' ? <SkipForward size={16} /> : <Circle size={16} />}
                         </button>
                         <span style={objectiveTextStyle(objective.status)}>{objective.title}</span>
@@ -140,12 +171,17 @@ export default function LiveQuestRunnerV2({ campaignId }) {
                       </div>
                     ))}
                   </div>
+                  {resolved.length > 0 && unresolved.length > 0 && (
+                    <button type="button" onClick={() => setShowResolved(prev => ({ ...prev, [quest.id]: !prev[quest.id] }))} style={resolvedToggleStyle}>
+                      {showingResolved ? 'Hide completed / skipped' : `Show ${resolved.length} completed / skipped`}
+                    </button>
+                  )}
                 </section>
 
                 <LiveLinks quest={quest} resources={resources} onOpen={openTool} />
 
                 <div style={footerStyle}>
-                  <button type="button" onClick={async () => { const updated = await updateQuest(quest.id, { status: 'completed' }); if (updated) { setExpandedId(''); toast.success(`${quest.title} completed`); } }} style={completeButtonStyle}><Check size={14} /> Mark Quest Complete</button>
+                  <button type="button" onClick={() => completeQuest(quest)} style={completeButtonStyle}><Check size={14} /> Mark Quest Complete</button>
                 </div>
               </div>
             )}
@@ -186,7 +222,7 @@ const searchStyle = { minHeight: 36, display: 'flex', alignItems: 'center', gap:
 const searchInputStyle = { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: rq.text };
 const emptyStyle = { minHeight: 90, display: 'grid', placeItems: 'center', background: rq.panel, border: `1px dashed ${rq.line}`, color: rq.muted, fontSize: 11 };
 const questStyle = { background: rq.panel, border: `1px solid ${rq.line}` };
-const questHeaderStyle = { width: '100%', minHeight: 52, border: 0, background: rq.card, color: rq.text, padding: '8px 10px', display: 'grid', gridTemplateColumns: '20px minmax(0, 1fr)', alignItems: 'center', gap: 6, cursor: 'pointer' };
+const questHeaderStyle = { width: '100%', minHeight: 52, border: 0, background: rq.card, color: rq.text, padding: '8px 10px', display: 'grid', gridTemplateColumns: '20px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, cursor: 'pointer' };
 const questTitleStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 };
 const questMetaStyle = { color: rq.muted, fontSize: 9, textTransform: 'capitalize' };
 const questBodyStyle = { display: 'grid', gap: 7, padding: 7 };
@@ -199,6 +235,7 @@ const checkButtonStyle = { width: 34, height: 34, border: 0, background: 'transp
 const objectiveTextStyle = status => ({ color: status === 'completed' ? rq.muted : rq.text, textDecoration: status === 'completed' ? 'line-through' : 'none', fontSize: 11, lineHeight: 1.25 });
 const skipButtonStyle = { width: 30, height: 30, border: 0, background: 'transparent', color: rq.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const runObjectiveStyle = { width: 30, height: 30, border: `1px solid ${rq.red}`, background: 'rgba(208,0,0,0.14)', color: rq.text, display: 'grid', placeItems: 'center', cursor: 'pointer' };
+const resolvedToggleStyle = { minHeight: 30, border: `1px solid ${rq.line}`, background: rq.bg, color: rq.muted, padding: '0 8px', cursor: 'pointer', fontSize: 9, fontWeight: 900, justifySelf: 'start' };
 const linksStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 4 };
 const linkButtonStyle = encounter => ({ minHeight: 36, border: `1px solid ${encounter ? rq.red : rq.line}`, background: encounter ? 'rgba(208,0,0,0.14)' : rq.bg, color: rq.text, padding: '0 7px', display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr) auto', alignItems: 'center', gap: 4, cursor: 'pointer', textAlign: 'left', fontSize: 10, overflow: 'hidden' });
 const footerStyle = { display: 'flex', justifyContent: 'flex-end' };
