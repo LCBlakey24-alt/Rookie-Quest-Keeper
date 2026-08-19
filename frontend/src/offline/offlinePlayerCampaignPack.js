@@ -18,8 +18,12 @@ function isOfflineResponse(response) {
   return Boolean(response?.rqkOffline || response?.headers?.['x-rqk-offline-cache'] === '1');
 }
 
-function isAuthFailure(error) {
-  return error?.response?.status === 401 || error?.response?.status === 403;
+function isUnauthenticated(error) {
+  return error?.response?.status === 401;
+}
+
+function isForbidden(error) {
+  return error?.response?.status === 403;
 }
 
 function unique(values) {
@@ -86,7 +90,10 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       if (recordKey) recordKeys.push(recordKey);
       sections.push({ ...request, status: 'saved', savedAt: Date.now() });
     } catch (error) {
-      if (isAuthFailure(error) && request.required) throw error;
+      // A 401 clears the auth token in apiClient. Continuing after that could
+      // move later cache records into a different account namespace, so abort
+      // the entire download immediately. Optional 403s remain a partial pack.
+      if (isUnauthenticated(error) || (request.required && isForbidden(error))) throw error;
       sections.push({
         ...request,
         status: 'unavailable',
@@ -112,7 +119,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       if (recordKey) recordKeys.push(recordKey);
       sections.push({ ...request, status: 'saved', savedAt: Date.now() });
     } catch (error) {
-      if (isAuthFailure(error)) throw error;
+      if (isUnauthenticated(error)) throw error;
       sections.push({
         ...request,
         status: 'unavailable',
