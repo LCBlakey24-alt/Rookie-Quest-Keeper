@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Backpack, CalendarDays, ChevronDown, ChevronRight, Clock, Compass, FileText, Mail, Menu, Monitor, RefreshCw, ScrollText, Swords, Upload, UserCircle, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Backpack, ChevronDown, ChevronRight, Clock, FileText, Mail, Map, Menu, Monitor, RefreshCw, ScrollText, Swords, UserCircle, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
@@ -9,7 +9,6 @@ import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
 import GodsTab from '@/components/tabs/GodsTab';
 import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
-import MapsTab from '@/components/tabs/MapsTab';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
 import MapsConsolidatedTab from '@/components/tabs/MapsConsolidatedTab';
@@ -24,14 +23,13 @@ import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 import TiaKartaCampaignPackPanel from '@/components/gm/TiaKartaCampaignPackPanel';
 import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
 import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
-import TonightsSessionTab from '@/components/tabs/TonightsSessionTab';
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
 const theme = {
   bg: { black: '#242424', panel: '#2f2f2f', card: '#3a3a3a', hover: '#444444' },
-  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)', hover: '#ff3b3b' },
+  accent: { primary: '#d00000', subtle: 'rgba(208,0,0,0.18)' },
   text: { white: '#ffffff', primary: '#ffffff', secondary: 'rgba(255,255,255,0.74)', muted: 'rgba(255,255,255,0.58)' },
   border: 'rgba(255,255,255,0.16)',
 };
@@ -52,12 +50,11 @@ export default function CampaignDashboard() {
   const [workspaceKey, setWorkspaceKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
-  const [expandedGroups, setExpandedGroups] = useState(() => ({ command: true, [allTabs.find(tab => tab.id === tabFromHash())?.groupId || 'command']: true }));
+  const [expandedGroup, setExpandedGroup] = useState(() => allTabs.find(tab => tab.id === tabFromHash())?.groupId || 'campaign');
   const [invite, setInvite] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(false);
 
   const activeTabMeta = useMemo(() => allTabs.find(tab => tab.id === activeTab) || allTabs[0], [activeTab]);
-  const activeGroup = useMemo(() => tabGroups.find(group => group.id === activeTabMeta?.groupId) || tabGroups[0], [activeTabMeta?.groupId]);
 
   const fetchCampaign = useCallback(async () => {
     setLoading(true);
@@ -66,9 +63,8 @@ export default function CampaignDashboard() {
       const response = await apiClient.get(`/campaigns/${campaignId}`);
       setCampaign(response.data);
     } catch (error) {
-      const detail = error?.response?.data?.detail;
       setCampaign(null);
-      setLoadError(detail || 'Campaign could not be loaded. You may not have access, or the campaign failed to fetch.');
+      setLoadError(error?.response?.data?.detail || 'Campaign could not be loaded.');
       toast.error('Failed to load campaign');
     } finally {
       setLoading(false);
@@ -80,29 +76,24 @@ export default function CampaignDashboard() {
   useEffect(() => {
     const onHashChange = () => {
       const nextTab = tabFromHash();
-      if (!validTabIds.has(nextTab)) return;
       const tab = allTabs.find(item => item.id === nextTab);
+      if (!tab) return;
       setActiveTab(nextTab);
       setWorkspaceKey(prev => prev + 1);
-      setExpandedGroups(prev => ({ ...prev, [tab?.groupId || 'command']: true }));
+      setExpandedGroup(tab.groupId);
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  useEffect(() => {
-    if (!activeTabMeta?.groupId) return;
-    setExpandedGroups(prev => ({ ...prev, [activeTabMeta.groupId]: true }));
-  }, [activeTabMeta?.groupId]);
-
   const handleOpenGMScreen = () => navigate(`/gm-screen/${campaignId}`);
 
-  const handleTabClick = useCallback((tabId) => {
+  const handleTabClick = useCallback(tabId => {
     if (!validTabIds.has(tabId)) return;
     const tab = allTabs.find(item => item.id === tabId);
     setActiveTab(tabId);
     setWorkspaceKey(prev => prev + 1);
-    setExpandedGroups(prev => ({ ...prev, [tab?.groupId || 'command']: true }));
+    setExpandedGroup(tab?.groupId || 'campaign');
     setMobileMenuOpen(false);
     setHoveredTab(null);
     if (typeof window !== 'undefined') {
@@ -111,10 +102,6 @@ export default function CampaignDashboard() {
       window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
   }, []);
-
-  const handleGroupClick = (group) => {
-    setExpandedGroups(prev => ({ ...prev, [group.id]: !prev[group.id] }));
-  };
 
   const fetchInviteCode = async () => {
     try {
@@ -155,49 +142,6 @@ export default function CampaignDashboard() {
     }
   };
 
-  const renderTabButton = (tab) => {
-    const isActive = activeTab === tab.id;
-    const isHovered = hoveredTab === tab.id && !isActive;
-    const Icon = tab.icon;
-    return (
-      <button
-        key={tab.id}
-        type="button"
-        onClick={() => handleTabClick(tab.id)}
-        onMouseEnter={() => setHoveredTab(tab.id)}
-        onMouseLeave={() => setHoveredTab(null)}
-        data-testid={`${tab.id}-tab`}
-        data-active={isActive ? 'true' : 'false'}
-        aria-current={isActive ? 'page' : undefined}
-        style={{ ...tabButtonStyle, background: isActive ? theme.accent.primary : (isHovered ? theme.bg.hover : 'transparent'), color: isActive ? theme.text.white : theme.text.secondary }}
-      >
-        <Icon size={16} style={{ color: theme.text.white, opacity: isActive ? 1 : 0.72 }} />
-        <span style={{ flex: 1 }}>{tab.label}</span>
-      </button>
-    );
-  };
-
-  const renderGroupHeader = (group) => {
-    const isExpanded = Boolean(expandedGroups[group.id]);
-    const hasActiveTab = group.tabs.some(tab => tab.id === activeTab);
-    const Icon = group.icon;
-    const ArrowIcon = isExpanded ? ChevronDown : ChevronRight;
-    return (
-      <button
-        key={`group-${group.id}`}
-        type="button"
-        onClick={() => handleGroupClick(group)}
-        data-testid={`group-${group.id}`}
-        aria-expanded={isExpanded ? 'true' : 'false'}
-        style={{ ...groupHeaderStyle, background: hasActiveTab ? theme.accent.subtle : (isExpanded ? theme.bg.card : 'transparent'), color: hasActiveTab ? theme.text.white : theme.text.muted, borderLeft: hasActiveTab ? `5px solid ${theme.accent.primary}` : '5px solid transparent' }}
-      >
-        <ArrowIcon size={15} style={{ color: hasActiveTab ? theme.text.white : theme.text.muted }} />
-        <Icon size={15} style={{ color: hasActiveTab ? theme.text.white : theme.text.muted }} />
-        <span>{group.label}</span>
-      </button>
-    );
-  };
-
   const withTiaKarta = (destination, children) => (
     <>
       <TiaKartaCampaignPackPanel campaignId={campaignId} destination={destination} />
@@ -207,26 +151,26 @@ export default function CampaignDashboard() {
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case 'command-centre': return <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
+      case 'command-centre':
+        return <GMHome campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
       case 'story-arcs': return withTiaKarta('storyArcs', <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />);
-      case 'setting': return withTiaKarta('worldOverview', <CampaignSettingTab campaignId={campaignId} />);
-      case 'world-builder': return <WorldBuilderTab campaignId={campaignId} />;
+      case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>;
+      case 'npcs': return withTiaKarta('npcs', <NPCsConsolidatedTab campaignId={campaignId} />);
       case 'maps': return withTiaKarta('worldAtlas', <MapsConsolidatedTab campaignId={campaignId} />);
       case 'gods': return withTiaKarta('powers', <GodsTab campaignId={campaignId} />);
-      case 'npcs': return withTiaKarta('npcs', <NPCsConsolidatedTab campaignId={campaignId} />);
+      case 'setting': return withTiaKarta('worldOverview', <CampaignSettingTab campaignId={campaignId} />);
       case 'chronicle': return withTiaKarta('chronicle', <ChronicleConsolidatedTab campaignId={campaignId} />);
       case 'combat': return withTiaKarta('encounters', <CombatConsolidatedTab campaignId={campaignId} />);
-      case 'battle-maps': return <MapsTab campaignId={campaignId} />;
+      case 'inventory': return withTiaKarta('inventory', <InventoryConsolidatedTab campaignId={campaignId} />);
+      case 'ingame-notes': return withTiaKarta('sessionNotes', <InGameNotesTab campaignId={campaignId} />);
+      case 'handouts': return withTiaKarta('handouts', <GMHandoutsTab campaignId={campaignId} />);
       case 'tools': return <ToolsConsolidatedTab campaignId={campaignId} />;
+      case 'campaign-rules': return withTiaKarta('campaignRules', <CampaignRulesTab campaignId={campaignId} />);
+      case 'world-builder': return <WorldBuilderTab campaignId={campaignId} />;
       case 'uploads': return <UploadTab theme={theme} campaignId={campaignId} />;
       case 'playtest-packs': return <PrivatePlaytestPacksTab campaignId={campaignId} />;
-      case 'inventory': return withTiaKarta('inventory', <InventoryConsolidatedTab campaignId={campaignId} />);
-      case 'campaign-rules': return withTiaKarta('campaignRules', <CampaignRulesTab campaignId={campaignId} />);
-      case 'tonight': return withTiaKarta('sessionNotes', <TonightsSessionTab campaignId={campaignId} onOpenTab={handleTabClick} />);
-      case 'handouts': return withTiaKarta('handouts', <GMHandoutsTab campaignId={campaignId} />);
-      case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>;
-      case 'ingame-notes': return withTiaKarta('sessionNotes', <InGameNotesTab campaignId={campaignId} />);
-      default: return <GMCommandCentre campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
+      default:
+        return <GMHome campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
     }
   };
 
@@ -236,12 +180,12 @@ export default function CampaignDashboard() {
     return (
       <main style={errorPageStyle}>
         <section style={errorCardStyle}>
-          <AlertTriangle size={40} color={theme.accent.primary} style={{ marginBottom: 12 }} />
+          <AlertTriangle size={38} color={theme.accent.primary} />
           <h1 style={errorTitleStyle}>Campaign could not be loaded</h1>
           <p style={errorTextStyle}>{loadError}</p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={buttonRowStyle}>
             <Button onClick={fetchCampaign} style={primaryButtonStyle}><RefreshCw size={16} /> Retry</Button>
-            <Button onClick={() => navigate('/home')} style={secondaryButtonStyle}><ArrowLeft size={16} /> Back to Home</Button>
+            <Button onClick={() => navigate('/home')} style={secondaryButtonStyle}><ArrowLeft size={16} /> Home</Button>
           </div>
         </section>
       </main>
@@ -253,194 +197,186 @@ export default function CampaignDashboard() {
       <header className="gm-dashboard-header" style={headerStyle}>
         <div className="gm-header-main" style={headerMainStyle}>
           <div className="gm-header-left" style={headerLeftStyle}>
-            <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-toggle" aria-label={mobileMenuOpen ? 'Close campaign tools' : 'Open campaign tools'} style={mobileMenuButtonStyle}>{mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}</button>
-            <Button data-testid="back-to-home-btn" onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} color={theme.text.white} /></Button>
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <button type="button" onClick={() => setMobileMenuOpen(prev => !prev)} className="mobile-menu-toggle" aria-label="Open campaign tools" style={mobileMenuButtonStyle}><Menu size={22} /></button>
+            <Button onClick={() => navigate('/home')} style={squareIconButtonStyle}><ArrowLeft size={20} /></Button>
+            <div style={{ minWidth: 0 }}>
               <h1 className="gm-campaign-title" style={campaignTitleStyle}>{campaign.name}</h1>
-              <div className="gm-campaign-meta" style={campaignMetaStyle}><span style={redTagStyle}>{activeTabMeta.label}</span><span style={systemTextStyle}>{campaign.system || '5e Campaign'}</span></div>
+              <div className="gm-campaign-meta" style={campaignMetaStyle}><span style={redTagStyle}>{activeTabMeta?.label || 'GM Home'}</span><span style={systemTextStyle}>{campaign.system || '5e Campaign'}</span></div>
             </div>
           </div>
           <div className="gm-header-actions" style={headerActionsStyle}>
-            <Button onClick={copyInviteCode} style={secondaryButtonStyle}>{inviteLoading ? 'Loading Code...' : 'Copy Join Code'}</Button>
-            <Button data-testid="open-dm-screen-btn" onClick={handleOpenGMScreen} style={primaryButtonStyle}><Monitor size={18} /> <span className="desktop-only">Open </span>Live Play Mode</Button>
+            <Button onClick={copyInviteCode} style={secondaryButtonStyle}>{inviteLoading ? 'Loading…' : 'Join Code'}</Button>
+            <Button onClick={handleOpenGMScreen} style={primaryButtonStyle}><Monitor size={17} /> Live Play</Button>
           </div>
         </div>
       </header>
 
       <div style={layoutStyle}>
-        <aside className={`sidebar gm-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={sidebarStyle}>
+        <aside className={`gm-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={sidebarStyle}>
           <div className="gm-sidebar-mobile-top" style={sidebarMobileTopStyle}>
-            <strong style={sidebarMobileTitleStyle}>Campaign Tools</strong>
-            <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close campaign tools" style={sidebarCloseButtonStyle}><X size={22} /></button>
+            <strong>Campaign</strong>
+            <button type="button" onClick={() => setMobileMenuOpen(false)} style={sidebarCloseButtonStyle}><X size={21} /></button>
           </div>
-          <h3 className="gm-sidebar-title" style={sidebarTitleStyle}>Campaign Tools</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div style={sidebarGroupsStyle}>
             {tabGroups.map(group => {
-              const isExpanded = Boolean(expandedGroups[group.id]);
-              return <div key={group.id}>{renderGroupHeader(group)}{isExpanded && group.tabs.map(tab => renderTabButton(tab))}</div>;
+              const open = expandedGroup === group.id;
+              const GroupIcon = group.icon;
+              return (
+                <div key={group.id}>
+                  <button type="button" onClick={() => setExpandedGroup(open ? '' : group.id)} style={groupHeaderStyle(open)} aria-expanded={open}>
+                    {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                    <GroupIcon size={15} />
+                    <span>{group.label}</span>
+                  </button>
+                  {open && group.tabs.map(tab => {
+                    const Icon = tab.icon;
+                    const active = tab.id === activeTab;
+                    const hovered = hoveredTab === tab.id && !active;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => handleTabClick(tab.id)}
+                        onMouseEnter={() => setHoveredTab(tab.id)}
+                        onMouseLeave={() => setHoveredTab(null)}
+                        style={tabButtonStyle(active, hovered)}
+                        data-testid={`${tab.id}-tab`}
+                      >
+                        <Icon size={15} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
             })}
           </div>
         </aside>
+
         {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={mobileOverlayStyle} />}
+
         <main style={mainStyle}>
-          {activeTabMeta && activeTab !== 'command-centre' && (
-            <div className="desktop-context" style={desktopContextStyle}>
-              <div style={{ minWidth: 0 }}>
-                <p style={desktopEyebrowStyle}>{activeGroup.label}</p>
-                <h2 style={desktopTitleStyle}>{activeTabMeta.label}</h2>
-              </div>
-              <span style={desktopPillStyle}>GM workspace</span>
-            </div>
-          )}
-          <section key={`${activeTab}-${workspaceKey}`} style={workspacePanelStyle} data-testid="gm-active-workspace" data-active-tab={activeTab}>{renderActiveTab()}</section>
+          <section key={`${activeTab}-${workspaceKey}`} style={workspacePanelStyle} data-testid="gm-active-workspace">{renderActiveTab()}</section>
         </main>
       </div>
-
       <style>{mobileCss}</style>
     </div>
   );
 }
 
-function GMCommandCentre({ campaign, invite, inviteLoading, onOpenTab, onOpenLive, onFetchInvite, onRotateInvite, onCopyInvite }) {
-  const commandCards = [
-    { title: 'Story Arcs', text: 'Build the campaign spine: arcs, chapters, checkpoints, and combat beats.', meta: 'Plan', icon: ScrollText, tab: 'story-arcs' },
-    { title: "Tonight's Session", text: 'Open the live prep checklist for the next table session.', meta: 'Prep', icon: CalendarDays, tab: 'tonight' },
-    { title: 'Live Play Mode', text: 'Launch the focused table screen with combat, notes, handouts, and display controls.', meta: 'Run', icon: Monitor, action: onOpenLive },
-    { title: 'World Atlas', text: 'Build world maps, place locations as markers, and organise local points of interest.', meta: 'World', icon: Compass, tab: 'maps' },
-    { title: 'Inventory & Rewards', text: 'Track party loot and grant rewards directly to character sheets.', meta: 'Rewards', icon: Backpack, tab: 'inventory' },
-    { title: 'Encounters', text: 'Build combat encounters, enemies, and table fight tools.', meta: 'Combat', icon: Swords, tab: 'combat' },
-    { title: 'Session Notes', text: 'Capture what happened at the table and sync useful changes into the campaign.', meta: 'Record', icon: FileText, tab: 'ingame-notes' },
-    { title: 'Campaign Uploads', text: 'Bring maps, documents, handouts, portraits, and other campaign assets into one GM workspace.', meta: 'Intake', icon: Upload, tab: 'uploads' },
-    { title: 'Secrets & Handouts', text: 'Prepare lore, clues, letters, and reveal-only-when-ready player information.', meta: 'Reveal', icon: Mail, tab: 'handouts' },
-    { title: 'Players & Invites', text: 'Manage players, joined characters, and the campaign join code.', meta: 'Access', icon: Users, tab: 'players' },
-    { title: 'NPCs & Figures', text: 'Allies, rivals, villains, patrons, rulers, shopkeepers, and recurring faces.', meta: 'People', icon: UserCircle, tab: 'npcs' },
-    { title: 'Chronicle', text: 'Turn played sessions into campaign history, consequences, and timeline entries.', meta: 'History', icon: Clock, tab: 'chronicle' },
+function GMHome({ campaign, invite, inviteLoading, onOpenTab, onOpenLive, onFetchInvite, onRotateInvite, onCopyInvite }) {
+  const quick = [
+    { id: 'story-arcs', label: 'Quests', meta: 'Plan', icon: ScrollText },
+    { id: 'combat', label: 'Encounters', meta: 'Prep', icon: Swords },
+    { id: 'npcs', label: 'NPCs', meta: 'People', icon: UserCircle },
+    { id: 'maps', label: 'Maps & Locations', meta: 'World', icon: Map },
+    { id: 'ingame-notes', label: 'Notes', meta: 'Record', icon: FileText },
+    { id: 'handouts', label: 'Handouts', meta: 'Reveal', icon: Mail },
+    { id: 'players', label: 'Players', meta: 'Party', icon: Users },
+    { id: 'inventory', label: 'Loot & Rewards', meta: 'Items', icon: Backpack },
+    { id: 'chronicle', label: 'Timeline & Calendar', meta: 'History', icon: Clock },
   ];
 
   return (
-    <div style={commandShellStyle}>
-      <section style={commandHeroStyle}>
+    <div style={homeShellStyle}>
+      <section style={homeHeroStyle}>
         <div style={{ minWidth: 0 }}>
-          <p style={desktopEyebrowStyle}>Campaign Command Centre</p>
-          <h2 style={commandTitleStyle}>{campaign?.name || 'Campaign'}</h2>
-          <p style={commandSubtitleStyle}>Simple GM flow: add your campaign material, plan the story, prep tonight, run the table, then record what changed.</p>
+          <p style={eyebrowStyle}>GM Home</p>
+          <h2 style={homeTitleStyle}>{campaign?.name || 'Campaign'}</h2>
+          <p style={homeSubtitleStyle}>Build the campaign here. Use Live Play when the table starts.</p>
         </div>
-        <div style={heroActionsStyle}>
-          <button type="button" onClick={() => onOpenTab('story-arcs')} style={secondaryButtonStyle}><ScrollText size={18} /> Story Arcs</button>
-          <button type="button" onClick={onOpenLive} style={primaryButtonStyle}><Monitor size={18} /> Live Play Mode</button>
-          <button type="button" onClick={onCopyInvite} style={secondaryButtonStyle}>{inviteLoading ? 'Loading...' : 'Copy Join Code'}</button>
+        <div style={buttonRowStyle}>
+          <button type="button" onClick={() => onOpenTab('story-arcs')} style={secondaryButtonStyle}><ScrollText size={16} /> Quests</button>
+          <button type="button" onClick={onOpenLive} style={primaryButtonStyle}><Monitor size={16} /> Live Play</button>
         </div>
       </section>
 
-      <section style={quickStatusStyle}>
-        <StatusBox label="Rules" value={campaign?.system || campaign?.rules_edition || 'Campaign'} />
-        <StatusBox label="World" value={campaign?.world_name || campaign?.setting || 'Not set'} />
-        <StatusBox label="Join Code" value={invite?.join_code || 'Not loaded'} />
-        <StatusBox label="Flow" value="Intake → Plan → Run → Record" />
+      <section style={quickGridStyle}>
+        {quick.map(item => {
+          const Icon = item.icon;
+          return (
+            <button key={item.id} type="button" onClick={() => onOpenTab(item.id)} style={quickCardStyle}>
+              <Icon size={18} />
+              <strong>{item.label}</strong>
+              <span>{item.meta}</span>
+            </button>
+          );
+        })}
       </section>
 
-      <CampaignJoinCodeCard
-        code={invite?.join_code || invite?.code || ''}
-        loading={inviteLoading}
-        uses={invite?.uses}
-        createdAt={invite?.created_at}
-        description="Generate or copy a code so players can join with their own characters. Rotating the code stops the old one from working."
-        onFetch={onFetchInvite}
-        onRotate={onRotateInvite}
-        onCopy={onCopyInvite}
-        rotateLabel="New Code"
-        copyLabel="Copy Code"
-      />
-
-      <section style={commandGridStyle}>{commandCards.map(card => <CommandCard key={card.title} {...card} onOpenTab={onOpenTab} />)}</section>
+      <details style={detailsStyle}>
+        <summary style={detailsSummaryStyle}>Player Join Code</summary>
+        <div style={detailsBodyStyle}>
+          <CampaignJoinCodeCard
+            code={invite?.join_code || invite?.code || ''}
+            loading={inviteLoading}
+            uses={invite?.uses}
+            createdAt={invite?.created_at}
+            description="Players use this code to join the campaign with their characters."
+            onFetch={onFetchInvite}
+            onRotate={onRotateInvite}
+            onCopy={onCopyInvite}
+            rotateLabel="New Code"
+            copyLabel="Copy Code"
+          />
+        </div>
+      </details>
     </div>
   );
 }
 
-function StatusBox({ label, value }) {
-  return <div style={statusBoxStyle}><span style={statusValueStyle}>{value}</span><span style={statusLabelStyle}>{label}</span></div>;
-}
-
-function CommandCard({ title, text, meta, icon: Icon, tab, action, onOpenTab }) {
-  return (
-    <button type="button" onClick={() => action ? action() : onOpenTab(tab)} style={commandCardStyle}>
-      <span style={commandAccentStyle} />
-      <span style={commandCardBodyStyle}>
-        <span style={commandCardTopStyle}><Icon size={18} /> <strong>{title}</strong></span>
-        <span style={commandCardTextStyle}>{text}</span>
-        <span style={commandCardMetaStyle}>{meta}</span>
-      </span>
-      <span style={commandArrowStyle}>›</span>
-    </button>
-  );
-}
-
-const dashboardShellStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', overflow: 'visible', fontFamily: fontStack, color: theme.text.white };
-const headerStyle = { background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '10px 14px', position: 'sticky', top: 0, zIndex: 40 };
-const headerMainStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
-const headerActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
-const layoutStyle = { display: 'flex', flex: 1, overflow: 'visible', position: 'relative' };
-const sidebarStyle = { width: 280, minWidth: 280, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, padding: '0 0 16px', overflowY: 'auto', transition: 'transform 0.25s ease' };
-const mainStyle = { flex: 1, overflowY: 'visible', padding: 'clamp(12px, 2vw, 28px)', minWidth: 0 };
-const workspacePanelStyle = { background: theme.bg.panel, border: `1px solid ${theme.border}`, borderRadius: 0, padding: 'clamp(14px, 2vw, 24px)', minHeight: 500, minWidth: 0, boxShadow: 'none' };
-const desktopContextStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 14, padding: '14px 16px', background: theme.bg.card, border: `1px solid ${theme.border}`, borderRadius: 0, minWidth: 0 };
-const desktopEyebrowStyle = { margin: '0 0 4px', color: theme.text.muted, fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: fontStack };
-const desktopTitleStyle = { margin: 0, color: theme.text.primary, fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 950, overflowWrap: 'anywhere', fontFamily: fontStack };
-const desktopPillStyle = { color: theme.text.secondary, border: `1px solid ${theme.border}`, background: theme.bg.panel, padding: '6px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap', fontFamily: fontStack };
-const campaignTitleStyle = { fontSize: 'clamp(18px, 4vw, 25px)', color: theme.text.primary, margin: '0 0 4px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(58vw, 720px)', fontFamily: titleFont };
-const campaignMetaStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
-const systemTextStyle = { fontSize: 11, color: theme.text.muted, fontWeight: 850 };
-const primaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#d00000', color: '#ffffff', padding: '0 14px', fontWeight: 950, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack, textDecoration: 'none' };
-const secondaryButtonStyle = { minHeight: 42, border: 0, borderRadius: 0, background: '#3a3a3a', color: '#ffffff', padding: '0 14px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: fontStack };
-const squareIconButtonStyle = { width: 44, minWidth: 44, height: 44, minHeight: 44, background: theme.bg.card, border: 0, borderRadius: 0, display: 'grid', placeItems: 'center', flex: '0 0 44px' };
-const mobileMenuButtonStyle = { width: 44, height: 44, background: theme.bg.card, border: 'none', cursor: 'pointer', color: theme.text.white, display: 'none', padding: 8, placeItems: 'center', flex: '0 0 44px' };
-const sidebarMobileTopStyle = { display: 'none', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 8, borderBottom: `1px solid ${theme.border}` };
-const sidebarMobileTitleStyle = { color: theme.text.white, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' };
-const sidebarCloseButtonStyle = { width: 40, height: 40, border: 0, background: theme.bg.card, color: theme.text.white, display: 'grid', placeItems: 'center' };
-const sidebarTitleStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '1.5px', textTransform: 'uppercase', margin: 0, padding: '16px' };
-const mobileOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 180, display: 'none' };
-const groupHeaderStyle = { padding: '11px 16px 11px 11px', border: 'none', borderTop: `1px solid ${theme.border}`, fontWeight: 950, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 0, fontFamily: fontStack, textAlign: 'left' };
-const tabButtonStyle = { position: 'relative', border: 'none', color: theme.text.white, fontWeight: 850, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', borderRadius: 0, margin: 0, maxWidth: '100%', fontFamily: fontStack, padding: '10px 16px 10px 34px', minHeight: 42, fontSize: 13 };
-const redTagStyle = { fontSize: 11, color: '#ffffff', background: '#d00000', padding: '4px 8px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
-const errorPageStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: fontStack };
-const errorCardStyle = { maxWidth: 520, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 24, textAlign: 'center' };
-const errorTitleStyle = { color: theme.text.primary, fontSize: 24, fontWeight: 950, margin: '0 0 8px' };
-const errorTextStyle = { color: theme.text.secondary, lineHeight: 1.55, margin: '0 0 18px' };
-const commandShellStyle = { display: 'grid', gap: 18 };
-const commandHeroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', borderBottom: `1px solid ${theme.border}`, paddingBottom: 16 };
-const commandTitleStyle = { margin: '2px 0 8px', color: '#ffffff', fontSize: 'clamp(30px, 5vw, 54px)', lineHeight: 1, fontWeight: 950, letterSpacing: '0.02em', fontFamily: titleFont };
-const commandSubtitleStyle = { margin: 0, color: theme.text.secondary, lineHeight: 1.48, maxWidth: 720, fontFamily: fontStack };
-const heroActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' };
-const quickStatusStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', borderTop: `1px solid ${theme.border}`, borderBottom: `1px solid ${theme.border}` };
-const statusBoxStyle = { minHeight: 70, display: 'grid', alignContent: 'center', gap: 4, padding: '12px 14px', borderRight: `1px solid ${theme.border}` };
-const statusValueStyle = { color: '#ffffff', fontSize: 20, fontWeight: 950, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: fontStack };
-const statusLabelStyle = { color: theme.text.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, fontFamily: fontStack };
-const commandGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 0, borderTop: `1px solid ${theme.border}` };
-const commandCardStyle = { minHeight: 156, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: 0, borderBottom: `1px solid ${theme.border}`, background: 'transparent', color: '#ffffff', padding: '18px 16px 18px 0', cursor: 'pointer', borderRadius: 0, fontFamily: fontStack };
-const commandAccentStyle = { width: 6, height: 48, background: '#d00000', flex: '0 0 auto' };
-const commandCardBodyStyle = { display: 'grid', gap: 8, minWidth: 0, flex: 1 };
-const commandCardTopStyle = { display: 'flex', alignItems: 'center', gap: 8, color: '#ffffff', fontSize: 17, fontWeight: 950, fontFamily: fontStack };
-const commandCardTextStyle = { color: theme.text.secondary, lineHeight: 1.42, fontSize: 14, fontFamily: fontStack };
-const commandCardMetaStyle = { color: theme.text.muted, fontSize: 11, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: fontStack };
-const commandArrowStyle = { color: '#ffffff', opacity: 0.72, fontSize: 28, lineHeight: 1 };
+const dashboardShellStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'flex', flexDirection: 'column', fontFamily: fontStack, color: theme.text.white };
+const headerStyle = { background: theme.bg.panel, borderBottom: `1px solid ${theme.border}`, padding: '8px 12px', position: 'sticky', top: 0, zIndex: 40 };
+const headerMainStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 };
+const headerActionsStyle = { display: 'flex', gap: 6 };
+const layoutStyle = { display: 'flex', flex: 1, minHeight: 0, position: 'relative' };
+const sidebarStyle = { width: 232, minWidth: 232, background: theme.bg.panel, borderRight: `1px solid ${theme.border}`, overflowY: 'auto', transition: 'transform 0.2s ease' };
+const sidebarGroupsStyle = { display: 'grid', gap: 0, paddingBottom: 12 };
+const mainStyle = { flex: 1, minWidth: 0, padding: 'clamp(8px, 1.4vw, 18px)', overflow: 'visible' };
+const workspacePanelStyle = { minWidth: 0, minHeight: 500 };
+const campaignTitleStyle = { margin: 0, color: theme.text.primary, fontFamily: titleFont, fontSize: 'clamp(18px, 3vw, 24px)', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 'min(52vw, 650px)' };
+const campaignMetaStyle = { display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 };
+const redTagStyle = { fontSize: 9, color: '#fff', background: theme.accent.primary, padding: '3px 6px', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' };
+const systemTextStyle = { fontSize: 10, color: theme.text.muted, fontWeight: 800 };
+const primaryButtonStyle = { minHeight: 38, border: 0, background: theme.accent.primary, color: '#fff', padding: '0 11px', fontWeight: 950, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: fontStack };
+const secondaryButtonStyle = { minHeight: 38, border: `1px solid ${theme.border}`, background: theme.bg.card, color: '#fff', padding: '0 11px', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: fontStack };
+const squareIconButtonStyle = { width: 40, minWidth: 40, height: 40, border: `1px solid ${theme.border}`, background: theme.bg.card, color: '#fff', display: 'grid', placeItems: 'center' };
+const mobileMenuButtonStyle = { width: 40, height: 40, border: `1px solid ${theme.border}`, background: theme.bg.card, color: '#fff', display: 'none', placeItems: 'center' };
+const groupHeaderStyle = open => ({ width: '100%', minHeight: 42, border: 0, borderTop: `1px solid ${theme.border}`, borderLeft: open ? `4px solid ${theme.accent.primary}` : '4px solid transparent', background: open ? theme.bg.card : theme.bg.panel, color: open ? theme.text.primary : theme.text.muted, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 950, fontSize: 10, textAlign: 'left' });
+const tabButtonStyle = (active, hovered) => ({ width: '100%', minHeight: 40, border: 0, background: active ? theme.accent.primary : hovered ? theme.bg.hover : 'transparent', color: active ? '#fff' : theme.text.secondary, padding: '0 12px 0 31px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', textAlign: 'left', fontWeight: 850, fontSize: 12, fontFamily: fontStack });
+const sidebarMobileTopStyle = { display: 'none', minHeight: 48, alignItems: 'center', justifyContent: 'space-between', padding: '0 8px', borderBottom: `1px solid ${theme.border}` };
+const sidebarCloseButtonStyle = { width: 38, height: 38, border: 0, background: theme.bg.card, color: '#fff', display: 'grid', placeItems: 'center' };
+const mobileOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 180 };
+const homeShellStyle = { display: 'grid', gap: 10 };
+const homeHeroStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: theme.bg.panel, border: `1px solid ${theme.border}`, borderLeft: `5px solid ${theme.accent.primary}`, padding: 12 };
+const eyebrowStyle = { margin: 0, color: theme.text.muted, fontSize: 9, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
+const homeTitleStyle = { margin: '2px 0 0', color: '#fff', fontFamily: titleFont, fontSize: 'clamp(28px, 5vw, 48px)', lineHeight: 1 };
+const homeSubtitleStyle = { margin: '5px 0 0', color: theme.text.secondary, fontSize: 12 };
+const quickGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 5 };
+const quickCardStyle = { minHeight: 76, border: `1px solid ${theme.border}`, borderLeft: `4px solid ${theme.accent.primary}`, background: theme.bg.card, color: '#fff', padding: 9, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 3, cursor: 'pointer', textAlign: 'left', fontFamily: fontStack };
+const detailsStyle = { border: `1px solid ${theme.border}`, background: theme.bg.panel };
+const detailsSummaryStyle = { minHeight: 40, padding: '0 10px', display: 'flex', alignItems: 'center', color: theme.text.secondary, cursor: 'pointer', fontWeight: 900, fontSize: 11 };
+const detailsBodyStyle = { padding: 8, borderTop: `1px solid ${theme.border}` };
+const buttonRowStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' };
+const errorPageStyle = { minHeight: '100dvh', background: theme.bg.black, display: 'grid', placeItems: 'center', padding: 20, fontFamily: fontStack };
+const errorCardStyle = { maxWidth: 480, width: '100%', background: theme.bg.panel, border: `1px solid ${theme.border}`, padding: 20, textAlign: 'center', display: 'grid', justifyItems: 'center', gap: 8 };
+const errorTitleStyle = { margin: 0, color: '#fff', fontSize: 22 };
+const errorTextStyle = { margin: 0, color: theme.text.secondary };
 
 const mobileCss = `
-  @media (max-width: 640px) { .desktop-only { display: none !important; } }
   @media (max-width: 1024px) {
-    .desktop-context { display: none !important; }
-    .gm-dashboard-header { padding: 6px 8px !important; min-height: 56px !important; position: sticky !important; z-index: 120 !important; }
-    .gm-dashboard-shell.gm-menu-open .gm-dashboard-header { z-index: 80 !important; }
-    .gm-header-main { flex-wrap: nowrap !important; gap: 8px !important; }
+    .gm-dashboard-header { padding: 6px 8px !important; }
+    .gm-header-main { gap: 6px !important; }
     .gm-header-actions { display: none !important; }
     .gm-campaign-meta { display: none !important; }
-    .gm-campaign-title { max-width: calc(100vw - 126px) !important; margin: 0 !important; font-size: 20px !important; line-height: 1.05 !important; }
+    .gm-campaign-title { max-width: calc(100vw - 108px) !important; font-size: 19px !important; }
     .mobile-menu-toggle { display: grid !important; }
-    .gm-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; z-index: 240 !important; transform: translateX(-100%); width: min(78vw, 310px) !important; min-width: min(78vw, 310px) !important; max-width: 310px !important; box-shadow: none !important; padding-bottom: env(safe-area-inset-bottom, 12px) !important; }
+    .gm-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; z-index: 240 !important; transform: translateX(-100%); width: min(82vw, 290px) !important; min-width: min(82vw, 290px) !important; }
     .gm-sidebar.mobile-open { transform: translateX(0); }
-    .gm-sidebar-mobile-top { display: flex !important; min-height: 48px !important; }
-    .gm-sidebar-title { display: none !important; }
-    .mobile-overlay { display: block !important; }
+    .gm-sidebar-mobile-top { display: flex !important; }
   }
-  @media (hover: none) and (pointer: coarse) { button, .clickable-box { min-height: 44px !important; min-width: 44px !important; } }
+  @media (max-width: 640px) {
+    .gm-dashboard-shell button { min-height: 42px; }
+  }
 `;
