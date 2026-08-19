@@ -7,7 +7,6 @@ import apiClient from '@/lib/apiClient';
 import CampaignSettingTab from '@/components/tabs/CampaignSettingTab';
 import CampaignRulesTab from '@/components/tabs/CampaignRulesTab';
 import GodsTab from '@/components/tabs/GodsTab';
-import PlayersTab from '@/components/tabs/PlayersTab';
 import InGameNotesTab from '@/components/tabs/InGameNotesTab';
 import StoryArcTracker from '@/components/gm/StoryArcTracker';
 import WorldBuilderTab from '@/components/tabs/WorldBuilderTab';
@@ -19,6 +18,7 @@ import CombatConsolidatedTab from '@/components/tabs/CombatConsolidatedTab';
 import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
 import PlayerInvitePanel from '@/components/gm/PlayerInvitePanel';
+import GMPartyWorkspace from '@/components/gm/GMPartyWorkspace';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 import TiaKartaCampaignPackPanel from '@/components/gm/TiaKartaCampaignPackPanel';
 import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
@@ -154,7 +154,7 @@ export default function CampaignDashboard() {
       case 'command-centre':
         return <GMHome campaign={campaign} invite={invite} inviteLoading={inviteLoading} onOpenTab={handleTabClick} onOpenLive={handleOpenGMScreen} onFetchInvite={fetchInviteCode} onRotateInvite={rotateInviteCode} onCopyInvite={copyInviteCode} />;
       case 'story-arcs': return withTiaKarta('storyArcs', <StoryArcTracker campaignId={campaignId} onOpenTab={handleTabClick} />);
-      case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><PlayersTab campaignId={campaignId} /></>;
+      case 'players': return <><PlayerInvitePanel campaignId={campaignId} /><GMPartyWorkspace campaignId={campaignId} /></>;
       case 'npcs': return withTiaKarta('npcs', <NPCsConsolidatedTab campaignId={campaignId} />);
       case 'maps': return withTiaKarta('worldAtlas', <MapsConsolidatedTab campaignId={campaignId} />);
       case 'gods': return withTiaKarta('powers', <GodsTab campaignId={campaignId} />);
