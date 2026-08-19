@@ -17,6 +17,7 @@ from routes.npcs import router as npcs_router
 from routes.live_state import router as live_state_router
 from routes.live_party import router as live_party_router
 from routes.combat import router as combat_router
+from routes.combat_initiative_submissions import router as combat_initiative_submissions_router
 from routes.players import router as players_router
 from routes.maps import router as maps_router
 from routes.tables import router as tables_router
@@ -61,6 +62,7 @@ all_routers = [
     live_state_router,
     live_party_router,
     combat_router,
+    combat_initiative_submissions_router,
     players_router,
     maps_router,
     tables_router,
