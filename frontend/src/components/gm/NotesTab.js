@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, FileText, Send, Users, X } from 'lucide-react';
+import { Check, FileText, Send, Swords, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 
@@ -59,7 +59,18 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
     }
   };
 
-  const applySuggestion = async (suggestion) => {
+  const openSuggestedEncounter = (suggestion) => {
+    const encounterId = suggestion?.suggested_encounter_id;
+    if (!encounterId) return;
+    try { localStorage.setItem(`gm.questEncounter.${campaignId}`, encounterId); } catch { /* ignore */ }
+    if (typeof document !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        document.querySelector('[data-testid="live-tool-combat"]')?.click?.();
+      });
+    }
+  };
+
+  const applySuggestion = async (suggestion, reviewEncounter = false) => {
     if (!suggestion?.npc_id) return;
     setApplyingId(suggestion.id);
     try {
@@ -70,7 +81,13 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
         : current.filter(id => id !== suggestion.npc_id);
       await apiClient.put(`/campaigns/${campaignId}/live-state`, { companion_npc_ids: next });
       setSuggestions(prev => prev.filter(item => item.id !== suggestion.id));
-      toast.success(suggestion.type === 'companion_add' ? `${suggestion.npc_name} marked as travelling with the party` : `${suggestion.npc_name} removed from travelling party`);
+
+      if (reviewEncounter && suggestion.suggested_encounter_id) {
+        toast.success(`${suggestion.npc_name} added to travelling party`, { description: `Reviewing ${suggestion.suggested_encounter_name || 'the next linked encounter'}.` });
+        openSuggestedEncounter(suggestion);
+      } else {
+        toast.success(suggestion.type === 'companion_add' ? `${suggestion.npc_name} marked as travelling with the party` : `${suggestion.npc_name} removed from travelling party`);
+      }
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not apply Rookie suggestion');
     } finally {
@@ -119,8 +136,16 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
                   This may affect {suggestion.affected_quest_titles?.length || 0} open quest{suggestion.affected_quest_titles?.length === 1 ? '' : 's'} and {suggestion.affected_encounter_ids?.length || 0} linked encounter{suggestion.affected_encounter_ids?.length === 1 ? '' : 's'}.
                 </span>
               )}
+              {suggestion.type === 'companion_add' && suggestion.suggested_encounter_name && (
+                <span style={{ color: textSecondary, fontSize: 11 }}>
+                  Next linked encounter: <strong style={{ color: textPrimary }}>{suggestion.suggested_encounter_name}</strong>
+                </span>
+              )}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button type="button" disabled={applyingId === suggestion.id} onClick={() => applySuggestion(suggestion)} style={{ minHeight: 30, border: 0, background: accent, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><Check size={13} /> Apply</button>
+                {suggestion.type === 'companion_add' && suggestion.suggested_encounter_id && (
+                  <button type="button" disabled={applyingId === suggestion.id} onClick={() => applySuggestion(suggestion, true)} style={{ minHeight: 30, border: 0, background: accent, color: '#fff', padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><Swords size={13} /> Apply & Review Encounter</button>
+                )}
+                <button type="button" disabled={applyingId === suggestion.id} onClick={() => applySuggestion(suggestion)} style={{ minHeight: 30, border: `1px solid ${border}`, background: inputBg, color: textPrimary, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><Check size={13} /> Apply</button>
                 <button type="button" onClick={() => ignoreSuggestion(suggestion.id)} style={{ minHeight: 30, border: `1px solid ${border}`, background: inputBg, color: textSecondary, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 11, fontWeight: 900 }}><X size={13} /> Ignore</button>
               </div>
             </article>
