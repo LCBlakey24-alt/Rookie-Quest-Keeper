@@ -6,19 +6,38 @@
  * server updates.
  */
 
-const SHELL_CACHE = 'rqk-shell-v1';
-const STATIC_CACHE = 'rqk-static-v1';
+const SHELL_CACHE = 'rqk-shell-v2';
+const STATIC_CACHE = 'rqk-static-v2';
 const APP_SHELL = [
   '/',
+  '/asset-manifest.json',
   '/site.webmanifest',
   '/brand/rqk-logo-mini.svg',
   '/brand/rqk-logo-mini.png',
 ];
 
+async function precacheCurrentBuild(cache) {
+  try {
+    const response = await fetch('/asset-manifest.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const manifest = await response.json();
+    const files = Object.values(manifest?.files || {})
+      .filter(value => typeof value === 'string' && value.startsWith('/'))
+      .filter(value => !value.startsWith('/api/'));
+    const unique = [...new Set(files)];
+    await Promise.all(unique.map(path => cache.add(path).catch(() => undefined)));
+  } catch {
+    // The fixed app shell still gives a useful fallback if a host does not
+    // expose CRA's asset manifest for some reason.
+  }
+}
+
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(SHELL_CACHE).then(cache => cache.addAll(APP_SHELL)).catch(() => undefined)
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(SHELL_CACHE);
+    await cache.addAll(APP_SHELL).catch(() => undefined);
+    await precacheCurrentBuild(cache);
+  })());
 });
 
 self.addEventListener('activate', event => {
