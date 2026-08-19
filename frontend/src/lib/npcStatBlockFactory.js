@@ -1,6 +1,5 @@
-const FIRST_NAMES = ['Aldric','Brenna','Cedric','Daria','Elara','Finn','Gwen','Haldor','Isolde','Jareth','Keira','Lyric','Maren','Nolan','Orla','Pavel','Quinn','Rhea','Soren','Thea','Ulric','Vera','Wren','Xara','Yoren','Zara','Ashwin','Belka','Corrin','Drina','Egan','Faye','Gareth','Hestia','Ivan','Jorik','Kalara','Leif','Miriel','Nyx'];
-const SURNAMES = ['Blackwood','Ironforge','Silverleaf','Stormwind','Darkholme','Brightwater','Thornwall','Ashburn','Frostweave','Shadowmere','Goldcrest','Ravenscar','Stonehearth','Windrunner','Embervale','Nightwhisper','Deepforge','Starbloom','Greycloak','Redmane'];
-const RACES = ['Human','Elf','Dwarf','Halfling','Gnome','Tiefling','Half-Orc','Half-Elf','Dragonborn'];
+import { generateRookieName, ROOKIE_ANCESTRY_OPTIONS } from '@/lib/rookieEngine';
+
 const PERSONALITY = ['nervous and fidgety','bold and brash','quiet and observant','warm and welcoming','suspicious of strangers','eager to gossip','deeply religious','world-weary','overly cheerful','hiding a dark secret','fiercely loyal','desperately greedy','painfully honest','a chronic liar','gentle and soft-spoken','loud and boisterous'];
 const QUIRKS = ['constantly adjusts their hat','has a prominent scar across their nose','hums an old marching tune','collects unusual stones','refers to everyone as friend','keeps a pet rat nearby','taps their fingers when thinking','speaks in riddles','limps slightly','wears mismatched boots','laughs at inappropriate moments','keeps glancing over their shoulder'];
 const MOTIVATIONS = ['seeking revenge','trying to pay off a debt','searching for a lost sibling','protecting a dangerous secret','gathering information for a patron','trying to start a new life','obsessed with rare items','working undercover','saving money to open their own shop'];
@@ -28,8 +27,9 @@ export function abilityArrayToStats(values) {
 export function generateCombatReadyNpc({ presetId = 'guard', race = '', name = '', role = '' } = {}) {
   const preset = NPC_COMBAT_PRESETS.find(item => item.id === presetId) || NPC_COMBAT_PRESETS[1];
   const stats = abilityArrayToStats(preset.stats);
-  const chosenRace = race || pick(RACES);
-  const npcName = name || `${pick(FIRST_NAMES)} ${pick(SURNAMES)}`;
+  const chosenRace = race || pick(ROOKIE_ANCESTRY_OPTIONS).label;
+  const generatedName = generateRookieName({ ancestry: chosenRace });
+  const npcName = name || generatedName.fullName;
   const dexMod = mod(stats.dexterity);
   const initiative = plus(dexMod);
   return {
