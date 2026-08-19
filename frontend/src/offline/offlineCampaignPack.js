@@ -2,10 +2,16 @@ import apiClient from '@/lib/apiClient';
 import {
   getOfflineCacheKey,
   getOfflineCampaignPackMetadata,
+  listOfflineCampaignPacks,
   removeOfflineCampaignPack,
   saveOfflineCampaignPackMetadata,
   storeOfflineApiResponse,
 } from '@/offline/offlineApiCache';
+import {
+  cacheOfflineMediaUrls,
+  extractOfflineMediaUrls,
+  removeOfflineMediaUrls,
+} from '@/offline/offlineMediaCache';
 
 export const OFFLINE_PACK_VERSION = 1;
 
@@ -94,6 +100,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
   const sections = [];
   const recordKeys = [];
   const payloads = {};
+  const mediaPayloads = [];
   const requests = requestList(campaignId);
   const totalBase = requests.length;
   let completed = 0;
@@ -103,6 +110,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     try {
       const { response, recordKey } = await fetchAndPin(request);
       payloads[request.key] = response.data;
+      mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
@@ -132,7 +140,8 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
       label: `Character ${characterCompleted + 1} of ${characterIds.length}`,
     });
     try {
-      const { recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request);
+      mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
@@ -144,9 +153,24 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     characterCompleted += 1;
   }
 
+  const discoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
+  const mediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+    onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
+  });
+  if (discoveredMedia.length) {
+    sections.push(sectionResult(
+      { key: 'media', label: 'Maps, handouts & images', url: '' },
+      mediaResult.failed.length ? 'unavailable' : 'saved',
+      mediaResult.failed.length
+        ? { message: `${mediaResult.failed.length} of ${discoveredMedia.length} media file${discoveredMedia.length === 1 ? '' : 's'} could not be stored offline.` }
+        : { savedAt: Date.now() }
+    ));
+  }
+
   const failedSections = sections.filter(section => section.status !== 'saved');
   const metadata = await saveOfflineCampaignPackMetadata({
     version: OFFLINE_PACK_VERSION,
+    audience: 'gm',
     campaignId: String(campaignId),
     campaignName: payloads.campaign?.name || options.campaignName || 'Campaign',
     savedAt: Date.now(),
@@ -156,7 +180,11 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
     successfulSections: sections.length - failedSections.length,
     failedSections: failedSections.length,
     complete: failedSections.length === 0,
-    mediaIncluded: false,
+    mediaUrls: mediaResult.saved,
+    mediaDiscovered: discoveredMedia.length,
+    mediaSaved: mediaResult.saved.length,
+    mediaFailed: mediaResult.failed.length,
+    mediaIncluded: mediaResult.saved.length > 0,
   });
 
   onProgress({ phase: 'done', completed: sections.length, total: sections.length, label: 'Offline copy ready' });
@@ -164,11 +192,19 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
 }
 
 export async function getCampaignOfflinePack(campaignId) {
-  return getOfflineCampaignPackMetadata(campaignId);
+  return getOfflineCampaignPackMetadata(campaignId, 'gm');
 }
 
 export async function deleteCampaignOfflinePack(campaignId) {
-  return removeOfflineCampaignPack(campaignId);
+  const current = await getOfflineCampaignPackMetadata(campaignId, 'gm');
+  if (current?.mediaUrls?.length) {
+    const allPacks = await listOfflineCampaignPacks();
+    const protectedMedia = allPacks
+      .filter(pack => !(String(pack.campaignId) === String(campaignId) && pack.audience === 'gm'))
+      .flatMap(pack => Array.isArray(pack.mediaUrls) ? pack.mediaUrls : []);
+    await removeOfflineMediaUrls(current.mediaUrls, protectedMedia);
+  }
+  return removeOfflineCampaignPack(campaignId, 'gm');
 }
 
 export function formatOfflinePackAge(savedAt) {
