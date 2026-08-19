@@ -1,19 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Check, ChevronDown, ChevronUp, Eye, EyeOff, Heart, Map, Package,
-  Play, Plus, RotateCcw, Shield, SkipForward, Skull, Swords, Trash2, X,
+  ArrowLeft, Check, ChevronDown, ChevronUp, Dices, Eye, EyeOff, Heart, Map, Package,
+  Play, Plus, RotateCcw, Shield, SkipForward, Skull, Swords, Trash2,
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import AttackRoller from '@/components/AttackRoller';
 import NPCCombatRecruiter from '@/components/NPCCombatRecruiter';
 import MapCanvas from '@/components/MapBuilder/MapCanvas';
+import TargetedAttackPanel from '@/components/gm/TargetedAttackPanel';
+import { createDisplayState, publishCampaignDisplayState } from '@/lib/liveDisplayBus';
 
 const rq = {
-  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', raised: '#444444', red: '#d00000',
+  bg: '#242424', panel: '#2f2f2f', card: '#3a3a3a', red: '#d00000',
   text: '#ffffff', soft: 'rgba(255,255,255,0.76)', muted: 'rgba(255,255,255,0.56)', line: 'rgba(255,255,255,0.16)',
-  green: '#22c55e', amber: '#f59e0b', danger: '#ef4444', blue: '#60a5fa',
+  green: '#22c55e', amber: '#f59e0b', danger: '#ef4444',
 };
 
 const CONDITIONS = [
@@ -66,6 +67,23 @@ function statusFor(combatant) {
   return '';
 }
 
+function combatantForDisplay(combatant) {
+  return {
+    id: combatant.id,
+    name: combatant.name,
+    type: combatant.type,
+    hp: combatant.hp,
+    current_hp: combatant.hp,
+    maxHp: combatant.maxHp,
+    max_hp: combatant.maxHp,
+    ac: combatant.ac,
+    initiative: combatant.initiative,
+    conditions: safeArray(combatant.conditions),
+    image_url: combatant.image_url || combatant.portrait_url || combatant.token_url || '',
+    subtitle: combatant.role || combatant.occupation || (combatant.type === 'npc' ? 'NPC' : combatant.type === 'player' ? 'Player' : 'Enemy'),
+  };
+}
+
 export default function CombatPageTable() {
   const { campaignId } = useParams();
   const location = useLocation();
@@ -89,6 +107,12 @@ export default function CombatPageTable() {
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
   const [initialised, setInitialised] = useState(false);
+  const [combatBanner, setCombatBanner] = useState(null);
+  const bannerTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!scenario) {
@@ -110,6 +134,8 @@ export default function CombatPageTable() {
       setCombatants(restored.combatants);
       setCurrentTurn(Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1)));
       setRound(Math.max(1, restored.round || 1));
+      setSelectedMapId(restored.selectedMapId || '');
+      setMapTokens(safeArray(restored.mapTokens));
       setExpandedId(restored.combatants[Math.max(0, Math.min(restored.currentTurn || 0, restored.combatants.length - 1))]?.id || '');
       toast.info('Combat restored', { description: `Round ${Math.max(1, restored.round || 1)} checkpoint recovered.` });
     } else {
@@ -137,22 +163,24 @@ export default function CombatPageTable() {
         combatants,
         currentTurn,
         round,
+        selectedMapId,
+        mapTokens,
         savedAt: Date.now(),
       }));
     } catch { /* local checkpoint is best effort */ }
-  }, [combatKey, combatants, currentTurn, initialised, round, scenario]);
+  }, [combatKey, combatants, currentTurn, initialised, mapTokens, round, scenario, selectedMapId]);
 
   useEffect(() => {
-    if (!scenario || !maps.length) return;
+    if (!scenario || !maps.length || selectedMapId) return;
     const requested = scenario.map_id || scenario.mapId || '';
     if (requested && maps.some(item => item.id === requested)) setSelectedMapId(requested);
-  }, [maps, scenario]);
+  }, [maps, scenario, selectedMapId]);
 
   const active = combatants[currentTurn] || null;
   const selectedMap = useMemo(() => maps.find(item => item.id === selectedMapId) || null, [maps, selectedMapId]);
 
   useEffect(() => {
-    if (!selectedMap) return;
+    if (!selectedMap || mapTokens.length) return;
     const savedTokens = safeArray(selectedMap.tokens);
     setMapTokens(combatants.map((combatant, index) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
@@ -166,7 +194,27 @@ export default function CombatPageTable() {
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
       };
     }));
-  }, [combatants, selectedMap]);
+  }, [combatants, mapTokens.length, selectedMap]);
+
+  useEffect(() => {
+    if (!initialised || !scenario || !campaignId) return undefined;
+    const timer = window.setTimeout(() => {
+      const players = combatants.filter(item => item.type === 'player').map(combatantForDisplay);
+      const visibleCreatures = combatants.filter(item => item.type !== 'player').map(combatantForDisplay);
+      const activeId = active ? (active.type === 'player' ? `player-${active.id}` : active.id) : '';
+      const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
+      publishCampaignDisplayState(campaignId, createDisplayState('combat', {
+        title: scenario.name || 'Combat',
+        round,
+        active_id: activeId,
+        party: players,
+        tokens: visibleCreatures,
+        map_url: mapUrl,
+        banner: combatBanner || undefined,
+      })).catch(() => {});
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap]);
 
   const focusCombatant = (id) => {
     setExpandedId(id);
@@ -194,7 +242,7 @@ export default function CombatPageTable() {
         const absorbed = Math.min(nextTemp, damage);
         nextTemp -= absorbed;
         nextHp = Math.max(0, nextHp - (damage - absorbed));
-        if (combatant.concentrating_on) {
+        if (combatant.concentrating_on || safeArray(combatant.conditions).includes('concentrating')) {
           const dc = Math.max(10, Math.floor(damage / 2));
           toast.warning(`${combatant.name}: concentration check DC ${dc}`);
         }
@@ -251,6 +299,21 @@ export default function CombatPageTable() {
     if (activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
   };
 
+  const rerollInitiative = id => {
+    const activeId = active?.id;
+    const updated = combatants.map(combatant => {
+      if (id && combatant.id !== id) return combatant;
+      const initiativeRoll = Math.floor(Math.random() * 20) + 1;
+      return { ...combatant, initiativeRoll, initiative: initiativeRoll + numberOr(combatant.initiativeMod, 0) };
+    }).sort((a, b) => b.initiative - a.initiative);
+    setCombatants(updated);
+    if (id && activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
+    else {
+      setCurrentTurn(0);
+      setExpandedId(updated[0]?.id || '');
+    }
+  };
+
   const moveInOrder = (id, direction) => {
     const activeId = active?.id;
     const index = combatants.findIndex(item => item.id === id);
@@ -269,6 +332,7 @@ export default function CombatPageTable() {
     setCombatants(updated);
     setCurrentTurn(turn => Math.max(0, Math.min(turn - (index < turn ? 1 : 0), Math.max(0, updated.length - 1))));
     setExpandedId(previous => previous === id ? (updated[0]?.id || '') : previous);
+    setAttackingId(previous => previous === id ? '' : previous);
   };
 
   const addCombatant = (incoming) => {
@@ -279,6 +343,19 @@ export default function CombatPageTable() {
     if (activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
     setExpandedId(prepared.id);
     toast.success(`${prepared.name} joined combat`);
+  };
+
+  const announceCombat = event => {
+    if (!event?.text) return;
+    if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
+    setCombatBanner({
+      id: `combat-${Date.now()}`,
+      eyebrow: 'Combat',
+      text: event.text,
+      subtitle: event.subtitle || '',
+      tone: event.tone || 'neutral',
+    });
+    bannerTimerRef.current = window.setTimeout(() => setCombatBanner(null), 6500);
   };
 
   const collectLoot = (combatant) => {
@@ -329,6 +406,10 @@ export default function CombatPageTable() {
       await syncPlayerState();
       if (collectedLoot.length) await saveLoot();
       try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+      await publishCampaignDisplayState(campaignId, createDisplayState('blank', {
+        title: 'Combat ended',
+        subtitle: 'Waiting for the GM',
+      })).catch(() => {});
       toast.success('Combat ended and player state saved');
     } catch {
       toast.error('Combat ended, but some player state may not have saved');
@@ -344,6 +425,8 @@ export default function CombatPageTable() {
     setCurrentTurn(0);
     setRound(1);
     setExpandedId(loaded[0]?.id || '');
+    setMapTokens([]);
+    setCombatBanner(null);
     toast.success('Encounter reset');
   };
 
@@ -376,11 +459,38 @@ export default function CombatPageTable() {
             {active && <span>Init {active.initiative} · AC {active.ac} · HP {active.hp}/{active.maxHp}{active.tempHp ? ` +${active.tempHp} temp` : ''}</span>}
           </section>
 
+          <details className="combat-initiative-panel">
+            <summary><Dices size={14} /> Initiative Setup <span>Manual or rolled</span></summary>
+            <div className="combat-initiative-body">
+              <div className="combat-initiative-tools">
+                <span>Enter final initiative totals for physical dice, or let Rook roll.</span>
+                <button type="button" onClick={() => rerollInitiative(null)}><Dices size={13} /> Roll All</button>
+              </div>
+              <div className="combat-initiative-grid">
+                {combatants.map(combatant => (
+                  <div key={combatant.id} className="combat-initiative-row">
+                    <span><strong>{combatant.name}</strong><small>{combatant.initiativeMod >= 0 ? '+' : ''}{combatant.initiativeMod} mod</small></span>
+                    <input
+                      key={`${combatant.id}-${combatant.initiative}`}
+                      type="number"
+                      defaultValue={combatant.initiative}
+                      aria-label={`${combatant.name} initiative`}
+                      onBlur={event => updateInitiative(combatant.id, event.target.value)}
+                      onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}
+                    />
+                    <button type="button" onClick={() => rerollInitiative(combatant.id)} title={`Roll ${combatant.name} initiative`}><Dices size={13} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
+
           <div className="combat-list">
             {combatants.map((combatant, index) => (
               <CombatantCard
                 key={combatant.id}
                 combatant={combatant}
+                targets={combatants.filter(item => item.id !== combatant.id)}
                 isCurrent={index === currentTurn}
                 expanded={expandedId === combatant.id}
                 hideMonsterHp={hideMonsterHp}
@@ -398,6 +508,8 @@ export default function CombatPageTable() {
                 onMove={direction => moveInOrder(combatant.id, direction)}
                 onRemove={() => removeCombatant(combatant.id)}
                 onAttack={() => setAttackingId(previous => previous === combatant.id ? '' : combatant.id)}
+                onApplyAttackDamage={(targetId, damage) => applyHpChange(targetId, -Math.max(0, numberOr(damage, 0)))}
+                onAnnounce={announceCombat}
                 onLoot={() => collectLoot(combatant)}
               />
             ))}
@@ -415,7 +527,7 @@ export default function CombatPageTable() {
       ) : (
         <main className="combat-map-view">
           <div className="combat-map-toolbar">
-            <select value={selectedMapId} onChange={event => setSelectedMapId(event.target.value)}>
+            <select value={selectedMapId} onChange={event => { setSelectedMapId(event.target.value); setMapTokens([]); }}>
               <option value="">Choose battle map…</option>
               {maps.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
@@ -457,9 +569,9 @@ export default function CombatPageTable() {
 }
 
 function CombatantCard({
-  combatant, isCurrent, expanded, hideMonsterHp, hpAmount, attacking,
+  combatant, targets, isCurrent, expanded, hideMonsterHp, hpAmount, attacking,
   onToggle, onHpAmount, onDamage, onHeal, onQuickHp, onTempHp, onCondition,
-  onDeathSave, onInitiative, onMove, onRemove, onAttack, onLoot,
+  onDeathSave, onInitiative, onMove, onRemove, onAttack, onApplyAttackDamage, onAnnounce, onLoot,
 }) {
   const pct = Math.max(0, Math.min(100, (combatant.hp / combatant.maxHp) * 100));
   const status = statusFor(combatant);
@@ -525,8 +637,16 @@ function CombatantCard({
 
           {isEnemy && combatant.hp > 0 && (
             <section className="combat-attack-section">
-              <button type="button" onClick={onAttack} className="combat-attack-button"><Swords size={14} /> {attacking ? 'Close Attack' : 'Attack'}</button>
-              {attacking && <AttackRoller creature={combatant} onClose={onAttack} onDamageApplied={damage => toast.info(`Apply ${damage} damage to the target from its card.`)} />}
+              {!attacking && <button type="button" onClick={onAttack} className="combat-attack-button"><Swords size={14} /> Attack a Target</button>}
+              {attacking && (
+                <TargetedAttackPanel
+                  attacker={combatant}
+                  targets={targets}
+                  onClose={onAttack}
+                  onApplyDamage={onApplyAttackDamage}
+                  onAnnounce={onAnnounce}
+                />
+              )}
             </section>
           )}
 
@@ -565,6 +685,20 @@ const combatCss = `
   .combat-now .combat-eyebrow, .combat-section-label { color: ${rq.muted}; font-size: 8px; font-weight: 950; text-transform: uppercase; letter-spacing: .09em; }
   .combat-now strong { font-size: 18px; }
   .combat-now > span:last-child { color: ${rq.soft}; font-size: 11px; }
+  .combat-initiative-panel, .combat-add-panel { background: ${rq.panel}; border: 1px solid ${rq.line}; }
+  .combat-initiative-panel summary, .combat-add-panel summary { min-height: 38px; padding: 0 9px; display: flex; align-items: center; gap: 5px; cursor: pointer; color: ${rq.soft}; font-size: 10px; font-weight: 900; list-style: none; }
+  .combat-initiative-panel summary span { margin-left: auto; color: ${rq.muted}; font-size: 8px; font-weight: 700; }
+  .combat-initiative-body, .combat-add-panel > div { padding: 7px; border-top: 1px solid ${rq.line}; display: grid; gap: 6px; }
+  .combat-initiative-tools { display: flex; justify-content: space-between; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .combat-initiative-tools span { color: ${rq.muted}; font-size: 9px; }
+  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(208,0,0,.12); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  .combat-initiative-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 4px; }
+  .combat-initiative-row { min-height: 38px; display: grid; grid-template-columns: minmax(0,1fr) 58px 32px; gap: 4px; align-items: center; background: ${rq.bg}; border: 1px solid ${rq.line}; padding: 4px; }
+  .combat-initiative-row > span { min-width: 0; display: grid; gap: 1px; }
+  .combat-initiative-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+  .combat-initiative-row small { color: ${rq.muted}; font-size: 8px; }
+  .combat-initiative-row input { width: 100%; min-width: 0; min-height: 30px; box-sizing: border-box; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; text-align: center; }
+  .combat-initiative-row button { width: 30px; height: 30px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.soft}; display: grid; place-items: center; cursor: pointer; }
   .combat-list { display: grid; gap: 5px; }
   .combat-card { background: ${rq.panel}; border: 1px solid ${rq.line}; overflow: hidden; }
   .combat-card[data-current="true"] { border-color: ${rq.green}; box-shadow: inset 4px 0 ${rq.green}; }
@@ -602,9 +736,6 @@ const combatCss = `
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-order-tools .remove { color: #fca5a5; }
-  .combat-add-panel { background: ${rq.panel}; border: 1px solid ${rq.line}; }
-  .combat-add-panel summary { min-height: 38px; padding: 0 9px; display: flex; align-items: center; gap: 5px; cursor: pointer; color: ${rq.soft}; font-size: 10px; font-weight: 900; list-style: none; }
-  .combat-add-panel > div { padding: 7px; border-top: 1px solid ${rq.line}; }
   .combat-map-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 34px auto 34px; gap: 4px; align-items: center; }
   .combat-map-toolbar select { min-height: 36px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
   .combat-map-toolbar button { height: 36px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; cursor: pointer; }
@@ -634,5 +765,6 @@ const combatCss = `
     .combat-death-saves { grid-template-columns: 1fr auto auto; }
     .combat-death-saves button { grid-column: 1 / -1; }
     .combat-map-canvas { min-height: 340px; height: 60vh; }
+    .combat-initiative-grid { grid-template-columns: 1fr; }
   }
 `;
