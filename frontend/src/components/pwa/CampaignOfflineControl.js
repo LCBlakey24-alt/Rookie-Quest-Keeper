@@ -10,7 +10,7 @@ import {
 import '@/styles/offlineCampaignControl.css';
 
 function campaignIdFromPath(pathname = '') {
-  const match = pathname.match(/^\/campaign\/([^/?#]+)/);
+  const match = pathname.match(/^\/(?:campaign|gm-screen)\/([^/?#]+)/);
   return match ? decodeURIComponent(match[1]) : '';
 }
 
@@ -86,7 +86,7 @@ export default function CampaignOfflineControl() {
         ? `Offline copy saved with ${next.failedSections} unavailable section${next.failedSections === 1 ? '' : 's'}`
         : 'Campaign downloaded for offline play');
     } catch (error) {
-      toast.error(error?.message || 'Could not download campaign for offline play');
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not download campaign for offline play');
     } finally {
       setDownloading(false);
       setProgress(null);
