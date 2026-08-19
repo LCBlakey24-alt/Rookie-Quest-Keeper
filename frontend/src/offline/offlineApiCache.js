@@ -75,7 +75,15 @@ export function getOfflineCacheKey(config = {}) {
   return `${getOfflineCacheScope()}::${normaliseUrl(config)}::${stableParams(config.params)}`;
 }
 
-function campaignPackKey(campaignId) {
+function normaliseAudience(audience) {
+  return audience === 'player' ? 'player' : 'gm';
+}
+
+function campaignPackKey(campaignId, audience = 'gm') {
+  return `${getOfflineCacheScope()}::${normaliseAudience(audience)}:${campaignId}`;
+}
+
+function legacyCampaignPackKey(campaignId) {
   return `${getOfflineCacheScope()}::campaign:${campaignId}`;
 }
 
@@ -165,10 +173,12 @@ export async function saveOfflineCampaignPackMetadata(pack = {}) {
   if (!pack.campaignId) return null;
   const db = await openDb().catch(() => null);
   if (!db) return null;
+  const audience = normaliseAudience(pack.audience);
 
   const record = {
     ...pack,
-    key: campaignPackKey(pack.campaignId),
+    audience,
+    key: campaignPackKey(pack.campaignId, audience),
     scope: getOfflineCacheScope(),
     campaignId: String(pack.campaignId),
     savedAt: Number(pack.savedAt || Date.now()),
@@ -186,15 +196,25 @@ export async function saveOfflineCampaignPackMetadata(pack = {}) {
   return record;
 }
 
-export async function getOfflineCampaignPackMetadata(campaignId) {
+export async function getOfflineCampaignPackMetadata(campaignId, audience = 'gm') {
   if (!campaignId) return null;
   const db = await openDb().catch(() => null);
   if (!db) return null;
+  const targetAudience = normaliseAudience(audience);
 
   const record = await new Promise(resolve => {
     const transaction = db.transaction(PACK_STORE, 'readonly');
-    const request = transaction.objectStore(PACK_STORE).get(campaignPackKey(campaignId));
-    request.onsuccess = () => resolve(request.result || null);
+    const store = transaction.objectStore(PACK_STORE);
+    const request = store.get(campaignPackKey(campaignId, targetAudience));
+    request.onsuccess = () => {
+      if (request.result || targetAudience !== 'gm') {
+        resolve(request.result || null);
+        return;
+      }
+      const legacyRequest = store.get(legacyCampaignPackKey(campaignId));
+      legacyRequest.onsuccess = () => resolve(legacyRequest.result ? { ...legacyRequest.result, audience: 'gm' } : null);
+      legacyRequest.onerror = () => resolve(null);
+    };
     request.onerror = () => resolve(null);
   });
   db.close();
@@ -212,18 +232,21 @@ export async function listOfflineCampaignPacks() {
     request.onerror = () => resolve([]);
   });
   db.close();
-  return records.sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0));
+  return records
+    .map(item => ({ ...item, audience: normaliseAudience(item.audience) }))
+    .sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0));
 }
 
-export async function removeOfflineCampaignPack(campaignId) {
+export async function removeOfflineCampaignPack(campaignId, audience = 'gm') {
   if (!campaignId) return;
-  const current = await getOfflineCampaignPackMetadata(campaignId);
+  const targetAudience = normaliseAudience(audience);
+  const current = await getOfflineCampaignPackMetadata(campaignId, targetAudience);
   if (!current) return;
 
   const allPacks = await listOfflineCampaignPacks();
   const protectedKeys = new Set(
     allPacks
-      .filter(pack => String(pack.campaignId) !== String(campaignId))
+      .filter(pack => pack.key !== current.key)
       .flatMap(pack => Array.isArray(pack.recordKeys) ? pack.recordKeys : [])
       .filter(Boolean)
   );
@@ -235,7 +258,9 @@ export async function removeOfflineCampaignPack(campaignId) {
     const transaction = db.transaction([RESPONSE_STORE, PACK_STORE], 'readwrite');
     const responseStore = transaction.objectStore(RESPONSE_STORE);
     removableKeys.forEach(key => responseStore.delete(key));
-    transaction.objectStore(PACK_STORE).delete(campaignPackKey(campaignId));
+    const packStore = transaction.objectStore(PACK_STORE);
+    packStore.delete(campaignPackKey(campaignId, targetAudience));
+    if (targetAudience === 'gm') packStore.delete(legacyCampaignPackKey(campaignId));
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();
