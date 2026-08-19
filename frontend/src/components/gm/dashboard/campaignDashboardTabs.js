@@ -1,9 +1,8 @@
-import { Backpack, Book, CalendarDays, Church, Clock, FileJson, FileText, Globe, Mail, Map, Monitor, ScrollText, Swords, Upload, UserCircle, Users } from 'lucide-react';
+import { Backpack, Book, Church, Clock, FileJson, FileText, Globe, Mail, Map, Monitor, ScrollText, Swords, Upload, UserCircle, Users } from 'lucide-react';
 
 export const tabGroups = [
   { id: 'start', label: 'Start Here', icon: Monitor, tabs: [
     { id: 'command-centre', icon: Monitor, label: 'GM Home' },
-    { id: 'tonight', icon: CalendarDays, label: "Tonight's Session" },
     { id: 'players', icon: Users, label: 'Players & Join Code' },
   ] },
   { id: 'world', label: 'My World', icon: Globe, tabs: [
