@@ -5,17 +5,10 @@ import apiClient from '@/lib/apiClient';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-
 const theme = {
-  bg: 'var(--rq-bg-main, #242424)',
-  panel: 'var(--rq-bg-panel, #2f2f2f)',
-  card: 'var(--rq-bg-panel-alt, #3a3a3a)',
-  line: 'var(--rq-border-default, rgba(255,255,255,0.16))',
-  accent: 'var(--rq-accent-primary, #d00000)',
-  accentSoft: 'var(--rq-accent-soft, rgba(208,0,0,0.18))',
-  text: 'var(--rq-text-primary, #ffffff)',
-  soft: 'var(--rq-text-secondary, rgba(255,255,255,0.74))',
-  muted: 'var(--rq-text-muted, rgba(255,255,255,0.62))',
+  bg: 'var(--rq-bg-main, #242424)', panel: 'var(--rq-bg-panel, #2f2f2f)', card: 'var(--rq-bg-panel-alt, #3a3a3a)',
+  line: 'var(--rq-border-default, rgba(255,255,255,0.16))', accent: 'var(--rq-accent-primary, #d00000)',
+  text: 'var(--rq-text-primary, #ffffff)', soft: 'var(--rq-text-secondary, rgba(255,255,255,0.74))', muted: 'var(--rq-text-muted, rgba(255,255,255,0.62))',
 };
 
 export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers = null }) {
@@ -26,9 +19,7 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
   const [copying, setCopying] = useState(false);
   const [rotating, setRotating] = useState(false);
 
-  useEffect(() => {
-    if (Array.isArray(suppliedPlayers)) setPlayers(suppliedPlayers);
-  }, [suppliedPlayers]);
+  useEffect(() => { if (Array.isArray(suppliedPlayers)) setPlayers(suppliedPlayers); }, [suppliedPlayers]);
 
   const loadPanel = useCallback(async ({ silent = false } = {}) => {
     if (!campaignId) return;
@@ -36,56 +27,31 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
       setLoading(true);
       const [inviteRes, playersRes, membersRes] = await Promise.all([
         apiClient.get(`/campaign-invites/${campaignId}`).catch(() => ({ data: null })),
-        Array.isArray(suppliedPlayers)
-          ? Promise.resolve({ data: suppliedPlayers })
-          : apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+        Array.isArray(suppliedPlayers) ? Promise.resolve({ data: suppliedPlayers }) : apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => ({ data: [] })),
         apiClient.get(`/campaign-invites/${campaignId}/members`).catch(() => ({ data: [] })),
       ]);
       setInvite(inviteRes.data);
       setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
       setMembers(Array.isArray(membersRes.data) ? membersRes.data : []);
-      if (!silent) toast.success('Player invite details refreshed');
+      if (!silent) toast.success('Player details refreshed');
     } catch (error) {
-      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not refresh player invite details');
+      toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not refresh player details');
     } finally {
       setLoading(false);
     }
   }, [campaignId, suppliedPlayers]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function initialLoad() {
-      try {
-        setLoading(true);
-        const [inviteRes, playersRes, membersRes] = await Promise.all([
-          apiClient.get(`/campaign-invites/${campaignId}`).catch(() => ({ data: null })),
-          Array.isArray(suppliedPlayers)
-            ? Promise.resolve({ data: suppliedPlayers })
-            : apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaign-invites/${campaignId}/members`).catch(() => ({ data: [] })),
-        ]);
-        if (!cancelled) {
-          setInvite(inviteRes.data);
-          setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
-          setMembers(Array.isArray(membersRes.data) ? membersRes.data : []);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    if (campaignId) initialLoad();
-    return () => { cancelled = true; };
-  }, [campaignId, suppliedPlayers]);
+  useEffect(() => { if (campaignId) loadPanel({ silent: true }); }, [campaignId, loadPanel]);
 
   const code = invite?.join_code || invite?.code || '';
-  const joinModeLabel = invite?.join_mode === 'auto_accept' ? 'Auto-accept' : 'GM approval';
   const panelBusy = loading || rotating || copying;
   const playerSummary = useMemo(() => {
-    const rosterCount = players.length;
     const liveMembers = members.filter(member => String(member.status || 'active').toLowerCase() !== 'removed');
-    const linkedCount = liveMembers.filter(member => member.character_id).length;
-    const pendingCount = liveMembers.filter(member => String(member.status || '').toLowerCase() === 'pending').length;
-    return { rosterCount, linkedCount, pendingCount };
+    return {
+      rosterCount: players.length,
+      linkedCount: liveMembers.filter(member => member.character_id).length,
+      pendingCount: liveMembers.filter(member => String(member.status || '').toLowerCase() === 'pending').length,
+    };
   }, [players, members]);
 
   const copyCode = async () => {
@@ -102,8 +68,7 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
   };
 
   const rotateCode = async () => {
-    if (!campaignId) return;
-    if (!window.confirm('Create a new join code? The old code will stop working.')) return;
+    if (!campaignId || !window.confirm('Create a new join code? The old code will stop working.')) return;
     setRotating(true);
     try {
       const response = await apiClient.post(`/campaign-invites/${campaignId}`);
@@ -119,25 +84,14 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
 
   return (
     <section style={panelStyle} data-testid="player-invite-panel" aria-busy={panelBusy ? 'true' : 'false'}>
-      <div style={iconTileStyle}><UserPlus size={24} /></div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={headerRowStyle}>
-          <div style={{ minWidth: 0 }}>
-            <p style={eyebrowStyle}>Players & Invites</p>
-            <h3 style={titleStyle}>Bring players into this campaign</h3>
-          </div>
-          <button type="button" onClick={() => loadPanel()} disabled={loading || rotating} aria-busy={loading ? 'true' : 'false'} style={refreshButtonStyle(loading)}>
-            <RefreshCw size={14} style={loading ? spinStyle : undefined} />
-            {loading ? 'Refreshing…' : 'Refresh'}
-          </button>
+      <div style={topRowStyle}>
+        <strong style={labelStyle}><UserPlus size={15} /> Players & Invites</strong>
+        <div style={summaryStyle}>
+          <MiniStat icon={Users} value={loading ? '…' : playerSummary.rosterCount} label="Party" />
+          <MiniStat icon={ShieldCheck} value={loading ? '…' : playerSummary.linkedCount} label="Linked" />
+          {playerSummary.pendingCount > 0 && <MiniStat icon={UserPlus} value={playerSummary.pendingCount} label="Pending" accent />}
         </div>
-        <p style={subtitleStyle}>{loading ? 'Checking join code, roster, linked characters, and pending approvals…' : `Share the join code with players. Each user links one character. The current join mode is ${joinModeLabel}.`}</p>
-
-        <div style={statsStyle}>
-          <MiniStat icon={Users} label="Roster" value={loading ? 'Loading…' : `${playerSummary.rosterCount} GM player${playerSummary.rosterCount === 1 ? '' : 's'}`} />
-          <MiniStat icon={ShieldCheck} label="Linked" value={loading ? 'Loading…' : `${playerSummary.linkedCount} character${playerSummary.linkedCount === 1 ? '' : 's'}`} />
-          <MiniStat icon={UserPlus} label="Pending" value={loading ? 'Loading…' : `${playerSummary.pendingCount} approval${playerSummary.pendingCount === 1 ? '' : 's'}`} />
-        </div>
+        <button type="button" onClick={() => loadPanel()} disabled={loading || rotating} style={refreshButtonStyle}><RefreshCw size={13} /> Refresh</button>
       </div>
 
       <CampaignJoinCodeCard
@@ -148,55 +102,21 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         copying={copying}
         uses={invite?.uses}
         createdAt={invite?.created_at}
-        description={`Players use this code with Join Campaign. Mode: ${joinModeLabel}. Rotating the code stops the old one from working.`}
+        description="Share this code with players to link their characters."
         onCopy={copyCode}
         onRotate={rotateCode}
       />
-      <style>{panelCss}</style>
     </section>
   );
 }
 
-function MiniStat({ icon: Icon, label, value }) {
-  return (
-    <div style={miniStatStyle}>
-      <Icon size={15} />
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
+function MiniStat({ icon: Icon, value, label, accent = false }) {
+  return <span style={{ ...miniStatStyle, borderColor: accent ? theme.accent : theme.line }}><Icon size={12} /><strong>{value}</strong><small>{label}</small></span>;
 }
 
-const panelStyle = { display: 'flex', alignItems: 'stretch', gap: 14, flexWrap: 'wrap', padding: 16, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `5px solid ${theme.accent}`, fontFamily: fontStack, color: theme.text, marginBottom: 16 };
-const iconTileStyle = { width: 48, height: 48, display: 'grid', placeItems: 'center', background: theme.bg, color: theme.text, borderLeft: `6px solid ${theme.accent}`, flex: '0 0 auto' };
-const headerRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' };
-const eyebrowStyle = { margin: '0 0 5px', color: theme.muted, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.1em' };
-const titleStyle = { margin: 0, color: theme.text, fontSize: 24, fontWeight: 950, letterSpacing: '-0.02em' };
-const subtitleStyle = { margin: '7px 0 0', color: theme.soft, lineHeight: 1.45, fontSize: 13, maxWidth: 760 };
-const statsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 };
-const miniStatStyle = { display: 'inline-flex', alignItems: 'center', gap: 7, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '7px 9px', fontSize: 12 };
-const spinStyle = { animation: 'rqPlayerInviteSpin 0.9s linear infinite' };
-const panelCss = `
-  @keyframes rqPlayerInviteSpin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) {
-    [data-testid="player-invite-panel"] svg { animation: none !important; }
-  }
-`;
-
-function refreshButtonStyle(isBusy) {
-  return {
-    minHeight: 36,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    background: theme.accentSoft,
-    color: theme.text,
-    border: `1px solid ${theme.line}`,
-    padding: '7px 10px',
-    fontSize: 12,
-    fontWeight: 950,
-    cursor: isBusy ? 'progress' : 'pointer',
-    opacity: isBusy ? 0.76 : 1,
-  };
-}
+const panelStyle = { display: 'grid', gap: 7, padding: 8, background: theme.card, border: `1px solid ${theme.line}`, borderLeft: `4px solid ${theme.accent}`, fontFamily: fontStack, color: theme.text, marginBottom: 8 };
+const topRowStyle = { display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' };
+const labelStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11 };
+const summaryStyle = { display: 'flex', gap: 4, flexWrap: 'wrap', marginLeft: 'auto' };
+const miniStatStyle = { minHeight: 28, display: 'inline-flex', alignItems: 'center', gap: 4, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '0 6px', fontSize: 10 };
+const refreshButtonStyle = { minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 5, background: theme.panel, color: theme.soft, border: `1px solid ${theme.line}`, padding: '0 7px', fontSize: 10, fontWeight: 850, cursor: 'pointer' };
