@@ -39,6 +39,10 @@ function isOfflineResponse(response) {
   return Boolean(response?.rqkOffline || response?.headers?.['x-rqk-offline-cache'] === '1');
 }
 
+function isAuthFailure(error) {
+  return error?.response?.status === 401 || error?.response?.status === 403;
+}
+
 function unique(values) {
   return Array.from(new Set(values.filter(Boolean)));
 }
@@ -102,6 +106,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
+      if (isAuthFailure(error)) throw error;
       sections.push(sectionResult(request, 'unavailable', {
         message: error?.response?.data?.detail || error?.message || 'Could not download this section.',
       }));
@@ -131,6 +136,7 @@ export async function downloadCampaignOfflinePack(campaignId, options = {}) {
       if (recordKey) recordKeys.push(recordKey);
       sections.push(sectionResult(request, 'saved', { savedAt: Date.now() }));
     } catch (error) {
+      if (isAuthFailure(error)) throw error;
       sections.push(sectionResult(request, 'unavailable', {
         message: error?.response?.data?.detail || error?.message || 'Could not download character sheet.',
       }));
