@@ -3,6 +3,7 @@ import { Backpack, Book, Church, Clock, FileJson, FileText, Globe, Mail, Map, Mo
 export const tabGroups = [
   { id: 'start', label: 'Start Here', icon: Monitor, tabs: [
     { id: 'command-centre', icon: Monitor, label: 'GM Home' },
+    { id: 'story-arcs', icon: ScrollText, label: 'Quests' },
     { id: 'players', icon: Users, label: 'Players & Join Code' },
   ] },
   { id: 'world', label: 'My World', icon: Globe, tabs: [
