@@ -146,6 +146,27 @@ function CampaignLiveRedirect() {
   return <Navigate to={`/gm-screen/${campaignId}`} replace />;
 }
 
+function CombatStateRedirect() {
+  const location = useLocation();
+  const campaignId = location.state?.campaignId;
+  if (!campaignId) return <Navigate to="/home" replace />;
+  if (location.state?.source === 'live-play') {
+    try { localStorage.setItem(`gm.returnToLive.${campaignId}`, '1'); } catch {}
+  }
+  return <Navigate to={`/combat/${campaignId}`} state={location.state} replace />;
+}
+
+function CampaignDashboardRoute() {
+  const { campaignId } = useParams();
+  let returnToLive = false;
+  try {
+    returnToLive = localStorage.getItem(`gm.returnToLive.${campaignId}`) === '1';
+    if (returnToLive) localStorage.removeItem(`gm.returnToLive.${campaignId}`);
+  } catch {}
+  if (returnToLive) return <Navigate to={`/gm-screen/${campaignId}`} replace />;
+  return <AppShell><CampaignDashboard /></AppShell>;
+}
+
 function ThemeRouter() {
   const location = useLocation();
   const { setTheme } = useTheme();
@@ -153,7 +174,7 @@ function ThemeRouter() {
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path.startsWith('/auth')) setTheme(THEMES.LANDING);
-    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
+    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display') || path.startsWith('/prototype-gm')) setTheme(THEMES.GM);
     else if (path.startsWith('/characters') || path.startsWith('/player') || path.startsWith('/campaign') || path.startsWith('/mobile') || path.startsWith('/uploads') || path.startsWith('/prototype-mobile') || path.startsWith('/prototype-progressions')) setTheme(THEMES.PLAYER);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
@@ -195,7 +216,7 @@ function AppRoutes() {
         <Route path="/characters" element={isAuthenticated ? <AppShell><MyCharactersPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/player" element={isAuthenticated ? <AppShell><PlayerDashboard /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/campaigns" element={isAuthenticated ? <AppShell><MyCampaignsPage /></AppShell> : <Navigate to="/auth" replace />} />
-        <Route path="/campaign/:campaignId" element={isAuthenticated ? <AppShell><CampaignDashboard /></AppShell> : <Navigate to="/auth" replace />} />
+        <Route path="/campaign/:campaignId" element={isAuthenticated ? <CampaignDashboardRoute /> : <Navigate to="/auth" replace />} />
         <Route path="/campaign/:campaignId/live" element={isAuthenticated ? <CampaignLiveRedirect /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionGridPage /> : <Navigate to="/auth" replace />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <Navigate to="/auth" replace />} />
@@ -206,7 +227,8 @@ function AppRoutes() {
         <Route path="/prototype-gm" element={<PrototypeRoute><TiaKartaGmPrototype /></PrototypeRoute>} />
         <Route path="/prototype-progressions" element={<PrototypeRoute><ClassProgressionLab /></PrototypeRoute>} />
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <MobilePlayerCampaignView /> : <Navigate to="/auth" replace />} />
-        <Route path="/combat" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
+        <Route path="/combat" element={isAuthenticated ? <CombatStateRedirect /> : <Navigate to="/auth" replace />} />
+        <Route path="/combat/:campaignId" element={isAuthenticated ? <CombatPage /> : <Navigate to="/auth" replace />} />
         <Route path="/admin" element={isAuthenticated ? <AppShell><AdminPage /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/account" element={isAuthenticated ? <AppShell><AccountSettings username={username} onLogout={handleLogout} /></AppShell> : <Navigate to="/auth" replace />} />
         <Route path="/homebrew" element={isAuthenticated ? <AppShell><HomebrewWorkshop /></AppShell> : <Navigate to="/auth" replace />} />
