@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, CloudUpload, RefreshCw, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
@@ -17,6 +17,7 @@ export default function OfflineSyncManager() {
   const [syncing, setSyncing] = useState(false);
   const [open, setOpen] = useState(false);
   const [online, setOnline] = useState(() => navigator.onLine);
+  const syncingRef = useRef(false);
 
   const load = useCallback(async () => {
     const next = await listOfflineCombatSyncs();
@@ -25,7 +26,8 @@ export default function OfflineSyncManager() {
   }, []);
 
   const syncPending = useCallback(async () => {
-    if (navigator.onLine === false || syncing) return;
+    if (navigator.onLine === false || syncingRef.current) return;
+    syncingRef.current = true;
     setSyncing(true);
     try {
       const queued = await listOfflineCombatSyncs();
@@ -53,10 +55,11 @@ export default function OfflineSyncManager() {
         }
       }
     } finally {
+      syncingRef.current = false;
       setSyncing(false);
       await load();
     }
-  }, [load, syncing]);
+  }, [load]);
 
   useEffect(() => {
     load().then(next => {
