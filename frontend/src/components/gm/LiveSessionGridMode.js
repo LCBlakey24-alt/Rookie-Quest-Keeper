@@ -100,7 +100,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
         )}
         <section style={toolBodyStyle}>
           {activeTool === 'overview' ? (
-            <RunScreen recentTools={recentTools} onSelect={selectTool} />
+            <RunScreen campaignId={campaignId} recentTools={recentTools} onSelect={selectTool} />
           ) : activeTool === 'more' ? (
             <MorePanel onSelect={selectTool} />
           ) : activeTool === 'combat' ? (
@@ -116,7 +116,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
   );
 }
 
-function RunScreen({ recentTools, onSelect }) {
+function RunScreen({ campaignId, recentTools, onSelect }) {
   const core = [
     { id: 'story', label: 'Quests', icon: BookOpen, detail: 'Open, tick off, continue' },
     { id: 'combat', label: 'Encounters', icon: Swords, detail: 'Run prepared combat' },
@@ -124,6 +124,15 @@ function RunScreen({ recentTools, onSelect }) {
     { id: 'notes', label: 'Quick Notes', icon: FileText, detail: 'Record what changed' },
   ];
   const recent = recentTools.map(id => LIVE_GRID_TOOLS.find(tool => tool.id === id)).filter(Boolean);
+  const continueItems = [];
+  try {
+    if (localStorage.getItem(`gm.liveQuestFocus.${campaignId}`)) {
+      continueItems.push({ id: 'story', label: 'Continue focused quest', icon: BookOpen });
+    }
+    if (localStorage.getItem(`gm.lastEncounter.${campaignId}`)) {
+      continueItems.push({ id: 'combat', label: 'Reopen last encounter', icon: Swords });
+    }
+  } catch { /* ignore */ }
 
   return (
     <div style={runScreenStyle}>
@@ -131,6 +140,18 @@ function RunScreen({ recentTools, onSelect }) {
         <p style={eyebrowStyle}>Live Play</p>
         <h2 style={runTitleStyle}>What do you need?</h2>
       </header>
+
+      {continueItems.length > 0 && (
+        <section style={continueStyle}>
+          <p style={sectionLabelStyle}>Continue</p>
+          <div style={continueRowStyle}>
+            {continueItems.map(item => {
+              const Icon = item.icon;
+              return <button key={item.label} type="button" onClick={() => onSelect(item.id)} style={continueButtonStyle}><Icon size={15} /> {item.label}</button>;
+            })}
+          </div>
+        </section>
+      )}
 
       <section style={coreGridStyle}>
         {core.map(item => {
@@ -198,6 +219,9 @@ const runScreenStyle = { display: 'grid', gap: 10 };
 const runHeaderStyle = { padding: '10px 4px 3px' };
 const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const runTitleStyle = { margin: '2px 0 0', color: rq.text, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1, fontWeight: 950 };
+const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `4px solid ${rq.red}` };
+const continueRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
+const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.red}`, background: 'rgba(208,0,0,0.14)', color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
 const coreGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 7 };
 const coreCardStyle = { minHeight: 104, border: `1px solid ${rq.line}`, borderLeft: `5px solid ${rq.red}`, background: rq.card, color: rq.text, padding: 12, display: 'grid', justifyItems: 'start', alignContent: 'center', gap: 5, textAlign: 'left', cursor: 'pointer', fontFamily: fontStack };
 const recentStyle = { display: 'grid', gap: 6, paddingTop: 2 };
