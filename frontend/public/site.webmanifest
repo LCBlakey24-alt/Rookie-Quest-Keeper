@@ -19,7 +19,7 @@
     },
     {
       "src": "/brand/rqk-logo-mini.png",
-      "sizes": "any",
+      "sizes": "1000x1000",
       "type": "image/png",
       "purpose": "any"
     }
