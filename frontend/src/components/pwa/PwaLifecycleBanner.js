@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Download, RefreshCw, WifiOff, X } from 'lucide-react';
 import CampaignOfflineControl from '@/components/pwa/CampaignOfflineControl';
+import OfflineSyncManager from '@/components/pwa/OfflineSyncManager';
 import {
   PWA_EVENTS,
   applyWaitingServiceWorker,
@@ -48,7 +49,7 @@ export default function PwaLifecycleBanner() {
         <span className="rqk-pwa-banner__icon"><WifiOff size={16} /></span>
         <span className="rqk-pwa-banner__copy">
           <strong>Offline</strong>
-          <small>{offlineCacheActive ? 'Using saved campaign data where available. Changes still require a connection.' : 'Previously downloaded campaign data can still open. Changes still require a connection.'}</small>
+          <small>{offlineCacheActive ? 'Using saved campaign data where available. Combat state can queue safely; other edits still need a connection.' : 'Downloaded campaign data can reopen. Combat state can queue safely; other edits still need a connection.'}</small>
         </span>
       </aside>
     );
@@ -90,6 +91,7 @@ export default function PwaLifecycleBanner() {
   return (
     <>
       <CampaignOfflineControl />
+      <OfflineSyncManager />
       {banner}
     </>
   );
