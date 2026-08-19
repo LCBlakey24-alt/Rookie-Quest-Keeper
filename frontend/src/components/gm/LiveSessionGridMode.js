@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Coins, Compass, Dices, FileText, Mail, Map, Monitor, MoreHorizontal, Swords, Target, UserCircle, Users } from 'lucide-react';
+import LiveEncounterLauncher from './LiveEncounterLauncher';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
@@ -54,6 +55,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
 
   const active = useMemo(() => LIVE_GRID_TOOLS.find(tool => tool.id === activeTool) || LIVE_GRID_TOOLS[0], [activeTool]);
   const primaryActiveId = SECONDARY_IDS.has(activeTool) ? 'more' : activeTool;
+  const ActiveIcon = active.icon;
 
   const selectTool = (toolId) => {
     setActiveTool(toolId);
@@ -87,7 +89,7 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
       <main style={mainStyle} key={`${refreshKey}-${activeTool}`}>
         {activeTool !== 'overview' && activeTool !== 'more' && (
           <header style={toolHeaderStyle}>
-            <div style={toolTitleStyle}><active.icon size={18} /><strong>{active.label}</strong></div>
+            <div style={toolTitleStyle}><ActiveIcon size={18} /><strong>{active.label}</strong></div>
             <span style={livePillStyle}>Live Play</span>
           </header>
         )}
@@ -96,6 +98,8 @@ export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSing
             <RunScreen recentTools={recentTools} onSelect={selectTool} />
           ) : activeTool === 'more' ? (
             <MorePanel onSelect={selectTool} />
+          ) : activeTool === 'combat' ? (
+            <LiveEncounterLauncher campaignId={campaignId} />
           ) : activeTool === 'quick-dice' ? (
             <QuickDicePanel onRollDice={onRollDice} />
           ) : (
@@ -126,7 +130,7 @@ function RunScreen({ recentTools, onSelect }) {
       <section style={coreGridStyle}>
         {core.map(item => {
           const Icon = item.icon;
-          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} data-testid={`live-tool-${item.id}`} style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
+          return <button key={item.id} type="button" onClick={() => onSelect(item.id)} style={coreCardStyle}><Icon size={21} /><strong>{item.label}</strong><span>{item.detail}</span></button>;
         })}
       </section>
 
