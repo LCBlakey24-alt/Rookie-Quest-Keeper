@@ -22,13 +22,16 @@ function playerToCombatant(player) {
   const maxHp = Number(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp) || 10;
   return {
     id: player.id || `player-${player.name || player.character_name}`,
+    character_id: player.character_id || null,
+    legacy_player_id: player.legacy_player_id || null,
     name: player.name || player.character_name || 'Player Character',
     type: 'player',
     hp: Number(player.hp ?? player.current_hp ?? player.current_hit_points) || maxHp,
     maxHp,
     ac: Number(player.ac ?? player.armor_class) || 10,
     initiativeMod: Number(player.initiativeMod ?? dexMod(player.stats || player)) || 0,
-    conditions: [],
+    conditions: Array.isArray(player.conditions) ? player.conditions : [],
+    source: player.source || 'legacy',
     tokenColor: '#4a7dff',
     tokenSize: 40,
   };
@@ -56,7 +59,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
     try {
       const [campaignRes, playersRes, scenariosRes] = await Promise.all([
         apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null })),
-        apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+        apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] }))),
         apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
       ]);
       setCampaignName(campaignRes.data?.name || 'Campaign');
@@ -97,12 +100,17 @@ export default function CombatConsolidatedTab({ campaignId }) {
 
   const launchCombat = scenario => {
     if (!scenario) return;
-    navigate(`/combat/${campaignId}`, { state: { scenario, campaignId, campaignName } });
+    const combatants = Array.isArray(scenario.combatants)
+      ? scenario.combatants.map(combatant => combatant.type === 'player'
+        ? playerToCombatant(players.find(player => player.id === combatant.id) || combatant)
+        : combatant)
+      : [];
+    navigate(`/combat/${campaignId}`, { state: { scenario: { ...scenario, combatants }, campaignId, campaignName } });
   };
 
   const quickStartCombat = () => {
     if (!players.length) {
-      toast.error('Add players before starting party combat');
+      toast.error('Add or link players before starting party combat');
       return;
     }
     launchCombat(quickScenario);
@@ -130,7 +138,7 @@ export default function CombatConsolidatedTab({ campaignId }) {
       </div>
 
       {!players.length && activeMode === 'combat' && (
-        <section style={warningStyle}><AlertTriangle size={15} /> No players are linked yet. You can still prep encounters.</section>
+        <section style={warningStyle}><AlertTriangle size={15} /> No linked player characters yet. You can still prep encounters.</section>
       )}
 
       {activeMode === 'monsters' ? (
