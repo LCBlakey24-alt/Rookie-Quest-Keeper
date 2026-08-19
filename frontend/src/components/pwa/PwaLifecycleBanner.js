@@ -12,26 +12,33 @@ export default function PwaLifecycleBanner() {
   const [updateReady, setUpdateReady] = useState(false);
   const [installReady, setInstallReady] = useState(() => Boolean(getPendingInstallPrompt()));
   const [dismissedInstall, setDismissedInstall] = useState(false);
+  const [usingSavedData, setUsingSavedData] = useState(false);
 
   useEffect(() => {
-    const onOnline = () => setOnline(true);
+    const onOnline = () => {
+      setOnline(true);
+      setUsingSavedData(false);
+    };
     const onOffline = () => setOnline(false);
     const onUpdate = () => setUpdateReady(true);
     const onInstall = () => {
       setInstallReady(true);
       setDismissedInstall(false);
     };
+    const onCacheHit = () => setUsingSavedData(true);
 
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     window.addEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
     window.addEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
+    window.addEventListener('rqk:offline-cache-hit', onCacheHit);
 
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
       window.removeEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
+      window.removeEventListener('rqk:offline-cache-hit', onCacheHit);
     };
   }, []);
 
@@ -40,8 +47,12 @@ export default function PwaLifecycleBanner() {
       <aside className="rqk-pwa-banner rqk-pwa-banner--offline" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><WifiOff size={16} /></span>
         <span className="rqk-pwa-banner__copy">
-          <strong>Offline</strong>
-          <small>The app shell is available. Campaign data sync is coming in the next offline phase.</small>
+          <strong>{usingSavedData ? 'Offline · using saved data' : 'Offline'}</strong>
+          <small>
+            {usingSavedData
+              ? 'Previously opened campaign information is being loaded from this device. Changes still require a connection.'
+              : 'Rookie can launch offline. Previously opened campaign information may also be available on this device.'}
+          </small>
         </span>
       </aside>
     );
