@@ -14,6 +14,7 @@ from routes.campaign_content import router as campaign_content_router
 from routes.world import router as world_router
 from routes.notes import router as notes_router
 from routes.npcs import router as npcs_router
+from routes.live_state import router as live_state_router
 from routes.combat import router as combat_router
 from routes.players import router as players_router
 from routes.maps import router as maps_router
@@ -55,6 +56,7 @@ all_routers = [
     world_router,
     notes_router,
     npcs_router,
+    live_state_router,
     combat_router,
     players_router,
     maps_router,
