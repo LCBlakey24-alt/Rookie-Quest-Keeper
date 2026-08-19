@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, RefreshCw, WifiOff, X } from 'lucide-react';
+import CampaignOfflineControl from '@/components/pwa/CampaignOfflineControl';
 import {
   PWA_EVENTS,
   applyWaitingServiceWorker,
@@ -12,54 +13,47 @@ export default function PwaLifecycleBanner() {
   const [updateReady, setUpdateReady] = useState(false);
   const [installReady, setInstallReady] = useState(() => Boolean(getPendingInstallPrompt()));
   const [dismissedInstall, setDismissedInstall] = useState(false);
-  const [usingSavedData, setUsingSavedData] = useState(false);
+  const [offlineCacheActive, setOfflineCacheActive] = useState(false);
 
   useEffect(() => {
-    const onOnline = () => {
-      setOnline(true);
-      setUsingSavedData(false);
-    };
+    const onOnline = () => { setOnline(true); setOfflineCacheActive(false); };
     const onOffline = () => setOnline(false);
+    const onOfflineCacheHit = () => setOfflineCacheActive(true);
     const onUpdate = () => setUpdateReady(true);
     const onInstall = () => {
       setInstallReady(true);
       setDismissedInstall(false);
     };
-    const onCacheHit = () => setUsingSavedData(true);
 
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
+    window.addEventListener('rqk:offline-cache-hit', onOfflineCacheHit);
     window.addEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
     window.addEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
-    window.addEventListener('rqk:offline-cache-hit', onCacheHit);
 
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
+      window.removeEventListener('rqk:offline-cache-hit', onOfflineCacheHit);
       window.removeEventListener(PWA_EVENTS.UPDATE_READY_EVENT, onUpdate);
       window.removeEventListener(PWA_EVENTS.INSTALL_AVAILABLE_EVENT, onInstall);
-      window.removeEventListener('rqk:offline-cache-hit', onCacheHit);
     };
   }, []);
 
+  let banner = null;
+
   if (!online) {
-    return (
+    banner = (
       <aside className="rqk-pwa-banner rqk-pwa-banner--offline" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><WifiOff size={16} /></span>
         <span className="rqk-pwa-banner__copy">
-          <strong>{usingSavedData ? 'Offline · using saved data' : 'Offline'}</strong>
-          <small>
-            {usingSavedData
-              ? 'Previously opened campaign information is being loaded from this device. Changes still require a connection.'
-              : 'Rookie can launch offline. Previously opened campaign information may also be available on this device.'}
-          </small>
+          <strong>Offline</strong>
+          <small>{offlineCacheActive ? 'Using saved campaign data where available. Changes still require a connection.' : 'Previously downloaded campaign data can still open. Changes still require a connection.'}</small>
         </span>
       </aside>
     );
-  }
-
-  if (updateReady) {
-    return (
+  } else if (updateReady) {
+    banner = (
       <aside className="rqk-pwa-banner rqk-pwa-banner--update" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><RefreshCw size={16} /></span>
         <span className="rqk-pwa-banner__copy">
@@ -69,10 +63,8 @@ export default function PwaLifecycleBanner() {
         <button type="button" className="rqk-pwa-banner__action" onClick={applyWaitingServiceWorker}>Update & reload</button>
       </aside>
     );
-  }
-
-  if (installReady && !dismissedInstall) {
-    return (
+  } else if (installReady && !dismissedInstall) {
+    banner = (
       <aside className="rqk-pwa-banner rqk-pwa-banner--install" role="status" aria-live="polite">
         <span className="rqk-pwa-banner__icon"><Download size={16} /></span>
         <span className="rqk-pwa-banner__copy">
@@ -95,5 +87,10 @@ export default function PwaLifecycleBanner() {
     );
   }
 
-  return null;
+  return (
+    <>
+      <CampaignOfflineControl />
+      {banner}
+    </>
+  );
 }
