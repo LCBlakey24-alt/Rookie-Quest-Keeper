@@ -118,12 +118,14 @@ export default function CampaignOfflineControl() {
     : 0;
 
   const description = playerMode
-    ? 'Your player campaign view, linked character sheets, party roster and shared handouts can reopen without internet. GM-only prep is never included.'
-    : 'Quests, NPCs, locations, encounters, notes, party data and other GM reads can reopen without internet. Offline editing is not enabled yet.';
+    ? 'Your player campaign view, linked character sheets, party roster, shared handouts and their media can reopen without internet. GM-only prep is never included.'
+    : 'Quests, NPCs, locations, encounters, notes, party data, maps and handout media can reopen without internet. Offline editing is not enabled yet.';
 
   const phaseLabel = progress?.phase === 'characters'
     ? 'Character sheets'
-    : playerMode ? 'Player-safe campaign data' : 'Campaign data';
+    : progress?.phase === 'media'
+      ? 'Maps, images & attachments'
+      : playerMode ? 'Player-safe campaign data' : 'Campaign data';
 
   return (
     <div className="rqk-offline-control" data-open={open ? 'true' : 'false'} data-audience={audience}>
@@ -163,6 +165,7 @@ export default function CampaignOfflineControl() {
               <div className="rqk-offline-metrics">
                 <span><strong>{pack.successfulSections || 0}</strong><small>Saved sections</small></span>
                 <span><strong>{pack.characterIds?.length || 0}</strong><small>Characters</small></span>
+                <span><strong>{pack.mediaSaved || 0}</strong><small>Media files</small></span>
                 <span><strong>{pack.failedSections || 0}</strong><small>Unavailable</small></span>
               </div>
             )}
@@ -180,8 +183,8 @@ export default function CampaignOfflineControl() {
 
             <div className="rqk-offline-note">
               {playerMode
-                ? 'This copy contains player-authorised data only. GM notes, secret NPC information, unrevealed handouts and encounter prep are excluded.'
-                : 'Campaign text/data is included in this phase. Downloading attached map images and handout files is the next media phase.'}
+                ? 'This copy contains player-authorised data and media only. GM notes, secret NPC information, unrevealed handouts and encounter prep are excluded.'
+                : 'Offline packs include campaign data plus media Rookie can reach from maps, handouts, portraits, tokens and backgrounds. Online-only Rook AI and edits still require a connection.'}
             </div>
 
             <div className="rqk-offline-actions">
