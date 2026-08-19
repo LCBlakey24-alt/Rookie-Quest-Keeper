@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check, FileText, Send, Swords, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
@@ -16,6 +16,17 @@ export default function NotesTab({ theme = {}, campaignId, quickNote, setQuickNo
   const cardBg = theme?.bg?.card || '#3a3a3a';
   const panelBg = theme?.bg?.panel || '#2f2f2f';
   const inputBg = theme?.bg?.primary || '#242424';
+
+  useEffect(() => {
+    try {
+      const key = `gm.liveNotePrefill.${campaignId}`;
+      const prefill = localStorage.getItem(key) || '';
+      if (prefill && setQuickNote) {
+        setQuickNote(prev => String(prev || '').trim() ? `${prev}\n${prefill}` : prefill);
+        localStorage.removeItem(key);
+      }
+    } catch { /* ignore */ }
+  }, [campaignId, setQuickNote]);
 
   const checkSuggestions = async (content) => {
     try {
