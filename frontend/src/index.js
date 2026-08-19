@@ -10,6 +10,7 @@ import "@/styles/mobileUsabilityFix.css";
 import App from "@/App";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { installSafeToasts } from "@/utils/safeToast";
+import { registerPwaServiceWorker } from "@/pwa/registerServiceWorker";
 
 installSafeToasts();
 
@@ -21,3 +22,5 @@ root.render(
     </AppErrorBoundary>
   </React.StrictMode>,
 );
+
+registerPwaServiceWorker();
