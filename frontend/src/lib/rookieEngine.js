@@ -1,8 +1,8 @@
-// Rookie Engine: local, no-API campaign-aware generation helpers.
+// Rook Engine local generation helpers (legacy filename kept for compatibility).
 //
-// This is deliberately deterministic-in-structure rather than "AI". It combines
-// curated knowledge packs with relationship rules so common GM generation tasks
-// are instant, cheap, explainable, and available even when no AI provider is.
+// This layer is deliberately deterministic rather than AI. It combines curated
+// knowledge packs with relationship rules so common GM generation tasks are
+// instant, explainable, available offline, and do not spend an AI request.
 
 const pick = (items = []) => items[Math.floor(Math.random() * items.length)];
 const unique = (items = []) => [...new Set(items.filter(Boolean))];
@@ -14,9 +14,9 @@ const HUMAN_FIRST = {
 };
 
 const ELF_FIRST = {
-  male: ['Aelar', 'Aerandir', 'Caelen', 'Elandor', 'Elion', 'Faelar', 'Ilarion', 'Kaelen', 'Laeroth', 'Lethar', 'Naelor', 'Orym', 'Paelias', 'Rolen', 'Silvar', 'Thalion', 'Vaeril'],
-  female: ['Aeris', 'Althaea', 'Caelynn', 'Elara', 'Enna', 'Ilyana', 'Laeriel', 'Lethira', 'Liora', 'Maelis', 'Naivara', 'Serelis', 'Sylra', 'Thia', 'Vaella'],
-  neutral: ['Ari', 'Eir', 'Leth', 'Nyel', 'Ryn', 'Sael', 'Syl', 'Vael'],
+  male: ['Aelar', 'Aerandir', 'Caelen', 'Elandor', 'Elion', 'Faelar', 'Ilarion', 'Kaelen', 'Laeroth', 'Lethar', 'Naelor', 'Orym', 'Paelias', 'Rolen', 'Silvar', 'Thalion', 'Vaeril', 'Aerendyl', 'Calithor', 'Daerion', 'Eryndor', 'Ithalen', 'Maerion', 'Saereth', 'Theravel', 'Valanor'],
+  female: ['Aeris', 'Althaea', 'Caelynn', 'Elara', 'Enna', 'Ilyana', 'Laeriel', 'Lethira', 'Liora', 'Maelis', 'Naivara', 'Serelis', 'Sylra', 'Thia', 'Vaella', 'Aelira', 'Cyrene', 'Elariel', 'Ithilwen', 'Mireth', 'Nuala', 'Saelira', 'Thessara', 'Vaerissa'],
+  neutral: ['Ari', 'Eir', 'Leth', 'Nyel', 'Ryn', 'Sael', 'Syl', 'Vael', 'Aerin', 'Cael', 'Ithri', 'Nym', 'Sorael'],
 };
 
 const DWARF_FIRST = {
@@ -55,24 +55,64 @@ const DRAGONBORN_FIRST = {
   neutral: ['Ashar', 'Kava', 'Rhaz', 'Sora', 'Vyr', 'Zhar'],
 };
 
+const GOLIATH_FIRST = {
+  male: ['Aruk', 'Bramak', 'Davor', 'Gorun', 'Hekar', 'Kovan', 'Marn', 'Orvek', 'Rokan', 'Tarak', 'Vurak', 'Zoren'],
+  female: ['Avara', 'Dessa', 'Hara', 'Kalla', 'Mavek', 'Nori', 'Orra', 'Rava', 'Surna', 'Talia', 'Veka', 'Zhara'],
+  neutral: ['Ashka', 'Dorn', 'Hale', 'Korr', 'Rime', 'Stone', 'Vale', 'Varn'],
+};
+
+const AASIMAR_FIRST = {
+  male: ['Arel', 'Cassiel', 'Darian', 'Elion', 'Ilyr', 'Lucen', 'Orien', 'Rafael', 'Sareth', 'Tavian'],
+  female: ['Arielle', 'Celene', 'Elira', 'Ilyra', 'Lumira', 'Neriel', 'Seren', 'Thalia', 'Vaela', 'Ysara'],
+  neutral: ['Aster', 'Dawn', 'Halo', 'Lumen', 'Sol', 'Vesper', 'Wyn'],
+};
+
+const GOBLIN_FIRST = {
+  male: ['Bik', 'Crik', 'Gazz', 'Kib', 'Mog', 'Nib', 'Rikk', 'Skab', 'Togg', 'Vizz'],
+  female: ['Bikka', 'Dizzi', 'Grimma', 'Kazza', 'Mikka', 'Narra', 'Pikka', 'Rizza', 'Tikka', 'Zibba'],
+  neutral: ['Boggle', 'Fizz', 'Grub', 'Murk', 'Pipzip', 'Skrit', 'Snag', 'Wizzle'],
+};
+
+const KOBOLD_FIRST = {
+  male: ['Drix', 'Kep', 'Nix', 'Rik', 'Siv', 'Tekk', 'Varn', 'Zek'],
+  female: ['Axi', 'Kira', 'Nessa', 'Rixi', 'Sava', 'Tika', 'Vexa', 'Ziri'],
+  neutral: ['Chit', 'Krik', 'Nib', 'Pek', 'Razz', 'Tik', 'Zik'],
+};
+
+const FIRBOLG_FIRST = {
+  male: ['Bren', 'Cairn', 'Doran', 'Eamon', 'Farren', 'Loran', 'Oran', 'Ronan', 'Toren'],
+  female: ['Aila', 'Brena', 'Eira', 'Fara', 'Mara', 'Nessa', 'Orla', 'Sena', 'Tara'],
+  neutral: ['Briar', 'Cedar', 'Fern', 'Moss', 'River', 'Rowan', 'Stone', 'Willow'],
+};
+
 const COMMON_SURNAMES = ['Ashburn', 'Barrow', 'Blackwood', 'Brightwater', 'Crow', 'Dawnmere', 'Embervale', 'Fairwind', 'Frost', 'Goldcrest', 'Grey', 'Hawke', 'Hollow', 'Ironwood', 'Marrow', 'Nightwell', 'Raven', 'Redmane', 'Reed', 'Stone', 'Storm', 'Thorn', 'Vale', 'Westbrook', 'Whitehall', 'Wildmere'];
-const ELF_SURNAMES = ['Amastacia', 'Evenwood', 'Ilphelkiir', 'Liadon', 'Meliamne', 'Moonwhisper', 'Nailo', 'Siannodel', 'Silverfrond', 'Starbloom', 'Xiloscient'];
+const ELF_SURNAMES = ['Amastacia', 'Evenwood', 'Ilphelkiir', 'Liadon', 'Meliamne', 'Moonwhisper', 'Nailo', 'Siannodel', 'Silverfrond', 'Starbloom', 'Xiloscient', 'Dawnbranch', 'Mistweave', 'Nightbloom', 'Riverglass', 'Sunmere'];
 const DWARF_SURNAMES = ['Battlehammer', 'Brawnanvil', 'Deepforge', 'Fireforge', 'Frostbeard', 'Goldfinder', 'Gorunn', 'Holderhek', 'Ironfist', 'Loderr', 'Lutgehr', 'Rumnaheim', 'Strakeln', 'Torunn', 'Ungart'];
 const HALFLING_SURNAMES = ['Brushgather', 'Goodbarrel', 'Greenbottle', 'Highhill', 'Hilltopple', 'Leagallow', 'Meadowfoot', 'Tealeaf', 'Thorngage', 'Tosscobble', 'Underbough'];
 const GNOME_SURNAMES = ['Beren', 'Daergel', 'Folkor', 'Garrick', 'Nackle', 'Murnig', 'Ningel', 'Raulnor', 'Scheppen', 'Timbers', 'Turen'];
 const DRAGONBORN_CLANS = ['Clethtinthiallor', 'Daardendrian', 'Delmirev', 'Drachedandion', 'Fenkenkabradon', 'Kepeshkmolik', 'Kerrhylon', 'Kimbatuul', 'Linxakasendalor', 'Myastan', 'Nemmonis', 'Norixius', 'Ophinshtalajiir', 'Prexijandilin', 'Shestendeliath', 'Turnuroth', 'Verthisathurgiesh', 'Yarjerit'];
+const GOLIATH_BYNAMES = ['Bearstep', 'Cloudshoulder', 'Coldpeak', 'Dawnrunner', 'Flintheart', 'Highstone', 'Ironstride', 'Longclimb', 'Rimewalker', 'Skywatcher', 'Stonebreaker', 'Stormvoice'];
+const CELESTIAL_SURNAMES = ['Dawnward', 'Goldveil', 'Lightmere', 'Morningstar', 'Radiant', 'Silverhalo', 'Skyborn', 'Sunward', 'Vesperlight'];
+const GOBLIN_SURNAMES = ['Bentnail', 'Candlechew', 'Cranktoe', 'Greasewink', 'Grubgrin', 'Rattlebag', 'Rustspoon', 'Skitter', 'Snips', 'Wetmatch'];
+const KOBOLD_CLANS = ['Ashscale', 'Copperclaw', 'Deepcoil', 'Embertooth', 'Redtail', 'Scalefoot', 'Sootsnout', 'Tunnelborn'];
+const FIRBOLG_BYNAMES = ['Barkwarden', 'Cloudherd', 'Fernspeaker', 'Mosswalker', 'Riverfriend', 'Stonequiet', 'Willowhand', 'Woodlistener'];
 
 export const ROOKIE_NAME_PACKS = {
   human: { label: 'Human', first: HUMAN_FIRST, surnames: COMMON_SURNAMES, fragments: { starts: ['Al', 'Ar', 'Bel', 'Cor', 'Dar', 'El', 'Gar', 'Hal', 'Jar', 'Kel', 'Mar', 'Nor', 'Ren', 'Sor', 'Val'], ends: ['a', 'an', 'en', 'eth', 'ian', 'ik', 'in', 'is', 'or', 'ra', 'ric', 'yn'] } },
-  elf: { label: 'Elf', first: ELF_FIRST, surnames: ELF_SURNAMES, fragments: { starts: ['Ae', 'Cae', 'Ela', 'Fae', 'Ila', 'Lae', 'Nae', 'Sae', 'Syl', 'Thae', 'Vae'], ends: ['dir', 'el', 'en', 'ion', 'ira', 'ith', 'riel', 'rin', 'thar', 'wyn'] } },
+  elf: { label: 'Elf', first: ELF_FIRST, surnames: ELF_SURNAMES, fragments: { starts: ['Ae', 'Cae', 'Ela', 'Fae', 'Ila', 'Lae', 'Mae', 'Nae', 'Sae', 'Syl', 'Thae', 'Vae'], ends: ['dir', 'el', 'en', 'ion', 'ira', 'ith', 'riel', 'rin', 'thar', 'wyn'] } },
   dwarf: { label: 'Dwarf', first: DWARF_FIRST, surnames: DWARF_SURNAMES, fragments: { starts: ['Ad', 'Bar', 'Brom', 'Dor', 'Far', 'Gar', 'Har', 'Kil', 'Mor', 'Rur', 'Thor', 'Tor'], ends: ['a', 'ak', 'din', 'drik', 'grim', 'in', 'ra', 'rik', 'run', 'unn'] } },
   halfling: { label: 'Halfling', first: HALFLING_FIRST, surnames: HALFLING_SURNAMES, fragments: { starts: ['Al', 'Bel', 'Cor', 'El', 'Fin', 'Gar', 'Lil', 'Mer', 'Per', 'Ros', 'Tan', 'Wil'], ends: ['a', 'by', 'da', 'do', 'in', 'la', 'lo', 'na', 'rin', 'sy'] } },
   gnome: { label: 'Gnome', first: GNOME_FIRST, surnames: GNOME_SURNAMES, fragments: { starts: ['Bim', 'Dim', 'Fizz', 'Fon', 'Gim', 'Jeb', 'Nim', 'Pock', 'Roon', 'Tink', 'Wiz'], ends: ['bin', 'ble', 'dle', 'kin', 'mott', 'nock', 'wick', 'zzle'] } },
   tiefling: { label: 'Tiefling', first: TIEFLING_FIRST, surnames: COMMON_SURNAMES, fragments: { starts: ['Ak', 'Dam', 'Ek', 'Kai', 'Ler', 'Mak', 'Mor', 'Nem', 'Ori', 'Pel', 'Ther'], ends: ['ai', 'ia', 'ios', 'ira', 'kos', 'mon', 'os', 'rai', 'thos'] } },
-  orc: { label: 'Orc / Half-Orc', first: ORC_FIRST, surnames: COMMON_SURNAMES, fragments: { starts: ['Bag', 'Fen', 'Gor', 'Hol', 'Keth', 'Kr', 'Mhur', 'Ront', 'Sh', 'Th', 'Vol'], ends: ['a', 'ak', 'en', 'g', 'ka', 'ok', 'ra', 'uk'] } },
+  orc: { label: 'Orc', first: ORC_FIRST, surnames: COMMON_SURNAMES, fragments: { starts: ['Bag', 'Fen', 'Gor', 'Hol', 'Keth', 'Kr', 'Mhur', 'Ront', 'Sh', 'Th', 'Vol'], ends: ['a', 'ak', 'en', 'g', 'ka', 'ok', 'ra', 'uk'] } },
   half_orc: { label: 'Half-Orc', first: ORC_FIRST, surnames: COMMON_SURNAMES, fragments: { starts: ['Bag', 'Fen', 'Gor', 'Hol', 'Keth', 'Kr', 'Mhur', 'Ront', 'Sh', 'Th', 'Vol'], ends: ['a', 'ak', 'en', 'g', 'ka', 'ok', 'ra', 'uk'] } },
   half_elf: { label: 'Half-Elf', first: { male: unique([...HUMAN_FIRST.male, ...ELF_FIRST.male]), female: unique([...HUMAN_FIRST.female, ...ELF_FIRST.female]), neutral: unique([...HUMAN_FIRST.neutral, ...ELF_FIRST.neutral]) }, surnames: unique([...COMMON_SURNAMES, ...ELF_SURNAMES]), fragments: { starts: ['Ae', 'Al', 'Cae', 'Cor', 'Ela', 'Jar', 'Lae', 'Mar', 'Sae', 'Val'], ends: ['an', 'el', 'en', 'ian', 'ion', 'ira', 'ric', 'riel', 'yn'] } },
   dragonborn: { label: 'Dragonborn', first: DRAGONBORN_FIRST, surnames: DRAGONBORN_CLANS, fragments: { starts: ['Arj', 'Bhar', 'Daar', 'Ghe', 'Hes', 'Kor', 'Med', 'Nad', 'Rho', 'Sha', 'Tar'], ends: ['aan', 'ash', 'esh', 'in', 'inn', 'orr', 'ra', 'rin', 'un'] } },
+  goliath: { label: 'Goliath', first: GOLIATH_FIRST, surnames: GOLIATH_BYNAMES, fragments: { starts: ['Ar', 'Bra', 'Dav', 'Gor', 'Har', 'Kor', 'Mar', 'Or', 'Rok', 'Sur', 'Tar', 'Vor'], ends: ['a', 'ak', 'an', 'ar', 'en', 'or', 'ra', 'un'] } },
+  aasimar: { label: 'Aasimar', first: AASIMAR_FIRST, surnames: CELESTIAL_SURNAMES, fragments: { starts: ['Ae', 'Cel', 'El', 'Ily', 'Lum', 'Ori', 'Raph', 'Ser', 'Sol', 'Val'], ends: ['ael', 'ara', 'el', 'iel', 'ira', 'on', 'or', 'yn'] } },
+  goblin: { label: 'Goblin', first: GOBLIN_FIRST, surnames: GOBLIN_SURNAMES, fragments: { starts: ['Bik', 'Cr', 'Fizz', 'Gaz', 'Kib', 'Mik', 'Nib', 'Rik', 'Sk', 'Tik', 'Viz'], ends: ['a', 'ik', 'it', 'ka', 'ki', 'ok', 'za'] } },
+  kobold: { label: 'Kobold', first: KOBOLD_FIRST, surnames: KOBOLD_CLANS, fragments: { starts: ['Dr', 'K', 'N', 'R', 'S', 'T', 'V', 'Z'], ends: ['ax', 'ek', 'ik', 'ix', 'ra', 'ri', 'va'] } },
+  firbolg: { label: 'Firbolg', first: FIRBOLG_FIRST, surnames: FIRBOLG_BYNAMES, fragments: { starts: ['Bren', 'Cair', 'Dor', 'Eir', 'Far', 'Lor', 'Mor', 'Or', 'Tor'], ends: ['a', 'an', 'en', 'in', 'ra', 'ren'] } },
 };
 
 export const ROOKIE_RELATIONSHIPS = [
@@ -98,6 +138,11 @@ export function normaliseRookieAncestry(value = '') {
   if (raw.includes('orc')) return raw.includes('half') ? 'half_orc' : 'orc';
   if (raw.includes('elf') && raw.includes('half')) return 'half_elf';
   if (raw.includes('dragon')) return 'dragonborn';
+  if (raw.includes('goliath')) return 'goliath';
+  if (raw.includes('aasimar')) return 'aasimar';
+  if (raw.includes('goblin')) return 'goblin';
+  if (raw.includes('kobold')) return 'kobold';
+  if (raw.includes('firbolg')) return 'firbolg';
   return ROOKIE_NAME_PACKS[raw] ? raw : 'human';
 }
 
