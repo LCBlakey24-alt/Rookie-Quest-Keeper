@@ -86,7 +86,21 @@ export default function CombatConsolidatedTab({ campaignId }) {
       setPlayers(Array.isArray(playersRes.data) ? playersRes.data : []);
       const loadedScenarios = Array.isArray(scenariosRes.data) ? scenariosRes.data : [];
       setScenarios(loadedScenarios);
-      setSelectedScenario(prev => prev && loadedScenarios.some(item => item.id === prev.id) ? loadedScenarios.find(item => item.id === prev.id) : loadedScenarios[0] || null);
+
+      let requestedScenarioId = '';
+      try {
+        requestedScenarioId = localStorage.getItem(`gm.questEncounter.${campaignId}`) || '';
+        if (requestedScenarioId) localStorage.removeItem(`gm.questEncounter.${campaignId}`);
+      } catch { /* ignore */ }
+
+      setSelectedScenario(prev => {
+        if (requestedScenarioId) {
+          const requested = loadedScenarios.find(item => item.id === requestedScenarioId);
+          if (requested) return requested;
+        }
+        if (prev && loadedScenarios.some(item => item.id === prev.id)) return loadedScenarios.find(item => item.id === prev.id);
+        return loadedScenarios[0] || null;
+      });
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not load Combat Control');
     } finally {
