@@ -40,7 +40,12 @@ function readStoredTool(storageKey) {
 export default function LiveSessionGridMode({ campaignId, renderTool, onOpenSingleTab, onRollDice, refreshKey = 0 }) {
   const storageKey = `gm.liveMode.focus.${campaignId || 'default'}`;
   const recentKey = `gm.liveMode.recent.${campaignId || 'default'}`;
-  const [activeTool, setActiveTool] = useState(() => readStoredTool(storageKey));
+  const [activeTool, setActiveTool] = useState(() => {
+    try {
+      if (localStorage.getItem(`gm.questEncounter.${campaignId}`)) return 'combat';
+    } catch { /* ignore */ }
+    return readStoredTool(storageKey);
+  });
   const [recentTools, setRecentTools] = useState(() => {
     try { return JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch { return []; }
   });
