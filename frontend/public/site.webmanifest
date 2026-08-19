@@ -1,16 +1,27 @@
 {
-  "short_name": "RQK",
+  "id": "/",
+  "short_name": "Rookie",
   "name": "Rookie Quest Keeper",
+  "description": "Build characters, prepare campaigns, run live play and keep your tabletop game moving.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070713",
+  "theme_color": "#13081f",
+  "categories": ["games", "productivity", "utilities"],
   "icons": [
     {
       "src": "/brand/rqk-logo-mini.svg",
-      "sizes": "256x256",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "/brand/rqk-logo-mini.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#242424",
-  "theme_color": "#242424"
+  ]
 }
