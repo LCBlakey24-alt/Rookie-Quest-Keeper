@@ -122,20 +122,53 @@ async def ensure_valid_npc_ids(campaign_id: str, npc_ids: List[str]) -> List[str
 
 
 async def linked_open_quest_context(campaign_id: str, npc_id: str) -> Dict[str, Any]:
+    """Return quest context with unfinished objective encounters ranked first."""
     quests = await db.quests.find(
         {
             "campaign_id": campaign_id,
             "linked_npc_ids": npc_id,
             "status": {"$in": ["draft", "available", "active"]},
         },
-        {"_id": 0, "title": 1, "linked_encounter_ids": 1},
+        {"_id": 0, "title": 1, "linked_encounter_ids": 1, "objectives": 1},
     ).to_list(100)
-    encounter_ids: List[str] = []
+
+    all_encounter_ids: List[str] = []
+    unfinished_encounter_ids: List[str] = []
     for quest in quests:
-        encounter_ids.extend(quest.get("linked_encounter_ids") or [])
+        all_encounter_ids.extend(quest.get("linked_encounter_ids") or [])
+        for objective in quest.get("objectives") or []:
+            encounter_id = objective.get("linked_encounter_id")
+            status_value = str(objective.get("status") or "upcoming").strip().lower()
+            if encounter_id and status_value not in {"completed", "skipped"}:
+                unfinished_encounter_ids.append(encounter_id)
+
+    all_ids = list(dict.fromkeys([value for value in all_encounter_ids if value]))
+    priority_ids = list(dict.fromkeys([value for value in unfinished_encounter_ids if value]))
+    ordered_ids = list(dict.fromkeys([*priority_ids, *all_ids]))
+
+    encounter_docs: List[Dict[str, Any]] = []
+    if ordered_ids:
+        encounter_docs = await db.combat_scenarios.find(
+            {"campaign_id": campaign_id, "id": {"$in": ordered_ids}},
+            {"_id": 0, "id": 1, "name": 1},
+        ).to_list(200)
+    by_id = {item.get("id"): item for item in encounter_docs if item.get("id")}
+    ordered_encounters = [
+        {
+            "id": encounter_id,
+            "name": (by_id.get(encounter_id) or {}).get("name") or "Linked Encounter",
+            "priority": encounter_id in priority_ids,
+        }
+        for encounter_id in ordered_ids
+    ]
+    suggested = ordered_encounters[0] if ordered_encounters else None
+
     return {
         "quest_titles": [quest.get("title") for quest in quests if quest.get("title")],
-        "encounter_ids": list(dict.fromkeys([value for value in encounter_ids if value])),
+        "encounter_ids": all_ids,
+        "encounters": ordered_encounters,
+        "suggested_encounter_id": suggested.get("id") if suggested else None,
+        "suggested_encounter_name": suggested.get("name") if suggested else None,
     }
 
 
@@ -208,6 +241,9 @@ async def suggest_live_state_changes(campaign_id: str, payload: LiveNoteSuggesti
             "description": "Confirm this temporary campaign-state change. The saved NPC record will not be rewritten.",
             "affected_quest_titles": context["quest_titles"],
             "affected_encounter_ids": context["encounter_ids"],
+            "affected_encounters": context["encounters"],
+            "suggested_encounter_id": context["suggested_encounter_id"],
+            "suggested_encounter_name": context["suggested_encounter_name"],
         })
 
     return {"suggestions": suggestions}
