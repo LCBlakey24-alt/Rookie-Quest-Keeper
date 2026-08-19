@@ -6,7 +6,7 @@ import {
   normaliseRookieAncestry,
 } from './rookieEngine';
 
-describe('Rookie Engine', () => {
+describe('Rook Engine local generation', () => {
   test('extracts a family name from an existing NPC', () => {
     expect(extractFamilyName('Lucian Grey')).toBe('Grey');
     expect(extractFamilyName('Merithera Anora of Balderin')).toBe('Balderin');
@@ -17,6 +17,11 @@ describe('Rookie Engine', () => {
     expect(normaliseRookieAncestry('Half-Orc')).toBe('half_orc');
     expect(normaliseRookieAncestry('Half Elf')).toBe('half_elf');
     expect(normaliseRookieAncestry('Dragonborn')).toBe('dragonborn');
+    expect(normaliseRookieAncestry('Goliath')).toBe('goliath');
+    expect(normaliseRookieAncestry('Aasimar')).toBe('aasimar');
+    expect(normaliseRookieAncestry('Goblin')).toBe('goblin');
+    expect(normaliseRookieAncestry('Kobold')).toBe('kobold');
+    expect(normaliseRookieAncestry('Firbolg')).toBe('firbolg');
     expect(normaliseRookieAncestry('Unknown Thing')).toBe('human');
   });
 
@@ -76,5 +81,13 @@ describe('Rookie Engine', () => {
     expect(result.surname).toBeTruthy();
     expect(result.fullName).toContain(' ');
     expect(result.generationSource).toBe('rookie-engine');
+  });
+
+  test.each(['Goliath', 'Aasimar', 'Goblin', 'Kobold', 'Firbolg'])('%s has a usable offline name pack', ancestry => {
+    const result = generateRookieName({ ancestry, gender: 'any', blendChance: 0 });
+    expect(result.ancestry).toBe(normaliseRookieAncestry(ancestry));
+    expect(result.firstName).toBeTruthy();
+    expect(result.surname).toBeTruthy();
+    expect(result.fullName).toContain(' ');
   });
 });
