@@ -1,8 +1,9 @@
 import { AUTH_USERNAME_KEY, getAuthToken } from '@/lib/auth';
 
 const DB_NAME = 'rookie-quest-keeper-offline';
-const DB_VERSION = 1;
-const STORE_NAME = 'api-responses';
+const DB_VERSION = 2;
+const RESPONSE_STORE = 'api-responses';
+const PACK_STORE = 'campaign-packs';
 
 const CACHEABLE_PREFIXES = [
   '/campaigns',
@@ -23,15 +24,16 @@ function isIndexedDbAvailable() {
   return typeof window !== 'undefined' && 'indexedDB' in window;
 }
 
-function currentScope() {
+export function getOfflineCacheScope() {
   try {
     const username = localStorage.getItem(AUTH_USERNAME_KEY);
     if (username) return `user:${username.toLowerCase()}`;
     const token = getAuthToken();
     if (!token) return 'anonymous';
 
-    // Small one-way-ish local fingerprint so a missing username does not make
-    // two signed-in accounts share the same cache namespace on one device.
+    // Small local fingerprint so a missing username does not make two signed-in
+    // accounts share the same cache namespace on one device. The token itself
+    // is never written into IndexedDB.
     let hash = 2166136261;
     for (let i = 0; i < token.length; i += 1) {
       hash ^= token.charCodeAt(i);
@@ -69,8 +71,12 @@ function stableParams(params) {
   }, {}));
 }
 
-function cacheKey(config = {}) {
-  return `${currentScope()}::${normaliseUrl(config)}::${stableParams(config.params)}`;
+export function getOfflineCacheKey(config = {}) {
+  return `${getOfflineCacheScope()}::${normaliseUrl(config)}::${stableParams(config.params)}`;
+}
+
+function campaignPackKey(campaignId) {
+  return `${getOfflineCacheScope()}::campaign:${campaignId}`;
 }
 
 function openDb() {
@@ -79,9 +85,20 @@ function openDb() {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      if (!db.objectStoreNames.contains(RESPONSE_STORE)) {
+        const store = db.createObjectStore(RESPONSE_STORE, { keyPath: 'key' });
         store.createIndex('savedAt', 'savedAt');
+        store.createIndex('scope', 'scope');
+      } else {
+        const store = request.transaction.objectStore(RESPONSE_STORE);
+        if (!store.indexNames.contains('savedAt')) store.createIndex('savedAt', 'savedAt');
+        if (!store.indexNames.contains('scope')) store.createIndex('scope', 'scope');
+      }
+      if (!db.objectStoreNames.contains(PACK_STORE)) {
+        const packStore = db.createObjectStore(PACK_STORE, { keyPath: 'key' });
+        packStore.createIndex('scope', 'scope');
+        packStore.createIndex('campaignId', 'campaignId');
+        packStore.createIndex('savedAt', 'savedAt');
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -90,27 +107,30 @@ function openDb() {
 }
 
 export async function storeOfflineApiResponse(config, response) {
-  if (!isCacheableOfflineGet(config) || !response || response.status < 200 || response.status >= 300) return;
+  if (!isCacheableOfflineGet(config) || !response || response.status < 200 || response.status >= 300) return '';
   const db = await openDb().catch(() => null);
-  if (!db) return;
+  if (!db) return '';
 
+  const key = getOfflineCacheKey(config);
   const record = {
-    key: cacheKey(config),
+    key,
     path: normaliseUrl(config),
-    scope: currentScope(),
+    params: stableParams(config.params),
+    scope: getOfflineCacheScope(),
     data: response.data,
     status: response.status,
     savedAt: Date.now(),
   };
 
   await new Promise(resolve => {
-    const transaction = db.transaction(STORE_NAME, 'readwrite');
-    transaction.objectStore(STORE_NAME).put(record);
+    const transaction = db.transaction(RESPONSE_STORE, 'readwrite');
+    transaction.objectStore(RESPONSE_STORE).put(record);
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();
   });
   db.close();
+  return key;
 }
 
 export async function readOfflineApiResponse(config) {
@@ -119,8 +139,8 @@ export async function readOfflineApiResponse(config) {
   if (!db) return null;
 
   const record = await new Promise(resolve => {
-    const transaction = db.transaction(STORE_NAME, 'readonly');
-    const request = transaction.objectStore(STORE_NAME).get(cacheKey(config));
+    const transaction = db.transaction(RESPONSE_STORE, 'readonly');
+    const request = transaction.objectStore(RESPONSE_STORE).get(getOfflineCacheKey(config));
     request.onsuccess = () => resolve(request.result || null);
     request.onerror = () => resolve(null);
   });
@@ -141,12 +161,96 @@ export async function readOfflineApiResponse(config) {
   };
 }
 
+export async function saveOfflineCampaignPackMetadata(pack = {}) {
+  if (!pack.campaignId) return null;
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+
+  const record = {
+    ...pack,
+    key: campaignPackKey(pack.campaignId),
+    scope: getOfflineCacheScope(),
+    campaignId: String(pack.campaignId),
+    savedAt: Number(pack.savedAt || Date.now()),
+    recordKeys: Array.from(new Set(Array.isArray(pack.recordKeys) ? pack.recordKeys.filter(Boolean) : [])),
+  };
+
+  await new Promise(resolve => {
+    const transaction = db.transaction(PACK_STORE, 'readwrite');
+    transaction.objectStore(PACK_STORE).put(record);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+  return record;
+}
+
+export async function getOfflineCampaignPackMetadata(campaignId) {
+  if (!campaignId) return null;
+  const db = await openDb().catch(() => null);
+  if (!db) return null;
+
+  const record = await new Promise(resolve => {
+    const transaction = db.transaction(PACK_STORE, 'readonly');
+    const request = transaction.objectStore(PACK_STORE).get(campaignPackKey(campaignId));
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => resolve(null);
+  });
+  db.close();
+  return record;
+}
+
+export async function listOfflineCampaignPacks() {
+  const db = await openDb().catch(() => null);
+  if (!db) return [];
+  const scope = getOfflineCacheScope();
+  const records = await new Promise(resolve => {
+    const transaction = db.transaction(PACK_STORE, 'readonly');
+    const request = transaction.objectStore(PACK_STORE).getAll();
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result.filter(item => item.scope === scope) : []);
+    request.onerror = () => resolve([]);
+  });
+  db.close();
+  return records.sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0));
+}
+
+export async function removeOfflineCampaignPack(campaignId) {
+  if (!campaignId) return;
+  const current = await getOfflineCampaignPackMetadata(campaignId);
+  if (!current) return;
+
+  const allPacks = await listOfflineCampaignPacks();
+  const protectedKeys = new Set(
+    allPacks
+      .filter(pack => String(pack.campaignId) !== String(campaignId))
+      .flatMap(pack => Array.isArray(pack.recordKeys) ? pack.recordKeys : [])
+      .filter(Boolean)
+  );
+  const removableKeys = (current.recordKeys || []).filter(key => !protectedKeys.has(key));
+
+  const db = await openDb().catch(() => null);
+  if (!db) return;
+  await new Promise(resolve => {
+    const transaction = db.transaction([RESPONSE_STORE, PACK_STORE], 'readwrite');
+    const responseStore = transaction.objectStore(RESPONSE_STORE);
+    removableKeys.forEach(key => responseStore.delete(key));
+    transaction.objectStore(PACK_STORE).delete(campaignPackKey(campaignId));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+  db.close();
+}
+
 export async function clearOfflineApiCache() {
   const db = await openDb().catch(() => null);
   if (!db) return;
   await new Promise(resolve => {
-    const transaction = db.transaction(STORE_NAME, 'readwrite');
-    transaction.objectStore(STORE_NAME).clear();
+    const stores = db.objectStoreNames.contains(PACK_STORE) ? [RESPONSE_STORE, PACK_STORE] : [RESPONSE_STORE];
+    const transaction = db.transaction(stores, 'readwrite');
+    transaction.objectStore(RESPONSE_STORE).clear();
+    if (stores.includes(PACK_STORE)) transaction.objectStore(PACK_STORE).clear();
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
     transaction.onabort = () => resolve();
