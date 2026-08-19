@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
-import { Building, Globe, MapPin, Route } from 'lucide-react';
+import { Building, Globe, Map as MapIcon, MapPin } from 'lucide-react';
 import WorldMapTab from './WorldMapTab';
 import LocalMapTab from './LocalMapTab';
 import LocationsTab from './LocationsTab';
+import MapsTab from './MapsTab';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
 const rq = {
-  bg: '#242424',
   panel: '#2f2f2f',
   card: '#3a3a3a',
   red: '#d00000',
   text: '#ffffff',
   soft: 'rgba(255,255,255,0.74)',
-  muted: 'rgba(255,255,255,0.58)',
   line: 'rgba(255,255,255,0.16)',
 };
 
@@ -21,46 +19,15 @@ function MapsConsolidatedTab({ campaignId }) {
   const [activeSubTab, setActiveSubTab] = useState('world');
 
   const subTabs = [
-    {
-      id: 'world',
-      label: 'World Map',
-      icon: Globe,
-      description: 'The big map and major pins.',
-    },
-    {
-      id: 'local',
-      label: 'Town & City Maps',
-      icon: Building,
-      description: 'Maps for cities, dungeons, bases, and regions.',
-    },
-    {
-      id: 'locations',
-      label: 'Locations',
-      icon: MapPin,
-      description: 'Towns, cities, shops, taverns, temples, and points of interest.',
-    },
+    { id: 'world', label: 'World Map', icon: Globe },
+    { id: 'local', label: 'Town & City Maps', icon: Building },
+    { id: 'locations', label: 'Locations', icon: MapPin },
+    { id: 'battle', label: 'Battle Maps', icon: MapIcon },
   ];
 
   return (
     <section data-testid="maps-consolidated-tab" style={shellStyle}>
-      <header style={heroStyle}>
-        <div style={{ minWidth: 0 }}>
-          <p style={eyebrowStyle}>My World</p>
-          <h2 style={titleStyle}>Maps, towns, cities, and locations</h2>
-          <p style={subtitleStyle}>Build the world in plain chunks: big map, local maps, then useful places players can visit.</p>
-        </div>
-        <div style={flowStyle} aria-label="My World flow">
-          <FlowChip icon={Globe} label="World map" />
-          <span style={arrowStyle}>→</span>
-          <FlowChip icon={Building} label="Town/city maps" />
-          <span style={arrowStyle}>→</span>
-          <FlowChip icon={MapPin} label="Locations" />
-          <span style={arrowStyle}>→</span>
-          <FlowChip icon={Route} label="Points of interest" />
-        </div>
-      </header>
-
-      <nav style={subTabBarStyle} aria-label="My World tools">
+      <nav style={subTabBarStyle} aria-label="Map and location tools">
         {subTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
@@ -72,11 +39,8 @@ function MapsConsolidatedTab({ campaignId }) {
               data-testid={`maps-subtab-${tab.id}`}
               style={subTabStyle(isActive)}
             >
-              <Icon size={18} />
-              <span style={{ textAlign: 'left', minWidth: 0 }}>
-                <strong style={subTabTitleStyle}>{tab.label}</strong>
-                <small style={subTabDescStyle}>{tab.description}</small>
-              </span>
+              <Icon size={17} />
+              <strong>{tab.label}</strong>
             </button>
           );
         })}
@@ -86,27 +50,15 @@ function MapsConsolidatedTab({ campaignId }) {
         {activeSubTab === 'world' && <WorldMapTab campaignId={campaignId} />}
         {activeSubTab === 'local' && <LocalMapTab campaignId={campaignId} />}
         {activeSubTab === 'locations' && <LocationsTab campaignId={campaignId} />}
+        {activeSubTab === 'battle' && <MapsTab campaignId={campaignId} />}
       </section>
     </section>
   );
 }
 
-function FlowChip({ icon: Icon, label }) {
-  return <span style={flowChipStyle}><Icon size={15} /> {label}</span>;
-}
-
-const shellStyle = { height: '100%', display: 'flex', flexDirection: 'column', gap: 12, color: rq.text, fontFamily: fontStack };
-const heroStyle = { display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, padding: 14 };
-const eyebrowStyle = { margin: '0 0 5px', color: rq.red, fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.11em' };
-const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 0.95 };
-const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 780 };
-const flowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' };
-const flowChipStyle = { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 32, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 9px', fontSize: 12, fontWeight: 900 };
-const arrowStyle = { color: rq.red, fontWeight: 950 };
-const subTabBarStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 };
-const subTabStyle = (active) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: active ? rq.red : rq.card, border: `1px solid ${active ? rq.red : rq.line}`, color: rq.text, cursor: 'pointer', fontFamily: fontStack, textAlign: 'left' });
-const subTabTitleStyle = { display: 'block', fontWeight: 950, fontSize: 14 };
-const subTabDescStyle = { display: 'block', color: rq.soft, fontSize: 11, lineHeight: 1.3, marginTop: 2 };
-const contentStyle = { flex: 1, overflow: 'auto', background: rq.panel, border: `1px solid ${rq.line}`, minHeight: 520 };
+const shellStyle = { height: '100%', display: 'flex', flexDirection: 'column', gap: 8, color: rq.text, fontFamily: fontStack, minWidth: 0 };
+const subTabBarStyle = { display: 'flex', gap: 1, overflowX: 'auto', background: rq.line, border: `1px solid ${rq.line}` };
+const subTabStyle = active => ({ minWidth: 128, minHeight: 44, border: 0, background: active ? rq.red : rq.card, color: rq.text, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer', fontFamily: fontStack, whiteSpace: 'nowrap' });
+const contentStyle = { flex: 1, overflow: 'auto', background: rq.panel, border: `1px solid ${rq.line}`, minHeight: 520, minWidth: 0 };
 
 export default MapsConsolidatedTab;
