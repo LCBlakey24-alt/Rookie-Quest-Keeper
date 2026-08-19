@@ -19,10 +19,10 @@ import ToolsConsolidatedTab from '@/components/tabs/ToolsConsolidatedTab';
 import UploadTab from '@/components/gm/UploadTab';
 import PlayerInvitePanel from '@/components/gm/PlayerInvitePanel';
 import GMPartyWorkspace from '@/components/gm/GMPartyWorkspace';
+import GMHandoutsWorkspace from '@/components/gm/GMHandoutsWorkspace';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
 import TiaKartaCampaignPackPanel from '@/components/gm/TiaKartaCampaignPackPanel';
 import PrivatePlaytestPacksTab from '@/components/tabs/PrivatePlaytestPacksTab';
-import { GMHandoutsTab } from '@/components/tabs/HandoutsTab';
 import { allTabs, tabGroups, validTabIds } from '@/components/gm/dashboard/campaignDashboardTabs';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
@@ -163,7 +163,7 @@ export default function CampaignDashboard() {
       case 'combat': return withTiaKarta('encounters', <CombatConsolidatedTab campaignId={campaignId} />);
       case 'inventory': return withTiaKarta('inventory', <InventoryConsolidatedTab campaignId={campaignId} />);
       case 'ingame-notes': return withTiaKarta('sessionNotes', <InGameNotesTab campaignId={campaignId} />);
-      case 'handouts': return withTiaKarta('handouts', <GMHandoutsTab campaignId={campaignId} />);
+      case 'handouts': return withTiaKarta('handouts', <GMHandoutsWorkspace campaignId={campaignId} />);
       case 'tools': return <ToolsConsolidatedTab campaignId={campaignId} />;
       case 'campaign-rules': return withTiaKarta('campaignRules', <CampaignRulesTab campaignId={campaignId} />);
       case 'world-builder': return <WorldBuilderTab campaignId={campaignId} />;
