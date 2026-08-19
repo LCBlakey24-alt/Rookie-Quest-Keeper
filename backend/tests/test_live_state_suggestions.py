@@ -13,12 +13,12 @@ def test_named_npc_travel_phrase_is_detected():
 
 
 def test_named_npc_leave_phrase_is_detected():
-    note = "After the argument, Jordan Crow leaves the party and returns to Baldering."
+    note = "After the argument, Jordan Crow leaves the party and returns to Balderin."
     assert phrase_near_name(note, "Jordan Crow", LEAVE_PHRASES) is True
 
 
 def test_phrase_for_someone_else_does_not_change_named_npc():
-    note = "Jordan Crow stays in Baldering. Much later, Mira Barfoot joins the party."
+    note = "Jordan Crow stays in Balderin. Much later, Mira Barfoot joins the party."
     assert contains_name(note, "Jordan Crow") is True
     assert phrase_near_name(note, "Jordan Crow", JOIN_PHRASES) is False
     assert phrase_near_name(note, "Mira Barfoot", JOIN_PHRASES) is True
