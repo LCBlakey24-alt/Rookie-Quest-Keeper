@@ -11,9 +11,37 @@ export default function StoryArcTracker(props) {
   if (!props.onOpenTab) return <LiveQuestRunnerV2 campaignId={props.campaignId} />;
   return (
     <>
-      <TiaKartaBalderinCoreImport campaignId={props.campaignId} onImported={() => window.location.reload()} />
-      <TiaKartaJordanQuestImportV2 campaignId={props.campaignId} onImported={() => window.location.reload()} />
+      <details style={packStyle}>
+        <summary style={summaryStyle}>Tia-Karta quick loaders</summary>
+        <div style={packBodyStyle}>
+          <TiaKartaBalderinCoreImport campaignId={props.campaignId} onImported={() => window.location.reload()} />
+          <TiaKartaJordanQuestImportV2 campaignId={props.campaignId} onImported={() => window.location.reload()} />
+        </div>
+      </details>
       <QuestManagerV3 {...props} />
     </>
   );
 }
+
+const packStyle = {
+  marginBottom: 8,
+  background: '#2f2f2f',
+  border: '1px solid rgba(255,255,255,0.16)',
+  color: '#fff',
+};
+
+const summaryStyle = {
+  minHeight: 40,
+  padding: '0 10px',
+  display: 'flex',
+  alignItems: 'center',
+  cursor: 'pointer',
+  color: 'rgba(255,255,255,0.7)',
+  fontSize: 11,
+  fontWeight: 900,
+};
+
+const packBodyStyle = {
+  padding: 8,
+  borderTop: '1px solid rgba(255,255,255,0.16)',
+};
