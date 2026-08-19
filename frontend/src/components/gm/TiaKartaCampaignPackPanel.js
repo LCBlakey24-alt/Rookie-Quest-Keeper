@@ -5,6 +5,8 @@ import apiClient from '@/lib/apiClient';
 import { buildTextHandoutPayload } from '@/components/gm/UploadTabUtils';
 import TiaKartaNpcRosterPanel from '@/components/gm/TiaKartaNpcRosterPanel';
 import TiaKartaSessionTwoPackPanel from '@/components/gm/TiaKartaSessionTwoPackPanel';
+import TiaKartaJordanQuestImportV2 from '@/components/gm/TiaKartaJordanQuestImportV2';
+import TiaKartaBalderinCoreImport from '@/components/gm/TiaKartaBalderinCoreImport';
 import { getTiaKartaEntriesForDestination, tiaKartaDashboardDestinations } from '@/data/tiaKartaCampaignPack';
 
 const rq = {
@@ -41,7 +43,7 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
     ].join(' ').toLowerCase().includes(term));
   }, [entries, query]);
 
-  if (!entries.length && destination !== 'npcs') return null;
+  if (!entries.length && destination !== 'npcs' && destination !== 'storyArcs') return null;
 
   const copyEntry = async entry => {
     try {
@@ -95,62 +97,71 @@ export default function TiaKartaCampaignPackPanel({ campaignId, destination, com
         <span style={closedMetaStyle}>Hide <ChevronDown size={15} /></span>
       </button>
 
+      {destination === 'storyArcs' && (
+        <section style={loadersStyle}>
+          <TiaKartaBalderinCoreImport campaignId={campaignId} />
+          <TiaKartaJordanQuestImportV2 campaignId={campaignId} />
+        </section>
+      )}
+
       <TiaKartaSessionTwoPackPanel campaignId={campaignId} destination={destination} />
 
-      <section className="tia-karta-lore-panel" style={panelStyle}>
-        <div style={headerStyle}>
-          <div style={{ minWidth: 0 }}>
-            <h3 style={titleStyle}>{destinationLabel}</h3>
+      {!!entries.length && (
+        <section className="tia-karta-lore-panel" style={panelStyle}>
+          <div style={headerStyle}>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={titleStyle}>{destinationLabel}</h3>
+            </div>
+            <button type="button" onClick={() => setExpanded(prev => !prev)} style={toggleStyle}>
+              {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              {expanded ? 'Show less' : `Show all ${filteredEntries.length}`}
+            </button>
           </div>
-          <button type="button" onClick={() => setExpanded(prev => !prev)} style={toggleStyle}>
-            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            {expanded ? 'Show less' : `Show all ${filteredEntries.length}`}
-          </button>
-        </div>
 
-        <label style={searchStyle}>
-          <Search size={14} />
-          <input
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-            placeholder="Search campaign pack…"
-            style={searchInputStyle}
-          />
-        </label>
+          <label style={searchStyle}>
+            <Search size={14} />
+            <input
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search campaign pack…"
+              style={searchInputStyle}
+            />
+          </label>
 
-        <div style={gridStyle}>
-          {shownEntries.map(entry => {
-            const isOpen = Boolean(openEntries[entry.id]);
-            return (
-              <article key={entry.id} className="tia-lore-card" data-open={isOpen ? 'true' : 'false'} style={entryStyle}>
-                <button type="button" className="tia-lore-card-toggle" onClick={() => setOpenEntries(prev => ({ ...prev, [entry.id]: !prev[entry.id] }))} aria-expanded={isOpen ? 'true' : 'false'}>
-                  <span style={entryTopStyle}>
-                    <BookOpen size={16} />
-                    <span style={{ minWidth: 0 }}>
-                      <strong style={entryTitleStyle}>{entry.title}</strong>
-                      <span style={categoryStyle}>{entry.category}</span>
+          <div style={gridStyle}>
+            {shownEntries.map(entry => {
+              const isOpen = Boolean(openEntries[entry.id]);
+              return (
+                <article key={entry.id} className="tia-lore-card" data-open={isOpen ? 'true' : 'false'} style={entryStyle}>
+                  <button type="button" className="tia-lore-card-toggle" onClick={() => setOpenEntries(prev => ({ ...prev, [entry.id]: !prev[entry.id] }))} aria-expanded={isOpen ? 'true' : 'false'}>
+                    <span style={entryTopStyle}>
+                      <BookOpen size={16} />
+                      <span style={{ minWidth: 0 }}>
+                        <strong style={entryTitleStyle}>{entry.title}</strong>
+                        <span style={categoryStyle}>{entry.category}</span>
+                      </span>
                     </span>
-                  </span>
-                  <span className="tia-lore-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
-                </button>
-                <div className="tia-lore-card-details">
-                  <p style={textStyle}>{entry.playerSummary}</p>
-                  {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
-                  {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
-                  {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
-                  {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
-                  {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
-                  <div style={actionsStyle}>
-                    <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
-                    <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
+                    <span className="tia-lore-mobile-open">{isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
+                  </button>
+                  <div className="tia-lore-card-details">
+                    <p style={textStyle}>{entry.playerSummary}</p>
+                    {entry.gmSecrets && <p style={secretStyle}><strong>GM secret:</strong> {entry.gmSecrets}</p>}
+                    {!!entry.names?.length && <Meta label="Names" values={entry.names} />}
+                    {!!entry.locations?.length && <Meta label="Locations" values={entry.locations} />}
+                    {!!entry.hooks?.length && <Meta label="Hooks" values={entry.hooks} />}
+                    {entry.tbd && <p style={tbdStyle}><strong>TBD:</strong> {entry.tbd}</p>}
+                    <div style={actionsStyle}>
+                      <button type="button" onClick={() => copyEntry(entry)} style={secondaryButtonStyle}><Copy size={14} /> Copy</button>
+                      <button type="button" onClick={() => saveEntry(entry)} disabled={savingId === entry.id} style={primaryButtonStyle}><Save size={14} /> {savingId === entry.id ? 'Saving...' : 'Save'}</button>
+                    </div>
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-        <style>{tileLoreCss}</style>
-      </section>
+                </article>
+              );
+            })}
+          </div>
+          <style>{tileLoreCss}</style>
+        </section>
+      )}
 
       {destination === 'npcs' && <TiaKartaNpcRosterPanel campaignId={campaignId} />}
     </section>
@@ -181,6 +192,7 @@ const closedLabelStyle = { display: 'inline-flex', alignItems: 'center', gap: 6,
 const closedMetaStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, color: rq.muted, fontSize: 10, fontWeight: 850 };
 const openShellStyle = { display: 'grid', gap: 8, marginBottom: 10 };
 const openHeaderStyle = { minHeight: 42, border: `1px solid ${rq.border}`, background: rq.accentSoft, color: rq.text, padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' };
+const loadersStyle = { display: 'grid', gap: 6 };
 const panelStyle = { display: 'grid', gap: 10, padding: 10, background: rq.accentSoft, border: `1px solid ${rq.border}`, color: rq.text };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' };
 const titleStyle = { margin: 0, fontSize: 16, color: rq.text, fontWeight: 950 };
