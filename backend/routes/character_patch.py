@@ -49,6 +49,13 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "campaign_id", "campaign_name", "campaign_join_status",
 }
 
+# A campaign GM may persist only the state that can legitimately change while
+# running combat. Everything else remains editable only by the character owner.
+GM_COMBAT_PATCH_FIELDS = {
+    "current_hit_points", "temporary_hit_points", "temp_hp", "conditions",
+    "death_saves_successes", "death_saves_failures", "concentrating_on", "concentration",
+}
+
 NUMERIC_FIELDS = {
     "level", "experience_points", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma",
     "armor_class", "initiative_bonus", "speed", "max_hit_points", "current_hit_points", "temporary_hit_points", "temp_hp",
@@ -327,14 +334,25 @@ async def create_character_lenient(payload: Dict[str, Any], username: str = Depe
 
 @router.patch("/characters/{character_id}")
 async def patch_character_lenient(character_id: str, payload: Dict[str, Any], username: str = Depends(get_current_user)):
-    existing = await db.player_characters.find_one({"id": character_id, "user_id": username})
+    existing = await db.player_characters.find_one({"id": character_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Character not found")
+
+    is_owner = existing.get("user_id") == username
+    if not is_owner:
+        campaign_id = existing.get("campaign_id")
+        campaign = await db.campaigns.find_one({"id": campaign_id, "dm_user_id": username}, {"_id": 0, "id": 1}) if campaign_id else None
+        linked_member = await db.campaign_members.find_one({"campaign_id": campaign_id, "character_id": character_id}, {"_id": 0, "id": 1}) if campaign_id else None
+        if not campaign or not linked_member:
+            raise HTTPException(status_code=404, detail="Character not found")
+        disallowed = [key for key, value in (payload or {}).items() if value is not None and key not in GM_COMBAT_PATCH_FIELDS]
+        if disallowed:
+            raise HTTPException(status_code=403, detail="GM access is limited to linked character combat state")
 
     update_data = _clean_patch(payload)
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    await db.player_characters.update_one({"id": character_id, "user_id": username}, {"$set": update_data})
-    updated = await db.player_characters.find_one({"id": character_id, "user_id": username}, {"_id": 0})
+    await db.player_characters.update_one({"id": character_id}, {"$set": update_data})
+    updated = await db.player_characters.find_one({"id": character_id}, {"_id": 0})
     return updated
