@@ -24,13 +24,16 @@ function playerToCombatant(player) {
   const maxHp = numberOr(player.max_hp ?? player.maxHitPoints ?? player.max_hit_points ?? player.hp, 10);
   return {
     id: player.id || `player-${player.name || player.character_name}`,
+    character_id: player.character_id || null,
+    legacy_player_id: player.legacy_player_id || null,
     name: player.name || player.character_name || 'Player Character',
     type: 'player',
     hp: numberOr(player.hp ?? player.current_hp ?? player.current_hit_points, maxHp),
     maxHp,
     ac: numberOr(player.ac ?? player.armor_class, 10),
     initiativeMod: numberOr(player.initiativeMod, dexMod(player)),
-    conditions: [],
+    conditions: Array.isArray(player.conditions) ? player.conditions : [],
+    source: player.source || 'legacy',
     tokenColor: '#4a7dff',
     tokenSize: 40,
   };
@@ -96,7 +99,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
         const [campaignRes, scenarioRes, playerRes, npcRes, stateRes] = await Promise.all([
           apiClient.get(`/campaigns/${campaignId}`).catch(() => ({ data: null })),
           apiClient.get(`/campaigns/${campaignId}/combat-scenarios`).catch(() => ({ data: [] })),
-          apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] })),
+          apiClient.get(`/campaigns/${campaignId}/live-party`).catch(() => apiClient.get(`/campaigns/${campaignId}/players`).catch(() => ({ data: [] }))),
           apiClient.get(`/campaigns/${campaignId}/npcs`).catch(() => ({ data: [] })),
           apiClient.get(`/campaigns/${campaignId}/live-state`).catch(() => ({ data: { companion_npc_ids: [] } })),
         ]);
@@ -182,7 +185,7 @@ export default function LiveEncounterLauncher({ campaignId }) {
     quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
 
     try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
-    navigate('/combat', {
+    navigate(`/combat/${campaignId}`, {
       state: {
         scenario: { ...selected, combatants, name: selected.name || 'Live Encounter' },
         campaignId,
@@ -244,8 +247,16 @@ export default function LiveEncounterLauncher({ campaignId }) {
       </details>
 
       <ParticipantSection title="Party" count={players.length}>
-        {players.length === 0 && <span style={mutedStyle}>No campaign players are linked yet.</span>}
-        {players.map(player => <ToggleRow key={player.id} checked={includedPlayerIds.includes(player.id)} title={player.name || player.character_name || 'Player'} meta="Player character" onClick={() => toggle(player.id, includedPlayerIds, setIncludedPlayerIds)} />)}
+        {players.length === 0 && <span style={mutedStyle}>No linked player characters yet.</span>}
+        {players.map(player => (
+          <ToggleRow
+            key={player.id}
+            checked={includedPlayerIds.includes(player.id)}
+            title={player.name || player.character_name || 'Player'}
+            meta={`${player.character_class || 'Player'}${player.level ? ` · L${player.level}` : ''} · HP ${player.hp ?? '?'} / ${player.max_hp ?? '?'} · AC ${player.ac ?? '?'}`}
+            onClick={() => toggle(player.id, includedPlayerIds, setIncludedPlayerIds)}
+          />
+        ))}
       </ParticipantSection>
 
       <ParticipantSection title="Travelling NPC Suggestions" count={companionNpcs.length} accent>
@@ -293,8 +304,8 @@ const descriptionStyle = { background: rq.bg, border: `1px solid ${rq.line}`, co
 const sectionStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 8, display: 'grid', gap: 6 };
 const sectionHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 8, color: rq.text, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' };
 const rowsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 4 };
-const rowStyle = (checked) => ({ minHeight: 42, background: checked ? rq.card : rq.bg, border: `1px solid ${checked ? rq.red : rq.line}`, color: rq.text, padding: '5px 7px', display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontFamily: fontStack });
-const checkStyle = (checked) => ({ width: 22, height: 22, display: 'grid', placeItems: 'center', flex: '0 0 22px', background: checked ? rq.red : rq.card, color: checked ? '#fff' : rq.muted, border: `1px solid ${checked ? rq.red : rq.line}` });
+const rowStyle = checked => ({ minHeight: 42, background: checked ? rq.card : rq.bg, border: `1px solid ${checked ? rq.red : rq.line}`, color: rq.text, padding: '5px 7px', display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontFamily: fontStack });
+const checkStyle = checked => ({ width: 22, height: 22, display: 'grid', placeItems: 'center', flex: '0 0 22px', background: checked ? rq.red : rq.card, color: checked ? '#fff' : rq.muted, border: `1px solid ${checked ? rq.red : rq.line}` });
 const rowTitleStyle = { display: 'block', color: rq.text, fontSize: 11, fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const rowMetaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const detailsStyle = { background: rq.panel, border: `1px solid ${rq.line}` };
