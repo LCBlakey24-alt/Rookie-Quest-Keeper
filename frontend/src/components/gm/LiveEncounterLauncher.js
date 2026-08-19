@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Play, Search, Swords, UserPlus, Users, X } from 'lucide-react';
+import { Check, Play, Plus, Search, Swords, Trash2, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
@@ -69,6 +69,8 @@ function appendUnique(list, combatant) {
   return list.some(existing => sameCombatant(existing, combatant)) ? list : [...list, combatant];
 }
 
+const EMPTY_QUICK = { name: '', quantity: 1, hp: 10, ac: 10, initiative: 0 };
+
 export default function LiveEncounterLauncher({ campaignId }) {
   const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState('Campaign');
@@ -82,6 +84,8 @@ export default function LiveEncounterLauncher({ campaignId }) {
   const [includedCompanionIds, setIncludedCompanionIds] = useState([]);
   const [extraNpcIds, setExtraNpcIds] = useState([]);
   const [npcSearch, setNpcSearch] = useState('');
+  const [quickCombatants, setQuickCombatants] = useState([]);
+  const [quickDraft, setQuickDraft] = useState(EMPTY_QUICK);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -128,6 +132,8 @@ export default function LiveEncounterLauncher({ campaignId }) {
     setIncludedCompanionIds([]);
     setExtraNpcIds([]);
     setNpcSearch('');
+    setQuickCombatants([]);
+    setQuickDraft(EMPTY_QUICK);
   }, [selectedId, baseCombatants]);
 
   const companionNpcs = useMemo(() => companionIds.map(id => npcs.find(npc => npc.id === id)).filter(Boolean), [companionIds, npcs]);
@@ -138,6 +144,32 @@ export default function LiveEncounterLauncher({ campaignId }) {
 
   const toggle = (value, list, setter) => setter(list.includes(value) ? list.filter(item => item !== value) : [...list, value]);
 
+  const addQuickCombatants = () => {
+    const name = String(quickDraft.name || '').trim();
+    if (!name) return;
+    const quantity = Math.max(1, Math.min(20, Math.floor(numberOr(quickDraft.quantity, 1))));
+    const hp = Math.max(1, Math.floor(numberOr(quickDraft.hp, 10)));
+    const ac = Math.max(1, Math.floor(numberOr(quickDraft.ac, 10)));
+    const initiativeMod = Math.floor(numberOr(quickDraft.initiative, 0));
+    const stamp = Date.now();
+    const created = Array.from({ length: quantity }, (_, index) => ({
+      id: `quick-${stamp}-${index}`,
+      name: quantity === 1 ? name : `${name} ${index + 1}`,
+      type: 'enemy',
+      hp,
+      maxHp: hp,
+      ac,
+      initiativeMod,
+      conditions: [],
+      tokenColor: '#d00000',
+      tokenSize: 40,
+      temporary: true,
+    }));
+    setQuickCombatants(prev => [...prev, ...created]);
+    setQuickDraft(prev => ({ ...EMPTY_QUICK, hp: prev.hp, ac: prev.ac, initiative: prev.initiative }));
+    toast.success(`${quantity} temporary combatant${quantity === 1 ? '' : 's'} added`);
+  };
+
   const launch = () => {
     if (!selected) return;
     let combatants = [];
@@ -147,7 +179,9 @@ export default function LiveEncounterLauncher({ campaignId }) {
     players.filter(player => includedPlayerIds.includes(player.id)).forEach(player => { combatants = appendUnique(combatants, playerToCombatant(player)); });
     companionNpcs.filter(npc => includedCompanionIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
     npcs.filter(npc => extraNpcIds.includes(npc.id)).forEach(npc => { combatants = appendUnique(combatants, npcToCombatant(npc)); });
+    quickCombatants.forEach(combatant => { combatants = appendUnique(combatants, combatant); });
 
+    try { localStorage.setItem(`gm.lastEncounter.${campaignId}`, selected.id || ''); } catch { /* ignore */ }
     navigate('/combat', {
       state: {
         scenario: { ...selected, combatants, name: selected.name || 'Live Encounter' },
@@ -176,13 +210,38 @@ export default function LiveEncounterLauncher({ campaignId }) {
       {selected?.description && <div style={descriptionStyle}>{selected.description}</div>}
 
       <ParticipantSection title="Prepared Participants" count={baseCombatants.length}>
-        {baseCombatants.length === 0 && <span style={mutedStyle}>No participants were saved in this blueprint.</span>}
+        {baseCombatants.length === 0 && <span style={mutedStyle}>No saved participants. Add temporary combatants below or pull in a saved NPC.</span>}
         {baseCombatants.map((combatant, index) => {
           const key = combatantKey(combatant, index);
           const checked = enabledBaseKeys.includes(key);
           return <ToggleRow key={key} checked={checked} title={combatant.name || 'Combatant'} meta={combatant.type || 'Prepared'} onClick={() => toggle(key, enabledBaseKeys, setEnabledBaseKeys)} />;
         })}
       </ParticipantSection>
+
+      <details key={`quick-${selectedId}`} open={baseCombatants.length === 0 ? true : undefined} style={detailsStyle}>
+        <summary style={summaryStyle}><Plus size={14} /> Quick Combatant <span style={summaryCountStyle}>{quickCombatants.length}</span></summary>
+        <div style={detailsBodyStyle}>
+          <div style={quickFormStyle}>
+            <input value={quickDraft.name} onChange={event => setQuickDraft(prev => ({ ...prev, name: event.target.value }))} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); addQuickCombatants(); } }} placeholder="Name" style={quickInputStyle} />
+            <label style={numberFieldStyle}><span>Qty</span><input type="number" min="1" max="20" value={quickDraft.quantity} onChange={event => setQuickDraft(prev => ({ ...prev, quantity: event.target.value }))} style={quickNumberStyle} /></label>
+            <label style={numberFieldStyle}><span>HP</span><input type="number" min="1" value={quickDraft.hp} onChange={event => setQuickDraft(prev => ({ ...prev, hp: event.target.value }))} style={quickNumberStyle} /></label>
+            <label style={numberFieldStyle}><span>AC</span><input type="number" min="1" value={quickDraft.ac} onChange={event => setQuickDraft(prev => ({ ...prev, ac: event.target.value }))} style={quickNumberStyle} /></label>
+            <label style={numberFieldStyle}><span>Init</span><input type="number" value={quickDraft.initiative} onChange={event => setQuickDraft(prev => ({ ...prev, initiative: event.target.value }))} style={quickNumberStyle} /></label>
+            <button type="button" onClick={addQuickCombatants} disabled={!String(quickDraft.name || '').trim()} style={quickAddStyle}><Plus size={14} /> Add</button>
+          </div>
+          {quickCombatants.length > 0 && (
+            <div style={resultsStyle}>
+              {quickCombatants.map(item => (
+                <div key={item.id} style={quickRowStyle}>
+                  <span style={{ minWidth: 0 }}><strong style={rowTitleStyle}>{item.name}</strong><span style={rowMetaStyle}>HP {item.maxHp} · AC {item.ac} · Init {item.initiativeMod >= 0 ? '+' : ''}{item.initiativeMod}</span></span>
+                  <button type="button" onClick={() => setQuickCombatants(prev => prev.filter(combatant => combatant.id !== item.id))} style={removeQuickStyle} title="Remove"><Trash2 size={13} /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <span style={mutedStyle}>Temporary only — these combatants are added to this run and do not rewrite the saved encounter.</span>
+        </div>
+      </details>
 
       <ParticipantSection title="Party" count={players.length}>
         {players.length === 0 && <span style={mutedStyle}>No campaign players are linked yet.</span>}
@@ -240,10 +299,18 @@ const rowTitleStyle = { display: 'block', color: rq.text, fontSize: 11, fontWeig
 const rowMetaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const detailsStyle = { background: rq.panel, border: `1px solid ${rq.line}` };
 const summaryStyle = { minHeight: 38, padding: '0 9px', display: 'flex', alignItems: 'center', gap: 6, color: rq.soft, cursor: 'pointer', fontSize: 11, fontWeight: 900, listStyle: 'none' };
+const summaryCountStyle = { marginLeft: 'auto', color: rq.muted, fontSize: 9 };
 const detailsBodyStyle = { borderTop: `1px solid ${rq.line}`, padding: 8, display: 'grid', gap: 6 };
 const searchStyle = { minHeight: 34, display: 'flex', alignItems: 'center', gap: 6, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.muted, padding: '0 7px' };
 const searchInputStyle = { minWidth: 0, flex: 1, minHeight: 32, border: 0, outline: 0, background: 'transparent', color: rq.text, fontSize: 11 };
 const resultsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 4 };
+const quickFormStyle = { display: 'grid', gridTemplateColumns: 'minmax(130px, 2fr) repeat(4, minmax(60px, 0.55fr)) auto', gap: 5, alignItems: 'end' };
+const quickInputStyle = { minHeight: 34, minWidth: 0, background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 7px', fontSize: 11 };
+const numberFieldStyle = { display: 'grid', gap: 2, color: rq.muted, fontSize: 8, fontWeight: 900, textTransform: 'uppercase' };
+const quickNumberStyle = { width: '100%', minWidth: 0, minHeight: 34, boxSizing: 'border-box', background: rq.bg, border: `1px solid ${rq.line}`, color: rq.text, padding: '0 5px', fontSize: 11 };
+const quickAddStyle = { minHeight: 34, border: 0, background: rq.red, color: '#fff', padding: '0 9px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, cursor: 'pointer', fontSize: 10, fontWeight: 950 };
+const quickRowStyle = { minHeight: 40, background: rq.bg, border: `1px solid ${rq.line}`, padding: '5px 6px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 30px', alignItems: 'center', gap: 5 };
+const removeQuickStyle = { width: 28, height: 28, border: 0, background: rq.card, color: rq.muted, display: 'grid', placeItems: 'center', cursor: 'pointer' };
 const footerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: rq.card, border: `1px solid ${rq.line}`, padding: 8 };
 const footerTextStyle = { color: rq.muted, fontSize: 10 };
 const launchButtonStyle = { minHeight: 36, border: 0, background: rq.red, color: '#fff', padding: '0 12px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 950 };
