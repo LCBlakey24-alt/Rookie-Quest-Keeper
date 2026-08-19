@@ -1,34 +1,29 @@
 import { Backpack, Book, Church, Clock, FileJson, FileText, Globe, Mail, Map, Monitor, ScrollText, Swords, Upload, UserCircle, Users } from 'lucide-react';
 
 export const tabGroups = [
-  { id: 'start', label: 'Start Here', icon: Monitor, tabs: [
+  { id: 'campaign', label: 'Campaign', icon: Monitor, tabs: [
     { id: 'command-centre', icon: Monitor, label: 'GM Home' },
     { id: 'story-arcs', icon: ScrollText, label: 'Quests' },
-    { id: 'players', icon: Users, label: 'Players & Join Code' },
+    { id: 'players', icon: Users, label: 'Players' },
   ] },
-  { id: 'world', label: 'My World', icon: Globe, tabs: [
-    { id: 'maps', icon: Map, label: 'Maps & Locations' },
-    { id: 'setting', icon: Book, label: 'World Notes' },
-    { id: 'chronicle', icon: Clock, label: 'Timeline' },
-  ] },
-  { id: 'people', label: 'NPCs', icon: UserCircle, tabs: [
+  { id: 'world', label: 'World', icon: Globe, tabs: [
     { id: 'npcs', icon: UserCircle, label: 'NPCs' },
+    { id: 'maps', icon: Map, label: 'Maps & Locations' },
     { id: 'gods', icon: Church, label: 'Factions & Powers' },
+    { id: 'setting', icon: Book, label: 'World Notes' },
+    { id: 'chronicle', icon: Clock, label: 'Timeline & Calendar' },
   ] },
-  { id: 'combat', label: 'Combat', icon: Swords, tabs: [
-    { id: 'combat', icon: Swords, label: 'Premade Combat' },
-    { id: 'battle-maps', icon: Map, label: 'Battle Maps' },
+  { id: 'prep', label: 'Prep', icon: Swords, tabs: [
+    { id: 'combat', icon: Swords, label: 'Encounters' },
     { id: 'inventory', icon: Backpack, label: 'Loot & Rewards' },
+    { id: 'ingame-notes', icon: FileText, label: 'Notes' },
+    { id: 'handouts', icon: Mail, label: 'Handouts' },
   ] },
-  { id: 'sessions', label: 'Notes & Handouts', icon: FileText, tabs: [
-    { id: 'ingame-notes', icon: FileText, label: 'Campaign Notes' },
-    { id: 'handouts', icon: Mail, label: 'Handouts & Secrets' },
-    { id: 'uploads', icon: Upload, label: 'Uploads' },
-  ] },
-  { id: 'setup', label: 'Setup & References', icon: Book, tabs: [
+  { id: 'more', label: 'More', icon: Book, tabs: [
     { id: 'tools', icon: ScrollText, label: 'Tables & References' },
-    { id: 'campaign-rules', icon: Book, label: 'Campaign Settings' },
+    { id: 'campaign-rules', icon: Book, label: 'Rules & Settings' },
     { id: 'world-builder', icon: Globe, label: 'World Builder' },
+    { id: 'uploads', icon: Upload, label: 'Uploads' },
     { id: 'playtest-packs', icon: FileJson, label: 'Playtest Packs' },
   ] },
 ];
