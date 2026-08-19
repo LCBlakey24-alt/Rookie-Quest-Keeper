@@ -109,6 +109,7 @@ export default function CombatPageTable() {
   const [initialised, setInitialised] = useState(false);
   const [combatBanner, setCombatBanner] = useState(null);
   const bannerTimerRef = useRef(null);
+  const initiativeSubmissionRef = useRef({});
 
   useEffect(() => () => {
     if (bannerTimerRef.current) window.clearTimeout(bannerTimerRef.current);
@@ -204,6 +205,8 @@ export default function CombatPageTable() {
       const activeId = active ? (active.type === 'player' ? `player-${active.id}` : active.id) : '';
       const mapUrl = selectedMap?.map_url || selectedMap?.background_url || selectedMap?.backgroundImage || selectedMap?.background_image || '';
       publishCampaignDisplayState(campaignId, createDisplayState('combat', {
+        combat_id: scenario.id || scenario.name || 'combat',
+        scenario_id: scenario.id || '',
         title: scenario.name || 'Combat',
         round,
         active_id: activeId,
@@ -215,6 +218,61 @@ export default function CombatPageTable() {
     }, 120);
     return () => window.clearTimeout(timer);
   }, [active, campaignId, combatBanner, combatants, initialised, round, scenario, selectedMap]);
+
+  useEffect(() => {
+    if (!initialised || !scenario || !campaignId) return undefined;
+    let cancelled = false;
+
+    const syncPlayerInitiative = async () => {
+      try {
+        const response = await apiClient.get(`/campaigns/${campaignId}/combat-initiative/submissions`);
+        if (cancelled) return;
+        const rows = safeArray(response.data?.submissions);
+        if (!rows.length) return;
+
+        const byCharacter = new Map(rows.filter(row => row?.character_id).map(row => [row.character_id, row]));
+        const activeId = combatants[currentTurn]?.id || '';
+        const announced = [];
+        let changed = false;
+
+        const updated = combatants.map(combatant => {
+          if (combatant.type !== 'player') return combatant;
+          const characterId = combatant.character_id || combatant.id;
+          const submission = byCharacter.get(characterId);
+          if (!submission) return combatant;
+
+          const initiative = numberOr(submission.initiative, combatant.initiative);
+          const signature = `${initiative}:${submission.updated_at || ''}`;
+          if (initiativeSubmissionRef.current[characterId] !== signature) {
+            initiativeSubmissionRef.current[characterId] = signature;
+            announced.push(submission);
+          }
+          if (initiative === combatant.initiative && combatant.initiativeSource === 'player') return combatant;
+          changed = true;
+          return { ...combatant, initiative, initiativeSource: 'player' };
+        });
+
+        if (changed) {
+          updated.sort((a, b) => b.initiative - a.initiative);
+          setCombatants(updated);
+          if (activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
+        }
+
+        announced.forEach(submission => {
+          toast.success(`${submission.character_name || 'Player'} submitted initiative ${submission.initiative}`);
+        });
+      } catch {
+        // Initiative sharing is additive; combat remains fully usable if polling fails.
+      }
+    };
+
+    syncPlayerInitiative();
+    const interval = window.setInterval(syncPlayerInitiative, 2200);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [campaignId, combatants, currentTurn, initialised, scenario]);
 
   const focusCombatant = (id) => {
     setExpandedId(id);
@@ -293,7 +351,7 @@ export default function CombatPageTable() {
 
   const updateInitiative = (id, value) => {
     const activeId = active?.id;
-    const updated = combatants.map(combatant => combatant.id === id ? { ...combatant, initiative: numberOr(value, combatant.initiative) } : combatant)
+    const updated = combatants.map(combatant => combatant.id === id ? { ...combatant, initiative: numberOr(value, combatant.initiative), initiativeSource: 'gm' } : combatant)
       .sort((a, b) => b.initiative - a.initiative);
     setCombatants(updated);
     if (activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
@@ -304,7 +362,7 @@ export default function CombatPageTable() {
     const updated = combatants.map(combatant => {
       if (id && combatant.id !== id) return combatant;
       const initiativeRoll = Math.floor(Math.random() * 20) + 1;
-      return { ...combatant, initiativeRoll, initiative: initiativeRoll + numberOr(combatant.initiativeMod, 0) };
+      return { ...combatant, initiativeRoll, initiative: initiativeRoll + numberOr(combatant.initiativeMod, 0), initiativeSource: 'rook' };
     }).sort((a, b) => b.initiative - a.initiative);
     setCombatants(updated);
     if (id && activeId) setCurrentTurn(Math.max(0, updated.findIndex(item => item.id === activeId)));
@@ -405,6 +463,7 @@ export default function CombatPageTable() {
     try {
       await syncPlayerState();
       if (collectedLoot.length) await saveLoot();
+      await apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
       try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
       await publishCampaignDisplayState(campaignId, createDisplayState('blank', {
         title: 'Combat ended',
@@ -420,6 +479,8 @@ export default function CombatPageTable() {
   const resetCheckpoint = () => {
     if (!window.confirm('Reset this fight to the encounter start and reroll initiative?')) return;
     try { localStorage.removeItem(combatKey); } catch { /* ignore */ }
+    apiClient.delete(`/campaigns/${campaignId}/combat-initiative/submissions`).catch(() => null);
+    initiativeSubmissionRef.current = {};
     const loaded = safeArray(scenario?.combatants).map(initialiseCombatant).sort((a, b) => b.initiative - a.initiative);
     setCombatants(loaded);
     setCurrentTurn(0);
@@ -460,16 +521,19 @@ export default function CombatPageTable() {
           </section>
 
           <details className="combat-initiative-panel">
-            <summary><Dices size={14} /> Initiative Setup <span>Manual or rolled</span></summary>
+            <summary><Dices size={14} /> Initiative Setup <span>GM · Rook · player phones</span></summary>
             <div className="combat-initiative-body">
               <div className="combat-initiative-tools">
-                <span>Enter final initiative totals for physical dice, or let Rook roll.</span>
+                <span>Players can submit from their campaign page. You can also enter physical totals here or let Rook roll.</span>
                 <button type="button" onClick={() => rerollInitiative(null)}><Dices size={13} /> Roll All</button>
               </div>
               <div className="combat-initiative-grid">
                 {combatants.map(combatant => (
                   <div key={combatant.id} className="combat-initiative-row">
-                    <span><strong>{combatant.name}</strong><small>{combatant.initiativeMod >= 0 ? '+' : ''}{combatant.initiativeMod} mod</small></span>
+                    <span>
+                      <strong>{combatant.name}</strong>
+                      <small>{combatant.initiativeMod >= 0 ? '+' : ''}{combatant.initiativeMod} mod{combatant.initiativeSource === 'player' ? ' · Player submitted' : combatant.initiativeSource === 'rook' ? ' · Rook rolled' : ''}</small>
+                    </span>
                     <input
                       key={`${combatant.id}-${combatant.initiative}`}
                       type="number"
