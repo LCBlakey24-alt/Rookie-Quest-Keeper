@@ -1,4 +1,4 @@
-import { isCacheableOfflineGet } from './offlineApiCache';
+import { getOfflineIdentityFromToken, isCacheableOfflineGet } from './offlineApiCache';
 
 describe('offline API cache boundaries', () => {
   test('allows read-only campaign and character data', () => {
@@ -25,5 +25,15 @@ describe('offline API cache boundaries', () => {
     expect(isCacheableOfflineGet({ method: 'get', url: '/srd/spells' })).toBe(true);
     expect(isCacheableOfflineGet({ method: 'get', url: '/rule-systems' })).toBe(true);
     expect(isCacheableOfflineGet({ method: 'get', url: '/player-rules/abc' })).toBe(true);
+  });
+
+  test('derives a stable lowercase account identity from the JWT subject', () => {
+    const encode = value => window.btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const tokenA = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: 'LewisBlakey', iat: 1, exp: 2 })}.signature-a`;
+    const tokenB = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: 'LewisBlakey', iat: 100, exp: 200 })}.signature-b`;
+
+    expect(getOfflineIdentityFromToken(tokenA)).toBe('lewisblakey');
+    expect(getOfflineIdentityFromToken(tokenB)).toBe('lewisblakey');
+    expect(getOfflineIdentityFromToken('not-a-jwt')).toBe('');
   });
 });
