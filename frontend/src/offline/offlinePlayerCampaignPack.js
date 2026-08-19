@@ -2,11 +2,17 @@ import apiClient from '@/lib/apiClient';
 import {
   getOfflineCacheKey,
   getOfflineCampaignPackMetadata,
+  listOfflineCampaignPacks,
   removeOfflineCampaignPack,
   saveOfflineCampaignPackMetadata,
   storeOfflineApiResponse,
 } from '@/offline/offlineApiCache';
 import { OFFLINE_PACK_VERSION } from '@/offline/offlineCampaignPack';
+import {
+  cacheOfflineMediaUrls,
+  extractOfflineMediaUrls,
+  removeOfflineMediaUrls,
+} from '@/offline/offlineMediaCache';
 
 function asList(data, key) {
   if (Array.isArray(data)) return data;
@@ -79,6 +85,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
   const sections = [];
   const recordKeys = [];
   const payloads = {};
+  const mediaPayloads = [];
   const requests = requestList(campaignId);
   let completed = 0;
 
@@ -87,6 +94,7 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
     try {
       const { response, recordKey } = await fetchAndPin(request);
       payloads[request.key] = response.data;
+      mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push({ ...request, status: 'saved', savedAt: Date.now() });
     } catch (error) {
@@ -115,7 +123,8 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       label: `Character ${characterCompleted + 1} of ${characterIds.length}`,
     });
     try {
-      const { recordKey } = await fetchAndPin(request);
+      const { response, recordKey } = await fetchAndPin(request);
+      mediaPayloads.push(response.data);
       if (recordKey) recordKeys.push(recordKey);
       sections.push({ ...request, status: 'saved', savedAt: Date.now() });
     } catch (error) {
@@ -127,6 +136,24 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
       });
     }
     characterCompleted += 1;
+  }
+
+  // Only media discovered inside the player-authorised payloads above is ever
+  // considered. The player pack never reads the GM handout/NPC/encounter APIs.
+  const discoveredMedia = extractOfflineMediaUrls(...mediaPayloads);
+  const mediaResult = await cacheOfflineMediaUrls(discoveredMedia, {
+    onProgress: mediaProgress => onProgress({ ...mediaProgress, phase: 'media' }),
+  });
+  if (discoveredMedia.length) {
+    sections.push({
+      key: 'media',
+      label: 'Shared images & attachments',
+      url: '',
+      status: mediaResult.failed.length ? 'unavailable' : 'saved',
+      ...(mediaResult.failed.length
+        ? { message: `${mediaResult.failed.length} of ${discoveredMedia.length} player-authorised media file${discoveredMedia.length === 1 ? '' : 's'} could not be stored offline.` }
+        : { savedAt: Date.now() }),
+    });
   }
 
   const failedSections = sections.filter(section => section.status !== 'saved');
@@ -143,7 +170,11 @@ export async function downloadPlayerOfflinePack(campaignId, options = {}) {
     successfulSections: sections.length - failedSections.length,
     failedSections: failedSections.length,
     complete: failedSections.length === 0,
-    mediaIncluded: false,
+    mediaUrls: mediaResult.saved,
+    mediaDiscovered: discoveredMedia.length,
+    mediaSaved: mediaResult.saved.length,
+    mediaFailed: mediaResult.failed.length,
+    mediaIncluded: mediaResult.saved.length > 0,
     playerSafe: true,
   });
 
@@ -156,5 +187,13 @@ export async function getPlayerOfflinePack(campaignId) {
 }
 
 export async function deletePlayerOfflinePack(campaignId) {
+  const current = await getOfflineCampaignPackMetadata(campaignId, 'player');
+  if (current?.mediaUrls?.length) {
+    const allPacks = await listOfflineCampaignPacks();
+    const protectedMedia = allPacks
+      .filter(pack => !(String(pack.campaignId) === String(campaignId) && pack.audience === 'player'))
+      .flatMap(pack => Array.isArray(pack.mediaUrls) ? pack.mediaUrls : []);
+    await removeOfflineMediaUrls(current.mediaUrls, protectedMedia);
+  }
   return removeOfflineCampaignPack(campaignId, 'player');
 }
