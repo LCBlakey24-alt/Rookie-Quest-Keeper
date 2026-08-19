@@ -24,16 +24,31 @@ function isIndexedDbAvailable() {
   return typeof window !== 'undefined' && 'indexedDB' in window;
 }
 
+export function getOfflineIdentityFromToken(token = '') {
+  try {
+    const parts = String(token).split('.');
+    if (parts.length < 2) return '';
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const payload = JSON.parse(window.atob(padded));
+    return String(payload?.sub || payload?.username || '').trim().toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
 export function getOfflineCacheScope() {
   try {
+    const token = getAuthToken();
+    const tokenIdentity = token ? getOfflineIdentityFromToken(token) : '';
+    if (tokenIdentity) return `user:${tokenIdentity}`;
+
     const username = localStorage.getItem(AUTH_USERNAME_KEY);
     if (username) return `user:${username.toLowerCase()}`;
-    const token = getAuthToken();
     if (!token) return 'anonymous';
 
-    // Small local fingerprint so a missing username does not make two signed-in
-    // accounts share the same cache namespace on one device. The token itself
-    // is never written into IndexedDB.
+    // Final fallback for legacy/non-JWT auth. The token itself is never written
+    // into IndexedDB, and normal Rookie JWTs should use their stable `sub` above.
     let hash = 2166136261;
     for (let i = 0; i < token.length; i += 1) {
       hash ^= token.charCodeAt(i);
