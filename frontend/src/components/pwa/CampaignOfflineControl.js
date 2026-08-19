@@ -7,31 +7,40 @@ import {
   formatOfflinePackAge,
   getCampaignOfflinePack,
 } from '@/offline/offlineCampaignPack';
+import {
+  deletePlayerOfflinePack,
+  downloadPlayerOfflinePack,
+  getPlayerOfflinePack,
+} from '@/offline/offlinePlayerCampaignPack';
 import '@/styles/offlineCampaignControl.css';
 
-function campaignIdFromPath(pathname = '') {
-  const match = pathname.match(/^\/(?:campaign|gm-screen)\/([^/?#]+)/);
-  return match ? decodeURIComponent(match[1]) : '';
+function campaignContextFromPath(pathname = '') {
+  const gmMatch = pathname.match(/^\/(?:campaign|gm-screen)\/([^/?#]+)/);
+  if (gmMatch) return { campaignId: decodeURIComponent(gmMatch[1]), audience: 'gm' };
+  const playerMatch = pathname.match(/^\/mobile\/([^/?#]+)/);
+  if (playerMatch) return { campaignId: decodeURIComponent(playerMatch[1]), audience: 'player' };
+  return { campaignId: '', audience: '' };
 }
 
-function useCampaignPathId() {
-  const [campaignId, setCampaignId] = useState(() => campaignIdFromPath(window.location.pathname));
+function useCampaignContext() {
+  const [context, setContext] = useState(() => campaignContextFromPath(window.location.pathname));
 
   useEffect(() => {
     let previous = window.location.pathname;
     const timer = window.setInterval(() => {
       if (window.location.pathname === previous) return;
       previous = window.location.pathname;
-      setCampaignId(campaignIdFromPath(previous));
+      setContext(campaignContextFromPath(previous));
     }, 600);
     return () => window.clearInterval(timer);
   }, []);
 
-  return campaignId;
+  return context;
 }
 
 export default function CampaignOfflineControl() {
-  const campaignId = useCampaignPathId();
+  const { campaignId, audience } = useCampaignContext();
+  const playerMode = audience === 'player';
   const [open, setOpen] = useState(false);
   const [pack, setPack] = useState(null);
   const [loadingPack, setLoadingPack] = useState(false);
@@ -54,14 +63,15 @@ export default function CampaignOfflineControl() {
     setOpen(false);
     setProgress(null);
     setPack(null);
-    if (!campaignId) return;
+    if (!campaignId || !audience) return;
     let cancelled = false;
     setLoadingPack(true);
-    getCampaignOfflinePack(campaignId)
+    const loader = playerMode ? getPlayerOfflinePack : getCampaignOfflinePack;
+    loader(campaignId)
       .then(value => { if (!cancelled) setPack(value); })
       .finally(() => { if (!cancelled) setLoadingPack(false); });
     return () => { cancelled = true; };
-  }, [campaignId]);
+  }, [audience, campaignId, playerMode]);
 
   const status = useMemo(() => {
     if (downloading) return { label: 'Downloading', tone: 'working' };
@@ -70,23 +80,24 @@ export default function CampaignOfflineControl() {
     return { label: 'Ready offline', tone: 'ready' };
   }, [downloading, pack]);
 
-  if (!campaignId) return null;
+  if (!campaignId || !audience) return null;
 
   const download = async () => {
     if (!online || downloading) return;
     setDownloading(true);
-    setProgress({ phase: 'campaign', completed: 0, total: 1, label: 'Starting…' });
+    setProgress({ phase: playerMode ? 'player' : 'campaign', completed: 0, total: 1, label: 'Starting…' });
     try {
-      const next = await downloadCampaignOfflinePack(campaignId, {
+      const downloader = playerMode ? downloadPlayerOfflinePack : downloadCampaignOfflinePack;
+      const next = await downloader(campaignId, {
         campaignName: pack?.campaignName,
         onProgress: setProgress,
       });
       setPack(next);
       toast.success(next?.failedSections
         ? `Offline copy saved with ${next.failedSections} unavailable section${next.failedSections === 1 ? '' : 's'}`
-        : 'Campaign downloaded for offline play');
+        : playerMode ? 'Player campaign downloaded for offline use' : 'Campaign downloaded for offline play');
     } catch (error) {
-      toast.error(error?.response?.data?.detail || error?.message || 'Could not download campaign for offline play');
+      toast.error(error?.response?.data?.detail || error?.message || 'Could not download campaign for offline use');
     } finally {
       setDownloading(false);
       setProgress(null);
@@ -96,7 +107,8 @@ export default function CampaignOfflineControl() {
   const remove = async () => {
     if (!pack || downloading) return;
     if (!window.confirm(`Remove the offline copy of ${pack.campaignName || 'this campaign'} from this device?`)) return;
-    await deleteCampaignOfflinePack(campaignId);
+    const remover = playerMode ? deletePlayerOfflinePack : deleteCampaignOfflinePack;
+    await remover(campaignId);
     setPack(null);
     toast.success('Offline campaign copy removed');
   };
@@ -105,12 +117,20 @@ export default function CampaignOfflineControl() {
     ? Math.max(4, Math.min(100, Math.round((progress.completed / progress.total) * 100)))
     : 0;
 
+  const description = playerMode
+    ? 'Your player campaign view, linked character sheets, party roster and shared handouts can reopen without internet. GM-only prep is never included.'
+    : 'Quests, NPCs, locations, encounters, notes, party data and other GM reads can reopen without internet. Offline editing is not enabled yet.';
+
+  const phaseLabel = progress?.phase === 'characters'
+    ? 'Character sheets'
+    : playerMode ? 'Player-safe campaign data' : 'Campaign data';
+
   return (
-    <div className="rqk-offline-control" data-open={open ? 'true' : 'false'}>
+    <div className="rqk-offline-control" data-open={open ? 'true' : 'false'} data-audience={audience}>
       {open && (
         <section className="rqk-offline-card" aria-label="Offline campaign">
           <header className="rqk-offline-card__header">
-            <span className="rqk-offline-card__title"><HardDrive size={16} /><strong>Offline Campaign</strong></span>
+            <span className="rqk-offline-card__title"><HardDrive size={16} /><strong>{playerMode ? 'Offline Player Pack' : 'Offline Campaign'}</strong></span>
             <button type="button" className="rqk-offline-icon-button" onClick={() => setOpen(false)} aria-label="Close offline campaign panel"><X size={15} /></button>
           </header>
 
@@ -125,7 +145,7 @@ export default function CampaignOfflineControl() {
 
             <div className="rqk-offline-copy">
               <strong>{pack?.campaignName || 'Save this campaign to this device'}</strong>
-              <p>Quests, NPCs, locations, encounters, notes, party data and other GM reads can reopen without internet. Offline editing is not enabled yet.</p>
+              <p>{description}</p>
             </div>
 
             {!online && (
@@ -134,7 +154,7 @@ export default function CampaignOfflineControl() {
 
             {downloading && progress && (
               <div className="rqk-offline-progress">
-                <span><strong>{progress.label}</strong><small>{progress.phase === 'characters' ? 'Character sheets' : 'Campaign data'}</small></span>
+                <span><strong>{progress.label}</strong><small>{phaseLabel}</small></span>
                 <div><i style={{ width: `${progressPercent}%` }} /></div>
               </div>
             )}
@@ -158,7 +178,11 @@ export default function CampaignOfflineControl() {
               </details>
             )}
 
-            <div className="rqk-offline-note">Campaign text/data is included in this phase. Downloading attached map images and handout files is the next media phase.</div>
+            <div className="rqk-offline-note">
+              {playerMode
+                ? 'This copy contains player-authorised data only. GM notes, secret NPC information, unrevealed handouts and encounter prep are excluded.'
+                : 'Campaign text/data is included in this phase. Downloading attached map images and handout files is the next media phase.'}
+            </div>
 
             <div className="rqk-offline-actions">
               <button type="button" className="rqk-offline-primary" onClick={download} disabled={!online || downloading || loadingPack}>
@@ -179,7 +203,7 @@ export default function CampaignOfflineControl() {
         data-tone={pack?.failedSections ? 'warning' : pack ? 'ready' : 'default'}
         onClick={() => setOpen(value => !value)}
         aria-expanded={open}
-        title="Offline campaign"
+        title={playerMode ? 'Offline player campaign' : 'Offline campaign'}
       >
         {pack ? <CheckCircle2 size={16} /> : <Download size={16} />}
         <span>Offline</span>
