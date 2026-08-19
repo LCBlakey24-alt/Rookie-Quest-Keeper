@@ -9,7 +9,7 @@ import {
 describe('Rookie Engine', () => {
   test('extracts a family name from an existing NPC', () => {
     expect(extractFamilyName('Lucian Grey')).toBe('Grey');
-    expect(extractFamilyName('Merithera Anora of Baldering')).toBe('Baldering');
+    expect(extractFamilyName('Merithera Anora of Balderin')).toBe('Balderin');
     expect(extractFamilyName('Godfrey')).toBe('');
   });
 
