@@ -26,6 +26,11 @@ function shouldUseCharacterPut(config) {
   return Object.keys(body).some(key => CHARACTER_PUT_ONLY_FIELDS.has(key));
 }
 
+function isAuthProbeNetworkFailure(error) {
+  const url = String(error?.config?.url || '');
+  return url === '/auth/me' && !error?.response;
+}
+
 const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 20000,
@@ -48,6 +53,20 @@ apiClient.interceptors.response.use(
     if (error?.response?.data?.detail) {
       error.formattedDetail = formatApiErrorDetail(error.response.data.detail);
     }
+
+    // /auth/me is an online validity probe, not the source of the local
+    // installed-app session. A network outage must not eject a player or GM
+    // from an already signed-in PWA/desktop shell. A real 401 still clears it.
+    if (isAuthProbeNetworkFailure(error)) {
+      return Promise.resolve({
+        data: { offline: true },
+        status: 200,
+        statusText: 'Offline',
+        headers: {},
+        config: error.config,
+      });
+    }
+
     if (error?.response?.status === 401) {
       clearAuthToken();
       localStorage.removeItem('dm_username');
